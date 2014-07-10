@@ -155,6 +155,15 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 	        add(value);
 		}
     }
+
+    @Override
+    public boolean add(PrismContainerValue newValue) throws SchemaException {
+        // when a context-less item is added to a contextful container, it is automatically adopted
+        if (newValue.getPrismContext() == null && this.prismContext != null) {
+            prismContext.adopt(newValue);
+        }
+        return super.add(newValue);
+    }
     
 	@Override
 	public PrismContainerValue<V> getPreviousValue(PrismValue value) {

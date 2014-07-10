@@ -133,6 +133,11 @@ public class TestDiffEquals {
         b2.setDescription("descr2");
         userWithContext.getAssignment().add(b2);             // this works, because there's already prismContext in userWithContext
 
+        // b1 and b2 obtain context when they are added to the container
+        assertNotNull(b1.asPrismContainerValue().getPrismContext());
+        assertNotNull(b2.asPrismContainerValue().getPrismContext());
+        assertFalse(b1.equals(b2));
+
         userWithContext.asPrismObject().createDelta();       // this works as well
     }
 

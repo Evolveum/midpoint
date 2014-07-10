@@ -475,6 +475,10 @@ public class PrismContext {
         containerable.asPrismContainerValue().revive(this);
     }
 
+    public void adopt(PrismContainerValue value) throws SchemaException {
+        value.revive(this);
+    }
+
     public <T extends Objectable> void adopt(ObjectDelta<T> delta) throws SchemaException {
 		delta.revive(this);
 		getSchemaRegistry().applyDefinition(delta, delta.getObjectTypeClass(), false);
