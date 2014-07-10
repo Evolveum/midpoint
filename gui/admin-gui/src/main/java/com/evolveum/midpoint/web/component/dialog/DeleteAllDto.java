@@ -27,23 +27,42 @@ public class DeleteAllDto implements Serializable{
     public static final String F_USERS = "deleteUsers";
     public static final String F_ORGS = "deleteOrgs";
     public static final String F_ACC_SHADOW = "deleteAccountShadow";
-    public static final String F_ORG_SHADOW = "deleteOrgShadow";
-    public static final String F_ROLE_SHADOW = "deleteRoleShadow";
+    public static final String F_NON_ACC_SHADOW = "deleteNonAccountShadow";
+//    public static final String F_ORG_SHADOW = "deleteOrgShadow";
+//    public static final String F_ROLE_SHADOW = "deleteRoleShadow";
 
     private boolean deleteUsers = false;
     private boolean deleteOrgs = false;
     private boolean deleteAccountShadow = false;
-    private boolean deleteRoleShadow = false;
-    private boolean deleteOrgShadow = false;
+    private boolean deleteNonAccountShadow = false;
+//    private boolean deleteRoleShadow = false;
+//    private boolean deleteOrgShadow = false;
 
     private int objectsToDelete = 0;
-    private int accountShadowTypeCount = 0;
+    private int accountShadowCount = 0;
+    private int nonAccountShadowCount = 0;
     private int orgUnitCount = 0;
     private int userCount = 0;
-    private int orgShadowCount = 0;
-    private int roleShadowCount = 0;
+//    private int orgShadowCount = 0;
+//    private int roleShadowCount = 0;
 
     private Map<String, String> resourceFocusMap = new HashMap<>();
+
+    public int getNonAccountShadowCount() {
+        return nonAccountShadowCount;
+    }
+
+    public void setNonAccountShadowCount(int nonAccountShadowCount) {
+        this.nonAccountShadowCount = nonAccountShadowCount;
+    }
+
+    public boolean getDeleteNonAccountShadow() {
+        return deleteNonAccountShadow;
+    }
+
+    public void setDeleteNonAccountShadow(boolean deleteNonAccountShadow) {
+        this.deleteNonAccountShadow = deleteNonAccountShadow;
+    }
 
     public Map<String, String> getResourceFocusMap() {
         return resourceFocusMap;
@@ -77,21 +96,21 @@ public class DeleteAllDto implements Serializable{
         this.deleteAccountShadow = deleteAccountShadow;
     }
 
-    public boolean getDeleteRoleShadow() {
-        return deleteRoleShadow;
-    }
+//    public boolean getDeleteRoleShadow() {
+//        return deleteRoleShadow;
+//    }
 
-    public void setDeleteRoleShadow(boolean deleteRoleShadow) {
-        this.deleteRoleShadow = deleteRoleShadow;
-    }
+//    public void setDeleteRoleShadow(boolean deleteRoleShadow) {
+//        this.deleteRoleShadow = deleteRoleShadow;
+//    }
 
-    public boolean getDeleteOrgShadow() {
-        return deleteOrgShadow;
-    }
+//    public boolean getDeleteOrgShadow() {
+//        return deleteOrgShadow;
+//    }
 
-    public void setDeleteOrgShadow(boolean deleteOrgShadow) {
-        this.deleteOrgShadow = deleteOrgShadow;
-    }
+//    public void setDeleteOrgShadow(boolean deleteOrgShadow) {
+//        this.deleteOrgShadow = deleteOrgShadow;
+//    }
 
     public int getObjectsToDelete() {
         return objectsToDelete;
@@ -101,12 +120,12 @@ public class DeleteAllDto implements Serializable{
         this.objectsToDelete = objectsToDelete;
     }
 
-    public int getAccountShadowTypeCount() {
-        return accountShadowTypeCount;
+    public int getAccountShadowCount() {
+        return accountShadowCount;
     }
 
-    public void setAccountShadowTypeCount(int accountShadowTypeCount) {
-        this.accountShadowTypeCount = accountShadowTypeCount;
+    public void setAccountShadowCount(int accountShadowCount) {
+        this.accountShadowCount = accountShadowCount;
     }
 
     public int getOrgUnitCount() {
@@ -125,19 +144,19 @@ public class DeleteAllDto implements Serializable{
         this.userCount = userCount;
     }
 
-    public int getOrgShadowCount() {
-        return orgShadowCount;
-    }
+//    public int getOrgShadowCount() {
+//        return orgShadowCount;
+//    }
 
-    public void setOrgShadowCount(int orgShadowCount) {
-        this.orgShadowCount = orgShadowCount;
-    }
+//    public void setOrgShadowCount(int orgShadowCount) {
+//        this.orgShadowCount = orgShadowCount;
+//    }
 
-    public int getRoleShadowCount() {
-        return roleShadowCount;
-    }
+//    public int getRoleShadowCount() {
+//        return roleShadowCount;
+//    }
 
-    public void setRoleShadowCount(int roleShadowCount) {
-        this.roleShadowCount = roleShadowCount;
-    }
+//    public void setRoleShadowCount(int roleShadowCount) {
+//        this.roleShadowCount = roleShadowCount;
+//    }
 }
