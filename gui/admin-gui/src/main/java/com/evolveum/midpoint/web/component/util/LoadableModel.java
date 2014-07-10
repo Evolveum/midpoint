@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.web.component.util;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.model.IModel;
 
 public abstract class LoadableModel<T> implements IModel<T> {
@@ -101,4 +104,11 @@ public abstract class LoadableModel<T> implements IModel<T> {
 
     protected void onDetach() {
     }
+
+    public void revive(PrismContext prismContext) throws SchemaException {
+        if (isLoaded()) {
+            WebMiscUtil.reviveObject(object, prismContext);
+        }
+    }
+
 }

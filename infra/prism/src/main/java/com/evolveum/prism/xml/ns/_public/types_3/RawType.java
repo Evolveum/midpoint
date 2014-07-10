@@ -96,7 +96,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 				Item<V> subItem = PrismUtil.getXnodeProcessor(prismContext).parseItem(xnode, itemName, itemDefinition);
 				value = subItem.getValue(0);
 			} else {
-				PrismProperty<V> subItem = XNodeProcessor.parsePrismPropertyRaw(xnode, itemName);
+				PrismProperty<V> subItem = XNodeProcessor.parsePrismPropertyRaw(xnode, itemName, prismContext);
 				value = (V) subItem.getValue();
 			}
             xnode = null;

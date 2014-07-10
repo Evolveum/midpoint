@@ -2330,7 +2330,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ItemPath employeeTypePath = new ItemPath(ShadowType.F_ATTRIBUTES, employeeTypeQName);
         PrismProperty item = shadow.findProperty(employeeTypePath);
         
-        PropertyDelta deleteDelta = new PropertyDelta(new ItemPath(ShadowType.F_ATTRIBUTES), item.getDefinition().getName(), item.getDefinition());
+        PropertyDelta deleteDelta = new PropertyDelta(new ItemPath(ShadowType.F_ATTRIBUTES), item.getDefinition().getName(), item.getDefinition(), prismContext);
 //        PropertyDelta deleteDelta = PropertyDelta.createDelta(employeeTypePath, shadow.getDefinition());
 //        PrismPropertyValue valToDelte = new PrismPropertyValue("A");
 //        valToDelte.setParent(deleteDelta);

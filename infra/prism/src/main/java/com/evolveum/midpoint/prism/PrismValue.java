@@ -34,7 +34,7 @@ import java.util.Set;
  * @author semancik
  *
  */
-public abstract class PrismValue implements Visitable, PathVisitable, Serializable, DebugDumpable {
+public abstract class PrismValue implements Visitable, PathVisitable, Serializable, DebugDumpable, Revivable {
 	
 	private OriginType originType;
     private Objectable originObject;

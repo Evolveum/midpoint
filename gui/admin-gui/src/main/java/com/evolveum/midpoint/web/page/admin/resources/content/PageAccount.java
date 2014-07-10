@@ -198,8 +198,9 @@ public class PageAccount extends PageAdminResources {
         LOGGER.debug("Saving account changes.");
 
         OperationResult result = new OperationResult(OPERATION_SAVE_ACCOUNT);
-        ObjectWrapper wrapper = accountModel.getObject();
         try {
+            WebMiscUtil.revive(accountModel, getPrismContext());
+            ObjectWrapper wrapper = accountModel.getObject();
             ObjectDelta<ShadowType> delta = wrapper.getObjectDelta();
             if (delta == null) {
                 return;

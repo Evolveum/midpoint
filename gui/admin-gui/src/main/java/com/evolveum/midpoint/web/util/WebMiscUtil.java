@@ -35,13 +35,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -553,5 +557,48 @@ public final class WebMiscUtil {
                 target.add(component);
             }
         });
+    }
+
+    /*
+     *  Methods used for providing prismContext into various objects.
+     */
+    public static void revive(LoadableModel<?> loadableModel, PrismContext prismContext) throws SchemaException {
+        if (loadableModel != null) {
+            loadableModel.revive(prismContext);
+        }
+    }
+
+    public static void revive(IModel<?> model, PrismContext prismContext) throws SchemaException {
+        if (model != null && model.getObject() != null) {
+            reviveObject(model.getObject(), prismContext);
+        }
+    }
+
+    public static void reviveObject(Object object, PrismContext prismContext) throws SchemaException {
+        if (object == null) {
+            return;
+        }
+        if (object instanceof Collection) {
+            for (Object item : (Collection) object) {
+                reviveObject(item, prismContext);
+            }
+        } else if (object instanceof Revivable) {
+            ((Revivable) object).revive(prismContext);
+        }
+    }
+
+    // useful for components other than those inheriting from PageBase
+    public static PrismContext getPrismContext(Component component) {
+        return ((MidPointApplication) component.getApplication()).getPrismContext();
+    }
+
+    public static void reviveIfNeeded(ObjectType objectType, Component component) {
+        if (objectType != null && objectType.asPrismObject().getPrismContext() == null) {
+            try {
+                objectType.asPrismObject().revive(getPrismContext(component));
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't revive " + objectType + " because of schema exception", e);
+            }
+        }
     }
 }

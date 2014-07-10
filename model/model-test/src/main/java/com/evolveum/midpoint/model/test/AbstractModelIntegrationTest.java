@@ -737,7 +737,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			if (targetRef != null) {
 				if (targetRef.getType().equals(RoleType.COMPLEX_TYPE)) {
 					ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-					PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
+					PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
 					cval.setId(assignment.getId());
 					assignmentDelta.addValueToDelete(cval);
 					modifications.add(assignmentDelta);
@@ -815,7 +815,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation, 
 			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
+		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
 		if (add) {
 			assignmentDelta.addValueToAdd(cval);
 		} else {
@@ -894,7 +894,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ObjectDelta<UserType> createReplaceAccountConstructionUserDelta(String userOid, Long id, ConstructionType newValue) throws SchemaException {
         PrismContainerDefinition pcd = getAssignmentDefinition().findContainerDefinition(AssignmentType.F_CONSTRUCTION);
-        ContainerDelta<ConstructionType> acDelta = new ContainerDelta<ConstructionType>(new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT), new IdItemPathSegment(id), new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)), pcd);
+        ContainerDelta<ConstructionType> acDelta = new ContainerDelta<ConstructionType>(new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT), new IdItemPathSegment(id), new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)), pcd, prismContext);
 //                ContainerDelta.createDelta(prismContext, ConstructionType.class, AssignmentType.F_CONSTRUCTION);
         acDelta.setValueToReplace(newValue.asPrismContainerValue());
 //        PropertyDelta.createModificationReplaceProperty(
@@ -1586,7 +1586,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         	assignmentDeltaValue = assignmentDelta.getValuesToDelete().iterator().next();
         }
         PrismContainer<ActivationType> activationContainer = assignmentDeltaValue.findOrCreateContainer(AssignmentType.F_ACTIVATION);
-        PrismContainerValue<ActivationType> emptyValue = new PrismContainerValue<ActivationType>();
+        PrismContainerValue<ActivationType> emptyValue = new PrismContainerValue<ActivationType>(prismContext);
 		activationContainer.add(emptyValue);		
 	}
 	

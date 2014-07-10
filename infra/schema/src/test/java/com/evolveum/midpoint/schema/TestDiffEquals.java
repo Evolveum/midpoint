@@ -44,11 +44,13 @@ public class TestDiffEquals {
     }
 
     @Test
-    public void testUserSimplePropertyDiff() {
+    public void testUserSimplePropertyDiff() throws SchemaException {
         UserType userType1 = new UserType();
         userType1.setName(PrismTestUtil.createPolyStringType("test name"));
         UserType userType2 = new UserType();
         userType2.setName(PrismTestUtil.createPolyStringType("test name"));
+        PrismTestUtil.getPrismContext().adopt(userType1);
+        PrismTestUtil.getPrismContext().adopt(userType2);
 
         ObjectDelta delta = userType1.asPrismObject().diff(userType2.asPrismObject());
         assertNotNull(delta);
@@ -62,11 +64,13 @@ public class TestDiffEquals {
     }
 
     @Test
-    public void testUserListSimpleDiff() {
+    public void testUserListSimpleDiff() throws SchemaException {
         UserType u1 = new UserType();
         u1.setName(PrismTestUtil.createPolyStringType("test name"));
         UserType u2 = new UserType();
         u2.setName(PrismTestUtil.createPolyStringType("test name"));
+        PrismTestUtil.getPrismContext().adopt(u1);
+        PrismTestUtil.getPrismContext().adopt(u2);
 
         ObjectDelta delta = u1.asPrismObject().diff(u2.asPrismObject());
         assertNotNull(delta);

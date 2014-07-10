@@ -25,19 +25,13 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -46,7 +40,6 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -1110,7 +1103,7 @@ public class PageUser extends PageAdminUsers {
     }
 
     private ReferenceDelta prepareUserAccountsDeltaForModify(PrismReferenceDefinition refDef) throws SchemaException {
-        ReferenceDelta refDelta = new ReferenceDelta(refDef);
+        ReferenceDelta refDelta = new ReferenceDelta(refDef, getPrismContext());
 
         List<UserAccountDto> accounts = accountsModel.getObject();
         for (UserAccountDto accDto : accounts) {
@@ -1151,7 +1144,7 @@ public class PageUser extends PageAdminUsers {
 
     private ContainerDelta handleAssignmentDeltas(ObjectDelta<UserType> userDelta, PrismContainerDefinition def)
             throws SchemaException {
-        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), UserType.F_ASSIGNMENT, def);
+        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), UserType.F_ASSIGNMENT, def, getPrismContext());
 
         PrismObject<UserType> user = userModel.getObject().getObject();
         PrismObjectDefinition userDef = user.getDefinition();
@@ -1270,11 +1263,12 @@ public class PageUser extends PageAdminUsers {
         // try {
 
         try {
+            reviveModels();
+
             delta = userWrapper.getObjectDelta();
             if (userWrapper.getOldDelta() != null) {
                 delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
             }
-            delta.setPrismContext(getPrismContext());
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
@@ -1395,6 +1389,13 @@ public class PageUser extends PageAdminUsers {
             target.add(getFeedbackPanel());
         }
 
+    }
+
+    private void reviveModels() throws SchemaException {
+        WebMiscUtil.revive(userModel, getPrismContext());
+        WebMiscUtil.revive(accountsModel, getPrismContext());
+        WebMiscUtil.revive(assignmentsModel, getPrismContext());
+        WebMiscUtil.revive(summaryUser, getPrismContext());
     }
 
     private boolean executeForceDelete(ObjectWrapper userWrapper, Task task, ModelExecuteOptions options,

@@ -470,8 +470,12 @@ public class PrismContext {
 	public void adopt(Objectable objectable) throws SchemaException {
 		adopt(objectable.asPrismObject(), objectable.getClass());
 	}
-	
-	public <T extends Objectable> void adopt(ObjectDelta<T> delta) throws SchemaException {
+
+    public void adopt(Containerable containerable) throws SchemaException {
+        containerable.asPrismContainerValue().revive(this);
+    }
+
+    public <T extends Objectable> void adopt(ObjectDelta<T> delta) throws SchemaException {
 		delta.revive(this);
 		getSchemaRegistry().applyDefinition(delta, delta.getObjectTypeClass(), false);
 	}

@@ -1719,22 +1719,22 @@ public class TaskQuartzImpl implements Task {
 	}
 	
     private ItemDelta<?> setExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
-        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
     private ItemDelta<?> setExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition, Collection<? extends PrismReferenceValue> values) throws SchemaException {
-        ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
     private ItemDelta<?> addExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition, Collection<? extends PrismReferenceValue> values) throws SchemaException {
-        ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return addExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
     private ItemDelta<?> setExtensionContainerAndPrepareDelta(QName itemName, PrismContainerDefinition definition, Collection<? extends PrismContainerValue> values) throws SchemaException {
-        ItemDelta delta = new ContainerDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        ItemDelta delta = new ContainerDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
@@ -1772,7 +1772,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     private ItemDelta<?> addExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
-        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 
         delta.addValuesToAdd(values);
 
@@ -1784,7 +1784,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     private ItemDelta<?> deleteExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
-        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 
         delta.addValuesToDelete(values);
 

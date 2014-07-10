@@ -301,7 +301,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	}
 
 	@Override
-	void revive(PrismContext prismContext) {
+	public void revive(PrismContext prismContext) {
 		if (this.prismContext != null) {
 			return;
 		}

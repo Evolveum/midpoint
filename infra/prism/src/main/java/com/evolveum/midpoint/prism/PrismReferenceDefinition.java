@@ -111,7 +111,7 @@ public class PrismReferenceDefinition extends ItemDefinition {
     
     @Override
 	public ItemDelta createEmptyDelta(ItemPath path) {
-		return new ReferenceDelta(path, this);
+		return new ReferenceDelta(path, this, prismContext);
 	}
 
 	@Override

@@ -276,7 +276,7 @@ public abstract class TestCompare {
 		PrismContainer<AssignmentType> brokenAssignment = goodAssignment.clone();
 		assertEquals("Not equals after clone", goodAssignment, brokenAssignment);
 		// lets break one of these ...
-		PrismContainerValue<AssignmentType> emptyValue = new PrismContainerValue<AssignmentType>();
+		PrismContainerValue<AssignmentType> emptyValue = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
 		brokenAssignment.add(emptyValue);
 		
 		// WHEN

@@ -50,7 +50,7 @@ import java.util.Map;
  *
  * @author Radovan Semancik
  */
-public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpable, Visitable, PathVisitable, Serializable {
+public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpable, Visitable, PathVisitable, Serializable, Revivable {
 
     private static final long serialVersionUID = 510000191615288733L;
 
@@ -63,7 +63,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     private List<V> values = new ArrayList<V>();
     private transient Map<String,Object> userData = new HashMap<>();;
     
-    protected transient PrismContext prismContext;
+    protected transient PrismContext prismContext;          // beware, this one can easily be null
 
     /**
      * This is used for definition-less construction, e.g. in JAXB beans.
@@ -75,6 +75,13 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
         super();
         this.elementName = elementName;
     }
+
+    Item(QName elementName, PrismContext prismContext) {
+        super();
+        this.elementName = elementName;
+        this.prismContext = prismContext;
+    }
+
 
     /**
      * The constructors should be used only occasionally (if used at all).
@@ -553,8 +560,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
 	}
     
     public void revive(PrismContext prismContext) throws SchemaException {
-        // TODO cleanup this method; currently, it can be expected there is no Item without prismContext
-        // (but it is necessary to do e.g. PolyString recomputation even if PrismContext is set!)
+        // it is necessary to do e.g. PolyString recomputation even if PrismContext is set
     	if (this.prismContext == null) {
             this.prismContext = prismContext;
             if (definition != null) {
@@ -599,11 +605,14 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     	return items;
 	}
     
-    public static <T extends Item> T createNewDefinitionlessItem(QName name, Class<T> type) {
+    public static <T extends Item> T createNewDefinitionlessItem(QName name, Class<T> type, PrismContext prismContext) {
     	T item = null;
 		try {
 			Constructor<T> constructor = type.getConstructor(QName.class);
 			item = constructor.newInstance(name);
+            if (prismContext != null) {
+                item.revive(prismContext);
+            }
 		} catch (Exception e) {
 			throw new SystemException("Error creating new definitionless "+type.getSimpleName()+": "+e.getClass().getName()+" "+e.getMessage(),e);
 		}

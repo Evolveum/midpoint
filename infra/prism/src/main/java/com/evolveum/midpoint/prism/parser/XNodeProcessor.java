@@ -275,7 +275,7 @@ public class XNodeProcessor {
 	private <C extends Containerable> PrismContainerValue<C> parsePrismContainerValueFromMap(MapXNode xmap, PrismContainerDefinition<C> containerDef,
 			Collection<QName> ignoredItems) throws SchemaException {
 		Long id = getContainerId(xmap);
-		PrismContainerValue<C> cval = new PrismContainerValue<C>(null, null, null, id, xmap.getTypeQName());
+		PrismContainerValue<C> cval = new PrismContainerValue<C>(null, null, null, id, xmap.getTypeQName(), prismContext);
 		for (Entry<QName,XNode> xentry: xmap.entrySet()) {
 			QName itemQName = xentry.getKey();
 			if (QNameUtil.match(itemQName, XNode.KEY_CONTAINER_ID)) {
@@ -564,21 +564,21 @@ public class XNodeProcessor {
 //
 //    }
 
-    public static <T> PrismProperty<T> parsePrismPropertyRaw(XNode xnode, QName itemName)
+    public static <T> PrismProperty<T> parsePrismPropertyRaw(XNode xnode, QName itemName, PrismContext prismContext)
             throws SchemaException {
         if (xnode instanceof ListXNode) {
-            return parsePrismPropertyRaw((ListXNode)xnode, itemName);
+            return parsePrismPropertyRaw((ListXNode)xnode, itemName, prismContext);
         } else {
-            PrismProperty<T> property = new PrismProperty<T>(itemName);
+            PrismProperty<T> property = new PrismProperty<T>(itemName, prismContext);
             PrismPropertyValue<T> pval = PrismPropertyValue.createRaw(xnode);
             property.add(pval);
             return property;
         }
     }
 
-    private static <T> PrismProperty<T> parsePrismPropertyRaw(ListXNode xlist, QName itemName)
+    private static <T> PrismProperty<T> parsePrismPropertyRaw(ListXNode xlist, QName itemName, PrismContext prismContext)
             throws SchemaException {
-        PrismProperty<T> property = new PrismProperty<T>(itemName);
+        PrismProperty<T> property = new PrismProperty<T>(itemName, prismContext);
         for (XNode xsubnode : xlist) {
             PrismPropertyValue<T> pval = PrismPropertyValue.createRaw(xsubnode);
             property.add(pval);
@@ -872,7 +872,7 @@ public class XNodeProcessor {
 			throws SchemaException {
 		if (itemDef == null) {
 			// Assume property in a container with runtime definition
-			return (Item<V>) parsePrismPropertyRaw(xnode, itemName);
+			return (Item<V>) parsePrismPropertyRaw(xnode, itemName, prismContext);
 		}
         if (itemDef instanceof PrismObjectDefinition) {
             return parseObject(xnode, itemName, (PrismObjectDefinition) itemDef);

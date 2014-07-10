@@ -294,6 +294,8 @@ public class PageRole extends PageAdminRoles{
     private void savePerformed(AjaxRequestTarget target){
         OperationResult result = new OperationResult(OPERATION_SAVE_ROLE);
         try {
+            WebMiscUtil.revive(model, getPrismContext());
+
             ModelService modelService = getModelService();
 
             PrismObject<RoleType> newRole = model.getObject();

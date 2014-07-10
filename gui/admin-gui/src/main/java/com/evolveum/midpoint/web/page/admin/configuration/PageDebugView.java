@@ -264,10 +264,7 @@ public class PageDebugView extends PageAdminConfiguration {
         try {
 
             PrismObject<ObjectType> oldObject = dto.getObject();
-            if (oldObject.getPrismContext() == null) {
-            	LOGGER.warn("No prism context in old object {}, adding it", oldObject);
-            	oldObject.setPrismContext(getPrismContext());
-            }
+            oldObject.revive(getPrismContext());
 
             Holder<PrismObject<ObjectType>> objectHolder = new Holder<PrismObject<ObjectType>>(null);
             validateObject(editor.getModel().getObject(), objectHolder, validateSchema.getObject(), result);
@@ -279,7 +276,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
                 if (delta.getPrismContext() == null) {
                 	LOGGER.warn("No prism context in delta {} after diff, adding it", delta);
-                	delta.setPrismContext(getPrismContext());
+                	delta.revive(getPrismContext());
                 }
                 
                 //quick fix for now (MID-1910), maybe it should be somewhere in model..

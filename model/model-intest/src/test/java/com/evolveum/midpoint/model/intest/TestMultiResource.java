@@ -1789,7 +1789,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = createUser(USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
         userBefore.asObjectable().getOrganizationalUnit().add(PrismTestUtil.createPolyStringType("stone"));
           
-        PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
+        PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
 		PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
 		targetRef.getValue().setOid(ROLE_FIGHT_OID);
 		targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);

@@ -1532,7 +1532,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
 		QName attributeName = icfNameMapper.convertAttributeNameToQName(uid.getName(), getSchemaNamespace());
 		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, attributeName),
-				uidDefinition);
+				uidDefinition, prismContext);
 		uidDelta.setValueToReplace(new PrismPropertyValue<String>(uid.getUidValue()));
 		return uidDelta;
 	}

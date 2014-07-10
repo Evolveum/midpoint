@@ -445,7 +445,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
     public ContainerDelta handleAssignmentDeltas(ObjectDelta<T> userDelta, PrismContainerDefinition def, QName assignmentPath)
             throws SchemaException {
-        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), assignmentPath, def);
+        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), assignmentPath, def, def.getPrismContext());           // hoping that def contains a prism context!
 
         //PrismObject<OrgType> org = (PrismObject<OrgType>)getModel().getObject().getAssignmentParent();
         //PrismObjectDefinition orgDef = org.getDefinition();

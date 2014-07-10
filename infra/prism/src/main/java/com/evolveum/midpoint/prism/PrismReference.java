@@ -188,12 +188,12 @@ public class PrismReference extends Item<PrismReferenceValue> {
 
 	@Override
 	public ReferenceDelta createDelta() {
-    	return new ReferenceDelta(getPath(), getDefinition());
+    	return new ReferenceDelta(getPath(), getDefinition(), prismContext);
 	}
 	
 	@Override
 	public ReferenceDelta createDelta(ItemPath path) {
-    	return new ReferenceDelta(path, getDefinition());
+    	return new ReferenceDelta(path, getDefinition(), prismContext);
 	}
 
 	@Override

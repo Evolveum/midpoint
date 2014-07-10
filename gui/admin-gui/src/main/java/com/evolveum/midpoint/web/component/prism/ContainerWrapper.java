@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -88,7 +89,22 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         containerDefinition = getContainerDefinition();
         properties = createProperties(pageBase);
     }
-    
+
+    public void revive(PrismContext prismContext) throws SchemaException {
+        if (container != null) {
+            container.revive(prismContext);
+        }
+        if (containerDefinition != null) {
+            containerDefinition.revive(prismContext);
+        }
+        if (properties != null) {
+            for (PropertyWrapper propertyWrapper : properties) {
+                propertyWrapper.revive(prismContext);
+            }
+        }
+    }
+
+
     protected PrismContainerDefinition getContainerDefinition() {
     	if (main) {
     		return object.getDefinition();
