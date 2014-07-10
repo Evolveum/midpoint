@@ -20,7 +20,6 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -34,7 +33,6 @@ import java.util.List;
  * */
 public class CapabilityScriptPanel extends SimplePanel {
 
-    private static final String ID_LABEL = "label";
     private static final String ID_ENABLED = "enabled";
     private static final String ID_ON_CONNECTOR = "onConnectorValue";
     private static final String ID_ON_RESOURCE = "onResourceValue";

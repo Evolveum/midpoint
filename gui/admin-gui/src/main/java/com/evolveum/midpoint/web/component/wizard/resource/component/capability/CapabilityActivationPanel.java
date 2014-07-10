@@ -32,16 +32,11 @@ import java.util.List;
  * */
 public class CapabilityActivationPanel  extends SimplePanel{
 
-    private static final String ID_LABEL = "label";
-    private static final String ID_LABEL_ENABLED_DISABLED = "enabledDisabledLabel";
     private static final String ID_CHECK_ENABLED = "enabled";
     private static final String ID_CHECK_RETURNED = "returnedByDefault";
     private static final String ID_CHECK_IGNORE = "ignoreAttribute";
     private static final String ID_ENABLE_LIST = "enableList";
     private static final String ID_DISABLE_LIST = "disableList";
-    private static final String ID_LABEL_STATUS = "labelStatus";
-    private static final String ID_LABEL_VALID_FROM = "labelValidFrom";
-    private static final String ID_LABEL_VALID_TO = "labelValidTo";
     private static final String ID_CHECK_VALID_FROM_ENABLED = "validFromEnabled";
     private static final String ID_CHECK_VALID_FROM_RETURNED = "validFromReturned";
     private static final String ID_CHECK_VALID_TO_ENABLED = "validToEnabled";

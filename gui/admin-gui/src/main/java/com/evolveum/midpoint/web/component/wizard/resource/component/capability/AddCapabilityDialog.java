@@ -21,12 +21,10 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -46,7 +44,6 @@ import java.util.List;
  * */
 public class AddCapabilityDialog extends ModalWindow{
 
-    private static final Trace LOGGER = TraceManager.getTrace(AddCapabilityDialog.class);
     private static final String ID_TABLE = "table";
     private static final String ID_CANCEL = "cancelButton";
     private static final String ID_ADD = "addButton";
@@ -62,7 +59,7 @@ public class AddCapabilityDialog extends ModalWindow{
         model = new LoadableModel<CapabilityStepDto>() {
             @Override
             protected CapabilityStepDto load() {
-                return loadModel(capabilityModel);  //To change body of implemented methods use File | Settings | File Templates.
+                return loadModel(capabilityModel);
             }
         };
 

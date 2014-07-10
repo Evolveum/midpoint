@@ -16,9 +16,6 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -27,7 +24,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -83,8 +79,6 @@ public class CapabilityListRepeater<T extends Serializable> extends SimplePanel<
             }
         };
         add(repeater);
-
-
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {

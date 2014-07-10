@@ -28,7 +28,6 @@ import org.apache.wicket.model.PropertyModel;
  * */
 public class CapabilityCredentialsPanel extends SimplePanel{
 
-    private static final String ID_LABEL = "label";
     private static final String ID_ENABLED = "enabled";
     private static final String ID_LABEL_PASSWORD = "password";
     private static final String ID_PASSWORD_ENABLED = "passEnabled";

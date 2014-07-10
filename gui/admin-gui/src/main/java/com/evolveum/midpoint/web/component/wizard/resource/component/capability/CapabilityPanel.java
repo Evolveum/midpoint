@@ -86,8 +86,8 @@ public class CapabilityPanel extends SimplePanel{
     private static final String ID_CAPABILITY_TABLE = "tableRows";
     private static final String ID_CAPABILITY_ROW = "capabilityRow";
     private static final String ID_CAPABILITY_NAME = "capabilityName";
+    private static final String ID_CAPABILITY_LINK = "capabilityLink";
     private static final String ID_CAPABILITY_DELETE = "capabilityDelete";
-    private static final String ID_CAPABILITY_EDIT = "capabilityEdit";
     private static final String ID_CAPABILITY_ADD = "capabilityAdd";
     private static final String ID_CAPABILITY_CONFIG = "capabilityConfig";
     private static final String ID_BUTTON_SAVE = "saveButton";
@@ -183,8 +183,17 @@ public class CapabilityPanel extends SimplePanel{
             protected void populateItem(final Item<CapabilityDto> capabilityRow) {
                 final CapabilityDto dto = capabilityRow.getModelObject();
 
+                AjaxLink name = new AjaxLink(ID_CAPABILITY_LINK) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        editCapabilityPerformed(target, dto);
+                    }
+                };
                 Label label = new Label(ID_CAPABILITY_NAME, new PropertyModel<>(dto, CapabilityDto.F_VALUE));
-                capabilityRow.add(label);
+                name.add(label);
+                capabilityRow.add(name);
+
 
                 AjaxLink deleteLink = new AjaxLink(ID_CAPABILITY_DELETE) {
 
@@ -194,15 +203,6 @@ public class CapabilityPanel extends SimplePanel{
                     }
                 };
                 capabilityRow.add(deleteLink);
-
-                AjaxLink editLink = new AjaxLink(ID_CAPABILITY_EDIT) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        editCapabilityPerformed(target, dto);
-                    }
-                };
-                capabilityRow.add(editLink);
 
                 capabilityRow.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<Object>() {
 
@@ -335,28 +335,6 @@ public class CapabilityPanel extends SimplePanel{
         target.add(newConfig);
         capability.setSelected(true);
         target.add(getTable());
-    }
-
-    private List<String> loadResourceAccountObjectAttributes(){
-        List<String> choices = new ArrayList<>();
-
-        PrismObject<ResourceType> resourcePrism = resourceModel.getObject();
-
-        try {
-            ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resourcePrism, getPageBase().getPrismContext());
-            ObjectClassComplexTypeDefinition def = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-
-            for(ResourceAttributeDefinition attribute: def.getAttributeDefinitions()){
-                String qName = attribute.getNativeAttributeName();
-                choices.add(qName);
-            }
-
-        } catch (Exception e){
-            LoggingUtils.logException(LOGGER, "Couldn't load resource schema attributes.", e);
-            error("Couldn't load resource schema attributes" + e);
-            //TODO - show this to the user
-        }
-        return choices;
     }
 
     private void savePerformed(AjaxRequestTarget target){
