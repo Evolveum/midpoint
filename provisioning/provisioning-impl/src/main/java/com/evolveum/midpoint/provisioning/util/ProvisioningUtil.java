@@ -80,31 +80,6 @@ public class ProvisioningUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningUtil.class);
 
-	private static boolean isSimulatedActivationAttribute(ResourceAttribute attribute, ShadowType shadow,
-			ResourceType resource) {
-		if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-
-			ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
-					ActivationCapabilityType.class);
-
-			if (activationCapability == null) {
-				// TODO: maybe the warning message is needed that the resource
-				// does not have either simulater or native capabilities
-				return false;
-			}
-
-			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-			ResourceAttribute activationProperty = attributesContainer.findAttribute(activationCapability
-					.getEnableDisable().getAttribute());
-
-			if (activationProperty != null && activationProperty.equals(attribute)) {
-				return true;
-			}
-		}
-		return false;
-
-	}
-
 	public static <T extends ShadowType> void normalizeShadow(T shadow, OperationResult result)
 			throws SchemaException {
 
