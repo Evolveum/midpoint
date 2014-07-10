@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -282,13 +282,16 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        		changePassword(account,attr);
 		        	
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		account.setEnabled(getEnable(attr));
+		        		account.setEnabled(getBoolean(attr));
 		        		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_DATE_NAME)) {
 		        		account.setValidFrom(getDate(attr));
 	
 		        	} else if (attr.is(OperationalAttributes.DISABLE_DATE_NAME)) {
 		        		account.setValidTo(getDate(attr));
+		        		
+		        	} else if (attr.is(OperationalAttributes.LOCK_OUT_NAME)) {
+		        		account.setLockout(getBoolean(attr));
 	
 		        	} else {
 			        	String name = attr.getName();
@@ -333,7 +336,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        		throw new IllegalArgumentException("Attempt to change password on group");
 		        	
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		group.setEnabled(getEnable(attr));
+		        		group.setEnabled(getBoolean(attr));
 		        		
 		        	} else {
 			        	String name = attr.getName();
@@ -750,6 +753,8 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
             	objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE_DATE);
             	objClassBuilder.addAttributeInfo(OperationalAttributeInfos.DISABLE_DATE);
             }
+    		
+    		objClassBuilder.addAttributeInfo(OperationalAttributeInfos.LOCK_OUT);
     	}
         
     	// __NAME__ will be added by default
@@ -1091,6 +1096,10 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			GuardedString gs = new GuardedString(account.getPassword().toCharArray());
 			builder.addAttribute(OperationalAttributes.PASSWORD_NAME,gs);
 		}
+		
+		if (account.isLockout() != null) {
+			builder.addAttribute(OperationalAttributes.LOCK_OUT_NAME, account.isLockout());
+		}
 
         return builder.build();
 	}
@@ -1126,7 +1135,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 				changePassword(newAccount,attr);
 				
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
-				enabled = getEnable(attr);
+				enabled = getBoolean(attr);
 				newAccount.setEnabled(enabled);
 				
 			} else if (attr.is(OperationalAttributeInfos.ENABLE_DATE.getName())) {
@@ -1141,7 +1150,11 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 					newAccount.setValidTo(getDate(attr));
 				} else {
 					throw new IllegalArgumentException("DISABLE_DATE specified in the account attributes while not supporting it");
-				}	
+				}
+				
+			} else if (attr.is(OperationalAttributeInfos.LOCK_OUT.getName())) {
+				Boolean lockout = getBoolean(attr);
+				newAccount.setLockout(lockout);
 				
 			} else {
 				String name = attr.getName();
@@ -1179,7 +1192,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 				throw new IllegalArgumentException("Password specified for a group");
 				
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
-				enabled = getEnable(attr);
+				enabled = getBoolean(attr);
 				newGroup.setEnabled(enabled);
 				
 			} else if (attr.is(OperationalAttributeInfos.ENABLE_DATE.getName())) {
@@ -1240,13 +1253,13 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		return newPriv;
 	}
 
-	private boolean getEnable(Attribute attr) {
+	private boolean getBoolean(Attribute attr) {
 		if (attr.getValue() == null || attr.getValue().isEmpty()) {
-			throw new IllegalArgumentException("Empty enable attribute was provided");
+			throw new IllegalArgumentException("Empty "+attr.getName()+" attribute was provided");
 		}
 		Object object = attr.getValue().get(0);
 		if (!(object instanceof Boolean)) {
-			throw new IllegalArgumentException("Enable attribute was provided as "+object.getClass().getName()+" while expecting boolean");
+			throw new IllegalArgumentException("Attribute "+attr.getName()+" was provided as "+object.getClass().getName()+" while expecting boolean");
 		}
 		return ((Boolean)object).booleanValue();
 	}

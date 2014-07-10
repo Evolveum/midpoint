@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -277,6 +277,15 @@ public class ProvisioningUtil {
 			AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition.getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
 			if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 				attributesToReturn.setReturnAdministrativeStatusExplicit(true);
+				apply = true;
+			}
+		}
+		
+		if (CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
+			// There resource is capable of returning lockout flag but it does not do it by default
+			AttributeFetchStrategyType statusFetchStrategy = objectClassDefinition.getActivationFetchStrategy(ActivationType.F_LOCKOUT_STATUS);
+			if (statusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+				attributesToReturn.setReturnLockoutStatusExplicit(true);
 				apply = true;
 			}
 		}

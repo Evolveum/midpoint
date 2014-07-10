@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -149,6 +150,20 @@ public class CapabilityUtil {
 			return false;
 		}
 		ActivationStatusCapabilityType statusCap = capability.getStatus();
+		if (statusCap == null) {
+			return false;
+		}
+		if (statusCap.isReturnedByDefault() == null) {
+			return true;
+		}
+		return statusCap.isReturnedByDefault();
+	}
+	
+	public static boolean isActivationLockoutStatusReturnedByDefault(ActivationCapabilityType capability) {
+		if (capability == null) {
+			return false;
+		}
+		ActivationLockoutStatusCapabilityType statusCap = capability.getLockoutStatus();
 		if (statusCap == null) {
 			return false;
 		}
