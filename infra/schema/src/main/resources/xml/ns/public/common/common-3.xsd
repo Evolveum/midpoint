@@ -2784,6 +2784,37 @@
             	</xsd:annotation>
             </xsd:element>
             
+            <xsd:element name="lockoutStatus" type="tns:LockoutStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This defines the state of user or account lock-out. Lock-out means that the account
+                        was temporarily disabled due to failed login attempts or a similar abuse attempt.
+                        
+                        This value is usualy set by the resource (or midpoint internal authentication code).
+                        It is unlikely that it can be set to the "locked" value. However it usually can be used
+                        to unlock the account by setting this property to "normal" value.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Lock-out Status</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            
+            <xsd:element name="lockoutExpirationTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Timestamp of a moment when account lockout expires and the account will
+                        be normally usable again.
+                        
+                        This is only an informational value. It should be considered as read-only
+                        for most cases. It only makes sense if the lockoutStatus is not in the "normal" state.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Lock-out Expiration</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -2896,6 +2927,40 @@
                 </xsd:annotation>
             </xsd:enumeration>
              </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="LockoutStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                This defines the state of account lock-out. Lock-out means that the account
+                was temporarily disabled due to failed login attempts or a similar abuse attempt.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="normal">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Account is in normal (unlocked state). It is usable without limitations.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NORMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="locked">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		The account has been locked. Log-in to the account is temporarily disabled.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LOCKED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
     </xsd:simpleType>
 
     <xsd:complexType name="ResourceType">
