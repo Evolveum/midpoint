@@ -141,6 +141,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -2024,6 +2025,20 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				activationType.setValidTo(XmlTypeConverter.createXMLGregorianCalendar(millis));
 				continue;
 			}
+			
+			if (icfAttr.getName().equals(OperationalAttributes.LOCK_OUT_NAME)) {
+				Boolean lockOut = getSingleValue(icfAttr, Boolean.class);
+				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
+				LockoutStatusType lockoutStatusType;
+				if (lockOut) {
+					lockoutStatusType = LockoutStatusType.LOCKED;
+				} else {
+					lockoutStatusType = LockoutStatusType.NORMAL;
+				}
+				activationType.setLockoutStatus(lockoutStatusType);
+				LOGGER.trace("Converted activation lockoutStatus: {}", lockoutStatusType);
+				continue;
+			}
 
 			QName qname = icfNameMapper.convertAttributeNameToQName(icfAttr.getName(), getSchemaNamespace());
 			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname);
@@ -2157,6 +2172,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (propDelta.getElementName().equals(ActivationType.F_VALID_TO)) {
 				XMLGregorianCalendar xmlCal = propDelta.getPropertyNew().getValue(XMLGregorianCalendar.class).getValue();
 				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(xmlCal)));
+			} else if (propDelta.getElementName().equals(ActivationType.F_LOCKOUT_STATUS)) {
+				LockoutStatusType status = propDelta.getPropertyNew().getValue(LockoutStatusType.class).getValue();
+				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.LOCK_OUT_NAME, status != LockoutStatusType.NORMAL));
 			} else {
 				throw new SchemaException("Got unknown activation attribute delta " + propDelta.getElementName());
 			}

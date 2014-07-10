@@ -581,9 +581,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // TODO: check for naming attributes and display names, etc
 
         ActivationCapabilityType capActivation = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
-        if (capActivation != null && capActivation.getEnableDisable() != null && capActivation.getEnableDisable().getAttribute() != null) {
+        if (capActivation != null && capActivation.getStatus() != null && capActivation.getStatus().getAttribute() != null) {
             // There is simulated activation capability, check if the attribute is in schema.
-            QName enableAttrName = capActivation.getEnableDisable().getAttribute();
+            QName enableAttrName = capActivation.getStatus().getAttribute();
             ResourceAttributeDefinition enableAttrDef = accountDefinition.findAttributeDefinition(enableAttrName);
             display("Simulated activation attribute definition", enableAttrDef);
             assertNotNull("No definition for enable attribute " + enableAttrName + " in account (resource from " + source + ")", enableAttrDef);

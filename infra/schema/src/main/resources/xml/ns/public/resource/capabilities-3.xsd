@@ -91,21 +91,13 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:CapabilityType">
 				<xsd:sequence>
-					<xsd:element name="enableDisable" type="tns:ActivationStatusCapabilityType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								DEPRECATED. Does not work any more. Use "status" instead.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
 					<xsd:element name="status" type="tns:ActivationStatusCapabilityType" minOccurs="0">
 					</xsd:element>
 					<xsd:element name="validFrom" type="tns:ActivationValidityCapabilityType" minOccurs="0">
 					</xsd:element>
 					<xsd:element name="validTo" type="tns:ActivationValidityCapabilityType" minOccurs="0">
+					</xsd:element>
+					<xsd:element name="lockoutStatus" type="tns:ActivationLockoutStatusCapabilityType" minOccurs="0">
 					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
@@ -130,7 +122,6 @@
 							<xsd:documentation>
 								Name of the attribute to use for account enable/disable.
 								This is a configuration of simulated enable/disable capability.
-								UNSTABLE. This element may change in the future.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -139,7 +130,6 @@
 							<xsd:documentation>
 								Value to set to the attribute when the account should be enabled.
 								This is a configuration of simulated enable/disable capability.
-								UNSTABLE. This element may change in the future.
 								
 								More than one value can be specified. All specified values will
 								be compared to the attribute when the activation status is read
@@ -155,7 +145,6 @@
 							<xsd:documentation>
 								Value to set to the attribute when the account should be disabled.
 								This is a configuration of simulated enable/disable capability.
-								UNSTABLE. This element may change in the future.
 	
 								More than one value can be specified. All specified values will
 								be compared to the attribute when the activation status is read
@@ -195,6 +184,73 @@
 			<xsd:extension base="tns:CapabilityType">
 				<xsd:sequence>
 					<xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ActivationLockoutStatusCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes capability to provide lockout status (e.g. account temporarily disabled due to many failed login attempts).
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+				<xsd:sequence>
+					<xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
+					<xsd:element name="attribute" type="xsd:QName" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Name of the attribute to use for account lockout status.
+								This is a configuration of simulated lockout capability.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="normalValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Value to set to the attribute when the account is in a normal state (not locked out).
+								This is a configuration of simulated lockout capability.
+								
+								More than one value can be specified. All specified values will
+								be compared to the attribute when the activation status is read
+								from the resource (get operation). The value that matches will determine
+								the activation state. But only the first value will be used when
+								storing the lockout state to the resource (add or modify operations).
+								All other values will be ignored.
+							</xsd:documentation>
+						</xsd:annotation>						
+					</xsd:element>
+					<xsd:element name="lockedValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Value to set to the attribute when the account is locked out.
+								This is a configuration of simulated lockout capability.
+	
+								More than one value can be specified. All specified values will
+								be compared to the attribute when the activation status is read
+								from the resource (get operation). The value that matches will determine
+								the lockout state. But only the first value will be used when
+								storing the activation state to the resource (add or modify operations).
+								All other values will be ignored.
+							</xsd:documentation>
+						</xsd:annotation>						
+					</xsd:element>
+					<xsd:element name="ignoreAttribute" type="xsd:boolean" minOccurs="0" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								Flag that controls whether the original attribute should be ignored.
+								
+								If set to true (or not present at all) the original attribute used as a source of
+								simulated capability is marked as "ignored" in the schema. If set to false then
+								the original attribute is still present in its original form in the schema.
+								
+								This option is meaningful only for simulated enable/disable, i.e. in case that the
+								"attribute" element above is set.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
