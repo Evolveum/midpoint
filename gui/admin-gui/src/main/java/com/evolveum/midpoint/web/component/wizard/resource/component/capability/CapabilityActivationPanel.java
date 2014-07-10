@@ -17,12 +17,14 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.capability
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
@@ -44,6 +46,13 @@ public class CapabilityActivationPanel  extends SimplePanel{
     private static final String ID_CHECK_VALID_FROM_RETURNED = "validFromReturned";
     private static final String ID_CHECK_VALID_TO_ENABLED = "validToEnabled";
     private static final String ID_CHECK_VALID_TO_RETURNED = "validToReturned";
+    private static final String ID_CHECK_STATUS_ENABLED = "statusEnabled";
+    private static final String ID_CHECK_STATUS_RETURNED = "statusReturnedByDefault";
+    private static final String ID_CHECK_STATUS_IGNORE = "statusIgnoreAttribute";
+    private static final String ID_STATUS_ENABLE_LIST = "statusEnableList";
+    private static final String ID_STATUS_DISABLE_LIST = "statusDisableList";
+    private static final String ID_SELECT_ENABLE_DISABLE = "enableDisableSelect";
+    private static final String ID_SELECT_STATUS = "statusSelect";
 
 
     public CapabilityActivationPanel(String componentId, IModel<CapabilityDto> model){
@@ -52,25 +61,6 @@ public class CapabilityActivationPanel  extends SimplePanel{
 
     @Override
     protected void initLayout(){
-        Label label = new Label(ID_LABEL, createStringResource("capabilityActivationPanel.label"));
-        add(label);
-
-        Label enableDisableLabel = new Label(ID_LABEL_ENABLED_DISABLED,
-                createStringResource("capabilityActivationPanel.label.enabledDisabled"));
-        add(enableDisableLabel);
-
-        Label statusLabel = new Label(ID_LABEL_STATUS,
-                createStringResource("capabilityActivationPanel.label.status"));
-        add(statusLabel);
-
-        Label validFromLabel = new Label(ID_LABEL_VALID_FROM,
-                createStringResource("capabilityActivationPanel.label.validFrom"));
-        add(validFromLabel);
-
-        Label validToLabel = new Label(ID_LABEL_VALID_TO,
-                createStringResource("capabilityActivationPanel.label.validTo"));
-        add(validToLabel);
-
         CheckBox enabled = new CheckBox(ID_CHECK_ENABLED,
                 new PropertyModel<Boolean>(getModel(), "capability.enableDisable.enabled."));
         add(enabled);
@@ -99,6 +89,39 @@ public class CapabilityActivationPanel  extends SimplePanel{
                 new PropertyModel<Boolean>(getModel(), "capability.validTo.returnedByDefault"));
         add(validToReturned);
 
+        CheckBox statusEnabled = new CheckBox(ID_CHECK_STATUS_ENABLED,
+                new PropertyModel<Boolean>(getModel(), "capability.status.enabled"));
+        add(statusEnabled);
+
+        CheckBox statusReturned = new CheckBox(ID_CHECK_STATUS_RETURNED,
+                new PropertyModel<Boolean>(getModel(), "capability.status.returnedByDefault"));
+        add(statusReturned);
+
+        CheckBox statusIgnore = new CheckBox(ID_CHECK_STATUS_IGNORE,
+                new PropertyModel<Boolean>(getModel(), "capability.status.ignoreAttribute"));
+        add(statusIgnore);
+
+        CapabilityListRepeater statusEnableList = new CapabilityListRepeater(ID_STATUS_ENABLE_LIST,
+                new PropertyModel<List<String>>(getModel(), "capability.status.enableValue")){
+
+            @Override
+            protected StringResourceModel createEmptyItemPlaceholder(){
+                return createStringResource("capabilityActivationPanel.list.placeholder");
+            }
+        };
+        add(statusEnableList);
+
+        CapabilityListRepeater statusDisableList = new CapabilityListRepeater(ID_STATUS_DISABLE_LIST,
+                new PropertyModel<List<String>>(getModel(), "capability.status.enableValue")){
+
+            @Override
+            protected StringResourceModel createEmptyItemPlaceholder(){
+                return createStringResource("capabilityActivationPanel.list.placeholder");
+            }
+        };
+        add(statusDisableList);
+
+
         CapabilityListRepeater enableList = new CapabilityListRepeater(ID_ENABLE_LIST,
                 new PropertyModel<List<String>>(getModel(), "capability.enableDisable.enableValue")){
 
@@ -118,6 +141,35 @@ public class CapabilityActivationPanel  extends SimplePanel{
             }
         };
         add(disableList);
+
+        IChoiceRenderer renderer = new IChoiceRenderer<QName>() {
+
+            @Override
+            public Object getDisplayValue(QName object) {
+                 return object.getLocalPart();
+            }
+
+            @Override
+            public String getIdValue(QName object, int index) {
+                return Integer.toString(index);
+            }
+        };
+
+        DropDownChoice enableDisableChoice = new DropDownChoice(ID_SELECT_ENABLE_DISABLE,
+                new PropertyModel<QName>(getModel(), "capability.enableDisable.attribute"),
+                createAttributeChoiceModel(), renderer);
+        add(enableDisableChoice);
+
+        DropDownChoice statusChoice = new DropDownChoice(ID_SELECT_STATUS,
+                new PropertyModel<QName>(getModel(), "capability.status.attribute"),
+                createAttributeChoiceModel(), renderer);
+        add(statusChoice);
     }
+
+    public IModel<List<QName>> createAttributeChoiceModel(){
+        return null;
+    }
+
+
 
 }

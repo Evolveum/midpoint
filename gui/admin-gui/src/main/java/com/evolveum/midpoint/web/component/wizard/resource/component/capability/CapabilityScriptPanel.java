@@ -45,10 +45,6 @@ public class CapabilityScriptPanel extends SimplePanel {
 
     @Override
     protected void initLayout(){
-
-        Label label = new Label(ID_LABEL, createStringResource("capabilityScriptPanel.label"));
-        add(label);
-
         CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<Boolean>(getModel(), "capability.enabled"));
         add(enabled);
 

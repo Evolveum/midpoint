@@ -18,9 +18,9 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <h3 wicket:id="label"></h3>
+    <h3><wicket:message key="capabilityActivationPanel.label"/></h3>
 
-    <h4 wicket:id="enabledDisabledLabel"></h4>
+    <h4><wicket:message key="capabilityActivationPanel.label.enabledDisabled" /></h4>
     <div class="row">
         <div class="col-xs-6">
             <dl class="dl-horizontal">
@@ -49,7 +49,8 @@
         <dt>
             <label><wicket:message key="capabilityActivationPanel.label.attributeName" /></label>
         </dt>
-        <dd><select class="form-control input-sm"></select></dd>
+        <!--<dd><select class="form-control input-sm"></select></dd>-->
+        <dd><select wicket:id="enableDisableSelect" class="form-control input-sm"></select></dd>
     </dl>
     <dl class="dl-horizontal">
         <dt>
@@ -64,12 +65,54 @@
         <div wicket:id="disableList" />
     </dl>
 
-    <h4 wicket:id="labelStatus"></h4>
-    <p class="text-danger"><wicket:message key="capabilityActivationPanel.label.status.message" /></p>
+    <h4><wicket:message key="capabilityActivationPanel.label.status" /></h4>
+    <div class="row">
+        <div class="col-xs-6">
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.enabled" /></label>
+                </dt>
+                <dd><input wicket:id="statusEnabled" type="checkbox" value="checked"/></dd>
+            </dl>
+        </div>
+        <div class="col-xs-6">
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.returnedByDefault" /></label>
+                </dt>
+                <dd><input wicket:id="statusReturnedByDefault" type="checkbox" value="checked"/></dd>
+            </dl>
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.ignoreAttribute"/></label>
+                </dt>
+                <dd><input wicket:id="statusIgnoreAttribute" type="checkbox" value="checked"/></dd>
+            </dl>
+        </div>
+    </div>
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="capabilityActivationPanel.label.attributeName" /></label>
+        </dt>
+        <dd><select wicket:id="statusSelect" class="form-control input-sm"></select></dd>
+        <!--<dd><select class="form-control input-sm"></select></dd>-->
+    </dl>
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="capabilityActivationPanel.label.enableList" /></label>
+        </dt>
+        <div wicket:id="statusEnableList" />
+    </dl>
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="capabilityActivationPanel.label.disableList" /></label>
+        </dt>
+        <div wicket:id="statusDisableList" />
+    </dl>
 
     <div class="row">
         <div class="col-xs-6">
-            <h4 wicket:id="labelValidFrom"></h4>
+            <h4><wicket:message key="capabilityActivationPanel.label.validFrom" /></h4>
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="capabilityActivationPanel.label.enabled" /></label>
@@ -84,7 +127,7 @@
             </dl>
         </div>
         <div class="col-xs-6">
-            <h4 wicket:id="labelValidTo"></h4>
+            <h4><wicket:message key="capabilityActivationPanel.label.validTo" /></h4>
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="capabilityActivationPanel.label.enabled" /></label>

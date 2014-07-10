@@ -40,10 +40,6 @@ public class CapabilityCredentialsPanel extends SimplePanel{
 
     @Override
     protected void initLayout(){
-
-        Label label = new Label(ID_LABEL, createStringResource("capabilityCredentialsPanel.label"));
-        add(label);
-
         Label passLabel = new Label(ID_LABEL_PASSWORD, createStringResource("capabilityCredentialsPanel.label.password"));
         add(passLabel);
 

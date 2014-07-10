@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -83,16 +83,43 @@ public class AddCapabilityDialog extends ModalWindow{
     private CapabilityStepDto loadModel(IModel<CapabilityStepDto> capabilityModel){
         CapabilityStepDto dto = new CapabilityStepDto();
         List<CapabilityDto> capabilityList = new ArrayList<>();
+        List<Class<? extends CapabilityType>> capabilityClassList = new ArrayList<>();
 
-        for(CapabilityDto cap: CapabilityPanel.capabilities){
-            if(!capabilityModel.getObject().getCapabilities().contains(cap)){
-                capabilityList.add(cap);
+        for(CapabilityDto cap: capabilityModel.getObject().getCapabilities()){
+            capabilityClassList.add(cap.getCapability().getClass());
+        }
+
+        for(Class<? extends CapabilityType> cap: CapabilityPanel.capabilities){
+            if(!capabilityClassList.contains(cap)){
+                capabilityList.add(createCapabilityDto(cap));
             }
         }
 
         dto.setCapabilities(capabilityList);
 
         return dto;
+    }
+
+    private CapabilityDto createCapabilityDto(Class<? extends CapabilityType> capabilityClass){
+        if(capabilityClass.equals(ActivationCapabilityType.class)){
+            return new CapabilityDto(new ActivationCapabilityType(), "Activation", true);
+        } else if(capabilityClass.equals(ScriptCapabilityType.class)){
+            return new CapabilityDto(new ScriptCapabilityType(), "Script", true);
+        } else if(capabilityClass.equals(CredentialsCapabilityType.class)){
+            return new CapabilityDto(new CredentialsCapabilityType(), "Credentials", true);
+        } else if(capabilityClass.equals(DeleteCapabilityType.class)){
+            return new CapabilityDto(new DeleteCapabilityType(), "Delete", true);
+        } else if(capabilityClass.equals(ReadCapabilityType.class)){
+            return new CapabilityDto(new ReadCapabilityType(), "Read", true);
+        } else if(capabilityClass.equals(DeleteCapabilityType.class)){
+            return new CapabilityDto(new CreateCapabilityType(), "Create", true);
+        } else if(capabilityClass.equals(UpdateCapabilityType.class)){
+            return new CapabilityDto(new UpdateCapabilityType(), "Update", true);
+        } else if(capabilityClass.equals(TestConnectionCapabilityType.class)){
+            return new CapabilityDto(new TestConnectionCapabilityType(), "Test Connection", true);
+        } else {  //if(capabilityClass.equals(LiveSyncCapabilityType.class)){
+            return new CapabilityDto(new LiveSyncCapabilityType(), "Live Sync", true);
+        }
     }
 
     private ListDataProvider<CapabilityDto> createProvider(){
