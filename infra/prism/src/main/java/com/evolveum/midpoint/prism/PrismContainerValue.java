@@ -128,19 +128,13 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 
     @Override
     public PrismContext getPrismContext() {
-        return prismContext;
-
-        // we could take prismContext also from the parent, but
-        // actually if it's in the parent, it should be also here
-        // (as the "add" operation automatically adopts/revives
-        // the child being added)
-//        if (prismContext != null) {
-//            return prismContext;
-//        }
-//        if (getParent() != null) {
-//            return getParent().getPrismContext();
-//        }
-//        return null;
+        if (prismContext != null) {
+            return prismContext;
+        }
+        if (getParent() != null) {
+            return getParent().getPrismContext();
+        }
+        return null;
     }
 
     /**
