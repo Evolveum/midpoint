@@ -32,11 +32,6 @@ import java.util.List;
  * */
 public class CapabilityActivationPanel  extends SimplePanel{
 
-    private static final String ID_CHECK_ENABLED = "enabled";
-    private static final String ID_CHECK_RETURNED = "returnedByDefault";
-    private static final String ID_CHECK_IGNORE = "ignoreAttribute";
-    private static final String ID_ENABLE_LIST = "enableList";
-    private static final String ID_DISABLE_LIST = "disableList";
     private static final String ID_CHECK_VALID_FROM_ENABLED = "validFromEnabled";
     private static final String ID_CHECK_VALID_FROM_RETURNED = "validFromReturned";
     private static final String ID_CHECK_VALID_TO_ENABLED = "validToEnabled";
@@ -46,7 +41,6 @@ public class CapabilityActivationPanel  extends SimplePanel{
     private static final String ID_CHECK_STATUS_IGNORE = "statusIgnoreAttribute";
     private static final String ID_STATUS_ENABLE_LIST = "statusEnableList";
     private static final String ID_STATUS_DISABLE_LIST = "statusDisableList";
-    private static final String ID_SELECT_ENABLE_DISABLE = "enableDisableSelect";
     private static final String ID_SELECT_STATUS = "statusSelect";
 
 
@@ -56,18 +50,6 @@ public class CapabilityActivationPanel  extends SimplePanel{
 
     @Override
     protected void initLayout(){
-        CheckBox enabled = new CheckBox(ID_CHECK_ENABLED,
-                new PropertyModel<Boolean>(getModel(), "capability.enableDisable.enabled."));
-        add(enabled);
-
-        CheckBox returnedByDefault = new CheckBox(ID_CHECK_RETURNED,
-                new PropertyModel<Boolean>(getModel(), "capability.enableDisable.returnedByDefault"));
-        add(returnedByDefault);
-
-        CheckBox ignoreAttribute = new CheckBox(ID_CHECK_IGNORE,
-                new PropertyModel<Boolean>(getModel(), "capability.enableDisable.ignoreAttribute"));
-        add(ignoreAttribute);
-
         CheckBox validFromEnabled = new CheckBox(ID_CHECK_VALID_FROM_ENABLED,
                 new PropertyModel<Boolean>(getModel(), "capability.validFrom.enabled"));
         add(validFromEnabled);
@@ -116,27 +98,6 @@ public class CapabilityActivationPanel  extends SimplePanel{
         };
         add(statusDisableList);
 
-
-        CapabilityListRepeater enableList = new CapabilityListRepeater(ID_ENABLE_LIST,
-                new PropertyModel<List<String>>(getModel(), "capability.enableDisable.enableValue")){
-
-            @Override
-            protected StringResourceModel createEmptyItemPlaceholder(){
-                return createStringResource("capabilityActivationPanel.list.placeholder");
-            }
-        };
-        add(enableList);
-
-        CapabilityListRepeater disableList = new CapabilityListRepeater(ID_DISABLE_LIST,
-                new PropertyModel<List<String>>(getModel(), "capability.enableDisable.disableValue")){
-
-            @Override
-            protected StringResourceModel createEmptyItemPlaceholder(){
-                return createStringResource("capabilityActivationPanel.list.placeholder");
-            }
-        };
-        add(disableList);
-
         IChoiceRenderer renderer = new IChoiceRenderer<QName>() {
 
             @Override
@@ -149,11 +110,6 @@ public class CapabilityActivationPanel  extends SimplePanel{
                 return Integer.toString(index);
             }
         };
-
-        DropDownChoice enableDisableChoice = new DropDownChoice(ID_SELECT_ENABLE_DISABLE,
-                new PropertyModel<QName>(getModel(), "capability.enableDisable.attribute"),
-                createAttributeChoiceModel(), renderer);
-        add(enableDisableChoice);
 
         DropDownChoice statusChoice = new DropDownChoice(ID_SELECT_STATUS,
                 new PropertyModel<QName>(getModel(), "capability.status.attribute"),

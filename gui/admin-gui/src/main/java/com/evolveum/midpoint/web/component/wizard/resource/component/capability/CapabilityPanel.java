@@ -313,7 +313,7 @@ public class CapabilityPanel extends SimplePanel{
 
                             } catch (Exception e){
                                 LoggingUtils.logException(LOGGER, "Couldn't load resource schema attributes.", e);
-                                error("Couldn't load resource schema attributes" + e);
+                                getPageBase().error("Couldn't load resource schema attributes" + e);
                                 //TODO - show this to the user
                             }
                             return choices;
