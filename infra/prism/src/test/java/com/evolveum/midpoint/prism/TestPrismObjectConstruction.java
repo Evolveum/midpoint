@@ -28,7 +28,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -54,7 +53,7 @@ public class TestPrismObjectConstruction {
 	
 	
 	@BeforeSuite
-	public void setupDebug() throws SAXException, IOException, SchemaException {
+	public void setupDebug() {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 	}
 
@@ -74,7 +73,7 @@ public class TestPrismObjectConstruction {
 		// WHEN
 		PrismObject<UserType> user = userDefinition.instantiate();
 		// Fill-in object values, checking presence of definition while doing so
-		fillInUserDrake(user, true, ctx);
+		fillInUserDrake(user, true);
 		
 		// THEN
 		System.out.println("User:");
@@ -93,18 +92,18 @@ public class TestPrismObjectConstruction {
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
-        PrismContext ctx = constructInitializedPrismContext();      // we need this context to do even basic object operations (mergeValue in this case)
+		// No context needed
 		
 		// WHEN
 		PrismObject<UserType> user = new PrismObject<UserType>(USER_QNAME, UserType.class);
-        user.revive(ctx);               // there is no definition yet
 		// Fill-in object values, no schema checking
-		fillInUserDrake(user, false, ctx);
+		fillInUserDrake(user, false);
 		
 		// THEN
 		System.out.println("User:");
 		System.out.println(user.debugDump());
 		// Check if the values are correct, no schema checking
+		PrismContext ctx = constructInitializedPrismContext();
 		assertUserDrake(user, false, ctx);
 	}
 	
@@ -118,11 +117,12 @@ public class TestPrismObjectConstruction {
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
+		// No context needed (yet)
 		PrismObject<UserType> user = new PrismObject<UserType>(USER_QNAME, UserType.class);
-        PrismContext ctx = constructInitializedPrismContext();
 		// Fill-in object values, no schema checking
-		fillInUserDrake(user, false, ctx);
+		fillInUserDrake(user, false);
 		// Make sure the object is OK
+		PrismContext ctx = constructInitializedPrismContext();
 		assertUserDrake(user, false, ctx);
 		
 		
@@ -150,7 +150,7 @@ public class TestPrismObjectConstruction {
 		PrismContext ctx = constructInitializedPrismContext();
 		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		PrismObject<UserType> user = userDefinition.instantiate();
-		fillInUserDrake(user, true, ctx);
+		fillInUserDrake(user, true);
 		// precondition
 		assertUserDrake(user, true, ctx);
 
@@ -173,7 +173,7 @@ public class TestPrismObjectConstruction {
 		PrismContext ctx = constructInitializedPrismContext();
 		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		PrismObject<UserType> user = userDefinition.instantiate();
-		fillInUserDrake(user, true, ctx);
+		fillInUserDrake(user, true);
 		PrismObject<UserType> clone = user.clone();
 		
 		// WHEN, THEN
@@ -182,7 +182,7 @@ public class TestPrismObjectConstruction {
 	}
 
 	
-	private void fillInUserDrake(PrismObject<UserType> user, boolean assertDefinitions, PrismContext prismContext) throws SchemaException {
+	private void fillInUserDrake(PrismObject<UserType> user, boolean assertDefinitions) throws SchemaException {
 		user.setOid(USER_OID);
 		
 		// fullName
@@ -226,7 +226,7 @@ public class TestPrismObjectConstruction {
 		assertEquals("Wrong number of assignment values (empty)", 0, assignmentContainer.getValues().size());
 		
 		// assignment values: construct assignment value as a new container "out of the blue" and then add it.
-		PrismContainer<AssignmentType> assBlueContainer = new PrismContainer<AssignmentType>(USER_ASSIGNMENT_QNAME, prismContext);
+		PrismContainer<AssignmentType> assBlueContainer = new PrismContainer<AssignmentType>(USER_ASSIGNMENT_QNAME);
 		PrismProperty<String> assBlueDescriptionProperty = assBlueContainer.findOrCreateProperty(USER_DESCRIPTION_QNAME);
 		assBlueDescriptionProperty.addValue(new PrismPropertyValue<String>("Assignment created out of the blue"));
 		PrismAsserts.assertParentConsistency(user);
@@ -235,7 +235,7 @@ public class TestPrismObjectConstruction {
 		PrismAsserts.assertParentConsistency(user);
 		
 		// assignment values: construct assignment value as a new container value "out of the blue" and then add it.
-		PrismContainerValue<AssignmentType> assCyanContainerValue = new PrismContainerValue<AssignmentType>(prismContext);
+		PrismContainerValue<AssignmentType> assCyanContainerValue = new PrismContainerValue<AssignmentType>();
 		PrismProperty<String> assCyanDescriptionProperty = assCyanContainerValue.findOrCreateProperty(USER_DESCRIPTION_QNAME);
 		assCyanDescriptionProperty.addValue(new PrismPropertyValue<String>("Assignment created out of the cyan"));
 		assignmentContainer.mergeValue(assCyanContainerValue);

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -36,6 +38,8 @@ import java.io.IOException;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author lazyman
@@ -96,29 +100,40 @@ public class TestDiffEquals {
         AssignmentType a2 = new AssignmentType();            // no prismContext here
         a2.setDescription("descr2");
 
-        // assertFalse(a1.equals(a2));                       // this DOES NOT work without prismContext
+        AssignmentType a3 = new AssignmentType();            // no prismContext here
+        a3.setDescription("descr1");
+
+        assertFalse(a1.equals(a2));                          // this should work even without prismContext
+        assertTrue(a1.equals(a3));                           // this should work even without prismContext
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
         prismContext.adopt(a1);
         prismContext.adopt(a2);
-        assertFalse(a1.equals(a2));                         // now it should work
+        prismContext.adopt(a3);
+        assertFalse(a1.equals(a2));                         // this should work as well
+        assertTrue(a1.equals(a3));
     }
 
     @Test
     public void testContextlessEquals2() throws Exception {
 
-        // (1) user without prismContext - the functionality is radically reduced
+        // (1) user without prismContext - the functionality is reduced
 
         UserType user = new UserType();
-
-        // user.asPrismObject().createDelta();               // this fails (no prismContext)
 
         AssignmentType a1 = new AssignmentType();            // no prismContext here
         a1.setDescription("descr1");
         user.getAssignment().add(a1);
         AssignmentType a2 = new AssignmentType();            // no prismContext here
         a2.setDescription("descr2");
-        //user.getAssignment().add(a2);                      // this fails without prismContext (there's hidden equals there)
+        user.getAssignment().add(a2);
+
+        AssignmentType a2identical = new AssignmentType();
+        a2identical.setDescription("descr2");
+        assertTrue(user.getAssignment().contains(a2identical));
+
+        ObjectDelta delta1 = user.asPrismObject().createDelta(ChangeType.DELETE);       // delta1 is without prismContext
+        assertNull(delta1.getPrismContext());
 
         // (2) user with prismContext
 
@@ -131,14 +146,19 @@ public class TestDiffEquals {
         userWithContext.getAssignment().add(b1);
         AssignmentType b2 = new AssignmentType();            // no prismContext here
         b2.setDescription("descr2");
-        userWithContext.getAssignment().add(b2);             // this works, because there's already prismContext in userWithContext
+        userWithContext.getAssignment().add(b2);
+
+        AssignmentType b2identical = new AssignmentType();
+        b2identical.setDescription("descr2");
+        assertTrue(user.getAssignment().contains(b2identical));
 
         // b1 and b2 obtain context when they are added to the container
         assertNotNull(b1.asPrismContainerValue().getPrismContext());
         assertNotNull(b2.asPrismContainerValue().getPrismContext());
         assertFalse(b1.equals(b2));
 
-        userWithContext.asPrismObject().createDelta();       // this works as well
+        ObjectDelta delta2 = userWithContext.asPrismObject().createDelta(ChangeType.DELETE);
+        assertNotNull(delta2.getPrismContext());
     }
 
 }

@@ -77,7 +77,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		if (itemDefinition == null) {
 			throw new IllegalArgumentException("Attempt to create item delta without a definition");
 		}
-        checkPrismContext(prismContext, itemDefinition);
+        //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
 		this.elementName = itemDefinition.getName();
 		this.parentPath = new ItemPath();
@@ -85,7 +85,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 	}
 
 	protected ItemDelta(QName elementName, ItemDefinition itemDefinition, PrismContext prismContext) {
-        checkPrismContext(prismContext, itemDefinition);
+        //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
 		this.elementName = elementName;
 		this.parentPath = new ItemPath();
@@ -93,7 +93,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
     }
 
 	protected ItemDelta(ItemPath parentPath, QName elementName, ItemDefinition itemDefinition, PrismContext prismContext) {
-        checkPrismContext(prismContext, itemDefinition);
+        //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
 		this.elementName = elementName;
 		this.parentPath = parentPath;
@@ -101,7 +101,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
     }
 
 	protected ItemDelta(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) {
-        checkPrismContext(prismContext, itemDefinition);
+        //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
 
 		if (path == null) {
@@ -120,11 +120,12 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		this.definition = itemDefinition;
 	}
 
-    private void checkPrismContext(PrismContext prismContext, ItemDefinition itemDefinition) {
-        if (prismContext == null) {
-            throw new IllegalStateException("No prismContext in delta for " + itemDefinition);
-        }
-    }
+    // currently unused; we allow deltas without prismContext, except for some operations (e.g. serialization to ItemDeltaType)
+//    private void checkPrismContext(PrismContext prismContext, ItemDefinition itemDefinition) {
+//        if (prismContext == null) {
+//            throw new IllegalStateException("No prismContext in delta for " + itemDefinition);
+//        }
+//    }
 
 	public QName getElementName() {
 		return elementName;

@@ -100,7 +100,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     public ObjectDelta(Class<T> objectTypeClass, ChangeType changeType, PrismContext prismContext) {
     	Validate.notNull(objectTypeClass,"No objectTypeClass");
     	Validate.notNull(changeType,"No changeType");
-        Validate.notNull(prismContext, "No prismContext");
+        //Validate.notNull(prismContext, "No prismContext");
     	
         this.changeType = changeType;
         this.objectTypeClass = objectTypeClass;
