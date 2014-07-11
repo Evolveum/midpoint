@@ -126,6 +126,17 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         setPrismContext(prismContext);
     }
 
+    @Override
+    public PrismContext getPrismContext() {
+        if (prismContext != null) {
+            return prismContext;
+        }
+        if (getParent() != null) {
+            return getParent().getPrismContext();
+        }
+        return null;
+    }
+
     /**
      * Returns a set of items that the property container contains. The items may be properties or inner property containers.
      * <p/>

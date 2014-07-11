@@ -234,7 +234,7 @@ public final class PrismForJAXBUtil {
 	        		// This value is already part of another prism. We need to clone it to add it here.
 	        		fieldContainerValue = fieldContainerValue.clone();
 	        	}
-	            fieldContainer = new PrismContainer<T>(fieldName);
+	            fieldContainer = new PrismContainer<T>(fieldName, parent.getPrismContext());
 	            fieldContainer.add(fieldContainerValue);
 	            if (parent.getParent() == null) {
 	                parent.add(fieldContainer);
