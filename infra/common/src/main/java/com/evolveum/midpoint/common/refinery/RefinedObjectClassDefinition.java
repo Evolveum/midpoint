@@ -732,7 +732,11 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     		return activationSchemaHandling.getValidFrom();
     	} else if (QNameUtil.match(ActivationType.F_VALID_TO, propertyName)) {
     		return activationSchemaHandling.getValidTo();
-    	} else {
+    	} else if (QNameUtil.match(ActivationType.F_LOCKOUT_STATUS, propertyName)) {
+            return null;            // todo implement this
+        } else if (QNameUtil.match(ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP, propertyName)) {
+            return null;            // todo implement this
+        } else {
     		throw new IllegalArgumentException("Unknown activation property "+propertyName);
     	}
     }
