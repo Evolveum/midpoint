@@ -3407,9 +3407,9 @@
    					<xsd:element name="order" type="xsd:int" minOccurs="0" default="0">
    						<xsd:annotation>
    							<xsd:documentation>
-   								Specifies the order in which the dependency is applied. Lower-order dependecies
+   								Specifies the order in which the dependency is applied. Lower-order dependencies
    								are applied before higher-order dependencies. Dependencies with the same order
-   								are applied at the same time. There must be no circular dependency fromed from
+   								are applied at the same time. There must be no circular dependency formed from
    								dependencies of the same order.
    							</xsd:documentation>
    						</xsd:annotation>
@@ -3433,9 +3433,9 @@
                 <xsd:annotation>
                 	<xsd:documentation>
                 		If the object that we depend on is not provisioned then the dependent object will
-                		not be provisioned either. Attempt to provision it will end up with and error.
+                		not be provisioned either. Attempt to provision it will end up with an error.
                 		If the object that we depend on is being provisioned in the same operation (context) as
-                		the dependent object then they will be provisioned in order: independed first, dependent second.
+                		the dependent object then they will be provisioned in order: independent first, dependent second.
                 		Proper inbound-template-outbound sequence of mapping will be executed between the provisionings.
                 	</xsd:documentation>
                     <xsd:appinfo>
@@ -3447,13 +3447,13 @@
                 <xsd:annotation>
                 	<xsd:documentation>
                 		If the object that we depend on is being provisioned in the same operation (context) as
-                		the dependent object then they will be provisioned in order: independed first, dependent second.
+                		the dependent object then they will be provisioned in order: independent first, dependent second.
                 		Proper inbound-template-outbound sequence of mapping will be executed between the provisionings.
                 		But no error is thrown if the dependent object is provisioned without the other object.
                 		If both objects are being provisioned in the same operation (context) and provisioning of the
                 		object that we depend on fails the provisioning of the dependent object will be skipped.
                 		The relaxed strictness guarantees ordering in case that both objects are being provisioned 
-                		in the same operation (context) and delaying of the operation on dependend resource in case
+                		in the same operation (context) and delaying of the operation on dependent resource in case
                 		the operation on independent resource fails.
                 	</xsd:documentation>
                     <xsd:appinfo>
@@ -3465,12 +3465,12 @@
                 <xsd:annotation>
                 	<xsd:documentation>
                 		If the object that we depend on is being provisioned in the same operation (context) as
-                		the dependent object then they will be provisioned in order: independed first, dependent second.
+                		the dependent object then they will be provisioned in order: independent first, dependent second.
                 		Proper inbound-template-outbound sequence of mapping will be executed between the provisionings.
                 		But NO ERROR is thrown if the dependent object is provisioned without the other object. Not even if
-                		they are provisioned in the same operation (context) an the independend object fails.
+                		they are provisioned in the same operation (context) an the independent object fails.
                 		The lax strictness only guarantees ordering in case that both objects are being (successfully) provisioned.
-                		It does not guaratee anything else.
+                		It does not guarantee anything else.
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="LAX"/>

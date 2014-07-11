@@ -137,9 +137,7 @@ public class TestDiffEquals {
 
         // (2) user with prismContext
 
-        UserType userWithContext = new UserType();
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
-        prismContext.adopt(userWithContext);
+        UserType userWithContext = new UserType(PrismTestUtil.getPrismContext());
 
         AssignmentType b1 = new AssignmentType();            // no prismContext here
         b1.setDescription("descr1");
