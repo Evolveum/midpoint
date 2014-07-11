@@ -17,11 +17,12 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Revivable;
 
 /**
  * @author lazyman
  */
-public interface ItemWrapper {
+public interface ItemWrapper extends Revivable {
 
     String getDisplayName();
 

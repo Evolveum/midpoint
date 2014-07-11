@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -63,6 +65,15 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         if (passwordPath.equals(container.getPath())
                 && PasswordType.F_VALUE.equals(property.getElementName())) {
             displayName = "prismPropertyPanel.name.credentials.password";
+        }
+    }
+
+    public void revive(PrismContext prismContext) throws SchemaException {
+        if (property != null) {
+            property.revive(prismContext);
+        }
+        if (itemDefinition != null) {
+            itemDefinition.revive(prismContext);
         }
     }
 
@@ -222,4 +233,5 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     public void setReadonly(boolean readonly) {
         this.readonly = readonly;
     }
+
 }

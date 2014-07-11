@@ -55,7 +55,7 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public class ObjectWrapper implements Serializable {
+public class ObjectWrapper implements Serializable, Revivable {
 
     public static final String F_DISPLAY_NAME = "displayName";
     public static final String F_SELECTED = "selected";
@@ -118,6 +118,20 @@ public class ObjectWrapper implements Serializable {
 
     public void initializeContainers(PageBase pageBase) {
         containers = createContainers(pageBase);
+    }
+
+    public void revive(PrismContext prismContext) throws SchemaException {
+        if (object != null) {
+            object.revive(prismContext);
+        }
+        if (oldDelta != null) {
+            oldDelta.revive(prismContext);
+        }
+        if (containers != null) {
+            for (ContainerWrapper containerWrapper : containers) {
+                containerWrapper.revive(prismContext);
+            }
+        }
     }
 
     public List<PrismProperty> getAssociations() {
@@ -480,7 +494,7 @@ public class ObjectWrapper implements Serializable {
 
 				ItemPath path = containerWrapper.getPath() != null ? containerWrapper.getPath()
 						: new ItemPath();
-				PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef);
+				PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef, propertyDef.getPrismContext());             // hoping the prismContext is there
 				for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
                     valueWrapper.normalize();
 					ValueStatus valueStatus = valueWrapper.getStatus();

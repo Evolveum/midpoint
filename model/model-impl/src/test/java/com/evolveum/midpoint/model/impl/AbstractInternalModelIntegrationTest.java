@@ -411,7 +411,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		RefinedAttributeDefinition attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
 		assertNotNull("No definition of attribute "+attrQName+" in account def "+refinedAccountDefinition, attrDef);
 		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
-		PropertyDelta<T> attrDelta = new PropertyDelta<T>(attrPath, attrDef);
+		PropertyDelta<T> attrDelta = new PropertyDelta<T>(attrPath, attrDef, prismContext);
 		attrDelta.setValuesToReplace(PrismPropertyValue.createCollection(propertyValues));
 		accountDelta.addModification(attrDelta);
 		return accountDelta;

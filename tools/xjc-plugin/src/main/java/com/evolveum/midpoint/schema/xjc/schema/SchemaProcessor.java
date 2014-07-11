@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -258,6 +259,9 @@ public class SchemaProcessor implements Processor {
 
         JDefinedClass definedClass = objectReferenceOutline.implClass;
         definedClass._implements(CLASS_MAP.get(Referencable.class));
+
+        createDefaultConstructor(definedClass);
+
         //add prism reference and get/set method for it
         JVar reference = definedClass.field(JMod.PRIVATE, PrismReferenceValue.class, REFERENCE_VALUE_FIELD_NAME);
         JMethod getReference = definedClass.method(JMod.PUBLIC, PrismReferenceValue.class, METHOD_AS_REFERENCE_VALUE);
@@ -377,6 +381,7 @@ public class SchemaProcessor implements Processor {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
+
             QName qname = getCClassInfoQName(entry.getValue());
             if (qname == null || !hasAnnotation(classOutline, A_PRISM_CONTAINER)) {
                 continue;
@@ -392,11 +397,19 @@ public class SchemaProcessor implements Processor {
 
             //inserting MidPointObject field into ObjectType class
             JVar containerValue = definedClass.field(JMod.PRIVATE, PrismContainerValue.class, CONTAINER_VALUE_FIELD_NAME);
+
+            // default constructor
+            createDefaultConstructor(definedClass);
+
             //create asPrismContainer
 //            createAsPrismContainer(classOutline, containerValue);
             createAsPrismContainerValue(definedClass, containerValue);
+
             //create setContainer
-            createSetContainerValueMethod(definedClass, containerValue);
+            JMethod setupContainerMethod = createSetContainerValueMethod(definedClass, containerValue);
+
+            // constructor with prismContext
+            createPrismContextContainerableConstructor(definedClass, setupContainerMethod);
 
 //            System.out.println("Creating toString, equals, hashCode methods.");
             //create toString, equals, hashCode
@@ -415,6 +428,41 @@ public class SchemaProcessor implements Processor {
 
         return containers;
     }
+
+    private JMethod createDefaultConstructor(JDefinedClass definedClass) {
+        JMethod constructor = definedClass.constructor(JMod.PUBLIC);
+        constructor.body().invoke("super").invoke("aaa");
+        return constructor;
+    }
+
+    private JMethod createPrismContextContainerableConstructor(JDefinedClass definedClass, JMethod setupContainerMethod) {
+        JMethod constructor = definedClass.constructor(JMod.PUBLIC);
+        constructor.param(PrismContext.class, "prismContext");
+
+        JBlock body = constructor.body();
+        body.invoke(setupContainerMethod).arg(JExpr._new(CLASS_MAP.get(PrismContainerValue.class)).arg(constructor.params().get(0)));
+        return constructor;
+    }
+
+    /*
+        public UserType(PrismContext prismContext) {
+            setupContainer(new PrismObject(_getContainerName(), this.getClass(), prismContext));
+        }
+     */
+
+    private JMethod createPrismContextObjectableConstructor(JDefinedClass definedClass) {
+        JMethod constructor = definedClass.constructor(JMod.PUBLIC);
+        constructor.param(PrismContext.class, "prismContext");
+
+        JBlock body = constructor.body();
+        body.invoke("setupContainer")
+                .arg(JExpr._new(CLASS_MAP.get(PrismObject.class))
+                        .arg(JExpr.invoke("_getContainerName"))
+                        .arg(JExpr.invoke("getClass"))
+                        .arg(constructor.params().get(0)));
+        return constructor;
+    }
+
 
 //    private void createAsPrismContainer(JDefinedClass definedClass) {
 //        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainer.class),
@@ -454,11 +502,27 @@ public class SchemaProcessor implements Processor {
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
             QName qname = getCClassInfoQName(entry.getValue());
-            if (qname == null || !hasAnnotation(classOutline, A_PRISM_OBJECT)) {
+
+            if (qname == null) {
+                continue;
+            }
+
+            boolean isDirectPrismObject = hasAnnotation(classOutline, A_PRISM_OBJECT);
+            boolean isIndirectPrismObject = hasParentAnnotation(classOutline, A_PRISM_OBJECT);
+
+            if (!isIndirectPrismObject) {
                 continue;
             }
 
             JDefinedClass definedClass = classOutline.implClass;
+
+            createDefaultConstructor(definedClass);
+            createPrismContextObjectableConstructor(definedClass);
+
+            if (!isDirectPrismObject) {
+                continue;
+            }
+
             definedClass._implements(CLASS_MAP.get(Objectable.class));
             containers.add(definedClass);
 
@@ -469,6 +533,7 @@ public class SchemaProcessor implements Processor {
 //            createGetContainerMethod(classOutline, container);
             //create setContainer
             createSetContainerMethod(definedClass, container);
+
             //create asPrismObject()
             createAsPrismObject(definedClass);
             createAsPrismContainer(classOutline, container);
@@ -770,7 +835,7 @@ public class SchemaProcessor implements Processor {
         body._return(invocation);
     }
 
-    private void createSetContainerValueMethod(JDefinedClass definedClass, JVar container) {
+    private JMethod createSetContainerValueMethod(JDefinedClass definedClass, JVar container) {
         JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_CONTAINER_VALUE);
         JVar methodContainer = setContainer.param(PrismContainerValue.class, "containerValue");
         //create method body
@@ -798,6 +863,7 @@ public class SchemaProcessor implements Processor {
 //        then._throw(exception);
 
         body.assign(JExpr._this().ref(container), methodContainer);
+        return setContainer;
     }
     
     private void createSetContainerValueMethodInObject(JDefinedClass definedClass, JVar container) {
@@ -830,7 +896,7 @@ public class SchemaProcessor implements Processor {
         body._return(container);
     }
 
-    private void createSetContainerMethod(JDefinedClass definedClass, JVar container) {
+    private JMethod createSetContainerMethod(JDefinedClass definedClass, JVar container) {
         JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_CONTAINER);
         JVar methodContainer = setContainer.param(PrismObject.class, "container");
         //create method body
@@ -854,6 +920,7 @@ public class SchemaProcessor implements Processor {
 //        then._throw(exception);
 
         body.assign(JExpr._this().ref(container), methodContainer);
+        return setContainer;
     }
 
     private QName getCClassInfoQName(CClassInfo info) {

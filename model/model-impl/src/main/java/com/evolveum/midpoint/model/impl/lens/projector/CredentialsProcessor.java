@@ -201,7 +201,7 @@ public class CredentialsProcessor {
             LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
             return;
         }
-        PropertyDelta<ProtectedStringType> accountPasswordDeltaNew = new PropertyDelta<ProtectedStringType>(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition);
+        PropertyDelta<ProtectedStringType> accountPasswordDeltaNew = new PropertyDelta<ProtectedStringType>(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition, prismContext);
         accountPasswordDeltaNew.setValuesToReplace(accountPasswordNew.getClonedValues());
         LOGGER.trace("Adding new password delta for account {}", rat);
         accCtx.swallowToSecondaryDelta(accountPasswordDeltaNew);

@@ -395,7 +395,7 @@ generator.close();
 	  private <T extends Containerable> PrismContainer<T> parsePrismContainer(JsonNode jsonObject, QName itemName, String defaultNamespace, PrismContainerDefinition<T> containerDefinition) throws SchemaException, JsonParseException, JsonMappingException, IOException {
 			PrismContainer<T> container = containerDefinition.instantiate(itemName);
 			
-			PrismContainerValue<T> pval = new PrismContainerValue<T>(null, null, container, null, null); // TODO set concreteType (if this code would be really used)
+			PrismContainerValue<T> pval = new PrismContainerValue<T>(null, null, container, null, null, prismContext); // TODO set concreteType (if this code would be really used)
 
 			Collection<? extends Item> newContainerItems = parsePrismContainerItems(jsonObject,
 							containerDefinition, defaultNamespace);

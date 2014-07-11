@@ -29,19 +29,19 @@
 
     <documentation>
 
-	Interface of the IDM Model subsystem.
+        <p>Interface of the IDM Model subsystem.</p>
 
-	IDM Model Web interface provides access unified to the identity objects stored in the repository and on the resources. It
-	abstracts away the details about where and how are the data stored, it hides all the low-level system components.
+	    <p>IDM Model Web interface provides unified access to the identity objects stored in the repository and on resources. It
+	    abstracts away the details about where and how are the data stored, it hides all the low-level system components.</p>
 
-	Implementation of this interface are expected to enforce a consistency of access control decisions and model, e.g. to enforce
-	Role-Based Access Control (RBAC). RBAC is only one of many possibly models and this interface may have many implementations.
+	    <p>Implementations of this interface are expected to enforce a consistency of access control decisions and model, e.g. to enforce
+	    Role-Based Access Control (RBAC). RBAC is only one of many possibly models and this interface may have many implementations.</p>
 
-	Implementations of this interface may automatically derive properties and attributes for objects. E.g. RBAC models may
-	automatically derive resource accounts attributes based on user role membership.
+	    <p>Implementations of this interface may automatically derive properties and attributes for objects. E.g. RBAC models may
+	    automatically derive resource accounts attributes based on user role membership.</p>
 
-	This a web service version of the IDM Model Interface represented in WSDL. As such it has some inherent limitations but it is
-	usable for remote access to the Model services.
+	    <p>This a web service version of the IDM Model Interface represented in WSDL. As such it has some inherent limitations but it is
+	    usable for remote access to the Model services.</p>
 
     </documentation>
 
@@ -64,33 +64,102 @@
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"/>
 
             <xsd:complexType name="GetObjectType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for getObject operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="objectType" type="xsd:QName"/>
-                    <xsd:element name="oid" type="xsd:string"/>
-                    <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType"/>
+                    <xsd:element name="objectType" type="xsd:QName">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type (class) of an object to get. For example, {...common-3}UserType means the user object type.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="oid" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of the object to get.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options influencing the retrieval and processing of the object.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="getObject" type="tns:GetObjectType"/>
 
             <xsd:complexType name="GetObjectResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from getObject operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="object" type="c:ObjectType"/>
-                    <xsd:element name="result" type="c:OperationResultType" />
+                    <xsd:element name="object" type="c:ObjectType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The retrieved object.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="result" type="c:OperationResultType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The result of the operation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="getObjectResponse" type="tns:GetObjectResponseType"/>
 
             <xsd:complexType name="ExecuteChangesType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for executeChanges operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="deltaList" type="apit:ObjectDeltaListType"/>
-                    <xsd:element name="options" type="c:ModelExecuteOptionsType"/>
+                    <xsd:element name="deltaList" type="apit:ObjectDeltaListType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of object deltas to be applied.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="options" type="c:ModelExecuteOptionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options influencing the execution of the operation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="executeChanges" type="tns:ExecuteChangesType"/>
 
             <xsd:complexType name="ExecuteChangesResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from executeChanges operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="deltaOperationList" type="apit:ObjectDeltaOperationListType" />
+                    <xsd:element name="deltaOperationList" type="apit:ObjectDeltaOperationListType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of object delta operations (deltas + operation results). OIDs of newly created objects can be found
+                                in these ObjectDeltas (which may or may not be original ObjectDeltas passed to the method).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="executeChangesResponse" type="tns:ExecuteChangesResponseType" />
@@ -98,24 +167,58 @@
             <!-- TODO recompute -->
 
             <xsd:complexType name="SearchObjectsType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="objectType" type="xsd:QName"/>
-                    <xsd:element name="query" type="q:QueryType">
+                    <xsd:element name="objectType" type="xsd:QName">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Search criteria (may be null).
+                                Type (class) of an object to get. For example, {...common-3}UserType means the user object type.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType"/>
+                    <xsd:element name="query" type="q:QueryType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Search criteria. If not specified, all objects of a given type are returned.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options influencing the retrieval and processing of objects.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="searchObjects" type="tns:SearchObjectsType"/>
 
             <xsd:complexType name="SearchObjectsResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="objectList" type="apit:ObjectListType"/>
-                    <xsd:element name="result" type="c:OperationResultType" />
+                    <xsd:element name="objectList" type="apit:ObjectListType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of objects that match given criteria.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="result" type="c:OperationResultType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The result of the operation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="searchObjectsResponse" type="tns:SearchObjectsResponseType"/>
@@ -123,37 +226,99 @@
             <!-- TODO countObjects -->
 
             <xsd:complexType name="FindShadowOwnerType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for findShadowOwner operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="shadowOid" type="xsd:string"/>
+                    <xsd:element name="shadowOid" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of the shadow to look for an owner.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="findShadowOwner" type="tns:FindShadowOwnerType"/>
 
             <xsd:complexType name="FindShadowOwnerResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from findShadowOwner operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="user" type="c:UserType"/>
-                    <xsd:element name="result" type="c:OperationResultType" />
+                    <xsd:element name="user" type="c:UserType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Owner of the account (if found).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="result" type="c:OperationResultType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Operation result covering the operation executed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="findShadowOwnerResponse" type="tns:FindShadowOwnerResponseType"/>
 
             <xsd:complexType name="TestResourceType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for testResource operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="resourceOid" type="xsd:string"/>
+                    <xsd:element name="resourceOid" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of the resource that is to be tested.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="testResource" type="tns:TestResourceType"/>
 
             <xsd:complexType name="testResourceResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from testResource operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="result" type="c:OperationResultType" />
+                    <xsd:element name="result" type="c:OperationResultType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result from the resource test.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="testResourceResponse" type="tns:testResourceResponseType"/>
 
             <xsd:complexType name="ImportFromResourceType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for importFromResource operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+
                 <xsd:sequence>
-                    <xsd:element name="resourceOid" type="xsd:string"/>
+                    <xsd:element name="resourceOid" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of the resource to be imported from.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="objectClass" type="xsd:QName">           <!-- TODO consistent naming with other resource-related object classes (resourceObjectShadowType above) -->
                         <xsd:annotation>
                             <xsd:documentation>
@@ -167,8 +332,19 @@
             <xsd:element name="importFromResource" type="tns:ImportFromResourceType"/>
 
             <xsd:complexType name="ImportFromResourceResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from importFromResource operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="task" type="c:TaskType" />
+                    <xsd:element name="task" type="c:TaskType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Task that is (asynchronously) executing the import procedure.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="importFromResourceResponse" type="tns:ImportFromResourceResponseType"/>
@@ -179,34 +355,96 @@
             <!-- TODO discoverConnectors -->
             
             <xsd:complexType name="NotifyChangeType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for notifyChange operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="changeDescription" type="c:ResourceObjectShadowChangeDescriptionType"/>
+                    <xsd:element name="changeDescription" type="c:ResourceObjectShadowChangeDescriptionType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Description of the change in the external resource.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="notifyChange" type="tns:NotifyChangeType"/>
 
             <xsd:complexType name="NotifyChangeResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from notifyChange operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="task" type="c:TaskType" />
+                    <xsd:element name="task" type="c:TaskType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Task, in context of which the event was processed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="notifyChangeResponse" type="tns:NotifyChangeResponseType"/>
 
             <xsd:complexType name="ExecuteScriptsType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for executeScripts operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
                     <xsd:choice>
-                        <xsd:element name="xmlScripts" type="apit:XmlScriptsType" />
-                        <xsd:element name="mslScripts" type="xsd:string"/>
+                        <xsd:element name="xmlScripts" type="apit:XmlScriptsType">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Scripts in the XML format.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="mslScripts" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Scripts in the midPoint Scripting Language (textual) format. Not yet available.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
                     </xsd:choice>
-                    <xsd:element name="options" type="apit:ExecuteScriptsOptionsType" minOccurs="0" />
+                    <xsd:element name="options" type="apit:ExecuteScriptsOptionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options that drive the script execution.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="executeScripts" type="tns:ExecuteScriptsType"/>
 
             <xsd:complexType name="ExecuteScriptsResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from executeScripts operation.
+                    </xsd:documentation>
+                </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="outputs" type="apit:ScriptOutputsType" />
-                    <xsd:element name="result" type="c:OperationResultType" />
+                    <xsd:element name="outputs" type="apit:ScriptOutputsType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Output of the execution of script(s).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="result" type="c:OperationResultType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Operation result covering the execution of script(s).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="executeScriptsResponse" type="tns:ExecuteScriptsResponseType"/>
@@ -234,11 +472,6 @@
     </types>
 
     <!-- OBJECT messages -->
-
-    <!-- Common messages
-         Following messages should be in a separate WSDL file and imported here.
-         But that does not work on OpenESB. Therefore good old copy&paste
-         instead of import -->
 
     <message name="getObject">
         <part name="parameters" element="tns:getObject" />
@@ -311,15 +544,20 @@
 
         <operation name="getObject">
             <documentation>
-                    Returns object for provided OID.
-                    Must fail if object with the OID does not exists.
+                <p>Returns object for provided OID. It retrieves the object from an appropriate source
+                for an object type (e.g. internal repository, resource or both), merging data as necessary,
+                processing any policies, caching mechanisms, etc. This can be influenced by using options.</p>
 
-                    Reference resolution is SUPPORTED by this operation.
+                <p>Must fail if object with the OID does not exists.</p>
 
-                    Faults:
-                      any SystemFaultType
-                      IllegalArgumentFaultType: wrong OID format
-                      ObjectNotFoundFaultType: object with specified OID does not exists
+                <p>Reference resolution is SUPPORTED by this operation.</p>
+
+                <p>Faults (TODO):</p>
+                <ul>
+                      <li>any SystemFaultType</li>
+                      <li>IllegalArgumentFaultType: wrong OID format</li>
+                      <li>ObjectNotFoundFaultType: object with specified OID does not exists</li>
+                </ul>
             </documentation>
             <input name="getObject" message="tns:getObject"/>
             <output name="getObjectResponse" message="tns:getObjectResponse"/>
@@ -328,11 +566,26 @@
 
         <operation name="searchObjects">
             <documentation>
-                    Search for objects in the repository. Searches through all
-                    object types. Returns a list of objects that match search
-                    criteria.
+                <p>
+                Search for objects.
+                </p>
+                <p>
+                Searches through all object of a specified type. Returns a list of objects that match
+                search criteria.
+                </p>
+                <p>
+                Note that this method has a very limited scaling capability
+                as all the results are stored in the memory. DO NOT USE on large datasets.
+                Recommended usage is only when using queries that cannot return large number
+                of results (e.g. queries for unique values) or when combined with paging capability.
+                </p>
+                <p>
+                Returns empty list if object type is correct but there are no objects of
+                that type. Fails if object type is wrong. Should fail if unknown property is
+                specified in the query.
+                </p>
 
-                    Faults:
+                TODO  Faults:
                       any SystemFaultType
                       IllegalArgumentFaultType: wrong object type
                       SchemaViolationFaultType: unknown property used in search query
@@ -406,16 +659,20 @@
 
         <operation name="findShadowOwner">
             <documentation>
-                Returns the User object representing owner of specified account
-                (account shadow).
-                May return (null?? empty??) object if there is no owner
-                specified for the account.
+                <p>
+                Returns the User object representing owner of specified account (account
+                shadow).
+                </p>
+                <p>
+                May return null if there is no owner specified for the account.
+                </p>
+                <p>
+                Implements the backward "owns" association between account shadow and
+                user. Forward association is implemented by property "linkRef" of user
+                object.
+                </p>
 
-                Implements the backward "owns" association between account
-                shadow and user. Forward association is implemented by property
-                "account" of user object.
-
-                Faults:
+                Faults (TODO):
                       any SystemFaultType
                       IllegalArgumentFaultType: wrong OID format
                       ObjectNotFoundFaultType: object with specified OID does not exists
@@ -427,22 +684,22 @@
 
         <operation name="testResource">
             <documentation>
-                WARNING:
-                This operation should not be here. It is in fact
+                <p>WARNING:</p>
+                <p>This operation should not be here. It is in fact
                 just a diagnostics methods from the provisioning interface
                 that need to be accessed from GUI. Do not use it for
-                anything serious. It will disappear eventually.
+                anything serious. It will disappear eventually.</p>
 
-                Test the resouce connection and basic resource connector
-                functionality.
+                <p>Test the resouce connection and basic resource connector
+                functionality.</p>
 
-                This operation will NOT raise fault in case the resource
+                <p>This operation will NOT raise fault in case the resource
                 connection fails. It such case it will indicate the failure in
                 the return message, but the operation itself succeeds.
                 The operations fails only if the provided arguments are wrong,
-                in case of system error, system misconfiguration, etc.
+                in case of system error, system misconfiguration, etc.</p>
 
-                Faults:
+                Faults (TODO):
                 any SystemFaultType
                 ObjectNotFoundFaultType: specified Resource definition does not exist
             </documentation>
@@ -453,19 +710,17 @@
 
         <operation name="importFromResource">
             <documentation>
-            	TODO: update description
-            	
-                Launch import task that will import all the accounts from the
-                resource.
+                <p>Launch import task that will import all the accounts (or other objects
+                of specified type) from the resource.</p>
 
-                WARNING: This operation is not considered public. It is a
+                <p>WARNING: This operation is not considered public. It is a
                 temporary solution until we have full-featured task management.
-                It may be removed any time without a warning.
+                It may be removed any time without a warning.</p>
 
-                DO NOT USE IT unless you are really sure you know what you
-                are doing.
+                <p>DO NOT USE IT unless you are really sure you know what you
+                are doing.</p>
 
-                Faults:
+                Faults (TODO):
                       any SystemFaultType
                       ObjectNotFoundFaultType: specified Resource definition does not exist
             </documentation>
@@ -476,9 +731,7 @@
 
         <operation name="notifyChange">
             <documentation>
-            	TODO: update description
-            	
-               Trigger change notification.
+                <p>Triggers processing of a resource-related change notification.</p>
             </documentation>
             <input name="notifyChange" message="tns:notifyChange"/>
             <output name="notifyChangeResponse" message="tns:notifyChangeResponse"/>
@@ -487,6 +740,8 @@
 
         <operation name="executeScripts">
             <documentation>
+                <p>Executes one or more midPoint scripts (bulk actions).</p>
+                <p>NOTE: This method is not fully implemented yet.</p>
             </documentation>
             <input name="executeScripts" message="tns:executeScripts"/>
             <output name="executeScriptsResponse" message="tns:executeScriptsResponse"/>

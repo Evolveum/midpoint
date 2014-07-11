@@ -1189,7 +1189,7 @@ public class AssignmentProcessor {
 	}
 
     private <F extends FocusType> ContainerDelta<AssignmentType> createEmptyAssignmentDelta(LensFocusContext<F> focusContext) {
-        return new ContainerDelta<AssignmentType>(getAssignmentContainerDefinition(focusContext));
+        return new ContainerDelta<AssignmentType>(getAssignmentContainerDefinition(focusContext), prismContext);
     }
     
     private <F extends FocusType> PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition(LensFocusContext<F> focusContext) {

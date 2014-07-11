@@ -500,7 +500,7 @@ public class QueryConvertor {
 	private static Item parseItem(XNode valueXnode, QName itemName, ItemDefinition itemDefinition, PrismContext prismContext) throws SchemaException{
 		Item<PrismValue> item;
 		if (prismContext == null) {
-			item = (Item)XNodeProcessor.parsePrismPropertyRaw(valueXnode, itemName);
+			item = (Item)XNodeProcessor.parsePrismPropertyRaw(valueXnode, itemName, prismContext);
 		} else {
 			item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
 		}

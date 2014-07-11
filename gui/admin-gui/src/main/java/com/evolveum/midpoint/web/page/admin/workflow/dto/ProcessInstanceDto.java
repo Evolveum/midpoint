@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -124,5 +125,10 @@ public class ProcessInstanceDto extends Selectable {
 
     public String getShadowTaskOid() {
         return processInstanceState.getShadowTaskOid();
+    }
+
+    public void reviveIfNeeded(ItemApprovalPanel component) {
+        WebMiscUtil.reviveIfNeeded(processInstance, component);
+        WebMiscUtil.reviveIfNeeded(processInstanceState, component);
     }
 }

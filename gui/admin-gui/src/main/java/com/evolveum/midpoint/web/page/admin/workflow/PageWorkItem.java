@@ -759,8 +759,9 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         OperationResult result = new OperationResult(OPERATION_SAVE_WORK_ITEM);
 
-        ObjectWrapper rsWrapper = requestSpecificModel.getObject();
         try {
+            reviveModels();
+            ObjectWrapper rsWrapper = requestSpecificModel.getObject();
             PrismObject object = rsWrapper.getObject();
             ObjectDelta delta = rsWrapper.getObjectDelta();
             delta.applyTo(object);
@@ -829,4 +830,14 @@ public class PageWorkItem extends PageAdminWorkItems {
     public PageBase reinitialize() {
         return new PageWorkItem(parameters, getPreviousPage(), true);
     }
+
+    private void reviveModels() throws SchemaException {
+        WebMiscUtil.revive(requesterModel, getPrismContext());
+        WebMiscUtil.revive(objectOldModel, getPrismContext());
+        WebMiscUtil.revive(objectNewModel, getPrismContext());
+        WebMiscUtil.revive(requestSpecificModel, getPrismContext());
+        WebMiscUtil.revive(trackingDataModel, getPrismContext());
+        WebMiscUtil.revive(additionalDataModel, getPrismContext());
+    }
+
 }

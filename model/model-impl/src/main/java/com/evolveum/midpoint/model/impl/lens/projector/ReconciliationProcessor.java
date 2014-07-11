@@ -589,7 +589,7 @@ public class ReconciliationProcessor {
 				value });
 
 		PropertyDelta<T> attrDelta = new PropertyDelta<T>(SchemaConstants.PATH_ATTRIBUTES, attrDef.getName(),
-				attrDef);
+				attrDef, prismContext);
 		PrismPropertyValue<T> pValue = new PrismPropertyValue<T>(value, OriginType.RECONCILIATION,
 				originObject);
 		if (changeType == ModificationType.ADD) {
@@ -622,7 +622,7 @@ public class ReconciliationProcessor {
         PrismContainerDefinition<ShadowAssociationType> associationDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class)
                 .findContainerDefinition(ShadowType.F_ASSOCIATION);
 
-        ContainerDelta assocDelta = new ContainerDelta(SchemaConstants.PATH_ASSOCIATION, associationDefinition);
+        ContainerDelta assocDelta = new ContainerDelta(SchemaConstants.PATH_ASSOCIATION, associationDefinition, prismContext);
 
         PrismContainerValue cValue = value.asPrismContainerValue().clone();
         cValue.setOriginType(OriginType.RECONCILIATION);

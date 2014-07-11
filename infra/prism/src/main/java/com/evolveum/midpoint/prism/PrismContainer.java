@@ -64,7 +64,11 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     public PrismContainer(QName name) {
         super(name);
     }
-    
+
+    public PrismContainer(QName name, PrismContext prismContext) {
+        super(name, prismContext);
+    }
+
     public PrismContainer(QName name, Class<V> compileTimeClass) {
         super(name);
 		if (Modifier.isAbstract(compileTimeClass.getModifiers())) {
@@ -72,7 +76,13 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         }
         this.compileTimeClass = compileTimeClass;
     }
-    
+
+    public PrismContainer(QName name, Class<V> compileTimeClass, PrismContext prismContext) {
+        this(name, compileTimeClass);
+        this.prismContext = prismContext;
+    }
+
+
     protected PrismContainer(QName name, PrismContainerDefinition<V> definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }
@@ -113,7 +123,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 			if (getDefinition().isSingleValue()) {
 				// Insert first empty value. This simulates empty single-valued container. It the container exists
 		        // it is clear that it has at least one value (and that value is empty).
-				PrismContainerValue<V> pValue = new PrismContainerValue<V>(null, null, this, null, null);
+				PrismContainerValue<V> pValue = new PrismContainerValue<V>(null, null, this, null, null, prismContext);
 		        try {
 					add(pValue);
 				} catch (SchemaException e) {
@@ -127,7 +137,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 		} else {
 			// Insert first empty value. This simulates empty single-valued container. It the container exists
 	        // it is clear that it has at least one value (and that value is empty).
-			PrismContainerValue<V> pValue = new PrismContainerValue<V>(null, null, this, null, null);
+			PrismContainerValue<V> pValue = new PrismContainerValue<V>(null, null, this, null, null, prismContext);
 	        try {
 				add(pValue);
 			} catch (SchemaException e) {
@@ -150,6 +160,15 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 			clear();
 	        add(value);
 		}
+    }
+
+    @Override
+    public boolean add(PrismContainerValue newValue) throws SchemaException {
+        // when a context-less item is added to a contextful container, it is automatically adopted
+        if (newValue.getPrismContext() == null && this.prismContext != null) {
+            prismContext.adopt(newValue);
+        }
+        return super.add(newValue);
     }
     
 	@Override
@@ -205,7 +224,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
     
     public PrismContainerValue<V> createNewValue() {
-    	PrismContainerValue<V> pValue = new PrismContainerValue<V>();
+    	PrismContainerValue<V> pValue = new PrismContainerValue<V>(prismContext);
     	try {
 			add(pValue);
 		} catch (SchemaException e) {
@@ -569,12 +588,12 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     
     @Override
 	public ContainerDelta<V> createDelta() {
-    	return new ContainerDelta<V>(getPath(), getDefinition());
+    	return new ContainerDelta<V>(getPath(), getDefinition(), getPrismContext());
 	}
     
     @Override
 	public ContainerDelta<V> createDelta(ItemPath path) {
-    	return new ContainerDelta<V>(path, getDefinition());
+    	return new ContainerDelta<V>(path, getDefinition(), getPrismContext());
 	}
 
     public boolean isEmpty() {

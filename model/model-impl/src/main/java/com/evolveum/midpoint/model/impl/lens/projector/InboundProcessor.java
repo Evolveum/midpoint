@@ -381,7 +381,7 @@ public class InboundProcessor {
         	throw new SchemaException("No definition for focus property "+targetFocusPropertyPath+", cannot process inbound expression in "+resource);
         }
         
-        PropertyDelta<U> outputUserPropertydelta = new PropertyDelta<U>(targetFocusPropertyPath, targetPropertyDef);
+        PropertyDelta<U> outputUserPropertydelta = new PropertyDelta<U>(targetFocusPropertyPath, targetPropertyDef, prismContext);
     	
         LensUtil.evaluateMapping(mapping, context, task, result);
     	

@@ -41,6 +41,8 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -49,7 +51,9 @@ import org.apache.commons.lang.Validate;
  *
  */
 public class PrismContainerValue<T extends Containerable> extends PrismValue implements DebugDumpable {
-	
+
+    private static final Trace LOGGER = TraceManager.getTrace(PrismContainerValue.class);
+
 	// This is list. We need to maintain the order internally to provide consistent
     // output in DOM and other ordering-sensitive representations
     private List<Item<?>> items = null;
@@ -81,23 +85,48 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 
     private PrismContainerDefinition concreteTypeDefinition = null;      // lazily evaluated
 
+    transient private PrismContext prismContext;
+
     public PrismContainerValue() {
     	super();
     	// Nothing to do
     }
-    
-    public PrismContainerValue(T containerable) {
+
+    public PrismContainerValue(PrismContext prismContext) {
+        this();
+        setPrismContext(prismContext);
+    }
+
+    private void setPrismContext(PrismContext prismContext) {
+        //Validate.notNull(prismContext, "No prismContext in PrismContainerValue");             // not yet
+        //if (prismContext == null) {
+        //    LOGGER.warn("No prismContext in PrismContainerValue");
+        //}
+        this.prismContext = prismContext;
+    }
+
+    private PrismContainerValue(T containerable) {
 		super();
 		this.containerable = containerable;
 	}
+
+    public PrismContainerValue(T containerable, PrismContext prismContext) {
+        this(containerable);
+        this.prismContext = prismContext;
+    }
     
-    public PrismContainerValue(OriginType type, Objectable source, PrismContainerable container, Long id, QName concreteType) {
+    private PrismContainerValue(OriginType type, Objectable source, PrismContainerable container, Long id, QName concreteType) {
 		super(type, source, container);
 		this.id = id;
         this.concreteType = concreteType;
 	}
 
-	/**
+    public PrismContainerValue(OriginType type, Objectable source, PrismContainerable container, Long id, QName concreteType, PrismContext prismContext) {
+        this(type, source, container, id, concreteType);
+        setPrismContext(prismContext);
+    }
+
+    /**
      * Returns a set of items that the property container contains. The items may be properties or inner property containers.
      * <p/>
      * The set may be null. In case there are no properties an empty set is
@@ -109,7 +138,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
      */
     
     public List<Item<?>> getItems() {
-    	return items;
+        return items;
     }
     
     public Item<?> getNextItem(Item<?> referenceItem) {
@@ -725,7 +754,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 				throw new IllegalStateException("PrismObject instantiated as a subItem in "+this+" from definition "+itemDefinition);
 			}
 		} else {
-			newItem = Item.createNewDefinitionlessItem(name, type);
+			newItem = Item.createNewDefinitionlessItem(name, type, prismContext);
 			if (newItem instanceof PrismObject) {
 				throw new IllegalStateException("PrismObject instantiated as a subItem in "+this+" as definitionless instance of class "+type);
 			}
@@ -815,7 +844,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         PrismProperty<X> property = null;
         if (propertyDefinition == null) {
         	// Definitionless
-        	property = new PrismProperty<X>(propertyName);
+        	property = new PrismProperty<X>(propertyName, prismContext);
         } else {
         	property = propertyDefinition.instantiate();
         }
@@ -875,9 +904,12 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         }
     }
     
-    public void setPropertyRealValue(QName propertyName, Object realValue) throws SchemaException {
+    public void setPropertyRealValue(QName propertyName, Object realValue, PrismContext prismContext) throws SchemaException {
     	PrismProperty<?> property = findOrCreateProperty(propertyName);
     	property.setRealValue(realValue);
+        if (property.getPrismContext() == null) {
+            property.setPrismContext(prismContext);
+        }
     }
     
     public <T> T getPropertyRealValue(QName propertyName, Class<T> type) {
@@ -1076,7 +1108,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		
 		List<Object> origRawElements = origCVal.rawElements;
 		if (origRawElements != null) {
-			PrismContainerValue<T> newCVal = new PrismContainerValue<T>();
+			PrismContainerValue<T> newCVal = new PrismContainerValue<T>(prismContext);
 			for (Object rawElement: origRawElements) {
 				Item<?> subitem = parseRawElement(rawElement, definition);
 				newCVal.merge(subitem);
@@ -1186,6 +1218,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 
 	@Override
 	public void revive(PrismContext prismContext) throws SchemaException {
+        if (this.prismContext == null) {
+            this.prismContext = prismContext;
+        }
 		super.revive(prismContext);
 		if (items != null) {
 			for (Item<?> item: items) {
@@ -1263,7 +1298,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 
 	public PrismContainerValue<T> clone() {
-    	PrismContainerValue<T> clone = new PrismContainerValue<T>(getOriginType(), getOriginObject(), getParent(), getId(), this.concreteType);
+    	PrismContainerValue<T> clone = new PrismContainerValue<T>(getOriginType(), getOriginObject(), getParent(), getId(), this.concreteType, this.prismContext);
     	copyValues(clone);
         return clone;
     }

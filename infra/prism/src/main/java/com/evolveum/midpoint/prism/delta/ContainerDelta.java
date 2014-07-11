@@ -41,24 +41,24 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismContainerValue<V>> implements PrismContainerable<V> {
 
-	public ContainerDelta(PrismContainerDefinition itemDefinition) {
-		super(itemDefinition);
+	public ContainerDelta(PrismContainerDefinition itemDefinition, PrismContext prismContext) {
+		super(itemDefinition, prismContext);
 	}
 
-	public ContainerDelta(ItemPath propertyPath, PrismContainerDefinition itemDefinition) {
-		super(propertyPath, itemDefinition);
+	public ContainerDelta(ItemPath propertyPath, PrismContainerDefinition itemDefinition, PrismContext prismContext) {
+		super(propertyPath, itemDefinition, prismContext);
 	}
 
-	public ContainerDelta(ItemPath parentPath, QName name, PrismContainerDefinition itemDefinition) {
-		super(parentPath, name, itemDefinition);
+	public ContainerDelta(ItemPath parentPath, QName name, PrismContainerDefinition itemDefinition, PrismContext prismContext) {
+		super(parentPath, name, itemDefinition, prismContext);
     	// Extra check. It makes no sense to create container delta with object definition
     	if (itemDefinition instanceof PrismObjectDefinition<?>) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to container delta");
     	}
 	}
 
-	public ContainerDelta(QName name, PrismContainerDefinition itemDefinition) {
-		super(name, itemDefinition);
+	public ContainerDelta(QName name, PrismContainerDefinition itemDefinition, PrismContext prismContext) {
+		super(name, itemDefinition, prismContext);
     	// Extra check. It makes no sense to create container delta with object definition
     	if (itemDefinition instanceof PrismObjectDefinition<?>) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to container delta");
@@ -220,7 +220,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 
 	@Override
 	public ContainerDelta<V> clone() {
-		ContainerDelta<V> clone = new ContainerDelta<V>(getElementName(), getDefinition());
+		ContainerDelta<V> clone = new ContainerDelta<V>(getElementName(), getDefinition(), getPrismContext());
 		copyValues(clone);
 		return clone;
 	}
@@ -251,7 +251,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		if (containerDefinition == null) {
 			throw new IllegalArgumentException("No definition for "+containerPath+" in "+objectDefinition);
 		}
-		ContainerDelta<T> delta = new ContainerDelta<T>(containerPath, containerDefinition);
+		ContainerDelta<T> delta = new ContainerDelta<T>(containerPath, containerDefinition, objectDefinition.getPrismContext());
 		return delta;
 	}
     

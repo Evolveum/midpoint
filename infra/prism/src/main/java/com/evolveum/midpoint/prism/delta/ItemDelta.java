@@ -49,6 +49,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.lang.Validate;
 
 /**
  * @author Radovan Semancik
@@ -70,28 +71,39 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 	protected Collection<V> valuesToAdd = null;
 	protected Collection<V> valuesToDelete = null;
 
-	public ItemDelta(ItemDefinition itemDefinition) {
+    transient private PrismContext prismContext;
+
+	protected ItemDelta(ItemDefinition itemDefinition, PrismContext prismContext) {
 		if (itemDefinition == null) {
-			throw new IllegalArgumentException("Attempt to create item delta wihout a definition");
+			throw new IllegalArgumentException("Attempt to create item delta without a definition");
 		}
+        //checkPrismContext(prismContext, itemDefinition);
+        this.prismContext = prismContext;
 		this.elementName = itemDefinition.getName();
 		this.parentPath = new ItemPath();
 		this.definition = itemDefinition;
 	}
 
-	public ItemDelta(QName elementName, ItemDefinition itemDefinition) {
+	protected ItemDelta(QName elementName, ItemDefinition itemDefinition, PrismContext prismContext) {
+        //checkPrismContext(prismContext, itemDefinition);
+        this.prismContext = prismContext;
 		this.elementName = elementName;
 		this.parentPath = new ItemPath();
 		this.definition = itemDefinition;
-	}
+    }
 
-	public ItemDelta(ItemPath parentPath, QName elementName, ItemDefinition itemDefinition) {
+	protected ItemDelta(ItemPath parentPath, QName elementName, ItemDefinition itemDefinition, PrismContext prismContext) {
+        //checkPrismContext(prismContext, itemDefinition);
+        this.prismContext = prismContext;
 		this.elementName = elementName;
 		this.parentPath = parentPath;
 		this.definition = itemDefinition;
-	}
+    }
 
-	public ItemDelta(ItemPath path, ItemDefinition itemDefinition) {
+	protected ItemDelta(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) {
+        //checkPrismContext(prismContext, itemDefinition);
+        this.prismContext = prismContext;
+
 		if (path == null) {
 			throw new IllegalArgumentException("Null path specified while creating item delta");
 		}
@@ -107,6 +119,13 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		}
 		this.definition = itemDefinition;
 	}
+
+    // currently unused; we allow deltas without prismContext, except for some operations (e.g. serialization to ItemDeltaType)
+//    private void checkPrismContext(PrismContext prismContext, ItemDefinition itemDefinition) {
+//        if (prismContext == null) {
+//            throw new IllegalStateException("No prismContext in delta for " + itemDefinition);
+//        }
+//    }
 
 	public QName getElementName() {
 		return elementName;
@@ -247,11 +266,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 
 
 	public PrismContext getPrismContext() {
-		if (definition == null) {
-			// This may happen e.g. in case of raw elements
-			return null;
-		}
-		return definition.getPrismContext();
+		return prismContext;
 	}
 
 	public abstract Class<? extends Item> getItemClass();
@@ -1211,16 +1226,19 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		return true;
 	}
 	
-	public void revive(PrismContext prismContext) {
+	public void revive(PrismContext prismContext) throws SchemaException {
+        this.prismContext = prismContext;
 		reviveSet(valuesToAdd, prismContext);
+        reviveSet(valuesToDelete, prismContext);
+        reviveSet(valuesToReplace, prismContext);
 	}
 
-	private void reviveSet(Collection<V> set, PrismContext prismContext) {
+	private void reviveSet(Collection<V> set, PrismContext prismContext) throws SchemaException {
 		if (set == null) {
 			return;
 		}
 		for (V val: set) {
-			// TODO: nothing to do ???????????
+            val.revive(prismContext);
 		}
 	}
 	
@@ -1230,6 +1248,8 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		}
 		this.definition = itemDefinition;
 		applyDefinitionSet(valuesToAdd, itemDefinition, force);
+        applyDefinitionSet(valuesToReplace, itemDefinition, force);
+        applyDefinitionSet(valuesToDelete, itemDefinition, force);
 	}
 
 	private void applyDefinitionSet(Collection<V> set, ItemDefinition itemDefinition, boolean force) throws SchemaException {

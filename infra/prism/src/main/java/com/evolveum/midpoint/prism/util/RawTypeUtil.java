@@ -53,9 +53,17 @@ public class RawTypeUtil {
 				parsedValues.add(parsed);
 			}
 		}
+
+        PrismContext prismContext = null;
+        if (containerDef != null) {
+            prismContext = containerDef.getPrismContext();
+        }
+        if (prismContext == null && itemDefinition != null) {
+            prismContext = itemDefinition.getPrismContext();
+        }
 		
 		if (itemDefinition == null){
-			PrismProperty property = new PrismProperty(elementQName);
+			PrismProperty property = new PrismProperty(elementQName, prismContext);
             property.addAll(PrismValue.cloneCollection(parsedValues));
             return property;
 		}

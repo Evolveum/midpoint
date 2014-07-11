@@ -243,7 +243,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismReferenceDefinition def = objectDef.findReferenceDefinition(TaskType.F_OBJECT_REF);
         System.out.println("MODIFY");
         ObjectReferenceType objectRef = null;
-        ReferenceDelta delta = new ReferenceDelta(def);
+        ReferenceDelta delta = new ReferenceDelta(def, prismContext);
         delta.addValueToAdd(new PrismReferenceValue("1", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
         repositoryService.modifyObject(TaskType.class, taskOid, modifications, result);
@@ -259,7 +259,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         checkReference(taskOid);
         System.out.println("MODIFY");
         modifications.clear();
-        delta = new ReferenceDelta(def);
+        delta = new ReferenceDelta(def, prismContext);
         delta.addValueToDelete(new PrismReferenceValue("1", ResourceType.COMPLEX_TYPE));
         delta.addValueToAdd(new PrismReferenceValue("2", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
@@ -277,7 +277,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         lastVersion = getTask.getVersion();
 
         modifications.clear();
-        delta = new ReferenceDelta(def);
+        delta = new ReferenceDelta(def, prismContext);
         delta.addValueToDelete(new PrismReferenceValue("2", ResourceType.COMPLEX_TYPE));
         delta.addValueToAdd(new PrismReferenceValue("1", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
@@ -470,7 +470,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
         ItemPath path = new ItemPath(UserType.F_EXTENSION, QNAME_LOOT);
         PrismProperty loot = user.findProperty(path);
-        PropertyDelta lootDelta = new PropertyDelta(path, loot.getDefinition());
+        PropertyDelta lootDelta = new PropertyDelta(path, loot.getDefinition(), prismContext);
         lootDelta.setValueToReplace(new PrismPropertyValue(456));
         modifications.add(lootDelta);
 

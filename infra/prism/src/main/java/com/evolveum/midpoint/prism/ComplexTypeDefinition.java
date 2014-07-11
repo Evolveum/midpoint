@@ -244,7 +244,7 @@ public class ComplexTypeDefinition extends Definition {
 	}
 
 	@Override
-	void revive(PrismContext prismContext) {
+	public void revive(PrismContext prismContext) {
 		if (this.prismContext != null) {
 			return;
 		}

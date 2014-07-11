@@ -34,7 +34,7 @@ public class DatePanel extends InputPanel {
     public DatePanel(String id, IModel<XMLGregorianCalendar> model) {
         super(id);
 
-        DateInput date = new DateInput(ID_INPUT, new XmlGregorianCalendarModel(model, true));
+        DateInput date = new DateInput(ID_INPUT, new XmlGregorianCalendarModel(model));
         add(date);
     }
 

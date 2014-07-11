@@ -61,7 +61,11 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		super(name, compileTimeClass);
 	}
 
-	public PrismObject(QName name, PrismObjectDefinition<T> definition, PrismContext prismContext) {
+    public PrismObject(QName name, Class<T> compileTimeClass, PrismContext prismContext) {
+        super(name, compileTimeClass, prismContext);
+    }
+
+    public PrismObject(QName name, PrismObjectDefinition<T> definition, PrismContext prismContext) {
 		super(name, definition, prismContext);
 	}
 

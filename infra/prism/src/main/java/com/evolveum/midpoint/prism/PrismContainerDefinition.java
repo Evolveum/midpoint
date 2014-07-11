@@ -144,7 +144,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
 	}
 
     @Override
-	void revive(PrismContext prismContext) {
+	public void revive(PrismContext prismContext) {
 		if (this.prismContext != null) {
 			return;
 		}
@@ -331,7 +331,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
 
     @Override
 	public ContainerDelta<V> createEmptyDelta(ItemPath path) {
-		return new ContainerDelta(path, this);
+		return new ContainerDelta(path, this, prismContext);
 	}
 
 	/**
@@ -485,7 +485,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     }
     
 	public PrismContainerValue<V> createValue() {
-		return new PrismContainerValue<V>();
+		return new PrismContainerValue<V>(prismContext);
 	}
 
     @Override

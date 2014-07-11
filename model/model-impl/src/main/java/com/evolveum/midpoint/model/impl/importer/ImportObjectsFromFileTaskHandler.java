@@ -76,12 +76,12 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
     public ImportObjectsFromFileTaskHandler() {
         super();
         //handlers = new HashMap<Task, ImportAccountsFromResourceResultHandler>();
-        filenamePropertyDefinition = new PrismPropertyDefinition(ModelConstants.FILENAME_PROPERTY_NAME, 
-        		DOMUtil.XSD_STRING, prismContext);
     }
 
     @PostConstruct
     private void initialize() {
+        filenamePropertyDefinition = new PrismPropertyDefinition(ModelConstants.FILENAME_PROPERTY_NAME,
+                DOMUtil.XSD_STRING, prismContext);          // must not be in the constructor, because prismContext is null at that time
         taskManager.registerHandler(HANDLER_URI, this);
     }
 

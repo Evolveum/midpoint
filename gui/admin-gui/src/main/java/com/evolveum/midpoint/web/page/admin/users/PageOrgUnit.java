@@ -445,6 +445,7 @@ public class PageOrgUnit extends PageAdminUsers {
     private void savePerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(SAVE_UNIT);
         try {
+            reviveModels();
             ObjectDelta delta = null;
             if (!isEditing()) {
                 PrismObject<OrgType> newOrgUnit = buildUnitFromModel(null);
@@ -574,5 +575,11 @@ public class PageOrgUnit extends PageAdminUsers {
 
         return parentList;
     }
+
+    private void reviveModels() throws SchemaException {
+        WebMiscUtil.revive(orgModel, getPrismContext());
+        WebMiscUtil.revive(parentOrgUnitsModel, getPrismContext());
+    }
+
 
 }

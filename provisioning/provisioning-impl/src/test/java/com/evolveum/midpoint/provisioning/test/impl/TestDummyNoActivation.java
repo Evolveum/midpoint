@@ -40,6 +40,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -125,8 +126,8 @@ public class TestDummyNoActivation extends TestDummy {
 	
 	@Test
 	@Override
-	public void test152EnableAccount() throws Exception {
-		final String TEST_NAME = "test152EnableAccount";
+	public void test151EnableAccount() throws Exception {
+		final String TEST_NAME = "test151EnableAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -169,8 +170,8 @@ public class TestDummyNoActivation extends TestDummy {
 	
 	@Test
 	@Override
-	public void test155SetValidFrom() throws Exception {
-		final String TEST_NAME = "test155SetValidFrom";
+	public void test152SetValidFrom() throws Exception {
+		final String TEST_NAME = "test152SetValidFrom";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -215,8 +216,8 @@ public class TestDummyNoActivation extends TestDummy {
 	
 	@Test
 	@Override
-	public void test156SetValidTo() throws Exception {
-		final String TEST_NAME = "test156SetValidTo";
+	public void test153SetValidTo() throws Exception {
+		final String TEST_NAME = "test153SetValidTo";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -253,6 +254,54 @@ public class TestDummyNoActivation extends TestDummy {
 		assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
 		assertNull("Unexpected account validFrom in account "+ACCOUNT_WILL_USERNAME+": "+dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
 		assertNull("Unexpected account validTo in account "+ACCOUNT_WILL_USERNAME+": "+dummyAccount.getValidTo(), dummyAccount.getValidTo());
+		
+		syncServiceMock.assertNotifyFailureOnly();
+		
+		assertSteadyResource();
+	}
+	
+	@Test
+	@Override
+	public void test155GetLockedoutAccount() throws Exception {
+		// Not relevant
+	}
+	
+	@Test
+	@Override
+	public void test156UnlockAccount() throws Exception {
+		final String TEST_NAME = "test156UnlockAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, prismContext,
+				LockoutStatusType.NORMAL);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+		
+		try {
+			// WHEN
+			provisioningService.modifyObject(ShadowType.class, delta.getOid(),
+				delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (SchemaException e) {
+			// This is expected
+		}
+			
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("modifyObject result", result);
+		TestUtil.assertFailure(result);
+		
+		delta.checkConsistence();
 		
 		syncServiceMock.assertNotifyFailureOnly();
 		

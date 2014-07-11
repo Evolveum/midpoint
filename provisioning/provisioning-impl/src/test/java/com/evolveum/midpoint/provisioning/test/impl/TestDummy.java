@@ -126,6 +126,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
@@ -1934,8 +1935,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test152EnableAccount() throws Exception {
-		final String TEST_NAME = "test152EnableAccount";
+	public void test151EnableAccount() throws Exception {
+		final String TEST_NAME = "test151EnableAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -1978,8 +1979,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test155SetValidFrom() throws Exception {
-		final String TEST_NAME = "test155SetValidFrom";
+	public void test152SetValidFrom() throws Exception {
+		final String TEST_NAME = "test152SetValidFrom";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -2025,8 +2026,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test156SetValidTo() throws Exception {
-		final String TEST_NAME = "test156SetValidTo";
+	public void test153SetValidTo() throws Exception {
+		final String TEST_NAME = "test153SetValidTo";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -2071,10 +2072,94 @@ public class TestDummy extends AbstractDummyTest {
 		
 		assertSteadyResource();
 	}
+	
+	@Test
+	public void test155GetLockedoutAccount() throws Exception {
+		final String TEST_NAME = "test155GetLockedoutAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+		dummyAccount.setLockout(true);
+
+		// WHEN
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
+		ShadowType shadowType = shadow.asObjectable();
+
+		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		TestUtil.assertSuccess(result);
+
+		display("Retrieved account shadow", shadowType);
+
+		assertNotNull("No dummy account", shadowType);
+		
+		if (supportsActivation()) {
+			PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, 
+				LockoutStatusType.LOCKED);
+		} else {
+			PrismAsserts.assertNoItem(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
+		}
+
+		checkAccountWill(shadowType, result);
+
+		checkConsistency(shadowType.asPrismObject());
+		
+		assertSteadyResource();
+	}
+	
+	@Test
+	public void test156UnlockAccount() throws Exception {
+		final String TEST_NAME = "test156UnlockAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, 
+				result).asObjectable();
+		assertNotNull(accountType);
+		display("Retrieved account shadow", accountType);
+
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+		assertTrue("Account is not locked", dummyAccount.isLockout());
+		
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, prismContext,
+				LockoutStatusType.NORMAL);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("modifyObject result", result);
+		TestUtil.assertSuccess(result);
+		
+		delta.checkConsistence();
+		// check if activation was changed
+		dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+		assertFalse("Dummy account "+ACCOUNT_WILL_USERNAME+" is locked, expected unlocked", dummyAccount.isLockout());
+		
+		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
+	}
 
 	@Test
-	public void test158GetAccount() throws Exception {
-		final String TEST_NAME = "test158GetAccount";
+	public void test159GetAccount() throws Exception {
+		final String TEST_NAME = "test159GetAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
@@ -2096,8 +2181,11 @@ public class TestDummy extends AbstractDummyTest {
 		if (supportsActivation()) {
 			PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
 				ActivationStatusType.ENABLED);
+			PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, 
+					LockoutStatusType.NORMAL);
 		} else {
 			PrismAsserts.assertNoItem(shadow, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+			PrismAsserts.assertNoItem(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
 		}
 
 		checkAccountWill(shadowType, result);

@@ -52,20 +52,20 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValue<T>> {
 
-    public PropertyDelta(PrismPropertyDefinition propertyDefinition) {
-        super(propertyDefinition);
+    public PropertyDelta(PrismPropertyDefinition propertyDefinition, PrismContext prismContext) {
+        super(propertyDefinition, prismContext);
     }
     
-    public PropertyDelta(QName name, PrismPropertyDefinition propertyDefinition) {
-    	super(name, propertyDefinition);
+    public PropertyDelta(QName name, PrismPropertyDefinition propertyDefinition, PrismContext prismContext) {
+    	super(name, propertyDefinition, prismContext);
     }
 
-    public PropertyDelta(ItemPath parentPath, QName name, PrismPropertyDefinition propertyDefinition) {
-    	super(parentPath, name, propertyDefinition);
+    public PropertyDelta(ItemPath parentPath, QName name, PrismPropertyDefinition propertyDefinition, PrismContext prismContext) {
+    	super(parentPath, name, propertyDefinition, prismContext);
     }
 
-    public PropertyDelta(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition) {
-    	super(propertyPath, propertyDefinition);
+    public PropertyDelta(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition, PrismContext prismContext) {
+    	super(propertyPath, propertyDefinition, prismContext);
     }
     
     PrismPropertyDefinition getPropertyDefinition() {
@@ -141,7 +141,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     
 	@Override
 	public PropertyDelta<T> clone() {
-		PropertyDelta<T> clone = new PropertyDelta<T>(getElementName(), getPropertyDefinition());
+		PropertyDelta<T> clone = new PropertyDelta<T>(getElementName(), getPropertyDefinition(), getPrismContext());
 		copyValues(clone);
 		return clone;
 	}
@@ -158,7 +158,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		if (propertyDefinition == null) {
 			throw new IllegalArgumentException("No definition for "+propertyName+" in "+containerDefinition);
 		}
-		PropertyDelta<T> delta = new PropertyDelta<T>(propertyName, propertyDefinition);
+		PropertyDelta<T> delta = new PropertyDelta<T>(propertyName, propertyDefinition, containerDefinition.getPrismContext());            // hoping the prismContext is there
 		Collection<PrismPropertyValue<T>> valuesToReplace = delta.getValuesToReplace();
 		if (valuesToReplace == null)
 			valuesToReplace = new ArrayList<PrismPropertyValue<T>>(realValues.length);
@@ -175,7 +175,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		if (propertyDefinition == null) {
 			throw new IllegalArgumentException("No definition for "+propertyName+" in "+containerDefinition);
 		}
-		PropertyDelta<T> delta = new PropertyDelta<T>(propertyName, propertyDefinition);
+		PropertyDelta<T> delta = new PropertyDelta<T>(propertyName, propertyDefinition, containerDefinition.getPrismContext());       // hoping the prismContext is there
 		Collection<PrismPropertyValue<T>> valuesToReplace = new ArrayList<PrismPropertyValue<T>>(pValues.length);
 		for (PrismPropertyValue<T> pVal: pValues) {
 			valuesToReplace.add(pVal);
@@ -190,7 +190,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
         if (propertyDefinition == null) {
             throw new IllegalArgumentException("No definition for "+propertyName+" in "+containerDefinition);
         }
-        PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
+        PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition, containerDefinition.getPrismContext());       // hoping the prismContext is there
         for (Object realVal: realValues) {
             delta.addValueToAdd(new PrismPropertyValue(realVal));
         }
@@ -203,7 +203,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
         if (propertyDefinition == null) {
             throw new IllegalArgumentException("No definition for "+propertyName+" in "+containerDefinition);
         }
-        PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
+        PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition, containerDefinition.getPrismContext());       // hoping the prismContext is there
         for (Object realVal: realValues) {
             delta.addValueToDelete(new PrismPropertyValue(realVal));
         }
@@ -219,7 +219,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		if (propertyDefinition == null) {
 			throw new IllegalArgumentException("No definition for "+propertyName+" in "+objectDefinition);
 		}
-		PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition);
+		PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition, objectDefinition.getPrismContext());             // hoping the prismContext is there
 		delta.setValuesToReplace(new ArrayList<PrismPropertyValue>());
 		return delta;
 	}
@@ -288,7 +288,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 
 	public static <O extends Objectable,T> PropertyDelta<T> createDelta(ItemPath propertyPath, PrismObjectDefinition<O> objectDefinition) {
     	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
-    	return new PropertyDelta<T>(propertyPath, propDef);
+    	return new PropertyDelta<T>(propertyPath, propDef, objectDefinition.getPrismContext());        // hoping the prismContext is there
     }
 	
 	public static <O extends Objectable,T> PropertyDelta<T> createDelta(QName propertyName, Class<O> compileTimeClass, PrismContext prismContext) {
@@ -298,7 +298,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     public static <O extends Objectable,T> PropertyDelta<T> createDelta(ItemPath propertyPath, Class<O> compileTimeClass, PrismContext prismContext) {
     	PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(compileTimeClass);
     	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
-    	return new PropertyDelta<T>(propertyPath, propDef);
+    	return new PropertyDelta<T>(propertyPath, propDef, prismContext);
     }
     
     public static <T> PropertyDelta<T> createModificationReplaceProperty(QName propertyName, PrismObjectDefinition<?> objectDefinition, 
@@ -313,7 +313,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     public static <T> PropertyDelta<T> createModificationReplaceProperty(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition, 
     		T... propertyValues) {
     	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
-    	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propDef);
+    	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propDef, objectDefinition.getPrismContext());              // hoping the prismContext is there
     	Collection<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>(propertyValues.length);
     	for (T val: propertyValues) {
     		pValues.add(new PrismPropertyValue<T>(val));
@@ -324,7 +324,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     
     public static <T> PropertyDelta<T> createModificationReplaceProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition, 
     		T... propertyValues) {
-    	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition);
+    	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition, propertyDefinition.getPrismContext());             // hoping the prismContext is there
     	Collection<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>(propertyValues.length);
     	for (T val: propertyValues) {
     		pValues.add(new PrismPropertyValue<T>(val));
@@ -335,7 +335,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     
     public static <T> PropertyDelta<T> createModificationAddProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition, 
     		T... propertyValues) {
-    	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition);
+    	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition, propertyDefinition.getPrismContext());         // hoping the prismContext is there
     	Collection<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>(propertyValues.length);
     	for (T val: propertyValues) {
     		pValues.add(new PrismPropertyValue<T>(val));
@@ -346,7 +346,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     
     public static <T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition, 
     		T... propertyValues) {
-    	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition);
+    	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition, propertyDefinition.getPrismContext());             // hoping the prismContext is there
     	Collection<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>(propertyValues.length);
     	for (T val: propertyValues) {
     		pValues.add(new PrismPropertyValue<T>(val));

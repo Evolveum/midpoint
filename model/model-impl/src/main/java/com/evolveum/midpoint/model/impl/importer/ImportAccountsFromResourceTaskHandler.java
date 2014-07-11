@@ -106,13 +106,15 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 
     public ImportAccountsFromResourceTaskHandler() {
         super(ShadowType.class, "Import from resource", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
-        objectclassPropertyDefinition = new PrismPropertyDefinition<QName>(ModelConstants.OBJECTCLASS_PROPERTY_NAME, 
-        		DOMUtil.XSD_QNAME, prismContext);
         setLogFinishInfo(true);
     }
 
     @PostConstruct
     private void initialize() {
+        // this call must not be in the constructor, because prismContext is not yet initialized at that moment
+        objectclassPropertyDefinition = new PrismPropertyDefinition<>(ModelConstants.OBJECTCLASS_PROPERTY_NAME,
+                DOMUtil.XSD_QNAME, prismContext);
+
         taskManager.registerHandler(HANDLER_URI, this);
     }
 

@@ -30,6 +30,7 @@ public class AttributesToReturn implements Serializable {
 	private boolean returnDefaultAttributes = true;
 	private boolean returnPasswordExplicit = false;
 	private boolean returnAdministrativeStatusExplicit = false;
+	private boolean returnLockoutStatusExplicit = false;
 	Collection<? extends ResourceAttributeDefinition> attributesToReturn = null;
 	
 	public boolean isReturnDefaultAttributes() {
@@ -62,6 +63,14 @@ public class AttributesToReturn implements Serializable {
 
 	public void setReturnAdministrativeStatusExplicit(boolean returnAdministrativeStatusExplicit) {
 		this.returnAdministrativeStatusExplicit = returnAdministrativeStatusExplicit;
+	}
+
+	public boolean isReturnLockoutStatusExplicit() {
+		return returnLockoutStatusExplicit;
+	}
+
+	public void setReturnLockoutStatusExplicit(boolean returnLockoutStatusExplicit) {
+		this.returnLockoutStatusExplicit = returnLockoutStatusExplicit;
 	}
 
 	@Override

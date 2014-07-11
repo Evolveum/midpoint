@@ -416,7 +416,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PrismProperty property = createProperty(propertyName, propertyValue);
 		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES, 
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
-		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
+		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition(), prismContext);
 		delta.setValueToReplace(new PrismPropertyValue(propertyValue));
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
 		return attributeModification;
@@ -426,7 +426,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PrismProperty property = createProperty(propertyName, propertyValue);
 		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES, 
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
-		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
+		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition(), prismContext);
 		delta.addValueToAdd(new PrismPropertyValue(propertyValue));
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
 		return attributeModification;
@@ -436,7 +436,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PrismProperty property = createProperty(propertyName, propertyValue);
 		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES, 
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
-		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
+		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition(), prismContext);
 		delta.addValueToDelete(new PrismPropertyValue(propertyValue));
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
 		return attributeModification;

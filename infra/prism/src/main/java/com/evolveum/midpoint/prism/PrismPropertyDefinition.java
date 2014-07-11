@@ -122,7 +122,7 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
 
     @Override
 	public PropertyDelta<T> createEmptyDelta(ItemPath path) {
-		return new PropertyDelta<T>(path, this);
+		return new PropertyDelta<T>(path, this, prismContext);
 	}
 
 	@Override

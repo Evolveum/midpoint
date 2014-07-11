@@ -162,12 +162,14 @@ public class TestJaxbConstruction {
 //        assertEquals("Difference filter", filterElement, prismFilter);
 
         ShadowType accountShadowType = new ShadowType();
+        prismContext.adopt(accountShadowType);
         accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
         userType.getLink().add(accountShadowType);
         //value still should be only one... (reference was only resolved)
         assertEquals("2/ Wrong accountRef values", 1, user.findReference(UserType.F_LINK_REF).getValues().size());
 
 		accountShadowType = new ShadowType();
+        prismContext.adopt(accountShadowType);
 		accountShadowType.setOid(USER_ACCOUNT_REF_2_OID);
 		userType.getLink().add(accountShadowType);
 
