@@ -148,6 +148,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
@@ -505,7 +506,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
-				+ ".getCapabilities");
+				+ ".fetchCapabilities");
 		result.addContext("connector", connectorType);
 
 		try {
@@ -584,6 +585,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		AttributeInfo enableAttributeInfo = null;
 		AttributeInfo enableDateAttributeInfo = null;
 		AttributeInfo disableDateAttributeInfo = null;
+		AttributeInfo lockoutAttributeInfo = null;
 
 		// New instance of midPoint schema object
 		resourceSchema = new ResourceSchema(getSchemaNamespace(), prismContext);
@@ -652,6 +654,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				
 				if (OperationalAttributes.DISABLE_DATE_NAME.equals(attributeInfo.getName())) {
 					disableDateAttributeInfo = attributeInfo;
+					// Skip this attribute, capability is sufficient
+					continue;
+				}
+				
+				if (OperationalAttributes.LOCK_OUT_NAME.equals(attributeInfo.getName())) {
+					lockoutAttributeInfo = attributeInfo;
 					// Skip this attribute, capability is sufficient
 					continue;
 				}
@@ -758,6 +766,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			capAct.setValidTo(capValidTo);
 			if (!disableDateAttributeInfo.isReturnedByDefault()) {
 				capValidTo.setReturnedByDefault(false);
+			}
+		}
+		
+		if (lockoutAttributeInfo != null) {
+			if (capAct == null) {
+				capAct = new ActivationCapabilityType();
+			}
+			ActivationLockoutStatusCapabilityType capActStatus = new ActivationLockoutStatusCapabilityType();
+			capAct.setLockoutStatus(capActStatus);
+			if (!lockoutAttributeInfo.isReturnedByDefault()) {
+				capActStatus.setReturnedByDefault(false);
 			}
 		}
 
@@ -1035,6 +1054,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				|| (attributesToReturn.isReturnDefaultAttributes() && enabledReturnedByDefault())) {
 			icfAttrsToGet.add(OperationalAttributes.ENABLE_NAME);
 		}
+		if (attributesToReturn.isReturnLockoutStatusExplicit()
+				|| (attributesToReturn.isReturnDefaultAttributes() && lockoutReturnedByDefault())) {
+			icfAttrsToGet.add(OperationalAttributes.LOCK_OUT_NAME);
+		}
 		if (attrs != null) {
 			for (ResourceAttributeDefinition attrDef: attrs) {
 				String attrName = icfNameMapper.convertAttributeNameToIcf(attrDef.getName(), getSchemaNamespace());
@@ -1056,6 +1079,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return CapabilityUtil.isActivationStatusReturnedByDefault(capability);
 	}
 
+	private boolean lockoutReturnedByDefault() {
+		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
+		return CapabilityUtil.isActivationLockoutStatusReturnedByDefault(capability);
+	}
 
 	@Override
 	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> object,

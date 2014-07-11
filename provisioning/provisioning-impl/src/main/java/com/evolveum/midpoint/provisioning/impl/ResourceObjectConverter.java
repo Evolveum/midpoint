@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,6 +87,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningOperationTypeType;
@@ -819,6 +820,30 @@ public class ResourceObjectConverter {
 			if (xmlCal != null) {
 				operations.add(new PropertyModificationOperation(validToPropertyDelta));
 			}
+		}
+		
+		PropertyDelta<LockoutStatusType> lockoutPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+				SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
+		if (lockoutPropertyDelta != null) {
+			if (activationCapabilityType == null) {
+				throw new SchemaException("Attempt to change activation lockoutStatus on "+resource+" which does not have the capability");
+			}
+			LockoutStatusType status = lockoutPropertyDelta.getPropertyNew().getRealValue();
+			LOGGER.trace("Found activation lockoutStatus change to: {}", status);
+
+			// TODO: simulated
+			if (ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resource)) {
+				// Native lockout, need to check if there is not also change to simulated activation which may be in conflict
+//				checkSimulatedActivation(objectChange, status, shadow, resource, objectClassDefinition);
+				operations.add(new PropertyModificationOperation(lockoutPropertyDelta));
+			} else {
+				// Try to simulate activation capability
+				
+				// TODO
+//				PropertyModificationOperation activationAttribute = convertToSimulatedActivationAttribute(lockoutPropertyDelta, shadow, resource,
+//						status, objectClassDefinition);
+//				operations.add(activationAttribute);
+			}	
 		}
 		
 		return operations;

@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 
 
 
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -57,6 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -328,6 +330,26 @@ public class ResourceTypeUtil {
 		if (activationCapability == null) {
 			return false;
 		}
+		return true;
+	}
+	
+	public static boolean hasResourceNativeActivationLockoutCapability(ResourceType resource) {
+		ActivationCapabilityType activationCapability = null;
+		// check resource native capabilities. if resource cannot do
+		// activation, it sholud be null..
+		if (resource.getCapabilities() != null && resource.getCapabilities().getNative() != null) {
+			activationCapability = CapabilityUtil.getCapability(resource.getCapabilities().getNative().getAny(),
+					ActivationCapabilityType.class);
+		}
+		if (activationCapability == null) {
+			return false;
+		}
+		
+		ActivationLockoutStatusCapabilityType lockoutStatus = activationCapability.getLockoutStatus();
+		if (lockoutStatus == null) {
+			return false;
+		}
+		
 		return true;
 	}
 	
