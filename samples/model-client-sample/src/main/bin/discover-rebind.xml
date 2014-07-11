@@ -36,7 +36,7 @@
         <s:type>discover-connectors</s:type>
         <s:parameter>
             <s:name>rebindResources</s:name>
-            <s:constant>true</s:constant>
+            <c:value>true</c:value>
         </s:parameter>
     </s:action>
 </s:search>

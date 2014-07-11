@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionTy
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionPipelineType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionSequenceType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.FilterExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ForeachExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
@@ -123,7 +124,7 @@ public class ScriptingExpressionEvaluator {
      * @param parentResult
      * @throws SchemaException
      */
-    public void evaluateExpressionInBackground(JAXBElement<?> expression, Task task, OperationResult parentResult) throws SchemaException {
+    public void evaluateExpressionInBackground(JAXBElement<? extends ExpressionType> expression, Task task, OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "evaluateExpressionInBackground");
         if (!task.isTransient()) {
             throw new IllegalStateException("Task must be transient");
@@ -184,7 +185,7 @@ public class ScriptingExpressionEvaluator {
             output = searchEvaluator.evaluate((SearchExpressionType) value, input, context, result);
         } else if (value instanceof ActionExpressionType) {
             output = executeAction((ActionExpressionType) value, input, context, result);
-        } else if (value instanceof RawType) {
+        } else if (value instanceof RawType) {  // this will probably never happen (after schema change that disallows s:constant as an expression)
             output = evaluateConstantExpression((RawType) value, context, result);
         } else {
             throw new IllegalArgumentException("Unsupported expression type: " + expression);
@@ -234,7 +235,7 @@ public class ScriptingExpressionEvaluator {
         return lastOutput;
     }
 
-    private Data evaluateConstantExpression(RawType constant, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public Data evaluateConstantExpression(RawType constant, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
         try {
             Object value = prismContext.getXnodeProcessor().parseAnyData(constant.getXnode());

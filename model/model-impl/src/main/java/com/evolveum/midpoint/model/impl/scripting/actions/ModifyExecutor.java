@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -60,8 +61,8 @@ public class ModifyExecutor extends BaseActionExecutor {
 
         boolean raw = getParamRaw(expression, input, context, result);
 
-        JAXBElement<?> deltaExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_DELTA, true, true, NAME);
-        Data deltaData = scriptingExpressionEvaluator.evaluateExpression(deltaExpression, input, context, result);
+        ActionParameterValueType deltaParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_DELTA, true, true, NAME);
+        Data deltaData = expressionHelper.evaluateParameter(deltaParameterValue, input, context, result);
 
         for (Item item : input.getData()) {
             if (item instanceof PrismObject) {

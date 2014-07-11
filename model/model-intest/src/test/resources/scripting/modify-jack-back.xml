@@ -32,14 +32,14 @@
         <s:type>modify</s:type>
         <s:parameter>
             <s:name>delta</s:name>
-            <s:constant xsi:type="t:ObjectDeltaType">
+            <c:value xsi:type="t:ObjectDeltaType">
                 <!-- object type and oid will be filled-in from the input; change type is 'modify' by default -->
                 <t:itemDelta>
                     <t:modificationType>replace</t:modificationType>
                     <t:path>c:locality</t:path>
                     <t:value>Caribbean</t:value>
                 </t:itemDelta>
-            </s:constant>
+            </c:value>
         </s:parameter>
     </s:action>
 </s:pipeline>

@@ -28,11 +28,11 @@
         <s:type>assign</s:type>
         <s:parameter>
             <s:name>role</s:name>
-            <s:constant>12345678-d34d-b33f-f00d-55555555cccc</s:constant>
+            <c:value>12345678-d34d-b33f-f00d-55555555cccc</c:value>
         </s:parameter>
         <s:parameter>
             <s:name>resource</s:name>
-            <s:constant>10000000-0000-0000-0000-000000000104</s:constant>
+            <c:value>10000000-0000-0000-0000-000000000104</c:value>
         </s:parameter>
     </s:action>
 </s:search>

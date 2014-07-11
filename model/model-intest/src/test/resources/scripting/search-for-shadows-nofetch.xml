@@ -33,6 +33,6 @@
     </s:searchFilter>
     <s:parameter>
         <s:name>noFetch</s:name>
-        <s:constant>true</s:constant>
+        <c:value>true</c:value>
     </s:parameter>
 </s:search>

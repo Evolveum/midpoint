@@ -15,17 +15,18 @@
   ~ limitations under the License.
   -->
 <s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <s:search>
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:expression xsi:type="s:SearchExpressionType">
         <s:type>c:UserType</s:type>
-    </s:search>
-    <s:select>
+    </s:expression>
+    <s:expression xsi:type="s:SelectExpressionType">
         <s:path>c:linkRef</s:path>
-    </s:select>
-    <s:action>
+    </s:expression>
+    <s:expression xsi:type="s:ActionExpressionType">
         <s:type>log</s:type>
-    </s:action>
-    <s:action>
+    </s:expression>
+    <s:expression xsi:type="s:ActionExpressionType">
         <s:type>resolve</s:type>
-    </s:action>
+    </s:expression>
 </s:pipeline>

@@ -37,7 +37,7 @@
                         <s:type>assign</s:type>
                         <s:parameter>
                             <s:name>resource</s:name>
-                            <s:constant>ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</s:constant>
+                            <c:value>ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:value>
                         </s:parameter>
                     </s:action>
                 </s:search>

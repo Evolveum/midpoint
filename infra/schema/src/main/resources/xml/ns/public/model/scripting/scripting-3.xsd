@@ -85,7 +85,7 @@
     <!--</xsd:complexType>-->
     <!--<xsd:element name="scriptingExpression" type="tns:ScriptingExpressionType" />-->
 
-    <xsd:element name="expression" type="xsd:anyType" abstract="true" />        <!-- because constant is anyType -->
+    <xsd:element name="expression" type="tns:ExpressionType"  />        <!-- constants have to be treated separately -->
 
     <xsd:complexType name="ExpressionType">
         <xsd:annotation>
@@ -300,18 +300,22 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element ref="tns:expression" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Parameter (argument) value.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
+                    <xsd:choice>
+                        <xsd:element ref="c:value" minOccurs="0"></xsd:element>
+                        <xsd:element ref="tns:expression" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Parameter (argument) value.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:choice>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
+    <!--
     <xsd:element name="constant" type="xsd:anyType" substitutionGroup="tns:expression" nillable="true">
         <xsd:annotation>
             <xsd:appinfo>
@@ -319,6 +323,7 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+    -->
 
     <xsd:complexType name="ExecuteScriptType">
         <xsd:sequence>
