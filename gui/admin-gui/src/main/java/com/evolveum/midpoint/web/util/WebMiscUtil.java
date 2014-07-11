@@ -164,7 +164,24 @@ public final class WebMiscUtil {
                         return Integer.toString(index);
                     }
                 }, true);
+    }
 
+    public static DropDownChoicePanel createLockoutStatsPanel(String id, final IModel<LockoutStatusType> model,
+                                                              final Component component){
+        return new DropDownChoicePanel(id, model,
+                WebMiscUtil.createReadonlyModelFromEnum(LockoutStatusType.class),
+                new IChoiceRenderer<LockoutStatusType>() {
+
+                    @Override
+                    public Object getDisplayValue(LockoutStatusType object) {
+                        return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
+                    }
+
+                    @Override
+                    public String getIdValue(LockoutStatusType object, int index) {
+                        return Integer.toString(index);
+                    }
+                }, true);
     }
 
     public static String getName(ObjectType object) {
