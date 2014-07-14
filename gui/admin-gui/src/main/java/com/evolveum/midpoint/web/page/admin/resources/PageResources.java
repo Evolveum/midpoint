@@ -55,6 +55,7 @@ import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitle
 import com.evolveum.midpoint.web.page.admin.resources.dto.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
@@ -141,7 +142,8 @@ public class PageResources extends PageAdminResources {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        TablePanel resources = new TablePanel<>(ID_TABLE, initResourceDataProvider(), initResourceColumns());
+        TablePanel resources = new TablePanel<>(ID_TABLE, initResourceDataProvider(), initResourceColumns(),
+                UserProfileStorage.TableId.PAGE_RESOURCES_PANEL);
         resources.setOutputMarkupId(true);
         mainForm.add(resources);
 

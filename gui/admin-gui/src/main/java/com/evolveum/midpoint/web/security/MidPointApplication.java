@@ -39,7 +39,6 @@ import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
-import org.apache.wicket.atmosphere.EventBus;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.handler.PageProvider;
@@ -81,8 +80,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     private static final String WEB_APP_CONFIGURATION = "midpoint.webApplication";
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
-
-    private EventBus eventBus;
 
     @Autowired
     transient ModelService model;
@@ -230,10 +227,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
-    }
-
-    public EventBus getEventBus() {
-        return eventBus;
     }
 
     private static class ResourceFileFilter implements FilenameFilter {

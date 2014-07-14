@@ -71,6 +71,7 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -101,6 +102,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -897,14 +899,13 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 
 	@Test
-	public void test180AddDisabledAccount() throws Exception {
-		final String TEST_NAME = "test180AddDisabledAccount";
+	public void test175AddDisabledAccount() throws Exception {
+		final String TEST_NAME = "test175AddDisabledAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
-				+ "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
 
-		ShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_DISABLED_FILENAME, ShadowType.class);
+		ShadowType object = parseObjectType(ACCOUNT_NEW_DISABLED_FILE, ShadowType.class);
 
 		IntegrationTestTools.display("Adding object", object);
 
@@ -943,6 +944,131 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         assertNotNull("No activation disableTimestamp in repo", repoDisableTimestamp);
         assertEquals("Wrong activation disableTimestamp in repo", 
         		XmlTypeConverter.createXMLGregorianCalendar(1999, 8, 7, 6, 5, 4), repoDisableTimestamp);
+	}
+	
+	/**
+	 * Adding account with EXPLICIT enable. This triggers simulated activation in a different way.
+	 */
+	@Test
+	public void test176AddEnabledAccount() throws Exception {
+		final String TEST_NAME = "test176AddEnabledAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		ShadowType object = parseObjectType(ACCOUNT_NEW_ENABLED_FILE, ShadowType.class);
+
+		IntegrationTestTools.display("Adding object", object);
+
+		// WHEN
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		assertEquals(ACCOUNT_NEW_ENABLED_OID, addedObjectOid);
+
+		ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_ENABLED_OID,
+				null, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", "uid=cook,ou=People,dc=example,dc=com", accountType.getName());
+
+		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_ENABLED_OID,
+				null, taskManager.createTaskInstance(), result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", "uid=cook,ou=People,dc=example,dc=com", provisioningAccountType.getName());
+		
+		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);		
+		assertNotNull(uid);
+		
+		// Check if object was modified in LDAP
+		
+		SearchResultEntry response = openDJController.searchAndAssertByEntryUuid(uid);
+		display("LDAP account", response);
+		
+		String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
+		assertNull("unexpected ds-pwp-account-disabled attribute in account "+uid, disabled);
+	}
+	
+	@Test
+	public void test180GetUnlockedAccount() throws Exception {
+		final String TEST_NAME = "test180GetUnlockedAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance();
+
+		// WHEN
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+				null, task, result);
+		
+		// THEN
+		result.computeStatus();
+		assertSuccess(result);
+		
+		PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, 
+				LockoutStatusType.NORMAL);
+	}
+	
+	@Test
+	public void test182GetLockedAccount() throws Exception {
+		final String TEST_NAME = "test182GetLockedAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance();
+		
+		openDJController.executeLdifChange(
+				"dn: uid=will,ou=People,dc=example,dc=com\n" +
+				"changetype: modify\n" +
+				"replace: pager\n" +
+				"pager: 1"
+				);
+
+		// WHEN
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+				null, task, result);
+		
+		// THEN
+		result.computeStatus();
+		assertSuccess(result);
+		
+		PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, 
+				LockoutStatusType.LOCKED);
+	}
+	
+	@Test
+	public void test184UnlockAccount() throws Exception{
+		final String TEST_NAME = "test184UnlockAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName()+"."+TEST_NAME);
+		OperationResult result = task.getResult();
+
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_NEW_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, prismContext, LockoutStatusType.NORMAL);
+
+		// WHEN
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(),
+				delta.getModifications(), null, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+		assertSuccess(result);
+		
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_NEW_OID, null, taskManager.createTaskInstance(), result);
+		
+		display("Object after change",shadow);
+		
+		String uid = ShadowUtil.getSingleStringAttributeValue(shadow.asObjectable(), ConnectorFactoryIcfImpl.ICFS_UID);		
+		assertNotNull(uid);
+		
+		// Check if object was modified in LDAP
+		
+		SearchResultEntry response = openDJController.searchAndAssertByEntryUuid(uid);
+		display("LDAP account", response);
+		
+		String pager = openDJController.getAttributeValue(response, "pager");
+		assertNull("Pager attribute found in account "+uid+": "+pager, pager);
+		
+		PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, 
+				LockoutStatusType.NORMAL);
 	}
 	
 	@Test

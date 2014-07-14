@@ -17,36 +17,37 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-
-import java.io.Serializable;
 
 /**
- *  @author shood
- * */
-public class AceEditorPanel<T extends Serializable> extends SimplePanel<T> {
+ * @author shood
+ */
+public class AceEditorPanel extends SimplePanel<String> {
 
-    private static final String ID_EDITOR = "aceEditor";
+    private static final String ID_TITLE = "title";
+    private static final String ID_EDITOR = "editor";
 
-    public AceEditorPanel(String id, IModel<T> model){
-        super(id, model);
+    private IModel<String> title;
+
+    public AceEditorPanel(String id, IModel<String> title, IModel<String> data) {
+        super(id, data);
+
+        this.title = title;
+
+        initPanelLayout();
     }
 
-    @Override
-    protected void initLayout(){
+    private void initPanelLayout() {
+        Label title = new Label(ID_TITLE, this.title);
+        add(title);
 
-        AceEditor editor = new AceEditor(ID_EDITOR, new PropertyModel<String>(getEditorModel(), getExpression()));
+        AceEditor editor = new AceEditor(ID_EDITOR, getModel());
         editor.setReadonly(false);
         add(editor);
     }
 
-    public IModel<T> getEditorModel(){
-        return null;
+    public AceEditor getEditor(){
+        return (AceEditor)get(ID_EDITOR);
     }
-
-    public String getExpression(){
-        return "";
-    }
-
 }

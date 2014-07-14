@@ -78,7 +78,7 @@ public class PageTest2 extends PageBase {
     }
 
     private void initLayout(){
-        //model.getObject();
+        model.getObject();
         add(new CapabilityPanel(ID_CAPABILITY, model));
     }
 

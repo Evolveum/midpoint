@@ -29,7 +29,7 @@ public class CapabilityStepDto implements Serializable{
 
     public static final String F_CAPABILITIES = "capabilities";
 
-    private List<CapabilityDto> capabilities = new ArrayList<CapabilityDto>();
+    private List<CapabilityDto> capabilities = new ArrayList<>();
 
 
     public List<CapabilityDto> getCapabilities() {

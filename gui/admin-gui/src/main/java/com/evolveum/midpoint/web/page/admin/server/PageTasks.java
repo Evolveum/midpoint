@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.session.TasksStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -156,7 +157,8 @@ public class PageTasks extends PageAdminTasks {
         TaskDtoProvider provider = new TaskDtoProvider(PageTasks.this, options);
 
         provider.setQuery(createTaskQuery());
-        TablePanel<TaskDto> taskTable = new TablePanel<>(ID_TASK_TABLE, provider, taskColumns);
+        TablePanel<TaskDto> taskTable = new TablePanel<>(ID_TASK_TABLE, provider, taskColumns,
+                UserProfileStorage.TableId.PAGE_TASKS_PANEL);
         taskTable.setOutputMarkupId(true);
         mainForm.add(taskTable);
 

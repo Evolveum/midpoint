@@ -15,35 +15,49 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
-import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.ReportConfigurationPanel;
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.Base64Model;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.RawValidationError;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author shood
@@ -62,19 +76,12 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     private static final String DOT_CLASS = PageReport.class.getName() + ".";
     private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadReport";
     private static final String OPERATION_SAVE_REPORT = DOT_CLASS + "saveReport";
-    private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
+    private static final String OPERATION_VALIDATE_REPORT = DOT_CLASS + "validateReport";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_SAVE_BUTTON = "save";
     private static final String ID_CANCEL_BUTTON = "cancel";
-    private static final String ID_TEMPLATE_EDITOR = "templateEditor";
-    private static final String ID_TEMPLATE_STYLE_EDITOR = "templateStyleEditor";
-    private static final String ID_NAME = "name";
-    private static final String ID_DESCRIPTION = "description";
-
-    private static final String ID_LABEL_SIZE = "col-md-4";
-    private static final String ID_INPUT_SIZE = "col-md-8";
 
     private LoadableModel<PrismObject<ReportType>> model;
 
@@ -97,6 +104,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
         PrismObject<ReportType> prismReport = WebModelUtils.loadObject(ReportType.class, reportOid.toString(), result, this);
 
         if (prismReport == null) {
+            LOGGER.error("Couldn't load report.");
             throw new RestartResponseException(PageReports.class);
         }
 
@@ -107,45 +115,138 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel<>(model, ObjectType.F_NAME),
-                createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
-        mainForm.add(name);
+        List<ITab> tabs = new ArrayList<>();
+        tabs.add(new AbstractTab(createStringResource("PageReport.basic")) {
 
-        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
-                new PrismPropertyModel<>(model, ObjectType.F_DESCRIPTION),
-                createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        mainForm.add(description);
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                return new ReportConfigurationPanel(panelId, model);
+            }
+        });
+        tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplate")) {
 
-		AceEditor templateEditor = new AceEditor(ID_TEMPLATE_EDITOR, new Base64Model(
-				new PrismPropertyModel<>(model, ReportType.F_TEMPLATE)));
-        templateEditor.setMinSize(450);
-        mainForm.add(templateEditor);
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplate");
+                IModel<String> data = new Base64Model(new PrismPropertyModel<>(model, ReportType.F_TEMPLATE));
+                return new AceEditorPanel(panelId, title, data);
+            }
+        });
+        tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplateStyle")) {
 
-        AceEditor templateStyleEditor = new AceEditor(ID_TEMPLATE_STYLE_EDITOR, new Base64Model(
-                new PrismPropertyModel<>(model, ReportType.F_TEMPLATE_STYLE)));
-        templateStyleEditor.setMinSize(450);
-        mainForm.add(templateStyleEditor);
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplateStyle");
+                IModel<String> data = new Base64Model(new PrismPropertyModel<>(model, ReportType.F_TEMPLATE_STYLE));
+                return new AceEditorPanel(panelId, title, data);
+            }
+        });
+        tabs.add(new AbstractTab(createStringResource("PageReport.fullXml")) {
 
-//        List<ITab> tabs = new ArrayList<ITab>();
-//        tabs.add(new AbstractTab(createStringResource("pageReport.tab.panelConfig")) {
-//
-//            @Override
-//            public WebMarkupContainer getPanel(String panelId) {
-//                return new ReportConfigurationPanel(panelId, model);
-//            }
-//        });
-//
-//        tabs.add(new AbstractTab(createStringResource("pageReport.tab.aceEditor")) {
-//
-//            @Override
-//            public WebMarkupContainer getPanel(String panelId) {
-//                return initAceEditorPanel(panelId);
-//            }
-//        });
-//
-//        mainForm.add(new TabbedPanel(ID_TAB_PANEL, tabs));
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                IModel<String> title = PageReport.this.createStringResource("PageReport.fullXml");
+
+                AceEditorPanel panel = new AceEditorPanel(panelId, title, createFullXmlModel());
+                panel.getEditor().add(createFullXmlValidator());
+                return panel;
+            }
+        });
+
+        TabbedPanel reportTabPanel = new TabbedPanel(ID_TAB_PANEL, tabs){
+            @Override
+            protected WebMarkupContainer newLink(String linkId, final int index) {
+                return new AjaxSubmitLink(linkId) {
+
+                    @Override
+                    protected void onError(AjaxRequestTarget target, Form<?> form) {
+                        super.onError(target, form);
+
+                        target.add(getFeedbackPanel());
+                    }
+
+                    @Override
+                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        super.onSubmit(target, form);
+
+                        setSelectedTab(index);
+                        if (target != null) {
+                            target.add(findParent(TabbedPanel.class));
+                        }
+                    }
+                };
+            }
+        };
+        reportTabPanel.setOutputMarkupId(true);
+
+        mainForm.add(reportTabPanel);
 
         initButtons(mainForm);
+    }
+
+    private IValidator<String> createFullXmlValidator() {
+        return new IValidator<String>() {
+
+            @Override
+            public void validate(IValidatable<String> validatable) {
+                String value = validatable.getValue();
+
+                OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
+                Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
+
+                try {
+                    validateObject(value, reportHolder, true, result);
+
+                    if(!result.isAcceptable()){
+                        result.recordFatalError("Could not validate object", result.getCause());
+                        validatable.error(new RawValidationError(new OpResult(result)));
+                    }
+                } catch (Exception e){
+                    LOGGER.error("Validation problem occured." + e.getMessage());
+                    result.recordFatalError("Could not validate object.", e);
+                    validatable.error(new RawValidationError(new OpResult(result)));
+                }
+            }
+        };
+    }
+
+    private IModel<String> createFullXmlModel() {
+        return new IModel<String>() {
+
+            @Override
+            public String getObject() {
+                PrismObject report = model.getObject();
+                if (report == null) {
+                    return null;
+                }
+
+                try {
+                    return getPrismContext().serializeObjectToString(report, PrismContext.LANG_XML);
+                } catch (SchemaException ex) {
+                    getSession().error(getString("PageReport.message.cantSerializeFromObjectToString") + ex);
+                    throw new RestartResponseException(PageError.class);
+                }
+            }
+
+            @Override
+            public void setObject(String object) {
+                OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
+                Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
+
+                try {
+                    validateObject(object, reportHolder, true, result);
+                    model.setObject(reportHolder.getValue());
+                } catch (Exception e){
+                    LOGGER.error("Could not set object. Validation problem occured." + result.getMessage());
+                    result.recordFatalError("Could not set object. Validation problem occured,", e);
+                    showResultInSession(result);
+                }
+            }
+
+            @Override
+            public void detach() {
+            }
+        };
     }
 
     private void initButtons(Form mainForm) {

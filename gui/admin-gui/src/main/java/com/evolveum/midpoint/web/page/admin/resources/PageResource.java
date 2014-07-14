@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -117,11 +118,11 @@ public class PageResource extends PageAdminResources {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        SortableDataProvider<ResourceObjectTypeDto, String> provider = new ListDataProvider<ResourceObjectTypeDto>(this,
+        SortableDataProvider<ResourceObjectTypeDto, String> provider = new ListDataProvider<>(this,
                 new PropertyModel<List<ResourceObjectTypeDto>>(model, "objectTypes"));
         provider.setSort("displayName", SortOrder.ASCENDING);
-        TablePanel objectTypes = new TablePanel<ResourceObjectTypeDto>("objectTypesTable", provider,
-                initObjectTypesColumns());
+        TablePanel objectTypes = new TablePanel<>("objectTypesTable", provider,
+                initObjectTypesColumns(), UserProfileStorage.TableId.PAGE_RESOURCE_PANEL);
         objectTypes.setShowPaging(true);
         objectTypes.setOutputMarkupId(true);
         mainForm.add(objectTypes);
@@ -134,11 +135,11 @@ public class PageResource extends PageAdminResources {
     }
 
     private void initResourceColumns(Form mainForm) {
-        mainForm.add(new Label("resourceOid", new PropertyModel<Object>(model, "oid")));
-        mainForm.add(new Label("resourceName", new PropertyModel<Object>(model, "name")));
-        mainForm.add(new Label("resourceType", new PropertyModel<Object>(model, "type")));
-        mainForm.add(new Label("resourceVersion", new PropertyModel<Object>(model, "version")));
-        mainForm.add(new Label("resourceProgress", new PropertyModel<Object>(model, "progress")));
+        mainForm.add(new Label("resourceOid", new PropertyModel<>(model, "oid")));
+        mainForm.add(new Label("resourceName", new PropertyModel<>(model, "name")));
+        mainForm.add(new Label("resourceType", new PropertyModel<>(model, "type")));
+        mainForm.add(new Label("resourceVersion", new PropertyModel<>(model, "version")));
+        mainForm.add(new Label("resourceProgress", new PropertyModel<>(model, "progress")));
     }
 
     private IModel<String> createTestConnectionStateTooltip(final String expression) {

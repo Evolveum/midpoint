@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.*;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
@@ -91,7 +92,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 
         List<IColumn<WorkItemDto, String>> workItemColumns = initWorkItemColumns();
         TablePanel<WorkItemDto> workItemTable = new TablePanel<>("workItemTable", new WorkItemDtoProvider(PageWorkItems.this, assigned),
-                workItemColumns);
+                workItemColumns, UserProfileStorage.TableId.PAGE_WORK_ITEMS);
         workItemTable.setOutputMarkupId(true);
         mainForm.add(workItemTable);
 

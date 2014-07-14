@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputSearchDto;
 import com.evolveum.midpoint.web.session.ReportsStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -182,7 +183,7 @@ public class PageCreatedReports extends PageAdminReports {
 
         provider.setQuery(query);
 
-        TablePanel table = new TablePanel(ID_CREATED_REPORTS_TABLE, provider, initColumns(ajaxDownloadBehavior));
+        TablePanel table = new TablePanel(ID_CREATED_REPORTS_TABLE, provider, initColumns(ajaxDownloadBehavior), UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL);
         table.setShowPaging(true);
         table.setOutputMarkupId(true);
         mainForm.add(table);

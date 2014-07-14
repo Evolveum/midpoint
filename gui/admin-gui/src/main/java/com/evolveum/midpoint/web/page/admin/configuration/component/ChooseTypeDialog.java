@@ -84,7 +84,7 @@ public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
         List<IColumn<SelectableBean<ObjectType>, String>> columns = initColumns();
         ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), this.objectType);
         provider.setQuery(getDataProviderQuery());
-        TablePanel table = new TablePanel<SelectableBean<ObjectType>>("table", provider, columns);
+        TablePanel table = new TablePanel<>("table", provider, columns);
         table.setOutputMarkupId(true);
         content.add(table);
 
@@ -100,7 +100,7 @@ public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
     }
 
     private List<IColumn<SelectableBean<ObjectType>, String>> initColumns(){
-        List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<IColumn<SelectableBean<ObjectType>, String>>();
+        List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
         IColumn column = new LinkColumn<SelectableBean<ObjectType>>(createStringResource("chooseTypeDialog.column.name"), getSortableProperty(), "value.name"){
 

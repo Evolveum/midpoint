@@ -18,104 +18,82 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div class="col-xs-7 col-sm-6 col-md-5">
-        <h3>Activation configuration</h3>
+    <h3><wicket:message key="capabilityActivationPanel.label"/></h3>
 
-        <h4>Enabled/disabled</h4>
-        <div class="row">
-            <div class="col-xs-6">
-                <dl class="dl-horizontal">
-                    <dt>Enabled</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-            </div>
-            <div class="col-xs-6">
-                <dl class="dl-horizontal">
-                    <dt>Returned by default</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-                <dl class="dl-horizontal">
-                    <dt>Ignore attribute</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-            </div>
+    <h4><wicket:message key="capabilityActivationPanel.label.status" /></h4>
+    <div class="row">
+        <div class="col-xs-6">
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.enabled" /></label>
+                </dt>
+                <dd><input wicket:id="statusEnabled" type="checkbox" value="checked"/></dd>
+            </dl>
         </div>
-        <dl class="dl-horizontal">
-            <dt>Attribute name</dt>
-            <dd><select class="form-control input-sm"></select></dd>
-        </dl>
-        <dl class="dl-horizontal">
-            <dt>Enable list</dt>
-            <dd class="cap-dl-multivalue">
-                <div class="input-group">
-                    <input type="text" class="form-control input-sm"/>
-                                <span class="input-group-btn">
-                                    <a class="btn btn-sm btn-danger disabled" title="Remove">
-                                        <i class="fa fa-minus"/>
-                                    </a>
-                                    <a class="btn btn-sm btn-success" title="Add">
-                                        <i class="fa fa-plus"/>
-                                    </a>
-                                </span>
-                </div>
-            </dd>
-        </dl>
-        <dl class="dl-horizontal">
-            <dt>Disable list</dt>
-            <dd class="cap-dl-multivalue">
-                <div class="input-group">
-                    <input type="text" class="form-control input-sm"/>
-                                <span class="input-group-btn">
-                                    <a class="btn btn-sm btn-danger" title="Remove">
-                                        <i class="fa fa-minus"/>
-                                    </a>
-                                    <a class="btn btn-sm btn-success" title="Add">
-                                        <i class="fa fa-plus"/>
-                                    </a>
-                                </span>
-                </div>
-            </dd>
-            <dd>
-                <div class="input-group">
-                    <input type="text" class="form-control input-sm"/>
-                                <span class="input-group-btn">
-                                    <a class="btn btn-sm btn-danger" title="Remove">
-                                        <i class="fa fa-minus"/>
-                                    </a>
-                                    <a class="btn btn-sm btn-success" title="Add">
-                                        <i class="fa fa-plus"/>
-                                    </a>
-                                </span>
-                </div>
-            </dd>
-        </dl>
+        <div class="col-xs-6">
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.returnedByDefault" /></label>
+                </dt>
+                <dd><input wicket:id="statusReturnedByDefault" type="checkbox" value="checked"/></dd>
+            </dl>
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.ignoreAttribute"/></label>
+                </dt>
+                <dd><input wicket:id="statusIgnoreAttribute" type="checkbox" value="checked"/></dd>
+            </dl>
+        </div>
+    </div>
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="capabilityActivationPanel.label.attributeName" /></label>
+        </dt>
+        <dd><select wicket:id="statusSelect" class="form-control input-sm"></select></dd>
+    </dl>
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="capabilityActivationPanel.label.enableList" /></label>
+        </dt>
+        <div wicket:id="statusEnableList" />
+    </dl>
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="capabilityActivationPanel.label.disableList" /></label>
+        </dt>
+        <div wicket:id="statusDisableList" />
+    </dl>
 
-        <h4>Status</h4>
-        <p class="text-danger">The same as enabled/disabled</p>
-
-        <div class="row">
-            <div class="col-xs-6">
-                <h4>Valid from</h4>
-                <dl class="dl-horizontal">
-                    <dt>Enabled</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-                <dl class="dl-horizontal">
-                    <dt>Returned by default</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-            </div>
-            <div class="col-xs-6">
-                <h4>Valid to</h4>
-                <dl class="dl-horizontal">
-                    <dt>Enabled</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-                <dl class="dl-horizontal">
-                    <dt>Returned by default</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-            </div>
+    <div class="row">
+        <div class="col-xs-6">
+            <h4><wicket:message key="capabilityActivationPanel.label.validFrom" /></h4>
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.enabled" /></label>
+                </dt>
+                <dd><input wicket:id="validFromEnabled" type="checkbox" value="checked"/></dd>
+            </dl>
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.returnedByDefault" /></label>
+                </dt>
+                <dd><input wicket:id="validFromReturned" type="checkbox" value="checked"/></dd>
+            </dl>
+        </div>
+        <div class="col-xs-6">
+            <h4><wicket:message key="capabilityActivationPanel.label.validTo" /></h4>
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.enabled" /></label>
+                </dt>
+                <dd><input wicket:id="validToEnabled" type="checkbox" value="checked"/></dd>
+            </dl>
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.returnedByDefault" /></label>
+                </dt>
+                <dd><input wicket:id="validToReturned" type="checkbox" value="checked"/></dd>
+            </dl>
         </div>
     </div>
 

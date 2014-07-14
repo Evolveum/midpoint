@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 
-import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
 import java.util.List;

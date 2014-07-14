@@ -47,8 +47,11 @@ public class SessionStorage implements Serializable {
     private ResourcesStorage resources;
     private RolesStorage roles;
     private TasksStorage tasks;
-    private ResourceContentStorage resourceContent;
-    private OrgUnitStorage orgUnitStorage;
+
+    /**
+    *   Store session information for user preferences about paging size in midPoint GUI
+    * */
+    private UserProfileStorage userProfile;
 
     public Class<? extends WebPage> getPreviousPage() {
         return previousPage;
@@ -101,13 +104,6 @@ public class SessionStorage implements Serializable {
         return tasks;
     }
 
-    public ResourceContentStorage getResourceContent() {
-        if (resourceContent == null) {
-            resourceContent = new ResourceContentStorage();
-        }
-        return resourceContent;
-    }
-
     public ReportsStorage getReports() {
         if (reports == null) {
             reports = new ReportsStorage();
@@ -115,10 +111,14 @@ public class SessionStorage implements Serializable {
         return reports;
     }
 
-    public OrgUnitStorage getOrgUnits() {
-        if (orgUnitStorage == null) {
-            orgUnitStorage = new OrgUnitStorage();
+    public UserProfileStorage getUserProfile(){
+        if(userProfile == null){
+            userProfile = new UserProfileStorage();
         }
-        return orgUnitStorage;
+        return userProfile;
+    }
+
+    public void setUserProfile(UserProfileStorage profile){
+        userProfile = profile;
     }
 }

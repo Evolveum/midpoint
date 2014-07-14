@@ -18,59 +18,26 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div class="col-xs-7 col-sm-6 col-md-5">
-        <h3>Script configuration</h3>
+    <h3><wicket:message key="capabilityScriptPanel.label" /></h3>
 
-        <dl class="dl-horizontal">
-            <dt>Enabled</dt>
-            <dd><input type="checkbox" value="checked"/></dd>
-        </dl>
-        <dl class="dl-horizontal">
-            <dt>On connector</dt>
-            <dd class="cap-dl-multivalue">
-                <div class="input-group">
-                    <input type="text" class="form-control input-sm" value="java"/>
-                    <span class="input-group-btn">
-                        <a class="btn btn-sm btn-danger" title="Remove">
-                            <i class="fa fa-minus"/>
-                        </a>
-                        <a class="btn btn-sm btn-success" title="Add">
-                            <i class="fa fa-plus"/>
-                        </a>
-                    </span>
-                </div>
-            </dd>
-            <dd>
-                <div class="input-group">
-                    <input type="text" class="form-control input-sm" value="sql"/>
-                    <span class="input-group-btn">
-                        <a class="btn btn-sm btn-danger" title="Remove">
-                            <i class="fa fa-minus"/>
-                        </a>
-                        <a class="btn btn-sm btn-success" title="Add">
-                            <i class="fa fa-plus"/>
-                        </a>
-                    </span>
-                </div>
-            </dd>
-        </dl>
-        <dl class="dl-horizontal">
-            <dt>On connector</dt>
-            <dd class="cap-dl-multivalue">
-                <div class="input-group">
-                    <input type="text" class="form-control input-sm"/>
-                    <span class="input-group-btn">
-                        <a class="btn btn-sm btn-danger disabled" title="Remove">
-                            <i class="fa fa-minus"/>
-                        </a>
-                        <a class="btn btn-sm btn-success" title="Add">
-                            <i class="fa fa-plus"/>
-                        </a>
-                    </span>
-                </div>
-            </dd>
-        </dl>
-    </div>
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="capabilityScriptPanel.label.enabled" /></label>
+        </dt>
+        <dd><input wicket:id="enabled" type="checkbox" value="checked"/></dd>
+    </dl>
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="capabilityScriptPanel.label.onConnector" /></label>
+        </dt>
+        <div wicket:id="onConnectorValue" />
+    </dl>
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="capabilityScriptPanel.label.onResource" /></label>
+        </dt>
+        <div wicket:id="onResourceValue" />
+    </dl>
 
 </wicket:panel>
 </html>

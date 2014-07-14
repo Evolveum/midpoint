@@ -46,6 +46,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
@@ -129,11 +130,11 @@ public class PageWorkItem extends PageAdminWorkItems {
         this(new PageParameters(), null);
     }
 
-    public PageWorkItem(PageParameters parameters, PageBase previousPage) {
+    public PageWorkItem(PageParameters parameters, PageTemplate previousPage) {
         this(parameters, previousPage, false);
     }
 
-    public PageWorkItem(PageParameters parameters, PageBase previousPage, boolean reinitializePreviousPage) {
+    public PageWorkItem(PageParameters parameters, PageTemplate previousPage, boolean reinitializePreviousPage) {
 
         this.parameters = parameters;
         setPreviousPage(previousPage);

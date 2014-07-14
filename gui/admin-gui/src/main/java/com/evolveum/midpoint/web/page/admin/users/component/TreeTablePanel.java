@@ -55,6 +55,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.*;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -330,7 +331,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         };
         tableProvider.setOptions(WebModelUtils.createMinimalOptions());
         List<IColumn<OrgTableDto, String>> tableColumns = createTableColumns();
-        TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, 10);
+        TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, UserProfileStorage.TableId.TREE_TABLE_PANEL);
         table.setOutputMarkupId(true);
         form.add(table);
     }

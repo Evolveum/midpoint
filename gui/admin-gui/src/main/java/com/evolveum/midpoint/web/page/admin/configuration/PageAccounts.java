@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -200,7 +201,7 @@ public class PageAccounts extends PageAdminConfiguration {
         ObjectDataProvider provider = new ObjectDataProvider(this, ShadowType.class);
         provider.setOptions(SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         provider.setQuery(ObjectQuery.createObjectQuery(createResourceQueryFilter()));
-        TablePanel accounts = new TablePanel(ID_ACCOUNTS, provider, createAccountsColumns());
+        TablePanel accounts = new TablePanel(ID_ACCOUNTS, provider, createAccountsColumns(), UserProfileStorage.TableId.CONF_PAGE_ACCOUNTS);
         accounts.add(new VisibleEnableBehaviour() {
 
             @Override

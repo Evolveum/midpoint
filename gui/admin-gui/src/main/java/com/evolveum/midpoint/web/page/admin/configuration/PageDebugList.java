@@ -55,6 +55,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -243,7 +244,7 @@ public class PageDebugList extends PageAdminConfiguration {
         provider.setQuery(createQuery());
         Form mainForm = (Form) get(ID_MAIN_FORM);
 
-        TablePanel table = new TablePanel(ID_TABLE, provider, initColumns(provider.getType()));
+        TablePanel table = new TablePanel(ID_TABLE, provider, initColumns(provider.getType()), UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL);
         table.setOutputMarkupId(true);
         mainForm.addOrReplace(table);
     }

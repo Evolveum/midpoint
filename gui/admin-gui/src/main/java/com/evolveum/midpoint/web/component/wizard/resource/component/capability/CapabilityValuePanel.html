@@ -18,14 +18,16 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div class="col-xs-7 col-sm-6 col-md-5">
-        <h3>Native value configuration</h3>
+    <h3 wicket:id="label"></h3>
 
-        <dl class="dl-horizontal">
-            <dt>Enabled</dt>
-            <dd><input type="checkbox" value="checked"/></dd>
-        </dl>
-    </div>
+    <dl class="dl-horizontal">
+        <dt>
+            <label>
+                <wicket:message key="capabilityValuePanel.label.enabled" />
+            </label>
+        </dt>
+        <dd><input wicket:id="enabled" type="checkbox" value="checked"/></dd>
+    </dl>
 
 </wicket:panel>
 </html>

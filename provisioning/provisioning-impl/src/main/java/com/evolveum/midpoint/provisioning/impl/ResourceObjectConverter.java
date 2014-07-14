@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -96,6 +98,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 
 /**
@@ -259,7 +262,7 @@ public class ResourceObjectConverter {
 						new Object[] { resource.asPrismObject(), shadowType.asPrismObject().debugDump(),
 								SchemaDebugUtil.debugDump(additionalOperations,2) });
 			}
-			checkActivationAttribute(shadowType, resource, objectClassDefinition);
+			transformActivationAttributes(shadowType, resource, objectClassDefinition, parentResult);
 			
 			if (!ResourceTypeUtil.hasCreateCapability(resource)){
 				throw new UnsupportedOperationException("Resource does not support 'create' operation");
@@ -411,7 +414,7 @@ public class ResourceObjectConverter {
          */
         PrismObject<ShadowType> shadowBefore = shadow.clone();
 
-		collectAttributeAndEntitlementChanges(itemDeltas, operations, resource, shadow, objectClassDefinition);
+		collectAttributeAndEntitlementChanges(itemDeltas, operations, resource, shadow, objectClassDefinition, parentResult);
 		
 		Collection<PropertyModificationOperation> sideEffectChanges = null;
 				
@@ -762,7 +765,7 @@ public class ResourceObjectConverter {
 	}
 
 	private Collection<Operation> determineActivationChange(ShadowType shadow, Collection<? extends ItemDelta> objectChange,
-			ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition)
+			ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult result)
 			throws SchemaException {
 
 		Collection<Operation> operations = new ArrayList<Operation>();
@@ -783,12 +786,12 @@ public class ResourceObjectConverter {
 	
 				if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
 					// Native activation, need to check if there is not also change to simulated activation which may be in conflict
-					checkSimulatedActivation(objectChange, status, shadow, resource, objectClassDefinition);
+					checkSimulatedActivationAdministrativeStatus(objectChange, status, shadow, resource, objectClassDefinition, result);
 					operations.add(new PropertyModificationOperation(enabledPropertyDelta));
 				} else {
 					// Try to simulate activation capability
-					PropertyModificationOperation activationAttribute = convertToSimulatedActivationAttribute(enabledPropertyDelta, shadow, resource,
-							status, objectClassDefinition);
+					PropertyModificationOperation activationAttribute = convertToSimulatedActivationAdministrativeStatusAttribute(enabledPropertyDelta, shadow, resource,
+							status, objectClassDefinition, result);
 					operations.add(activationAttribute);
 				}	
 //			}
@@ -831,33 +834,30 @@ public class ResourceObjectConverter {
 			LockoutStatusType status = lockoutPropertyDelta.getPropertyNew().getRealValue();
 			LOGGER.trace("Found activation lockoutStatus change to: {}", status);
 
-			// TODO: simulated
 			if (ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resource)) {
 				// Native lockout, need to check if there is not also change to simulated activation which may be in conflict
-//				checkSimulatedActivation(objectChange, status, shadow, resource, objectClassDefinition);
+				checkSimulatedActivationLockoutStatus(objectChange, status, shadow, resource, objectClassDefinition, result);
 				operations.add(new PropertyModificationOperation(lockoutPropertyDelta));
 			} else {
-				// Try to simulate activation capability
-				
-				// TODO
-//				PropertyModificationOperation activationAttribute = convertToSimulatedActivationAttribute(lockoutPropertyDelta, shadow, resource,
-//						status, objectClassDefinition);
-//				operations.add(activationAttribute);
+				// Try to simulate lockout capability
+				PropertyModificationOperation activationAttribute = convertToSimulatedActivationLockoutStatusAttribute(
+						lockoutPropertyDelta, shadow, resource, status, objectClassDefinition, result);
+				operations.add(activationAttribute);
 			}	
 		}
 		
 		return operations;
 	}
 	
-	private void checkSimulatedActivation(Collection<? extends ItemDelta> objectChange, ActivationStatusType status, ShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException{
+	private void checkSimulatedActivationAdministrativeStatus(Collection<? extends ItemDelta> objectChange, ActivationStatusType status, ShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult result) throws SchemaException{
 		if (!ResourceTypeUtil.hasResourceConfiguredActivationCapability(resource)) {
 			//nothing to do, resource does not have simulated activation, so there can be no conflict, continue in processing
 			return;
 		}
 		
-		OperationResult result = new OperationResult("Modify activation attribute.");
-		
-		ResourceAttribute<?> activationAttribute = getSimulatedActivationAttribute(shadow, resource, objectClassDefinition, result);
+		ActivationStatusCapabilityType capActStatus = getActivationAdministrativeStatusFromSimulatedActivation(shadow, resource, result);
+		ResourceAttribute<?> activationAttribute = getSimulatedActivationAdministrativeStatusAttribute(shadow, 
+				resource, objectClassDefinition, capActStatus, result);
 		if (activationAttribute == null){
 			return;
 		}
@@ -885,8 +885,44 @@ public class ResourceObjectConverter {
 		
 	}
 	
+	private void checkSimulatedActivationLockoutStatus(Collection<? extends ItemDelta> objectChange, LockoutStatusType status, ShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult result) throws SchemaException{
+		if (!ResourceTypeUtil.hasResourceConfiguredActivationCapability(resource)) {
+			//nothing to do, resource does not have simulated activation, so there can be no conflict, continue in processing
+			return;
+		}
+		
+		ActivationLockoutStatusCapabilityType capActStatus = getActivationLockoutStatusFromSimulatedActivation(shadow, resource, result);
+		ResourceAttribute<?> activationAttribute = getSimulatedActivationLockoutStatusAttribute(shadow, 
+				resource, objectClassDefinition, capActStatus, result);
+		if (activationAttribute == null){
+			return;
+		}
+		
+		PropertyDelta simulatedActivationDelta = PropertyDelta.findPropertyDelta(objectChange, activationAttribute.getPath());
+		PrismProperty simulatedAcviationProperty = simulatedActivationDelta.getPropertyNew();
+		Collection realValues = simulatedAcviationProperty.getRealValues();
+		if (realValues.isEmpty()){
+			//nothing to do, no value for simulatedActivation
+			return;
+		}
+		
+		if (realValues.size() > 1){
+			throw new SchemaException("Found more than one value for simulated lockout.");
+		}
+		
+		Object simluatedActivationValue = realValues.iterator().next();
+		boolean transformedValue = getTransformedValue(shadow, resource, simluatedActivationValue, result);
+		
+		if (transformedValue && status == LockoutStatusType.NORMAL){
+			//this is ok, simulated value and also value for native capability resulted to the same vale
+		} else{
+			throw new SchemaException("Found conflicting change for activation lockout. Simulated lockout resulted to " + transformedValue +", but native activation resulted to " + status);
+		}
+		
+	}
+	
 	private boolean getTransformedValue(ShadowType shadow, ResourceType resource, Object simulatedValue, OperationResult result) throws SchemaException{
-		ActivationStatusCapabilityType capActStatus = getActivationStatusFromSimulatedActivation(shadow, resource, result);
+		ActivationStatusCapabilityType capActStatus = getActivationAdministrativeStatusFromSimulatedActivation(shadow, resource, result);
 		List<String> disableValues = capActStatus.getDisableValue();
 		for (String disable : disableValues){
 			if (disable.equals(simulatedValue)){
@@ -904,40 +940,78 @@ public class ResourceObjectConverter {
 		throw new SchemaException("Could not map value for simulated activation: " + simulatedValue + " neither to enable nor disable values.");		
 	}
 	
-	private void checkActivationAttribute(ShadowType shadow, ResourceType resource,
-			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
-		OperationResult result = new OperationResult("Checking activation attribute in the new shadow.");
+	private void transformActivationAttributes(ShadowType shadow, ResourceType resource,
+			ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult result) throws SchemaException {
 		if (shadow.getActivation() != null && shadow.getActivation().getAdministrativeStatus() != null) {
 			if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-				ActivationStatusCapabilityType capActStatus = getActivationStatusFromSimulatedActivation(
+				ActivationStatusCapabilityType capActStatus = getActivationAdministrativeStatusFromSimulatedActivation(
 						shadow, resource, result);
 				if (capActStatus == null) {
-					throw new SchemaException("Attempt to change activation/enabled on "+resource+" that has neither native" +
+					throw new SchemaException("Attempt to change activation/administrativeStatus on "+resource+" that has neither native" +
 							" nor simulated activation capability");
 				}
-				ResourceAttribute<?> activationSimulateAttribute = getSimulatedActivationAttribute(shadow, resource,
-						objectClassDefinition, result);
-				if (activationSimulateAttribute == null) {
-					return;
+				ResourceAttribute<?> activationSimulateAttribute = getSimulatedActivationAdministrativeStatusAttribute(shadow, resource,
+						objectClassDefinition, capActStatus, result);
+				if (activationSimulateAttribute != null) {
+					ActivationStatusType status = shadow.getActivation().getAdministrativeStatus();
+					String activationRealValue = null;
+					if (status == ActivationStatusType.ENABLED) {
+						activationRealValue = getEnableValue(capActStatus);
+					} else {
+						activationRealValue = getDisableValue(capActStatus);
+					}
+					PrismContainer attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
+					Item existingAttribute = attributesContainer.findItem(activationSimulateAttribute.getElementName());
+					if (!StringUtils.isBlank(activationRealValue)) {
+						activationSimulateAttribute.add(new PrismPropertyValue(activationRealValue));
+						if (attributesContainer.findItem(activationSimulateAttribute.getElementName()) == null){
+							attributesContainer.add(activationSimulateAttribute);
+						} else{
+							attributesContainer.findItem(activationSimulateAttribute.getElementName()).replace(activationSimulateAttribute.getValue());
+						}
+					} else if (existingAttribute != null) {
+						attributesContainer.remove(existingAttribute);
+					}
+					shadow.getActivation().setAdministrativeStatus(null);
 				}
-				ActivationStatusType status = shadow.getActivation().getAdministrativeStatus();
-				PrismPropertyValue activationValue = null;
-				if (status == ActivationStatusType.ENABLED) {
-					activationValue = new PrismPropertyValue(getEnableValue(capActStatus));
-				} else {
-					activationValue = new PrismPropertyValue(getDisableValue(capActStatus));
-				}
-				activationSimulateAttribute.add(activationValue);
-
-				PrismContainer attributesContainer =shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
-				if (attributesContainer.findItem(activationSimulateAttribute.getElementName()) == null){
-					attributesContainer.add(activationSimulateAttribute);
-				} else{
-					attributesContainer.findItem(activationSimulateAttribute.getElementName()).replace(activationSimulateAttribute.getValue());
-				}
-				shadow.setActivation(null);
 			}
-		}		
+		}
+		
+		if (shadow.getActivation() != null && shadow.getActivation().getLockoutStatus() != null) {
+			if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
+				ActivationLockoutStatusCapabilityType capActStatus = getActivationLockoutStatusFromSimulatedActivation(
+						shadow, resource, result);
+				if (capActStatus == null) {
+					throw new SchemaException("Attempt to change activation/lockout on "+resource+" that has neither native" +
+							" nor simulated activation capability");
+				}
+				ResourceAttribute<?> activationSimulateAttribute = getSimulatedActivationLockoutStatusAttribute(shadow, resource,
+						objectClassDefinition, capActStatus, result);
+				
+				if (activationSimulateAttribute != null) {
+					LockoutStatusType status = shadow.getActivation().getLockoutStatus();
+					String activationRealValue = null;
+					if (status == LockoutStatusType.NORMAL) {
+						activationRealValue = getLockoutNormalValue(capActStatus);
+					} else {
+						activationRealValue = getLockoutLockedValue(capActStatus);
+					}
+					PrismContainer attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
+					Item existingAttribute = attributesContainer.findItem(activationSimulateAttribute.getElementName());
+					if (!StringUtils.isBlank(activationRealValue)) {
+						activationSimulateAttribute.add(new PrismPropertyValue(activationRealValue));
+						if (attributesContainer.findItem(activationSimulateAttribute.getElementName()) == null){
+							attributesContainer.add(activationSimulateAttribute);
+						} else{
+							attributesContainer.findItem(activationSimulateAttribute.getElementName()).replace(activationSimulateAttribute.getValue());
+						}
+					} else if (existingAttribute != null) {
+						attributesContainer.remove(existingAttribute);
+					}
+					shadow.getActivation().setLockoutStatus(null);
+				}
+			}
+		}
 	}
 	
 	private boolean hasChangesOnResource(
@@ -957,7 +1031,7 @@ public class ResourceObjectConverter {
 
 	private void collectAttributeAndEntitlementChanges(Collection<? extends ItemDelta> objectChange,
 			Collection<Operation> operations, ResourceType resource, PrismObject<ShadowType> shadow,
-			RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+			RefinedObjectClassDefinition objectClassDefinition, OperationResult result) throws SchemaException {
 		if (operations == null) {
 			operations = new ArrayList<Operation>();
 		}
@@ -975,7 +1049,7 @@ public class ResourceObjectConverter {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
 				}
 			} else if (SchemaConstants.PATH_ACTIVATION.equals(itemDelta.getParentPath())){
-				Collection<Operation> activationOperations = determineActivationChange(shadow.asObjectable(), objectChange, resource, objectClassDefinition);
+				Collection<Operation> activationOperations = determineActivationChange(shadow.asObjectable(), objectChange, resource, objectClassDefinition, result);
 				if (activationOperations != null){
 					operations.addAll(activationOperations);
 				}
@@ -1058,8 +1132,9 @@ public class ResourceObjectConverter {
 		// if the shadow doesn't have defined simulated activation capability
 		if (resourceObjectType.getActivation() != null || ResourceTypeUtil.hasActivationCapability(resourceType)) {
 			ActivationType activationType = completeActivation(resourceObject, resourceType, parentResult);
-			LOGGER.trace("Determined activation: {}",
-					activationType == null ? "null activationType" : activationType.getAdministrativeStatus());
+			LOGGER.trace("Determined activation, administrativeStatus: {}, lockoutStatus: {}",
+					activationType == null ? "null activationType" : activationType.getAdministrativeStatus(),
+					activationType == null ? "null activationType" : activationType.getLockoutStatus());
 			resourceObjectType.setActivation(activationType);
 		} else {
 			resourceObjectType.setActivation(null);
@@ -1109,6 +1184,7 @@ public class ResourceObjectConverter {
 		ActivationType activationType = new ActivationType();
 		
 		converFromSimulatedActivationAdministrativeStatus(activationType, activationCapability, resource, shadow, parentResult);
+		converFromSimulatedActivationLockoutStatus(activationType, activationCapability, resource, shadow, parentResult);
 		
 		return activationType;
 	}
@@ -1121,10 +1197,21 @@ public class ResourceObjectConverter {
 		return null;
 	}
 	
+	private static ActivationLockoutStatusCapabilityType getLockoutStatusCapability(ResourceType resource, ActivationCapabilityType activationCapability) {
+		ActivationLockoutStatusCapabilityType statusCapabilityType = activationCapability.getLockoutStatus();
+		if (statusCapabilityType != null) {
+			return statusCapabilityType;
+		}
+		return null;
+	}
+	
 	private static void converFromSimulatedActivationAdministrativeStatus(ActivationType activationType, ActivationCapabilityType activationCapability,
 			ResourceType resource, PrismObject<ShadowType> shadow, OperationResult parentResult) {
 		
 		ActivationStatusCapabilityType statusCapabilityType = getStatusCapability(resource, activationCapability);
+		if (statusCapabilityType == null) {
+			return;
+		}
 		
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);		
 		ResourceAttribute<?> activationProperty = null;
@@ -1146,7 +1233,7 @@ public class ResourceObjectConverter {
 		converFromSimulatedActivationAdministrativeStatusInternal(activationType, statusCapabilityType, resource, activationValues, parentResult);
 		
 		LOGGER.trace(
-				"Detected simulated activation attribute {} on {} with value {}, resolved into {}",
+				"Detected simulated activation administrativeStatus attribute {} on {} with value {}, resolved into {}",
 				new Object[] { SchemaDebugUtil.prettyPrint(statusCapabilityType.getAttribute()),
 						ObjectTypeUtil.toShortString(resource), activationValues,
 						activationType == null ? "null" : activationType.getAdministrativeStatus() });
@@ -1219,8 +1306,110 @@ public class ResourceObjectConverter {
 		}
 
 	}
+	
+	private static void converFromSimulatedActivationLockoutStatus(ActivationType activationType, ActivationCapabilityType activationCapability,
+			ResourceType resource, PrismObject<ShadowType> shadow, OperationResult parentResult) {
+		
+		ActivationLockoutStatusCapabilityType statusCapabilityType = getLockoutStatusCapability(resource, activationCapability);
+		if (statusCapabilityType == null) {
+			return;
+		}
+		
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);		
+		ResourceAttribute<?> activationProperty = null;
+		if (statusCapabilityType != null && statusCapabilityType.getAttribute() != null) {
+			activationProperty = attributesContainer.findAttribute(statusCapabilityType.getAttribute());
+		}
+		
+		// LOGGER.trace("activation property: {}", activationProperty.dump());
+		// if (activationProperty == null) {
+		// LOGGER.debug("No simulated activation attribute was defined for the account.");
+		// return null;
+		// }
 
-	private ActivationStatusCapabilityType getActivationStatusFromSimulatedActivation(ShadowType shadow, ResourceType resource, OperationResult result){
+		Collection<Object> activationValues = null;
+		if (activationProperty != null) {
+			activationValues = activationProperty.getRealValues(Object.class);
+		}
+		
+		converFromSimulatedActivationLockoutStatusInternal(activationType, statusCapabilityType, resource, activationValues, parentResult);
+		
+		LOGGER.trace(
+				"Detected simulated activation lockout attribute {} on {} with value {}, resolved into {}",
+				new Object[] { SchemaDebugUtil.prettyPrint(statusCapabilityType.getAttribute()),
+						ObjectTypeUtil.toShortString(resource), activationValues,
+						activationType == null ? "null" : activationType.getAdministrativeStatus() });
+		
+		// Remove the attribute which is the source of simulated activation. If we leave it there then we
+		// will have two ways to set activation.
+		if (statusCapabilityType.isIgnoreAttribute() == null
+				|| statusCapabilityType.isIgnoreAttribute().booleanValue()) {
+			if (activationProperty != null) {
+				attributesContainer.remove(activationProperty);
+			}
+		}
+	}
+	
+	/**
+	 * Moved to a separate method especially to enable good logging (see above). 
+	 */
+	private static void converFromSimulatedActivationLockoutStatusInternal(ActivationType activationType, ActivationLockoutStatusCapabilityType statusCapabilityType,
+				ResourceType resource, Collection<Object> activationValues, OperationResult parentResult) {
+		
+		List<String> lockedValues = statusCapabilityType.getLockedValue();
+		List<String> normalValues = statusCapabilityType.getNormalValue();	
+
+		if (MiscUtil.isNoValue(activationValues)) {
+
+			if (MiscUtil.hasNoValue(lockedValues)) {
+				activationType.setLockoutStatus(LockoutStatusType.LOCKED);
+				return;
+			}
+
+			if (MiscUtil.hasNoValue(normalValues)) {
+				activationType.setLockoutStatus(LockoutStatusType.NORMAL);
+				return;
+			}
+
+			// No activation information.
+			LOGGER.warn("The {} does not provide definition for null value of simulated activation lockout attribute",
+					resource);
+			if (parentResult != null) {
+				parentResult.recordPartialError("The " + resource
+						+ " has native activation capability but noes not provide value for lockout attribute");
+			}
+
+			return;
+
+		} else {
+			if (activationValues.size() > 1) {
+				LOGGER.warn("The {} provides {} values for lockout attribute, expecting just one value",
+						lockedValues.size(), resource);
+				if (parentResult != null) {
+					parentResult.recordPartialError("The " + resource + " provides "
+							+ lockedValues.size() + " values for lockout attribute, expecting just one value");
+				}
+			}
+			Object activationValue = activationValues.iterator().next();
+
+			for (String lockedValue : lockedValues) {
+				if (lockedValue.equals(String.valueOf(activationValue))) {
+					activationType.setLockoutStatus(LockoutStatusType.LOCKED);
+					return;
+				}
+			}
+
+			for (String normalValue : normalValues) {
+				if ("".equals(normalValue) || normalValue.equals(String.valueOf(activationValue))) {
+					activationType.setLockoutStatus(LockoutStatusType.NORMAL);
+					return;
+				}
+			}
+		}
+
+	}
+
+	private ActivationStatusCapabilityType getActivationAdministrativeStatusFromSimulatedActivation(ShadowType shadow, ResourceType resource, OperationResult result){
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
 		if (activationCapability == null) {
@@ -1241,9 +1430,7 @@ public class ResourceObjectConverter {
 
 	}
 	
-	private ResourceAttribute<?> getSimulatedActivationAttribute(ShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult result){
-		
-		ActivationStatusCapabilityType capActStatus = getActivationStatusFromSimulatedActivation(shadow, resource, result);
+	private ResourceAttribute<?> getSimulatedActivationAdministrativeStatusAttribute(ShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition, ActivationStatusCapabilityType capActStatus, OperationResult result) {
 		if (capActStatus == null){
 			return null;
 		}
@@ -1268,20 +1455,18 @@ public class ResourceObjectConverter {
 		}
 
 		return enableAttributeDefinition.instantiate(enableAttributeName);
-
 	}
 
-	private PropertyModificationOperation convertToSimulatedActivationAttribute(PropertyDelta activationDelta, ShadowType shadow, ResourceType resource,
-			ActivationStatusType status, ObjectClassComplexTypeDefinition objectClassDefinition)
+	private PropertyModificationOperation convertToSimulatedActivationAdministrativeStatusAttribute(PropertyDelta activationDelta, ShadowType shadow, ResourceType resource,
+			ActivationStatusType status, ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult result)
 			throws SchemaException {
-		OperationResult result = new OperationResult("Modify activation attribute.");
 
-		ActivationStatusCapabilityType capActStatus = getActivationStatusFromSimulatedActivation(shadow, resource, result);
+		ActivationStatusCapabilityType capActStatus = getActivationAdministrativeStatusFromSimulatedActivation(shadow, resource, result);
 		if (capActStatus == null){
 			throw new SchemaException("Attempt to modify activation on "+resource+" which does not have activation capability");
 		}
 		
-		ResourceAttribute<?> activationAttribute = getSimulatedActivationAttribute(shadow, resource, objectClassDefinition, result);
+		ResourceAttribute<?> activationAttribute = getSimulatedActivationAdministrativeStatusAttribute(shadow, resource, objectClassDefinition, capActStatus, result);
 		if (activationAttribute == null){
 			return null;
 		}
@@ -1294,14 +1479,10 @@ public class ResourceObjectConverter {
 			
 		} else if (status == ActivationStatusType.ENABLED) {
 			String enableValue = getEnableValue(capActStatus);
-			LOGGER.trace("enable attribute delta: {}", enableValue);
-			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
-					ShadowType.F_ATTRIBUTES, activationAttribute.getElementName()), activationAttribute.getDefinition(), enableValue);
+			enableAttributeDelta = createActivationPropDelta(activationAttribute.getElementName(), activationAttribute.getDefinition(), enableValue);
 		} else {
 			String disableValue = getDisableValue(capActStatus);
-			LOGGER.trace("enable attribute delta: {}", disableValue);
-			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
-					ShadowType.F_ATTRIBUTES, activationAttribute.getElementName()), activationAttribute.getDefinition(), disableValue);
+			enableAttributeDelta = createActivationPropDelta(activationAttribute.getElementName(), activationAttribute.getDefinition(), disableValue);
 		}
 
 		PropertyModificationOperation attributeChange = new PropertyModificationOperation(
@@ -1309,6 +1490,96 @@ public class ResourceObjectConverter {
 		return attributeChange;
 	}
 	
+	private PropertyModificationOperation convertToSimulatedActivationLockoutStatusAttribute(PropertyDelta activationDelta, ShadowType shadow, ResourceType resource,
+			LockoutStatusType status, ObjectClassComplexTypeDefinition objectClassDefinition, OperationResult result)
+			throws SchemaException {
+
+		ActivationLockoutStatusCapabilityType capActStatus = getActivationLockoutStatusFromSimulatedActivation(shadow, resource, result);
+		if (capActStatus == null){
+			throw new SchemaException("Attempt to modify lockout on "+resource+" which does not have activation lockout capability");
+		}
+		
+		ResourceAttribute<?> activationAttribute = getSimulatedActivationLockoutStatusAttribute(shadow, resource, objectClassDefinition, capActStatus, result);
+		if (activationAttribute == null){
+			return null;
+		}
+		
+		PropertyDelta<?> lockoutAttributeDelta = null;
+		
+		if (status == null && activationDelta.isDelete()){
+			LOGGER.trace("deleting activation property.");
+			lockoutAttributeDelta = PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_ATTRIBUTES, activationAttribute.getElementName()), activationAttribute.getDefinition(), activationAttribute.getRealValue());
+			
+		} else if (status == LockoutStatusType.NORMAL) {
+			String normalValue = getLockoutNormalValue(capActStatus);
+			lockoutAttributeDelta = createActivationPropDelta(activationAttribute.getElementName(), activationAttribute.getDefinition(), normalValue);
+		} else {
+			String lockedValue = getLockoutLockedValue(capActStatus);
+			lockoutAttributeDelta = createActivationPropDelta(activationAttribute.getElementName(), activationAttribute.getDefinition(), lockedValue);
+		}
+
+		PropertyModificationOperation attributeChange = new PropertyModificationOperation(lockoutAttributeDelta);
+		return attributeChange;
+	}
+	
+	private PropertyDelta<?> createActivationPropDelta(QName attrName, ResourceAttributeDefinition attrDef, String value) {
+		if (StringUtils.isBlank(value)) {
+			return PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attrName), 
+					attrDef);
+		} else {
+			return PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attrName), 
+					attrDef, value);
+		}
+	}
+
+	private ActivationLockoutStatusCapabilityType getActivationLockoutStatusFromSimulatedActivation(ShadowType shadow, ResourceType resource, OperationResult result){
+		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
+				ActivationCapabilityType.class);
+		if (activationCapability == null) {
+			result.recordWarning("Resource " + resource
+					+ " does not have native or simulated activation capability. Processing of activation for account "+ shadow +" was skipped");
+			shadow.setFetchResult(result.createOperationResultType());
+			return null;
+		}
+
+		ActivationLockoutStatusCapabilityType capActStatus = getLockoutStatusCapability(resource, activationCapability);
+		if (capActStatus == null) {
+			result.recordWarning("Resource " + resource
+					+ " does not have native or simulated activation lockout capability. Processing of activation for account "+ shadow +" was skipped");
+			shadow.setFetchResult(result.createOperationResultType());
+			return null;
+		}
+		return capActStatus;
+
+	}
+	
+	private ResourceAttribute<?> getSimulatedActivationLockoutStatusAttribute(ShadowType shadow, ResourceType resource, ObjectClassComplexTypeDefinition objectClassDefinition, ActivationLockoutStatusCapabilityType capActStatus, OperationResult result){
+		
+		QName enableAttributeName = capActStatus.getAttribute();
+		LOGGER.trace("Simulated lockout attribute name: {}", enableAttributeName);
+		if (enableAttributeName == null) {
+			result.recordWarning("Resource "
+							+ ObjectTypeUtil.toShortString(resource)
+							+ " does not have attribute specification for simulated activation lockout capability. Processing of activation for account "+ shadow +" was skipped");
+			shadow.setFetchResult(result.createOperationResultType());
+			return null;
+		}
+
+		ResourceAttributeDefinition enableAttributeDefinition = objectClassDefinition
+				.findAttributeDefinition(enableAttributeName);
+		if (enableAttributeDefinition == null) {
+			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
+					+ "  attribute for simulated activation/lockout capability" + enableAttributeName
+					+ " in not present in the schema for objeclass " + objectClassDefinition+". Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+			shadow.setFetchResult(result.createOperationResultType());
+			return null;
+		}
+
+		return enableAttributeDefinition.instantiate(enableAttributeName);
+
+	}
+	
+
 	private String getDisableValue(ActivationStatusCapabilityType capActStatus){
 		//TODO some checks
 		String disableValue = capActStatus.getDisableValue().iterator().next();
@@ -1317,19 +1588,19 @@ public class ResourceObjectConverter {
 	}
 	
 	private String getEnableValue(ActivationStatusCapabilityType capActStatus){
-		List<String> enableValues = capActStatus.getEnableValue();
-
-		Iterator<String> i = enableValues.iterator();
-		String enableValue = i.next();
-		if ("".equals(enableValue)) {
-			if (enableValues.size() < 2) {
-				enableValue = "false";
-			} else {
-				enableValue = i.next();
-			}
-		}
+		String enableValue = capActStatus.getEnableValue().iterator().next();
 		return enableValue;
 //		return new PrismPropertyValue(enableValue);
+	}
+	
+	private String getLockoutNormalValue(ActivationLockoutStatusCapabilityType capActStatus) {
+		String value = capActStatus.getNormalValue().iterator().next();
+		return value;
+	}
+	
+	private String getLockoutLockedValue(ActivationLockoutStatusCapabilityType capActStatus) {
+		String value = capActStatus.getLockedValue().iterator().next();
+		return value;
 	}
 
 	private RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<ShadowType> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
