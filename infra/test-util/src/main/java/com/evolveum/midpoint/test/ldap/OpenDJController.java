@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.apache.commons.io.IOUtils;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigException;
@@ -677,8 +678,23 @@ public class OpenDJController extends AbstractResourceController {
         
 	}
 	
-	public ChangeRecordEntry executeLdifChange(String filename) throws IOException, LDIFException {
-		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
+	public ChangeRecordEntry executeLdifChange(File file) throws IOException, LDIFException {
+		LDIFImportConfig importConfig = new LDIFImportConfig(file.getPath());
+        LDIFReader ldifReader = new LDIFReader(importConfig);
+        ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
+      
+        ModifyOperation modifyOperation = getInternalConnection()
+        		.processModify((ModifyChangeRecordEntry) entry);
+        
+        if (ResultCode.SUCCESS != modifyOperation.getResultCode()) {
+        	throw new RuntimeException("LDAP operation error: "+modifyOperation.getResultCode()+": "+modifyOperation.getErrorMessage());
+        }
+        return entry;
+	}
+	
+	public ChangeRecordEntry executeLdifChange(String ldif) throws IOException, LDIFException {
+		InputStream ldifInputStream = IOUtils.toInputStream(ldif, "UTF-8");
+		LDIFImportConfig importConfig = new LDIFImportConfig(ldifInputStream);
         LDIFReader ldifReader = new LDIFReader(importConfig);
         ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
       
