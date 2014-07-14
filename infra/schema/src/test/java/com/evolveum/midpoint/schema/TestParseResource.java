@@ -24,12 +24,17 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -54,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
@@ -381,6 +387,9 @@ public class TestParseResource {
 	}
 
 	private void assertResourcePrism(PrismObject<ResourceType> resource, boolean isSimple) throws SchemaException {
+
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+
 		assertEquals("Wrong oid (prism)", RESOURCE_OID, resource.getOid());
 //		assertEquals("Wrong version", "42", resource.getVersion());
 		PrismObjectDefinition<ResourceType> resourceDefinition = resource.getDefinition();
@@ -406,8 +415,17 @@ public class TestParseResource {
     	assertEquals("Wrong type in connectorRef value", ConnectorType.COMPLEX_TYPE, connectorRefVal.getTargetType());
     	SearchFilterType filter = connectorRefVal.getFilter();
     	assertNotNull("No filter in connectorRef value", filter);
+        if (!isSimple) {
+            ObjectFilter objectFilter = QueryConvertor.parseFilter(filter, ConnectorType.class, prismContext);
+            assertTrue("Wrong kind of filter: " + objectFilter, objectFilter instanceof EqualFilter);
+            EqualFilter equalFilter = (EqualFilter) objectFilter;
+            ItemPath path = equalFilter.getPath();      // should be extension/x:extConnType
+            assertPathEquals("Wrong filter path", new ItemPath(new QName("extension"), new QName("http://x/", "extConnType")), path);
+            PrismPropertyValue filterValue = (PrismPropertyValue) equalFilter.getValues().get(0);
+            assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((String) filterValue.getValue()).trim());
+        }
 
-		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+        PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
 		List<Item<?>> configItems = configContainerValue.getItems();
@@ -445,22 +463,47 @@ public class TestParseResource {
 			System.out.println("\nCorrelation filter");
 			System.out.println(correlationFilterType.debugDump());
 
-            PrismContext prismContext = PrismTestUtil.getPrismContext();
-
-			ObjectFilter objectFilter = QueryConvertor.parseFilter(correlationFilterType.serializeToXNode(prismContext), prismContext);
+			ObjectFilter objectFilter = QueryConvertor.parseFilter(correlationFilterType.serializeToXNode(), prismContext);
 			PrismAsserts.assertAssignableFrom(EqualFilter.class, objectFilter);
 			EqualFilter equalsFilter = (EqualFilter)objectFilter;
 			equalsFilter.getFullPath();
 			assertNull("Unexpected values in correlation expression", equalsFilter.getValues());
 			ExpressionWrapper expression = equalsFilter.getExpression();
 			assertNotNull("No expressions in correlation expression", expression);
+
+            ExpressionType expressionType = (ExpressionType) expression.getExpression();
+            assertEquals("Wrong number of expression evaluators in correlation expression", 1, expressionType.getExpressionEvaluator().size());
+            ItemPathType itemPathType = (ItemPathType) expressionType.getExpressionEvaluator().get(0).getValue();
+            // $account/c:attributes/my:yyy
+            assertPathEquals("path in correlation expression",
+                    new ItemPath(
+                            new NameItemPathSegment(new QName("account"), true),
+                            new NameItemPathSegment(new QName(SchemaConstantsGenerated.NS_COMMON, "attributes")),
+                            new NameItemPathSegment(new QName("http://myself.me/schemas/whatever", "yyy"))
+                    ), itemPathType.getItemPath());
 			//PrismAsserts.assertAllParsedNodes(expression);
 			// TODO
 		}
 
 	}
-	
-	private void assertResourceJaxb(ResourceType resourceType, boolean isSimple) {
+
+
+    // quite strict version of path comparison
+    private void assertPathEquals(String message, ItemPath expected, ItemPath actual) {
+        assertEquals(message + ": wrong path size", expected.size(), actual.size());
+        for (int i = 0; i < expected.size(); i++) {
+            ItemPathSegment expectedSegment = expected.getSegments().get(i);
+            ItemPathSegment actualSegment = actual.getSegments().get(i);
+            assertEquals(message + ": wrong path segment", expectedSegment, actualSegment);
+            if (expectedSegment instanceof NameItemPathSegment) {
+                // default equals uses QNameUtil.match, not QName.equals
+                assertEquals(message + ": wrong path segment #" + (i+1) + " content", ((NameItemPathSegment) expectedSegment).getName(),
+                        ((NameItemPathSegment) actualSegment).getName());   // maybe this is too strict (compares prefixes as well)
+            }
+        }
+    }
+
+    private void assertResourceJaxb(ResourceType resourceType, boolean isSimple) throws SchemaException {
 		assertEquals("Wrong oid (JAXB)", RESOURCE_OID, resourceType.getOid());
 		assertEquals("Wrong name (JAXB)", PrismTestUtil.createPolyStringType("Embedded Test OpenDJ"), resourceType.getName());
 		String expectedNamespace = RESOURCE_NAMESPACE;
@@ -474,7 +517,7 @@ public class TestParseResource {
 		assertEquals("Wrong type in connectorRef (JAXB)", ConnectorType.COMPLEX_TYPE, connectorRef.getType());
 		SearchFilterType filter = connectorRef.getFilter();
     	assertNotNull("No filter in connectorRef (JAXB)", filter);
-    	Element filterElement = filter.getFilterClause();
+    	MapXNode filterElement = filter.getFilterClauseXNode();
     	assertNotNull("No filter element in connectorRef (JAXB)", filterElement);
     	
     	XmlSchemaType xmlSchemaType = resourceType.getSchema();
@@ -495,20 +538,33 @@ public class TestParseResource {
 				String name = accountType.getIntent();
 				assertNotNull("Account type without a name", name);
 				assertNotNull("Account type "+name+" does not have an objectClass", accountType.getObjectClass());
-                boolean found = false;
+                boolean foundDescription = false;
+                boolean foundDepartmentNumber = false;
                 for (ResourceAttributeDefinitionType attributeDefinitionType : accountType.getAttribute()) {
                     if ("description".equals(attributeDefinitionType.getRef().getLocalPart())) {
-                        found = true;
+                        foundDescription = true;
                         MappingType outbound = attributeDefinitionType.getOutbound();
                         JAXBElement<?> valueEvaluator = outbound.getExpression().getExpressionEvaluator().get(0);
-                        System.out.println("value evaluator = " + valueEvaluator);
-                        assertNotNull("no expression evaluator", valueEvaluator);
-                        assertEquals("wrong expression evaluator element name", SchemaConstantsGenerated.C_VALUE, valueEvaluator.getName());
-                        //assertEquals("wrong expression evaluator declared type", RawType.class, valueEvaluator.getDeclaredType());
-                        assertEquals("wrong expression evaluator actual type", RawType.class, valueEvaluator.getValue().getClass());
+                        System.out.println("value evaluator for description = " + valueEvaluator);
+                        assertNotNull("no expression evaluator for description", valueEvaluator);
+                        assertEquals("wrong expression evaluator element name for description", SchemaConstantsGenerated.C_VALUE, valueEvaluator.getName());
+                        assertEquals("wrong expression evaluator actual type for description", RawType.class, valueEvaluator.getValue().getClass());
+                    } else if ("departmentNumber".equals(attributeDefinitionType.getRef().getLocalPart())) {
+                        foundDepartmentNumber = true;
+                        MappingType outbound = attributeDefinitionType.getOutbound();
+                        MappingSourceDeclarationType source = outbound.getSource().get(0);
+                        System.out.println("source for departmentNumber = " + source);
+                        assertNotNull("no source for outbound mapping for departmentNumber", source);
+                        //<path xmlns:z="http://z/">$user/extension/z:dept</path>
+                        ItemPath expected = new ItemPath(
+                                new NameItemPathSegment(new QName("user"), true),
+                                new NameItemPathSegment(new QName("extension")),
+                                new NameItemPathSegment(new QName("http://z/", "dept")));
+                        assertPathEquals("source for departmentNubmer", expected, source.getPath().getItemPath());
                     }
                 }
-                assertTrue("ri:description attribute was not found", found);
+                assertTrue("ri:description attribute was not found", foundDescription);
+                assertTrue("ri:departmentNumber attribute was not found", foundDepartmentNumber);
 			}
 
             // checking <class> element in fetch result

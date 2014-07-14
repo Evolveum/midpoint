@@ -430,7 +430,7 @@ public class PrismBeanConverter {
         } catch (InstantiationException|IllegalAccessException e) {
             throw new SystemException("Cannot instantiate " + beanClass + ": " + e.getMessage(), e);
         }
-        filterType.parseFromXNode(xmap);
+        filterType.parseFromXNode(xmap, prismContext);
 		return filterType;
 	}
 	
@@ -438,7 +438,7 @@ public class PrismBeanConverter {
 		if (value == null) {
 			return null;
 		}
-		return value.serializeToXNode(prismContext);
+		return value.serializeToXNode();
 	}
 
 	private Type getTypeArgument(Type origType, String desc) {

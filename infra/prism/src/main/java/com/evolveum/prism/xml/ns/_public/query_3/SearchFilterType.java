@@ -33,9 +33,7 @@ import javax.activation.MimeTypeParseException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -43,14 +41,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.parser.DomParser;
-import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
-import com.evolveum.midpoint.prism.parser.XNodeSerializer;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -77,15 +70,12 @@ import org.w3c.dom.Element;
                                                         // BTW, the order is the following: description, filterClause
 })
 
-public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode, DebugDumpable, Revivable
+public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode, DebugDumpable
 {
     private final static long serialVersionUID = 201303040000L;
 
     @XmlElement
     protected String description;
-
-    // we annotate the getter instead to use it, not accessing directly this field
-    protected Element filterClause;
 
     // this one is not exposed via JAXB
     protected MapXNode filterClauseXNode;           // single-subnode map node (key = filter element qname, value = contents)
@@ -117,8 +107,6 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         if (o == null) {
             throw new NullPointerException("Cannot create a copy of 'SearchFilterType' from 'null'.");
         }
-        // CWildcardTypeInfo: org.w3c.dom.Element
-        this.filterClause = o.filterClause == null ? null : (Element) o.filterClause.cloneNode(true);
         this.filterClauseXNode = (MapXNode) o.filterClauseXNode.clone();
     }
 
@@ -130,77 +118,42 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 		this.description = description;
 	}
 
-	/**
-     * Gets the value of the filter property. JAXB method. Only for JAXB compatibility. Do not use directly.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Element }
-     *     
-     */
-    @XmlAnyElement
-    public Element getFilterClause() {
-        if (filterClauseXNode != null) {
-        	try {
-	        	DomParser domParser = PrismUtil.getDomParser(null);
-				return domParser.serializeSingleElementMapToElement(filterClauseXNode);         // TODO: beware, there can be nodes with unparsed values!
-			} catch (SchemaException e) {
-				throw new RuntimeException(e.getMessage(), e);
-			}
-        } else {
-        	return filterClause;
-        }
-    }
-
     public boolean containsFilterClause() {
-        return filterClause != null || (filterClauseXNode != null && !filterClauseXNode.isEmpty());
+        return filterClauseXNode != null && !filterClauseXNode.isEmpty();
     }
 
-
-    /**
-     * Sets the value of the filter property. JAXB method. Only for JAXB compatibility. Do not use directly.
-     * 
-     * @param element
-     *     allowed object is
-     *     {@link Element }
-     *     
-     */
-    public void setFilterClause(Element element) {
-    	// This method CANNOT parse the element to filter yet. The element may not be complete
-    	// at this stage. We must do the on-demand parsing instead
-  		this.filterClause = element;
-        this.filterClauseXNode = null;
-    }
-    
 	public void setFilterClauseXNode(MapXNode filterClauseXNode) {
 		this.filterClauseXNode = filterClauseXNode;
-		filterClause = null;
 	}
 
+    @Deprecated     // use the version without prismContext instead
     public MapXNode getFilterClauseXNode(PrismContext prismContext) throws SchemaException {
-        if (this.filterClause == null && this.filterClauseXNode == null) {
+        return getFilterClauseXNode();
+    }
+
+    public MapXNode getFilterClauseXNode() {
+        if (this.filterClauseXNode == null) {
             return null;
-        } else if (this.filterClause == null) {
-            return (MapXNode) this.filterClauseXNode.clone();
         } else {
-            DomParser domParser;
-            if (prismContext != null) {
-                domParser = prismContext.getParserDom();
-            } else {
-                domParser = PrismUtil.getDomParser(null);
-            }
-            return domParser.parseElementAsMap(filterClause);
+            return (MapXNode) this.filterClauseXNode.clone();
         }
     }
 
-    public static SearchFilterType createFromXNode(XNode xnode) throws SchemaException {
+    public Element getFilterClauseAsElement() throws SchemaException {
+        if (filterClauseXNode == null) {
+            return null;
+        }
+        DomParser domParser = PrismUtil.getDomParser(null);
+        return domParser.serializeSingleElementMapToElement(filterClauseXNode);
+    }
+
+    public static SearchFilterType createFromXNode(XNode xnode, PrismContext prismContext) throws SchemaException {
         SearchFilterType filter = new SearchFilterType();
-        filter.parseFromXNode(xnode);
+        filter.parseFromXNode(xnode, prismContext);
         return filter;
     }
 
-    public void parseFromXNode(XNode xnode) throws SchemaException {
-    	this.filterClause = null;
+    public void parseFromXNode(XNode xnode, PrismContext prismContext) throws SchemaException {
     	if (xnode == null || xnode.isEmpty()) {
     		this.filterClauseXNode = null;
     		this.description = null;
@@ -228,12 +181,12 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
                 throw new SchemaException("Filter clause has more than one item: " + xfilter);
             }
     		this.filterClauseXNode = xfilter;
+            QueryConvertor.parseFilterPreliminarily(xfilter, prismContext);
     	}
     }
 
-    // beware, prismContext may be null
-    public MapXNode serializeToXNode(PrismContext prismContext) throws SchemaException {
-        MapXNode xmap = getFilterClauseXNode(prismContext);
+    public MapXNode serializeToXNode() throws SchemaException {
+        MapXNode xmap = getFilterClauseXNode();
     	if (description == null) {
     		return xmap;
     	} else {
@@ -247,15 +200,6 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     	}
     }
 
-    @Override
-	public void revive(PrismContext prismContext) throws SchemaException {
-    	if (filterClause != null) {
-			DomParser domParser = prismContext.getParserDom();
-			filterClauseXNode = domParser.parseElementAsMap(filterClause);
-    		filterClause = null;
-    	}
-	}
-    
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
@@ -269,8 +213,8 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = 1;
         {
-            Element theFilter;
-            theFilter = this.filterClause;
+            MapXNode theFilter;
+            theFilter = this.filterClauseXNode;
             currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "filter", theFilter), currentHashCode, theFilter);
         }
         return currentHashCode;
@@ -289,17 +233,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
             return true;
         }
         final SearchFilterType that = ((SearchFilterType) object);
-        {
-            Element lhsFilter;
-            lhsFilter = this.filterClause;
-            Element rhsFilter;
-            rhsFilter = that.filterClause;
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "filter", lhsFilter), LocatorUtils.property(thatLocator, "filter", rhsFilter), lhsFilter, rhsFilter)) {
-                return false;
-            }
-            
-        }
-        
+
         if (filterClauseXNode == null) {
 			if (that.filterClauseXNode != null)
 				return false;
@@ -710,18 +644,12 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
      */
     @Override
     public SearchFilterType clone() {
-        try {
-            {
-                // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-                final SearchFilterType clone = ((SearchFilterType) super.clone());
-                // CWildcardTypeInfo: org.w3c.dom.Element
-                clone.filterClause = ((this.filterClause == null)?null:((this.filterClause == null)?null:((Element) this.filterClause.cloneNode(true))));
-                return clone;
-            }
-        } catch (CloneNotSupportedException e) {
-            // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-            throw new AssertionError(e);
+        final SearchFilterType clone = new SearchFilterType();
+        clone.description = this.description;
+        if (this.filterClauseXNode != null) {
+            clone.filterClauseXNode = (MapXNode) this.filterClauseXNode.clone();
         }
+        return clone;
     }
 
 	@Override
@@ -738,15 +666,10 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "description", description, indent + 1);
 		}
-		if (filterClause != null) {
-			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "filterClause", filterClause.toString(), indent + 1);
-		}
 		if (filterClauseXNode != null) {
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "filterClauseXNode", (DebugDumpable) filterClauseXNode, indent + 1);
 		}
 		return sb.toString();
 	}
-
 }

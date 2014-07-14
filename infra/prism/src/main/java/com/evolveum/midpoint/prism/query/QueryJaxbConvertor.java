@@ -94,7 +94,7 @@ public class QueryJaxbConvertor {
 			ObjectQuery query = new ObjectQuery();
 			
 			if (filterNotEmpty) {
-				MapXNode rootFilter = filterType.getFilterClauseXNode(prismContext);
+				MapXNode rootFilter = filterType.getFilterClauseXNode();
 				ObjectFilter filter = QueryConvertor.parseFilter(rootFilter, objDef);
 				query.setFilter(filter);
 			}

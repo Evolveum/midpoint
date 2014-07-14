@@ -215,13 +215,11 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 
 	@Override
 	public PrismContext getPrismContext() {
-		// TODO Auto-generated method stub
 		return getDefinition().getPrismContext();
 	}
 
 	@Override
 	public ItemPath getPath() {
-		// TODO Auto-generated method stub
 		return getFullPath();
 	}
 

@@ -114,7 +114,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 
 		ObjectSynchronizationType synchronization = resourceType.getSynchronization().getObjectSynchronization().get(0);
 		for (ConditionalSearchFilterType filter : synchronization.getCorrelation()){
-            MapXNode clauseXNode = filter.getFilterClauseXNode(PrismTestUtil.getPrismContext());
+            MapXNode clauseXNode = filter.getFilterClauseXNode();
             // key = q:equal, value = map (path + expression)
             XNode expressionNode = ((MapXNode) clauseXNode.getSingleSubEntry("filter value").getValue()).get(new QName(SchemaConstants.NS_C, "expression"));
 

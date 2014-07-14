@@ -297,7 +297,7 @@ public class XNodeSerializer {
         }
         SearchFilterType filter = value.getFilter();
         if (filter != null) {
-            XNode xsubnode = filter.serializeToXNode(value.getPrismContext());
+            XNode xsubnode = filter.serializeToXNode();
             xmap.put(createReferenceQName(XNode.KEY_REFERENCE_FILTER, namespace), xsubnode);
         }
 
