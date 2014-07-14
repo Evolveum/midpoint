@@ -74,7 +74,9 @@ import org.w3c.dom.Element;
 
 @XmlAccessorType(XmlAccessType.NONE)        // we select getters/fields to expose via JAXB individually
 @XmlType(name = "SearchFilterType", propOrder = {       // no prop order, because we serialize this class manually
+                                                        // BTW, the order is the following: description, filterClause
 })
+
 public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode, DebugDumpable, Revivable
 {
     private final static long serialVersionUID = 201303040000L;
@@ -235,12 +237,14 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     	if (description == null) {
     		return xmap;
     	} else {
-    		if (xmap == null) {
-    			xmap = new MapXNode();
-    		}
-    		xmap.put(SearchFilterType.F_DESCRIPTION, new PrimitiveXNode<>(description));
+            // we have to serialize the map in correct order (see MID-1847): description first, filter clause next
+            MapXNode newXMap = new MapXNode();
+    		newXMap.put(SearchFilterType.F_DESCRIPTION, new PrimitiveXNode<>(description));
+            if (xmap != null && !xmap.isEmpty()) {
+                newXMap.put(xmap.getSingleSubEntry("search filter"));
+            }
+            return newXMap;
     	}
-    	return xmap;
     }
 
     @Override

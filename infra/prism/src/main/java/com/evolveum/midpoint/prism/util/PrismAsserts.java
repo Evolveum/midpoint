@@ -334,8 +334,14 @@ public class PrismAsserts {
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
 		assertReplace(propertyDelta, expectedValues);
 	}
-		
-	public static <T> void assertReplace(PropertyDelta<T> propertyDelta, T... expectedValues) {
+
+    public static void assertPropertyReplaceSimple(ObjectDelta<?> objectDelta, QName propertyName) {
+        PropertyDelta<Object> propertyDelta = objectDelta.findPropertyDelta(propertyName);
+        assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
+        assertTrue("No values to replace", propertyDelta.getValuesToReplace() != null && !propertyDelta.getValuesToReplace().isEmpty());
+    }
+
+    public static <T> void assertReplace(PropertyDelta<T> propertyDelta, T... expectedValues) {
 		assertSet("delta "+propertyDelta+" for "+propertyDelta.getElementName(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
@@ -851,8 +857,12 @@ public class PrismAsserts {
 	static void assertNotNull(String string, Object object) {
 		assert object != null : string;
 	}
-	
-	public static void assertEquals(String message, Object expected, Object actual) {
+
+    private static void assertTrue(String message, boolean test) {
+        assert test : message;
+    }
+
+    public static void assertEquals(String message, Object expected, Object actual) {
 		assert MiscUtil.equals(expected, actual) : message 
 				+ ": expected " + MiscUtil.getValueWithClass(expected)
 				+ ", was " + MiscUtil.getValueWithClass(actual);

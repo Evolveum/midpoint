@@ -37,7 +37,7 @@
                         <s:type>assign</s:type>
                         <s:parameter>
                             <s:name>role</s:name>
-                            <s:constant>00000000-0000-0000-0000-000000000008</s:constant>
+                            <c:value>00000000-0000-0000-0000-000000000008</c:value>
                         </s:parameter>
                     </s:action>
                 </s:search>

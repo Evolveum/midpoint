@@ -28,7 +28,7 @@
         <s:type>assign</s:type>
         <s:parameter>
             <s:name>role</s:name>
-            <s:constant>12345678-d34d-b33f-f00d-555555556677</s:constant>
+            <c:value>12345678-d34d-b33f-f00d-555555556677</c:value>
         </s:parameter>
     </s:action>
 </s:search>

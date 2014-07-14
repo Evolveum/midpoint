@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<task oid="44444444-4444-4444-4444-000000001111" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>Task2</name>
+    <extension>
+        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+            <s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                        >
+                <s:expression xsi:type="s:SearchExpressionType">
+                    <s:type>c:RoleType</s:type>
+                    <s:searchFilter>
+                        <q:equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+                            <q:path>c:name</q:path>
+                            <q:value>AAAAA</q:value>
+                        </q:equal>
+                    </s:searchFilter>
+                </s:expression>
+                <s:expression xsi:type="s:ExpressionSequenceType">
+                    <s:expression xsi:type="s:ActionExpressionType">
+                        <s:type>delete</s:type>
+                    </s:expression>
+                    <s:expression xsi:type="s:ActionExpressionType">
+                        <s:type>assign</s:type>
+                        <s:parameter>
+                            <s:name>role</s:name>
+                            <c:value>rome555c-7797-11e2-94a6-001e8c717e5b</c:value>
+                        </s:parameter>
+                    </s:expression>
+                </s:expression>
+            </s:pipeline>
+        </scext:executeScript>
+    </extension>
+    <taskIdentifier>44444444-4444-4444-4444-000000001111</taskIdentifier>
+    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
+    <executionStatus>runnable</executionStatus>
+    <category>BulkActions</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
+    <recurrence>single</recurrence>
+</task>

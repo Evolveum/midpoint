@@ -27,6 +27,7 @@
             <class name="com.evolveum.midpoint.schema.TestParseUserXml"/>
             <class name="com.evolveum.midpoint.schema.TestParseResource"/>
             <class name="com.evolveum.midpoint.schema.TestParseTask"/>
+            <class name="com.evolveum.midpoint.schema.TestParseTaskBulkAction"/>
             <class name="com.evolveum.midpoint.schema.TestParseGenericObject"/>
             <class name="com.evolveum.midpoint.schema.test.XPathTest"/>
             <class name="com.evolveum.midpoint.schema.processor.TestResourceSchema"/>

@@ -16,7 +16,8 @@
   -->
 
 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <s:type>c:UserType</s:type>
     <s:searchFilter>
         <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -25,11 +26,11 @@
         </equal>
     </s:searchFilter>
     <s:sequence>
-        <s:action>
+        <s:expression xsi:type="s:ActionExpressionType">
             <s:type>delete</s:type>
-        </s:action>
-        <s:action>
+        </s:expression>
+        <s:expression xsi:type="s:ActionExpressionType">
             <s:type>add</s:type>
-        </s:action>
+        </s:expression>
     </s:sequence>
 </s:search>

@@ -39,7 +39,7 @@
                         <s:type>modify</s:type>
                         <s:parameter>
                             <s:name>delta</s:name>
-                            <s:constant xsi:type="t:ObjectDeltaType">
+                            <c:value xsi:type="t:ObjectDeltaType">
                                 <t:changeType>modify</t:changeType>     <!-- this is the default, can be omitted -->
                                 <!-- objectType and oid are taken from the object being modified -->
                                 <t:itemDelta>
@@ -47,7 +47,7 @@
                                     <t:path>c:preferredLanguage</t:path>
                                     <t:value>sk_SK</t:value>
                                 </t:itemDelta>
-                            </s:constant>
+                            </c:value>
                         </s:parameter>
                     </s:action>
                 </s:search>

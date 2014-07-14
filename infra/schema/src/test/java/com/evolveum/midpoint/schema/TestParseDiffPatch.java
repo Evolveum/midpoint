@@ -427,13 +427,14 @@ public class TestParseDiffPatch {
         assertEquals("Wrong delta OID", "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", resourceDelta.getOid());
         assertEquals("Wrong change type", ChangeType.MODIFY, resourceDelta.getChangeType());
         Collection<? extends ItemDelta> modifications = resourceDelta.getModifications();
-        assertEquals("Unexpected number of modifications", 6, modifications.size());
+        assertEquals("Unexpected number of modifications", 7, modifications.size());
         PrismAsserts.assertContainerDelete(resourceDelta, ResourceType.F_SCHEMA);
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("update"), 3);
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("scriptOnResource"), 4);
         PrismAsserts.assertPropertyDelete(resourceDelta,
         		new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "producerBufferSize")),
         		100);
+        PrismAsserts.assertPropertyReplaceSimple(resourceDelta, ResourceType.F_SYNCHRONIZATION);
         // Configuration properties changes
         assertConfigurationPropertyChange(resourceDelta, "principal");
         assertConfigurationPropertyChange(resourceDelta, "credentials");

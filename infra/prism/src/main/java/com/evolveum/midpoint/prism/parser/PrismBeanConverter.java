@@ -257,7 +257,13 @@ public class PrismBeanConverter {
 							// This is the case of Collection<JAXBElement<?>>
 							// we need to exctract the specific type from the factory method
 							if (elementMethod == null){
-								throw new IllegalArgumentException("Wildcard type in JAXBElement field specification and no factory method found for field "+fieldName+" in "+beanClass+", cannot determine collection type (inner type argument)");
+                                // TODO: TEMPORARY CODE!!!!!!!!!! fix in 3.1 [med]
+                                Class objectFactoryClass = inspector.getObjectFactoryClass(beanClass.getPackage());
+                                objectFactory = instantiateObjectFactory(objectFactoryClass);
+                                elementMethod = inspector.findElementMethodInObjectFactory(objectFactoryClass, propName);
+                                if (elementMethod == null) {
+                                    throw new IllegalArgumentException("Wildcard type in JAXBElement field specification and no factory method found for field "+fieldName+" in "+beanClass+", cannot determine collection type (inner type argument)");
+                                }
 							}
 							Type factoryMethodGenericReturnType = elementMethod.getGenericReturnType();
 							Type factoryMethodTypeArgument = getTypeArgument(factoryMethodGenericReturnType, "in factory method "+elementMethod+" return type for field "+fieldName+" in "+beanClass+", cannot determine collection type");
@@ -715,7 +721,21 @@ public class PrismBeanConverter {
 						elementToMarshall = ((JAXBElement) element).getValue();
 					} 
 					XNode marshalled = marshallValue(elementToMarshall, fieldTypeName, isAttribute);
-					setExplicitTypeDeclarationIfNeeded(getter, getterResultValue, marshalled, fieldTypeName);
+
+                    // Brutal hack - made here just to make scripts (bulk actions) functional while not breaking anything else
+                    // Fix it in 3.1. [med]
+                    if (fieldTypeName == null && element instanceof JAXBElement && marshalled != null) {
+                        QName typeName = inspector.determineTypeForClass(elementToMarshall.getClass());
+                        if (typeName != null) {
+                            marshalled.setExplicitTypeDeclaration(true);
+                            marshalled.setTypeQName(typeName);
+                        }
+                    }
+                    else {
+                    // end of hack
+
+                        setExplicitTypeDeclarationIfNeeded(getter, getterResultValue, marshalled, fieldTypeName);
+                    }
 					xlist.add(marshalled);
 				}
                 xmap.put(elementName, xlist);
@@ -847,12 +867,12 @@ public class PrismBeanConverter {
 			Type genericReturnType = getter.getGenericReturnType();
 			if (genericReturnType instanceof ParameterizedType){
 				Type actualType = getTypeArgument(genericReturnType, "explicit type declaration");
-				 
+
 				if (actualType instanceof Class){
 					getterType = (Class) actualType;
 				}
 			}
-		} 
+		}
 		if (getterType == null){
 			getterType = getterReturnType;
 		}

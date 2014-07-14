@@ -24,6 +24,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,15 +42,15 @@ public class ExpressionHelper {
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
-    public JAXBElement<?> getArgument(ActionExpressionType actionExpression, String parameterName) throws ScriptExecutionException {
-        return getArgument(actionExpression.getParameter(), parameterName, false, false, actionExpression.getType());
-    }
+//    public JAXBElement<?> getArgument(ActionExpressionType actionExpression, String parameterName) throws ScriptExecutionException {
+//        return getArgument(actionExpression.getParameter(), parameterName, false, false, actionExpression.getType());
+//    }
 
-    public JAXBElement<?> getArgument(List<ActionParameterValueType> arguments, String parameterName, boolean required, boolean requiredNonNull, String context) throws ScriptExecutionException {
+    public ActionParameterValueType getArgument(List<ActionParameterValueType> arguments, String parameterName, boolean required, boolean requiredNonNull, String context) throws ScriptExecutionException {
         for (ActionParameterValueType parameterValue : arguments) {
             if (parameterName.equals(parameterValue.getName())) {
-                if (parameterValue.getExpression() != null) {
-                    return parameterValue.getExpression();
+                if (parameterValue.getExpression() != null || parameterValue.getValue() != null) {
+                    return parameterValue;
                 } else {
                     if (requiredNonNull) {
                         throw new ScriptExecutionException("Required parameter " + parameterName + " is null in invocation of \"" + context + "\"");
@@ -66,11 +68,20 @@ public class ExpressionHelper {
     }
 
     public String getArgumentAsString(List<ActionParameterValueType> arguments, String argumentName, Data input, ExecutionContext context, String defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException {
-        JAXBElement<?> argumentExpression = getArgument(arguments, argumentName, false, false, contextName);
-        if (argumentExpression != null) {
-            Data level = scriptingExpressionEvaluator.evaluateExpression(argumentExpression, input, context, parentResult);
-            if (level != null) {
-                return level.getDataAsSingleString();
+        ActionParameterValueType parameterValue = getArgument(arguments, argumentName, false, false, contextName);
+        if (parameterValue != null) {
+            if (parameterValue.getExpression() != null) {
+                Data data = scriptingExpressionEvaluator.evaluateExpression(parameterValue.getExpression(), input, context, parentResult);
+                if (data != null) {
+                    return data.getDataAsSingleString();
+                }
+            } else if (parameterValue.getValue() != null) {
+                Data data = scriptingExpressionEvaluator.evaluateConstantExpression((RawType) parameterValue.getValue(), context, parentResult);
+                if (data != null) {
+                    return data.getDataAsSingleString();
+                }
+            } else {
+                throw new IllegalStateException("No expression nor value specified");
             }
         }
         return defaultValue;
@@ -89,4 +100,14 @@ public class ExpressionHelper {
         }
     }
 
+    public Data evaluateParameter(ActionParameterValueType parameter, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+        Validate.notNull(parameter, "parameter");
+        if (parameter.getExpression() != null) {
+            return scriptingExpressionEvaluator.evaluateExpression(parameter.getExpression(), input, context, result);
+        } else if (parameter.getValue() != null) {
+            return scriptingExpressionEvaluator.evaluateConstantExpression((RawType) parameter.getValue(), context, result);
+        } else {
+            throw new IllegalStateException("No expression nor value specified");
+        }
+    }
 }

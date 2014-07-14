@@ -209,5 +209,18 @@
 			<cap:testConnection/>
 		</configured>
 	</capabilities>
-		
+
+    <synchronization>
+        <objectSynchronization>
+            <correlation>
+                <q:equal xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <path>$account/attributes/ri:uid</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+        </objectSynchronization>
+    </synchronization>
+
 </resource>

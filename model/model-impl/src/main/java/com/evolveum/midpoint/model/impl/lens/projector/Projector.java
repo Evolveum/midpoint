@@ -404,11 +404,11 @@ public class Projector {
 				} else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
 					// independent object not in the context, just ignore it
 					LOGGER.debug("Unsatisfied lax dependency of account "+projectionContext.getResourceShadowDiscriminator()+
-						" dependent on "+refDiscr+"; depencency skipped");
+						" dependent on "+refDiscr+"; dependency skipped");
 				} else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 					// independent object not in the context, just ignore it
 					LOGGER.debug("Unsatisfied relaxed dependency of account "+projectionContext.getResourceShadowDiscriminator()+
-						" dependent on "+refDiscr+"; depencency skipped");
+						" dependent on "+refDiscr+"; dependency skipped");
 				} else {
 					throw new IllegalArgumentException("Unknown dependency strictness "+outDependency.getStrictness()+" in "+refDiscr);
 				}
@@ -564,12 +564,12 @@ public class Projector {
 					// independent object not in the context, just ignore it
 					LOGGER.trace("Unsatisfied lax dependency of account " + 
 							accountContext.getResourceShadowDiscriminator().toHumanReadableString() +
-							" dependent on " + refRat.toHumanReadableString() + "; depencency skipped");
+							" dependent on " + refRat.toHumanReadableString() + "; dependency skipped");
 				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 					// independent object not in the context, just ignore it
 					LOGGER.trace("Unsatisfied relaxed dependency of account "
 							+ accountContext.getResourceShadowDiscriminator().toHumanReadableString() +
-							" dependent on " + refRat.toHumanReadableString() + "; depencency skipped");
+							" dependent on " + refRat.toHumanReadableString() + "; dependency skipped");
 				} else {
 					throw new IllegalArgumentException("Unknown dependency strictness "+dependency.getStrictness()+" in "+refRat);
 				}

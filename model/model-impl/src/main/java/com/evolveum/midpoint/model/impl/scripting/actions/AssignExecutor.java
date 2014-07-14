@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -66,20 +67,20 @@ public class AssignExecutor extends BaseActionExecutor {
 
         boolean raw = getParamRaw(expression, input, context, result);
 
-        JAXBElement<?> resourceExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_RESOURCE, false, false, NAME);
-        JAXBElement<?> roleExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_ROLE, false, false, NAME);
+        ActionParameterValueType resourceParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_RESOURCE, false, false, NAME);
+        ActionParameterValueType roleParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_ROLE, false, false, NAME);
 
         Collection<ObjectReferenceType> resources;
-        if (resourceExpression != null) {
-            Data data = scriptingExpressionEvaluator.evaluateExpression(resourceExpression, input, context, result);
+        if (resourceParameterValue != null) {
+            Data data = expressionHelper.evaluateParameter(resourceParameterValue, input, context, result);
             resources = data.getDataAsReferences(ResourceType.COMPLEX_TYPE);
         } else {
             resources = null;
         }
 
         Collection<ObjectReferenceType> roles;
-        if (roleExpression != null) {
-            Data data = scriptingExpressionEvaluator.evaluateExpression(roleExpression, input, context, result);
+        if (roleParameterValue != null) {
+            Data data = expressionHelper.evaluateParameter(roleParameterValue, input, context, result);
             roles = data.getDataAsReferences(RoleType.COMPLEX_TYPE);
         } else {
             roles = null;

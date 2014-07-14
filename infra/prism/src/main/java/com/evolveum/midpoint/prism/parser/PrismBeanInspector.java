@@ -119,6 +119,17 @@ public class PrismBeanInspector {
         });
     }
 
+    private Map<Class<? extends Object>, QName> _determineTypeForClass = new HashMap<>();
+
+    QName determineTypeForClass(Class<? extends Object> paramType) {
+        return find1(_determineTypeForClass, paramType, new Getter1<QName,Class<? extends Object>>() {
+            @Override
+            public QName get(Class<? extends Object> paramType) {
+                return determineTypeForClassUncached(paramType);
+            }
+        });
+    }
+
     private Map<Field,Map<Method,Boolean>> _isAttribute = new HashMap<>();
 
     boolean isAttribute(Field field, Method getter) {
@@ -339,6 +350,24 @@ public class PrismBeanInspector {
         }
 
         return namespace;
+    }
+
+    private QName determineTypeForClassUncached(Class<? extends Object> beanClass) {
+        XmlType xmlType = beanClass.getAnnotation(XmlType.class);
+        if (xmlType == null) {
+            return null;
+        }
+
+        String namespace = xmlType.namespace();
+        if (namespace == null || PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
+            XmlSchema xmlSchema = beanClass.getPackage().getAnnotation(XmlSchema.class);
+            namespace = xmlSchema.namespace();
+        }
+        if (StringUtils.isBlank(namespace) || PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
+            return null;
+        }
+
+        return new QName(namespace, xmlType.name());
     }
 
     private <T> Method findSetterUncached(Class<T> classType, String fieldName) {
