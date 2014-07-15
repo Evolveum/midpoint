@@ -37,7 +37,7 @@ import org.apache.wicket.model.PropertyModel;
 //                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
 //        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#bulkAction",
 //                label = "PageBulkAction.auth.bulkAction.label", description = "PageBulkAction.auth.bulkAction.description")
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DENY_ALL)
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DEVEL_URL)
 })
 public class PageBulkAction extends PageAdminConfiguration {
 

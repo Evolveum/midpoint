@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/users/find", action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DENY_ALL)})
+@PageDescriptor(url = "/admin/users/find", action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DEVEL_URL)})
 public class PageFindUsers extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageFindUsers.class);
