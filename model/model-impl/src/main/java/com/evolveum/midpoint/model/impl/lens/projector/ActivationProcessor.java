@@ -273,7 +273,7 @@ public class ActivationProcessor {
         }
 
         if (capValidFrom != null) {
-	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
+	    	evaluateActivationMapping(context, accCtx, activationType.getValidFrom(),
 	    			SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM, 
 	    			null, now, true, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
         } else {
@@ -281,9 +281,9 @@ public class ActivationProcessor {
         }
 	
         if (capValidTo != null) {
-	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
+	    	evaluateActivationMapping(context, accCtx, activationType.getValidTo(),
 	    			SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO, 
-	    			null, now, true, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
+	    			null, now, true, ActivationType.F_VALID_TO.getLocalPart(), task, result);
 	    } else {
 	    	LOGGER.trace("Skipping activation validTo processing because {} does not have activation validTo capability", accCtx.getResource());
 	    }
