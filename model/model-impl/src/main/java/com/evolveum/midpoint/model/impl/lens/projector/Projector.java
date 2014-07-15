@@ -391,7 +391,8 @@ public class Projector {
 			}
 			checkForCircular(depPath, outDependency);
 			depPath.add(outDependency);
-			ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(outDependency, projectionContext.getKind());
+			ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(outDependency, 
+					projectionContext.getResource().getOid(), projectionContext.getKind());
 			LensProjectionContext dependencyProjectionContext = findDependencyContext(context, projectionContext, outDependency);
 //			if (LOGGER.isTraceEnabled()) {
 //				LOGGER.trace("DEP: {} -> {}", refDiscr, dependencyProjectionContext);
@@ -473,7 +474,8 @@ public class Projector {
 	 */
 	private <F extends ObjectType> LensProjectionContext findDependencyContext(
 			LensContext<F> context, LensProjectionContext projContext, ResourceObjectTypeDependencyType dependency){
-		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency, projContext.getKind());
+		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency, 
+				projContext.getResource().getOid(), projContext.getKind());
 		LensProjectionContext selected = null;
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			if (!projectionContext.compareResourceShadowDiscriminator(refDiscr, false)) {
@@ -511,21 +513,21 @@ public class Projector {
 	 * and stuff like that. 
 	 */
 	private <F extends ObjectType> boolean checkDependencies(LensContext<F> context, 
-    		LensProjectionContext accountContext) throws PolicyViolationException {
-		if (accountContext.isDelete()) {
+    		LensProjectionContext projContext) throws PolicyViolationException {
+		if (projContext.isDelete()) {
 			// It is OK if we depend on something that is not there if we are being removed ... for now
 			return true;
 		}
 		
-		if (accountContext.getOid() == null || accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
+		if (projContext.getOid() == null || projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
 			// Check for lower-order contexts
 			LensProjectionContext lowerOrderContext = null;
 			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-				if (accountContext == projectionContext) {
+				if (projContext == projectionContext) {
 					continue;
 				}
-				if (projectionContext.compareResourceShadowDiscriminator(accountContext.getResourceShadowDiscriminator(), false) &&
-						projectionContext.getResourceShadowDiscriminator().getOrder() < accountContext.getResourceShadowDiscriminator().getOrder()) {
+				if (projectionContext.compareResourceShadowDiscriminator(projContext.getResourceShadowDiscriminator(), false) &&
+						projectionContext.getResourceShadowDiscriminator().getOrder() < projContext.getResourceShadowDiscriminator().getOrder()) {
 					if (projectionContext.getOid() != null) {
 						lowerOrderContext = projectionContext;
 						break;
@@ -534,23 +536,24 @@ public class Projector {
 			}
 			if (lowerOrderContext != null) {
 				if (lowerOrderContext.getOid() != null) {
-					if (accountContext.getOid() == null) {
-						accountContext.setOid(lowerOrderContext.getOid());
+					if (projContext.getOid() == null) {
+						projContext.setOid(lowerOrderContext.getOid());
 					}
-					if (accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
+					if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
 						// This context cannot be ADD. There is a lower-order context with an OID
 						// it means that the lower-order projection exists, we cannot add it twice
-						accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+						projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
 					}
 				}
 				if (lowerOrderContext.isDelete()) {
-					accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+					projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
 				}
 			}
 		}		
 		
-		for (ResourceObjectTypeDependencyType dependency: accountContext.getDependencies()) {
-			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency, accountContext.getKind());
+		for (ResourceObjectTypeDependencyType dependency: projContext.getDependencies()) {
+			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency, 
+					projContext.getResource().getOid(), projContext.getKind());
 			LOGGER.trace("LOOKING FOR {}", refRat);
 			LensProjectionContext dependencyAccountContext = context.findProjectionContext(refRat);
 			ResourceObjectTypeDependencyStrictnessType strictness = ResourceTypeUtil.getDependencyStrictness(dependency);
@@ -558,17 +561,17 @@ public class Projector {
 				if (strictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
 					// This should not happen, it is checked before projection
 					throw new PolicyViolationException("Unsatisfied strict dependency of "
-							+ accountContext.getResourceShadowDiscriminator().toHumanReadableString() +
+							+ projContext.getResourceShadowDiscriminator().toHumanReadableString() +
 							" dependent on " + refRat.toHumanReadableString() + ": No context in dependency check");
 				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
 					// independent object not in the context, just ignore it
 					LOGGER.trace("Unsatisfied lax dependency of account " + 
-							accountContext.getResourceShadowDiscriminator().toHumanReadableString() +
+							projContext.getResourceShadowDiscriminator().toHumanReadableString() +
 							" dependent on " + refRat.toHumanReadableString() + "; dependency skipped");
 				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 					// independent object not in the context, just ignore it
 					LOGGER.trace("Unsatisfied relaxed dependency of account "
-							+ accountContext.getResourceShadowDiscriminator().toHumanReadableString() +
+							+ projContext.getResourceShadowDiscriminator().toHumanReadableString() +
 							" dependent on " + refRat.toHumanReadableString() + "; dependency skipped");
 				} else {
 					throw new IllegalArgumentException("Unknown dependency strictness "+dependency.getStrictness()+" in "+refRat);
@@ -582,9 +585,9 @@ public class Projector {
 					} else {
 						// We do not want to throw exception here. That will stop entire projection.
 						// Let's just mark the projection as broken and skip it.
-						LOGGER.warn("Unsatisfied dependency of account "+accountContext.getResourceShadowDiscriminator()+
-								" dependent on "+refRat+": Account not provisioned in dependency check (execution wave "+context.getExecutionWave()+", account wave "+accountContext.getWave() + ", depenedency account wave "+dependencyAccountContext.getWave()+")");
-						accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+						LOGGER.warn("Unsatisfied dependency of account "+projContext.getResourceShadowDiscriminator()+
+								" dependent on "+refRat+": Account not provisioned in dependency check (execution wave "+context.getExecutionWave()+", account wave "+projContext.getWave() + ", depenedency account wave "+dependencyAccountContext.getWave()+")");
+						projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 						return false;
 					}
 				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
