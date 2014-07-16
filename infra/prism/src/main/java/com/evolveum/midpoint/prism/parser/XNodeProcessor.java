@@ -69,7 +69,9 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 public class XNodeProcessor {
 
-	private PrismContext prismContext;
+    public static final String ARTIFICIAL_OBJECT_NAME = "anObject";
+
+    private PrismContext prismContext;
 	
 	public XNodeProcessor() { }
 	
@@ -135,7 +137,13 @@ public class XNodeProcessor {
 	}
 	
 	private <O extends Objectable> PrismObject<O> parseObject(MapXNode xnode, PrismObjectDefinition<O> objectDefinition) throws SchemaException {
-		return parseObject(xnode, new QName(null, "object"), objectDefinition);
+		QName elementName;
+        if (objectDefinition != null) {
+            elementName = objectDefinition.getName();
+        } else {
+            elementName = new QName(null, ARTIFICIAL_OBJECT_NAME);
+        }
+        return parseObject(xnode, elementName, objectDefinition);
 	}
 
     private <O extends Objectable> PrismObject<O> parseObject(XNode xnode, QName elementName, PrismObjectDefinition<O> objectDefinition) throws SchemaException {
@@ -978,7 +986,7 @@ public class XNodeProcessor {
         } else if (itemDefinition != null) {
             return itemDefinition.getName();
         } else {
-            return new QName(null, "object");
+            throw new IllegalStateException("Couldn't determine element name - neither from XNode nor from itemDefinition");
         }
     }
 
