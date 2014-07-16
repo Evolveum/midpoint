@@ -117,6 +117,7 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
 
     @Override
     public PrismProperty<T> instantiate(QName name) {
+        name = addNamespaceIfApplicable(name);
         return new PrismProperty<T>(name, this, prismContext);
     }
 

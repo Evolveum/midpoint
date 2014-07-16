@@ -18,9 +18,6 @@ package com.evolveum.midpoint.prism;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-
 /**
  * MidPoint Object Definition.
  * 
@@ -54,6 +51,7 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 	
 	@Override
 	public PrismObject<T> instantiate(QName name) {
+        name = addNamespaceIfApplicable(name);
 		PrismObject<T> midPointObject = new PrismObject<T>(name, this, prismContext);
 		return midPointObject;
 	}

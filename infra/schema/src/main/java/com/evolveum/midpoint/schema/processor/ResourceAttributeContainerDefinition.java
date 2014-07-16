@@ -280,6 +280,7 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	}
 	
 	public ResourceAttributeContainer instantiate(QName name) {
+        name = addNamespaceIfApplicable(name);
 		return new ResourceAttributeContainer(name, this, prismContext);
 	}
 	

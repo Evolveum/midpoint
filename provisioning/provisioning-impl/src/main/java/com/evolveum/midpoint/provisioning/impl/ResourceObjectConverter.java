@@ -1036,7 +1036,7 @@ public class ResourceObjectConverter {
 			operations = new ArrayList<Operation>();
 		}
 		for (ItemDelta itemDelta : objectChange) {
-			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
+			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
 				if (itemDelta instanceof PropertyDelta) {
 					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
 							(PropertyDelta) itemDelta);
