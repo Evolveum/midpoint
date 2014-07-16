@@ -51,22 +51,15 @@ public class NotificationsUtil {
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
 
-    public static PrismObject<SystemConfigurationType> getSystemConfiguration(RepositoryService repositoryService, OperationResult result) {
-        PrismObject<SystemConfigurationType> systemConfiguration;
+    // beware, may return null if there's any problem getting sysconfig (e.g. during initial import)
+    public static SystemConfigurationType getSystemConfiguration(RepositoryService repositoryService, OperationResult result) {
         try {
-            systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-            		null, result);
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't get system configuration", e);
-            throw new SystemException("Couldn't get system configuration", e);
-        } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't get system configuration", e);
-            throw new SystemException("Couldn't get system configuration", e);
+            return repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+            		null, result).asObjectable();
+        } catch (ObjectNotFoundException|SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Notification(s) couldn't be processed, because the system configuration couldn't be retrieved", e);
+            return null;
         }
-        if (systemConfiguration == null) {
-            throw new SystemException("Couldn't get system configuration");
-        }
-        return systemConfiguration;
     }
 
     public static String getResourceNameFromRepo(RepositoryService repositoryService, String oid, OperationResult result) {
