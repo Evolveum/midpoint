@@ -81,6 +81,8 @@ public class DomSerializer {
         return serializeInternal(rootxnode);
     }
 
+    // this one is used only from within JaxbDomHack.toAny(..) - hopefully it will disappear soon
+    @Deprecated
     public Element serialize(RootXNode rootxnode, Document document) throws SchemaException {
         initializeWithExistingDocument(document);
         return serializeInternal(rootxnode);
@@ -88,7 +90,7 @@ public class DomSerializer {
 
     private Element serializeInternal(RootXNode rootxnode) throws SchemaException {
 		QName rootElementName = rootxnode.getRootElementName();
-		Element topElement = createElement(rootElementName);
+		Element topElement = createElement(rootElementName, null);
 		QName typeQName = rootxnode.getTypeQName();
         if (typeQName == null && rootxnode.getSubnode().getTypeQName() != null) {
             typeQName = rootxnode.getSubnode().getTypeQName();
@@ -110,7 +112,8 @@ public class DomSerializer {
 	
 	public Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {
 		initialize();
-		Element element = createElement(elementName);
+		Element element = createElement(elementName, null);
+        topElement = element;
 		serializeMap(xmap, element);
 		return element;
 	}
@@ -135,11 +138,11 @@ public class DomSerializer {
 			return;
 		}
         if (xsubnode instanceof RootXNode) {
-            Element element = createElement(elementName);
+            Element element = createElement(elementName, parentElement);
             parentElement.appendChild(element);
             serializeSubnode(((RootXNode) xsubnode).getSubnode(), element, ((RootXNode) xsubnode).getRootElementName());
         } else if (xsubnode instanceof MapXNode) {
-			Element element = createElement(elementName);
+			Element element = createElement(elementName, parentElement);
 			if (xsubnode.isExplicitTypeDeclaration() && xsubnode.getTypeQName() != null){
 				DOMUtil.setXsiType(element, xsubnode.getTypeQName());
 			}
@@ -176,7 +179,7 @@ public class DomSerializer {
 		QName typeQName = xprim.getTypeQName();
 
         // if typeQName is not explicitly specified, we try to determine it from parsed value
-        // TODO it should be considered whether not to set typeQName when parsing the value!
+        // TODO we should probably set typeQName when parsing the value...
         if (typeQName == null && xprim.isParsed()) {
             Object v = xprim.getValue();
             if (v != null) {
@@ -190,14 +193,12 @@ public class DomSerializer {
 				// sometimes. So just default to string
 				String stringValue = xprim.getStringValue();
 				if (stringValue != null) {
-                    // there's an ugly thing here: if serializing values that are unparsed, and if they
-                    //
                     if (asAttribute) {
                         parentElement.setAttribute(elementOrAttributeName.getLocalPart(), stringValue);
                     } else {
                         Element element;
                         try {
-                            element = createElement(elementOrAttributeName);
+                            element = createElement(elementOrAttributeName, parentElement);
                         } catch (DOMException e) {
                             throw new DOMException(e.code, e.getMessage() + "; creating element "+elementOrAttributeName+" in element "+DOMUtil.getQName(parentElement));
                         }
@@ -235,7 +236,7 @@ public class DomSerializer {
 
             if (!asAttribute) {
                 try {
-                    element = createElement(elementOrAttributeName);
+                    element = createElement(elementOrAttributeName, parentElement);
                 } catch (DOMException e) {
                     throw new DOMException(e.code, e.getMessage() + "; creating element "+elementOrAttributeName+" in element "+DOMUtil.getQName(parentElement));
                 }
@@ -285,17 +286,17 @@ public class DomSerializer {
 	 * @param qname element QName
 	 * @return created DOM element
 	 */
-	private Element createElement(QName qname) {
+	private Element createElement(QName qname, Element parentElement) {
 		String namespaceURI = qname.getNamespaceURI();
-		if (StringUtils.isBlank(namespaceURI)) {
-			return doc.createElement(qname.getLocalPart());
+		if (!StringUtils.isBlank(namespaceURI)) {
+			qname = setQNamePrefix(qname);
 		}
-		QName qnameWithPrefix = setQNamePrefix(qname);
-		if (topElement != null) {
-			return DOMUtil.createElement(doc, qnameWithPrefix, topElement, topElement);
+		if (parentElement != null) {
+			return DOMUtil.createElement(doc, qname, parentElement, parentElement);
 		} else {
 			// This is needed otherwise the root element itself could not be created
-			return DOMUtil.createElement(doc, qnameWithPrefix);
+            // Caller of this method is responsible for setting the topElement
+			return DOMUtil.createElement(doc, qname);
 		}
 	}
 

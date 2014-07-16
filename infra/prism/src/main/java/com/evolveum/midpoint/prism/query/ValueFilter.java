@@ -177,7 +177,7 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		if (fullPath == null) {
 			if (other.fullPath != null)
 				return false;
-		} else if (!fullPath.equals(other.fullPath))
+		} else if (!fullPath.equivalent(other.fullPath))        // TODO: ok?
 			return false;
 		if (matchingRule == null) {
 			if (other.matchingRule != null)

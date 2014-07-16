@@ -386,7 +386,7 @@ public class XPathTest {
 
         ItemPath xpath1 = xPathHolder1.toItemPath();
         ItemPath xpath2 = xPathHolder2.toItemPath();
-        assertTrue("Paths are not equal", xpath1.equals(xpath2));
+        assertTrue("Paths are not equivalent", xpath1.equivalent(xpath2));
     }
 
     //not actual anymore..we have something like "wildcard" in xpath..there don't need to be prefix specified.we will try to match the local names

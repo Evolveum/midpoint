@@ -251,6 +251,7 @@ public class DOMUtil {
 			throw new SystemException("Error in XML configuration: "+e.getMessage(),e);
 		}
 		trans.setOutputProperty(OutputKeys.INDENT, (indent ? "yes" : "no"));
+        trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");      // XALAN-specific
 		trans.setParameter(OutputKeys.ENCODING, "utf-8");
         // Note: serialized XML does not contain xml declaration
         trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, (omitXmlDeclaration ? "yes" : "no"));
@@ -549,13 +550,23 @@ public class DOMUtil {
 		return lookupOrCreateNamespaceDeclaration(element, namespaceUri, preferredPrefix, element);
 	}
 
+    /**
+     *
+     * @param element Element, on which the namespace declaration is evaluated
+     * @param namespaceUri Namespace URI to be assigned to a prefix
+     * @param preferredPrefix Preferred prefix
+     * @param definitionElement Element, on which namespace declaration will be created (there should not be any redefinitions between definitionElement and element in order for this to work...)
+     * @return prefix that is really used
+     */
+
 	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri,
 			String preferredPrefix, Element definitionElement) {
 		// We need to figure out correct prefix. We have namespace URI, but we
-		// need a prefix to specify in the xsi:type
+		// need a prefix to specify in the xsi:type or element name
 		if (!StringUtils.isBlank(preferredPrefix)) {
 			String namespaceForPreferredPrefix = element.lookupNamespaceURI(preferredPrefix);
 			if (namespaceForPreferredPrefix == null) {
+                // preferred prefix is not yet bound
 				setNamespaceDeclaration(definitionElement, preferredPrefix, namespaceUri);
 				return preferredPrefix;
 			} else {
@@ -608,7 +619,7 @@ public class DOMUtil {
 				for(int i=0; i < RANDOM_ATTR_PREFIX_MAX_ITERATIONS; i++) {
 					prefix = generatePrefix();
 					if (element.lookupNamespaceURI(prefix) == null) {
-						// the prefix if free
+						// the prefix is free
 						gotIt = true;
 						break;
 					}
@@ -931,13 +942,13 @@ public class DOMUtil {
 
 	public static Element createElement(Document document, QName qname) {
 		Element element;
-		String namespaceURI = qname.getNamespaceURI();
-		if (StringUtils.isBlank(namespaceURI)) {
-			element = document.createElement(qname.getLocalPart());
-		} else {
+//		String namespaceURI = qname.getNamespaceURI();
+//		if (StringUtils.isBlank(namespaceURI)) {
+//			element = document.createElement(qname.getLocalPart());
+//		} else {
 			element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
-		}
-		if (StringUtils.isNotEmpty(qname.getPrefix())) {
+//		}
+		if (StringUtils.isNotEmpty(qname.getPrefix()) && StringUtils.isNotEmpty(qname.getNamespaceURI())) {     // second part of the condition is because of wrong data in tests (undeclared prefixes in XPath expressions)
 			element.setPrefix(qname.getPrefix());
 		}
 		return element;

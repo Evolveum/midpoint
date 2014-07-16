@@ -369,7 +369,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     
     public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, ItemPath propertyPath) {
     	for (ItemDelta delta: modifications) {
-    		if (delta instanceof PropertyDelta && delta.getPath().equals(propertyPath)) {
+    		if (delta instanceof PropertyDelta && delta.getPath().equivalent(propertyPath)) {
     			return (PropertyDelta) delta;
     		}
     	}

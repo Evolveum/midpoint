@@ -89,6 +89,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 public class TestParseResource {
 	
 	public static final File RESOURCE_FILE = new File(TestConstants.COMMON_DIR, "resource-opendj.xml");
+    public static final File RESOURCE_NO_XMLNS_FILE = new File(TestConstants.COMMON_DIR, "resource-opendj-no-xmlns.xml");
 	public static final File RESOURCE_SIMPLE_FILE = new File(TestConstants.COMMON_DIR, "resource-opendj-simple.xml");
 	private static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String RESOURCE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
@@ -271,7 +272,6 @@ public class TestParseResource {
 		assertResource(resourceType.asPrismObject(), false, true, false);
 	}
 
-	
 	@Test
 	public void testParseResourceRoundtrip() throws Exception {
 		System.out.println("===[ testParseResourceRoundtrip ]===");
@@ -323,8 +323,56 @@ public class TestParseResource {
 //		PrismContainer<?> originalSchemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
 //		PrismContainer<?> reparsedSchemaContainer = reparsedResource.findContainer(ResourceType.F_SCHEMA);
 	}
-	
-	/**
+
+    @Test
+    public void testParseResourceRoundtripNoNamespaces() throws Exception {
+        System.out.println("===[ testParseResourceRoundtripNoNamespaces ]===");
+
+        // GIVEN
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+        PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_NO_XMLNS_FILE);
+
+        System.out.println("Parsed resource:");
+        System.out.println(resource.debugDump());
+
+        assertResource(resource, true, false, false);
+
+        // SERIALIZE
+
+        String serializedResource = prismContext.serializeObjectToString(resource, PrismContext.LANG_XML);
+
+        System.out.println("serialized resource:");
+        System.out.println(serializedResource);
+
+        // hack ... to make sure there's no "<clazz>" element there
+        assertFalse("<clazz> element is present in the serialized form!", serializedResource.contains("<clazz>"));
+
+        // RE-PARSE
+
+        PrismObject<ResourceType> reparsedResource = prismContext.parseObject(serializedResource);
+
+        System.out.println("Re-parsed resource:");
+        System.out.println(reparsedResource.debugDump());
+
+        // Cannot assert here. It will cause parsing of some of the raw values and diff will fail
+        assertResource(reparsedResource, true, false, false);
+
+        PrismProperty<SchemaDefinitionType> definitionProperty = reparsedResource.findContainer(ResourceType.F_SCHEMA).findProperty(XmlSchemaType.F_DEFINITION);
+        SchemaDefinitionType definitionElement = definitionProperty.getValue().getValue();
+        System.out.println("Re-parsed definition element:");
+        System.out.println(DOMUtil.serializeDOMToString(definitionElement.getSchema()));
+
+        ObjectDelta<ResourceType> objectDelta = resource.diff(reparsedResource);
+        System.out.println("Delta:");
+        System.out.println(objectDelta.debugDump());
+        assertTrue("Delta is not empty", objectDelta.isEmpty());
+
+        PrismAsserts.assertEquivalent("Resource re-parsed equivalence", resource, reparsedResource);
+    }
+
+
+    /**
 	 * Serialize and parse "schema" element on its own. There may be problems e.g. with preservation
 	 * of namespace definitions.
 	 */
@@ -498,7 +546,7 @@ public class TestParseResource {
             if (expectedSegment instanceof NameItemPathSegment) {
                 // default equals uses QNameUtil.match, not QName.equals
                 assertEquals(message + ": wrong path segment #" + (i+1) + " content", ((NameItemPathSegment) expectedSegment).getName(),
-                        ((NameItemPathSegment) actualSegment).getName());   // maybe this is too strict (compares prefixes as well)
+                        ((NameItemPathSegment) actualSegment).getName());
             }
         }
     }

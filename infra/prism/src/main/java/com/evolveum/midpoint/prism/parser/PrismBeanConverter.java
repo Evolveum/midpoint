@@ -709,10 +709,9 @@ public class PrismBeanConverter {
 					continue;
 				}
 				
-				QName fieldTypeName = inspector.findFieldTypeName(field, getterResultValue.getClass(), namespace);
-								
 				ListXNode xlist = new ListXNode();
 				for (Object element: col) {
+                    QName fieldTypeName = inspector.findFieldTypeName(field, element.getClass(), namespace);
 					Object elementToMarshall = element;
 					if (element instanceof JAXBElement){
 						if (((JAXBElement) element).getName() != null){

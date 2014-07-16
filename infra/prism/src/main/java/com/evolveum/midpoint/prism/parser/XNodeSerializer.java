@@ -307,7 +307,7 @@ public class XNodeSerializer {
         }
         if ((serializeCompositeObjects || isComposite) && value.getObject() != null) {
             XNode xobjnode = serializeObjectContent(value.getObject());
-            xmap.put(XNode.KEY_REFERENCE_OBJECT, xobjnode);
+            xmap.put(createReferenceQName(XNode.KEY_REFERENCE_OBJECT, namespace), xobjnode);
         }
 
         return xmap;

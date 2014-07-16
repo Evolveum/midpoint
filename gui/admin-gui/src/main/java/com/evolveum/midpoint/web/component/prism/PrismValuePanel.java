@@ -316,7 +316,7 @@ public class PrismValuePanel extends Panel {
         List<DateValidator> validators = form.getBehaviors(DateValidator.class);
         if (validators != null) {
             for (DateValidator val : validators) {
-                if (path.equals(val.getIdentifier())) {
+                if (path.equivalent(val.getIdentifier())) {
                     validator = val;
                     break;
                 }

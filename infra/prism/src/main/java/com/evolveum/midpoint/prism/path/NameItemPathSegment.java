@@ -69,13 +69,39 @@ public class NameItemPathSegment extends ItemPathSegment {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + (isVariable ? 1231 : 1237);
-        // we need to compute hash from namespace-normalized name (in order for equals to work)
-		result = prime * result + ((name == null) ? 0 : name.getLocalPart().hashCode());
+        // if we need to compute hash from namespace-normalized name, we would use this one:
+        // (in order for equals to work; if we decide to change equals in such a way later)
+		// result = prime * result + ((name == null) ? 0 : name.getLocalPart().hashCode());
+
+        // this version is for "precise" equals
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
 
+    /**
+     * More strict version of comparison: it requires exact matching of QNames (e.g. x:xyz and xyz are different in this respect).
+     *
+     * @param obj
+     * @return
+     */
 	@Override
-	public boolean equals(Object obj) {
+    public boolean equals(Object obj) {
+        return equals(obj, true);
+    }
+
+    /**
+     * Less strict version of comparison: it allows unqualified names to match fully qualified ones (e.g. x:xyz and xyz are the same).
+     *
+     * @param obj
+     * @return
+     */
+
+    @Override
+    public boolean equivalent(Object obj) {
+        return equals(obj, false);
+    }
+
+	public boolean equals(Object obj, boolean strictEquals) {
 		if (this == obj)
 			return true;
 		if (!super.equals(obj))
@@ -88,7 +114,7 @@ public class NameItemPathSegment extends ItemPathSegment {
 		if (name == null) {
 			if (other.name != null)
 				return false;
-		} else if (StringUtils.isEmpty(name.getNamespaceURI()) || StringUtils.isEmpty(other.name.getNamespaceURI())){
+		} else if (!strictEquals && (StringUtils.isEmpty(name.getNamespaceURI()) || StringUtils.isEmpty(other.name.getNamespaceURI()))) {
 			if (!QNameUtil.match(name, other.name)){
 				return false;
 			}

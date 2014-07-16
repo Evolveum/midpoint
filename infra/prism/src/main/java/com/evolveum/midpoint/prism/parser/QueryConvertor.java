@@ -404,7 +404,7 @@ public class QueryConvertor {
 	private static <C extends Containerable> SubstringFilter parseSubstringFilter(XNode xnode, PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, PrismContext prismContext)
 			throws SchemaException {
 		MapXNode xmap = toMap(xnode);
-		ItemPath itemPath = getPath(xmap, pcd.getPrismContext());
+		ItemPath itemPath = getPath(xmap, prismContext);
 
 		if (itemPath == null || itemPath.isEmpty()){
 			throw new SchemaException("Could not convert query, because query does not contain item path.");	

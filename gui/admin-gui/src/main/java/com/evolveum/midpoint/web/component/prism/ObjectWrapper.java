@@ -235,7 +235,7 @@ public class ObjectWrapper implements Serializable, Revivable {
 	public ContainerWrapper findContainerWrapper(ItemPath path) {
 		for (ContainerWrapper wrapper : getContainers()) {
             if (path != null) {
-                if (path.equals(wrapper.getPath())) {
+                if (path.equivalent(wrapper.getPath())) {
                     return wrapper;
                 }
             } else {
@@ -505,7 +505,7 @@ public class ObjectWrapper implements Serializable, Revivable {
 
 					//TODO: need to check if the resource has defined capabilities
                     //todo this is bad hack because now we have not tri-state checkbox
-					if (SchemaConstants.PATH_ACTIVATION.equals(path)) {
+					if (SchemaConstants.PATH_ACTIVATION.equivalent(path)) {
 
 						if (object.asObjectable() instanceof ShadowType
                                 && (((ShadowType) object.asObjectable()).getActivation() == null
@@ -522,7 +522,7 @@ public class ObjectWrapper implements Serializable, Revivable {
                     switch (valueWrapper.getStatus()) {
                         case ADDED:
                             if (newValCloned != null) {
-                                if (SchemaConstants.PATH_PASSWORD.equals(path)) {
+                                if (SchemaConstants.PATH_PASSWORD.equivalent(path)) {
                                     // password change will always look like add,
                                     // therefore we push replace
                                     pDelta.setValuesToReplace(Arrays.asList(newValCloned));

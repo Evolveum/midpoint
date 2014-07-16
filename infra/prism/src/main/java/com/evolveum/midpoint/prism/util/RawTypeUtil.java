@@ -99,71 +99,71 @@ public class RawTypeUtil {
 		return subItem;
 	}
 	
-	public static Object toAny(PrismValue value, Document document, PrismContext prismContext) throws SchemaException{
-		DomParser domParser = prismContext.getParserDom();
-//		Document document = DOMUtil.getDocument();
-		if (value == null) {
-			return value;
-		}
-		QName elementName = value.getParent().getElementName();
-		Object xmlValue;
-		if (value instanceof PrismPropertyValue) {
-			PrismPropertyValue<Object> pval = (PrismPropertyValue)value;
-			if (pval.isRaw() && (pval.getParent() == null || pval.getParent().getDefinition() == null)) {
-				Object rawElement = pval.getRawElement();
-				if (rawElement instanceof Element) {
-					return ((Element)rawElement).cloneNode(true);
-				} else if (rawElement instanceof MapXNode) {
-					return domParser.serializeXMapToElement((MapXNode)rawElement, elementName);
-				} else if (rawElement instanceof PrimitiveXNode<?>) {
-					PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)rawElement;
-					String stringValue = xprim.getStringValue();
-//					Element element = DOMUtil.createElement(document, elementName);
-//					element.setTextContent(stringValue);
-					return stringValue;
-				} else {
-					throw new IllegalArgumentException("Cannot convert raw element "+rawElement+" to xsd:any");
-				}
-			}
-			Object realValue = pval.getValue();
-        	xmlValue = realValue;
-        	if (realValue instanceof PolyString){
-        		PolyStringType polyString = new PolyStringType((PolyString) realValue);
-        		xmlValue = polyString;
-        	}
-        	
-        	if (XmlTypeConverter.canConvert(realValue.getClass())) {
-//        		// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
-        		Element e = (Element) XmlTypeConverter.toXsdElement(realValue, elementName, document, true);
-        		return e.getTextContent();
-        	}
-		} else if (value instanceof PrismReferenceValue) {
-			PrismReferenceValue rval = (PrismReferenceValue)value;
-			xmlValue = rval.asReferencable();
-//			xmlValue = prismContext.serializeValueToDom(rval, elementName, document);
-			
-		} else if (value instanceof PrismContainerValue<?>) {
-			PrismContainerValue<?> pval = (PrismContainerValue<?>)value;
-//			if (pval.getParent().getCompileTimeClass() == null) {
-				// This has to be runtime schema without a compile-time representation.
-				// We need to convert it to DOM
-//				xmlValue =  prismContext.serializeValueToDom(pval, elementName, document);
-//			} else {
-				xmlValue = pval.asContainerable();
+//	public static Object toAny(PrismValue value, Document document, PrismContext prismContext) throws SchemaException{
+//		DomParser domParser = prismContext.getParserDom();
+////		Document document = DOMUtil.getDocument();
+//		if (value == null) {
+//			return value;
+//		}
+//		QName elementName = value.getParent().getElementName();
+//		Object xmlValue;
+//		if (value instanceof PrismPropertyValue) {
+//			PrismPropertyValue<Object> pval = (PrismPropertyValue)value;
+//			if (pval.isRaw() && (pval.getParent() == null || pval.getParent().getDefinition() == null)) {
+//				Object rawElement = pval.getRawElement();
+//				if (rawElement instanceof Element) {
+//					return ((Element)rawElement).cloneNode(true);
+//				} else if (rawElement instanceof MapXNode) {
+//					return domParser.serializeXMapToElement((MapXNode)rawElement, elementName);
+//				} else if (rawElement instanceof PrimitiveXNode<?>) {
+//					PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)rawElement;
+//					String stringValue = xprim.getStringValue();
+////					Element element = DOMUtil.createElement(document, elementName);
+////					element.setTextContent(stringValue);
+//					return stringValue;
+//				} else {
+//					throw new IllegalArgumentException("Cannot convert raw element "+rawElement+" to xsd:any");
+//				}
 //			}
-		} else {
-			throw new IllegalArgumentException("Unknown type "+value);
-		}
-		if (!(xmlValue instanceof Element) && !(xmlValue instanceof JAXBElement) && !(xmlValue instanceof String) && !xmlValue.getClass().isPrimitive() ) {
-			if (xmlValue.getClass().isEnum()){
-				String enumValue = XNodeProcessorUtil.findEnumFieldValue(xmlValue.getClass(), xmlValue);
-				if (enumValue == null){
-					enumValue = xmlValue.toString();
-				}
-				return enumValue;
-			}
-    		xmlValue = new JAXBElement(elementName, xmlValue.getClass(), xmlValue);
-    	}
-        return xmlValue;
-	}
+//			Object realValue = pval.getValue();
+//        	xmlValue = realValue;
+//        	if (realValue instanceof PolyString){
+//        		PolyStringType polyString = new PolyStringType((PolyString) realValue);
+//        		xmlValue = polyString;
+//        	}
+//
+//        	if (XmlTypeConverter.canConvert(realValue.getClass())) {
+////        		// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
+//        		Element e = (Element) XmlTypeConverter.toXsdElement(realValue, elementName, document, true);
+//        		return e.getTextContent();
+//        	}
+//		} else if (value instanceof PrismReferenceValue) {
+//			PrismReferenceValue rval = (PrismReferenceValue)value;
+//			xmlValue = rval.asReferencable();
+////			xmlValue = prismContext.serializeValueToDom(rval, elementName, document);
+//
+//		} else if (value instanceof PrismContainerValue<?>) {
+//			PrismContainerValue<?> pval = (PrismContainerValue<?>)value;
+////			if (pval.getParent().getCompileTimeClass() == null) {
+//				// This has to be runtime schema without a compile-time representation.
+//				// We need to convert it to DOM
+////				xmlValue =  prismContext.serializeValueToDom(pval, elementName, document);
+////			} else {
+//				xmlValue = pval.asContainerable();
+////			}
+//		} else {
+//			throw new IllegalArgumentException("Unknown type "+value);
+//		}
+//		if (!(xmlValue instanceof Element) && !(xmlValue instanceof JAXBElement) && !(xmlValue instanceof String) && !xmlValue.getClass().isPrimitive() ) {
+//			if (xmlValue.getClass().isEnum()){
+//				String enumValue = XNodeProcessorUtil.findEnumFieldValue(xmlValue.getClass(), xmlValue);
+//				if (enumValue == null){
+//					enumValue = xmlValue.toString();
+//				}
+//				return enumValue;
+//			}
+//    		xmlValue = new JAXBElement(elementName, xmlValue.getClass(), xmlValue);
+//    	}
+//        return xmlValue;
+//	}
 }

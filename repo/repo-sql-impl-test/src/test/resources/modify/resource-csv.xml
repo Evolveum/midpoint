@@ -245,17 +245,16 @@ object.
 	                    The correlation rule always looks for users, so it will not match
 	                    any other object type.
 	                </q:description>
-	                <filter>
-	                	<q:equal>
-		                    <q:path>name</q:path>
-		                    <expression>
-		                        <ref>name</ref>
-		                        <code>
-		                            $c:account/c:attributes/icfs:name
-		                        </code>
-		                    </expression>
-	                	</q:equal>
-	                </filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                            <script>
+                                <code>
+                                    $c:account/c:attributes/icfs:name
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
 	            </correlation>
 	
 	            <!-- Confirmation rule may be here, but as the search above will

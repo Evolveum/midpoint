@@ -146,7 +146,7 @@ public class SelectorOptions<T> implements Serializable {
     public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
         List<SelectorOptions<GetOperationOptions>> retrieveOptions = filterRetrieveOptions(options);
         if (retrieveOptions.isEmpty()) {
-            return !PATHS_NOT_RETURNED_BY_DEFAULT.contains(path);
+            return !ItemPath.containsEquivalent(PATHS_NOT_RETURNED_BY_DEFAULT, path);
         }
 
         for (SelectorOptions<GetOperationOptions> option : retrieveOptions) {
@@ -157,7 +157,7 @@ public class SelectorOptions<T> implements Serializable {
             }
 
             RetrieveOption retrieveOption = option.getOptions().getRetrieve();
-            if (new ItemPath(UserType.F_JPEG_PHOTO).equals(path)) {
+            if (new ItemPath(UserType.F_JPEG_PHOTO).equivalent(path)) {
                 //user photo is not retrieved by default
                 switch (retrieveOption) {
                     case INCLUDE:
@@ -202,7 +202,7 @@ public class SelectorOptions<T> implements Serializable {
                 NameItemPathSegment pSegment = (NameItemPathSegment) pSegments.get(i);
                 NameItemPathSegment sSegment = (NameItemPathSegment) sSegments.get(i);
 
-                if (!pSegment.equals(sSegment)) {
+                if (!pSegment.equivalent(sSegment)) {
                     return false;
                 }
             }

@@ -1271,7 +1271,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				PropertyModificationOperation change = (PropertyModificationOperation) operation;
 				PropertyDelta<?> delta = change.getPropertyDelta();
 
-				if (delta.getParentPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES))) {
+				if (delta.getParentPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES))) {
 					if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ResourceAttributeDefinition)) {
 						ResourceAttributeDefinition def = objectClass
 								.findAttributeDefinition(delta.getElementName());
@@ -1321,9 +1321,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						updateAttribute.addValues((Collection)PrismValue.cloneCollection(delta.getValuesToReplace()));
 						updateValues.add(updateAttribute);
 					}
-				} else if (delta.getParentPath().equals(new ItemPath(ShadowType.F_ACTIVATION))) {
+				} else if (delta.getParentPath().equivalent(new ItemPath(ShadowType.F_ACTIVATION))) {
 					activationDeltas.add(delta);
-				} else if (delta.getParentPath().equals(
+				} else if (delta.getParentPath().equivalent(
 						new ItemPath(new ItemPath(ShadowType.F_CREDENTIALS),
 								CredentialsType.F_PASSWORD))) {
 					passwordDelta = (PropertyDelta<ProtectedStringType>) delta;

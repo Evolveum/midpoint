@@ -1122,7 +1122,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             for (ItemDelta modification : modifications) {
                 if (modification instanceof PropertyDelta<?>) {
                     PropertyDelta<?> propDelta = (PropertyDelta<?>) modification;
-                    if (propDelta.getPath().equals(new ItemPath(ObjectType.F_NAME))) {
+                    if (propDelta.getPath().equivalent(new ItemPath(ObjectType.F_NAME))) {
                         Collection<PrismPropertyValue<PolyString>> values = propDelta.getValues(PolyString.class);
                         for (PrismPropertyValue<PolyString> pval : values) {
                             PolyString value = pval.getValue();

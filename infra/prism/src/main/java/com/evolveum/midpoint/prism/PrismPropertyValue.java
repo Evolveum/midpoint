@@ -423,9 +423,6 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	}
 
 	private boolean equalsRawElements(PrismPropertyValue<T> other) {
-		if (this.rawElement instanceof Element && other.rawElement instanceof Element) {
-			return DOMUtil.compareElement((Element)this.rawElement, (Element)other.rawElement, false);
-		}
 		return this.rawElement.equals(other.rawElement);
 	}
 

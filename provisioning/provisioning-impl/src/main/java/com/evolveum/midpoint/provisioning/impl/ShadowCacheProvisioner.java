@@ -112,8 +112,8 @@ public class ShadowCacheProvisioner extends ShadowCache{
 
 		Collection<ItemDelta> shadowChanges = new ArrayList<ItemDelta>();
 		for (ItemDelta itemDelta : objectChange) {
-			if (new ItemPath(ShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath())
-					|| SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
+			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath())
+					|| SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
 				continue;
 			} else {
 				shadowChanges.add(itemDelta);

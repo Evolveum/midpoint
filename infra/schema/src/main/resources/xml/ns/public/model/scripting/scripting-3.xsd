@@ -85,9 +85,9 @@
     <!--</xsd:complexType>-->
     <!--<xsd:element name="scriptingExpression" type="tns:ScriptingExpressionType" />-->
 
-    <xsd:element name="expression" type="tns:ExpressionType"  />        <!-- constants have to be treated separately -->
+    <xsd:element name="scriptingExpression" type="tns:ScriptingExpressionType"  />        <!-- constants have to be treated separately -->
 
-    <xsd:complexType name="ExpressionType">
+    <xsd:complexType name="ScriptingExpressionType">
         <xsd:annotation>
             <xsd:documentation>
                 Root of the expression type inheritance hierarchy.
@@ -107,14 +107,14 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExpressionType">
+            <xsd:extension base="tns:ScriptingExpressionType">
                 <xsd:sequence>
-                    <xsd:element ref="tns:expression" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="expression" type="tns:ScriptingExpressionType" minOccurs="0" maxOccurs="unbounded" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="sequence" type="tns:ExpressionSequenceType" substitutionGroup="tns:expression" />
+    <xsd:element name="sequence" type="tns:ExpressionSequenceType" substitutionGroup="tns:scriptingExpression" />
 
     <xsd:complexType name="ExpressionPipelineType">
         <xsd:annotation>
@@ -127,14 +127,14 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExpressionType">
+            <xsd:extension base="tns:ScriptingExpressionType">
                 <xsd:sequence>
-                    <xsd:element ref="tns:expression" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="expression" type="tns:ScriptingExpressionType" minOccurs="0" maxOccurs="unbounded" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="pipeline" type="tns:ExpressionPipelineType" substitutionGroup="tns:expression" />
+    <xsd:element name="pipeline" type="tns:ExpressionPipelineType" substitutionGroup="tns:scriptingExpression" />
 
     <xsd:complexType name="SearchExpressionType">
         <xsd:annotation>
@@ -143,7 +143,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExpressionType">
+            <xsd:extension base="tns:ScriptingExpressionType">
                 <xsd:sequence>
                     <xsd:element name="type" type="xsd:QName">
                         <xsd:annotation>
@@ -174,7 +174,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element ref="tns:expression" minOccurs="0">
+                    <xsd:element ref="tns:scriptingExpression" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Expression to evaluate for each object found.
@@ -185,7 +185,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="search" type="tns:SearchExpressionType" substitutionGroup="tns:expression" />
+    <xsd:element name="search" type="tns:SearchExpressionType" substitutionGroup="tns:scriptingExpression" />
 
     <xsd:complexType name="FilterExpressionType">
         <xsd:annotation>
@@ -194,7 +194,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExpressionType">
+            <xsd:extension base="tns:ScriptingExpressionType">
                 <xsd:sequence>
                     <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
                         <xsd:annotation>
@@ -207,7 +207,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="filter" type="tns:FilterExpressionType" substitutionGroup="tns:expression" />
+    <xsd:element name="filter" type="tns:FilterExpressionType" substitutionGroup="tns:scriptingExpression" />
 
     <xsd:complexType name="SelectExpressionType">
         <xsd:annotation>
@@ -216,7 +216,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExpressionType">
+            <xsd:extension base="tns:ScriptingExpressionType">
                 <xsd:sequence>
                     <xsd:element name="path" type="t:ItemPathType">
                         <xsd:annotation>
@@ -229,7 +229,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="select" type="tns:SelectExpressionType" substitutionGroup="tns:expression" />
+    <xsd:element name="select" type="tns:SelectExpressionType" substitutionGroup="tns:scriptingExpression" />
 
     <xsd:complexType name="ForeachExpressionType">
         <xsd:annotation>
@@ -238,7 +238,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExpressionType">
+            <xsd:extension base="tns:ScriptingExpressionType">
                 <xsd:sequence>
                     <xsd:element name="variable" type="xsd:QName" minOccurs="0">
                         <xsd:annotation>
@@ -247,12 +247,12 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element ref="tns:expression" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="expression" type="tns:ScriptingExpressionType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="foreach" type="tns:ForeachExpressionType" substitutionGroup="tns:expression" />
+    <xsd:element name="foreach" type="tns:ForeachExpressionType" substitutionGroup="tns:scriptingExpression" />
 
     <xsd:complexType name="ActionExpressionType">
         <xsd:annotation>
@@ -261,7 +261,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExpressionType">
+            <xsd:extension base="tns:ScriptingExpressionType">
                 <xsd:sequence>
                     <xsd:element name="type" type="xsd:string">
                         <xsd:annotation>
@@ -282,7 +282,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="action" type="tns:ActionExpressionType" substitutionGroup="tns:expression" />
+    <xsd:element name="action" type="tns:ActionExpressionType" substitutionGroup="tns:scriptingExpression" />
 
     <xsd:complexType name="ActionParameterValueType">
         <xsd:annotation>
@@ -291,7 +291,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ExpressionType">
+            <xsd:extension base="tns:ScriptingExpressionType">
                 <xsd:sequence>
                     <xsd:element name="name" type="xsd:string">
                         <xsd:annotation>
@@ -302,7 +302,7 @@
                     </xsd:element>
                     <xsd:choice>
                         <xsd:element ref="c:value" minOccurs="0"></xsd:element>
-                        <xsd:element ref="tns:expression" minOccurs="0">
+                        <xsd:element name="expression" type="tns:ScriptingExpressionType" minOccurs="0">
                             <xsd:annotation>
                                 <xsd:documentation>
                                     Parameter (argument) value.
@@ -327,7 +327,7 @@
 
     <xsd:complexType name="ExecuteScriptType">
         <xsd:sequence>
-            <xsd:element ref="tns:expression"/>
+            <xsd:element ref="tns:scriptingExpression"/>
             <xsd:element name="input" type="tns:ItemListType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>

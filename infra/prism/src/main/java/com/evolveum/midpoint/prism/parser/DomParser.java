@@ -414,8 +414,8 @@ public class DomParser implements Parser {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
 		return serializer.serializeToElement(xmap, elementName);
 	}
-	
-	public Element serializeXPrimitiveToElement(PrimitiveXNode<?> xprim, QName elementName) throws SchemaException {
+
+	private Element serializeXPrimitiveToElement(PrimitiveXNode<?> xprim, QName elementName) throws SchemaException {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
 		return serializer.serializeXPrimitiveToElement(xprim, elementName);
 	}
@@ -425,12 +425,14 @@ public class DomParser implements Parser {
 		return serializer.serialize(xroot);
 	}
 
+    // used only by JaxbDomHack.toAny(..) - hopefully it will disappear soon
+    @Deprecated
     public Element serializeXRootToElement(RootXNode xroot, Document document) throws SchemaException {
         DomSerializer serializer = new DomSerializer(this, schemaRegistry);
         return serializer.serialize(xroot, document);
     }
 
-    public Element serializeToElement(XNode xnode, QName elementName) throws SchemaException {
+    private Element serializeToElement(XNode xnode, QName elementName) throws SchemaException {
         Validate.notNull(xnode);
         Validate.notNull(elementName);
 		if (xnode instanceof MapXNode) {

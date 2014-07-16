@@ -66,8 +66,8 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
 
         List<Definition> defPath = createDefinitionPath(fullPath);
         return containsAnyDefinition(defPath)
-                || (fullPath.first().equals(new NameItemPathSegment(ObjectType.F_EXTENSION)))
-                || (fullPath.first().equals(new NameItemPathSegment(ShadowType.F_ATTRIBUTES)));
+                || (fullPath.first().equivalent(new NameItemPathSegment(ObjectType.F_EXTENSION)))
+                || (fullPath.first().equivalent(new NameItemPathSegment(ShadowType.F_ATTRIBUTES)));
     }
 
     private boolean containsAnyDefinition(List<Definition> definitions) {
@@ -102,7 +102,7 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
 
         Conjunction conjunction = Restrictions.conjunction();
 
-        RObjectExtensionType ownerType = filter.getFullPath().first().equals(new NameItemPathSegment(ObjectType.F_EXTENSION)) ?
+        RObjectExtensionType ownerType = filter.getFullPath().first().equivalent(new NameItemPathSegment(ObjectType.F_EXTENSION)) ?
                 RObjectExtensionType.EXTENSION : RObjectExtensionType.ATTRIBUTES;
         conjunction.add(Restrictions.eq(propertyNamePrefix + "ownerType", ownerType));
 

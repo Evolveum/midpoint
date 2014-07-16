@@ -517,7 +517,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
         ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
         if (path != null) {
             for (ItemPathSegment seg : path.getSegments()) {
-                if (seg.equals(firstDeltaSegment)) {
+                if (seg.equivalent(firstDeltaSegment)) {
                     break;
                 }
                 newPath.add(seg);

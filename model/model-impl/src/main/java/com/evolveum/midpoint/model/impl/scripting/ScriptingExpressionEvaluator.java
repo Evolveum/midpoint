@@ -34,10 +34,10 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionTy
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionPipelineType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionSequenceType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.FilterExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ForeachExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SelectExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -110,7 +110,7 @@ public class ScriptingExpressionEvaluator {
         }
         ActionExpressionType action = new ActionExpressionType();
         action.setType(actionName);
-        search.setExpression(objectFactory.createAction(action));
+        search.setScriptingExpression(objectFactory.createAction(action));
         evaluateExpressionInBackground(objectFactory.createSearch(search), task, parentResult);
     }
 
@@ -124,7 +124,7 @@ public class ScriptingExpressionEvaluator {
      * @param parentResult
      * @throws SchemaException
      */
-    public void evaluateExpressionInBackground(JAXBElement<? extends ExpressionType> expression, Task task, OperationResult parentResult) throws SchemaException {
+    public void evaluateExpressionInBackground(JAXBElement<? extends ScriptingExpressionType> expression, Task task, OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "evaluateExpressionInBackground");
         if (!task.isTransient()) {
             throw new IllegalStateException("Task must be transient");
@@ -133,7 +133,7 @@ public class ScriptingExpressionEvaluator {
             throw new IllegalStateException("Task must not have a handler");
         }
         ExecuteScriptType executeScriptType = new ExecuteScriptType();
-        executeScriptType.setExpression(expression);
+        executeScriptType.setScriptingExpression(expression);
         task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, executeScriptType);
         task.setHandlerUri(ScriptExecutionTaskHandler.HANDLER_URI);
         taskManager.switchToBackground(task, result);
@@ -159,7 +159,7 @@ public class ScriptingExpressionEvaluator {
     }
 
     public ExecutionContext evaluateExpression(ExecuteScriptType executeScript, Task task, OperationResult result) throws ScriptExecutionException {
-        return evaluateExpression(executeScript.getExpression(), task, result);
+        return evaluateExpression(executeScript.getScriptingExpression(), task, result);
     }
 
     public ExecutionContext evaluateExpression(JAXBElement<?> expression, OperationResult result) throws ScriptExecutionException {
@@ -168,9 +168,12 @@ public class ScriptingExpressionEvaluator {
     }
 
     public Data evaluateExpression(JAXBElement<?> expression, Data input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException {
+        return evaluateExpression((ScriptingExpressionType) expression.getValue(), input, context, parentResult);
+    }
+
+    public Data evaluateExpression(ScriptingExpressionType value, Data input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException {
         OperationResult result = parentResult.createMinorSubresult(DOT_CLASS + "evaluateExpression");
         Data output;
-        Object value = expression.getValue();
         if (value instanceof ExpressionPipelineType) {
             output = executePipeline((ExpressionPipelineType) value, input, context, result);
         } else if (value instanceof ExpressionSequenceType) {
@@ -185,10 +188,8 @@ public class ScriptingExpressionEvaluator {
             output = searchEvaluator.evaluate((SearchExpressionType) value, input, context, result);
         } else if (value instanceof ActionExpressionType) {
             output = executeAction((ActionExpressionType) value, input, context, result);
-        } else if (value instanceof RawType) {  // this will probably never happen (after schema change that disallows s:constant as an expression)
-            output = evaluateConstantExpression((RawType) value, context, result);
         } else {
-            throw new IllegalArgumentException("Unsupported expression type: " + expression);
+            throw new IllegalArgumentException("Unsupported expression type: " + (value==null?"(null)":value.getClass()));
         }
         result.computeStatusIfUnknown();
         return output;
@@ -221,16 +222,16 @@ public class ScriptingExpressionEvaluator {
     }
 
     private Data executePipeline(ExpressionPipelineType pipeline, Data data, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        for (JAXBElement<?> expressionElement : pipeline.getExpression()) {
-            data = evaluateExpression(expressionElement, data, context, result);
+        for (ScriptingExpressionType expressionType : pipeline.getExpression()) {
+            data = evaluateExpression(expressionType, data, context, result);
         }
         return data;
     }
 
     private Data executeSequence(ExpressionSequenceType sequence, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         Data lastOutput = null;
-        for (JAXBElement<?> expressionElement : sequence.getExpression()) {
-            lastOutput = evaluateExpression(expressionElement, input, context, result);
+        for (ScriptingExpressionType expressionType : sequence.getExpression()) {
+            lastOutput = evaluateExpression(expressionType, input, context, result);
         }
         return lastOutput;
     }
