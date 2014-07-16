@@ -249,7 +249,7 @@ public class ItemPath implements Serializable, Cloneable {
 	
 	public CompareResult compareComplex(ItemPath otherPath) {
 		ItemPath thisNormalized = this.normalize();
-		ItemPath otherNormalized = otherPath.normalize();
+		ItemPath otherNormalized = otherPath == null ? EMPTY_PATH : otherPath.normalize();
 		int i = 0;
 		while (i < thisNormalized.segments.size() && i < otherNormalized.segments.size()) {
 			ItemPathSegment thisSegment = thisNormalized.segments.get(i);
