@@ -699,6 +699,26 @@ public class LensUtil {
 	}
 	
 	/**
+	 * Extracts the delta from this projection context and also from all other projection contexts that have 
+	 * equivalent discriminator.
+	 */
+	public static <F extends ObjectType, T> ObjectDelta<ShadowType> findAPrioriDelta(LensContext<F> context,
+			LensProjectionContext projCtx) throws SchemaException {
+		ObjectDelta<ShadowType> aPrioriDelta = null;
+		for (LensProjectionContext aProjCtx: findRelatedContexts(context, projCtx)) {
+			ObjectDelta<ShadowType> aProjDelta = aProjCtx.getDelta();
+			if (aProjDelta != null) {
+				if (aPrioriDelta == null) {
+					aPrioriDelta = aProjDelta.clone();
+				} else {
+					aPrioriDelta.merge(aProjDelta);
+				}
+			}
+		}
+		return aPrioriDelta;
+	}
+	
+	/**
 	 * Returns a list of context that have equivalent discriminator with the reference context. Ordered by "order" in the
 	 * discriminator.
 	 */

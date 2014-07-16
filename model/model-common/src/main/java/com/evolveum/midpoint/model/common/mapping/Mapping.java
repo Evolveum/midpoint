@@ -116,6 +116,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 	private ObjectResolver objectResolver = null;
 	private Source<?> defaultSource = null;
 	private ItemDefinition defaultTargetDefinition = null;
+	private ItemPath defaultTargetPath = null;
 	private ObjectDeltaObject<?> sourceContext = null;
 	private PrismObjectDefinition<?> targetContext = null;
 	private PrismValueDeltaSetTriple<V> outputTriple = null;
@@ -203,6 +204,14 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 
 	public void setDefaultTargetDefinition(ItemDefinition defaultTargetDefinition) {
 		this.defaultTargetDefinition = defaultTargetDefinition;
+	}
+
+	public ItemPath getDefaultTargetPath() {
+		return defaultTargetPath;
+	}
+
+	public void setDefaultTargetPath(ItemPath defaultTargetPath) {
+		this.defaultTargetPath = defaultTargetPath;
 	}
 
 	public ObjectDeltaObject<?> getSourceContext() {
@@ -846,6 +855,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		MappingTargetDeclarationType targetType = mappingType.getTarget();
 		if (targetType == null) {
 			outputDefinition = defaultTargetDefinition;
+			outputPath = defaultTargetPath;
 		} else {
 			ItemPathType itemPathType = targetType.getPath();
 			if (itemPathType == null) {

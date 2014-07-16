@@ -1503,6 +1503,40 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userHermanAfter = getUser(USER_HERMAN_OID);
         assertEffectiveActivation(userHermanAfter, ActivationStatusType.ENABLED);
 	}
+	
+	/**
+	 * Herman has validTo/validFrom. Khaki resource has strange mappings for these.
+	 */
+	@Test
+    public void test410AssignHermanKhakiAccount() throws Exception {
+		final String TEST_NAME = "test410AssignHermanKhakiAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        assignAccount(USER_HERMAN_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+		display("User after change execution", user);
+		assertLinks(user, 1);
+        
+		DummyAccount khakiAccount = getDummyAccount(RESOURCE_DUMMY_KHAKI_NAME, ACCOUNT_HERMAN_DUMMY_USERNAME);
+		assertNotNull("No khaki account", khakiAccount);
+		assertTrue("khaki account not enabled", khakiAccount.isEnabled());
+		assertEquals("Wrong quote (validFrom) in khaki account", ACCOUNT_MANCOMB_VALID_FROM_DATE, 
+				khakiAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME));
+		assertEquals("Wrong gossip (validTo) in khaki account", ACCOUNT_MANCOMB_VALID_TO_DATE, 
+				khakiAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME));
+	}
+	
+	
 		
 	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -27,6 +28,7 @@ import org.w3c.dom.Element;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -168,6 +170,19 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 			}
 		}
 		return false;
+	}
+	
+	public static <V extends PrismValue> boolean equalsRealValues(Collection<V> collection1, Collection<V> collection2) {
+		Comparator comparator = new Comparator<V>() {
+			@Override
+			public int compare(V v1, V v2) {
+				if (v1.equalsRealValue(v2)) {
+					return 0;
+				};
+				return 1;
+			}
+		};
+		return MiscUtil.unorderedCollectionEquals(collection1, collection2, comparator);
 	}
 	
 	public abstract boolean isEmpty();

@@ -83,6 +83,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -537,6 +538,19 @@ public class ExpressionUtil {
         }
         
         return variablesAndSources;
+	}
+
+	public static boolean hasExplicitTarget(List<MappingType> mappingTypes) {
+		for (MappingType mappingType: mappingTypes) {
+			if (hasExplicitTarget(mappingType)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean hasExplicitTarget(MappingType mappingType) {
+		return mappingType.getTarget() != null;
 	}
 
 }
