@@ -86,7 +86,7 @@ public class NameItemPathSegment extends ItemPathSegment {
      */
 	@Override
     public boolean equals(Object obj) {
-        return equals(obj, true);
+        return equals(obj, false, false);
     }
 
     /**
@@ -98,30 +98,51 @@ public class NameItemPathSegment extends ItemPathSegment {
 
     @Override
     public boolean equivalent(Object obj) {
-        return equals(obj, false);
+        return equals(obj, true, true);
     }
 
-	public boolean equals(Object obj, boolean strictEquals) {
-		if (this == obj)
+	public boolean equals(Object obj, boolean allowUnqualified, boolean allowDifferentPrefixes) {
+		if (this == obj) {
 			return true;
-		if (!super.equals(obj))
+        }
+        if (!super.equals(obj)) {
 			return false;
-		if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
 			return false;
-		NameItemPathSegment other = (NameItemPathSegment) obj;
-		if (isVariable != other.isVariable)
+        }
+        NameItemPathSegment other = (NameItemPathSegment) obj;
+		if (isVariable != other.isVariable) {
 			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!strictEquals && (StringUtils.isEmpty(name.getNamespaceURI()) || StringUtils.isEmpty(other.name.getNamespaceURI()))) {
-			if (!QNameUtil.match(name, other.name)){
-				return false;
-			}
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
+        }
+        if (name == null) {
+			return other.name != null;
+		}
+
+        if (allowUnqualified) {
+            if (!allowDifferentPrefixes) {
+                throw new UnsupportedOperationException("It is not possible to disallow different prefixes while allowing unqualified names");
+            }
+			return QNameUtil.match(name, other.name);
+		} else {
+		    if (!name.equals(other.name)) {         // compares namespace and local part
+			    return false;
+            }
+            // in order to differentiate between x:name and name (when x is undefined) we will compare the prefixes as well
+            if (!allowDifferentPrefixes && !normalizedPrefix(name).equals(normalizedPrefix(other.name))) {
+                return false;
+            }
+            return true;
+        }
 	}
+
+    private String normalizedPrefix(QName name) {
+        if (name.getPrefix() == null) {
+            return "";
+        } else {
+            return name.getPrefix();
+        }
+    }
 
     public NameItemPathSegment clone() {
         NameItemPathSegment clone = new NameItemPathSegment(this.name, this.isVariable);

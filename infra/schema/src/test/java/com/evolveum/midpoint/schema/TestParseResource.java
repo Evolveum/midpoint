@@ -468,7 +468,7 @@ public class TestParseResource {
             assertTrue("Wrong kind of filter: " + objectFilter, objectFilter instanceof EqualFilter);
             EqualFilter equalFilter = (EqualFilter) objectFilter;
             ItemPath path = equalFilter.getPath();      // should be extension/x:extConnType
-            assertPathEquals("Wrong filter path", new ItemPath(new QName("extension"), new QName("http://x/", "extConnType")), path);
+            PrismAsserts.assertPathEqualsExceptForPrefixes("Wrong filter path", new ItemPath(new QName("extension"), new QName("http://x/", "extConnType")), path);
             PrismPropertyValue filterValue = (PrismPropertyValue) equalFilter.getValues().get(0);
             assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((String) filterValue.getValue()).trim());
         }
@@ -523,7 +523,7 @@ public class TestParseResource {
             assertEquals("Wrong number of expression evaluators in correlation expression", 1, expressionType.getExpressionEvaluator().size());
             ItemPathType itemPathType = (ItemPathType) expressionType.getExpressionEvaluator().get(0).getValue();
             // $account/c:attributes/my:yyy
-            assertPathEquals("path in correlation expression",
+            PrismAsserts.assertPathEqualsExceptForPrefixes("path in correlation expression",
                     new ItemPath(
                             new NameItemPathSegment(new QName("account"), true),
                             new NameItemPathSegment(new QName(SchemaConstantsGenerated.NS_COMMON, "attributes")),
@@ -534,22 +534,6 @@ public class TestParseResource {
 		}
 
 	}
-
-
-    // quite strict version of path comparison
-    private void assertPathEquals(String message, ItemPath expected, ItemPath actual) {
-        assertEquals(message + ": wrong path size", expected.size(), actual.size());
-        for (int i = 0; i < expected.size(); i++) {
-            ItemPathSegment expectedSegment = expected.getSegments().get(i);
-            ItemPathSegment actualSegment = actual.getSegments().get(i);
-            assertEquals(message + ": wrong path segment", expectedSegment, actualSegment);
-            if (expectedSegment instanceof NameItemPathSegment) {
-                // default equals uses QNameUtil.match, not QName.equals
-                assertEquals(message + ": wrong path segment #" + (i+1) + " content", ((NameItemPathSegment) expectedSegment).getName(),
-                        ((NameItemPathSegment) actualSegment).getName());
-            }
-        }
-    }
 
     private void assertResourceJaxb(ResourceType resourceType, boolean isSimple) throws SchemaException {
 		assertEquals("Wrong oid (JAXB)", RESOURCE_OID, resourceType.getOid());
@@ -608,7 +592,7 @@ public class TestParseResource {
                                 new NameItemPathSegment(new QName("user"), true),
                                 new NameItemPathSegment(new QName("extension")),
                                 new NameItemPathSegment(new QName("http://z/", "dept")));
-                        assertPathEquals("source for departmentNubmer", expected, source.getPath().getItemPath());
+                        PrismAsserts.assertPathEqualsExceptForPrefixes("source for departmentNubmer", expected, source.getPath().getItemPath());
                     }
                 }
                 assertTrue("ri:description attribute was not found", foundDescription);
