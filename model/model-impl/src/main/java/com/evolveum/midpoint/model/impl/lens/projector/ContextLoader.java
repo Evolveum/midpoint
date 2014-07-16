@@ -318,7 +318,7 @@ public class ContextLoader {
             return;
         }
         ObjectDelta<F> objectDelta = focusContext.getDelta();
-        if (objectDelta != null && objectDelta.isAdd()) {
+        if (objectDelta != null && objectDelta.isAdd() && focusContext.getExecutedDeltas().isEmpty()) {
             //we're adding the focal object. No need to load it, it is in the delta
         	focusContext.setFresh(true);
             return;

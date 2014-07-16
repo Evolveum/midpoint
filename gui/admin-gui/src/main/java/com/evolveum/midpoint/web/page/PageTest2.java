@@ -33,7 +33,7 @@ import org.apache.wicket.model.IModel;
  *
  *  @author shood
  */
-@PageDescriptor(url = "/capability", action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DENY_ALL)})
+@PageDescriptor(url = "/capability", action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DEVEL_URL)})
 public class PageTest2 extends PageBase {
 
     private static final String ID_CAPABILITY = "capability";

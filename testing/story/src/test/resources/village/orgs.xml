@@ -64,4 +64,9 @@
 		<orgType>functional</orgType>
 	</org>
 	
+	<org oid="00000000-8888-6666-0000-200000000000">
+		<name>Projects</name>
+		<displayName>Projects</displayName>
+	</org>
+	
 </objects>

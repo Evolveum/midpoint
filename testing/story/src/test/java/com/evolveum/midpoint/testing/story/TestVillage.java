@@ -51,6 +51,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
@@ -162,6 +163,9 @@ public class TestVillage extends AbstractStoryTest {
 	public static final File ROLE_META_FUNCTIONAL_ORG_FILE = new File(TEST_DIR, "role-meta-functional-org.xml");
 	public static final String ROLE_META_FUNCTIONAL_ORG_OID = "74aac2c8-ca0f-11e3-bb29-001e8c717e5b";
 	
+	public static final File ROLE_META_PROJECT_ORG_FILE = new File(TEST_DIR, "role-meta-project-org.xml");
+	public static final String ROLE_META_PROJECT_ORG_OID = "ab33ec1e-0c0b-11e4-ba88-001e8c717e5b";
+	
 	protected static final File ORGS_FILE = new File(TEST_DIR, "orgs.xml");
 	public static final String ORG_GOV_NAME = "Gov";
 	public static final String ORG_EXEC_NAME = "Exec";
@@ -172,6 +176,9 @@ public class TestVillage extends AbstractStoryTest {
 	private static final String ORG_PASSWORD_POLICY_OID = "81818181-76e0-59e2-8888-3d4f02d3fffe";
 	private static final File GLOBAL_PASSWORD_POLICY_FILE = new File(TEST_DIR, "global-password-policy.xml");
 	private static final File ORG_PASSWORD_POLICY_FILE = new File(TEST_DIR, "org-password-policy.xml");
+	
+	public static final File ORG_PROJECT_JOLLY_ROGER_FILE = new File(TEST_DIR, "org-project-jolly-roger.xml");
+	public static final String ORG_PROJECT_JOLLY_ROGER_OID = "a9ac1aa2-0c0f-11e4-9214-001e8c717e5b";
 	
 	protected static final File TASK_LIVE_SYNC_DUMMY_SOURCE_FILE = new File(TEST_DIR, "task-dumy-source-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_SOURCE_OID = "10000000-0000-0000-5555-555500000001";
@@ -290,6 +297,7 @@ public class TestVillage extends AbstractStoryTest {
 		importObjectFromFile(ROLE_BASIC_FILE, initResult);
 		importObjectFromFile(ROLE_SIMPLE_FILE, initResult);
 		importObjectFromFile(ROLE_META_FUNCTIONAL_ORG_FILE, initResult);
+		importObjectFromFile(ROLE_META_PROJECT_ORG_FILE, initResult);
 		
 		// Org
 		repoAddObjectsFromFile(ORGS_FILE, OrgType.class, initResult);
@@ -602,10 +610,12 @@ public class TestVillage extends AbstractStoryTest {
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 		
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG);
         waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
         
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         PrismObject<UserType> user = findUserByUsername(getUsername(ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, null));
         assertUserNoRole(user, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, null);
         assertLocGov(user, null, null);
@@ -633,9 +643,11 @@ public class TestVillage extends AbstractStoryTest {
 		Collection deltas = MiscUtil.createCollection(orgPasswordPolicyRefDelta);
 		modelService.executeChanges(deltas, null, task, result);
 		
+		InternalsConfig.avoidLoggingChange = true;
 		ObjectDelta sysConfigPasswordPolicyRefDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, GLOBAL_PASSWORD_POLICY_OID);
 		deltas = MiscUtil.createCollection(sysConfigPasswordPolicyRefDelta);
 		modelService.executeChanges(deltas, null, task, result);
+		InternalsConfig.avoidLoggingChange = false;
 		
 		//add user + assign role + assign org with the password policy specified
 		PrismObject<UserType> objectToAdd = PrismTestUtil.parseObject(USER_MIKE_FILE);
@@ -651,7 +663,7 @@ public class TestVillage extends AbstractStoryTest {
 	
 	@Test
 	public void test201unassignRole() throws Exception{
-		final String TEST_NAME = "test200createUserAssignOrgPwdPolicy";
+		final String TEST_NAME = "test201unassignRole";
         TestUtil.displayTestTile(this, TEST_NAME);
 		unassignRole(USER_MIKE_OID, ROLE_BASIC_OID);
 		//TODO: assertions
@@ -659,7 +671,7 @@ public class TestVillage extends AbstractStoryTest {
 	
 	@Test
 	public void test202assignRoleOrgPwdPolicy() throws Exception{
-		final String TEST_NAME = "test200createUserAssignOrgPwdPolicy";
+		final String TEST_NAME = "test202assignRoleOrgPwdPolicy";
         TestUtil.displayTestTile(this, TEST_NAME);
 		
         //this will throw exception, if incorrect pwd policy is selected...but some assertion will be nice :)
@@ -668,7 +680,31 @@ public class TestVillage extends AbstractStoryTest {
 		//TODO: assertion
 	}
 	
-	
+	@Test
+    public void test300AddProjectJollyRoger() throws Exception {
+		final String TEST_NAME = "test300AddProjectJollyRoger";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+		
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(ORG_PROJECT_JOLLY_ROGER_FILE, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        // TODO
+        PrismObject<OrgType> org = getObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID);
+        display("Org", org);
+        assertLinks(org, 2);
+        
+        SearchResultEntry ouEntry = openDJController.fetchAndAssertEntry("ou=Jolly Roger,dc=example,dc=com", "organizationalUnit");
+        SearchResultEntry groupEntry = openDJController.fetchAndAssertEntry("cn=admins,ou=Jolly Roger,dc=example,dc=com", "groupOfUniqueNames");
+      //TODO: assertions
+	}
 	
 	
 	private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
