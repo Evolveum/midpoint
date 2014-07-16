@@ -649,7 +649,7 @@ public abstract class ShadowCache {
 					ItemDefinition definition = valueFilter.getDefinition();
 					if (definition == null) {
 						ItemPath itemPath = valueFilter.getFullPath();
-						if (attributesPath.equals(valueFilter.getParentPath())) {
+						if (attributesPath.equivalent(valueFilter.getParentPath())) {
 							QName attributeName = valueFilter.getElementName();
 							ResourceAttributeDefinition attributeDefinition = objectClassDef.findAttributeDefinition(attributeName);
 							if (attributeDefinition == null) {
@@ -986,10 +986,10 @@ public abstract class ShadowCache {
 		ItemPath resourceRefPath = new ItemPath(ShadowType.F_RESOURCE_REF);
 		for (ObjectFilter f : conditions){
 			if (f instanceof EqualFilter){
-				if (objectClassPath.equals(((EqualFilter) f).getFullPath())){
+				if (objectClassPath.equivalent(((EqualFilter) f).getFullPath())){
 					continue;
 				}
-				if (resourceRefPath.equals(((EqualFilter) f).getFullPath())){
+				if (resourceRefPath.equivalent(((EqualFilter) f).getFullPath())){
 					continue;
 				}
 				
@@ -1381,7 +1381,7 @@ public abstract class ShadowCache {
 		} else if (delta.isModify()) {
 			ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
 			for(ItemDelta<?> modification: delta.getModifications()) {
-				if (modification.getDefinition() == null && attributesPath.equals(modification.getParentPath())) {
+				if (modification.getDefinition() == null && attributesPath.equivalent(modification.getParentPath())) {
 					QName attributeName = modification.getElementName();
 					ResourceAttributeDefinition attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
 					if (attributeDefinition == null) {

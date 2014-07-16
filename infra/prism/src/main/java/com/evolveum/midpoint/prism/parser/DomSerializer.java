@@ -81,6 +81,8 @@ public class DomSerializer {
         return serializeInternal(rootxnode);
     }
 
+    // this one is used only from within JaxbDomHack.toAny(..) - hopefully it will disappear soon
+    @Deprecated
     public Element serialize(RootXNode rootxnode, Document document) throws SchemaException {
         initializeWithExistingDocument(document);
         return serializeInternal(rootxnode);
@@ -88,7 +90,7 @@ public class DomSerializer {
 
     private Element serializeInternal(RootXNode rootxnode) throws SchemaException {
 		QName rootElementName = rootxnode.getRootElementName();
-		Element topElement = createElement(rootElementName);
+		Element topElement = createElement(rootElementName, null);
 		QName typeQName = rootxnode.getTypeQName();
         if (typeQName == null && rootxnode.getSubnode().getTypeQName() != null) {
             typeQName = rootxnode.getSubnode().getTypeQName();
@@ -98,10 +100,7 @@ public class DomSerializer {
 		}
 		XNode subnode = rootxnode.getSubnode();
 		if (subnode instanceof PrimitiveXNode){
-			serializePrimitiveElement((PrimitiveXNode)subnode, topElement, rootElementName);
-			
-//			String val = ((PrimitiveXNode) subnode).getStringValue();
-//			topElement.setTextContent(val);
+			serializePrimitiveElementOrAttribute((PrimitiveXNode) subnode, topElement, rootElementName, false);
 			return DOMUtil.getFirstChildElement(topElement);
 		} 
 		if (!(subnode instanceof MapXNode)) {
@@ -113,7 +112,8 @@ public class DomSerializer {
 	
 	public Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {
 		initialize();
-		Element element = createElement(elementName);
+		Element element = createElement(elementName, null);
+        topElement = element;
 		serializeMap(xmap, element);
 		return element;
 	}
@@ -138,11 +138,11 @@ public class DomSerializer {
 			return;
 		}
         if (xsubnode instanceof RootXNode) {
-            Element element = createElement(elementName);
+            Element element = createElement(elementName, parentElement);
             parentElement.appendChild(element);
             serializeSubnode(((RootXNode) xsubnode).getSubnode(), element, ((RootXNode) xsubnode).getRootElementName());
         } else if (xsubnode instanceof MapXNode) {
-			Element element = createElement(elementName);
+			Element element = createElement(elementName, parentElement);
 			if (xsubnode.isExplicitTypeDeclaration() && xsubnode.getTypeQName() != null){
 				DOMUtil.setXsiType(element, xsubnode.getTypeQName());
 			}
@@ -152,9 +152,9 @@ public class DomSerializer {
 		} else if (xsubnode instanceof PrimitiveXNode<?>) {
 			PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)xsubnode;
 			if (xprim.isAttribute()) {
-				serializePrimitiveAttribute(xprim, parentElement, elementName);
+                serializePrimitiveElementOrAttribute(xprim, parentElement, elementName, true);
 			} else {
-				serializePrimitiveElement(xprim, parentElement, elementName);
+				serializePrimitiveElementOrAttribute(xprim, parentElement, elementName, false);
 			}
 		} else if (xsubnode instanceof ListXNode) {
 			ListXNode xlist = (ListXNode)xsubnode;
@@ -168,99 +168,109 @@ public class DomSerializer {
 		}
 	}
 
-	private <T> void serializePrimitiveAttribute(PrimitiveXNode<T> xprim, Element parentElement, QName attributeName) {
-    	QName typeQName = xprim.getTypeQName();
-    	if (typeQName == null){
-    		//TODO FIXME temporary hack..what if the attribute does not have type specified? can we assume that it is sting?
-    		//for now enought
-//    		typeQName = DOMUtil.XSD_STRING;
-//    		xprim.setTypeQName(typeQName);
-    		String value = xprim.getStringValue();
-    		parentElement.setAttribute(attributeName.getLocalPart(), value);
-    		return;
-    	}
-    	if (typeQName.equals(DOMUtil.XSD_QNAME)) {
-    		QName value = (QName) xprim.getValue();
-    		try {
-    			DOMUtil.setQNameAttribute(parentElement, attributeName.getLocalPart(), value);
-    		} catch (DOMException e) {
-    			throw new DOMException(e.code, e.getMessage() + "; setting attribute "+attributeName.getLocalPart()+" in element "+DOMUtil.getQName(parentElement)+" to QName value "+value);
-    		}
-    	} else {
-    		String value = xprim.getFormattedValue();
-    		parentElement.setAttribute(attributeName.getLocalPart(), value);
-    	}		
-	}
-	
 	public Element serializeXPrimitiveToElement(PrimitiveXNode<?> xprim, QName elementName) throws SchemaException {
 		initialize();
 		Element parent = DOMUtil.createElement(doc, new QName("fake","fake"));
-		serializePrimitiveElement(xprim, parent, elementName);
+		serializePrimitiveElementOrAttribute(xprim, parent, elementName, false);
 		return DOMUtil.getFirstChildElement(parent);
 	}
 
-	private void serializePrimitiveElement(PrimitiveXNode<?> xprim, Element parentElement, QName elementName) throws SchemaException {
+	private void serializePrimitiveElementOrAttribute(PrimitiveXNode<?> xprim, Element parentElement, QName elementOrAttributeName, boolean asAttribute) throws SchemaException {
 		QName typeQName = xprim.getTypeQName();
-		if (typeQName == null) {
+
+        // if typeQName is not explicitly specified, we try to determine it from parsed value
+        // TODO we should probably set typeQName when parsing the value...
+        if (typeQName == null && xprim.isParsed()) {
+            Object v = xprim.getValue();
+            if (v != null) {
+                typeQName = XsdTypeMapper.toXsdType(v.getClass());
+            }
+        }
+
+        if (typeQName == null) {
 			if (com.evolveum.midpoint.prism.PrismContext.isAllowSchemalessSerialization()) {
 				// We cannot correctly serialize without a type. But this is needed
 				// sometimes. So just default to string
 				String stringValue = xprim.getStringValue();
 				if (stringValue != null) {
-					Element element;
-					try {
-						element = createElement(elementName);
-					} catch (DOMException e) {
-						throw new DOMException(e.code, e.getMessage() + "; creating element "+elementName+" in element "+DOMUtil.getQName(parentElement));
-					}
-					parentElement.appendChild(element);
-					element.setTextContent(stringValue);
+                    if (asAttribute) {
+                        parentElement.setAttribute(elementOrAttributeName.getLocalPart(), stringValue);
+                    } else {
+                        Element element;
+                        try {
+                            element = createElement(elementOrAttributeName, parentElement);
+                        } catch (DOMException e) {
+                            throw new DOMException(e.code, e.getMessage() + "; creating element "+elementOrAttributeName+" in element "+DOMUtil.getQName(parentElement));
+                        }
+                        parentElement.appendChild(element);
+                        element.setTextContent(stringValue);
+                    }
 				}
+                return;
 			} else {
-				throw new IllegalStateException("No type for primitive element "+elementName+", cannot serialize (schemaless serialization is disabled)");
+				throw new IllegalStateException("No type for primitive element "+elementOrAttributeName+", cannot serialize (schemaless serialization is disabled)");
 			}
-		} else  if (typeQName.equals(ItemPath.XSD_TYPE)) {
-    		ItemPath itemPath = (ItemPath)xprim.getValue();
-    		if (itemPath != null){
-	    		XPathHolder holder = new XPathHolder(itemPath);
-	    		Element element = holder.toElement(elementName, parentElement.getOwnerDocument());
-	    		parentElement.appendChild(element);
-    		}
-		} else {
-			Element element;
-			try {
-				element = createElement(elementName);
-			} catch (DOMException e) {
-				throw new DOMException(e.code, e.getMessage() + "; creating element "+elementName+" in element "+DOMUtil.getQName(parentElement));
-			}
-			parentElement.appendChild(element);
-			
-			//TODO: refactor after suporting types, qnames and other values without ns declared...
-			if (xprim.isExplicitTypeDeclaration()) {
-				if (StringUtils.isBlank(typeQName.getNamespaceURI())) {
-					typeQName = XsdTypeMapper.determineQNameWithNs(typeQName);
-				}
-				if (typeQName != null) {
-					DOMUtil.setXsiType(element, typeQName);
-				}
-			}
-			
-	    	if (typeQName.equals(DOMUtil.XSD_QNAME)) {
-	    		QName value = (QName) xprim.getValue();
-				DOMUtil.setQNameValue(element, value);
-	    	} else {
-                String value;
-                // TODO eliminate this if at all possible ... we should not provide raw value here
-//                if (xprim.isParsed()) {
-                    value = xprim.getGuessedFormattedValue();
-//                } else {
-//                    value = xprim.getStringValue();
-//                }
-	    		element.setTextContent(value);
-	    	}
 		}
+
+        // typeName != null after this point
+
+        if (StringUtils.isBlank(typeQName.getNamespaceURI())) {
+            typeQName = XsdTypeMapper.determineQNameWithNs(typeQName);
+        }
+
+        Element element = null;
+
+        if (typeQName.equals(ItemPath.XSD_TYPE)) {
+            ItemPath itemPath = (ItemPath)xprim.getValue();
+            if (itemPath != null) {
+                if (asAttribute) {
+                    throw new UnsupportedOperationException("Serializing ItemPath as an attribute is not supported yet");
+                }
+                XPathHolder holder = new XPathHolder(itemPath);
+                element = holder.toElement(elementOrAttributeName, parentElement.getOwnerDocument());
+                parentElement.appendChild(element);
+            }
+
+        } else {
+            // not an ItemType
+
+            if (!asAttribute) {
+                try {
+                    element = createElement(elementOrAttributeName, parentElement);
+                } catch (DOMException e) {
+                    throw new DOMException(e.code, e.getMessage() + "; creating element "+elementOrAttributeName+" in element "+DOMUtil.getQName(parentElement));
+                }
+                parentElement.appendChild(element);
+            }
+
+            if (typeQName.equals(DOMUtil.XSD_QNAME)) {
+                QName value = (QName) xprim.getParsedValueWithoutRecording(typeQName);
+                if (asAttribute) {
+                    try {
+                        DOMUtil.setQNameAttribute(parentElement, elementOrAttributeName.getLocalPart(), value);
+                    } catch (DOMException e) {
+                        throw new DOMException(e.code, e.getMessage() + "; setting attribute "+elementOrAttributeName.getLocalPart()+" in element "+DOMUtil.getQName(parentElement)+" to QName value "+value);
+                    }
+                } else {
+                    DOMUtil.setQNameValue(element, value);
+                }
+            } else {
+                // not ItemType nor QName
+                String value = xprim.getGuessedFormattedValue();
+
+                if (asAttribute) {
+                    parentElement.setAttribute(elementOrAttributeName.getLocalPart(), value);
+                } else {
+                    element.setTextContent(value);
+                }
+            }
+
+        }
+        if (!asAttribute && xprim.isExplicitTypeDeclaration()) {
+            DOMUtil.setXsiType(element, typeQName);
+        }
 	}
-    
+
     private void serializeSchema(SchemaXNode xschema, Element parentElement) {
 		Element schemaElement = xschema.getSchemaElement();
 		if (schemaElement == null){
@@ -276,17 +286,17 @@ public class DomSerializer {
 	 * @param qname element QName
 	 * @return created DOM element
 	 */
-	private Element createElement(QName qname) {
+	private Element createElement(QName qname, Element parentElement) {
 		String namespaceURI = qname.getNamespaceURI();
-		if (StringUtils.isBlank(namespaceURI)) {
-			return doc.createElement(qname.getLocalPart());
+		if (!StringUtils.isBlank(namespaceURI)) {
+			qname = setQNamePrefix(qname);
 		}
-		QName qnameWithPrefix = setQNamePrefix(qname);
-		if (topElement != null) {
-			return DOMUtil.createElement(doc, qnameWithPrefix, topElement, topElement);
+		if (parentElement != null) {
+			return DOMUtil.createElement(doc, qname, parentElement, parentElement);
 		} else {
 			// This is needed otherwise the root element itself could not be created
-			return DOMUtil.createElement(doc, qnameWithPrefix);
+            // Caller of this method is responsible for setting the topElement
+			return DOMUtil.createElement(doc, qname);
 		}
 	}
 

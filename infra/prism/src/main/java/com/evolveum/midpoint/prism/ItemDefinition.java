@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Abstract item definition in the schema.
@@ -271,7 +272,17 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 * @return created item instance
 	 */
 	abstract public Item instantiate(QName name);
-	
+
+    // add namespace from the definition if it's safe to do so
+    protected QName addNamespaceIfApplicable(QName name) {
+        if (StringUtils.isEmpty(name.getNamespaceURI())) {
+            if (QNameUtil.match(name, this.name)) {
+                return this.name;
+            }
+        }
+        return name;
+    }
+
     <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {
         if (path.isEmpty()) {
         	if (clazz.isAssignableFrom(this.getClass())) {

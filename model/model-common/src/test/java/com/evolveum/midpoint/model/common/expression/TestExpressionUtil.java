@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
@@ -169,8 +170,7 @@ public class TestExpressionUtil {
     	assertEquals("Wrong resolved idi new value", PrismTestUtil.createPolyString("Captain Jack Sparrow"), 
     			((PrismProperty<PolyString>)idi.getItemNew()).getRealValue());
     	
-    	assertEquals("Wrong residual path", new ItemPath(PolyString.F_ORIG), idi.getResidualPath());
-    	
+    	PrismAsserts.assertPathEquivalent("Wrong residual path", new ItemPath(PolyString.F_ORIG), idi.getResidualPath());
     }
     
     @Test
@@ -188,8 +188,8 @@ public class TestExpressionUtil {
     			((PrismProperty<PolyString>)idi.getItemOld()).getRealValue());
     	assertEquals("Wrong resolved idi new value", PrismTestUtil.createPolyString("Captain Jack Sparrow"), 
     			((PrismProperty<PolyString>)idi.getItemNew()).getRealValue());
-    	
-    	assertEquals("Wrong residual path", new ItemPath(PolyString.F_NORM), idi.getResidualPath());
+
+        PrismAsserts.assertPathEquivalent("Wrong residual path", new ItemPath(PolyString.F_NORM), idi.getResidualPath());
     	
     }
 

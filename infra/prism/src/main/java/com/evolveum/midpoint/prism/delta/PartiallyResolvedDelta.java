@@ -75,7 +75,7 @@ public class PartiallyResolvedDelta<V extends PrismValue> {
 		if (residualPath == null) {
 			if (other.residualPath != null)
 				return false;
-		} else if (!residualPath.equals(other.residualPath))
+		} else if (!residualPath.equivalent(other.residualPath))     // TODO: ok?
 			return false;
 		return true;
 	}

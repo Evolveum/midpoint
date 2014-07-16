@@ -62,7 +62,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
 
         ItemPath passwordPath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
                 CredentialsType.F_PASSWORD);
-        if (passwordPath.equals(container.getPath())
+        if (passwordPath.equivalent(container.getPath())
                 && PasswordType.F_VALUE.equals(property.getElementName())) {
             displayName = "prismPropertyPanel.name.credentials.password";
         }
@@ -179,7 +179,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     }
 
     private boolean isThisPropertyActivationEnabled() {
-        if (!new ItemPath(UserType.F_ACTIVATION).equals(container.getPath())) {
+        if (!new ItemPath(UserType.F_ACTIVATION).equivalent(container.getPath())) {
             return false;
         }
 

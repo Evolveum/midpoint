@@ -561,7 +561,7 @@ public class ResourceObjectConverter {
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
 		
 		for (ItemDelta itemDelta : objectDeltas) {
-			if (new ItemPath(ShadowType.F_ASSOCIATION).equals(itemDelta.getPath())) {
+			if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getPath())) {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)itemDelta;				
 				entitlementConverter.collectEntitlementsAsObjectOperation(roMap, containerDelta, objectClassDefinition,
                         shadowBefore, shadowAfter, rSchema, resource);
@@ -1017,11 +1017,11 @@ public class ResourceObjectConverter {
 	private boolean hasChangesOnResource(
 			Collection<? extends ItemDelta> itemDeltas) {
 		for (ItemDelta itemDelta : itemDeltas) {
-			if (new ItemPath(ShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
+			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
 				return true;
-			} else if (SchemaConstants.PATH_ACTIVATION.equals(itemDelta.getParentPath())){
+			} else if (SchemaConstants.PATH_ACTIVATION.equivalent(itemDelta.getParentPath())){
 				return true;
-			} else if (new ItemPath(ShadowType.F_ASSOCIATION).equals(itemDelta.getPath())) { 
+			} else if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getPath())) {
 				return true;				
 			}
 		}
@@ -1036,7 +1036,7 @@ public class ResourceObjectConverter {
 			operations = new ArrayList<Operation>();
 		}
 		for (ItemDelta itemDelta : objectChange) {
-			if (new ItemPath(ShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
+			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
 				if (itemDelta instanceof PropertyDelta) {
 					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
 							(PropertyDelta) itemDelta);
@@ -1048,12 +1048,12 @@ public class ResourceObjectConverter {
 				} else {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
 				}
-			} else if (SchemaConstants.PATH_ACTIVATION.equals(itemDelta.getParentPath())){
+			} else if (SchemaConstants.PATH_ACTIVATION.equivalent(itemDelta.getParentPath())){
 				Collection<Operation> activationOperations = determineActivationChange(shadow.asObjectable(), objectChange, resource, objectClassDefinition, result);
 				if (activationOperations != null){
 					operations.addAll(activationOperations);
 				}
-			} else if (new ItemPath(ShadowType.F_ASSOCIATION).equals(itemDelta.getPath())) { 
+			} else if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getPath())) {
 				if (itemDelta instanceof ContainerDelta) {
 					entitlementConverter.collectEntitlementChange((ContainerDelta<ShadowAssociationType>)itemDelta, operations, objectClassDefinition, resource);
 				} else {

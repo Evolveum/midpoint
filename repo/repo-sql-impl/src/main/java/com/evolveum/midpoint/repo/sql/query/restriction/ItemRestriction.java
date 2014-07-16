@@ -362,7 +362,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
 
     private void addPathAliasToContext(ItemPath path) {
         ItemPath lastPropPath = path.allExceptLast();
-        if (ItemPath.EMPTY_PATH.equals(lastPropPath)) {
+        if (ItemPath.EMPTY_PATH.equivalent(lastPropPath)) {
             lastPropPath = null;
         }
 
@@ -372,7 +372,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
 
     protected void addNewCriteriaToContext(ItemPath path, Definition def, String realName) {
         ItemPath lastPropPath = path.allExceptLast();
-        if (ItemPath.EMPTY_PATH.equals(lastPropPath)) {
+        if (ItemPath.EMPTY_PATH.equivalent(lastPropPath)) {
             lastPropPath = null;
         }
 

@@ -112,11 +112,34 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
         }
     	return clone;
     }
-    
+
+    /**
+     * More strict version of ItemPathType comparison. Does not use any normalization
+     * nor approximate matching QNames via QNameUtil.match.
+     *
+     * For example, it detects a change from xyz:name to name and vice versa
+     * when editing via debug pages (MID-1969)
+     *
+     * For semantic-level comparison, please use equivalent(..) method.
+     *
+     * @param obj
+     * @return
+     */
+
     @Override
     public boolean equals(Object obj) {
     	final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
     	return equals(null, null, obj, strategy);
+    }
+
+    public boolean equivalent(Object other) {
+        if (!(other instanceof ItemPathType)) {
+            return false;
+        }
+        ItemPath thisPath = getItemPath();
+        ItemPath otherPath = ((ItemPathType) other).getItemPath();
+
+        return thisPath.equivalent(otherPath);
     }
 
 	@Override
@@ -132,7 +155,7 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
     	ItemPath thisPath = getItemPath();
     	ItemPath otherPath = other.getItemPath();
 
-        return thisPath.equivalent(otherPath);
+        return thisPath.equals(otherPath);
 	}
 	
 	@Override

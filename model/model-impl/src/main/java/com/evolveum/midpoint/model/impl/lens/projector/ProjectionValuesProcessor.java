@@ -582,7 +582,7 @@ public class ProjectionValuesProcessor {
 			}
 		} else if (primaryDelta.isModify()) {
 			for(ItemDelta<?> modification: primaryDelta.getModifications()) {
-				if (modification.getParentPath().equals(SchemaConstants.PATH_ATTRIBUTES)) {
+				if (modification.getParentPath().equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
 					PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
 					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attrDelta.getElementName());
 					if (!rAttrDef.isTolerant()) {
@@ -609,7 +609,7 @@ public class ProjectionValuesProcessor {
 				Iterator<? extends ItemDelta> iterator = modifications.iterator();
 				while (iterator.hasNext()) {
 					ItemDelta modification = iterator.next();
-					if (! new ItemPath(FocusType.F_ACTIVATION).equals(modification.getParentPath())) {
+					if (! new ItemPath(FocusType.F_ACTIVATION).equivalent(modification.getParentPath())) {
 						iterator.remove();
 					}
 				}

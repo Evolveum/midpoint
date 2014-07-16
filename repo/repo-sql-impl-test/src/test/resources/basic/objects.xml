@@ -536,11 +536,13 @@
                 </q:description>
                 <q:equal>
                     <q:path>name</q:path>
-                    <c:valueExpression>
-                        <c:code>
-                            $c:account/c:attributes/ri:uid
-                        </c:code>
-                    </c:valueExpression>
+                    <c:expression>
+                        <c:script>
+                            <c:code>
+                                $c:account/c:attributes/ri:uid
+                            </c:code>
+                        </c:script>
+                    </c:expression>
                 </q:equal>
             </correlation>
             <reaction>

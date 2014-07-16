@@ -36,10 +36,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
      */
 
     /**
-     * Unparsed value. It is set either on RawType instance construction
-     * or gradually constructed when parsing via JAXB (see ContentList class).
-     *
-     * Note that its type QName is coupled with the "type" attribute.
+     * Unparsed value. It is set on RawType instance construction.
      */
 	private XNode xnode;
 

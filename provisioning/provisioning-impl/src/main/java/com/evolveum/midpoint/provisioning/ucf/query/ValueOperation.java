@@ -55,7 +55,7 @@ public class ValueOperation extends Operation {
 
 		ValueFilter valueFilter= (ValueFilter) objectFilter;
 		if (valueFilter.getParentPath() != null && !valueFilter.getParentPath().isEmpty()
-				&& valueFilter.getParentPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES))) {
+				&& valueFilter.getParentPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES))) {
 			try {
 				QName propName = valueFilter.getDefinition().getName();
 				String icfName = icfNameMapper.convertAttributeNameToIcf(propName, getInterpreter()

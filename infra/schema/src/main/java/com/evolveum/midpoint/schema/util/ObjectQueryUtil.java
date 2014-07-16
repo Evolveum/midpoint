@@ -168,14 +168,14 @@ public class ObjectQueryUtil {
 		filter.accept(visitor);
 	}
 
-	public static String dump(QueryType query) {
+	public static String dump(QueryType query) throws SchemaException {
 		if (query == null) {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("Query(");
 		sb.append(query.getDescription()).append("):\n");
-		if (query.getFilter() != null && query.getFilter().getFilterClause() != null)
-			sb.append(DOMUtil.serializeDOMToString(query.getFilter().getFilterClause()));
+		if (query.getFilter() != null && query.getFilter().containsFilterClause())
+			sb.append(DOMUtil.serializeDOMToString(query.getFilter().getFilterClauseAsElement()));
 		else
 			sb.append("(no filter)");
 		return sb.toString();

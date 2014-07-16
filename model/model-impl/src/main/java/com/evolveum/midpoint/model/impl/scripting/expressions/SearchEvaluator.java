@@ -93,11 +93,11 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
             @Override
             public boolean handle(PrismObject<T> object, OperationResult parentResult) {
                 atLeastOne.setValue(true);
-                if (searchExpression.getExpression() != null) {
+                if (searchExpression.getScriptingExpression() != null) {
                     if (variableName != null) {
                         context.setVariable(variableName, object);
                     }
-                    JAXBElement<?> childExpression = searchExpression.getExpression();
+                    JAXBElement<?> childExpression = searchExpression.getScriptingExpression();
                     try {
                         outputData.addAllFrom(scriptingExpressionEvaluator.evaluateExpression(childExpression, Data.create(object), context, result));
                     } catch (ScriptExecutionException e) {

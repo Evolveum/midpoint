@@ -547,7 +547,7 @@ public class LensUtil {
 		while (iterator.hasNext()) {
 			ItemDelta projModification = iterator.next();
 			LOGGER.trace("MOD: {}\n{}", projModification.getPath(), projModification.debugDump());
-			if (projModification.getPath().equals(SchemaConstants.PATH_TRIGGER)) {
+			if (projModification.getPath().equivalent(SchemaConstants.PATH_TRIGGER)) {
 				focusCtx.swallowToProjectionWaveSecondaryDelta(projModification);
 				iterator.remove();
 			}

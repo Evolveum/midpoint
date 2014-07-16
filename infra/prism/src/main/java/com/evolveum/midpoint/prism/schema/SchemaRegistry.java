@@ -41,6 +41,9 @@ import javax.xml.validation.SchemaFactory;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.util.QNameUtil;
+import com.sun.xml.bind.v2.schemagen.xmlschema.ComplexType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
@@ -353,7 +356,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		Element domElement = schemaDescription.getDomElement();
 		boolean isRuntime = schemaDescription.getCompileTimeClassesPackage() == null;
 		PrismSchema schema = PrismSchema.parse(domElement, this, isRuntime, schemaDescription.getSourceDescription(), getPrismContext());
-		if (namespace == null) {
+		if (StringUtils.isEmpty(namespace)) {
 			namespace = schema.getNamespace();
 		}
 		LOGGER.trace("Parsed schema {}, namespace: {}",schemaDescription.getSourceDescription(),namespace);
@@ -716,9 +719,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	}
 		
 	public <T> Class<T> determineCompileTimeClass(QName typeName) {
-		if (typeName.getNamespaceURI() == null) {
-			throw new IllegalArgumentException("XSD type "+typeName+" has no namespace, cannot determine schema");
-		}
+		if (StringUtils.isEmpty(typeName.getNamespaceURI())) {
+            ComplexTypeDefinition ctd = resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart());
+            return (Class) ctd.getCompileTimeClass();
+        }
 		SchemaDescription desc = findSchemaDescriptionByNamespace(typeName.getNamespaceURI());
 		if (desc == null) {
 			return null;
@@ -731,17 +735,18 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return compileTimeClass;
 	}
 
-    // TODO: which one is better (this one or the above)?
     public <T> Class<T> getCompileTimeClass(QName xsdType) {
-        SchemaDescription desc = findSchemaDescriptionByNamespace(xsdType.getNamespaceURI());
-        if (desc == null) {
-            return null;
-        }
-        Map<QName, Class<?>> map = desc.getXsdTypeTocompileTimeClassMap();
-        if (map == null) {
-            return null;
-        }
-        return (Class<T>) map.get(xsdType);
+        return determineCompileTimeClass(xsdType);
+        // TODO: which one is better (this one or the above)?
+//        SchemaDescription desc = findSchemaDescriptionByNamespace(xsdType.getNamespaceURI());
+//        if (desc == null) {
+//            return null;
+//        }
+//        Map<QName, Class<?>> map = desc.getXsdTypeTocompileTimeClassMap();
+//        if (map == null) {
+//            return null;
+//        }
+//        return (Class<T>) map.get(xsdType);
     }
 
     public PrismSchema findSchemaByCompileTimeClass(Class<?> compileTimeClass) {
@@ -814,6 +819,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	}
 	
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByType(QName typeName) {
+        if (StringUtils.isEmpty(typeName.getNamespaceURI())) {
+            // a quick hack (todo do it seriously)
+            ComplexTypeDefinition ctd = resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart());
+            if (ctd == null) {
+                return null;
+            }
+            typeName = ctd.getTypeName();
+        }
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null){
 			//TODO: check for confilicted objects
@@ -835,6 +848,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	}
 	
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByElementName(QName elementName) {
+        if (StringUtils.isEmpty(elementName.getNamespaceURI())) {
+            return resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), PrismObjectDefinition.class);
+        }
 		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
 		if (schema == null) {
 			return null;
@@ -843,6 +859,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	}
 	
 	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByType(QName typeName) {
+        if (StringUtils.isEmpty(typeName.getNamespaceURI())) {
+            return resolveGlobalItemDefinitionWithoutNamespace(typeName.getLocalPart(), PrismContainerDefinition.class);
+        }
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null) {
 			return null;
@@ -851,6 +870,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	}
 	
 	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByElementName(QName elementName) {
+        if (StringUtils.isEmpty(elementName.getNamespaceURI())) {
+            return resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), PrismContainerDefinition.class);
+        }
 		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
 		if (schema == null) {
 			return null;
@@ -867,6 +889,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	}
 
     public ItemDefinition findItemDefinitionByElementName(QName elementName) {
+        if (StringUtils.isEmpty(elementName.getNamespaceURI())) {
+            return resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class);
+        }
         PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
         if (schema == null) {
             return null;
@@ -875,6 +900,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
     }
 
     public ItemDefinition findItemDefinitionByType(QName typeName) {
+        if (StringUtils.isEmpty(typeName.getNamespaceURI())) {
+            ComplexTypeDefinition ctd = resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart());
+            typeName = ctd.getTypeName();
+        }
         PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
         if (schema == null) {
             return null;
@@ -884,6 +913,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 
 
     public PrismPropertyDefinition findPropertyDefinitionByElementName(QName elementName) {
+        if (StringUtils.isEmpty(elementName.getNamespaceURI())) {
+            return resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), PrismPropertyDefinition.class);
+        }
 		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
 		if (schema == null) {
 			return null;
@@ -892,6 +924,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	}
 
     public PrismReferenceDefinition findReferenceDefinitionByElementName(QName elementName) {
+        if (StringUtils.isEmpty(elementName.getNamespaceURI())) {
+            return resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), PrismReferenceDefinition.class);
+        }
         PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
         if (schema == null) {
             return null;
@@ -901,7 +936,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 
 
     public ComplexTypeDefinition findComplexTypeDefinition(QName typeName) {
-		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
+        if (StringUtils.isEmpty(typeName.getNamespaceURI())) {
+            return resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart());
+        }
+        PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null) {
 			return null;
 		}
@@ -960,6 +998,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	 * in the known schemas.
 	 */
 	public boolean hasImplicitTypeDefinition(QName elementName, QName typeName) {
+        elementName = resolveElementNameIfNeeded(elementName);
+        if (elementName == null) {
+            return false;
+        }
 		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
 		if (schema == null) {
 			return false;
@@ -968,10 +1010,22 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		if (itemDefinition == null) {
 			return false;
 		}
-		return typeName.equals(itemDefinition.getTypeName());
+		return QNameUtil.match(typeName, itemDefinition.getTypeName());
 	}
 
-	public static ItemDefinition createDefaultItemDefinition(QName itemName, PrismContext prismContext) {
+    private QName resolveElementNameIfNeeded(QName elementName) {
+        if (StringUtils.isNotEmpty(elementName.getNamespaceURI())) {
+            return elementName;
+        }
+        ItemDefinition itemDef = resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class);
+        if (itemDef != null) {
+            return itemDef.getName();
+        } else {
+            return null;
+        }
+    }
+
+    public static ItemDefinition createDefaultItemDefinition(QName itemName, PrismContext prismContext) {
 		PrismPropertyDefinition propDef = new PrismPropertyDefinition(itemName, DEFAULT_XSD_TYPE, prismContext);
 		// Set it to multi-value to be on the safe side
 		propDef.setMaxOccurs(-1);
@@ -984,8 +1038,8 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	 */
 	public ItemDefinition resolveGlobalItemDefinition(QName elementQName) throws SchemaException {
 		String elementNamespace = elementQName.getNamespaceURI();
-		if (elementNamespace == null) {
-			return null;
+		if (StringUtils.isEmpty(elementNamespace)) {
+			return resolveGlobalItemDefinitionWithoutNamespace(elementQName.getLocalPart(), ItemDefinition.class);
 		}
 		PrismSchema schema = findSchemaByNamespace(elementNamespace);
 		if (schema == null) {
@@ -997,8 +1051,49 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		}
 		return itemDefinition;
 	}
-	
-	public <T extends Objectable> PrismObject<T> instantiate(Class<T> compileTimeClass) throws SchemaException {
+
+    private <T extends ItemDefinition> T resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<T> definitionClass) {
+        ItemDefinition found = null;
+        for (SchemaDescription schemaDescription : parsedSchemas.values()) {
+            PrismSchema schema = schemaDescription.getSchema();
+            if (schema == null) {       // is this possible?
+                continue;
+            }
+            ItemDefinition def = schema.findItemDefinition(localPart, definitionClass);
+            if (def != null) {
+                if (found != null) {
+                    // todo change to SchemaException
+                    throw new IllegalArgumentException("Multiple possible resolutions for unqualified element name " + localPart + " (e.g. in " +
+                            def.getNamespace() + " and " + found.getNamespace());
+                }
+                found = def;
+            }
+        }
+        return (T) found;
+    }
+
+    private ComplexTypeDefinition resolveGlobalTypeDefinitionWithoutNamespace(String typeLocalName) {
+        ComplexTypeDefinition found = null;
+        for (SchemaDescription schemaDescription : parsedSchemas.values()) {
+            PrismSchema schema = schemaDescription.getSchema();
+            if (schema == null) {       // is this possible?
+                continue;
+            }
+            ComplexTypeDefinition def = schema.findComplexTypeDefinition(new QName(schema.getNamespace(), typeLocalName));
+            if (def != null) {
+                if (found != null) {
+                    // TODO change to SchemaException
+                    throw new IllegalArgumentException("Multiple possible resolutions for unqualified type name " + typeLocalName + " (e.g. in " +
+                            def.getTypeName() + " and " + found.getTypeName());
+                }
+                found = def;
+            }
+        }
+        return found;
+    }
+
+
+    public <T extends Objectable> PrismObject<T> instantiate(Class<T> compileTimeClass) throws SchemaException {
 		PrismObjectDefinition<T> objDef = findObjectDefinitionByCompileTimeClass(compileTimeClass);
 		if (objDef == null) {
 			throw new SchemaException("No definition for compile time class "+compileTimeClass);

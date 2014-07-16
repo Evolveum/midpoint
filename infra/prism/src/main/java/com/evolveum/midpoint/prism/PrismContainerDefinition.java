@@ -326,6 +326,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      */
     @Override
     public PrismContainer<V> instantiate(QName elementName) {
+        elementName = addNamespaceIfApplicable(elementName);
         return new PrismContainer<V>(elementName, this, prismContext);
     }
 

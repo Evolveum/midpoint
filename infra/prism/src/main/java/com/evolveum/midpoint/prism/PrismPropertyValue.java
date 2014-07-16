@@ -44,6 +44,7 @@ import java.util.Collection;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -111,8 +112,9 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         				// Do the most stupid thing possible. Assume string value. And there will be no definition.
     					value = (T) ((Element)rawElement).getTextContent();
     				} else if (rawElement instanceof PrimitiveXNode){
-    					try{
-    					value = (T) ((PrimitiveXNode) rawElement).getParsedValue(DOMUtil.XSD_STRING);
+    					try {
+                            QName type = rawElement.getTypeQName() != null ? rawElement.getTypeQName() : DOMUtil.XSD_STRING;
+    					    value = (T) ((PrimitiveXNode) rawElement).getParsedValueWithoutRecording(type);
     					} catch (SchemaException ex){
     						throw new IllegalStateException("Cannot fetch value from raw element. " + ex.getMessage(), ex);
     					}
@@ -421,9 +423,6 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	}
 
 	private boolean equalsRawElements(PrismPropertyValue<T> other) {
-		if (this.rawElement instanceof Element && other.rawElement instanceof Element) {
-			return DOMUtil.compareElement((Element)this.rawElement, (Element)other.rawElement, false);
-		}
 		return this.rawElement.equals(other.rawElement);
 	}
 

@@ -214,7 +214,8 @@ public class PrismTestUtil {
 		}
 	}
 
-	public static void displayQueryType(QueryType queryType) {
-		LOGGER.info(DOMUtil.serializeDOMToString(queryType.getFilter().getFilterClause()));
+	public static void displayQueryType(QueryType queryType) throws SchemaException {
+		//LOGGER.info(DOMUtil.serializeDOMToString(queryType.getFilter().getFilterClause()));
+        LOGGER.info(queryType.getFilter().getFilterClauseXNode().debugDump());
 	}
 }

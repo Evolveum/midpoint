@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -624,7 +625,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 					fieldRepo.getNameReport());
 			ItemPath fieldPath = field.getItemPath().getItemPath();
 			ItemPath fieldRepoPath = fieldRepo.getItemPath().getItemPath();
-			AssertJUnit.assertEquals(fieldPath, fieldRepoPath);
+			PrismAsserts.assertPathEquivalent("Wrong path", fieldPath, fieldRepoPath);
 			AssertJUnit.assertEquals(field.getSortOrder(),
 					fieldRepo.getSortOrder());
 			AssertJUnit.assertEquals(field.getSortOrderNumber(),

@@ -294,7 +294,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	/**
-	 * this method ignores some part of the object during comparison (e.g. source demarkation in values)
+	 * this method ignores some part of the object during comparison (e.g. source demarcation in values)
 	 * These methods compare the "meaningful" parts of the objects.
 	 */
 	public boolean equivalent(Object obj) {

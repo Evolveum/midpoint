@@ -554,7 +554,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertFalse("Resource from " + source + " has no OID in connectorRef", StringUtils.isBlank(connectorRefType.getOid()));
         assertNotNull("Resource from " + source + " has null description in connectorRef", connectorRefType.getDescription());
         assertNotNull("Resource from " + source + " has null filter in connectorRef", connectorRefType.getFilter());
-        assertNotNull("Resource from " + source + " has null filter element in connectorRef", connectorRefType.getFilter().getFilterClause());
+        assertNotNull("Resource from " + source + " has null filter element in connectorRef", connectorRefType.getFilter().getFilterClauseXNode());
         assertNotNull("Resource from " + source + " has null configuration", resource.getConnectorConfiguration());
         assertNotNull("Resource from " + source + " has null schema", resource.getSchema());
         checkOpenDjSchema(resource, source);

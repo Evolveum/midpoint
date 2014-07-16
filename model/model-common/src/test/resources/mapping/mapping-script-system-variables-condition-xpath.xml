@@ -33,7 +33,7 @@
 	<condition>
 		<script>
 			<language>http://www.w3.org/TR/xpath/</language>
-			<code>$c:employeeType = 'CAPTAIN'</code>
+			<code>$employeeType = 'CAPTAIN'</code>
 		</script>
 	</condition>
 </mapping>

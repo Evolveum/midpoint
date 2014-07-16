@@ -26,6 +26,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -97,8 +99,9 @@ public class TestQueryConvertors {
 		QueryType convertedQueryType = toQueryType(query);
 		System.out.println("Re-converted query type");
 		System.out.println(convertedQueryType.debugDump());
-		
-		Element filterClauseElement = convertedQueryType.getFilter().getFilterClause();
+
+		Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement();
+
 		System.out.println("Serialized filter (JAXB->DOM)");
 		System.out.println(DOMUtil.serializeDOMToString(filterClauseElement));
 		
@@ -139,7 +142,7 @@ public class TestQueryConvertors {
 		System.out.println(convertedQueryType.debugDump());
 		
 		SearchFilterType convertedFilterType = convertedQueryType.getFilter();
-		MapXNode xFilter = convertedFilterType.serializeToXNode(getPrismContext());
+		MapXNode xFilter = convertedFilterType.serializeToXNode();
 		PrismAsserts.assertSize(xFilter, 1);
 		PrismAsserts.assertSubnode(xFilter, AndFilter.ELEMENT_NAME, MapXNode.class);
 		MapXNode xandmap = (MapXNode) xFilter.get(AndFilter.ELEMENT_NAME);
@@ -148,7 +151,7 @@ public class TestQueryConvertors {
 		ListXNode xequalsList = (ListXNode) xandmap.get(EqualFilter.ELEMENT_NAME);
 		PrismAsserts.assertSize(xequalsList, 2);
 		
-		Element filterClauseElement = convertedFilterType.getFilterClause();
+		Element filterClauseElement = convertedFilterType.getFilterClauseAsElement();
 		System.out.println("Serialized filter (JAXB->DOM)");
 		System.out.println(DOMUtil.serializeDOMToString(filterClauseElement));
 		

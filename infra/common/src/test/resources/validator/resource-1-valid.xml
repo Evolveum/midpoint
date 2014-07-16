@@ -39,9 +39,8 @@
 			<q:and>
 				<q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType" />
 				<q:equal>
-					<q:value>
-						<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-					</q:value>
+                    <q:path>connectorType</q:path>
+					<q:value>org.identityconnectors.ldap.LdapConnector</q:value>
 				</q:equal>
 			</q:and>
 		</filter>

@@ -417,77 +417,59 @@ public final class PrismForJAXBUtil {
 		}
 	}
 	
-	public static void setReferenceFilterElement(PrismReferenceValue rval, Element filterElement) {
-		DomParser parser = getDomParser(rval);
-		try {
-			if (filterElement == null || DOMUtil.isEmpty(filterElement)){
-				return;
-			}
-			MapXNode filterXNode = parser.parseElementAsMap(filterElement);
-			SearchFilterType filter = new SearchFilterType();
-            filter.parseFromXNode(filterXNode);
-			rval.setFilter(filter);
-		} catch (SchemaException e) {
-			throw new SystemException("Error parsing filter: "+e.getMessage(),e);
-		}
-	}
+//	public static void setReferenceFilterElement(PrismReferenceValue rval, Element filterElement) {
+//		DomParser parser = getDomParser(rval);
+//		try {
+//			if (filterElement == null || DOMUtil.isEmpty(filterElement)){
+//				return;
+//			}
+//			MapXNode filterXNode = parser.parseElementAsMap(filterElement);
+//			SearchFilterType filter = new SearchFilterType();
+//            filter.parseFromXNode(filterXNode);
+//			rval.setFilter(filter);
+//		} catch (SchemaException e) {
+//			throw new SystemException("Error parsing filter: "+e.getMessage(),e);
+//		}
+//	}
 
     public static void setReferenceFilterClauseXNode(PrismReferenceValue rval, SearchFilterType filterType) {
-        if (filterType == null) {
-            return;
+        if (filterType != null) {
+            rval.setFilter(filterType.clone());
+        } else {
+            rval.setFilter(null);
         }
-        MapXNode filterClause = null;
-        try {
-            filterClause = filterType.getFilterClauseXNode(rval.getPrismContext());
-        } catch (SchemaException e) {
-            throw new SystemException("Error serializing filter: "+e.getMessage(),e);
-        }
-        if (filterClause == null || filterClause.isEmpty()) {
-            return;
-        }
-        SearchFilterType filter = new SearchFilterType();
-        filter.setFilterClauseXNode((MapXNode) filterClause.clone());
-        rval.setFilter(filter);
     }
 
-    public static Element getReferenceFilterElement(PrismReferenceValue rval) {
-		SearchFilterType filter = rval.getFilter();
-		if (filter == null) {
-			return null;
-		}
-		Element filterElement;
-		PrismContext prismContext = rval.getPrismContext();
-		// We have to work even if prismContext is null. This is needed for
-		// equals and hashcode and similar methods.
-		DomParser parser = getDomParser(rval);
-		try {
-			MapXNode filterXmap = filter.serializeToXNode(prismContext);
-			if (filterXmap.size() != 1) {
-				// This is supposed to be a map with just a single entry. This is an internal error
-				throw new IllegalArgumentException("Unexpected map in filter processing, it has "+filterXmap.size()+" entries");
-			}
-			Entry<QName, XNode> entry = filterXmap.entrySet().iterator().next();
-			filterElement = parser.serializeXMapToElement((MapXNode) entry.getValue(), entry.getKey());
-		} catch (SchemaException e) {
-			throw new SystemException("Error serializing filter: "+e.getMessage(),e);
-		}
-		return filterElement;
-	}
+//    public static Element getReferenceFilterElement(PrismReferenceValue rval) {
+//		SearchFilterType filter = rval.getFilter();
+//		if (filter == null) {
+//			return null;
+//		}
+//		Element filterElement;
+//		PrismContext prismContext = rval.getPrismContext();
+//		// We have to work even if prismContext is null. This is needed for
+//		// equals and hashcode and similar methods.
+//		DomParser parser = getDomParser(rval);
+//		try {
+//			MapXNode filterXmap = filter.serializeToXNode();
+//			if (filterXmap.size() != 1) {
+//				// This is supposed to be a map with just a single entry. This is an internal error
+//				throw new IllegalArgumentException("Unexpected map in filter processing, it has "+filterXmap.size()+" entries");
+//			}
+//			Entry<QName, XNode> entry = filterXmap.entrySet().iterator().next();
+//			filterElement = parser.serializeXMapToElement((MapXNode) entry.getValue(), entry.getKey());
+//		} catch (SchemaException e) {
+//			throw new SystemException("Error serializing filter: "+e.getMessage(),e);
+//		}
+//		return filterElement;
+//	}
 
     public static MapXNode getReferenceFilterClauseXNode(PrismReferenceValue rval) {
         SearchFilterType filter = rval.getFilter();
-        PrismContext prismContext = rval.getPrismContext();
-        // We have to work even if prismContext is null. This is needed for
-        // equals and hashcode and similar methods.
-
         if (filter == null || !filter.containsFilterClause()) {
             return null;
         }
-        try {
-            return (MapXNode) filter.getFilterClauseXNode(prismContext).clone();
-        } catch (SchemaException e) {
-            throw new SystemException("Error serializing filter: "+e.getMessage(),e);
-        }
+        return filter.getFilterClauseXNode();
     }
 
     private static DomParser getDomParser(PrismValue pval) {

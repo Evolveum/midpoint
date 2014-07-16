@@ -280,7 +280,7 @@ public class ObjectTypeUtil {
 //        XPathHolder modPath = new XPathHolder(modification.getPath());
         ItemPath full = new ItemPath(path.getItemPath(), elementName);
         ItemPathType fullPath = new ItemPathType(full);
-        return fullPath.equals(modificationPath);
+        return fullPath.equivalent(modificationPath);
 //        if (fullPath.equals(modificationPath)) {
 //            return (elementName.equals(getElementName(modification)));
 //        }

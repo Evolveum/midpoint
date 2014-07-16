@@ -430,7 +430,7 @@ public class PrismBeanConverter {
         } catch (InstantiationException|IllegalAccessException e) {
             throw new SystemException("Cannot instantiate " + beanClass + ": " + e.getMessage(), e);
         }
-        filterType.parseFromXNode(xmap);
+        filterType.parseFromXNode(xmap, prismContext);
 		return filterType;
 	}
 	
@@ -438,7 +438,7 @@ public class PrismBeanConverter {
 		if (value == null) {
 			return null;
 		}
-		return value.serializeToXNode(prismContext);
+		return value.serializeToXNode();
 	}
 
 	private Type getTypeArgument(Type origType, String desc) {
@@ -709,15 +709,18 @@ public class PrismBeanConverter {
 					continue;
 				}
 				
-				QName fieldTypeName = inspector.findFieldTypeName(field, getterResultValue.getClass(), namespace);
-								
 				ListXNode xlist = new ListXNode();
-				for (Object element: col) {
+
+                // elementName will be determined from the first item on the list
+                // TODO make sure it will be correct with respect to other items as well!
+                if (getterResultValue instanceof JAXBElement && ((JAXBElement) getterResultValue).getName() != null) {
+                    elementName = ((JAXBElement) getterResultValue).getName();
+                }
+
+                for (Object element: col) {
+                    QName fieldTypeName = inspector.findFieldTypeName(field, element.getClass(), namespace);
 					Object elementToMarshall = element;
 					if (element instanceof JAXBElement){
-						if (((JAXBElement) element).getName() != null){
-							elementName = ((JAXBElement) element).getName(); 
-						}
 						elementToMarshall = ((JAXBElement) element).getValue();
 					} 
 					XNode marshalled = marshallValue(elementToMarshall, fieldTypeName, isAttribute);
@@ -726,7 +729,7 @@ public class PrismBeanConverter {
                     // Fix it in 3.1. [med]
                     if (fieldTypeName == null && element instanceof JAXBElement && marshalled != null) {
                         QName typeName = inspector.determineTypeForClass(elementToMarshall.getClass());
-                        if (typeName != null) {
+                        if (typeName != null && !getSchemaRegistry().hasImplicitTypeDefinition(elementName, typeName)) {
                             marshalled.setExplicitTypeDeclaration(true);
                             marshalled.setTypeQName(typeName);
                         }

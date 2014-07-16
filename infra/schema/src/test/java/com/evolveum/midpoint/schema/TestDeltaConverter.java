@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -314,7 +315,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	ItemPathType itemPathType = mod1.getPath();
     	assertNotNull("Wrong path (must not be null)", itemPathType);
 //    	assertTrue("Wrong path: "+itemPathType, itemPathType.getItemPath().isEmpty());
-    	assertEquals("Wrong path", itemPathType.getItemPath(), new ItemPath(UserType.F_COST_CENTER));
+    	PrismAsserts.assertPathEquivalent("Wrong path", itemPathType.getItemPath(), new ItemPath(UserType.F_COST_CENTER));
     	List<RawType> valueElements = mod1.getValue();
     	assertEquals("Wrong number of value elements", 1, valueElements.size());
     	RawType rawValue = valueElements.get(0);

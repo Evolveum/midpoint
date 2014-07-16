@@ -789,7 +789,7 @@ public class XNodeProcessor {
             //System.out.println("Empty filter. Skipping parsing.");
             return null;
         }
-        return SearchFilterType.createFromXNode(xnode);
+        return SearchFilterType.createFromXNode(xnode, prismContext);
     }
 
     private Class qnameToClass(QName type){

@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -486,17 +487,18 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 
     // Expects that the "self" path segment is already included in the basePath
     // todo treat unqualified names
-    void addItemPathsToList(ItemPath basePath, Collection<ItemPath> list) {
-    	if (items != null) {
-	    	for (Item<?> item: items) {
-	    		if (item instanceof PrismProperty) {
-	    			list.add(basePath.subPath(item.getElementName()));
-	    		} else if (item instanceof PrismContainer) {
-	    			((PrismContainer<?>)item).addItemPathsToList(basePath, list);
-	    		}
-	    	}
-    	}
-    }
+    // is this method used anywhere?
+//    void addItemPathsToList(ItemPath basePath, Collection<ItemPath> list) {
+//    	if (items != null) {
+//	    	for (Item<?> item: items) {
+//	    		if (item instanceof PrismProperty) {
+//	    			list.add(basePath.subPath(item.getElementName()));
+//	    		} else if (item instanceof PrismContainer) {
+//	    			((PrismContainer<?>)item).addItemPathsToList(basePath, list);
+//	    		}
+//	    	}
+//    	}
+//    }
     
     public void clear() {
     	if (items != null) {
@@ -716,30 +718,18 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         if (items == null) {
             return null;
         }
-        if (StringUtils.isNotEmpty(subName.getNamespaceURI())) {
-            // traditional search by fully qualified name
-            for (Item<?> item : items) {
-                if (subName.equals(item.getElementName())) {
-                    return item;
+        Item<?> matching = null;
+        for (Item<?> item : items) {
+            if (QNameUtil.match(subName, item.getElementName())) {
+                if (matching != null) {
+                    String containerName = getParent() != null ? DebugUtil.formatElementName(getParent().getElementName()) : "";
+                    throw new SchemaException("More than one items matching " + subName + " in container " + containerName);
+                } else {
+                    matching = item;
                 }
             }
-            return null;
-        } else {
-            // approximate search using local part
-            String localNameToFind = subName.getLocalPart();
-            Item<?> matching = null;
-            for (Item<?> item : items) {
-                if (localNameToFind.equals(item.getElementName().getLocalPart())) {
-                    if (matching != null) {
-                        String containerName = getParent() != null ? DebugUtil.formatElementName(getParent().getElementName()) : "";
-                        throw new SchemaException("Using ambiguous unqualified item name " + localNameToFind + " in container " + containerName);
-                    } else {
-                        matching = item;
-                    }
-                }
-            }
-            return matching;
         }
+        return matching;
     }
 
     @SuppressWarnings("unchecked")

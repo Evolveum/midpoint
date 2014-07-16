@@ -28,6 +28,8 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -831,7 +833,7 @@ public class PrismAsserts {
 			assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
 			assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
 		}
-		assertEquals("Wrong filter path", path, filter.getFullPath());
+		assertPathEquivalent("Wrong filter path", path, filter.getFullPath());
 	}
 	
 	public static <T> void assertEqualsFilterValue(EqualFilter filter, T value) {
@@ -849,7 +851,7 @@ public class PrismAsserts {
 		RefFilter filter = (RefFilter) objectFilter;
 		assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
 		assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
-		assertEquals("Wrong filter path", path, filter.getFullPath());
+		assertPathEquivalent("Wrong filter path", path, filter.getFullPath());
 	}
 	
 	// Local version of JUnit assers to avoid pulling JUnit dependecy to main
@@ -921,5 +923,27 @@ public class PrismAsserts {
 	public static void assertAssignableFrom(Class<?> expected, Object actualObject) {
 		assert expected.isAssignableFrom(actualObject.getClass()) : "Expected "+expected+" but got "+actualObject.getClass();
 	}
+
+    public static void assertPathEquivalent(String message, ItemPath expected, ItemPath actual) {
+        if (!expected.equivalent(actual)) {
+            assert false : message
+                    + ": expected " + MiscUtil.getValueWithClass(expected)
+                    + ", was " + MiscUtil.getValueWithClass(actual);
+        }
+    }
+
+    public static void assertPathEqualsExceptForPrefixes(String message, ItemPath expected, ItemPath actual) {
+        assertEquals(message + ": wrong path size", expected.size(), actual.size());
+        for (int i = 0; i < expected.size(); i++) {
+            ItemPathSegment expectedSegment = expected.getSegments().get(i);
+            ItemPathSegment actualSegment = actual.getSegments().get(i);
+            if (expectedSegment instanceof NameItemPathSegment) {
+                assertEquals(message + ": wrong path segment #" + (i+1), ((NameItemPathSegment) expectedSegment).getName(),
+                        ((NameItemPathSegment) actualSegment).getName());
+            } else {
+                assertEquals(message + ": wrong path segment #" + (i+1), expectedSegment, actualSegment);
+            }
+        }
+    }
 
 }

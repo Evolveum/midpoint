@@ -567,24 +567,25 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
 
     // Expects that the "self" path segment is NOT included in the basePath
-    void addItemPathsToList(ItemPath basePath, Collection<ItemPath> list) {
-    	boolean addIds = true;
-    	if (getDefinition() != null) {
-    		if (getDefinition().isSingleValue()) {
-    			addIds = false;
-    		}
-    	}
-    	for (PrismContainerValue<V> pval: getValues()) {
-    		ItemPath subpath = null;
-    		ItemPathSegment segment = null;
-    		if (addIds) {
-    			subpath = basePath.subPath(new IdItemPathSegment(pval.getId())).subPath(new NameItemPathSegment(getElementName()));
-    		} else {
-    			subpath = basePath.subPath(new NameItemPathSegment(getElementName()));
-    		}
-    		pval.addItemPathsToList(subpath, list);
-    	}
-    }
+    // is this method used anywhere?
+//    void addItemPathsToList(ItemPath basePath, Collection<ItemPath> list) {
+//    	boolean addIds = true;
+//    	if (getDefinition() != null) {
+//    		if (getDefinition().isSingleValue()) {
+//    			addIds = false;
+//    		}
+//    	}
+//    	for (PrismContainerValue<V> pval: getValues()) {
+//    		ItemPath subpath = null;
+//    		ItemPathSegment segment = null;
+//    		if (addIds) {
+//    			subpath = basePath.subPath(new IdItemPathSegment(pval.getId())).subPath(new NameItemPathSegment(getElementName()));
+//    		} else {
+//    			subpath = basePath.subPath(new NameItemPathSegment(getElementName()));
+//    		}
+//    		pval.addItemPathsToList(subpath, list);
+//    	}
+//    }
     
     @Override
 	public ContainerDelta<V> createDelta() {
@@ -705,7 +706,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 	}
 
     /**
-     * this method ignores some part of the object during comparison (e.g. source demarkation in values)
+     * This method ignores some part of the object during comparison (e.g. source demarcation in values)
      * These methods compare the "meaningful" parts of the objects.
      */
     public boolean equivalent(Object obj) {

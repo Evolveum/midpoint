@@ -667,7 +667,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
             return null;
         }
         for (ItemDelta<?> delta : deltas) {
-            if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equals(propertyPath)) {
+            if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equivalent(propertyPath)) {
                 return (D) delta;
             }
         }
@@ -702,7 +702,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
         Iterator<? extends ItemDelta> deltasIterator = deltas.iterator();
         while (deltasIterator.hasNext()) {
         	ItemDelta<?> delta = deltasIterator.next();
-            if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equals(propertyPath)) {
+            if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equivalent(propertyPath)) {
                 deltasIterator.remove();
             }
         }
@@ -1050,7 +1050,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 	 * deltas are equal. 
 	 */
 	public boolean contains(ItemDelta<V> other) {
-		if (!this.getPath().equals(other.getPath())) {
+		if (!this.getPath().equivalent(other.getPath())) {
 			return false;
 		}
 		if (!containsSet(this.valuesToAdd, other.valuesToAdd)) {
@@ -1267,7 +1267,8 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		int result = 1;
 		result = prime * result + ((definition == null) ? 0 : definition.hashCode());
 		result = prime * result + ((elementName == null) ? 0 : elementName.hashCode());
-		result = prime * result + ((parentPath == null) ? 0 : parentPath.hashCode());
+        // if equals uses parentPath.equivalent call, we should not use default implementation of parentPath.hashCode
+		//result = prime * result + ((parentPath == null) ? 0 : parentPath.hashCode());
 		return result;
 	}
 
@@ -1293,7 +1294,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		if (parentPath == null) {
 			if (other.parentPath != null)
 				return false;
-		} else if (!parentPath.equals(other.parentPath))
+		} else if (!parentPath.equivalent(other.parentPath))                    // or "equals" ?
 			return false;
 		if (!equalsSetRealValue(this.valuesToAdd, other.valuesToAdd))
 			return false;

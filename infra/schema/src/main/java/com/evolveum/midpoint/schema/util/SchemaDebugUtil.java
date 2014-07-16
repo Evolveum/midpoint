@@ -545,26 +545,26 @@ public class SchemaDebugUtil {
 		return sb.toString();
 	}
 
-	public static String prettyPrint(QueryType query) {
-
-		if (query == null) {
-			return "null";
-		}
-
-		SearchFilterType filterType = query.getFilter();
-		Element filter = null;
-		if (filterType != null) {
-			filter = filterType.getFilterClause();
-		}
-
-		StringBuilder sb = new StringBuilder("Query(");
-
-		prettyPrintFilter(sb, filter);
-
-		sb.append(")");
-
-		return sb.toString();
-	}
+//	public static String prettyPrint(QueryType query) {
+//
+//		if (query == null) {
+//			return "null";
+//		}
+//
+//		SearchFilterType filterType = query.getFilter();
+//		Element filter = null;
+//		if (filterType != null) {
+//			filter = filterType.getFilterClause();
+//		}
+//
+//		StringBuilder sb = new StringBuilder("Query(");
+//
+//		prettyPrintFilter(sb, filter);
+//
+//		sb.append(")");
+//
+//		return sb.toString();
+//	}
 	
 	private static void prettyPrintFilter(StringBuilder sb, Element filter) {
 

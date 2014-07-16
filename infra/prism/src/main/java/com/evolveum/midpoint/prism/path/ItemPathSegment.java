@@ -59,6 +59,8 @@ public abstract class ItemPathSegment implements Serializable, Cloneable {
 		return true;
 	}
 
+    public abstract boolean equivalent(Object obj);
+
     public abstract ItemPathSegment clone();
 	
 }
