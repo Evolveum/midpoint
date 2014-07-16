@@ -1014,7 +1014,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	}
 
     private QName resolveElementNameIfNeeded(QName elementName) {
-        if (elementName.getNamespaceURI() != null) {
+        if (StringUtils.isNotEmpty(elementName.getNamespaceURI())) {
             return elementName;
         }
         ItemDefinition itemDef = resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class);
