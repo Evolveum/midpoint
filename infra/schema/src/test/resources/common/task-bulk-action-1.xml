@@ -33,6 +33,9 @@
                             <q:value>AAAAA</q:value>
                         </q:equal>
                     </s:searchFilter>
+                    <s:action>
+                        <s:type>log</s:type>
+                    </s:action>
                 </s:expression>
                 <s:expression xsi:type="s:ExpressionSequenceType">
                     <s:expression xsi:type="s:ActionExpressionType">
