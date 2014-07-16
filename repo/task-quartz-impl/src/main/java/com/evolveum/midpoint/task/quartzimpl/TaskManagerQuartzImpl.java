@@ -390,13 +390,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     private String waitingInfo(long waitForStop) {
         if (waitForStop == WAIT_INDEFINITELY) {
-            return "wait indefinitely";
+            return "stop tasks, and wait for their completion (if necessary)";
         } else if (waitForStop == DO_NOT_WAIT) {
             return "stop tasks, but do not wait";
         } else if (waitForStop == DO_NOT_STOP) {
             return "do not stop tasks";
         } else {
-            return "stop tasks and wait " + waitForStop + " ms for their completion";
+            return "stop tasks and wait " + waitForStop + " ms for their completion (if necessary)";
         }
     }
 
@@ -725,8 +725,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             }
         }
 
+        List<Task> tasksToBeSuspended = new ArrayList<>();
+        for (Task task : tasksToBeDeleted) {
+            if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+                tasksToBeSuspended.add(task);
+            }
+        }
+
         // now suspend the tasks before deletion
-        suspendTasksResolved(tasksToBeDeleted, suspendTimeout, result);
+        if (!tasksToBeSuspended.isEmpty()) {
+            suspendTasksResolved(tasksToBeSuspended, suspendTimeout, result);
+        }
 
         // delete them
         for (Task task : tasksToBeDeleted) {
