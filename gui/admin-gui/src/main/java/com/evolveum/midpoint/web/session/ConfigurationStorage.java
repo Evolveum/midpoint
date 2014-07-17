@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.session;
 
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.AccountDetailsSearchDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 
 import java.io.Serializable;
@@ -27,6 +29,10 @@ import java.io.Serializable;
 public class ConfigurationStorage implements Serializable {
 
     private DebugSearchDto debugSearchDto;
+    private AccountDetailsSearchDto accountSearchDto;
+
+    private ObjectPaging debugSearchPaging;
+    private ObjectPaging accountDetailsPaging;
 
     public DebugSearchDto getDebugSearchDto() {
         if (debugSearchDto == null) {
@@ -38,5 +44,33 @@ public class ConfigurationStorage implements Serializable {
 
     public void setDebugSearchDto(DebugSearchDto debugSearchDto) {
         this.debugSearchDto = debugSearchDto;
+    }
+
+    public AccountDetailsSearchDto getAccountSearchDto() {
+        if(accountSearchDto == null){
+            accountSearchDto = new AccountDetailsSearchDto();
+        }
+
+        return accountSearchDto;
+    }
+
+    public void setAccountSearchDto(AccountDetailsSearchDto accountSearchDto) {
+        this.accountSearchDto = accountSearchDto;
+    }
+
+    public ObjectPaging getDebugSearchPaging() {
+        return debugSearchPaging;
+    }
+
+    public void setDebugSearchPaging(ObjectPaging debugSearchPaging) {
+        this.debugSearchPaging = debugSearchPaging;
+    }
+
+    public ObjectPaging getAccountDetailsPaging() {
+        return accountDetailsPaging;
+    }
+
+    public void setAccountDetailsPaging(ObjectPaging accountDetailsPaging) {
+        this.accountDetailsPaging = accountDetailsPaging;
     }
 }

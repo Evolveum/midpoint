@@ -323,6 +323,7 @@ public class PageRoles extends PageAdminRoles {
         String text = dto.getText();
         Boolean requestable = dto.getRequestableValue();
         ObjectQuery query = new ObjectQuery();
+        List<ObjectFilter> filters = new ArrayList<>();
 
         if(StringUtils.isNotEmpty(text)){
             PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
@@ -330,49 +331,30 @@ public class PageRoles extends PageAdminRoles {
 
             ObjectFilter substring = SubstringFilter.createSubstring(RoleType.F_NAME, RoleType.class, getPrismContext(),
                     PolyStringNormMatchingRule.NAME, normalizedText);
-
-            if(requestable == null){
-                query.setFilter(substring);
-            } else {
-                EqualFilter boolFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                        null, requestable);
-
-                if (requestable == true){
-                    query.setFilter(AndFilter.createAnd(substring, boolFilter));
-
-                } else {
-                    boolFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                            null, false);
-                    EqualFilter nullFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                            null, null);
-                    OrFilter or = OrFilter.createOr(boolFilter, nullFilter);
-                    query.setFilter(AndFilter.createAnd(substring, or));
-                }
-            }
-
-            return query;
-        }else{
-            if(requestable == null){
-                query.setFilter(null);
-            } else {
-                EqualFilter boolFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                        null, requestable);
-
-                if (requestable == true){
-                    query.setFilter(boolFilter);
-                }
-                else {
-                    boolFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                            null, false);
-                    EqualFilter nullFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                            null, null);
-
-                    OrFilter or = OrFilter.createOr(boolFilter, nullFilter);
-                    query.setFilter(or);
-                }
-            }
-            return query;
+            filters.add(substring);
         }
+
+        if(requestable != null){
+            EqualFilter requestableFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                        null, requestable);
+
+            if (requestable){
+                filters.add(requestableFilter);
+            } else {
+                requestableFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                        null, false);
+                EqualFilter nullFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                        null, null);
+                OrFilter or = OrFilter.createOr(requestableFilter, nullFilter);
+                filters.add(or);
+            }
+        }
+
+        if(!filters.isEmpty()){
+            query.setFilter(AndFilter.createAnd(filters));
+        }
+
+        return query;
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target){
