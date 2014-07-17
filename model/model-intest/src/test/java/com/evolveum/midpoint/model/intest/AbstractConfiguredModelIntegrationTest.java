@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -57,6 +58,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Date;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -193,6 +195,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_HERMAN_OID = "c0c010c0-d34d-b33f-f00d-111111111122";
 	protected static final String USER_HERMAN_USERNAME = "herman";
 	protected static final String USER_HERMAN_FULL_NAME = "Herman Toothrot";
+	protected static final Date USER_HERMAN_VALID_FROM_DATE = MiscUtil.asDate(1700, 5, 30, 11, 00, 00);
+	protected static final Date USER_HERMAN_VALID_TO_DATE = MiscUtil.asDate(2233, 3, 23, 18, 30, 00);
 
 	// Has null name, doesn not have given name, no employeeType
 	protected static final String USER_THREE_HEADED_MONKEY_FILENAME = COMMON_DIR_NAME + "/user-three-headed-monkey.xml";

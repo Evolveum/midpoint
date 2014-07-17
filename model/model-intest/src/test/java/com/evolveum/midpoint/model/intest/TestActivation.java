@@ -58,6 +58,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -1527,13 +1528,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", user);
 		assertLinks(user, 1);
         
-		DummyAccount khakiAccount = getDummyAccount(RESOURCE_DUMMY_KHAKI_NAME, ACCOUNT_HERMAN_DUMMY_USERNAME);
+		DummyAccount khakiAccount = getDummyAccount(RESOURCE_DUMMY_KHAKI_NAME, USER_HERMAN_USERNAME);
 		assertNotNull("No khaki account", khakiAccount);
 		assertTrue("khaki account not enabled", khakiAccount.isEnabled());
-		assertEquals("Wrong quote (validFrom) in khaki account", ACCOUNT_MANCOMB_VALID_FROM_DATE, 
+		assertEquals("Wrong quote (validFrom) in khaki account", "from: 1700-05-30T11:00:00Z", 
 				khakiAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME));
-		assertEquals("Wrong gossip (validTo) in khaki account", ACCOUNT_MANCOMB_VALID_TO_DATE, 
-				khakiAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME));
+		assertEquals("Wrong drink (validTo) in khaki account", "to: 2233-03-23T18:30:00Z", 
+				khakiAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
 	}
 	
 	

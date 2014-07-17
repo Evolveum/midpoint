@@ -132,7 +132,7 @@
             				</script>
             			</expression>
             			<target>
-            				<path>attributes/gossip</path>
+            				<path>attributes/drink</path>
             			</target>
             		</outbound>
             	</validTo>

@@ -545,12 +545,7 @@ public class ActivationProcessor {
         if (shadowNew != null) {
         	shadowPropertyNew = shadowNew.findProperty(projectionPropertyPath);
         }
-   		
-        PrismObjectDefinition<ShadowType> shadowDefinition = ShadowUtil.applyObjectClass(
-        		prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class),
-        		projCtx.getRefinedAccountDefinition());
-
-        
+   		        
         MappingInitializer<PrismPropertyValue<T>> initializer = new MappingInitializer<PrismPropertyValue<T>>() {
 			@Override
 			public void initialize(Mapping<PrismPropertyValue<T>> mapping) throws SchemaException {
