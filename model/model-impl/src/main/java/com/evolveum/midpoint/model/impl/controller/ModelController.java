@@ -133,6 +133,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -705,7 +706,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	@Override
-	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException {
+	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase) throws SchemaException {
 		PrismObjectDefinition<O> origDefinition = object.getDefinition();
 		// TODO: maybe we need to expose owner resolver in the interface?
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
@@ -716,9 +717,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			return null;
 		}
 		PrismObjectDefinition<O> finalDefinition = applySecurityContraints(origDefinition, new ItemPath(), securityConstraints,
-				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), null),
-				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), null),
-				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), null));
+				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase),
+				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
+				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase));
 		return finalDefinition;
 	}
 	
