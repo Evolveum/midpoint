@@ -58,6 +58,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -1503,6 +1504,40 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userHermanAfter = getUser(USER_HERMAN_OID);
         assertEffectiveActivation(userHermanAfter, ActivationStatusType.ENABLED);
 	}
+	
+	/**
+	 * Herman has validTo/validFrom. Khaki resource has strange mappings for these.
+	 */
+	@Test
+    public void test410AssignHermanKhakiAccount() throws Exception {
+		final String TEST_NAME = "test410AssignHermanKhakiAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        assignAccount(USER_HERMAN_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+		display("User after change execution", user);
+		assertLinks(user, 1);
+        
+		DummyAccount khakiAccount = getDummyAccount(RESOURCE_DUMMY_KHAKI_NAME, USER_HERMAN_USERNAME);
+		assertNotNull("No khaki account", khakiAccount);
+		assertTrue("khaki account not enabled", khakiAccount.isEnabled());
+		assertEquals("Wrong quote (validFrom) in khaki account", "from: 1700-05-30T11:00:00Z", 
+				khakiAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME));
+		assertEquals("Wrong drink (validTo) in khaki account", "to: 2233-03-23T18:30:00Z", 
+				khakiAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
+	}
+	
+	
 		
 	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);

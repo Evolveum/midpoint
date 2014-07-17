@@ -11,6 +11,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -24,7 +25,10 @@ public class ObjectWrapperUtil {
 
 	public static <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName, String description, PrismObject<O> object, ContainerStatus status, boolean delayContainerCreation, PageBase pageBase) {
 		try {
-			PrismContainerDefinition objectDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectDefinition(object);
+			
+			AuthorizationPhaseType phase = getAuthorizationPhase(status);
+			
+			PrismContainerDefinition objectDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectDefinition(object, phase);
 			RefinedObjectClassDefinition objectClassDefinitionForEditing = null;
 			if (isShadow(object)) {
 				PrismReference resourceRef = object.findReference(ShadowType.F_RESOURCE_REF);
@@ -39,6 +43,21 @@ public class ObjectWrapperUtil {
 		}
 	}
 	
+	private static AuthorizationPhaseType getAuthorizationPhase(ContainerStatus status) {
+		if (status == null){
+			return null;
+		}
+		switch (status) {
+			case ADDING:
+				return AuthorizationPhaseType.REQUEST;
+			case MODIFYING:
+				return AuthorizationPhaseType.EXECUTION;
+
+			default:
+				return null;
+		}
+	}
+
 	private static boolean isShadow(PrismObject object){
 		return (object.getCompileTimeClass() != null && ShadowType.class.isAssignableFrom(object
 				.getCompileTimeClass()))

@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
   
-  <!-- This resource does not support native activation. It has simulated activation instead. -->
+  <!-- This resource does not support native activation. It has simulated activation instead.
+       + unusual validTo and validFrom mappings -->
 
 <resource oid="10000000-0000-0000-0000-0000000a1004"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -111,6 +112,30 @@
             	<administrativeStatus>
             		<outbound/>
             	</administrativeStatus>
+            	<validFrom>
+            		<outbound>
+            			<expression>
+            				<script>
+            					<code>'from: '+input</code>
+            				</script>
+            			</expression>
+            			<target>
+            				<path>attributes/quote</path>
+            			</target>
+            		</outbound>
+            	</validFrom>
+            	<validTo>
+            		<outbound>
+            			<expression>
+            				<script>
+            					<code>'to: '+input</code>
+            				</script>
+            			</expression>
+            			<target>
+            				<path>attributes/drink</path>
+            			</target>
+            		</outbound>
+            	</validTo>
             </activation>
             
             <credentials>
