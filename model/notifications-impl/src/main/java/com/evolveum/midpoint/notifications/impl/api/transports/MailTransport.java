@@ -85,16 +85,16 @@ public class MailTransport implements Transport {
         result.addCollectionOfSerializablesAsParam("mailMessage recipient(s)", mailMessage.getTo());
         result.addParam("mailMessage subject", mailMessage.getSubject());
 
-        PrismObject<SystemConfigurationType> systemConfiguration = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
-        if (systemConfiguration == null || systemConfiguration.asObjectable().getNotificationConfiguration() == null
-                || systemConfiguration.asObjectable().getNotificationConfiguration().getMail() == null) {
+        SystemConfigurationType systemConfiguration = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
+        if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null
+                || systemConfiguration.getNotificationConfiguration().getMail() == null) {
             String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;
             result.recordWarning(msg);
             return;
         }
 
-        MailConfigurationType mailConfigurationType = systemConfiguration.asObjectable().getNotificationConfiguration().getMail();
+        MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
         if (mailConfigurationType.getRedirectToFile() != null) {
             try {
                 TransportUtil.appendToFile(mailConfigurationType.getRedirectToFile(), formatToFile(mailMessage));

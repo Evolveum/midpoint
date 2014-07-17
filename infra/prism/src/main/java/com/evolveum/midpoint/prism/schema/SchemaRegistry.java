@@ -998,7 +998,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	 * in the known schemas.
 	 */
 	public boolean hasImplicitTypeDefinition(QName elementName, QName typeName) {
-        elementName = resolveElementNameIfNeeded(elementName);
+        elementName = resolveElementNameIfNeeded(elementName, false);
         if (elementName == null) {
             return false;
         }
@@ -1014,10 +1014,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	}
 
     private QName resolveElementNameIfNeeded(QName elementName) {
+        return resolveElementNameIfNeeded(elementName, true);
+    }
+
+    private QName resolveElementNameIfNeeded(QName elementName, boolean exceptionIfAmbiguous) {
         if (StringUtils.isNotEmpty(elementName.getNamespaceURI())) {
             return elementName;
         }
-        ItemDefinition itemDef = resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class);
+        ItemDefinition itemDef = resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class, exceptionIfAmbiguous);
         if (itemDef != null) {
             return itemDef.getName();
         } else {
@@ -1053,6 +1057,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	}
 
     private <T extends ItemDefinition> T resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<T> definitionClass) {
+        return resolveGlobalItemDefinitionWithoutNamespace(localPart, definitionClass, true);
+    }
+
+    private <T extends ItemDefinition> T resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<T> definitionClass, boolean exceptionIfAmbiguous) {
         ItemDefinition found = null;
         for (SchemaDescription schemaDescription : parsedSchemas.values()) {
             PrismSchema schema = schemaDescription.getSchema();
@@ -1063,8 +1071,12 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
             if (def != null) {
                 if (found != null) {
                     // todo change to SchemaException
-                    throw new IllegalArgumentException("Multiple possible resolutions for unqualified element name " + localPart + " (e.g. in " +
+                    if (exceptionIfAmbiguous) {
+                        throw new IllegalArgumentException("Multiple possible resolutions for unqualified element name " + localPart + " (e.g. in " +
                             def.getNamespace() + " and " + found.getNamespace());
+                    } else {
+                        return null;
+                    }
                 }
                 found = def;
             }

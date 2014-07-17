@@ -390,13 +390,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     private String waitingInfo(long waitForStop) {
         if (waitForStop == WAIT_INDEFINITELY) {
-            return "wait indefinitely";
+            return "stop tasks, and wait for their completion (if necessary)";
         } else if (waitForStop == DO_NOT_WAIT) {
             return "stop tasks, but do not wait";
         } else if (waitForStop == DO_NOT_STOP) {
             return "do not stop tasks";
         } else {
-            return "stop tasks and wait " + waitForStop + " ms for their completion";
+            return "stop tasks and wait " + waitForStop + " ms for their completion (if necessary)";
         }
     }
 
@@ -481,6 +481,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             result.recordFatalError(message);
             return;
         }
+        clearTaskOperationResult(task, parentResult);           // see a note on scheduleTaskNow
         resumeOrUnpauseTask(task, result);
     }
 
@@ -724,8 +725,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             }
         }
 
+        List<Task> tasksToBeSuspended = new ArrayList<>();
+        for (Task task : tasksToBeDeleted) {
+            if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+                tasksToBeSuspended.add(task);
+            }
+        }
+
         // now suspend the tasks before deletion
-        suspendTasksResolved(tasksToBeDeleted, suspendTimeout, result);
+        if (!tasksToBeSuspended.isEmpty()) {
+            suspendTasksResolved(tasksToBeSuspended, suspendTimeout, result);
+        }
 
         // delete them
         for (Task task : tasksToBeDeleted) {
@@ -1350,9 +1360,16 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public void scheduleTaskNow(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        /*
+         *  Note: we clear task operation result because this is what a user would generally expect when re-running a task
+         *  (MID-1920). We do NOT do that on each task run e.g. to have an ability to see last task execution status
+         *  during a next task run. (When the interval between task runs is too short, e.g. for live sync tasks.)
+         */
         if (task.isClosed()) {
+            clearTaskOperationResult(task, parentResult);
             executionManager.reRunClosedTask(task, parentResult);
         } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+            clearTaskOperationResult(task, parentResult);
             scheduleRunnableTaskNow(task, parentResult);
         } else {
             String message = "Task " + task + " cannot be run now, because it is not in RUNNABLE nor CLOSED state.";
@@ -1360,6 +1377,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             LOGGER.error(message);
             return;
         }
+    }
+
+    private void clearTaskOperationResult(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        OperationResult emptyTaskResult = new OperationResult("run");
+        emptyTaskResult.setStatus(OperationResultStatus.IN_PROGRESS);
+        task.setResultImmediate(emptyTaskResult, parentResult);
     }
 
     public void scheduleRunnableTaskNow(Task task, OperationResult parentResult) {

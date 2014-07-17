@@ -100,8 +100,8 @@ public class SimpleSmsTransport implements Transport {
         result.addCollectionOfSerializablesAsParam("message recipient(s)", message.getTo());
         result.addParam("message subject", message.getSubject());
 
-        PrismObject<SystemConfigurationType> systemConfiguration = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
-        if (systemConfiguration == null || systemConfiguration.asObjectable().getNotificationConfiguration() == null) {
+        SystemConfigurationType systemConfiguration = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
+        if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
             String msg = "No notifications are configured. SMS notification to " + message.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;
             result.recordWarning(msg);
@@ -110,7 +110,7 @@ public class SimpleSmsTransport implements Transport {
 
         String smsConfigName = transportName.length() > NAME.length() ? transportName.substring(NAME.length() + 1) : null;      // after "sms:"
         SmsConfigurationType found = null;
-        for (SmsConfigurationType smsConfigurationType: systemConfiguration.asObjectable().getNotificationConfiguration().getSms()) {
+        for (SmsConfigurationType smsConfigurationType: systemConfiguration.getNotificationConfiguration().getSms()) {
             if ((smsConfigName == null && smsConfigurationType.getName() == null) || (smsConfigName != null && smsConfigName.equals(smsConfigurationType.getName()))) {
                 found = smsConfigurationType;
                 break;

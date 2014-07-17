@@ -72,7 +72,7 @@ public class LogicalOperation extends Operation{
 			}
 			
 			Filter nAryFilter = null;
-			if (filters.size() > 2) {
+			if (filters.size() >= 2) {
 				if (nAry instanceof AndFilter) {
 					nAryFilter = interpretAnd(filters.get(0), filters.subList(1, filters.size()));
 				} else if (nAry instanceof OrFilter) {
