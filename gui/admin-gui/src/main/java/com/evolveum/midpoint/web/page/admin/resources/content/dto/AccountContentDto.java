@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 import java.io.Serializable;
@@ -31,6 +32,16 @@ import java.util.List;
  */
 public class AccountContentDto extends Selectable implements InlineMenuable {
 
+    public static final String F_ACCOUNT_OID = "accountOid";
+    public static final String F_ACCOUNT_NAME = "accountName";
+    public static final String F_IDENTIFIERS = "identifiers";
+    public static final String F_SITUATION = "situation";
+    public static final String F_OWNER_OID = "ownerOid";
+    public static final String F_OWNER_NAME = "ownerName";
+    public static final String F_INTENT = "intent";
+    public static final String F_OBJECT_CLASS = "objectClass";
+    public static final String F_KIND = "kind";
+
     private String accountOid;
     private String accountName;
 
@@ -39,6 +50,10 @@ public class AccountContentDto extends Selectable implements InlineMenuable {
 
     private String ownerOid;
     private String ownerName;
+    private String intent;
+    private String objectClass;
+    private ShadowKindType kind;
+
 
     private List<InlineMenuItem> menu = new ArrayList<InlineMenuItem>();
 
@@ -91,6 +106,30 @@ public class AccountContentDto extends Selectable implements InlineMenuable {
 
     public void setSituation(SynchronizationSituationType situation) {
         this.situation = situation;
+    }
+
+    public String getIntent() {
+        return intent;
+    }
+
+    public void setIntent(String intent) {
+        this.intent = intent;
+    }
+
+    public String getObjectClass() {
+        return objectClass;
+    }
+
+    public void setObjectClass(String objectClass) {
+        this.objectClass = objectClass;
+    }
+
+    public ShadowKindType getKind() {
+        return kind;
+    }
+
+    public void setKind(ShadowKindType kind) {
+        this.kind = kind;
     }
 
     @Override

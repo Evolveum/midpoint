@@ -16,9 +16,29 @@
   -->
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<head>
+    <!-- TODO - clean this up to some CSS file + unite fonts and style with the rest of the page -->
+    <wicket:head>
+        <style>
+            div.wicket-aa {
+                font-family: "Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana;
+                font-size: 12px;
+                background-color: white;
+                border-width: 1px;
+                border-color: #cccccc;
+                border-style: solid;
+                padding: 2px;
+                margin: 1px 0 0 0;
+                text-align:left;
+            }
+            div.wicket-aa ul { list-style:none; padding: 2px; margin:0; }
+            div.wicket-aa ul li.selected { background-color: #FFFF00; padding: 2px; margin:0; }
+        </style>
+    </wicket:head>
+</head>
 <body>
 <wicket:extend>
-    <form class="form-horizontal" wicket:id="mainForm">
+    <form class="clearfix form-horizontal" wicket:id="mainForm">
         <div class="form-group">
             <label class="col-lg-2 control-label"><wicket:message key="PageAccounts.resource"/></label>
 
@@ -68,17 +88,36 @@
             </tr>
             </tbody>
         </table>
+    </form>
 
-        <h3><wicket:message key="PageAccounts.shadows"/></h3>
+    <h3><wicket:message key="PageAccounts.shadows"/></h3>
+
+    <form class="clearfix form-inline pull-right search-form" wicket:id="searchForm" >
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="PageAccounts.accounts.kind" /></label>
+            <select class="form-control input-sm" wicket:id="kindSearch" />
+        </div>
+
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="PageAccounts.accounts.intent" /></label>
+            <select class="form-control input-sm" wicket:id="intentSearch" />
+        </div>
+
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="PageAccounts.accounts.objectClass" /></label>
+            <input class="form-control input-sm" wicket:id="objectClassSearch" size="45"/>
+        </div>
+
+        <div wicket:id="basicSearch" />
+    </form>
+
+    <form class="clearfix form-horizontal" wicket:id="accountForm">
         <div wicket:id="accountsContainer">
             <div wicket:id="accounts"/>
         </div>
 
-        <wicket:remove>
-            <!-- todo improve this, it's just a left-over from old gui -->
-        </wicket:remove>
-
         <hr/>
+
         <div class="main-button-bar">
             <a class="btn btn-primary" wicket:id="clearExport">
                 <wicket:message key="PageAccounts.button.clearExportFolder"/></a>
@@ -89,6 +128,7 @@
             </span>
         </div>
     </form>
+
 </wicket:extend>
 </body>
 </html>
