@@ -1768,6 +1768,16 @@ public class ModelController implements ModelService, ModelInteractionService, T
     public void deleteProcessInstance(String instanceId, OperationResult parentResult) {
         workflowManager.deleteProcessInstance(instanceId, parentResult);
     }
+
+    @Override
+    public void claimWorkItem(String workItemId, OperationResult parentResult) {
+        workflowManager.claimWorkItem(workItemId, parentResult);
+    }
+
+    @Override
+    public void releaseWorkItem(String workItemId, OperationResult parentResult) {
+        workflowManager.releaseWorkItem(workItemId, parentResult);
+    }
     //endregion
 
 }

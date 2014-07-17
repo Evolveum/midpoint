@@ -101,4 +101,7 @@ public interface WorkflowService {
 
     void deleteProcessInstance(String instanceId, OperationResult parentResult);
 
+    void claimWorkItem(String workItemId, OperationResult parentResult);
+
+    void releaseWorkItem(String workItemId, OperationResult parentResult);
 }

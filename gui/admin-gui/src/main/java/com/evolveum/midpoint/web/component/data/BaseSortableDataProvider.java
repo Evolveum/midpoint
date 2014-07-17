@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -89,9 +89,9 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return application.getModelInteractionService();
     }
 
-    protected WorkflowManager getWorkflowService() {
+    protected WorkflowService getWorkflowService() {
         MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-        return application.getWorkflowManager();
+        return application.getWorkflowService();
     }
 
     public List<T> getAvailableData() {

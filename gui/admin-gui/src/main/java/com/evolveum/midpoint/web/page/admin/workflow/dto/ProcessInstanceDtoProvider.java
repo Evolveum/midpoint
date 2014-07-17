@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -85,7 +86,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 //                order = OrderDirectionType.DESCENDING;
 //            }
 
-            WorkflowManager wfm = getWorkflowService();
+            WorkflowService wfm = getWorkflowService();
             List<WfProcessInstanceType> items = wfm.listProcessInstancesRelatedToUser(currentUser(), requestedBy,
                     requestedFor, finished, WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count),
                     result);
@@ -120,8 +121,8 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         try {
-            WorkflowManager workflowManager = getWorkflowService();
-            count = workflowManager.countProcessInstancesRelatedToUser(currentUser(), requestedBy, requestedFor, finished, result);
+            WorkflowService workflowService = getWorkflowService();
+            count = workflowService.countProcessInstancesRelatedToUser(currentUser(), requestedBy, requestedFor, finished, result);
         } catch (Exception ex) {
             String msg = "Couldn't list process instances";
             LoggingUtils.logException(LOGGER, msg, ex);

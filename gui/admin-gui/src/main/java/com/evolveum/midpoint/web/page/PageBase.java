@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -68,6 +69,8 @@ public abstract class PageBase extends PageTemplate {
     private ModelDiagnosticService modelDiagnosticService;
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
+    @SpringBean(name = "modelController")
+    private WorkflowService workflowService;
     @SpringBean(name = "workflowManager")
     private WorkflowManager workflowManager;
     @SpringBean(name = "midpointConfiguration")
@@ -100,6 +103,10 @@ public abstract class PageBase extends PageTemplate {
 
     protected TaskManager getTaskManager() {
         return taskManager;
+    }
+
+    protected WorkflowService getWorkflowService() {
+        return workflowService;
     }
 
     protected WorkflowManager getWorkflowManager() {
