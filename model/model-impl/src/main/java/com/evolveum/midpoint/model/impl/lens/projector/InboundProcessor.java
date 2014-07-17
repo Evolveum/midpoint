@@ -558,11 +558,6 @@ public class InboundProcessor {
             return;
         }
         
-        // TODO: fix multiple inbounds
-        
-        int strongMappings = 0;
-        final PrismProperty<?> property = newUser.findOrCreateProperty(sourcePath);
-        
         ObjectDelta<F> userPrimaryDelta = context.getFocusContext().getPrimaryDelta();
         PropertyDelta primaryPropDelta = null;
         if (userPrimaryDelta != null) {
@@ -573,6 +568,14 @@ public class InboundProcessor {
         	}
         }
 
+      ObjectDelta<F> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
+      if (userSecondaryDelta != null) {
+	        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(sourcePath);
+	        if (delta != null) {
+	            //remove delta if exists, it will be handled by inbound
+	            userSecondaryDelta.getModifications().remove(delta);
+	        }
+      }
         
         MappingInitializer initializer = new MappingInitializer() {
 			@Override
@@ -591,10 +594,10 @@ public class InboundProcessor {
 			            }
 			        }
 			        
-			        ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, accContext);
+			        ObjectDelta<ShadowType> aPrioriShadowDelta = getAPrioriDelta(context, accContext);
 			        ItemDelta<PrismPropertyValue<?>> specialAttributeDelta = null;
-			        if (aPrioriDelta != null){
-			        	specialAttributeDelta = aPrioriDelta.findItemDelta(sourcePath);
+			        if (aPrioriShadowDelta != null){
+			        	specialAttributeDelta = aPrioriShadowDelta.findItemDelta(sourcePath);
 			        }
 			        ItemDeltaItem<PrismPropertyValue<?>> sourceIdi = accContext.getObjectDeltaObject().findIdi(sourcePath);
 			        if (specialAttributeDelta == null){
@@ -604,8 +607,6 @@ public class InboundProcessor {
 			        		sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
 					mapping.setDefaultSource(source);
 					
-			    	mapping.setDefaultTargetDefinition(property.getDefinition());
-			    	
 			    	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
 			    	mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser);
 			    	
@@ -620,33 +621,57 @@ public class InboundProcessor {
 			}
         };
         
-        MutableBoolean strongMappingWasUsed = new MutableBoolean();
-        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = mappingEvaluatorHelper.evaluateMappingSetProjection(
-                inboundMappingTypes, "inbound mapping for " + sourcePath + " in " + accContext.getResource(), now, initializer, property, primaryPropDelta, newUser, true, strongMappingWasUsed, context, accContext, task, opResult);
-		
+        MappingOutputProcessor<PrismValue> processor = new MappingOutputProcessor<PrismValue>() {
+			@Override
+			public void process(ItemPath mappingOutputPath, PrismValueDeltaSetTriple<PrismValue> outputTriple)
+					throws ExpressionEvaluationException, SchemaException {
+		        if (outputTriple == null){
+		        	LOGGER.trace("Mapping for property {} evaluated to null. Skipping inboud processing for that property.", sourcePath);
+		        	return;
+		        }
+		        
+		        ObjectDelta<F> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
+		        if (userSecondaryDelta != null) {
+			        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(sourcePath);
+			        if (delta != null) {
+			            //remove delta if exists, it will be handled by inbound
+			            userSecondaryDelta.getModifications().remove(delta);
+			        }
+		        }
+		        
+		        PrismObjectDefinition<F> focusDefinition = context.getFocusContext().getObjectDefinition();
+		        PrismProperty result = focusDefinition.findPropertyDefinition(sourcePath).instantiate();
+		    	result.addAll(PrismValue.cloneCollection(outputTriple.getNonNegativeValues()));
+		        
+		    	PrismProperty targetPropertyNew = newUser.findOrCreateProperty(sourcePath);
+		        PropertyDelta<?> delta = targetPropertyNew.diff(result);
+		        if (delta != null && !delta.isEmpty()) {
+		        	delta.setParentPath(sourcePath.allExceptLast());
+		        	context.getFocusContext().swallowToProjectionWaveSecondaryDelta(delta);
+		        }
 
-        if (outputTriple == null){
-        	LOGGER.trace("Mapping for property {} evaluated to null. Skipping inboud processing for that property.", sourcePath);
-        	return;
-        }
+			}
+		};
         
-        ObjectDelta<F> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
-        if (userSecondaryDelta != null) {
-	        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(sourcePath);
-	        if (delta != null) {
-	            //remove delta if exists, it will be handled by inbound
-	            userSecondaryDelta.getModifications().remove(delta);
-	        }
-        }
+        MappingEvaluatorHelperParams<PrismValue, F, F> params = new MappingEvaluatorHelperParams<>();
+        params.setMappingTypes(inboundMappingTypes);
+        params.setMappingDesc("inbound mapping for " + sourcePath + " in " + accContext.getResource());
+        params.setNow(now);
+        params.setInitializer(initializer);
+		params.setProcessor(processor);
+        params.setAPrioriTargetObject(newUser);
+        params.setAPrioriTargetDelta(userPrimaryDelta);
+        params.setTargetContext(context.getFocusContext());
+        params.setDefaultTargetItemPath(sourcePath);
+        params.setEvaluateCurrent(true);
+        params.setContext(context);
+        params.setHasFullTargetObject(true);
+		mappingEvaluatorHelper.evaluateMappingSetProjection(params, task, opResult);
         
-        PrismProperty result = property.getDefinition().instantiate();
-    	result.addAll(PrismValue.cloneCollection(outputTriple.getNonNegativeValues()));
-            
-        PropertyDelta<?> delta = property.diff(result);
-        if (delta != null && !delta.isEmpty()) {
-        	delta.setParentPath(sourcePath.allExceptLast());
-        	context.getFocusContext().swallowToProjectionWaveSecondaryDelta(delta);
-        }
+//        MutableBoolean strongMappingWasUsed = new MutableBoolean();
+//        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = mappingEvaluatorHelper.evaluateMappingSetProjection(
+//                inboundMappingTypes, "inbound mapping for " + sourcePath + " in " + accContext.getResource(), now, initializer, targetPropertyNew, primaryPropDelta, newUser, true, strongMappingWasUsed, context, accContext, task, opResult);
+		
     }
     
     private Collection<Mapping> getMappingApplicableToChannel(

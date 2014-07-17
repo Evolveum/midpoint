@@ -164,6 +164,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> squeezedAttributes;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> squeezedAssociations;
     
+    // Cached copy, to avoid constructing it over and over again
+    private transient PrismObjectDefinition<ShadowType> shadowDefinition = null;
+    
     private ValuePolicyType accountPasswordPolicy;
 
     
@@ -313,7 +316,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.resource = resource;
     }
     
-    public boolean isAssigned() {
+    @Override
+	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
+		if (shadowDefinition == null) {
+			try {
+				shadowDefinition = ShadowUtil.applyObjectClass(super.getObjectDefinition(), getRefinedAccountDefinition());
+			} catch (SchemaException e) {
+				// This should not happen
+				throw new SystemException(e.getMessage(), e);
+			}
+		}
+		return shadowDefinition;
+	}
+
+	public boolean isAssigned() {
         return isAssigned;
     }
 

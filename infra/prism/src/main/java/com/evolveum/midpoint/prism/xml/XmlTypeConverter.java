@@ -584,4 +584,8 @@ public class XmlTypeConverter {
 		return createXMLGregorianCalendar(toMillis(now) + duration);
 	}
 
+	public static String formatDateXml(Date date) {
+		return createXMLGregorianCalendar(date).toXMLFormat();
+	}
+
 }

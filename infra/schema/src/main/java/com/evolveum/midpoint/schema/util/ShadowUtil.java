@@ -263,6 +263,13 @@ public class ShadowUtil {
 				objectClassDefinition, objectClassDefinition.getPrismContext());
 		attributesContainer.applyDefinition(racDef, true);
 	}
+	
+	public static PrismObjectDefinition<ShadowType> applyObjectClass(PrismObjectDefinition<ShadowType> shadowDefinition, 
+			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+		PrismObjectDefinition<ShadowType> shadowDefClone = shadowDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES,
+				objectClassDefinition.toResourceAttributeContainerDefinition());
+		return shadowDefClone;
+	}
 
 	/**
 	 * Returns intent from the shadow. Backwards compatible with older accountType. May also adjust for default
