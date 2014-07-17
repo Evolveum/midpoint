@@ -26,9 +26,7 @@ public class ObjectWrapperUtil {
 	public static <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName, String description, PrismObject<O> object, ContainerStatus status, boolean delayContainerCreation, PageBase pageBase) {
 		try {
 			
-			AuthorizationPhaseType phase = getAuthorizationPhase(status);
-			
-			PrismContainerDefinition objectDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectDefinition(object, phase);
+			PrismContainerDefinition objectDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectDefinition(object, AuthorizationPhaseType.REQUEST);
 			RefinedObjectClassDefinition objectClassDefinitionForEditing = null;
 			if (isShadow(object)) {
 				PrismReference resourceRef = object.findReference(ShadowType.F_RESOURCE_REF);
@@ -43,21 +41,7 @@ public class ObjectWrapperUtil {
 		}
 	}
 	
-	private static AuthorizationPhaseType getAuthorizationPhase(ContainerStatus status) {
-		if (status == null){
-			return null;
-		}
-		switch (status) {
-			case ADDING:
-				return AuthorizationPhaseType.REQUEST;
-			case MODIFYING:
-				return AuthorizationPhaseType.EXECUTION;
-
-			default:
-				return null;
-		}
-	}
-
+	
 	private static boolean isShadow(PrismObject object){
 		return (object.getCompileTimeClass() != null && ShadowType.class.isAssignableFrom(object
 				.getCompileTimeClass()))
