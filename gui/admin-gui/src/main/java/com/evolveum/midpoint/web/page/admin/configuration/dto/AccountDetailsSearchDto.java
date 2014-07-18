@@ -75,6 +75,6 @@ public class AccountDetailsSearchDto implements Serializable{
     }
 
     public void setObjectClass(String objectClass) {
-        this.objectClass = null;
+        this.objectClass = objectClass;
     }
 }

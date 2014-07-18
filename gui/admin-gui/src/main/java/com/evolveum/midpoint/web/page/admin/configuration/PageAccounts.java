@@ -17,13 +17,11 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.*;
@@ -48,6 +46,7 @@ import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -272,6 +271,26 @@ public class PageAccounts extends PageAdminConfiguration {
     }
 
     private void initSearchForm(Form searchForm){
+        BasicSearchPanel<AccountDetailsSearchDto> basicSearch = new BasicSearchPanel<AccountDetailsSearchDto>(ID_SEARCH_BASIC) {
+
+            @Override
+            protected IModel<String> createSearchTextModel() {
+                return new PropertyModel<>(searchModel, AccountDetailsSearchDto.F_SEARCH_TEXT);
+            }
+
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
+                PageAccounts.this.searchPerformed(target);
+            }
+
+            @Override
+            protected void clearSearchPerformed(AjaxRequestTarget target) {
+                PageAccounts.this.clearSearchPerformed(target);
+            }
+        };
+        basicSearch.setOutputMarkupId(true);
+        searchForm.add(basicSearch);
+
         DropDownChoice kind = new DropDownChoice(ID_SEARCH_KIND,
                 new PropertyModel<ShadowKindType>(searchModel, AccountDetailsSearchDto.F_KIND),
                 WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer(this));
@@ -311,7 +330,6 @@ public class PageAccounts extends PageAdminConfiguration {
         intent.setOutputMarkupId(true);
         searchForm.add(intent);
 
-        //TODO - consider adding some on-enter behavior or sth like that
         AutoCompleteTextField<String> objectClass = new AutoCompleteTextField<String>(ID_SEARCH_OBJECT_CLASS,
                 new PropertyModel<String>(searchModel, AccountDetailsSearchDto.F_OBJECT_CLASS)) {
 
@@ -342,27 +360,8 @@ public class PageAccounts extends PageAdminConfiguration {
         objectClass.add(AttributeModifier.replace("placeholder", createStringResource("PageAccounts.accounts.objectClass")));
         objectClass.setOutputMarkupId(true);
         objectClass.add(createObjectClassValidator());
+        objectClass.add(new SearchFormEnterBehavior(basicSearch.getSearchButton()));
         searchForm.add(objectClass);
-
-        BasicSearchPanel<AccountDetailsSearchDto> basicSearch = new BasicSearchPanel<AccountDetailsSearchDto>(ID_SEARCH_BASIC) {
-
-            @Override
-            protected IModel<String> createSearchTextModel() {
-                return new PropertyModel<>(searchModel, AccountDetailsSearchDto.F_SEARCH_TEXT);
-            }
-
-            @Override
-            protected void searchPerformed(AjaxRequestTarget target) {
-                PageAccounts.this.searchPerformed(target);
-            }
-
-            @Override
-            protected void clearSearchPerformed(AjaxRequestTarget target) {
-                PageAccounts.this.clearSearchPerformed(target);
-            }
-        };
-        basicSearch.setOutputMarkupId(true);
-        searchForm.add(basicSearch);
     }
 
     private IValidator<String> createObjectClassValidator(){
@@ -597,8 +596,8 @@ public class PageAccounts extends PageAdminConfiguration {
                 ShadowType.F_KIND.getLocalPart(), SelectableBean.F_VALUE + ".kind"));
         columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.intent"),
                 ShadowType.F_INTENT.getLocalPart(), SelectableBean.F_VALUE + ".intent"));
-        columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.objectClass"),
-                ShadowType.F_OBJECT_CLASS.getLocalPart(), SelectableBean.F_VALUE + ".objectClass"));
+        columns.add(new PropertyColumn<QName, String>(createStringResource("PageAccounts.accounts.objectClass"),
+                ShadowType.F_OBJECT_CLASS.getLocalPart(), SelectableBean.F_VALUE + ".objectClass.localPart"));
         columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.synchronizationSituation"),
                 ShadowType.F_SYNCHRONIZATION_SITUATION.getLocalPart(), SelectableBean.F_VALUE + ".synchronizationSituation"));
         columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.synchronizationTimestamp"),
@@ -618,26 +617,7 @@ public class PageAccounts extends PageAdminConfiguration {
             RefFilter resourceRef = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
                     getPrismContext(), oid);
 
-            PrismObject<ResourceType> resource = getModelService().getObject(ResourceType.class, oid, null,
-                    createSimpleTask(OPERATION_LOAD_ACCOUNTS), result);
-            RefinedResourceSchema schema = RefinedResourceSchema.getRefinedSchema(resource);
-            QName qname = null;
-            for (RefinedObjectClassDefinition def : schema.getRefinedDefinitions(ShadowKindType.ACCOUNT)) {
-                if (def.isDefault()) {
-                    qname = def.getObjectClassDefinition().getTypeName();
-                    break;
-                }
-            }
-
-            if (qname == null) {
-                error("Couldn't find default object class for resource '" + WebMiscUtil.getName(resource) + "'.");
-                return null;
-            }
-
-            EqualFilter objectClass = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, getPrismContext(),
-                    null, qname);
-
-            return AndFilter.createAnd(resourceRef, objectClass);
+            return resourceRef;
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't create query", ex);
             error("Couldn't create query, reason: " + ex.getMessage());
@@ -729,6 +709,13 @@ public class PageAccounts extends PageAdminConfiguration {
 
     private void listSyncDetailsPerformed(AjaxRequestTarget target) {
         refreshSyncTotalsModels();
+
+        if(resourceModel.getObject() == null){
+            warn(getString("pageAccounts.message.resourceNotSelected"));
+            refreshEverything(target);
+            return;
+        }
+
         loadResourceObjectClass();
 
         TablePanel table = getAccountsTable();
@@ -736,6 +723,10 @@ public class PageAccounts extends PageAdminConfiguration {
         provider.setQuery(ObjectQuery.createObjectQuery(createResourceQueryFilter()));
         table.getDataTable().setCurrentPage(0);
 
+        refreshEverything(target);
+    }
+
+    private void refreshEverything(AjaxRequestTarget target){
         target.add(getAccountsContainer(),
                 getTotalsPanel(),
                 getFeedbackPanel(),

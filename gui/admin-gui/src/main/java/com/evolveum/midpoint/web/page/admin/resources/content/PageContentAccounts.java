@@ -285,7 +285,8 @@ public class PageContentAccounts extends PageAdminResources {
         column = new PropertyColumn(createStringResource("pageContentAccounts.intent"), AccountContentDto.F_INTENT);
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("pageContentAccounts.objectClass"), AccountContentDto.F_OBJECT_CLASS);
+        column = new PropertyColumn(createStringResource("pageContentAccounts.objectClass"),
+                AccountContentDto.F_OBJECT_CLASS);
         columns.add(column);
 
         column = new EnumPropertyColumn(createStringResource("pageContentAccounts.situation"), AccountContentDto.F_SITUATION) {

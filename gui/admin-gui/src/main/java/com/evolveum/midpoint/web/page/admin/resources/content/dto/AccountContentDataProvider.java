@@ -156,7 +156,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
 
         dto.setKind(shadow.getKind());
         dto.setIntent(shadow.getIntent());
-        dto.setObjectClass(shadow.getObjectClass().toString());
+        dto.setObjectClass(shadow.getObjectClass().getLocalPart());
 
         addInlineMenuToDto(dto);
 
