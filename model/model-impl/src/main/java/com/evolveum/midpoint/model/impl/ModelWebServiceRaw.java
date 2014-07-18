@@ -191,6 +191,12 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
         } catch (SchemaException e) {
             throw createSystemFault(e, operationResultTypeHolder.value);
         }
+
+        // brutal hack for MID-2001 (serializing and parsing eliminates the problem!)
+        String serialized = DOMUtil.printDom(response).toString();
+        LOGGER.trace("WEB SERVICE RESPONSE:\n{}", serialized);
+        response = DOMUtil.parseDocument(serialized);
+
         return new DOMSource(response);
     }
 

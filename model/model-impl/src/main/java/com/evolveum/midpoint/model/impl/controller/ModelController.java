@@ -25,17 +25,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
+import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.prism.parser.XNodeSerializer;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.cxf.phase.Phase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
@@ -133,6 +141,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -168,7 +177,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
  * @author Radovan Semancik
  */
 @Component
-public class ModelController implements ModelService, ModelInteractionService, TaskService, WorkflowService {
+public class ModelController implements ModelService, ModelInteractionService, TaskService, WorkflowService, ScriptingService {
 
 	// Constants for OperationResult
 	public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -217,6 +226,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
     @Autowired(required = false)                        // not required in all circumstances
     private WorkflowManager workflowManager;
+
+    @Autowired
+    private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 	
 	@Autowired(required = true)
 	private ChangeExecutor changeExecutor;
@@ -276,6 +288,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
             object = objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
             
 			resolve(object, options, task, result);
+            resolveNames(object, options, task, result);
 		} catch (SchemaException e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
@@ -319,8 +332,56 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 		}
 	}
-	
-	private void resolve(PrismObject<?> object, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+    protected void resolveNames(PrismObject<?> object, Collection<SelectorOptions<GetOperationOptions>> options,
+                           final Task task, final OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (object == null || options == null) {
+            return;
+        }
+
+        // currently, only all-or-nothing names resolving is provided
+        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+        if (!GetOperationOptions.isResolveNames(rootOptions)) {
+            return;
+        }
+
+        final GetOperationOptions rootOptionsNoResolve = rootOptions.clone();
+        rootOptionsNoResolve.setResolveNames(false);
+        rootOptionsNoResolve.setResolve(false);
+        rootOptionsNoResolve.setRaw(true);
+
+        object.accept(new Visitor() {
+            @Override
+            public void visit(Visitable visitable) {
+                if (visitable instanceof PrismReferenceValue) {
+                    PrismReferenceValue refVal = (PrismReferenceValue) visitable;
+                    PrismObject<?> refObject = refVal.getObject();
+                    if (refObject == null) {
+                        try {
+                            // TODO what about security here?!
+                            // TODO use some minimalistic get options (e.g. retrieve name only)
+                            refObject = objectResolver.resolve(refVal, "", rootOptionsNoResolve, task, result);
+                        } catch (ObjectNotFoundException e) {
+                            // can be safely ignored
+                            result.recordHandledError(e.getMessage());
+                        }
+                    }
+                    String name;
+                    if (refObject != null) {
+                        name = PolyString.getOrig(refObject.asObjectable().getName());
+                    } else {
+                        name = "(object not found)";
+                    }
+                    if (StringUtils.isNotEmpty(name)) {
+                        refVal.setUserData(XNodeSerializer.USER_DATA_KEY_COMMENT, " " + name + " ");
+                    }
+                }
+            }
+        });
+    }
+
+
+    private void resolve(PrismObject<?> object, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (!GetOperationOptions.isResolve(option.getOptions())) {
 			return;
 		}
@@ -705,7 +766,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	@Override
-	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException {
+	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase) throws SchemaException {
 		PrismObjectDefinition<O> origDefinition = object.getDefinition();
 		// TODO: maybe we need to expose owner resolver in the interface?
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
@@ -716,14 +777,15 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			return null;
 		}
 		PrismObjectDefinition<O> finalDefinition = applySecurityContraints(origDefinition, new ItemPath(), securityConstraints,
-				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), null),
-				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), null),
-				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), null));
+				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase),
+				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
+				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
 		return finalDefinition;
 	}
 	
 	private <D extends ItemDefinition> D applySecurityContraints(D origItemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
-			AuthorizationDecisionType defaultReadDecition, AuthorizationDecisionType defaultAddDecition, AuthorizationDecisionType defaultModifyDecition) {
+			AuthorizationDecisionType defaultReadDecition, AuthorizationDecisionType defaultAddDecition, AuthorizationDecisionType defaultModifyDecition,
+            AuthorizationPhaseType phase) {
 		D itemDefinition = (D) origItemDefinition.clone();
 		// We need to make a super-deep clone here. Even make sure that the complex types inside are cloned.
 		// Otherwise permissions from one part of the definition tree may be incorrectly propagated to another part
@@ -732,9 +794,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			ComplexTypeDefinition origCtd = containerDefinition.getComplexTypeDefinition();
 			containerDefinition.setComplexTypeDefinition(origCtd.clone());
 		}
-		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecition);
-		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecition);
-		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecition);
+		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecition, phase);
+		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecition, phase);
+		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecition, phase);
 //		LOGGER.trace("Decision for {}: {}", itemPath, readDecision);
 		if (readDecision != AuthorizationDecisionType.ALLOW) {
 			itemDefinition.setCanRead(false);
@@ -756,7 +818,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                 // it's too late to come up with a serious solution
                 if (!(itemPath.lastNamed() != null && ObjectSpecificationType.F_OWNER.equals(itemPath.lastNamed().getName()) && ObjectSpecificationType.F_OWNER.equals(subDef.getName()))) {
 				    ItemDefinition newDef = applySecurityContraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
-						    readDecision, addDecision, modifyDecision);
+						    readDecision, addDecision, modifyDecision, phase);
 				    containerDefinition.getComplexTypeDefinition().add(newDef);
                 }
 			}
@@ -765,8 +827,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 		
     private AuthorizationDecisionType computeItemDecision(ObjectSecurityConstraints securityConstraints, ItemPath itemPath, String actionUrl,
-			AuthorizationDecisionType defaultDecision) {
-    	AuthorizationDecisionType explicitDecision = securityConstraints.findItemDecision(itemPath, actionUrl, null);
+			AuthorizationDecisionType defaultDecision, AuthorizationPhaseType phase) {
+    	AuthorizationDecisionType explicitDecision = securityConstraints.findItemDecision(itemPath, actionUrl, phase);
 //    	LOGGER.trace("Explicit decision for {}: {}", itemPath, explicitDecision);
     	if (explicitDecision != null) {
     		return explicitDecision;
@@ -776,7 +838,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
     
     @Override
-	public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource)
+	public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase)
 			throws SchemaException {
     	// TODO: maybe we need to expose owner resolver in the interface?
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(shadow, null);
@@ -807,11 +869,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
     	ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
 		AuthorizationDecisionType attributesReadDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.READ.getUrl(), 
-    			securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), null));
+    			securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase), phase);
 		AuthorizationDecisionType attributesAddDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.ADD.getUrl(),
-				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), null));
+				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase), phase);
 		AuthorizationDecisionType attributesModifyDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.MODIFY.getUrl(),
-				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), null));
+				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
 		LOGGER.trace("Attributes container access read:{}, add:{}, modify:{}", new Object[]{attributesReadDecision, attributesAddDecision, attributesModifyDecision});
 
         /*
@@ -821,9 +883,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
         layeredROCD = layeredROCD.clone();
         for (LayerRefinedAttributeDefinition rAttrDef: layeredROCD.getAttributeDefinitions()) {
 			ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
-			AuthorizationDecisionType attributeReadDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.READ.getUrl(), attributesReadDecision);
-			AuthorizationDecisionType attributeAddDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.ADD.getUrl(), attributesAddDecision);
-			AuthorizationDecisionType attributeModifyDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.MODIFY.getUrl(), attributesModifyDecision);
+			AuthorizationDecisionType attributeReadDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.READ.getUrl(), attributesReadDecision, phase);
+			AuthorizationDecisionType attributeAddDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.ADD.getUrl(), attributesAddDecision, phase);
+			AuthorizationDecisionType attributeModifyDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.MODIFY.getUrl(), attributesModifyDecision, phase);
 			LOGGER.trace("Attribute {} access read:{}, add:{}, modify:{}", new Object[]{rAttrDef.getName(), attributeReadDecision, attributeAddDecision, attributeModifyDecision});
 			if (attributeReadDecision != AuthorizationDecisionType.ALLOW) {
 				rAttrDef.setOverrideCanRead(false);
@@ -943,6 +1005,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
                         hook.invoke(object, options, task, result);
                     }
                 }
+                // TODO enable when necessary
+                //resolveNames(object, options, task, result);
             }
 
 		} finally {
@@ -991,9 +1055,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
                 try {
                     if (hookRegistry != null) {
                         for (ReadHook hook : hookRegistry.getAllReadHooks()) {
-                            hook.invoke(object, options, task, result);
+                            hook.invoke(object, options, task, result);     // TODO result or parentResult??? [med]
                         }
                     }
+                    // TODO enable when necessary
+                    //resolveNames(object, options, task, parentResult);
                     postProcessObject(object, rootOptions, parentResult);
                 } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
                         | CommunicationException | ConfigurationException ex) {
@@ -1767,6 +1833,28 @@ public class ModelController implements ModelService, ModelInteractionService, T
     @Override
     public void deleteProcessInstance(String instanceId, OperationResult parentResult) {
         workflowManager.deleteProcessInstance(instanceId, parentResult);
+    }
+
+    @Override
+    public void claimWorkItem(String workItemId, OperationResult parentResult) {
+        workflowManager.claimWorkItem(workItemId, parentResult);
+    }
+
+    @Override
+    public void releaseWorkItem(String workItemId, OperationResult parentResult) {
+        workflowManager.releaseWorkItem(workItemId, parentResult);
+    }
+    //endregion
+
+    //region Scripting (bulka actions)
+    @Override
+    public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException {
+        scriptingExpressionEvaluator.evaluateExpressionInBackground(objectType, filter, actionName, task, parentResult);
+    }
+
+    @Override
+    public void evaluateExpressionInBackground(JAXBElement<? extends ScriptingExpressionType> expression, Task task, OperationResult parentResult) throws SchemaException {
+        scriptingExpressionEvaluator.evaluateExpressionInBackground(expression, task, parentResult);
     }
     //endregion
 

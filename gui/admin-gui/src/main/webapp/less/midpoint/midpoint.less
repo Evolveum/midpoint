@@ -16,6 +16,32 @@
 @import "tree-theme-basic.less";
 @import "operation-result.less";
 
+/**
+ *  Auto-complete drop-down choice styles
+ */
+div.wicket-aa {
+  background-color: @body-bg;
+  border: 1px solid @input-border;
+  padding: 2px;
+  margin: 1px;
+  text-align: left;
+
+  ul {
+    list-style: none;
+    padding: 2px;
+    margin: 0;
+
+    li {
+      padding: 2px;
+      margin: 0;
+
+      &.selected {
+        background-color: lighten(@input-border-focus, 10%);
+      }
+    }
+  }
+}
+
 div.wicket-debug-buttons {
   border: 1px solid #000000;
   background-color: #ffffff;

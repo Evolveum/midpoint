@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
 
 import java.io.PrintWriter;
@@ -33,8 +34,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.bind.JAXBException;
 
 /**
  * @author lazyman
@@ -104,8 +103,10 @@ public class OpResult extends PageAdmin implements Serializable {
         	OperationResultType resultType = result.createOperationResultType();
         	ObjectFactory of = new ObjectFactory();
 			xml = getPrismContext().serializeAtomicValue(of.createOperationResult(resultType), PrismContext.LANG_XML);
-		} catch (SchemaException ex) {
-			error("Can't create xml: " + ex);
+		} catch (SchemaException|RuntimeException ex) {
+            String m = "Can't create xml: " + ex;
+			error(m);
+            xml = "<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml(m) + "</message>";
         }
     }
 

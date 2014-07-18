@@ -11,6 +11,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -24,12 +25,13 @@ public class ObjectWrapperUtil {
 
 	public static <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName, String description, PrismObject<O> object, ContainerStatus status, boolean delayContainerCreation, PageBase pageBase) {
 		try {
-			PrismContainerDefinition objectDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectDefinition(object);
+			
+			PrismContainerDefinition objectDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectDefinition(object, AuthorizationPhaseType.REQUEST);
 			RefinedObjectClassDefinition objectClassDefinitionForEditing = null;
 			if (isShadow(object)) {
 				PrismReference resourceRef = object.findReference(ShadowType.F_RESOURCE_REF);
                 PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
-                objectClassDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectClassDefinition((PrismObject<ShadowType>) object, resource);
+                objectClassDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectClassDefinition((PrismObject<ShadowType>) object, resource, AuthorizationPhaseType.REQUEST);
 			} 
 			
 		    ObjectWrapper wrapper = new ObjectWrapper(displayName, description, object, objectDefinitionForEditing, objectClassDefinitionForEditing, status, delayContainerCreation, pageBase);
@@ -38,6 +40,7 @@ public class ObjectWrapperUtil {
 			throw new SystemException(ex);
 		}
 	}
+	
 	
 	private static boolean isShadow(PrismObject object){
 		return (object.getCompileTimeClass() != null && ShadowType.class.isAssignableFrom(object

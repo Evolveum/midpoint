@@ -70,6 +70,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
@@ -251,7 +252,7 @@ public class PageContentAccounts extends PageAdminResources {
         columns.add(column);
 
         column = new LinkColumn<AccountContentDto>(
-                createStringResource("pageContentAccounts.name"), "accountName") {
+                createStringResource("pageContentAccounts.name"), AccountContentDto.F_ACCOUNT_NAME) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<AccountContentDto> rowModel) {
@@ -278,7 +279,17 @@ public class PageContentAccounts extends PageAdminResources {
         };
         columns.add(column);
 
-        column = new EnumPropertyColumn(createStringResource("pageContentAccounts.situation"), "situation") {
+        column = new PropertyColumn(createStringResource("pageContentAccounts.kind"), AccountContentDto.F_KIND);
+        columns.add(column);
+
+        column = new PropertyColumn(createStringResource("pageContentAccounts.intent"), AccountContentDto.F_INTENT);
+        columns.add(column);
+
+        column = new PropertyColumn(createStringResource("pageContentAccounts.objectClass"),
+                AccountContentDto.F_OBJECT_CLASS);
+        columns.add(column);
+
+        column = new EnumPropertyColumn(createStringResource("pageContentAccounts.situation"), AccountContentDto.F_SITUATION) {
 
             @Override
             protected String translate(Enum en) {

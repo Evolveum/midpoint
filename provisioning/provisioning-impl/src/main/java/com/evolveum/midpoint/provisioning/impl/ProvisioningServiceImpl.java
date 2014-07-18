@@ -163,8 +163,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (ResourceType.class.isAssignableFrom(type)) {
 			
 			if (GetOperationOptions.isRaw(rootOptions)) {
-				resultingObject = (PrismObject<T>) cacheRepositoryService.getObject(ResourceType.class, oid,
+                try {
+				    resultingObject = (PrismObject<T>) cacheRepositoryService.getObject(ResourceType.class, oid,
 						null, result);
+                } catch (ObjectNotFoundException|SchemaException ex) {
+                    // catching an exception is important because otherwise the result is UNKNOWN
+                    result.recordFatalError(ex);
+                    throw ex;
+                }
 				try {
 					applyDefinition(resultingObject, result);
 				} catch (ObjectNotFoundException ex) {

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -38,14 +39,14 @@ public class SystemConfigurationDto implements Serializable {
     private NotificationConfigurationDto notificationConfig;
 
     public SystemConfigurationDto(){
-        this(null);
+        this(null, null);
     }
 
-    public SystemConfigurationDto(PrismObject<SystemConfigurationType> config) {
-        init(config.asObjectable());
+    public SystemConfigurationDto(PrismObject<SystemConfigurationType> config, Protector protector) {
+        init(config.asObjectable(), protector);
     }
 
-    private void init(SystemConfigurationType config){
+    private void init(SystemConfigurationType config, Protector protector){
         if(config == null){
             return;
         }
@@ -65,7 +66,7 @@ public class SystemConfigurationDto implements Serializable {
         objectTemplateDto = loadObjectTemplate(config);
 
         if(config.getNotificationConfiguration() != null){
-            notificationConfig = new NotificationConfigurationDto(config.getNotificationConfiguration());
+            notificationConfig = new NotificationConfigurationDto(config.getNotificationConfiguration(), protector);
         } else {
             notificationConfig = new NotificationConfigurationDto();
         }

@@ -136,6 +136,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
         AccountContentDto dto = new AccountContentDto();
         dto.setAccountName(WebMiscUtil.getName(object));
         dto.setAccountOid(object.getOid());
+        ShadowType shadow = object.asObjectable();
 
         Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(object);
         if (identifiers != null) {
@@ -152,6 +153,10 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
 
         dto.setSituation(WebMiscUtil.getValue(object, ShadowType.F_SYNCHRONIZATION_SITUATION,
                 SynchronizationSituationType.class));
+
+        dto.setKind(shadow.getKind());
+        dto.setIntent(shadow.getIntent());
+        dto.setObjectClass(shadow.getObjectClass().getLocalPart());
 
         addInlineMenuToDto(dto);
 

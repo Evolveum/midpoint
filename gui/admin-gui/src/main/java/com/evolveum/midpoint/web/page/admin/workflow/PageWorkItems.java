@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -32,7 +33,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.*;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -227,11 +227,11 @@ public class PageWorkItems extends PageAdminWorkItems {
         }
 
         OperationResult mainResult = new OperationResult(OPERATION_APPROVE_OR_REJECT_ITEMS);
-        WorkflowManager workflowManagerImpl = getWorkflowManager();
+        WorkflowService workflowService = getWorkflowService();
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
             try {
-                workflowManagerImpl.approveOrRejectWorkItem(workItemDto.getWorkItem().getWorkItemId(), approve, result);
+                workflowService.approveOrRejectWorkItem(workItemDto.getWorkItem().getWorkItemId(), approve, result);
                 result.computeStatus();
             } catch (Exception e) {
                 result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);
@@ -259,11 +259,11 @@ public class PageWorkItems extends PageAdminWorkItems {
         }
 
         OperationResult mainResult = new OperationResult(OPERATION_CLAIM_ITEMS);
-        WorkflowManager workflowManagerImpl = getWorkflowManager();
+        WorkflowService workflowService = getWorkflowService();
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_CLAIM_ITEM);
             try {
-                workflowManagerImpl.claimWorkItem(workItemDto.getWorkItem().getWorkItemId(), result);
+                workflowService.claimWorkItem(workItemDto.getWorkItem().getWorkItemId(), result);
                 result.computeStatusIfUnknown();
             } catch (RuntimeException e) {
                 result.recordPartialError("Couldn't claim work item due to an unexpected exception.", e);
@@ -291,11 +291,11 @@ public class PageWorkItems extends PageAdminWorkItems {
         }
 
         OperationResult mainResult = new OperationResult(OPERATION_RELEASE_ITEMS);
-        WorkflowManager workflowManagerImpl = getWorkflowManager();
+        WorkflowService workflowService = getWorkflowService();
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_RELEASE_ITEM);
             try {
-                workflowManagerImpl.releaseWorkItem(workItemDto.getWorkItem().getWorkItemId(), result);
+                workflowService.releaseWorkItem(workItemDto.getWorkItem().getWorkItemId(), result);
                 result.computeStatusIfUnknown();
             } catch (RuntimeException e) {
                 result.recordPartialError("Couldn't release work item due to an unexpected exception.", e);

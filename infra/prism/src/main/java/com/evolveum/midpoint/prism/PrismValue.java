@@ -29,7 +29,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -42,7 +44,8 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
     private Objectable originObject;
     private Itemable parent;
     protected Element domElement = null;
-    
+    private transient Map<String,Object> userData = new HashMap<>();;
+
     PrismValue() {
 		super();
 	}
@@ -75,8 +78,20 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
     public Objectable getOriginObject() {
         return originObject;
     }
-    
-	public Itemable getParent() {
+
+    public Map<String, Object> getUserData() {
+        return userData;
+    }
+
+    public Object getUserData(String key) {
+        return userData.get(key);
+    }
+
+    public void setUserData(String key, Object value) {
+        userData.put(key, value);
+    }
+
+    public Itemable getParent() {
 		return parent;
 	}
 

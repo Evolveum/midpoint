@@ -171,7 +171,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	                    PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
 
                         definition = pageBase.getModelInteractionService()
-                                .getEditObjectClassDefinition(object.getObject(), resource).toResourceAttributeContainerDefinition();
+                                .getEditObjectClassDefinition(object.getObject(), resource, AuthorizationPhaseType.REQUEST).toResourceAttributeContainerDefinition();
 
 	                    if (LOGGER.isTraceEnabled()) {
 	                        LOGGER.trace("Refined account def:\n{}", definition.debugDump());

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -53,7 +54,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
@@ -301,7 +301,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     private PrismObject<? extends ObjectType> createEmptyUserObject() {
         PrismObject<? extends ObjectType> p = new PrismObject<UserType>(UserType.COMPLEX_TYPE, UserType.class);
         try {
-            getWorkflowManager().getPrismContext().adopt(p);
+            getPrismContext().adopt(p);
         } catch (SchemaException e) {   // safe to convert; this should not occur
             throw new SystemException("Got schema exception when creating empty user object.", e);
         }
@@ -393,7 +393,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkItemDetailedDto workItemDetailedDto = null;
         WorkItemType workItem = null;
         try {
-            WorkflowManager wfm = getWorkflowManager();
+            WorkflowService wfm = getWorkflowService();
             workItem = wfm.getWorkItemDetailsById(parameters.get(OnePageParameterEncoder.PARAMETER).toString(), result);
             workItemDetailedDto = new WorkItemDetailedDto(workItem, getPrismContext());
             result.recordSuccessIfUnknown();
@@ -416,7 +416,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         try {
             String taskId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
             LOGGER.trace("Loading process instance for task {}", taskId);
-            WorkflowManager wfm = getWorkflowManager();
+            WorkflowService wfm = getWorkflowService();
             processInstance = wfm.getProcessInstanceByWorkItemId(taskId, result);
             LOGGER.trace("Found process instance {}", processInstance);
             String shadowTaskOid = ((ProcessInstanceState) processInstance.getState()).getShadowTaskOid();
@@ -766,7 +766,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             ObjectDelta delta = rsWrapper.getObjectDelta();
             delta.applyTo(object);
 
-            getWorkflowManager().approveOrRejectWorkItemWithDetails(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), object, decision, result);
+            getWorkflowService().approveOrRejectWorkItemWithDetails(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), object, decision, result);
             setReinitializePreviousPages(true);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);
@@ -787,9 +787,9 @@ public class PageWorkItem extends PageAdminWorkItems {
     private void claimPerformed(AjaxRequestTarget target) {
 
         OperationResult result = new OperationResult(OPERATION_CLAIM_WORK_ITEM);
-        WorkflowManager workflowManagerImpl = getWorkflowManager();
+        WorkflowService workflowService = getWorkflowService();
         try {
-            workflowManagerImpl.claimWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
+            workflowService.claimWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
             setReinitializePreviousPages(true);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't claim work item due to an unexpected exception.", e);
@@ -808,9 +808,9 @@ public class PageWorkItem extends PageAdminWorkItems {
     private void releasePerformed(AjaxRequestTarget target) {
 
         OperationResult result = new OperationResult(OPERATION_RELEASE_WORK_ITEM);
-        WorkflowManager workflowManagerImpl = getWorkflowManager();
+        WorkflowService workflowService = getWorkflowService();
         try {
-            workflowManagerImpl.releaseWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
+            workflowService.releaseWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
             setReinitializePreviousPages(true);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't release work item due to an unexpected exception.", e);

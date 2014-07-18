@@ -99,6 +99,10 @@ public class BasicSearchPanel<T extends Serializable> extends SimplePanel<T> {
         return createStringResource("BasicSearchPanel.textPlaceholder");
     }
 
+    public Component getSearchButton(){
+        return get(ID_SEARCH);
+    }
+
     protected void searchPerformed(AjaxRequestTarget target) {
     }
 

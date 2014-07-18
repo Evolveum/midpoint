@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -33,7 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
-import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -46,10 +44,12 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import com.sun.org.apache.xml.internal.utils.XMLChar;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Attr;
+import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -529,6 +529,7 @@ public class DOMUtil {
 			attrValue = valuePrefix + ":" + attributeValue.getLocalPart();
 		}
 		NamedNodeMap attributes = element.getAttributes();
+        checkValidXmlChars(attrValue);
 		attr.setValue(attrValue);
 		attributes.setNamedItem(attr);
 	}
@@ -543,7 +544,7 @@ public class DOMUtil {
 		} else {
 			stringValue = valuePrefix + ":" + elementValue.getLocalPart();
 		}
-		element.setTextContent(stringValue);
+        setElementTextContent(element, stringValue);
 	}
 
 	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri,
@@ -659,6 +660,7 @@ public class DOMUtil {
 			attr = doc
 					.createAttributeNS(W3C_XML_SCHEMA_XMLNS_URI, W3C_XML_SCHEMA_XMLNS_PREFIX + ":" + prefix);
 		}
+        checkValidXmlChars(namespaceUri);
 		attr.setValue(namespaceUri);
 		attributes.setNamedItem(attr);
 	}
@@ -1217,5 +1219,66 @@ public class DOMUtil {
 		}
 		return StringUtils.isEmpty(attr.getValue());
 	}
+
+    public static void setAttributeValue(Element element, String name, String value) {
+        checkValidXmlChars(value);
+        element.setAttribute(name, value);
+    }
+
+    public static void setElementTextContent(Element element, String value) {
+        checkValidXmlChars(value);
+        element.setTextContent(value);
+    }
+
+    public static void checkValidXmlChars(String stringValue) {
+        if (stringValue == null) {
+            return;
+        }
+        for (int i = 0; i < stringValue.length(); i++) {
+            if (!XMLChar.isValid(stringValue.charAt(i))) {
+                throw new IllegalStateException("Invalid character with regards to XML (code " + ((int) stringValue.charAt(i)) + ") in '" + makeSafelyPrintable(stringValue, 200) + "'");
+            }
+        }
+    }
+
+    // todo move to some Util class
+    private static String makeSafelyPrintable(String text, int maxSize) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (!XMLChar.isValid(c)) {
+                sb.append('.');
+            } else if (Character.isWhitespace(c)) {
+                sb.append(' ');
+            } else {
+                sb.append(c);
+            }
+            if (i == maxSize) {
+                sb.append("...");
+                break;
+            }
+        }
+        return sb.toString();
+    }
+
+    public static void createComment(Element element, String text) {
+        if (text != null) {
+            Comment commentNode = element.getOwnerDocument().createComment(replaceInvalidXmlChars(text));
+            element.appendChild(commentNode);
+        }
+    }
+
+    private static String replaceInvalidXmlChars(String text) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (!XMLChar.isValid(c)) {
+                sb.append('.');
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
 
 }

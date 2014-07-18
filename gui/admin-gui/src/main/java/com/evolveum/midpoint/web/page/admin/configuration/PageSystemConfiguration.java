@@ -112,7 +112,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             PrismObject<SystemConfigurationType> systemConfig = getModelService().getObject(SystemConfigurationType.class,
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, task, result);
 
-            dto = new SystemConfigurationDto(systemConfig);
+            dto = new SystemConfigurationDto(systemConfig, getMidpointApplication().getProtector());
             result.recordSuccess();
         } catch(Exception ex){
             LoggingUtils.logException(LOGGER, "Couldn't load system configuration", ex);
@@ -132,7 +132,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        List<ITab> tabs = new ArrayList<ITab>();
+        List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.system.title")) {
 
             @Override

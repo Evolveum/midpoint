@@ -68,17 +68,36 @@
             </tr>
             </tbody>
         </table>
+    </form>
 
-        <h3><wicket:message key="PageAccounts.shadows"/></h3>
-        <div wicket:id="accountsContainer">
+    <h3><wicket:message key="PageAccounts.shadows"/></h3>
+
+    <form class="form-inline pull-right search-form" wicket:id="searchForm" >
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="PageAccounts.accounts.kind" /></label>
+            <select class="form-control input-sm" wicket:id="kindSearch" />
+        </div>
+
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="PageAccounts.accounts.intent" /></label>
+            <select class="form-control input-sm" wicket:id="intentSearch" />
+        </div>
+
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="PageAccounts.accounts.objectClass" /></label>
+            <input class="form-control input-sm" wicket:id="objectClassSearch" size="45"/>
+        </div>
+
+        <div wicket:id="basicSearch" />
+    </form>
+
+    <form class="form-horizontal" wicket:id="accountForm">
+        <div wicket:id="accountsContainer" class="clearfix">
             <div wicket:id="accounts"/>
         </div>
 
-        <wicket:remove>
-            <!-- todo improve this, it's just a left-over from old gui -->
-        </wicket:remove>
-
         <hr/>
+
         <div class="main-button-bar">
             <a class="btn btn-primary" wicket:id="clearExport">
                 <wicket:message key="PageAccounts.button.clearExportFolder"/></a>
@@ -89,6 +108,7 @@
             </span>
         </div>
     </form>
+
 </wicket:extend>
 </body>
 </html>
