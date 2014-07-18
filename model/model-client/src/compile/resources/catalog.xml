@@ -55,8 +55,8 @@
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../../../target/midpoint-schema/xml/ns/public/model/model-3.wsdl" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../../../target/midpoint-schema/xml/ns/public/model/model-3.wsdl" />
 
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3.xsd" uri="../../../target/midpoint-schema/xml/ns/public/common/fault-3.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3.xsd" uri="../../../target/midpoint-schema/xml/ns/public/common/fault-3.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="../../../target/midpoint-schema/xml/ns/public/common/fault-3.wsdl" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="../../../target/midpoint-schema/xml/ns/public/common/fault-3.wsdl" />
 
     <!-- Bundled standard schemas -->
     <public publicId="datatypes" uri="../../../target/midpoint-schema/xml/ns/standard/datatypes.dtd" />

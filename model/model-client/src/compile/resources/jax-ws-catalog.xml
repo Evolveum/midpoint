@@ -17,7 +17,10 @@
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../../../target/midpoint-schema/xml/ns/public/model/model-3.wsdl" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../../../target/midpoint-schema/xml/ns/public/model/model-3.wsdl" />
-
+    
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="../../../target/midpoint-schema/xml/ns/public/common/fault-3.wsdl" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="../../../target/midpoint-schema/xml/ns/public/common/fault-3.wsdl" />
+    
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../../../target/midpoint-schema/xml/ns/public/common/api-types-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../../../target/midpoint-schema/xml/ns/public/common/api-types-3.xsd" />
 

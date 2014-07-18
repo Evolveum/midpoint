@@ -19,6 +19,8 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
 
+import org.apache.wss4j.common.ext.WSPasswordCallback;
+
 import java.io.IOException;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -31,8 +33,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.apache.ws.security.WSPasswordCallback;
 
 /**
  * @author Igor Farinic

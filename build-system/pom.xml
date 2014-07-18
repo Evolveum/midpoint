@@ -45,8 +45,8 @@
         <commons.io.version>2.0.1</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
         <commons.cli>1.2</commons.cli>
-        <cxf.version>2.7.6</cxf.version>
-        <cxf-xjc.version>2.4.0</cxf-xjc.version>
+        <cxf.version>3.0.1.e1</cxf.version>
+        <cxf-xjc.version>3.0.1</cxf-xjc.version>
         <dbunit.version>2.4.7</dbunit.version>
         <jaxb.version>2.2.7</jaxb.version>
         <jaxb-xjc.version>2.2.7</jaxb-xjc.version>
@@ -70,6 +70,7 @@
         <activiti-engine.version>5.15.1</activiti-engine.version>
         <activiti-spring.version>5.15.1</activiti-spring.version>
         <commons-email.version>1.3</commons-email.version>
+        <xmlsec.version>2.0.1</xmlsec.version>
         <connid.version>1.4.0.0-SNAPSHOT</connid.version>
     </properties>
     <dependencyManagement>
@@ -269,12 +270,22 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-core</artifactId>
+                <version>${cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-frontend-simple</artifactId>
                 <version>${cxf.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-api</artifactId>
+                <artifactId>cxf-rt-wsdl</artifactId>
+                <version>${cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-tools-common</artifactId>
                 <version>${cxf.version}</version>
             </dependency>
             <dependency>
@@ -322,6 +333,21 @@
                 <artifactId>cxf-rt-ws-security</artifactId>
                 <version>${cxf.version}</version>
             </dependency>
+            <dependency>
+	  			<groupId>org.apache.cxf</groupId>
+				<artifactId>cxf-rt-frontend-jaxrs</artifactId>
+				<version>${cxf.version}</version>
+			</dependency>
+			<dependency>
+			   <groupId>org.apache.cxf</groupId>
+			   <artifactId>cxf-rt-rs-extension-providers</artifactId>
+			   <version>${cxf.version}</version>
+			</dependency>
+	        <dependency>
+	            <groupId>org.apache.cxf.xjc-utils</groupId>
+	            <artifactId>cxf-xjc-runtime</artifactId>
+				<version>${cxf-xjc.version}</version>
+        	</dependency>			
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.osgi.core</artifactId>
@@ -413,6 +439,12 @@
                 <artifactId>quartz</artifactId>
                 <version>${quartz.version}</version>
             </dependency>
+            <dependency>
+				<groupId>org.apache.santuario</groupId>
+				<artifactId>xmlsec</artifactId>
+				<version>${xmlsec.version}</version>
+			</dependency>
+            
 
 
 
