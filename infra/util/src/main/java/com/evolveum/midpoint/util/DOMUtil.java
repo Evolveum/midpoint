@@ -49,6 +49,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Attr;
+import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -1260,5 +1261,24 @@ public class DOMUtil {
         return sb.toString();
     }
 
+    public static void createComment(Element element, String text) {
+        if (text != null) {
+            Comment commentNode = element.getOwnerDocument().createComment(replaceInvalidXmlChars(text));
+            element.appendChild(commentNode);
+        }
+    }
+
+    private static String replaceInvalidXmlChars(String text) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (!XMLChar.isValid(c)) {
+                sb.append('.');
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
 
 }

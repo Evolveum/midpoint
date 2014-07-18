@@ -28,7 +28,7 @@ import java.util.Collection;
  * @author semancik
  *
  */
-public class GetOperationOptions implements Serializable {
+public class GetOperationOptions implements Serializable, Cloneable {
 	
 	/**
 	 * Specifies whether to return specific items. It is used for optimizations.
@@ -59,8 +59,17 @@ public class GetOperationOptions implements Serializable {
 	 * Resolve the object reference. This only makes sense with a (path-based) selector.
 	 */
 	Boolean resolve;
-	
-	/**
+
+    /**
+     * Resolve the object reference names. (Currently applicable only as a top-level option.)
+     *
+     * Names of referenced objects are provided as PrismValue userData entries.
+     *
+     * EXPERIMENTAL.
+     */
+    Boolean resolveNames;
+
+    /**
 	 * No not fetch any information from external sources, e.g. do not fetch account data from resource,
 	 * do not fetch resource schema, etc.
 	 * Such operation returns only the data stored in midPoint repository.
@@ -79,8 +88,7 @@ public class GetOperationOptions implements Serializable {
 	 * from the gui, for example
 	 */
 	Boolean doNotDiscovery;
-	
-	
+
 	public RetrieveOption getRetrieve() {
 		return retrieve;
 	}
@@ -163,31 +171,56 @@ public class GetOperationOptions implements Serializable {
         return optionsCollection;
     }
 
-    public Boolean getRaw() {
-		return raw;
+    public Boolean getResolveNames() {
+		return resolveNames;
 	}
 
-	public void setRaw(Boolean raw) {
-		this.raw = raw;
+	public void setResolveNames(Boolean resolveNames) {
+		this.resolveNames = resolveNames;
 	}
 	
-	public static boolean isRaw(GetOperationOptions options) {
+	public static boolean isResolveNames(GetOperationOptions options) {
 		if (options == null) {
 			return false;
 		}
-		if (options.raw == null) {
+		if (options.resolveNames == null) {
 			return false;
 		}
-		return options.raw;
+		return options.resolveNames;
 	}
 	
-	public static GetOperationOptions createRaw() {
+	public static GetOperationOptions createResolveNames() {
 		GetOperationOptions opts = new GetOperationOptions();
-		opts.setRaw(true);
+		opts.setResolveNames(true);
 		return opts;
 	}
-	
-	public Boolean getDoNotDiscovery() {
+
+    public Boolean getRaw() {
+        return raw;
+    }
+
+    public void setRaw(Boolean raw) {
+        this.raw = raw;
+    }
+
+    public static boolean isRaw(GetOperationOptions options) {
+        if (options == null) {
+            return false;
+        }
+        if (options.raw == null) {
+            return false;
+        }
+        return options.raw;
+    }
+
+    public static GetOperationOptions createRaw() {
+        GetOperationOptions opts = new GetOperationOptions();
+        opts.setRaw(true);
+        return opts;
+    }
+
+
+    public Boolean getDoNotDiscovery() {
 		return doNotDiscovery;
 	}
 
@@ -257,6 +290,17 @@ public class GetOperationOptions implements Serializable {
 
 		return true;
 	}
+
+    public GetOperationOptions clone() {
+        GetOperationOptions clone = new GetOperationOptions();
+        clone.noFetch = this.noFetch;
+        clone.doNotDiscovery = this.doNotDiscovery;
+        clone.raw = this.raw;
+        clone.resolve = this.resolve;
+        clone.resolveNames = this.resolveNames;
+        clone.retrieve = this.retrieve;
+        return clone;
+    }
 
 	@Override
 	public String toString() {

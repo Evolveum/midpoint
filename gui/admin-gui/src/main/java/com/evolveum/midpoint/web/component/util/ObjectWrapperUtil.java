@@ -31,7 +31,7 @@ public class ObjectWrapperUtil {
 			if (isShadow(object)) {
 				PrismReference resourceRef = object.findReference(ShadowType.F_RESOURCE_REF);
                 PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
-                objectClassDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectClassDefinition((PrismObject<ShadowType>) object, resource);
+                objectClassDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectClassDefinition((PrismObject<ShadowType>) object, resource, AuthorizationPhaseType.REQUEST);
 			} 
 			
 		    ObjectWrapper wrapper = new ObjectWrapper(displayName, description, object, objectDefinitionForEditing, objectClassDefinitionForEditing, status, delayContainerCreation, pageBase);

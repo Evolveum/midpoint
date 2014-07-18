@@ -27,10 +27,13 @@ import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.sun.org.apache.xml.internal.utils.XMLChar;
 import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Comment;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
 import java.util.Map.Entry;
@@ -139,10 +142,12 @@ public class DomSerializer {
 		}
         if (xsubnode instanceof RootXNode) {
             Element element = createElement(elementName, parentElement);
+            appendCommentIfPresent(element, xsubnode);
             parentElement.appendChild(element);
             serializeSubnode(((RootXNode) xsubnode).getSubnode(), element, ((RootXNode) xsubnode).getRootElementName());
         } else if (xsubnode instanceof MapXNode) {
 			Element element = createElement(elementName, parentElement);
+            appendCommentIfPresent(element, xsubnode);
 			if (xsubnode.isExplicitTypeDeclaration() && xsubnode.getTypeQName() != null){
 				DOMUtil.setXsiType(element, xsubnode.getTypeQName());
 			}
@@ -199,6 +204,7 @@ public class DomSerializer {
                         Element element;
                         try {
                             element = createElement(elementOrAttributeName, parentElement);
+                            appendCommentIfPresent(element, xprim);
                         } catch (DOMException e) {
                             throw new DOMException(e.code, e.getMessage() + "; creating element "+elementOrAttributeName+" in element "+DOMUtil.getQName(parentElement));
                         }
@@ -240,6 +246,7 @@ public class DomSerializer {
                 } catch (DOMException e) {
                     throw new DOMException(e.code, e.getMessage() + "; creating element "+elementOrAttributeName+" in element "+DOMUtil.getQName(parentElement));
                 }
+                appendCommentIfPresent(element, xprim);
                 parentElement.appendChild(element);
             }
 
@@ -270,6 +277,13 @@ public class DomSerializer {
             DOMUtil.setXsiType(element, typeQName);
         }
 	}
+
+    private void appendCommentIfPresent(Element element, XNode xnode) {
+        String text = xnode.getComment();
+        if (StringUtils.isNotEmpty(text)) {
+            DOMUtil.createComment(element, text);
+        }
+    }
 
     private void serializeSchema(SchemaXNode xschema, Element parentElement) {
 		Element schemaElement = xschema.getSchemaElement();
