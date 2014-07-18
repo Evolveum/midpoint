@@ -102,7 +102,7 @@ public interface ModelInteractionService {
      */
     <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase) throws SchemaException;
 
-    RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource) throws SchemaException;
+    RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase) throws SchemaException;
 
     /**
      * <p>

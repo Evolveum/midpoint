@@ -67,6 +67,9 @@ public class XNodeSerializer {
 	
 	private PrismBeanConverter beanConverter;
 	private boolean serializeCompositeObjects = false;
+
+    // TODO think out where to put this key
+    public static final String USER_DATA_KEY_COMMENT = XNodeSerializer.class.getName()+".comment";
 	
 	public XNodeSerializer(PrismBeanConverter beanConverter) {
 		super();
@@ -183,24 +186,7 @@ public class XNodeSerializer {
             return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
         }
         if (beanConverter.getPrismContext() == null) {
-            // hope we don't need this code any more
             throw new IllegalStateException("No prismContext in beanConverter!");
-//            // HACK. Ugly hack. We need to make sure that the bean converter has a prism context.
-//            // If it does not then it cannot serialize any values and the subsequent calls may fail.
-//            // The bean converter usually has a context. The context may be missing if it was initialized
-//            // inside one of the JAXB getters/setters.
-//            // We need to get rid of JAXB entirelly to get rid of hacks like this
-//            PrismContext context = null;
-//            if (definition != null) {
-//                context = definition.getPrismContext();
-//            }
-//            if (context == null && itemValue.getParent() != null) {
-//                context = itemValue.getParent().getPrismContext();
-//            }
-//            if (context == null) {
-//                throw new SystemException("Cannot determine prism context when serializing "+itemValue);
-//            }
-//            beanConverter.setPrismContext(context);
         }
         if (itemValue instanceof PrismReferenceValue) {
             xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition);
@@ -213,6 +199,10 @@ public class XNodeSerializer {
         }
         if (definition.isDynamic()) {
             xnode.setExplicitTypeDeclaration(true);
+        }
+        Object commentValue = itemValue.getUserData(USER_DATA_KEY_COMMENT);
+        if (commentValue != null) {
+            xnode.setComment(commentValue.toString());
         }
 //		System.out.println("item value serialization: \n" + xnode.debugDump());
         return xnode;

@@ -66,6 +66,9 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	private QName typeQName;
 	private Integer maxOccurs;
 
+    // a comment that could be stored into formats that support these (e.g. XML or YAML)
+    private String comment;
+
 	public XNode getParent() {
 		return parent;
 	}
@@ -98,7 +101,15 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 		this.lineNumber = lineNumber;
 	}
 
-	public QName getTypeQName() {
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public QName getTypeQName() {
 		return typeQName;
 	}
 
