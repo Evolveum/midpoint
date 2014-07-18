@@ -76,7 +76,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         add(passPolicyChoosePanel);
         add(userTemplateChoosePanel);
 
-        DropDownChoice<AEPlevel> aepLevel = new DropDownChoice<AEPlevel>(ID_GLOBAL_AEP,
+        DropDownChoice<AEPlevel> aepLevel = new DropDownChoice<>(ID_GLOBAL_AEP,
                 new PropertyModel<AEPlevel>(getModel(), "aepLevel"),
                 WebMiscUtil.createReadonlyModelFromEnum(AEPlevel.class),
                 new EnumChoiceRenderer<AEPlevel>(SystemConfigPanel.this));
@@ -86,22 +86,23 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         }
         add(aepLevel);
 
-        TextField<String> auditRecordsField = new TextField<String>(ID_CLEANUP_AUDIT_RECORDS, new PropertyModel<String>(getModel(), "auditCleanupValue"));
-        TextField<String> closedTasksField = new TextField<String>(ID_CLEANUP_CLOSED_TASKS, new PropertyModel<String>(getModel(), "taskCleanupValue"));
+        TextField<String> auditRecordsField = new TextField<>(ID_CLEANUP_AUDIT_RECORDS, new PropertyModel<String>(getModel(), "auditCleanupValue"));
+        TextField<String> closedTasksField = new TextField<>(ID_CLEANUP_CLOSED_TASKS, new PropertyModel<String>(getModel(), "taskCleanupValue"));
         add(auditRecordsField);
         add(closedTasksField);
 
         createTooltip(ID_CLEANUP_AUDIT_RECORDS_TOOLTIP, this);
         createTooltip(ID_CLEANUP_CLOSED_TASKS_TOOLTIP, this);
 
-        TextField<String> defaultFromField = new TextField<String>(ID_DEFAULT_FROM, new PropertyModel<String>(getModel(), "notificationConfig.defaultFrom"));
+        TextField<String> defaultFromField = new TextField<>(ID_DEFAULT_FROM, new PropertyModel<String>(getModel(), "notificationConfig.defaultFrom"));
         CheckBox debugCheck = new CheckBox(ID_DEBUG, new PropertyModel<Boolean>(getModel(), "notificationConfig.debug"));
-        TextField<String> hostField = new TextField<String>(ID_HOST, new PropertyModel<String>(getModel(), "notificationConfig.host"));
-        TextField<Integer> portField = new TextField<Integer>(ID_PORT, new PropertyModel<Integer>(getModel(), "notificationConfig.port"));
-        TextField<String> userNameField = new TextField<String>(ID_USERNAME, new PropertyModel<String>(getModel(), "notificationConfig.username"));
+        TextField<String> hostField = new TextField<>(ID_HOST, new PropertyModel<String>(getModel(), "notificationConfig.host"));
+        TextField<Integer> portField = new TextField<>(ID_PORT, new PropertyModel<Integer>(getModel(), "notificationConfig.port"));
+        TextField<String> userNameField = new TextField<>(ID_USERNAME, new PropertyModel<String>(getModel(), "notificationConfig.username"));
         PasswordTextField passwordField = new PasswordTextField(ID_PASSWORD, new PropertyModel<String>(getModel(), "notificationConfig.password"));
         passwordField.setRequired(false);
-        TextField<String> redirectToFileField = new TextField<String>(ID_REDIRECT_TO_FILE, new PropertyModel<String>(getModel(), "notificationConfig.redirectToFile"));
+        passwordField.setResetPassword(false);
+        TextField<String> redirectToFileField = new TextField<>(ID_REDIRECT_TO_FILE, new PropertyModel<String>(getModel(), "notificationConfig.redirectToFile"));
 
         IModel choices = WebMiscUtil.createReadonlyModelFromEnum(MailTransportSecurityType.class);
         IChoiceRenderer renderer = new EnumChoiceRenderer();

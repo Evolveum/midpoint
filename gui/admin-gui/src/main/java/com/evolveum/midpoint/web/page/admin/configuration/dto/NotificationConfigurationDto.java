@@ -15,6 +15,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
@@ -31,6 +35,8 @@ import java.io.Serializable;
  * */
 public class NotificationConfigurationDto implements Serializable{
 
+    private static final Trace LOGGER = TraceManager.getTrace(NotificationConfigurationDto.class);
+
     private String defaultFrom;
     private boolean debug;
     private String redirectToFile;
@@ -42,7 +48,7 @@ public class NotificationConfigurationDto implements Serializable{
 
     public NotificationConfigurationDto(){}
 
-    public NotificationConfigurationDto(NotificationConfigurationType config){
+    public NotificationConfigurationDto(NotificationConfigurationType config, Protector protector){
 
         if(config.getMail() != null){
             MailConfigurationType mailConfig = config.getMail();
@@ -65,7 +71,11 @@ public class NotificationConfigurationDto implements Serializable{
                 username = serverConfig.getUsername();
 
                 if(serverConfig.getPassword() != null){
-                    password = serverConfig.getPassword().getClearValue();
+                    try {
+                        password = protector.decryptString(serverConfig.getPassword());
+                    } catch (Exception e){
+                        LoggingUtils.logException(LOGGER, "Unable to decrypt password in mail configuration.", e);
+                    }
                 } else {
                     password = null;
                 }
