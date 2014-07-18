@@ -20,23 +20,26 @@
  *  Auto-complete drop-down choice styles
  */
 div.wicket-aa {
-    background-color: white;
-    border-width: 1px;
-    border-color: #cccccc;
-    border-style: solid;
-    padding: 2px;
-    margin: 1px 1px 1px 1px;
-    text-align:left;
-}
-div.wicket-aa ul {
-    list-style:none; padding: 2px;
-    margin: 0;
-}
+  background-color: @body-bg;
+  border: 1px solid @input-border;
+  padding: 2px;
+  margin: 1px;
+  text-align: left;
 
-div.wicket-aa ul li.selected {
-    background-color: #99ccff;
+  ul {
+    list-style: none;
     padding: 2px;
-    margin:0;
+    margin: 0;
+
+    li {
+      padding: 2px;
+      margin: 0;
+
+      &.selected {
+        background-color: lighten(@input-border-focus, 10%);
+      }
+    }
+  }
 }
 
 div.wicket-debug-buttons {
