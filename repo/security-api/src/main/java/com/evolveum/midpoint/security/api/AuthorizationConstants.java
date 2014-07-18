@@ -43,8 +43,13 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_DENY_ALL_QNAME = new QName(NS_AUTHORIZATION, "denyAll");
 	public static final String AUTZ_DENY_ALL_URL = QNameUtil.qNameToUri(AUTZ_DENY_ALL_QNAME);
     public static final String AUTZ_DENY_ALL = NS_AUTHORIZATION + "#denyAll";
-	
-	//user
+
+    public static final QName AUTZ_GUI_ALL_QNAME = new QName(NS_AUTHORIZATION, "guiAll");
+    public static final String AUTZ_GUI_ALL_URI = QNameUtil.qNameToUri(AUTZ_GUI_ALL_QNAME);
+    public static final String AUTZ_GUI_ALL_LABEL = "Authorization.constants.guiAll.label";
+    public static final String AUTZ_GUI_ALL_DESCRIPTION = "Authorization.constants.guiAll.description";
+
+    //user
 	public static final QName AUTZ_UI_USERS_ALL_QNAME = new QName(NS_AUTHORIZATION, "usersAll");
 	public static final String AUTZ_UI_USERS_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_USERS_ALL_QNAME);
 	
