@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
@@ -92,7 +92,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Autowired
     transient TaskManager taskManager;
     @Autowired
-    transient private WorkflowManager workflowManager;
+    transient private WorkflowService workflowService;
     @Autowired
     transient MidpointConfiguration configuration;
     @Autowired(required = true)
@@ -221,8 +221,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return MidPointAuthWebSession.class;
     }
 
-    public WorkflowManager getWorkflowManager() {
-        return workflowManager;
+    public WorkflowService getWorkflowService() {
+        return workflowService;
     }
 
     public ModelInteractionService getModelInteractionService() {

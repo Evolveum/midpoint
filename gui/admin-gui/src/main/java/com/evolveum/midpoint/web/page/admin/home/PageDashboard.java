@@ -51,7 +51,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * @author lazyman
@@ -187,7 +186,7 @@ public class PageDashboard extends PageAdminHome {
         callableResult.setResult(result);
 
         try {
-            List<WorkItemType> workItems = getWorkflowManager().listWorkItemsRelatedToUser(user.getOid(),
+            List<WorkItemType> workItems = getWorkflowService().listWorkItemsRelatedToUser(user.getOid(),
                     true, 0, MAX_WORK_ITEMS, result);
             for (WorkItemType workItem : workItems) {
                 list.add(new WorkItemDto(workItem));

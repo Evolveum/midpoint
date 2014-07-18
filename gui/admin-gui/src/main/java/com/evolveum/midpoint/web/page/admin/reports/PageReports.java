@@ -290,6 +290,7 @@ public class PageReports extends PageAdminReports {
         String text = dto.getText();
         Boolean parent = !dto.isParent();
         ObjectQuery query = new ObjectQuery();
+        List<ObjectFilter> filters = new ArrayList<>();
 
         if(StringUtils.isNotEmpty(text)){
             PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
@@ -298,23 +299,19 @@ public class PageReports extends PageAdminReports {
             ObjectFilter substring = SubstringFilter.createSubstring(ReportType.F_NAME, ReportType.class,
                     getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedText);
 
-            if(parent == true){
-                EqualFilter boolFilter = EqualFilter.createEqual(ReportType.F_PARENT, ReportType.class,
-                        getPrismContext(), null, parent);
+            filters.add(substring);
+        }
 
-                query.setFilter(AndFilter.createAnd(substring, boolFilter));
-            } else {
-                query.setFilter(substring);
-            }
-        } else{
-            if(parent == true){
-                EqualFilter boolFilter = EqualFilter.createEqual(ReportType.F_PARENT, ReportType.class,
-                        getPrismContext(), null, parent);
+        if(parent == true){
+            EqualFilter parentFilter = EqualFilter.createEqual(ReportType.F_PARENT, ReportType.class,
+                    getPrismContext(), null, parent);
+            filters.add(parentFilter);
+        }
 
-                query.setFilter(boolFilter);
-            } else{
-                query = null;
-            }
+        if(!filters.isEmpty()){
+            query.setFilter(AndFilter.createAnd(filters));
+        } else {
+            query = null;
         }
 
         return query;

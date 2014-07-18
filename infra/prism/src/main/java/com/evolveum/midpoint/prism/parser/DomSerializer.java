@@ -194,7 +194,7 @@ public class DomSerializer {
 				String stringValue = xprim.getStringValue();
 				if (stringValue != null) {
                     if (asAttribute) {
-                        parentElement.setAttribute(elementOrAttributeName.getLocalPart(), stringValue);
+                        DOMUtil.setAttributeValue(parentElement, elementOrAttributeName.getLocalPart(), stringValue);
                     } else {
                         Element element;
                         try {
@@ -203,7 +203,7 @@ public class DomSerializer {
                             throw new DOMException(e.code, e.getMessage() + "; creating element "+elementOrAttributeName+" in element "+DOMUtil.getQName(parentElement));
                         }
                         parentElement.appendChild(element);
-                        element.setTextContent(stringValue);
+                        DOMUtil.setElementTextContent(element, stringValue);
                     }
 				}
                 return;
@@ -259,9 +259,9 @@ public class DomSerializer {
                 String value = xprim.getGuessedFormattedValue();
 
                 if (asAttribute) {
-                    parentElement.setAttribute(elementOrAttributeName.getLocalPart(), value);
+                    DOMUtil.setAttributeValue(parentElement, elementOrAttributeName.getLocalPart(), value);
                 } else {
-                    element.setTextContent(value);
+                    DOMUtil.setElementTextContent(element, value);
                 }
             }
 

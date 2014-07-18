@@ -25,15 +25,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
+import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -169,7 +173,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
  * @author Radovan Semancik
  */
 @Component
-public class ModelController implements ModelService, ModelInteractionService, TaskService, WorkflowService {
+public class ModelController implements ModelService, ModelInteractionService, TaskService, WorkflowService, ScriptingService {
 
 	// Constants for OperationResult
 	public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -218,6 +222,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
     @Autowired(required = false)                        // not required in all circumstances
     private WorkflowManager workflowManager;
+
+    @Autowired
+    private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 	
 	@Autowired(required = true)
 	private ChangeExecutor changeExecutor;
@@ -1768,6 +1775,28 @@ public class ModelController implements ModelService, ModelInteractionService, T
     @Override
     public void deleteProcessInstance(String instanceId, OperationResult parentResult) {
         workflowManager.deleteProcessInstance(instanceId, parentResult);
+    }
+
+    @Override
+    public void claimWorkItem(String workItemId, OperationResult parentResult) {
+        workflowManager.claimWorkItem(workItemId, parentResult);
+    }
+
+    @Override
+    public void releaseWorkItem(String workItemId, OperationResult parentResult) {
+        workflowManager.releaseWorkItem(workItemId, parentResult);
+    }
+    //endregion
+
+    //region Scripting (bulka actions)
+    @Override
+    public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException {
+        scriptingExpressionEvaluator.evaluateExpressionInBackground(objectType, filter, actionName, task, parentResult);
+    }
+
+    @Override
+    public void evaluateExpressionInBackground(JAXBElement<? extends ScriptingExpressionType> expression, Task task, OperationResult parentResult) throws SchemaException {
+        scriptingExpressionEvaluator.evaluateExpressionInBackground(expression, task, parentResult);
     }
     //endregion
 
