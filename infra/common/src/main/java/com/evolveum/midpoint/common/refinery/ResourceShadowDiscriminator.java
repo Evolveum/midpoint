@@ -58,12 +58,16 @@ public class ResourceShadowDiscriminator implements Serializable {
 		this(accRefType.getResourceRef().getOid(), accRefType.getKind(), accRefType.getIntent());
 	}
 	
-	public ResourceShadowDiscriminator(ShadowDiscriminatorType accRefType, ShadowKindType defaultKind) {
+	public ResourceShadowDiscriminator(ShadowDiscriminatorType accRefType, String defaultResourceOid, ShadowKindType defaultKind) {
 		ShadowKindType kind = accRefType.getKind();
 		if (kind == null) {
 			kind = defaultKind;
 		}
-		this.resourceOid = accRefType.getResourceRef().getOid();
+		if (accRefType.getResourceRef() == null) {
+			this.resourceOid = defaultResourceOid;
+		} else {
+			this.resourceOid = accRefType.getResourceRef().getOid();
+		}
 		this.thombstone = false;
 		setIntent(accRefType.getIntent());
 		setKind(kind);

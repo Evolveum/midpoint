@@ -52,9 +52,9 @@ import org.w3c.dom.Element;
  *             
  * 
  * <p>Java class for ItemPathType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="ItemPathType">
  *   &lt;complexContent>
@@ -66,45 +66,38 @@ import org.w3c.dom.Element;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
+
+// TODO it is questionable whether to treat ItemPathType as XmlType any more (similar to RawType)
+// however, unlike RawType, ItemPathType is still present in externally-visible schemas (XSD, WSDL)
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "ItemPathType", propOrder = {
-    "content"
-})
+@XmlType(name = "ItemPathType")
 public class ItemPathType implements Serializable, Equals, Cloneable {
 	
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ItemPathType");
 	
-	public static final QName F_PATH = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "path");
-
 	@XmlTransient
 	private ItemPath itemPath;
-	
-	@XmlElementRef(name = "path", namespace = "http://prism.evolveum.com/xml/ns/public/types-3", type = JAXBElement.class)
-    @XmlMixed
-    @XmlAnyElement(lax = false)         // to prevent unmarshalling to JAXB (keep things in DOM to be able to resolve namespace prefixes)
-                                        // Actually, there are no XML elements allowed, so the only objects passed to this list
-                                        // would be strings (very probably).
-    protected List<Object> content;
 
+    @Deprecated         // use one of the content-filling constructors instead
     public ItemPathType() {
-    	// Nothing to do
-    	if (content == null){
-    		content = new ContentList();
-    	}
-//    	System.out.println("content after: " + content);
     }
     
     public ItemPathType(ItemPath itemPath) {
 		this.itemPath = itemPath;
 	}
 
+    public ItemPathType(String itemPath) {
+        XPathHolder holder = new XPathHolder(itemPath);
+        this.itemPath = holder.toItemPath();
+    }
+
 	public ItemPath getItemPath() {
-		if (itemPath == null){
-			getContent();
-		}
+        if (itemPath == null) {
+            itemPath = ItemPath.EMPTY_PATH;
+        }
 		return itemPath;
 	}
 	
@@ -112,55 +105,41 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 		this.itemPath = itemPath;
 	}
 
-	/**
-     * 
-     *                 Defines a type for XPath-like item pointer. It points to a specific part
-     *                 of the prism object.
-     *             Gets the value of the content property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the content property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getContent().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Object }
-     * {@link String }
-     * 
-     * 
-     */
-    public List<Object> getContent() {
-        if (!(content instanceof ContentList)) {
-            content = new ContentList();
-        }
-        return this.content;
-    }
-
     public ItemPathType clone() {
     	ItemPathType clone = new ItemPathType();
         if (itemPath != null) {
     	    clone.setItemPath(itemPath.clone());
-        } else {
-    	    for (Object o : getContent()){
-    		    clone.getContent().add(o);
-    	    }
         }
     	return clone;
     }
-    
+
+    /**
+     * More strict version of ItemPathType comparison. Does not use any normalization
+     * nor approximate matching QNames via QNameUtil.match.
+     *
+     * For example, it detects a change from xyz:name to name and vice versa
+     * when editing via debug pages (MID-1969)
+     *
+     * For semantic-level comparison, please use equivalent(..) method.
+     *
+     * @param obj
+     * @return
+     */
+
     @Override
     public boolean equals(Object obj) {
     	final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
     	return equals(null, null, obj, strategy);
+    }
+
+    public boolean equivalent(Object other) {
+        if (!(other instanceof ItemPathType)) {
+            return false;
+        }
+        ItemPath thisPath = getItemPath();
+        ItemPath otherPath = ((ItemPathType) other).getItemPath();
+
+        return thisPath.equivalent(otherPath);
     }
 
 	@Override
@@ -175,16 +154,8 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
     	
     	ItemPath thisPath = getItemPath();
     	ItemPath otherPath = other.getItemPath();
-    	
-    	if (thisPath != null){
-    		return thisPath.equivalent(otherPath);
-    	}
-    	
-    	List<Object> thsContent = getContent();
-    	List<Object> othContent = other.getContent();
-    	
-    	return equalsStrategy.equals(thisLocator, thatLocator, thsContent, othContent);
-    	
+
+        return thisPath.equals(otherPath);
 	}
 	
 	@Override
@@ -194,176 +165,6 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 		result = prime * result + ((itemPath == null) ? 0 : itemPath.hashCode());
 		return result;
 	}
-	
-	class ContentList implements List<Object>, Serializable {
-
-			@Override
-			public int size() {
-				if (itemPath != null){
-					return 1;
-				}
-				return 0;
-			}
-
-			@Override
-			public boolean isEmpty() {
-				return itemPath == null;
-//				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public boolean contains(Object o) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public Iterator<Object> iterator() {
-				return new Iterator<Object>() {
-					int i = 0;
-					@Override
-					public boolean hasNext() {
-						return i==0;
-					}
-
-					@Override
-					public Object next() {
-						if (i== 0){
-							i++;
-							//TODO it should be itemPathType not string..
-							XPathHolder holder = new XPathHolder(itemPath);	
-//							return holder.getXPathWithDeclarations();
-							return new JAXBElement<String>(F_PATH, String.class, holder.getXPath());
-//							return itemPath;
-						} 
-						return null;
-					}
-
-					@Override
-					public void remove() {
-						throw new UnsupportedOperationException("nto supported yet");
-					}
-					
-				};
-//				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public Object[] toArray() {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public <T> T[] toArray(T[] a) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public boolean add(Object e) {
-//              System.out.println("### ItemPathType.add: " + e.getClass());
-				if (e instanceof String){
-					XPathHolder holder = new XPathHolder((String) e);
-					itemPath = holder.toItemPath();
-					return true;
-				} else if (e instanceof QName){
-					itemPath = new ItemPath((QName) e);
-					return true;
-				} else if (e instanceof Element) {          // actually not sure if this could ever happen [pm]
-                    XPathHolder holder = new XPathHolder((Element) e);
-                    itemPath = holder.toItemPath();
-                    return true;
-                } else if (e instanceof JAXBElement) {      // actually not sure if this could ever happen - now when lax is set to false [pm]
-                    JAXBElement jaxb = (JAXBElement) e;
-                    // TODO: after refactoring next method, change to item path type
-                    String s = (String)((JAXBElement) e).getValue();
-                    XPathHolder holder = new XPathHolder(s);
-                    itemPath = holder.toItemPath();
-                    return true;
-                }
-				throw new IllegalArgumentException("PATH ADD: "+e+" "+e.getClass());
-			}
-
-			@Override
-			public boolean remove(Object o) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public boolean containsAll(Collection<?> c) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public boolean addAll(Collection<? extends Object> c) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public boolean addAll(int index, Collection<? extends Object> c) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public boolean removeAll(Collection<?> c) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public boolean retainAll(Collection<?> c) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public void clear() {
-				itemPath = null;
-			}
-
-			@Override
-			public Object get(int index) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public Object set(int index, Object element) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public void add(int index, Object element) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public Object remove(int index) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public int indexOf(Object o) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public int lastIndexOf(Object o) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public ListIterator<Object> listIterator() {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public ListIterator<Object> listIterator(int index) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-
-			@Override
-			public List<Object> subList(int fromIndex, int toIndex) {
-				throw new UnsupportedOperationException("nto supported yet");
-			}
-        	
-        
-	}
 
     @Override
     public String toString() {
@@ -371,12 +172,4 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
                 "itemPath=" + getItemPath() +
                 '}';
     }
-
-    //	@Override
-//	public int hashCode(ObjectLocator locator, HashCodeStrategy hashCodeStrategy) {
-//		final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
-////		hashCodeStrategy.
-//		return 0;
-//	}
-    
 }

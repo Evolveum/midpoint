@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -45,24 +48,43 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     private List<ValueWrapper> values;
     private String displayName;
     private boolean readonly;
+    private PrismPropertyDefinition itemDefinition;
 
-    public PropertyWrapper(ContainerWrapper container, PrismProperty property, ValueStatus status) {
+    public PropertyWrapper(ContainerWrapper container, PrismProperty property, boolean readonly, ValueStatus status) {
         Validate.notNull(property, "Property must not be null.");
         Validate.notNull(status, "Property status must not be null.");
 
         this.container = container;
         this.property = property;
         this.status = status;
-        this.readonly = container.isReadonly();
+        this.readonly = readonly;
+        this.itemDefinition = getItemDefinition();
 
         ItemPath passwordPath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
                 CredentialsType.F_PASSWORD);
-        if (passwordPath.equals(container.getPath())
+        if (passwordPath.equivalent(container.getPath())
                 && PasswordType.F_VALUE.equals(property.getElementName())) {
             displayName = "prismPropertyPanel.name.credentials.password";
         }
     }
 
+    public void revive(PrismContext prismContext) throws SchemaException {
+        if (property != null) {
+            property.revive(prismContext);
+        }
+        if (itemDefinition != null) {
+            itemDefinition.revive(prismContext);
+        }
+    }
+
+    protected PrismPropertyDefinition getItemDefinition() {
+    	PrismPropertyDefinition propDef = container.getContainerDefinition().findPropertyDefinition(property.getDefinition().getName());
+    	if (propDef == null) {
+    		propDef = property.getDefinition();
+    	}
+    	return propDef;
+    }
+    
     public boolean isVisible() {
         if (property.getDefinition().isOperational()) {
             return false;
@@ -70,6 +92,8 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
 
         return container.isPropertyVisible(this);
     }
+    
+    
 
     ContainerWrapper getContainer() {
         return container;
@@ -155,7 +179,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     }
 
     private boolean isThisPropertyActivationEnabled() {
-        if (!new ItemPath(UserType.F_ACTIVATION).equals(container.getPath())) {
+        if (!new ItemPath(UserType.F_ACTIVATION).equivalent(container.getPath())) {
             return false;
         }
 
@@ -209,4 +233,5 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     public void setReadonly(boolean readonly) {
         this.readonly = readonly;
     }
+
 }

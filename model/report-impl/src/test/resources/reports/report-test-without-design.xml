@@ -27,7 +27,7 @@
 	<export>csv</export>
 	 <!-- datasource sample, provider instance is obtained from spring context -->
     <dataSource>
-        <providerClass>com.evolveum.midpoint.report.DataSourceReportProvider</providerClass>
+        <providerClass>com.evolveum.midpoint.report.impl.DataSourceReportProvider</providerClass>
         <springBean>true</springBean>
     </dataSource>
 	<field>

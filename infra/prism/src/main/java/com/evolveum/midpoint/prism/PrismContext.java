@@ -43,6 +43,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import java.io.File;
@@ -366,6 +367,29 @@ public class PrismContext {
         XNode xnode = parseToXNode(file);
         return xnodeProcessor.parseAnyData(xnode);
     }
+    /**
+     * Emulates JAXB unmarshal method.
+     *
+     * TODO
+     *
+     * @param node
+     * @return
+     * @throws SchemaException
+     */
+    public <T> T parseAnyValue(File file) throws SchemaException, IOException {
+        XNode xnode = parseToXNode(file);
+        return xnodeProcessor.parseAnyValue(xnode);
+    }
+
+    public <T> T parseAnyValue(Element element) throws SchemaException {
+        XNode xnode = parseToXNode(element);
+        return xnodeProcessor.parseAnyValue(xnode);
+    }
+
+    public <T> T parseAnyValue(InputStream inputStream, String language) throws SchemaException, IOException {
+        XNode xnode = parseToXNode(inputStream, language);
+        return xnodeProcessor.parseAnyValue(xnode);
+    }
 
     //endregion
 
@@ -393,6 +417,10 @@ public class PrismContext {
     private XNode parseToXNode(InputStream stream, String language) throws SchemaException, IOException {
         Parser parser = getParserNotNull(language);
         return parser.parse(stream);
+    }
+
+    private XNode parseToXNode(Element domElement) throws SchemaException {
+        return parserDom.parse(domElement);
     }
 
     private Parser findParser(File file) throws IOException{
@@ -442,8 +470,16 @@ public class PrismContext {
 	public void adopt(Objectable objectable) throws SchemaException {
 		adopt(objectable.asPrismObject(), objectable.getClass());
 	}
-	
-	public <T extends Objectable> void adopt(ObjectDelta<T> delta) throws SchemaException {
+
+    public void adopt(Containerable containerable) throws SchemaException {
+        containerable.asPrismContainerValue().revive(this);
+    }
+
+    public void adopt(PrismContainerValue value) throws SchemaException {
+        value.revive(this);
+    }
+
+    public <T extends Objectable> void adopt(ObjectDelta<T> delta) throws SchemaException {
 		delta.revive(this);
 		getSchemaRegistry().applyDefinition(delta, delta.getObjectTypeClass(), false);
 	}
@@ -475,7 +511,7 @@ public class PrismContext {
 		Parser parser = getParserNotNull(language);
 		
 		RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(cval, elementName);
-		System.out.println("serialized to xnode: " + xroot.debugDump());
+		//System.out.println("serialized to xnode: " + xroot.debugDump());
 		return parser.serializeToString(xroot);
 	}
 
@@ -497,6 +533,13 @@ public class PrismContext {
         return parser.serializeToString(xnode);
     }
 
+    public String serializeAtomicValue(JAXBElement<?> element, String language) throws SchemaException {
+        Parser parser = getParserNotNull(language);
+        RootXNode xnode = xnodeProcessor.serializeAtomicValue(element);
+        return parser.serializeToString(xnode);
+    }
+
+
     /**
      * Serializes any data - i.e. either Item or an atomic value.
      * Does not support PrismValues: TODO: implement that!
@@ -511,6 +554,17 @@ public class PrismContext {
         Parser parser = getParserNotNull(language);
         RootXNode xnode = xnodeProcessor.serializeAnyData(object);
         return parser.serializeToString(xnode);
+    }
+
+    public String serializeAnyData(Object object, QName defaultRootElementName, String language) throws SchemaException {
+        Parser parser = getParserNotNull(language);
+        RootXNode xnode = xnodeProcessor.serializeAnyData(object, defaultRootElementName);
+        return parser.serializeToString(xnode);
+    }
+
+    public Element serializeAnyDataToElement(Object object, QName defaultRootElementName) throws SchemaException {
+        RootXNode xnode = xnodeProcessor.serializeAnyData(object, defaultRootElementName);
+        return parserDom.serializeXRootToElement(xnode);
     }
 
     public boolean canSerialize(Object value) {

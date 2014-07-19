@@ -106,12 +106,13 @@ public class PrismReferenceDefinition extends ItemDefinition {
 
     @Override
     public PrismReference instantiate(QName name) {
+        name = addNamespaceIfApplicable(name);
         return new PrismReference(name, this, prismContext);
     }
     
     @Override
 	public ItemDelta createEmptyDelta(ItemPath path) {
-		return new ReferenceDelta(path, this);
+		return new ReferenceDelta(path, this, prismContext);
 	}
 
 	@Override

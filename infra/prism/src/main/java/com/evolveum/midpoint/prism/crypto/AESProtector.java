@@ -308,18 +308,18 @@ public class AESProtector extends BaseProtector {
 			if (cipherMode == Cipher.ENCRYPT_MODE) {
 				desc = "Encrypting";
 			} else if (cipherMode == Cipher.DECRYPT_MODE) {
-				desc = "Descrypting";
+				desc = "Decrypting";
 			} else {
-				desc = "Ciphering (mode "+cipherMode+")";
-			}
-			LOGGER.trace("{} data by JCE algorithm {} (URI {}), cipher {}, provider {}", new Object[]{
+                desc = "Ciphering (mode " + cipherMode + ")";
+            }
+            LOGGER.trace("{} data by JCE algorithm {} (URI {}), cipher {}, provider {}", new Object[]{
 				desc, jceAlgorithm, algorithmUri, cipher.getAlgorithm(), cipher.getProvider().getName()});
 		}
 		return cipher;
 	}
 	
     public String getSecretKeyDigest(SecretKey key) throws EncryptionException {
-        MessageDigest sha1 = null;
+        MessageDigest sha1;
         try {
             sha1 = MessageDigest.getInstance(KEY_DIGEST_TYPE);
         } catch (NoSuchAlgorithmException ex) {
@@ -382,7 +382,7 @@ public class AESProtector extends BaseProtector {
     }
     
     private SecretKey getSecretKeyByAlias(String alias) throws EncryptionException {
-        Key key = null;
+        Key key;
         try {
             key = keyStore.getKey(alias, KEY_PASSWORD);
         } catch (Exception ex) {

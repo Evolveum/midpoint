@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
-import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -45,10 +44,12 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import com.sun.org.apache.xml.internal.utils.XMLChar;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Attr;
+import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -251,6 +252,7 @@ public class DOMUtil {
 			throw new SystemException("Error in XML configuration: "+e.getMessage(),e);
 		}
 		trans.setOutputProperty(OutputKeys.INDENT, (indent ? "yes" : "no"));
+        trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");      // XALAN-specific
 		trans.setParameter(OutputKeys.ENCODING, "utf-8");
         // Note: serialized XML does not contain xml declaration
         trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, (omitXmlDeclaration ? "yes" : "no"));
@@ -527,6 +529,7 @@ public class DOMUtil {
 			attrValue = valuePrefix + ":" + attributeValue.getLocalPart();
 		}
 		NamedNodeMap attributes = element.getAttributes();
+        checkValidXmlChars(attrValue);
 		attr.setValue(attrValue);
 		attributes.setNamedItem(attr);
 	}
@@ -541,7 +544,7 @@ public class DOMUtil {
 		} else {
 			stringValue = valuePrefix + ":" + elementValue.getLocalPart();
 		}
-		element.setTextContent(stringValue);
+        setElementTextContent(element, stringValue);
 	}
 
 	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri,
@@ -549,13 +552,23 @@ public class DOMUtil {
 		return lookupOrCreateNamespaceDeclaration(element, namespaceUri, preferredPrefix, element);
 	}
 
+    /**
+     *
+     * @param element Element, on which the namespace declaration is evaluated
+     * @param namespaceUri Namespace URI to be assigned to a prefix
+     * @param preferredPrefix Preferred prefix
+     * @param definitionElement Element, on which namespace declaration will be created (there should not be any redefinitions between definitionElement and element in order for this to work...)
+     * @return prefix that is really used
+     */
+
 	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri,
 			String preferredPrefix, Element definitionElement) {
 		// We need to figure out correct prefix. We have namespace URI, but we
-		// need a prefix to specify in the xsi:type
+		// need a prefix to specify in the xsi:type or element name
 		if (!StringUtils.isBlank(preferredPrefix)) {
 			String namespaceForPreferredPrefix = element.lookupNamespaceURI(preferredPrefix);
 			if (namespaceForPreferredPrefix == null) {
+                // preferred prefix is not yet bound
 				setNamespaceDeclaration(definitionElement, preferredPrefix, namespaceUri);
 				return preferredPrefix;
 			} else {
@@ -608,7 +621,7 @@ public class DOMUtil {
 				for(int i=0; i < RANDOM_ATTR_PREFIX_MAX_ITERATIONS; i++) {
 					prefix = generatePrefix();
 					if (element.lookupNamespaceURI(prefix) == null) {
-						// the prefix if free
+						// the prefix is free
 						gotIt = true;
 						break;
 					}
@@ -647,6 +660,7 @@ public class DOMUtil {
 			attr = doc
 					.createAttributeNS(W3C_XML_SCHEMA_XMLNS_URI, W3C_XML_SCHEMA_XMLNS_PREFIX + ":" + prefix);
 		}
+        checkValidXmlChars(namespaceUri);
 		attr.setValue(namespaceUri);
 		attributes.setNamedItem(attr);
 	}
@@ -931,13 +945,13 @@ public class DOMUtil {
 
 	public static Element createElement(Document document, QName qname) {
 		Element element;
-		String namespaceURI = qname.getNamespaceURI();
-		if (StringUtils.isBlank(namespaceURI)) {
-			element = document.createElement(qname.getLocalPart());
-		} else {
+//		String namespaceURI = qname.getNamespaceURI();
+//		if (StringUtils.isBlank(namespaceURI)) {
+//			element = document.createElement(qname.getLocalPart());
+//		} else {
 			element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
-		}
-		if (qname.getPrefix() != null) {
+//		}
+		if (StringUtils.isNotEmpty(qname.getPrefix()) && StringUtils.isNotEmpty(qname.getNamespaceURI())) {     // second part of the condition is because of wrong data in tests (undeclared prefixes in XPath expressions)
 			element.setPrefix(qname.getPrefix());
 		}
 		return element;
@@ -1205,5 +1219,66 @@ public class DOMUtil {
 		}
 		return StringUtils.isEmpty(attr.getValue());
 	}
+
+    public static void setAttributeValue(Element element, String name, String value) {
+        checkValidXmlChars(value);
+        element.setAttribute(name, value);
+    }
+
+    public static void setElementTextContent(Element element, String value) {
+        checkValidXmlChars(value);
+        element.setTextContent(value);
+    }
+
+    public static void checkValidXmlChars(String stringValue) {
+        if (stringValue == null) {
+            return;
+        }
+        for (int i = 0; i < stringValue.length(); i++) {
+            if (!XMLChar.isValid(stringValue.charAt(i))) {
+                throw new IllegalStateException("Invalid character with regards to XML (code " + ((int) stringValue.charAt(i)) + ") in '" + makeSafelyPrintable(stringValue, 200) + "'");
+            }
+        }
+    }
+
+    // todo move to some Util class
+    private static String makeSafelyPrintable(String text, int maxSize) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (!XMLChar.isValid(c)) {
+                sb.append('.');
+            } else if (Character.isWhitespace(c)) {
+                sb.append(' ');
+            } else {
+                sb.append(c);
+            }
+            if (i == maxSize) {
+                sb.append("...");
+                break;
+            }
+        }
+        return sb.toString();
+    }
+
+    public static void createComment(Element element, String text) {
+        if (text != null) {
+            Comment commentNode = element.getOwnerDocument().createComment(replaceInvalidXmlChars(text));
+            element.appendChild(commentNode);
+        }
+    }
+
+    private static String replaceInvalidXmlChars(String text) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (!XMLChar.isValid(c)) {
+                sb.append('.');
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
 
 }

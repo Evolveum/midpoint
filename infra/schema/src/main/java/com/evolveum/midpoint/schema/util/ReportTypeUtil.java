@@ -16,7 +16,12 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import java.util.Collection;
+
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
@@ -77,5 +82,30 @@ public class ReportTypeUtil {
         }
 
         configuration.applyDefinition(definition, true);
+    }
+    
+    public static void applyConfigurationDefinition(PrismObject<ReportType> report, ObjectDelta delta, PrismContext prismContext)
+            throws SchemaException {
+
+    	PrismSchema schema = ReportTypeUtil.parseReportConfigurationSchema(report, prismContext);
+        PrismContainerDefinition<ReportConfigurationType> definition =  ReportTypeUtil.findReportConfigurationDefinition(schema);
+        if (definition == null) {
+            //no definition found for container
+            throw new SchemaException("Couldn't find definitions for report type " + report + ".");
+        }
+        Collection<ItemDelta> modifications = delta.getModifications();
+        for (ItemDelta itemDelta : modifications){
+        	if (itemDelta.hasCompleteDefinition()){
+        		continue;
+        	}
+        	ItemDefinition def = definition.findItemDefinition(itemDelta.getPath().tail());
+        	if (def != null){
+        		itemDelta.applyDefinition(def);
+        	}
+        }
+        
+        
+
+        
     }
 }

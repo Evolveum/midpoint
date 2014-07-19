@@ -19,7 +19,7 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <s:search>
+    <s:expression xsi:type="s:SearchExpressionType">
         <s:type>c:UserType</s:type>
         <s:searchFilter>
             <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -27,19 +27,19 @@
                 <value>jack</value>
             </equal>
         </s:searchFilter>
-    </s:search>
-    <s:action>
+    </s:expression>
+    <s:expression xsi:type="s:ActionExpressionType">
         <s:type>modify</s:type>
         <s:parameter>
             <s:name>delta</s:name>
-            <s:constant xsi:type="t:ObjectDeltaType">
+            <c:value xsi:type="t:ObjectDeltaType">
                 <!-- object type and oid will be filled-in from the input; change type is 'modify' by default -->
                 <t:itemDelta>
                     <t:modificationType>replace</t:modificationType>
                     <t:path>c:locality</t:path>
                     <t:value>Caribbean</t:value>
                 </t:itemDelta>
-            </s:constant>
+            </c:value>
         </s:parameter>
-    </s:action>
+    </s:expression>
 </s:pipeline>

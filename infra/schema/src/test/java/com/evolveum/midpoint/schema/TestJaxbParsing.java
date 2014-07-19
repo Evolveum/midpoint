@@ -27,7 +27,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -86,7 +85,7 @@ public class TestJaxbParsing {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
-        UserType userType = JaxbTestUtil.getInstance().unmarshalObject(new File(TEST_COMMON_DIR, "user-jack.xml"), UserType.class);
+        UserType userType = PrismTestUtil.parseObjectable(new File(TEST_COMMON_DIR, "user-jack.xml"), UserType.class);
 
         // WHEN
 
@@ -133,7 +132,7 @@ public class TestJaxbParsing {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
-        ShadowType accType = JaxbTestUtil.getInstance().unmarshalObject(new File(TEST_COMMON_DIR, "account-jack.xml"), ShadowType.class);
+        ShadowType accType = PrismTestUtil.parseObjectable(new File(TEST_COMMON_DIR, "account-jack.xml"), ShadowType.class);
 
         PrismObject<ShadowType> account = accType.asPrismObject();
         account.revive(prismContext);
@@ -155,7 +154,7 @@ public class TestJaxbParsing {
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-        RoleType roleType = JaxbTestUtil.getInstance().unmarshalObject(new File(TEST_COMMON_DIR, "role.xml"), RoleType.class);
+        RoleType roleType = PrismTestUtil.parseObjectable(new File(TEST_COMMON_DIR, "role.xml"), RoleType.class);
 
         // WHEN
 
@@ -181,7 +180,7 @@ public class TestJaxbParsing {
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-        GenericObjectType object = JaxbTestUtil.getInstance().unmarshalObject(new File(TEST_COMMON_DIR, "generic-sample-configuration.xml"),
+        GenericObjectType object = PrismTestUtil.parseObjectable(new File(TEST_COMMON_DIR, "generic-sample-configuration.xml"),
                 GenericObjectType.class);
 
         PrismObject<GenericObjectType> prism = object.asPrismObject();
@@ -221,16 +220,11 @@ public class TestJaxbParsing {
         item1.setPath(new ItemPathType(path));
         ProtectedStringType protectedString = new ProtectedStringType();
         protectedString.setEncryptedData(new EncryptedDataType());
-        RawType value = new RawType();
-        value.getContent().add(new JAXBElement(new QName(SchemaConstants.NS_C, "protectedString"), ProtectedStringType.class, protectedString));
+        RawType value = new RawType(PrismTestUtil.getPrismContext().getBeanConverter().marshall(protectedString), PrismTestUtil.getPrismContext());
         item1.getValue().add(value);
 
-        //fix marshalling somehow, or change the way how to create XML from ObjectDeltaType
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
-        String xml = JaxbTestUtil.getInstance().marshalElementToString(
-                new JAXBElement<Object>(new QName("http://www.example.com", "custom"), Object.class, delta), properties);
+        String xml = PrismTestUtil.serializeJaxbElementToString(
+                new JAXBElement<Object>(new QName("http://www.example.com", "custom"), Object.class, delta));
         assertNotNull(xml);
     }
 }

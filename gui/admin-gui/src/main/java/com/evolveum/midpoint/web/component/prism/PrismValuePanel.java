@@ -316,7 +316,7 @@ public class PrismValuePanel extends Panel {
         List<DateValidator> validators = form.getBehaviors(DateValidator.class);
         if (validators != null) {
             for (DateValidator val : validators) {
-                if (path.equals(val.getIdentifier())) {
+                if (path.equivalent(val.getIdentifier())) {
                     validator = val;
                     break;
                 }
@@ -352,7 +352,9 @@ public class PrismValuePanel extends Panel {
 
         InputPanel panel;
         if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())) {
-            return WebMiscUtil.createActivationStatusPanel(id, new PropertyModel(model, baseExpression), this);
+            return WebMiscUtil.createActivationStatusPanel(id, new PropertyModel<ActivationStatusType>(model, baseExpression), this);
+        } else if(ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())){
+            return WebMiscUtil.createLockoutStatsPanel(id, new PropertyModel<LockoutStatusType>(model, baseExpression), this);
         }
 
         if (DOMUtil.XSD_DATETIME.equals(valueType)) {

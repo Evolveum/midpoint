@@ -20,7 +20,7 @@
 		xmlns:y="http://example.com/yyy">
     <language>http://www.w3.org/TR/xpath/</language>
 	<code xmlns:x="http://example.com/xxx">
-        declare namespace x=xmlns:x="http://example.com/xxx";
+        declare namespace x="http://example.com/xxx";
 		declare namespace yy="http://example.com/yyy";
 		concat($x:foo,$yy:bar)
 	</code>

@@ -29,7 +29,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -68,12 +68,12 @@ public class ObjectQueryUtil {
     }
 
     public static ObjectQuery createNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
-        EqualsFilter filter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, null, name);
+        EqualFilter filter = EqualFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, null, name);
         return ObjectQuery.createObjectQuery(filter);
 	}
 
     public static ObjectQuery createOrigNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
-        EqualsFilter filter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, PolyStringOrigMatchingRule.NAME, name);
+        EqualFilter filter = EqualFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, PolyStringOrigMatchingRule.NAME, name);
         return ObjectQuery.createObjectQuery(filter);
     }
 
@@ -100,12 +100,12 @@ public class ObjectQueryUtil {
 	}
 	
 	public static ObjectFilter createObjectClassFilter(QName objectClass, PrismContext prismContext) {
-		return EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, objectClass);
+		return EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, objectClass);
 	}
 	
 	public static <T extends ObjectType> ObjectQuery createNameQuery(Class<T> clazz, PrismContext prismContext, String name) throws SchemaException{
 		PolyString namePolyString = new PolyString(name);
-		EqualsFilter equal = EqualsFilter.createEqual(ObjectType.F_NAME, clazz, prismContext, null, namePolyString);
+		EqualFilter equal = EqualFilter.createEqual(ObjectType.F_NAME, clazz, prismContext, null, namePolyString);
 		return ObjectQuery.createObjectQuery(equal);
 	}
 	
@@ -168,14 +168,14 @@ public class ObjectQueryUtil {
 		filter.accept(visitor);
 	}
 
-	public static String dump(QueryType query) {
+	public static String dump(QueryType query) throws SchemaException {
 		if (query == null) {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("Query(");
 		sb.append(query.getDescription()).append("):\n");
-		if (query.getFilter() != null && query.getFilter().getFilterClause() != null)
-			sb.append(DOMUtil.serializeDOMToString(query.getFilter().getFilterClause()));
+		if (query.getFilter() != null && query.getFilter().containsFilterClause())
+			sb.append(DOMUtil.serializeDOMToString(query.getFilter().getFilterClauseAsElement()));
 		else
 			sb.append("(no filter)");
 		return sb.toString();

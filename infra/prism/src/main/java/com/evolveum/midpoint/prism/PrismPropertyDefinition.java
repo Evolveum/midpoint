@@ -117,12 +117,13 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
 
     @Override
     public PrismProperty<T> instantiate(QName name) {
+        name = addNamespaceIfApplicable(name);
         return new PrismProperty<T>(name, this, prismContext);
     }
 
     @Override
 	public PropertyDelta<T> createEmptyDelta(ItemPath path) {
-		return new PropertyDelta<T>(path, this);
+		return new PropertyDelta<T>(path, this, prismContext);
 	}
 
 	@Override

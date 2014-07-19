@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import com.evolveum.midpoint.model.ModelWebService;
+import com.evolveum.midpoint.model.impl.ModelWebService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -57,6 +58,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Date;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -91,11 +93,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String CONNECTOR_DBTABLE_FILENAME = COMMON_DIR_NAME + "/connector-dbtable.xml";
 	
 	protected static final String CONNECTOR_DUMMY_FILENAME = COMMON_DIR_NAME + "/connector-dummy.xml";
-	
-	protected static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource-opendj.xml";
-    protected static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
-	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 	
 	protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
 	protected static final File RESOURCE_DUMMY_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-deprecated.xml");
@@ -163,8 +160,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-55555555cccc";
 
 	// Excludes role "pirate"
-	protected static final String ROLE_JUDGE_FILENAME = COMMON_DIR_NAME + "/role-judge.xml";
+	protected static final File ROLE_JUDGE_FILE = new File(COMMON_DIR, "role-judge.xml");
 	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
+
+	protected static final File ROLE_EMPTY_FILE = new File(COMMON_DIR, "role-empty.xml");
+	protected static final String ROLE_EMPTY_OID = "12345111-1111-2222-1111-121212111112";
 
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR_NAME, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
@@ -194,6 +194,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File USER_HERMAN_FILE = new File(COMMON_DIR_NAME, "user-herman.xml");
 	protected static final String USER_HERMAN_OID = "c0c010c0-d34d-b33f-f00d-111111111122";
 	protected static final String USER_HERMAN_USERNAME = "herman";
+	protected static final String USER_HERMAN_FULL_NAME = "Herman Toothrot";
+	protected static final Date USER_HERMAN_VALID_FROM_DATE = MiscUtil.asDate(1700, 5, 30, 11, 00, 00);
+	protected static final Date USER_HERMAN_VALID_TO_DATE = MiscUtil.asDate(2233, 3, 23, 18, 30, 00);
 
 	// Has null name, doesn not have given name, no employeeType
 	protected static final String USER_THREE_HEADED_MONKEY_FILENAME = COMMON_DIR_NAME + "/user-three-headed-monkey.xml";
@@ -312,6 +315,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = new ItemPath(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
 
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
+    
+    protected static final String INTENT_TEST = "test";
 	
 	// Authorizations
 	
@@ -320,6 +325,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String AUTZ_LOOT_URL = QNameUtil.qNameToUri(AUTZ_LOOT_QNAME);
 	protected static final QName AUTZ_COMMAND_QNAME = new QName(NS_TEST_AUTZ, "command");
 	protected static final String AUTZ_COMMAND_URL = QNameUtil.qNameToUri(AUTZ_COMMAND_QNAME);
+	protected static final QName AUTZ_PUNISH_QNAME = new QName(NS_TEST_AUTZ, "punish");
+	protected static final String AUTZ_PUNISH_URL = QNameUtil.qNameToUri(AUTZ_PUNISH_QNAME);
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
 	

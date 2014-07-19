@@ -121,6 +121,12 @@
 					<cap:enableValue/>
 					<cap:disableValue>true</cap:disableValue>
 				</cap:status>
+				<cap:lockoutStatus>
+					<!-- This is fake. But OpenDJ lockout attribute is not modifiable using normal LDAP operations. -->
+					<cap:attribute>ri:pager</cap:attribute>
+					<cap:normalValue/>
+					<cap:lockedValue>1</cap:lockedValue>
+				</cap:lockoutStatus>
 			</cap:activation>
 			<!-- 
 			<cap:credentials>

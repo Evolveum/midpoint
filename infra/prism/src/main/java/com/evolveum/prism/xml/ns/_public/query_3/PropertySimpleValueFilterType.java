@@ -39,6 +39,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.Raw;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
@@ -89,6 +90,7 @@ public class PropertySimpleValueFilterType
     private final static long serialVersionUID = 201105211233L;
     @XmlAnyElement
     protected Element property;
+    @Raw
     protected Object value;
     @XmlAnyElement(lax = true)
     protected Object any;

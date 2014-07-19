@@ -173,8 +173,7 @@ public class ScriptExpression {
 		if (path == null) {
 			return null;
 		}
-        ItemPathType itemPathType = new ItemPathType();
-        itemPathType.getContent().add(path);
+        ItemPathType itemPathType = new ItemPathType(path);
         return itemPathType.getItemPath();
         // TODO what about namespaces?
 //		Element codeElement = scriptType.getCode();

@@ -27,8 +27,8 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
@@ -69,7 +69,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
         this(new PageParameters(), null);
     }
 
-    public PageProcessInstance(final PageParameters parameters, PageBase previousPage) {
+    public PageProcessInstance(final PageParameters parameters, PageTemplate previousPage) {
 
         this.parameters = parameters;
         setPreviousPage(previousPage);
@@ -93,11 +93,11 @@ public class PageProcessInstance extends PageAdminWorkItems {
             boolean finished = parameters.get(PARAM_PROCESS_INSTANCE_FINISHED).toBoolean();
             WfProcessInstanceType processInstance;
             try {
-                processInstance = getWorkflowManager().getProcessInstanceById(pid.toString(), finished, true, result);
+                processInstance = getWorkflowService().getProcessInstanceById(pid.toString(), finished, true, result);
             } catch (ObjectNotFoundException e) {
                 if (finished == false) {
                     // maybe the process instance has finished in the meanwhile...
-                    processInstance = getWorkflowManager().getProcessInstanceById(pid.toString(), true, true, result);
+                    processInstance = getWorkflowService().getProcessInstanceById(pid.toString(), true, true, result);
                 } else {
                     throw e;
                 }

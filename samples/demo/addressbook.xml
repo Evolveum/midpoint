@@ -64,8 +64,8 @@
 
 		<schemaHandling>
 
-			<accountType>
-				<name>default</name>
+			<objectType>
+				<intent>default</intent>
 				<displayName>Default Account</displayName>
 				<default>true</default>
 				<objectClass>ri:AccountObjectClass</objectClass>
@@ -125,16 +125,16 @@
 					</outbound>
 				</attribute>
 				<activation>
-					<enabled>
-						<outbound/>
-					</enabled>
-				</activation>
+	                <administrativeStatus>
+	                    <outbound/>
+	                </administrativeStatus>
+            	</activation>
 				<credentials>
 					<password>
 						<outbound/>
 					</password>
 				</credentials>
-			</accountType>
+			</objectType>
 		</schemaHandling>
 
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">

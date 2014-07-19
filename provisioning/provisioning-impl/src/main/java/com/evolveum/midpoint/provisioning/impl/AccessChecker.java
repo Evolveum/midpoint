@@ -98,7 +98,7 @@ public class AccessChecker {
 				continue;
 			}
 			PropertyDelta<?> attrDelta = (PropertyDelta<?>)modification;
-			if (!SchemaConstants.PATH_ATTRIBUTES.equals(attrDelta.getParentPath())) {
+			if (!SchemaConstants.PATH_ATTRIBUTES.equivalent(attrDelta.getParentPath())) {
 				// Not an attribute
 				continue;
 			}

@@ -40,6 +40,7 @@ public class DummyAccount extends DummyObject {
 	public static final String ATTR_PRIVILEGES_NAME = "privileges";
 	
 	private String password = null;
+	private Boolean lockout = null;
 
 	public DummyAccount() {
 		super();
@@ -57,6 +58,14 @@ public class DummyAccount extends DummyObject {
 		this.password = password;
 	}
 	
+	public Boolean isLockout() {
+		return lockout;
+	}
+
+	public void setLockout(boolean lockout) {
+		this.lockout = lockout;
+	}
+
 	@Override
 	protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException {
 		return resource.getAccountObjectClass();
@@ -80,6 +89,7 @@ public class DummyAccount extends DummyObject {
 	@Override
 	protected void extendDebugDump(StringBuilder sb, int indent) {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Password", password, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Lockout", lockout, indent + 1);
 	}
 	
 }

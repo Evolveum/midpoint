@@ -51,6 +51,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
         "classpath:ctx-security.xml",
         "classpath:ctx-provisioning.xml",
         "classpath:ctx-model.xml",
+        "classpath:ctx-model-test.xml",
         "classpath*:ctx-workflow.xml",
         "file:src/main/webapp/WEB-INF/ctx-init.xml",
         "file:src/main/webapp/WEB-INF/ctx-web-security.xml",

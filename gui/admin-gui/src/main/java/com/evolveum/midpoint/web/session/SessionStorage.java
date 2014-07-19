@@ -43,13 +43,15 @@ public class SessionStorage implements Serializable {
      * Store sessions information for "users" and other pages
      */
     private UsersStorage users;
-    private CreatedReportsStorage createdReports;
     private ReportsStorage reports;
     private ResourcesStorage resources;
     private RolesStorage roles;
     private TasksStorage tasks;
-    private ResourceContentStorage resourceContent;
-    private OrgUnitStorage orgUnitStorage;
+
+    /**
+    *   Store session information for user preferences about paging size in midPoint GUI
+    * */
+    private UserProfileStorage userProfile;
 
     public Class<? extends WebPage> getPreviousPage() {
         return previousPage;
@@ -81,52 +83,42 @@ public class SessionStorage implements Serializable {
         return users;
     }
 
-    public CreatedReportsStorage getCreatedReports(){
-        if(createdReports == null){
-            createdReports = new CreatedReportsStorage();
-        }
-        return createdReports;
-    }
-
-    public ResourcesStorage getResources(){
-        if(resources == null){
+    public ResourcesStorage getResources() {
+        if (resources == null) {
             resources = new ResourcesStorage();
         }
         return resources;
     }
 
-    public RolesStorage getRoles(){
-        if(roles == null){
+    public RolesStorage getRoles() {
+        if (roles == null) {
             roles = new RolesStorage();
         }
         return roles;
     }
 
-    public TasksStorage getTasks(){
-        if(tasks == null){
+    public TasksStorage getTasks() {
+        if (tasks == null) {
             tasks = new TasksStorage();
         }
         return tasks;
     }
 
-    public ResourceContentStorage getResourceContent(){
-        if(resourceContent == null){
-            resourceContent = new ResourceContentStorage();
-        }
-        return resourceContent;
-    }
-
-    public ReportsStorage getReports(){
-        if(reports == null){
+    public ReportsStorage getReports() {
+        if (reports == null) {
             reports = new ReportsStorage();
         }
         return reports;
     }
 
-    public OrgUnitStorage getOrgUnits(){
-        if(orgUnitStorage == null){
-            orgUnitStorage = new OrgUnitStorage();
+    public UserProfileStorage getUserProfile(){
+        if(userProfile == null){
+            userProfile = new UserProfileStorage();
         }
-        return orgUnitStorage;
+        return userProfile;
+    }
+
+    public void setUserProfile(UserProfileStorage profile){
+        userProfile = profile;
     }
 }

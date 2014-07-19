@@ -18,8 +18,11 @@
 <groups xmlns="http://www.isdc.ro/wro">
     <!-- this group is obsolete, will be removed -->
     <group name="all">
-        <css>/less/*.less</css>
-        <css>/WEB-INF/classes/**.less</css>
+        <css>/less/config.less</css>
+        <css>/less/evolveum-obsolete.less</css>
+        <css>/less/global.less</css>
+        <css>/WEB-INF/classes/com/evolveum/midpoint/web/component/assignment/AssignmentHeaderPanel.less</css>
+        <css>/WEB-INF/classes/com/evolveum/midpoint/web/page/admin/home/PageMyPasswords.less</css>
     </group>
 
     <group name="bootstrap">
@@ -45,6 +48,8 @@
 
     <group name="midpoint">
         <css>/less/midpoint/midpoint.less</css>
-        <js>/js/midpoint/**.js</js>
+        <js>/js/midpoint/ace-editor.js</js>
+        <js>/js/midpoint/dropdown-multiple.js</js>
+        <js>/js/midpoint/midpoint.js</js>
     </group>
 </groups>

@@ -29,7 +29,6 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -43,16 +42,13 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -60,7 +56,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -69,7 +64,6 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -86,14 +80,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
-import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -302,19 +294,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return prismObject.asObjectable();
 	}
 	
-	protected static <T> T unmarshallJaxbFromFile(File file, Class<T> clazz)
-			throws FileNotFoundException, JAXBException, SchemaException {
-		return JaxbTestUtil.getInstance().unmarshalObject(file, clazz);
+	protected static <T> T unmarshallValueFromFile(File file, Class<T> clazz)
+            throws IOException, JAXBException, SchemaException {
+        return PrismTestUtil.parseAnyValue(file);
 	}
 
-	protected static <T> T unmarshallJaxbFromFile(String filePath, Class<T> clazz)
-			throws FileNotFoundException, JAXBException, SchemaException {
-		return JaxbTestUtil.getInstance().unmarshalObject(new File(filePath), clazz);
+	protected static <T> T unmarshallValueFromFile(String filePath, Class<T> clazz)
+            throws IOException, JAXBException, SchemaException {
+        return PrismTestUtil.parseAnyValue(new File(filePath));
 	}
 
-	protected static ObjectType unmarshallJaxbFromFile(String filePath) throws FileNotFoundException,
-			JAXBException, SchemaException {
-		return unmarshallJaxbFromFile(filePath, ObjectType.class);
+	protected static ObjectType unmarshallValueFromFile(String filePath) throws IOException,
+            JAXBException, SchemaException {
+		return unmarshallValueFromFile(filePath, ObjectType.class);
 	}
 
 	protected PrismObject<ResourceType> addResourceFromFile(String filePath, String connectorType, OperationResult result)
@@ -341,7 +333,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected PrismObject<ConnectorType> findConnectorByType(String connectorType, OperationResult result)
 			throws SchemaException {
 
-		EqualsFilter equal = EqualsFilter.createEqual(ConnectorType.F_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType);
+		EqualFilter equal = EqualFilter.createEqual(ConnectorType.F_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType);
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
 		if (connectors.size() != 1) {
@@ -354,8 +346,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected PrismObject<ConnectorType> findConnectorByTypeAndVersion(String connectorType, String connectorVersion, OperationResult result)
 			throws SchemaException {
 
-		EqualsFilter equalType = EqualsFilter.createEqual(ConnectorType.F_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType);
-		EqualsFilter equalVersion = EqualsFilter.createEqual(ConnectorType.F_CONNECTOR_VERSION, ConnectorType.class, prismContext, null, connectorVersion);
+		EqualFilter equalType = EqualFilter.createEqual(ConnectorType.F_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType);
+		EqualFilter equalVersion = EqualFilter.createEqual(ConnectorType.F_CONNECTOR_VERSION, ConnectorType.class, prismContext, null, connectorVersion);
 		AndFilter filter = AndFilter.createAnd(equalType, equalVersion);
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
@@ -381,10 +373,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected SystemConfigurationType getSystemConfiguration() throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".getSystemConfiguration");
-		PrismObject<SystemConfigurationType> sysConf = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
-		result.computeStatus();
-		TestUtil.assertSuccess("getObject(systemConfig) not success", result);
-		return sysConf.asObjectable();
+		try {
+			PrismObject<SystemConfigurationType> sysConf = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);				
+			result.computeStatus();
+			TestUtil.assertSuccess("getObject(systemConfig) not success", result);
+			return sysConf.asObjectable();
+		} catch (ObjectNotFoundException e) {
+			// No big deal
+			return null;
+		}
 	}
 	
 	protected void assumeAssignmentPolicy(AssignmentPolicyEnforcementType policy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -765,8 +762,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifier);
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
+        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifier);
+        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
         		rAccount.getObjectClassDefinition().getTypeName());
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);
         AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
@@ -780,8 +777,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifier);
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
+        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifier);
+        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
         		rAccount.getObjectClassDefinition().getTypeName());
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);
         AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);

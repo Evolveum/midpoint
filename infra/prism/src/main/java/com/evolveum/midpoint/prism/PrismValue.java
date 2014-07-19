@@ -18,6 +18,9 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.w3c.dom.Element;
@@ -25,20 +28,24 @@ import org.w3c.dom.Element;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * @author semancik
  *
  */
-public abstract class PrismValue implements Visitable, PathVisitable, Serializable, DebugDumpable {
+public abstract class PrismValue implements Visitable, PathVisitable, Serializable, DebugDumpable, Revivable {
 	
 	private OriginType originType;
     private Objectable originObject;
     private Itemable parent;
     protected Element domElement = null;
-    
+    private transient Map<String,Object> userData = new HashMap<>();;
+
     PrismValue() {
 		super();
 	}
@@ -71,8 +78,20 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
     public Objectable getOriginObject() {
         return originObject;
     }
-    
-	public Itemable getParent() {
+
+    public Map<String, Object> getUserData() {
+        return userData;
+    }
+
+    public Object getUserData(String key) {
+        return userData.get(key);
+    }
+
+    public void setUserData(String key, Object value) {
+        userData.put(key, value);
+    }
+
+    public Itemable getParent() {
 		return parent;
 	}
 
@@ -166,6 +185,19 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 			}
 		}
 		return false;
+	}
+	
+	public static <V extends PrismValue> boolean equalsRealValues(Collection<V> collection1, Collection<V> collection2) {
+		Comparator comparator = new Comparator<V>() {
+			@Override
+			public int compare(V v1, V v2) {
+				if (v1.equalsRealValue(v2)) {
+					return 0;
+				};
+				return 1;
+			}
+		};
+		return MiscUtil.unorderedCollectionEquals(collection1, collection2, comparator);
 	}
 	
 	public abstract boolean isEmpty();
@@ -312,6 +344,17 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 	 * The value is returned without any decorations or type demarcations (such as PPV, PRV, etc.)
 	 */
 	public abstract String toHumanReadableString();
+	
+	protected void appendOriginDump(StringBuilder builder) {
+		if (DebugUtil.isDetailedDebugDump()) {
+	        if (getOriginType() != null || getOriginObject() != null) {
+		        builder.append(", origin: ");
+		        builder.append(getOriginType());
+		        builder.append(":");
+		        builder.append(getOriginObject());
+	        }
+		}
+	}
 
     public static <T> Set<T> getRealValuesOfCollection(Collection<PrismPropertyValue<T>> collection) {
         Set<T> retval = new HashSet<T>(collection.size());

@@ -42,9 +42,7 @@
                     <ref>ri:businessCategory</ref>
                     <outbound>
                     	<expression>
-		                    <value>
-		                        <ri:businessCategory>politics</ri:businessCategory>
-		                    </value>
+		                    <value>politics</value>
 		                </expression>
 		           </outbound>
             </attribute>

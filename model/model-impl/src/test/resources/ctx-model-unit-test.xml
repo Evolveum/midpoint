@@ -32,10 +32,10 @@
      http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd"
 	default-lazy-init="false" default-autowire="byName">
 
-	<bean name="provisioningService" class="com.evolveum.midpoint.model.util.mock.MockFactory" factory-method="createProvisioningPortType" />
-	<bean name="repositoryService" class="com.evolveum.midpoint.model.util.mock.MockFactory" factory-method="createRepositoryPortType" />
-	<bean name="cacheRepositoryService" class="com.evolveum.midpoint.model.util.mock.MockFactory" factory-method="createRepositoryPortType" />
-	<bean name="changeNotificationDispatcher" class="com.evolveum.midpoint.model.util.mock.MockFactory" factory-method="createChangeNotificationDispatcher" />
+	<bean name="provisioningService" class="com.evolveum.midpoint.model.impl.util.mock.MockFactory" factory-method="createProvisioningPortType" />
+	<bean name="repositoryService" class="com.evolveum.midpoint.model.impl.util.mock.MockFactory" factory-method="createRepositoryPortType" />
+	<bean name="cacheRepositoryService" class="com.evolveum.midpoint.model.impl.util.mock.MockFactory" factory-method="createRepositoryPortType" />
+	<bean name="changeNotificationDispatcher" class="com.evolveum.midpoint.model.impl.util.mock.MockFactory" factory-method="createChangeNotificationDispatcher" />
 
     <!-- todo prism context -->
 

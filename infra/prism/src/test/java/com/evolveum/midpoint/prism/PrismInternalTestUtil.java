@@ -306,7 +306,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		user.assertDefinitions("test");
 		assertUserJackContent(user);
 		assertUserJackExtension(user);
-		assertVisitor(user,53);
+		assertVisitor(user,55);
 		
 		assertPathVisitor(user, new ItemPath(UserType.F_ASSIGNMENT), true, 9);
 		assertPathVisitor(user, new ItemPath(
@@ -344,6 +344,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		assertPropertyDefinition(user, "familyName", DOMUtil.XSD_STRING, 0, 1);
 		assertPropertyValue(user, "name", new PolyString("jack", "jack"));
 		assertPropertyDefinition(user, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
+
+        assertPropertyValue(user, "special", "got it!");
+        assertPropertyDefinition(user, "special", DOMUtil.XSD_STRING, 0, 1);
 		
 		assertPropertyValue(user, "polyName", new PolyString("Džek Sperou","dzek sperou"));
 		assertPropertyDefinition(user, "polyName", PolyStringType.COMPLEX_TYPE, 0, 1);

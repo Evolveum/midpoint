@@ -38,6 +38,8 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -88,6 +90,18 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         attributeDefinitions = new ArrayList<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
         this.objectClassDefinition = objectClassDefinition;
+    }
+
+    /**
+     * Creates a derived version of this ROCD for a given layer.
+     * TODO clone if necessary/if specified (currently there is no cloning)
+     *
+     * @param layerType
+     * @return
+     */
+    public LayerRefinedObjectClassDefinition forLayer(LayerType layerType) {
+        Validate.notNull(layerType);
+        return LayerRefinedObjectClassDefinition.wrap(this, layerType);
     }
 
     @Override
@@ -198,7 +212,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	
 	public RefinedAssociationDefinition findAssociation(QName name) {
 		for (RefinedAssociationDefinition assocType: getAssociations()) {
-			if (assocType.getName().equals(name)) {
+			if (QNameUtil.match(assocType.getName(), name)) {
 				return assocType;
 			}
 		}
@@ -211,13 +225,21 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	
 	public RefinedAssociationDefinition findEntitlementAssociation(QName name) {
 		for (RefinedAssociationDefinition assocType: getEntitlementAssociations()) {
-			if (assocType.getName().equals(name)) {
+			if (QNameUtil.match(assocType.getName(), name)) {
 				return assocType;
 			}
 		}
 		return null;
 	}
 	
+    public Collection<QName> getNamesOfAssociations() {
+        Collection<QName> names = new HashSet<QName>();
+        for (RefinedAssociationDefinition assocDef : getAssociations()) {
+            names.add(assocDef.getName());
+        }
+        return names;
+    }
+
     public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
         Collection<QName> names = new HashSet<QName>();
         for (RefinedAssociationDefinition assocDef : getAssociations()) {
@@ -228,7 +250,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return names;
     }
 
-	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
+    public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
 		if (protectedObjectPatterns == null) {
 			protectedObjectPatterns = new ArrayList<ResourceObjectPattern>();
 		}
@@ -246,7 +268,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return clone;
     }
 
-    protected void copyDefinitionData(RefinedObjectClassDefinition clone) {
+    private void copyDefinitionData(RefinedObjectClassDefinition clone) {
         super.copyDefinitionData(clone);
         clone.intent = this.intent;
         clone.attributeDefinitions = this.attributeDefinitions;
@@ -269,7 +291,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return findAttributeDefinition(elementQName);
     }
 
-	private String getResourceNamespace() {
+	protected String getResourceNamespace() {
 		return ResourceTypeUtil.getResourceNamespace(resourceType);
 	}
 
@@ -305,6 +327,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
 
     public void setObjectClassDefinition(ObjectClassComplexTypeDefinition objectClassDefinition) {
+    	Validate.notNull(objectClassDefinition, "ObjectClass definition must not be null");
         this.objectClassDefinition = objectClassDefinition;
     }
     
@@ -341,7 +364,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
 	public RefinedAttributeDefinition getAttributeDefinition(QName attributeName) {
         for (RefinedAttributeDefinition attrDef : attributeDefinitions) {
-            if (attrDef.getName().equals(attributeName)) {
+            if (QNameUtil.match(attrDef.getName(), attributeName)) {
                 return attrDef;
             }
         }
@@ -355,7 +378,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
     public boolean containsAttributeDefinition(QName attributeName) {
         for (RefinedAttributeDefinition rAttributeDef : attributeDefinitions) {
-            if (rAttributeDef.getName().equals(attributeName)) {
+            if (QNameUtil.match(rAttributeDef.getName(), attributeName)) {
                 return true;
             }
         }
@@ -374,10 +397,6 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     		kind = ShadowKindType.ACCOUNT;
     	}
     	String intent = entTypeDefType.getIntent();
-    	if (intent == null) {
-    		// Compatibility, DEPRECATED notation
-    		intent = entTypeDefType.getName();
-    	}
 		RefinedObjectClassDefinition rObjectClassDef = parseRefinedObjectClass(entTypeDefType, 
 				resourceType, rSchema, prismContext, kind, intent, kind.value(), kind.value() + " type definition '"+intent+"' in " + contextDescription);
 		return rObjectClassDef;
@@ -472,10 +491,10 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
             QName objectClass = schemaHandlingObjDefType.getObjectClass();
             objectClassDef = rSchema.getOriginalResourceSchema().findObjectClassDefinition(objectClass);
             if (objectClassDef == null) {
-                throw new SchemaException("Object class " + objectClass + " as specified in "+typeDesc+" type " + schemaHandlingObjDefType.getName() + " was not found in the resource schema of " + contextDescription);
+                throw new SchemaException("Object class " + objectClass + " as specified in "+typeDesc+" type " + schemaHandlingObjDefType.getIntent() + " was not found in the resource schema of " + contextDescription);
             }
         } else {
-            throw new SchemaException("Definition of "+typeDesc+" type " + schemaHandlingObjDefType.getName() + " does not have objectclass, in " + contextDescription);
+            throw new SchemaException("Definition of "+typeDesc+" type " + schemaHandlingObjDefType.getIntent() + " does not have objectclass, in " + contextDescription);
         }
         
         RefinedObjectClassDefinition rOcDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
@@ -542,12 +561,11 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return rOcDef;
 	}
 
-	public void parseAssociations(RefinedResourceSchema rSchema) {
+	public void parseAssociations(RefinedResourceSchema rSchema) throws SchemaException {
 		for (ResourceObjectAssociationType resourceObjectAssociationType: schemaHandlingObjectTypeDefinitionType.getAssociation()) {
 			RefinedAssociationDefinition rAssocDef = new RefinedAssociationDefinition(resourceObjectAssociationType);
 			ShadowKindType assocKind = rAssocDef.getKind();
-			String assocIntent = rAssocDef.getIntent();
-			RefinedObjectClassDefinition assocTarget = rSchema.getRefinedDefinition(assocKind, assocIntent);
+			RefinedObjectClassDefinition assocTarget = rSchema.getRefinedDefinition(assocKind, rAssocDef.getIntents());
 			rAssocDef.setAssociationTarget(assocTarget);
 			associations.add(rAssocDef);
 		}
@@ -573,12 +591,12 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         ResourceAttributeDefinitionType foundAttrDefType = null;
         for (ResourceAttributeDefinitionType attrDefType : rOcDefType.getAttribute()) {
             if (attrDefType.getRef() != null) {
-                if (attrDefType.getRef().equals(attrName)) {
+                if (QNameUtil.match(attrDefType.getRef(), attrName)) {
                     if (foundAttrDefType == null) {
                         foundAttrDefType = attrDefType;
                     } else {
                         throw new SchemaException("Duplicate definition of attribute " + attrDefType.getRef() + " in "+typeDesc+" type "
-                                + rOcDefType.getName() + ", in " + contextDescription);
+                                + rOcDefType.getIntent() + ", in " + contextDescription);
                     }
                 }
             } else {
@@ -601,6 +619,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		ShadowType accountShadowType = accountShadow.asObjectable();
         
     	accountShadowType.setIntent(getIntent());
+        accountShadowType.setKind(getKind());
         accountShadowType.setObjectClass(objectClassDefinition.getTypeName());
         accountShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resourceType));
         
@@ -707,13 +726,17 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     		return null;
     	}
     	
-    	if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(propertyName)) {
+    	if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS, propertyName)) {
     		return activationSchemaHandling.getAdministrativeStatus();
-    	} else if (ActivationType.F_VALID_FROM.equals(propertyName)) {
+    	} else if (QNameUtil.match(ActivationType.F_VALID_FROM, propertyName)) {
     		return activationSchemaHandling.getValidFrom();
-    	} else if (ActivationType.F_VALID_TO.equals(propertyName)) {
+    	} else if (QNameUtil.match(ActivationType.F_VALID_TO, propertyName)) {
     		return activationSchemaHandling.getValidTo();
-    	} else {
+    	} else if (QNameUtil.match(ActivationType.F_LOCKOUT_STATUS, propertyName)) {
+            return null;            // todo implement this
+        } else if (QNameUtil.match(ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP, propertyName)) {
+            return null;            // todo implement this
+        } else {
     		throw new IllegalArgumentException("Unknown activation property "+propertyName);
     	}
     }
@@ -727,6 +750,33 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			return AttributeFetchStrategyType.IMPLICIT;
 		}
 		return biType.getFetchStrategy();
+	}
+    
+	public boolean matches(ShadowType shadowType) {
+		if (shadowType == null) {
+			return false;
+		}
+		if (!QNameUtil.match(objectClassDefinition.getTypeName(), shadowType.getObjectClass())) {
+			return false;
+		}
+		if (shadowType.getKind() == null) {
+			if (kind != ShadowKindType.ACCOUNT) {
+				return false;
+			}
+		} else {
+			if (!MiscUtil.equals(kind, shadowType.getKind())) {
+				return false;
+			}
+		}
+		if (shadowType.getIntent() == null) {
+			if (isDefault) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return MiscUtil.equals(intent, shadowType.getIntent());
+		}
 	}
 
     @Override
@@ -782,5 +832,5 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			return getKind()+":"+getIntent();
 		}
 	}
-    
+
 }

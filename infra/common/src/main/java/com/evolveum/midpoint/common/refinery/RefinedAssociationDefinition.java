@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssoci
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 public class RefinedAssociationDefinition implements Serializable {
 	
@@ -56,16 +57,24 @@ public class RefinedAssociationDefinition implements Serializable {
 		return resourceObjectAssociationType.getKind();
 	}
 	
-	public String getIntent() {
-		return resourceObjectAssociationType.getIntent();
-	}
-	
-	public MappingType getOutboundMappingType() {
+    public Collection<String> getIntents() {
+        return resourceObjectAssociationType.getIntent();
+    }
+
+    public MappingType getOutboundMappingType() {
 		return resourceObjectAssociationType.getOutbound();
 	}
 	
 	public boolean isExclusiveStrong() {
 		return BooleanUtils.isTrue(resourceObjectAssociationType.isExclusiveStrong());
 	}
+
+    public boolean isIgnored() {
+        return false;           // todo implement!
+    }
+
+    public boolean isTolerant() {
+        return BooleanUtils.isNotFalse(resourceObjectAssociationType.isTolerant());
+    }
 
 }

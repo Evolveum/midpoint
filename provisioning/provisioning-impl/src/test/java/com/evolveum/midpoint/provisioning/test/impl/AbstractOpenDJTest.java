@@ -80,9 +80,12 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final String ACCOUNT_NEW_WITH_PASSWORD_FILENAME = TEST_DIR_NAME + "/account-new-with-password.xml";;
 	protected static final String ACCOUNT_NEW_WITH_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222124422";
 	
-	protected static final String ACCOUNT_NEW_DISABLED_FILENAME = TEST_DIR_NAME + "/account-new-disabled.xml";;
+	protected static final File ACCOUNT_NEW_DISABLED_FILE = new File (TEST_DIR, "account-new-disabled.xml");
 	protected static final String ACCOUNT_NEW_DISABLED_OID = "c0c010c0-d34d-b44f-f11d-d3d2d2d2d4d2";
-	
+
+	protected static final File ACCOUNT_NEW_ENABLED_FILE = new File (TEST_DIR, "account-new-enabled.xml");
+	protected static final String ACCOUNT_NEW_ENABLED_OID = "c0c010c0-d34d-b44f-f11d-d3d2d2d2d4d3";
+
 	protected static final String ACCOUNT_DISABLE_SIMULATED_FILENAME = TEST_DIR_NAME + "/account-disable-simulated-opendj.xml";
 	protected static final String ACCOUNT_DISABLE_SIMULATED_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1aaaa";
 	

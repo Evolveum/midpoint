@@ -95,9 +95,7 @@ This resource definition contains also definition to enable synchronization.
 
 			<!-- Definition of default account type.
                  This is now the only account type that midPoint can work with. -->
-			<accountType>
-				<name>default</name>
-
+			<objectType>
 				<!-- Readable name for the account type -->
 				<displayName>Default Account</displayName>
 				<default>true</default>
@@ -213,7 +211,7 @@ This resource definition contains also definition to enable synchronization.
 						</inbound>
 					</password>
 				</credentials>
-			</accountType>
+			</objectType>
 		</schemaHandling>
 		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 			<configured>
@@ -238,7 +236,7 @@ This resource definition contains also definition to enable synchronization.
 				<correlation>
 					<q:description>
 	                    Correlation expression is a search query.
-	                    Following search queury will look for users that have "name"
+	                    Following search query will look for users that have "name"
 	                    equal to the "name" attribute of the account. Simply speaking,
 	                    it will look for match in usernames in the IDM and the resource.
 	                    The correlation rule always looks for users, so it will not match
@@ -247,13 +245,10 @@ This resource definition contains also definition to enable synchronization.
 					<q:equal>
 						<q:path>c:name</q:path>
 						<expression>
-							<ref>name</ref>
-							<script>
-								<language>http://www.w3.org/TR/xpath/</language>
-								<code>
-		                            $c:account/c:attributes/icfs:name
-								</code>
-							</script>
+							<path>
+								declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+								$account/attributes/icfs:name
+							</path>
 						</expression>
 					</q:equal>
 				</correlation>

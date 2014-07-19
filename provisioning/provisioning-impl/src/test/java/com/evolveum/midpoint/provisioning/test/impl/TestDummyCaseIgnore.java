@@ -98,5 +98,13 @@ public class TestDummyCaseIgnore extends TestDummy {
 				"Will");
 	}
 	
-	
+	@Test
+	public void test511AddProtectedAccountCaseIgnore() throws Exception {
+		final String TEST_NAME = "test511AddProtectedAccountCaseIgnore";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		testAddProtectedAccount(TEST_NAME, "xaxa");
+		testAddProtectedAccount(TEST_NAME, "somebody-ADM");
+		testAddProtectedAccount(TEST_NAME, "everybody-AdM");
+	}
 }

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
@@ -94,25 +96,29 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
             } else {
                 query = baseQuery;
             }
-
             query.setPaging(paging);
-            List<PrismObject<ShadowType>> list = getModel().searchObjects(ShadowType.class,
-                    query, null, task, result);
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Query filter:\n{}", query);
+            }
+
+            List<PrismObject<ShadowType>> list = getModel().searchObjects(ShadowType.class, query, null, task, result);
 
             AccountContentDto dto;
             for (PrismObject<ShadowType> object : list) {
                 dto = createAccountContentDto(object, result);
                 getAvailableData().add(dto);
             }
-
-            result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list objects.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
+        } finally {
+            result.computeStatusIfUnknown();
         }
 
-        if (!result.isSuccess()) {
+        if (WebMiscUtil.showResultInPage(result)) {
             getPage().showResultInSession(result);
+            throw new RestartResponseException(PageError.class);
         }
 
         LOGGER.trace("end::iterator()");
@@ -130,6 +136,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
         AccountContentDto dto = new AccountContentDto();
         dto.setAccountName(WebMiscUtil.getName(object));
         dto.setAccountOid(object.getOid());
+        ShadowType shadow = object.asObjectable();
 
         Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(object);
         if (identifiers != null) {
@@ -147,6 +154,10 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
         dto.setSituation(WebMiscUtil.getValue(object, ShadowType.F_SYNCHRONIZATION_SITUATION,
                 SynchronizationSituationType.class));
 
+        dto.setKind(shadow.getKind());
+        dto.setIntent(shadow.getIntent());
+        dto.setObjectClass(shadow.getObjectClass().getLocalPart());
+
         addInlineMenuToDto(dto);
 
         return dto;
@@ -155,11 +166,12 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
     protected void addInlineMenuToDto(AccountContentDto dto) {
     }
 
-    private PrismObject<UserType> loadOwner(String accountOid, OperationResult result) throws SecurityViolationException, SchemaException {
-        OperationResult ownerResult = result.createSubresult(OPERATION_LOAD_OWNER);
+    private PrismObject<UserType> loadOwner(String accountOid, OperationResult result)
+            throws SecurityViolationException, SchemaException {
+
         Task task = getPage().createSimpleTask(OPERATION_LOAD_OWNER);
         try {
-            return getModel().findShadowOwner(accountOid, task, ownerResult);
+            return getModel().findShadowOwner(accountOid, task, result);
         } catch (ObjectNotFoundException ex) {
             //owner was not found, it's possible and it's ok on unlinked accounts
         }

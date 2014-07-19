@@ -159,7 +159,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         PrismPropertyValue<ResourceAttributeDefinitionType> newAttrPVal = oldAttrPVal.clone();
         JAXBElement<?> cutlassExpressionEvalJaxbElement = newAttrPVal.getValue().getOutbound().getExpression().getExpressionEvaluator().get(0);
         RawType cutlassValueEvaluator = (RawType) cutlassExpressionEvalJaxbElement.getValue();
-        RawType daggerValueEvaluator = new RawType(new PrimitiveXNode<String>("dagger"));
+        RawType daggerValueEvaluator = new RawType(new PrimitiveXNode<String>("dagger"), prismContext);
         JAXBElement<?> daggerExpressionEvalJaxbElement = new JAXBElement<Object>(SchemaConstants.C_VALUE, Object.class, daggerValueEvaluator);
         newAttrPVal.getValue().getOutbound().getExpression().getExpressionEvaluator().add(daggerExpressionEvalJaxbElement);
         newAttrPVal.getValue().getOutbound().setStrength(MappingStrengthType.STRONG);

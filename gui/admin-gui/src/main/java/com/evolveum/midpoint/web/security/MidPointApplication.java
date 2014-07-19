@@ -20,19 +20,15 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskListener;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.component.GuiComponents;
-import com.evolveum.midpoint.web.component.atmosphere.NotifyMessage;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.error.PageError401;
@@ -41,13 +37,8 @@ import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
-import org.apache.wicket.atmosphere.EventBus;
-import org.apache.wicket.atmosphere.config.AtmosphereLogLevel;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.handler.PageProvider;
@@ -64,10 +55,16 @@ import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -84,8 +81,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
 
-    private EventBus eventBus;
-
     @Autowired
     transient ModelService model;
     @Autowired
@@ -97,7 +92,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Autowired
     transient TaskManager taskManager;
     @Autowired
-    transient private WorkflowManager workflowManager;
+    transient private WorkflowService workflowService;
     @Autowired
     transient MidpointConfiguration configuration;
     @Autowired(required = true)
@@ -119,6 +114,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Override
     public void init() {
         super.init();
+
+        GuiComponents.init();
 
         getComponentInstantiationListeners().add(new SpringComponentInjector(this));
 
@@ -144,10 +141,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         appSettings.setInternalErrorPage(PageError.class);
         appSettings.setPageExpiredErrorPage(PageError.class);
 
-        mount(new MountedMapper("/error",PageError.class, MidPointPageParametersEncoder.ENCODER));
-        mount(new MountedMapper("/error/401",PageError401.class, MidPointPageParametersEncoder.ENCODER));
-        mount(new MountedMapper("/error/403",PageError403.class, MidPointPageParametersEncoder.ENCODER));
-        mount(new MountedMapper("/error/404",PageError404.class, MidPointPageParametersEncoder.ENCODER));
+        mount(new MountedMapper("/error", PageError.class, MidPointPageParametersEncoder.ENCODER));
+        mount(new MountedMapper("/error/401", PageError401.class, MidPointPageParametersEncoder.ENCODER));
+        mount(new MountedMapper("/error/403", PageError403.class, MidPointPageParametersEncoder.ENCODER));
+        mount(new MountedMapper("/error/404", PageError404.class, MidPointPageParametersEncoder.ENCODER));
 
         getRequestCycleListeners().add(new AbstractRequestCycleListener() {
 
@@ -157,67 +154,32 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             }
         });
 
-// todo wicket atmosphere was disabled because of form file upload and redirection url problems.
-//        //ajax push (just an experiment)
-//        eventBus = new EventBus(this);
-//        eventBus.getParameters().setLogLevel(AtmosphereLogLevel.DEBUG);
-//
-//        //enable simple task notifications here
-//        taskManager.registerTaskListener(new TaskListener() {
-//
-//            @Override
-//            public void onTaskStart(Task task) {
-//                EventBus bus = getEventBus();
-//                bus.post(new NotifyMessage("Task start", WebMiscUtil.getOrigStringFromPoly(task.getName()) + " started.",
-//                        OperationResultStatus.SUCCESS));
-//            }
-//
-//            @Override
-//            public void onTaskFinish(Task task, TaskRunResult runResult) {
-//                EventBus bus = getEventBus();
-//                bus.post(new NotifyMessage("Task finish", WebMiscUtil.getOrigStringFromPoly(task.getName()) + " finished.",
-//                        OperationResultStatus.parseStatusType(task.getResultStatus())));
-//            }
-//
-//            @Override
-//            public void onTaskThreadStart(Task task, boolean isRecovering) {
-//
-//            }
-//
-//            @Override
-//            public void onTaskThreadFinish(Task task) {
-//
-//            }
-//        });
-
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
     }
 
     private void mountFiles(String path, Class<?> clazz) {
         try {
-            String absPath = getServletContext().getRealPath("WEB-INF/classes") + "/"
-                    + clazz.getPackage().getName().replace('.', '/');
+            List<Resource> list = new ArrayList<>();
+            String packagePath = clazz.getPackage().getName().replace('.', '/');
 
-            File folder = new File(absPath);
-            mountFiles(path, clazz, folder);
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't mount files", ex);
-        }
-    }
-
-    private void mountFiles(String path, Class<?> clazz, File folder) {
-        File[] files = folder.listFiles(new ResourceFileFilter());
-        for (File file : files) {
-            if (!file.exists()) {
-                LOGGER.warn("Couldn't mount resource {}.", new Object[]{file.getPath()});
-                continue;
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            Resource[] res = resolver.getResources("classpath:" + packagePath + "/*.png");
+            if (res != null) {
+                list.addAll(Arrays.asList(res));
             }
-            if (file.isDirectory()) {
-                mountFiles(path + "/" + file.getName(), clazz, file);
-            } else {
+            res = resolver.getResources("classpath:" + packagePath + "/*.gif");
+            if (res != null) {
+                list.addAll(Arrays.asList(res));
+            }
+
+            for (Resource resource : list) {
+                URI uri = resource.getURI();
+                File file = new File(uri.toString());
                 mountResource(path + "/" + file.getName(), new SharedResourceReference(clazz, file.getName()));
             }
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't mount files", ex);
         }
     }
 
@@ -259,16 +221,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return MidPointAuthWebSession.class;
     }
 
-    public WorkflowManager getWorkflowManager() {
-        return workflowManager;
+    public WorkflowService getWorkflowService() {
+        return workflowService;
     }
 
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
-    }
-
-    public EventBus getEventBus() {
-        return eventBus;
     }
 
     private static class ResourceFileFilter implements FilenameFilter {

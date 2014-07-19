@@ -224,11 +224,7 @@ public class PageReports extends PageAdminReports {
 
             @Override
             public boolean isFirstButtonEnabled(IModel<SelectableBean<ReportType>> rowModel){
-                if(rowModel.getObject().getValue().isParent()){
-                    return true;
-                } else {
-                    return false;
-                }
+                return rowModel.getObject().getValue().isParent();
             }
         };
         columns.add(column);
@@ -281,8 +277,10 @@ public class PageReports extends PageAdminReports {
 
         ReportsStorage storage = getSessionStorage().getReports();
         storage.setReportSearch(searchModel.getObject());
+        storage.setReportsPaging(null);
 
         TablePanel table = getReportTable();
+        table.setCurrentPage(null);
         target.add(table);
         target.add(getFeedbackPanel());
     }
@@ -292,6 +290,7 @@ public class PageReports extends PageAdminReports {
         String text = dto.getText();
         Boolean parent = !dto.isParent();
         ObjectQuery query = new ObjectQuery();
+        List<ObjectFilter> filters = new ArrayList<>();
 
         if(StringUtils.isNotEmpty(text)){
             PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
@@ -300,23 +299,19 @@ public class PageReports extends PageAdminReports {
             ObjectFilter substring = SubstringFilter.createSubstring(ReportType.F_NAME, ReportType.class,
                     getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedText);
 
-            if(parent == true){
-                EqualsFilter boolFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
-                        getPrismContext(), null, parent);
+            filters.add(substring);
+        }
 
-                query.setFilter(AndFilter.createAnd(substring, boolFilter));
-            } else {
-                query.setFilter(substring);
-            }
-        } else{
-            if(parent == true){
-                EqualsFilter boolFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
-                        getPrismContext(), null, parent);
+        if(parent == true){
+            EqualFilter parentFilter = EqualFilter.createEqual(ReportType.F_PARENT, ReportType.class,
+                    getPrismContext(), null, parent);
+            filters.add(parentFilter);
+        }
 
-                query.setFilter(boolFilter);
-            } else{
-                query = null;
-            }
+        if(!filters.isEmpty()){
+            query.setFilter(AndFilter.createAnd(filters));
+        } else {
+            query = null;
         }
 
         return query;
@@ -332,7 +327,8 @@ public class PageReports extends PageAdminReports {
 
         ReportsStorage storage = getSessionStorage().getReports();
         storage.setReportSearch(searchModel.getObject());
-        panel.setCurrentPage(storage.getReportsPaging());
+        storage.setReportsPaging(null);
+        panel.setCurrentPage(null);
 
         target.add(get(ID_SEARCH_FORM));
         target.add(panel);

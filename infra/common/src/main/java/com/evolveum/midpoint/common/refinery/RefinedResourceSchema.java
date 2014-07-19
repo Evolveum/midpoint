@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.QNameUtil;
 
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
@@ -50,7 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  *
  */
-public class RefinedResourceSchema extends PrismSchema implements DebugDumpable {
+public class RefinedResourceSchema extends ResourceSchema implements DebugDumpable {
 	
 	private static final String USER_DATA_KEY_PARSED_RESOURCE_SCHEMA = RefinedResourceSchema.class.getName()+".parsedResourceSchema";
 	private static final String USER_DATA_KEY_REFINED_SCHEMA = RefinedResourceSchema.class.getName()+".refinedSchema";
@@ -63,6 +64,7 @@ public class RefinedResourceSchema extends PrismSchema implements DebugDumpable 
 
 	private RefinedResourceSchema(ResourceType resourceType, ResourceSchema originalResourceSchema, PrismContext prismContext) {
 		super(ResourceTypeUtil.getResourceNamespace(resourceType), prismContext);
+		Validate.notNull(originalResourceSchema);
 		this.originalResourceSchema = originalResourceSchema;
 	}
 	
@@ -112,8 +114,38 @@ public class RefinedResourceSchema extends PrismSchema implements DebugDumpable 
 		}
 		return null;
 	}
-	
-	public RefinedObjectClassDefinition getRefinedDefinition(QName objectClassName) {
+
+    /**
+     * If no intents are provided, default account definition is returned.
+     * We check whether there is only one relevant rOCD.
+     */
+    public RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, Collection<String> intents) throws SchemaException {
+        RefinedObjectClassDefinition found = null;
+        for (RefinedObjectClassDefinition acctDef: getRefinedDefinitions(kind)) {
+            RefinedObjectClassDefinition foundCurrent = null;
+            if (intents == null || intents.isEmpty()) {
+                if (acctDef.isDefault()) {
+                    foundCurrent = acctDef;
+                }
+            } else {
+                if (intents.contains(acctDef.getIntent())) {
+                    foundCurrent = acctDef;
+                }
+            }
+            if (foundCurrent != null) {
+                if (found != null) {
+                    if (!QNameUtil.match(found.getTypeName(), foundCurrent.getTypeName())) {
+                        throw new SchemaException("More than one ObjectClass found for kind " + kind + ", intents: " + intents + ": " + found.getTypeName() + ", " + foundCurrent.getTypeName());
+                    }
+                } else {
+                    found = foundCurrent;
+                }
+            }
+        }
+        return found;
+    }
+
+    public RefinedObjectClassDefinition getRefinedDefinition(QName objectClassName) {
 		for (Definition def: definitions) {
 			if ((def instanceof RefinedObjectClassDefinition) 
 					&& (QNameUtil.match(def.getTypeName(), objectClassName))) {
@@ -152,11 +184,10 @@ public class RefinedResourceSchema extends PrismSchema implements DebugDumpable 
 		return null;
 	}
 	
-	private ObjectClassComplexTypeDefinition findObjectClassDefinition(QName objectClassQName) {
+	public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName objectClassQName) {
 		return originalResourceSchema.findObjectClassDefinition(objectClassQName);
 	}
 	
-
 	public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType) throws SchemaException {
 		return getRefinedSchema(resourceType, resourceType.asPrismObject().getPrismContext());
 	}
@@ -271,10 +302,6 @@ public class RefinedResourceSchema extends PrismSchema implements DebugDumpable 
 		
 		if (hasAnyObjectTypeDef(schemaHandling)) {
 			
-			// Compatibility. Parsing DEPRECATED section
-			parseObjectTypeDefsFromSchemaHandling(rSchema, resourceType, schemaHandling, 
-					schemaHandling.getAccountType(), ShadowKindType.ACCOUNT, prismContext, "definition of "+resourceType);
-			
 			parseObjectTypeDefsFromSchemaHandling(rSchema, resourceType, schemaHandling, 
 					schemaHandling.getObjectType(), null, prismContext, "definition of "+resourceType);
 					
@@ -289,9 +316,6 @@ public class RefinedResourceSchema extends PrismSchema implements DebugDumpable 
 	private static boolean hasAnyObjectTypeDef(SchemaHandlingType schemaHandling) {
 		if (schemaHandling == null) {
 			return false;
-		}
-		if (!schemaHandling.getAccountType().isEmpty()) {
-			return true;
 		}
 		if (!schemaHandling.getObjectType().isEmpty()) {
 			return true;

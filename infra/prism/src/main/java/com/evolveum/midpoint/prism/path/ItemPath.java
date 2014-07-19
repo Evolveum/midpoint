@@ -17,10 +17,12 @@ package com.evolveum.midpoint.prism.path;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -247,12 +249,12 @@ public class ItemPath implements Serializable, Cloneable {
 	
 	public CompareResult compareComplex(ItemPath otherPath) {
 		ItemPath thisNormalized = this.normalize();
-		ItemPath otherNormalized = otherPath.normalize();
+		ItemPath otherNormalized = otherPath == null ? EMPTY_PATH : otherPath.normalize();
 		int i = 0;
 		while (i < thisNormalized.segments.size() && i < otherNormalized.segments.size()) {
 			ItemPathSegment thisSegment = thisNormalized.segments.get(i);
 			ItemPathSegment otherSegment = otherNormalized.segments.get(i);
-			if (!thisSegment.equals(otherSegment)) {
+			if (!thisSegment.equivalent(otherSegment)) {
 				return CompareResult.NO_RELATION;
 			}
 			i++;
@@ -265,6 +267,15 @@ public class ItemPath implements Serializable, Cloneable {
 		}
 		return CompareResult.EQUIVALENT;
 	}
+
+    public static boolean containsEquivalent(Collection<ItemPath> paths, ItemPath pathToBeFound) {
+        for (ItemPath path : paths) {
+            if (path.equivalent(pathToBeFound)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public enum CompareResult {
 		EQUIVALENT,
@@ -286,6 +297,12 @@ public class ItemPath implements Serializable, Cloneable {
         return result == CompareResult.SUBPATH || result == CompareResult.EQUIVALENT;
     }
 
+    /**
+     * Compares two paths semantically.
+     *
+     * @param otherPath
+     * @return
+     */
     public boolean equivalent(ItemPath otherPath) {
 		return compareComplex(otherPath) == CompareResult.EQUIVALENT;
 	}
@@ -301,8 +318,8 @@ public class ItemPath implements Serializable, Cloneable {
 		while (i < otherNormalized.segments.size()) {
 			ItemPathSegment thisSegment = thisNormalized.segments.get(i);
 			ItemPathSegment otherSegment = otherNormalized.segments.get(i);
-			if (!thisSegment.equals(otherSegment)) {
-				throw new IllegalArgumentException("Cannot substract segment '"+otherSegment+"' from path '"+this+
+			if (!thisSegment.equivalent(otherSegment)) {
+				throw new IllegalArgumentException("Cannot subtract segment '"+otherSegment+"' from path '"+this+
 						"' because it does not contain corresponding segment; it has '"+thisSegment+"' instead.");
 			}
 			i++;
@@ -329,8 +346,8 @@ public class ItemPath implements Serializable, Cloneable {
 		while (i < otherNormalized.segments.size()) {
 			ItemPathSegment thisSegment = thisNormalized.segments.get(i);
 			ItemPathSegment otherSegment = otherNormalized.segments.get(i);
-			if (!thisSegment.equals(otherSegment)) {
-				throw new IllegalArgumentException("Cannot substract segment '"+otherSegment+"' from path '"+this+
+			if (!thisSegment.equivalent(otherSegment)) {
+				throw new IllegalArgumentException("Cannot subtract segment '"+otherSegment+"' from path '"+this+
 						"' because it does not contain corresponding segment; it has '"+thisSegment+"' instead.");
 			}
 			i++;
@@ -393,6 +410,15 @@ public class ItemPath implements Serializable, Cloneable {
 		return result;
 	}
 
+    /**
+     * More strict version of ItemPath comparison. Does not use any normalization
+     * nor approximate matching QNames via QNameUtil.match.
+     *
+     * For semantic-level comparison, please use equivalent(..) method.
+     *
+     * @param obj
+     * @return
+     */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

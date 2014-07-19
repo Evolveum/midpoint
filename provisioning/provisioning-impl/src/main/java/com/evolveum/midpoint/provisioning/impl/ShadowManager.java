@@ -44,7 +44,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -211,7 +211,7 @@ public class ShadowManager {
 		
 		AndFilter filter = AndFilter.createAnd(
 				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), 
-				EqualsFilter.createEqual(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition(),
+				EqualFilter.createEqual(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition(),
 				getNormalizedValue(secondaryIdentifier, rObjClassDef)));
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		if (LOGGER.isTraceEnabled()) {
@@ -414,7 +414,7 @@ public class ShadowManager {
 			Object normalizedIdentifierValue = getNormalizedAttributeValue(identifierValue, rAttrDef);
 			//new ItemPath(ShadowType.F_ATTRIBUTES)
 			PrismPropertyDefinition def = identifier.getDefinition();
-			EqualsFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, new PrismPropertyValue(normalizedIdentifierValue));
+			EqualFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, new PrismPropertyValue(normalizedIdentifierValue));
 			conditions.add(filter);
 		}
 
@@ -469,7 +469,7 @@ public class ShadowManager {
 			PrismPropertyDefinition def = identifier.getDefinition();
 			filter = AndFilter.createAnd(
 					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), 
-					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, getNormalizedValue(identifier, rObjClassDef)));
+					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, getNormalizedValue(identifier, rObjClassDef)));
 		} catch (SchemaException e) {
 			// LOGGER.error("Schema error while creating search filter: {}",
 			// e.getMessage(), e);
@@ -515,10 +515,10 @@ public class ShadowManager {
 	}
 	
 	private <T> void processQueryMatchingRuleFilter(ObjectFilter filter, RefinedObjectClassDefinition objectClassDef) throws SchemaException {
-		if (!(filter instanceof EqualsFilter)) {
+		if (!(filter instanceof EqualFilter)) {
 			return;
 		}
-		EqualsFilter<T> eqFilter = (EqualsFilter)filter;
+		EqualFilter<T> eqFilter = (EqualFilter)filter;
 		ItemPath parentPath = eqFilter.getParentPath();
 		if (parentPath == null || !parentPath.equals(SchemaConstants.PATH_ATTRIBUTES)) {
 			return;
@@ -576,6 +576,7 @@ public class ShadowManager {
 		ShadowType repoShadowType = repoShadow.asObjectable();
 
         setKindIfNecessary(repoShadowType, objectClassDefinition);
+//        setIntentIfNecessary(repoShadowType, objectClassDefinition);
 
         // We don't want to store credentials in the repo
 		repoShadowType.setCredentials(null);
@@ -601,6 +602,10 @@ public class ShadowManager {
 			repoShadowType.setObjectClass(attributesContainer.getDefinition().getTypeName());
 		}
 		
+		if (repoShadowType.isProtectedObject() != null){
+			repoShadowType.setProtectedObject(null);
+		}
+		
 		normalizeAttributes(repoShadow, objectClassDefinition);
 
 		return repoShadow;
@@ -609,6 +614,12 @@ public class ShadowManager {
     public void setKindIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
         if (repoShadowType.getKind() == null && objectClassDefinition != null) {
             repoShadowType.setKind(objectClassDefinition.getKind());
+        }
+    }
+    
+    public void setIntentIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
+        if (repoShadowType.getIntent() == null && objectClassDefinition.getIntent() != null) {
+            repoShadowType.setIntent(objectClassDefinition.getIntent());
         }
     }
 

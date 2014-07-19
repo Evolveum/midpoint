@@ -216,14 +216,16 @@ public class TaskQuartzImplUtil {
         //LOGGER.trace("handlerUri: asIs = " + aih + ", toBe = " + tbh);
         boolean handlersDiffer = tbh != null ? !tbh.equals(aih) : aih == null;
 
-        if (scheduleDiffer) {
-            LOGGER.trace("trigger data maps differ in schedule: triggerAsIs.schedule = " + asIs.getString("schedule") + ", triggerToBe.schedule = " + toBe.getString("schedule"));
-        }
-        if (lbrDiffer) {
-            LOGGER.trace("trigger data maps differ in looselyBoundRecurrent: triggerAsIs = " + asIs.getString("looselyBoundRecurrent") + ", triggerToBe = " + toBe.getString("looselyBoundRecurrent"));
-        }
-        if (handlersDiffer) {
-            LOGGER.trace("trigger data maps differ in handlerUri: triggerAsIs = " + aih + ", triggerToBe = " + tbh);
+        if (LOGGER.isTraceEnabled()) {
+            if (scheduleDiffer) {
+                LOGGER.trace("trigger data maps differ in schedule: triggerAsIs.schedule = " + asIs.getString("schedule") + ", triggerToBe.schedule = " + toBe.getString("schedule"));
+            }
+            if (lbrDiffer) {
+                LOGGER.trace("trigger data maps differ in looselyBoundRecurrent: triggerAsIs = " + asIs.getBoolean("looselyBoundRecurrent") + ", triggerToBe = " + toBe.getBoolean("looselyBoundRecurrent"));
+            }
+            if (handlersDiffer) {
+                LOGGER.trace("trigger data maps differ in handlerUri: triggerAsIs = " + aih + ", triggerToBe = " + tbh);
+            }
         }
         return scheduleDiffer || lbrDiffer || handlersDiffer;
     }

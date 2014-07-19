@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.parser.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -79,31 +79,6 @@ public class ProvisioningUtil {
 	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningUtil.class);
-
-	private static boolean isSimulatedActivationAttribute(ResourceAttribute attribute, ShadowType shadow,
-			ResourceType resource) {
-		if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-
-			ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
-					ActivationCapabilityType.class);
-
-			if (activationCapability == null) {
-				// TODO: maybe the warning message is needed that the resource
-				// does not have either simulater or native capabilities
-				return false;
-			}
-
-			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-			ResourceAttribute activationProperty = attributesContainer.findAttribute(activationCapability
-					.getEnableDisable().getAttribute());
-
-			if (activationProperty != null && activationProperty.equals(attribute)) {
-				return true;
-			}
-		}
-		return false;
-
-	}
 
 	public static <T extends ShadowType> void normalizeShadow(T shadow, OperationResult result)
 			throws SchemaException {
@@ -215,8 +190,8 @@ public class ProvisioningUtil {
 	public static <T> T getValueFromFilter(List<? extends ObjectFilter> conditions, QName propertyName) throws SchemaException{
 			ItemPath propertyPath = new ItemPath(propertyName);
 			for (ObjectFilter f : conditions){
-				if (f instanceof EqualsFilter && propertyPath.equals(((EqualsFilter) f).getFullPath())){
-					List<? extends PrismValue> values = ((EqualsFilter) f).getValues();
+				if (f instanceof EqualFilter && propertyPath.equivalent(((EqualFilter) f).getFullPath())){
+					List<? extends PrismValue> values = ((EqualFilter) f).getValues();
 					if (values.size() > 1){
 						throw new SchemaException("More than one "+propertyName+" defined in the search query.");
 					}
@@ -302,6 +277,15 @@ public class ProvisioningUtil {
 			AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition.getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
 			if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 				attributesToReturn.setReturnAdministrativeStatusExplicit(true);
+				apply = true;
+			}
+		}
+		
+		if (CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
+			// There resource is capable of returning lockout flag but it does not do it by default
+			AttributeFetchStrategyType statusFetchStrategy = objectClassDefinition.getActivationFetchStrategy(ActivationType.F_LOCKOUT_STATUS);
+			if (statusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+				attributesToReturn.setReturnLockoutStatusExplicit(true);
 				apply = true;
 			}
 		}

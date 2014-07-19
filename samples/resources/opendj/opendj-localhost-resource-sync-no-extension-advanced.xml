@@ -259,8 +259,7 @@ object.
 
 
 		<schemaHandling>
-			<accountType>
-				<name>default</name>
+			<objectType>
 				<displayName>Default Account</displayName>
 				<default>true</default>
 				<objectClass>ri:AccountObjectClass</objectClass>
@@ -463,7 +462,7 @@ object.
 					</password>
 				</credentials>
 
-			</accountType>
+			</objectType>
 		</schemaHandling>
 
 
@@ -503,13 +502,10 @@ object.
 					<q:equal>
 						<q:path>c:name</q:path>
 						<expression>
-							<ref>name</ref>
-							<script>
-								<language>http://www.w3.org/TR/xpath/</language>
-								<code>
-		                            $c:account/c:attributes/ri:uid
-								</code>
-							</script>
+							<path>
+								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+								$account/attributes/ri:uid
+							</path>
 						</expression>
 					</q:equal>
 				</correlation>

@@ -234,7 +234,9 @@ public class ItemApprovalPanel extends Panel {
             @Override
             public List<DecisionDto> getObject() {
                 List<DecisionDto> retval = new ArrayList<>();
-                ItemApprovalProcessState instanceState = (ItemApprovalProcessState) model.getObject().getInstanceState().getProcessSpecificState();
+                ProcessInstanceDto processInstanceDto = model.getObject();
+                processInstanceDto.reviveIfNeeded(ItemApprovalPanel.this);
+                ItemApprovalProcessState instanceState = (ItemApprovalProcessState) processInstanceDto.getInstanceState().getProcessSpecificState();
                 List<DecisionType> allDecisions = instanceState.getDecisions();
                 if (allDecisions != null) {
                     for (DecisionType decision : allDecisions) {

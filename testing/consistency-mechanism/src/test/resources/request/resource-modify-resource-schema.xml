@@ -176,14 +176,14 @@ else {
                 <displayName>Given Name</displayName>
                 <outbound>
 					<source>
-						<path>givenName</path>
+						<path>c:givenName</path>
 					</source>
 					<expression>
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-								$givenName
+								declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+								$c:givenName
 							</code>
 						</script>
 					</expression>

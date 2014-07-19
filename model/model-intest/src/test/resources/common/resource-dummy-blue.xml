@@ -170,6 +170,17 @@
 				</outbound>
 			</attribute>
 			<attribute>
+				<ref>ri:drink</ref>
+				<outbound>
+					<strength>weak</strength>
+					<expression>
+						<generate>
+							<mode>uuid</mode>
+						</generate>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
 				<ref>ri:quote</ref>
 				<displayName>Quote</displayName>
 				<tolerant>true</tolerant>
@@ -177,6 +188,16 @@
 					<strength>weak</strength>
 					<source>
 						<path>$user/description</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:gossip</ref>
+				<tolerant>true</tolerant>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$configuration/name</path>
 					</source>
 				</outbound>
 			</attribute>
@@ -218,14 +239,14 @@
 			<correlation>
 				<q:equal>
 					<q:path>c:name</q:path>
-					<valueExpression>
+					<expression>
 						<script>
 							<code>
 								basic.getAttributeValue(account, 
 									'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
 							</code>
 						</script>
-					</valueExpression>
+					</expression>
 				</q:equal>
 			</correlation>
 			<reaction>

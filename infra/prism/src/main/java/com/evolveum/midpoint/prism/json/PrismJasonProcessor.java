@@ -42,7 +42,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -136,7 +135,7 @@ public class PrismJasonProcessor {
 //		prismObj.applyDefinition(def);
 //		prismContext.adopt(prismObj.asObjectable());
 		
-		System.out.println("object: \n" + prismObj.debugDump());
+		//System.out.println("object: \n" + prismObj.debugDump());
 		
 		return prismObj;
 	}
@@ -396,7 +395,7 @@ generator.close();
 	  private <T extends Containerable> PrismContainer<T> parsePrismContainer(JsonNode jsonObject, QName itemName, String defaultNamespace, PrismContainerDefinition<T> containerDefinition) throws SchemaException, JsonParseException, JsonMappingException, IOException {
 			PrismContainer<T> container = containerDefinition.instantiate(itemName);
 			
-			PrismContainerValue<T> pval = new PrismContainerValue<T>(null, null, container, null, null); // TODO set concreteType (if this code would be really used)
+			PrismContainerValue<T> pval = new PrismContainerValue<T>(null, null, container, null, null, prismContext); // TODO set concreteType (if this code would be really used)
 
 			Collection<? extends Item> newContainerItems = parsePrismContainerItems(jsonObject,
 							containerDefinition, defaultNamespace);
@@ -410,7 +409,7 @@ generator.close();
 				Collection<? extends Item> newContainerItems) throws SchemaException {
 			for (Item<?> newItem : newContainerItems) {
 				if (newItem == null){
-					System.out.println("new item name null");
+					//System.out.println("new item name null");
 					continue;
 				}
 				Item existingItem = containerValue.findItem(newItem.getElementName());
@@ -638,7 +637,7 @@ generator.close();
 	    	mapper.configure(DeserializationFeature.READ_ENUMS_USING_TO_STRING, false);
 //	    	mapper.configure(Feature.USE_GETTERS_AS_SETTERS, true);
 	    	
-	    	System.out.println("expected java type: " + expectedJavaType.getSimpleName());
+	    	//System.out.println("expected java type: " + expectedJavaType.getSimpleName());
 //	    	PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
 	    	
 //	    	mapper.getTypeFactory().

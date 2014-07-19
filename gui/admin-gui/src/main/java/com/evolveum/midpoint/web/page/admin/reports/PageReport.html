@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,13 +18,10 @@
 <body>
 <wicket:extend>
 
-    <div class="alert alert-warning"><wicket:message key="pageReport.message.editWarning" /></div>
-
     <form wicket:id="mainForm" class="form-horizontal">
         <div wicket:id="tabPanel" class="tabbable" />
 
         <div class="main-button-bar">
-            <a class="btn btn-primary" wicket:id="runSave"/>
             <a class="btn btn-info" wicket:id="save" />
             <a class="btn btn-danger" wicket:id="cancel" />
         </div>

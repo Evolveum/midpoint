@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.session.TasksStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -156,7 +157,8 @@ public class PageTasks extends PageAdminTasks {
         TaskDtoProvider provider = new TaskDtoProvider(PageTasks.this, options);
 
         provider.setQuery(createTaskQuery());
-        TablePanel<TaskDto> taskTable = new TablePanel<>(ID_TASK_TABLE, provider, taskColumns);
+        TablePanel<TaskDto> taskTable = new TablePanel<>(ID_TASK_TABLE, provider, taskColumns,
+                UserProfileStorage.TableId.PAGE_TASKS_PANEL);
         taskTable.setOutputMarkupId(true);
         mainForm.add(taskTable);
 
@@ -1081,10 +1083,10 @@ public class PageTasks extends PageAdminTasks {
                 }
             }
             if (category != null && !ALL_CATEGORIES.equals(category)) {
-                filters.add(EqualsFilter.createEqual(TaskType.F_CATEGORY, TaskType.class, getPrismContext(), null, category));
+                filters.add(EqualFilter.createEqual(TaskType.F_CATEGORY, TaskType.class, getPrismContext(), null, category));
             }
             if (!Boolean.TRUE.equals(showSubtasks)) {
-                filters.add(EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
+                filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
             }
             if (!filters.isEmpty()) {
                 query = new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));

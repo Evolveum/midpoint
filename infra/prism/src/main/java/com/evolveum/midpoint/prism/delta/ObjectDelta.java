@@ -100,6 +100,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     public ObjectDelta(Class<T> objectTypeClass, ChangeType changeType, PrismContext prismContext) {
     	Validate.notNull(objectTypeClass,"No objectTypeClass");
     	Validate.notNull(changeType,"No changeType");
+        //Validate.notNull(prismContext, "No prismContext");
     	
         this.changeType = changeType;
         this.objectTypeClass = objectTypeClass;
@@ -327,11 +328,11 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     		Class<D> deltaType, Class<I> itemType) {
     
     	if (PrismProperty.class.isAssignableFrom(itemType)) {
-    		return (D) new PropertyDelta(propertyPath, (PrismPropertyDefinition)itemDef);
+    		return (D) new PropertyDelta(propertyPath, (PrismPropertyDefinition)itemDef, prismContext);
     	} else if (PrismContainer.class.isAssignableFrom(itemType)) {
-    		return (D) new ContainerDelta(propertyPath, (PrismContainerDefinition)itemDef);
+    		return (D) new ContainerDelta(propertyPath, (PrismContainerDefinition)itemDef, prismContext);
     	} else if (PrismReference.class.isAssignableFrom(itemType)) {
-    		return (D) new ReferenceDelta(propertyPath, (PrismReferenceDefinition)itemDef);
+    		return (D) new ReferenceDelta(propertyPath, (PrismReferenceDefinition)itemDef, prismContext);
     	} else {
     		throw new IllegalArgumentException("Unknown item type "+itemType);
     	}
@@ -694,7 +695,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     }
     
     public <X> PropertyDelta<X> createPropertyModification(QName name, PrismPropertyDefinition propertyDefinition) {
-    	PropertyDelta<X> propertyDelta = new PropertyDelta<X>(name, propertyDefinition);
+    	PropertyDelta<X> propertyDelta = new PropertyDelta<X>(name, propertyDefinition, prismContext);
     	addModification(propertyDelta);
     	return propertyDelta;
     }
@@ -706,14 +707,14 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     }
 	    
     public <C> PropertyDelta<C> createPropertyModification(ItemPath path, PrismPropertyDefinition propertyDefinition) {
-    	PropertyDelta<C> propertyDelta = new PropertyDelta<C>(path, propertyDefinition);
+    	PropertyDelta<C> propertyDelta = new PropertyDelta<C>(path, propertyDefinition, prismContext);
     	// No point in adding the modification to this delta. It will get merged anyway and it may disappear
     	// it is not reliable and therefore it is better not to add it now.
     	return propertyDelta;
     }
     
     public ReferenceDelta createReferenceModification(QName name, PrismReferenceDefinition referenceDefinition) {
-    	ReferenceDelta referenceDelta = new ReferenceDelta(name, referenceDefinition);
+    	ReferenceDelta referenceDelta = new ReferenceDelta(name, referenceDefinition, prismContext);
     	addModification(referenceDelta);
     	return referenceDelta;
     }
@@ -725,7 +726,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     }
     
     public <C extends Containerable> ContainerDelta<C> createContainerModification(ItemPath path, PrismContainerDefinition<C> containerDefinition) {
-    	ContainerDelta<C> containerDelta = new ContainerDelta<C>(path, containerDefinition);
+    	ContainerDelta<C> containerDelta = new ContainerDelta<C>(path, containerDefinition, prismContext);
     	addModification(containerDelta);
     	return containerDelta;
     }

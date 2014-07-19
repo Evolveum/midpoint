@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -111,7 +112,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             PrismObject<SystemConfigurationType> systemConfig = getModelService().getObject(SystemConfigurationType.class,
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, task, result);
 
-            dto = new SystemConfigurationDto(systemConfig);
+            dto = new SystemConfigurationDto(systemConfig, getMidpointApplication().getProtector());
             result.recordSuccess();
         } catch(Exception ex){
             LoggingUtils.logException(LOGGER, "Couldn't load system configuration", ex);
@@ -131,7 +132,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        List<ITab> tabs = new ArrayList<ITab>();
+        List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.system.title")) {
 
             @Override
@@ -313,6 +314,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             SystemConfigurationType s = newObject.asObjectable();
 
             s = saveLogging(target, s);
+            s = saveNotificationConfiguration(s);
 
             if(LOGGER.isTraceEnabled())
                 LOGGER.trace("Saving logging configuration.");
@@ -352,9 +354,70 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             LoggingUtils.logException(LOGGER,"Couldn't save system configuration.", e);
         }
 
-        showResult(result);
+        showResultInSession(result);
         target.add(getFeedbackPanel());
         resetPerformed(target);
+    }
+
+    /*
+    *   TODO - currently, we are saving changes to MailServerConfigType on index 0 in ArrayList. This will
+    *   change when GUI is update to define multiple mailServer or even SMS notifications
+    * */
+    private SystemConfigurationType saveNotificationConfiguration(SystemConfigurationType config){
+        NotificationConfigurationDto dto;
+        NotificationConfigurationType notificationConfig;
+        MailConfigurationType mailConfig;
+        MailServerConfigurationType mailServerConfig;
+
+        if(systemConfigPanel.getModel().getObject().getNotificationConfig() != null){
+            dto = systemConfigPanel.getModel().getObject().getNotificationConfig();
+
+            if(config.getNotificationConfiguration() != null){
+                notificationConfig = config.getNotificationConfiguration();
+            } else {
+                notificationConfig = new NotificationConfigurationType();
+            }
+
+            if(notificationConfig.getMail() != null){
+                mailConfig = notificationConfig.getMail();
+            } else {
+                mailConfig = new MailConfigurationType();
+            }
+
+            mailConfig.setDebug(dto.isDebug());
+            mailConfig.setDefaultFrom(dto.getDefaultFrom());
+            mailConfig.setRedirectToFile(dto.getRedirectToFile());
+
+            if(!mailConfig.getServer().isEmpty() && mailConfig.getServer().get(0) != null){
+                mailServerConfig = mailConfig.getServer().get(0);
+            } else {
+                mailServerConfig = new MailServerConfigurationType();
+            }
+
+            mailServerConfig.setHost(dto.getHost());
+            mailServerConfig.setPort(dto.getPort());
+            mailServerConfig.setUsername(dto.getUsername());
+            mailServerConfig.setTransportSecurity(dto.getMailTransportSecurityType());
+
+            ProtectedStringType pass = new ProtectedStringType();
+            pass.setClearValue(dto.getPassword());
+            mailServerConfig.setPassword(pass);
+
+            if(mailConfig.getServer().isEmpty()){
+                if(dto.isConfigured())
+                    mailConfig.getServer().add(0, mailServerConfig);
+            } else {
+                if(dto.isConfigured())
+                    mailConfig.getServer().set(0, mailServerConfig);
+                else
+                    mailConfig.getServer().remove(0);
+            }
+
+            notificationConfig.setMail(mailConfig);
+            config.setNotificationConfiguration(notificationConfig);
+        }
+
+        return config;
     }
 
     private SystemConfigurationType saveLogging(AjaxRequestTarget target, SystemConfigurationType config){

@@ -30,16 +30,26 @@ public class AuthorizationConstants {
 	public static final String NS_AUTHORIZATION = NS_SECURITY_PREFIX + "authorization-3";
 	public static final String NS_AUTHORIZATION_UI = NS_SECURITY_PREFIX + "authorization-ui-3";
 	public static final String NS_AUTHORIZATION_WS = NS_SECURITY_PREFIX + "authorization-ws-3";
+	public static final String NS_AUTHORIZATION_REST = NS_SECURITY_PREFIX + "authorization-rest-3";
 	public static final String NS_AUTHORIZATION_MODEL = NS_SECURITY_PREFIX + "authorization-model-3";
 	
 	public static final QName AUTZ_ALL_QNAME = new QName(NS_AUTHORIZATION, "all");
 	public static final String AUTZ_ALL_URL = QNameUtil.qNameToUri(AUTZ_ALL_QNAME);
 	
+	public static final QName AUTZ_DEVEL_QNAME = new QName(NS_AUTHORIZATION, "devel");
+	public static final String AUTZ_DEVEL_URL = NS_AUTHORIZATION + "#devel";
+//	public static final String AUTZ_DEVEL_URL = QNameUtil.qNameToUri(AUTZ_DEVEL_QNAME);
+	
 	public static final QName AUTZ_DENY_ALL_QNAME = new QName(NS_AUTHORIZATION, "denyAll");
 	public static final String AUTZ_DENY_ALL_URL = QNameUtil.qNameToUri(AUTZ_DENY_ALL_QNAME);
     public static final String AUTZ_DENY_ALL = NS_AUTHORIZATION + "#denyAll";
-	
-	//user
+
+    public static final QName AUTZ_GUI_ALL_QNAME = new QName(NS_AUTHORIZATION, "guiAll");
+    public static final String AUTZ_GUI_ALL_URI = QNameUtil.qNameToUri(AUTZ_GUI_ALL_QNAME);
+    public static final String AUTZ_GUI_ALL_LABEL = "Authorization.constants.guiAll.label";
+    public static final String AUTZ_GUI_ALL_DESCRIPTION = "Authorization.constants.guiAll.description";
+
+    //user
 	public static final QName AUTZ_UI_USERS_ALL_QNAME = new QName(NS_AUTHORIZATION, "usersAll");
 	public static final String AUTZ_UI_USERS_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_USERS_ALL_QNAME);
 	

@@ -34,17 +34,22 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -73,6 +78,8 @@ public class PageAccount extends PageAdminResources {
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_SAVE_ACCOUNT = DOT_CLASS + "saveAccount";
 
+    private static final String ID_PROTECTED_MESSAGE = "protectedMessage";
+
     private IModel<ObjectWrapper> accountModel;
 
     public PageAccount() {
@@ -88,40 +95,42 @@ public class PageAccount extends PageAdminResources {
 
     private ObjectWrapper loadAccount() {
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNT);
-        PrismObject<ShadowType> account = null;
-        try {
-            Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-                    ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
-            StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-            account = getModelService().getObject(ShadowType.class, userOid.toString(), options, task, result);
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get user.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
-        }
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
+                ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
-        if (!result.isSuccess()) {
-            showResultInSession(result);
-        }
+        StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+        PrismObject<ShadowType> account = WebModelUtils.loadObject(ShadowType.class, oid.toString(), options,
+                result, PageAccount.this);
 
         if (account == null) {
             getSession().error(getString("pageAccount.message.cantEditAccount"));
+            showResultInSession(result);
             throw new RestartResponseException(PageResources.class);
         }
 
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, account, ContainerStatus.MODIFYING);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
+        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, account, ContainerStatus.MODIFYING, this);
+        OperationResultType fetchResult = account.getPropertyRealValue(ShadowType.F_FETCH_RESULT, OperationResultType.class);
+        wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
         wrapper.setShowEmpty(false);
         return wrapper;
     }
 
     private void initLayout() {
         Form mainForm = new Form("mainForm");
+        mainForm.setMultiPart(true);
         add(mainForm);
+
+        WebMarkupContainer protectedMessage = new WebMarkupContainer(ID_PROTECTED_MESSAGE);
+        protectedMessage.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                ObjectWrapper wrapper = accountModel.getObject();
+                return wrapper.isProtectedAccount();
+            }
+        });
+        mainForm.add(protectedMessage);
 
         PrismObjectPanel userForm = new PrismObjectPanel("account", accountModel, new PackageResourceReference(
                 ImgResources.class, ImgResources.HDD_PRISM), mainForm) {
@@ -149,6 +158,14 @@ public class PageAccount extends PageAdminResources {
                 target.add(getFeedbackPanel());
             }
         };
+        save.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                ObjectWrapper wrapper = accountModel.getObject();
+                return !wrapper.isProtectedAccount();
+            }
+        });
         mainForm.add(save);
 
         AjaxButton back = new AjaxButton("back", createStringResource("pageAccount.button.back")) {
@@ -181,14 +198,21 @@ public class PageAccount extends PageAdminResources {
         LOGGER.debug("Saving account changes.");
 
         OperationResult result = new OperationResult(OPERATION_SAVE_ACCOUNT);
-        ObjectWrapper wrapper = accountModel.getObject();
         try {
+            WebMiscUtil.revive(accountModel, getPrismContext());
+            ObjectWrapper wrapper = accountModel.getObject();
             ObjectDelta<ShadowType> delta = wrapper.getObjectDelta();
+            if (delta == null) {
+                return;
+            }
+            if (delta.getPrismContext() == null) {
+                getPrismContext().adopt(delta);
+            }
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
 
-            if (delta == null || delta.isEmpty()) {
+            if (delta.isEmpty()) {
                 return;
             }
             WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());

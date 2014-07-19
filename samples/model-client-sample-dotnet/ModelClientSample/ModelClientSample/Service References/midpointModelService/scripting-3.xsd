@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" jaxb:extensionBindingPrefixes="xjc" jaxb:version="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://prism.evolveum.com/xml/ns/public/annotation-3" namespace="http://prism.evolveum.com/xml/ns/public/annotation-3">
+    <xsd:annotation>
+      <xsd:documentation>
+                Common prism annotations used in various XSD schemas.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:import>
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/prism/xml/ns/public/types-3.xsd" namespace="http://prism.evolveum.com/xml/ns/public/types-3">
+    <xsd:annotation>
+      <xsd:documentation>
+                Prism data types.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:import>
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://prism.evolveum.com/xml/ns/public/query-3" namespace="http://prism.evolveum.com/xml/ns/public/query-3">
+    <xsd:annotation>
+      <xsd:documentation>
+                Prism data types.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:import>
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <xsd:annotation>
+      <xsd:documentation>
+                Common midPoint schema.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:import>
+  <xsd:annotation>
+    <xsd:documentation>
+            Schema for midPoint scripting language.
+
+            Recommended namespace prefix: s
+        </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element abstract="true" name="expression" type="xsd:anyType" />
+  <xsd:complexType name="ExpressionType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Root of the expression type inheritance hierarchy.
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence />
+  </xsd:complexType>
+  <xsd:complexType name="ExpressionSequenceType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Sequence of command expressions - they are executed one after another,
+                input sent to the sequence as a whole is then sent individually
+                to each expression. Output of the last expression is considered to be the output of
+                the whole sequence.
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent mixed="false">
+      <xsd:extension base="tns:ExpressionType">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="unbounded" ref="tns:expression" />
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="sequence" substitutionGroup="tns:expression" type="tns:ExpressionSequenceType" />
+  <xsd:complexType name="ExpressionPipelineType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Pipeline of expressions - they are executed one after another,
+                input sent to the pipeline as a whole is sent to the first expression.
+                Output from the N-th expression is sent as an input to the N+1-th expression.
+                Output of the last expression is considered to be the output of the whole
+                pipeline.
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent mixed="false">
+      <xsd:extension base="tns:ExpressionType">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="unbounded" ref="tns:expression" />
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="pipeline" substitutionGroup="tns:expression" type="tns:ExpressionPipelineType" />
+  <xsd:complexType name="SearchExpressionType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Queries the model for objects of a given type, optionally fulfilling given condition.
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent mixed="false">
+      <xsd:extension base="tns:ExpressionType">
+        <xsd:sequence>
+          <xsd:element name="type" type="xsd:QName">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Type whose instances are searched for.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element minOccurs="0" name="variable" type="xsd:string">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Variable to hold found instances.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element minOccurs="0" name="searchFilter" type="q:SearchFilterType">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Filter to apply when searching for instances.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element minOccurs="0" maxOccurs="unbounded" name="parameter" type="tns:ActionParameterValueType">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Action parameters.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element minOccurs="0" ref="tns:expression">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Expression to evaluate for each object found.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="search" substitutionGroup="tns:expression" type="tns:SearchExpressionType" />
+  <xsd:complexType name="FilterExpressionType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Filters input on a given condition.
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent mixed="false">
+      <xsd:extension base="tns:ExpressionType">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="filter" type="q:SearchFilterType">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Filter to apply to the input stream.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="filter" substitutionGroup="tns:expression" type="tns:FilterExpressionType" />
+  <xsd:complexType name="SelectExpressionType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Select given item.
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent mixed="false">
+      <xsd:extension base="tns:ExpressionType">
+        <xsd:sequence>
+          <xsd:element name="path" type="t:ItemPathType">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Path to the data item that has to be selected.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="select" substitutionGroup="tns:expression" type="tns:SelectExpressionType" />
+  <xsd:complexType name="ForeachExpressionType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Executes a given command individually for each item arriving at the input.
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent mixed="false">
+      <xsd:extension base="tns:ExpressionType">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="variable" type="xsd:QName">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Variable to hold emitted instances.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element minOccurs="0" maxOccurs="unbounded" ref="tns:expression" />
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="foreach" substitutionGroup="tns:expression" type="tns:ForeachExpressionType" />
+  <xsd:complexType name="ActionExpressionType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Executes a given action (add, modify, delete, enable, disable, assign, ...)
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent mixed="false">
+      <xsd:extension base="tns:ExpressionType">
+        <xsd:sequence>
+          <xsd:element name="type" type="xsd:string">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Action to execute.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element minOccurs="0" maxOccurs="unbounded" name="parameter" type="tns:ActionParameterValueType">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Action parameters.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="action" substitutionGroup="tns:expression" type="tns:ActionExpressionType" />
+  <xsd:complexType name="ActionParameterValueType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Value of a parameter for an action.
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent mixed="false">
+      <xsd:extension base="tns:ExpressionType">
+        <xsd:sequence>
+          <xsd:element name="name" type="xsd:string">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Parameter name.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element minOccurs="0" ref="tns:expression">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Parameter (argument) value.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:element name="constant" nillable="true" substitutionGroup="tns:expression" type="xsd:anyType">
+    <xsd:annotation>
+      <xsd:appinfo>
+        <a:rawType xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+      </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:complexType name="ExecuteScriptType">
+    <xsd:sequence>
+      <xsd:element ref="tns:expression" />
+      <xsd:element name="input" type="tns:ItemListType" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ItemListType">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" maxOccurs="unbounded" name="item" type="xsd:anyType">
+        <xsd:annotation>
+          <xsd:appinfo>
+            <a:rawType />
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

@@ -141,12 +141,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
@@ -504,7 +506,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
-				+ ".getCapabilities");
+				+ ".fetchCapabilities");
 		result.addContext("connector", connectorType);
 
 		try {
@@ -583,6 +585,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		AttributeInfo enableAttributeInfo = null;
 		AttributeInfo enableDateAttributeInfo = null;
 		AttributeInfo disableDateAttributeInfo = null;
+		AttributeInfo lockoutAttributeInfo = null;
 
 		// New instance of midPoint schema object
 		resourceSchema = new ResourceSchema(getSchemaNamespace(), prismContext);
@@ -651,6 +654,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				
 				if (OperationalAttributes.DISABLE_DATE_NAME.equals(attributeInfo.getName())) {
 					disableDateAttributeInfo = attributeInfo;
+					// Skip this attribute, capability is sufficient
+					continue;
+				}
+				
+				if (OperationalAttributes.LOCK_OUT_NAME.equals(attributeInfo.getName())) {
+					lockoutAttributeInfo = attributeInfo;
 					// Skip this attribute, capability is sufficient
 					continue;
 				}
@@ -757,6 +766,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			capAct.setValidTo(capValidTo);
 			if (!disableDateAttributeInfo.isReturnedByDefault()) {
 				capValidTo.setReturnedByDefault(false);
+			}
+		}
+		
+		if (lockoutAttributeInfo != null) {
+			if (capAct == null) {
+				capAct = new ActivationCapabilityType();
+			}
+			ActivationLockoutStatusCapabilityType capActStatus = new ActivationLockoutStatusCapabilityType();
+			capAct.setLockoutStatus(capActStatus);
+			if (!lockoutAttributeInfo.isReturnedByDefault()) {
+				capActStatus.setReturnedByDefault(false);
 			}
 		}
 
@@ -1034,6 +1054,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				|| (attributesToReturn.isReturnDefaultAttributes() && enabledReturnedByDefault())) {
 			icfAttrsToGet.add(OperationalAttributes.ENABLE_NAME);
 		}
+		if (attributesToReturn.isReturnLockoutStatusExplicit()
+				|| (attributesToReturn.isReturnDefaultAttributes() && lockoutReturnedByDefault())) {
+			icfAttrsToGet.add(OperationalAttributes.LOCK_OUT_NAME);
+		}
 		if (attrs != null) {
 			for (ResourceAttributeDefinition attrDef: attrs) {
 				String attrName = icfNameMapper.convertAttributeNameToIcf(attrDef.getName(), getSchemaNamespace());
@@ -1055,6 +1079,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return CapabilityUtil.isActivationStatusReturnedByDefault(capability);
 	}
 
+	private boolean lockoutReturnedByDefault() {
+		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
+		return CapabilityUtil.isActivationLockoutStatusReturnedByDefault(capability);
+	}
 
 	@Override
 	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> object,
@@ -1243,7 +1271,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				PropertyModificationOperation change = (PropertyModificationOperation) operation;
 				PropertyDelta<?> delta = change.getPropertyDelta();
 
-				if (delta.getParentPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES))) {
+				if (delta.getParentPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES))) {
 					if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ResourceAttributeDefinition)) {
 						ResourceAttributeDefinition def = objectClass
 								.findAttributeDefinition(delta.getElementName());
@@ -1293,9 +1321,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						updateAttribute.addValues((Collection)PrismValue.cloneCollection(delta.getValuesToReplace()));
 						updateValues.add(updateAttribute);
 					}
-				} else if (delta.getParentPath().equals(new ItemPath(ShadowType.F_ACTIVATION))) {
+				} else if (delta.getParentPath().equivalent(new ItemPath(ShadowType.F_ACTIVATION))) {
 					activationDeltas.add(delta);
-				} else if (delta.getParentPath().equals(
+				} else if (delta.getParentPath().equivalent(
 						new ItemPath(new ItemPath(ShadowType.F_CREDENTIALS),
 								CredentialsType.F_PASSWORD))) {
 					passwordDelta = (PropertyDelta<ProtectedStringType>) delta;
@@ -1447,6 +1475,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					throw (ObjectAlreadyExistsException) midpointEx;
 				} else if (midpointEx instanceof RuntimeException) {
 					throw (RuntimeException) midpointEx;
+                } else if (midpointEx instanceof SecurityViolationException) {
+                    throw (SecurityViolationException) midpointEx;
 				} else if (midpointEx instanceof Error) {
 					throw (Error) midpointEx;
 				} else {
@@ -1504,6 +1534,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (ObjectAlreadyExistsException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+            } else if (midpointEx instanceof SecurityViolationException) {
+                throw (SecurityViolationException) midpointEx;
 			} else if (midpointEx instanceof Error) {
 				throw (Error) midpointEx;
 			} else {
@@ -1528,7 +1560,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
 		QName attributeName = icfNameMapper.convertAttributeNameToQName(uid.getName(), getSchemaNamespace());
 		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, attributeName),
-				uidDefinition);
+				uidDefinition, prismContext);
 		uidDelta.setValueToReplace(new PrismPropertyValue<String>(uid.getUidValue()));
 		return uidDelta;
 	}
@@ -1851,7 +1883,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				LOGGER.trace("Start to convert filter: {}", query.getFilter().debugDump());
 				filter = interpreter.interpret(query.getFilter(), icfNameMapper);
 
-				LOGGER.trace("ICF filter: {}", filter.toString());
+				LOGGER.trace("ICF filter: {}", filter);
 			}
 			
 			icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
@@ -2020,6 +2052,20 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				activationType.setValidTo(XmlTypeConverter.createXMLGregorianCalendar(millis));
 				continue;
 			}
+			
+			if (icfAttr.getName().equals(OperationalAttributes.LOCK_OUT_NAME)) {
+				Boolean lockOut = getSingleValue(icfAttr, Boolean.class);
+				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
+				LockoutStatusType lockoutStatusType;
+				if (lockOut) {
+					lockoutStatusType = LockoutStatusType.LOCKED;
+				} else {
+					lockoutStatusType = LockoutStatusType.NORMAL;
+				}
+				activationType.setLockoutStatus(lockoutStatusType);
+				LOGGER.trace("Converted activation lockoutStatus: {}", lockoutStatusType);
+				continue;
+			}
 
 			QName qname = icfNameMapper.convertAttributeNameToQName(icfAttr.getName(), getSchemaNamespace());
 			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname);
@@ -2153,6 +2199,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (propDelta.getElementName().equals(ActivationType.F_VALID_TO)) {
 				XMLGregorianCalendar xmlCal = propDelta.getPropertyNew().getValue(XMLGregorianCalendar.class).getValue();
 				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(xmlCal)));
+			} else if (propDelta.getElementName().equals(ActivationType.F_LOCKOUT_STATUS)) {
+				LockoutStatusType status = propDelta.getPropertyNew().getValue(LockoutStatusType.class).getValue();
+				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.LOCK_OUT_NAME, status != LockoutStatusType.NORMAL));
 			} else {
 				throw new SchemaException("Got unknown activation attribute delta " + propDelta.getElementName());
 			}

@@ -93,6 +93,7 @@ public class ScheduleValidator extends AbstractFormValidator {
                     error(interval, "pageTask.scheduleValidation.bothIntervalAndCron");
                 }
 
+                // there can be recurring tasks that are started only on demand, so we allow specifying no timing information
 //                if (interval.getModelObject() == null && StringUtils.isEmpty(cron.getModelObject())) {
 //                    error(interval, "pageTask.scheduleValidation.neitherIntervalNorCron");
 //                }

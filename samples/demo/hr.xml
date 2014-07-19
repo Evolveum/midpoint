@@ -57,8 +57,8 @@
 
         <schemaHandling>
 
-            <accountType>
-                <name>default</name>
+            <objectType>
+                <intent>default</intent>
                 <displayName>Default Account</displayName>
                 <default>true</default>
                 <objectClass>ri:AccountObjectClass</objectClass>
@@ -151,7 +151,7 @@
                     </enabled>
                 </activation> -->
 
-            </accountType>
+            </objectType>
         </schemaHandling>
 <!--       <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
             <configured>
@@ -202,7 +202,7 @@
 	            <reaction>
 	                <situation>unmatched</situation>
 	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
 	            </reaction>
 			</objectSynchronization>
         </synchronization>

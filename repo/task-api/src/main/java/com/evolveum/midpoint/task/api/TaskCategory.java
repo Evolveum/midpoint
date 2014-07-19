@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,7 @@
 package com.evolveum.midpoint.task.api;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 3.5.2012
- * Time: 21:50
- * To change this template use File | Settings | File Templates.
+ * @author mederly
  */
 public class TaskCategory {
 
@@ -29,10 +25,12 @@ public class TaskCategory {
     public static final String IMPORTING_ACCOUNTS = "ImportingAccounts";
     public static final String IMPORT_FROM_FILE = "ImportFromFile";
     public static final String LIVE_SYNCHRONIZATION = "LiveSynchronization";
+    public static final String BULK_ACTIONS = "BulkActions";
     public static final String MOCK = "Mock";
     public static final String USER_RECOMPUTATION = "UserRecomputation";
     public static final String RECONCILIATION = "Reconciliation";
     public static final String WORKFLOW = "Workflow";
     public static final String SYSTEM = "System";
     public static final String REPORT = "Report";
+    public static final String CUSTOM = "Custom";
 }

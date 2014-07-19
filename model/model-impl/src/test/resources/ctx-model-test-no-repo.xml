@@ -33,6 +33,7 @@
 	default-lazy-init="false" default-autowire="byName">
 
     <import resource="ctx-model.xml"/>
+    <import resource="ctx-model-test.xml"/>
     <import resource="ctx-model-unit-test.xml"/>
     <import resource="ctx-configuration-test-no-repo.xml"/>
     <import resource="ctx-task.xml"/>

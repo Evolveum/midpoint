@@ -207,6 +207,107 @@
             </attribute>
         </objectType>
         
+        <objectType>
+        	<kind>entitlement</kind>
+            <intent>projAdmGroup</intent>
+            <displayName>Project Admin Group</displayName>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$focus/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('dc=example,dc=com')
+	                        	dn.add(new Rdn('ou', name.toString()))
+	                        	dn.add(new Rdn('cn', 'admins'))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                	     as a side-effect as it is a naming attribute. -->
+                	<strength>weak</strength>
+                	<expression>
+                		<value>admins</value>
+                	</expression>
+                </outbound>
+            </attribute>
+            <dependency>
+				<kind>generic</kind>
+				<intent>projOu</intent>
+			</dependency>
+        </objectType>
+        
+        <objectType>
+        	<kind>generic</kind>
+            <intent>projOu</intent>
+            <displayName>Project Organizational Unit</displayName>
+            <objectClass>ri:CustomorganizationalUnitObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$focus/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('dc=example,dc=com')
+                        		dn.add(new Rdn('ou', name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ou</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                	     as a side-effect as it is a naming attribute. -->
+                	<strength>weak</strength>
+                	<source>
+                		<path>$focus/name</path>
+                	</source>
+                </outbound>
+                <inbound>
+                	<strength>weak</strength>
+                	<target>
+                		<path>$focus/name</path>
+                	</target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                	<source>
+                		<path>description</path>
+                	</source>
+                </outbound>
+            </attribute>
+        </objectType>
+        
     </schemaHandling>
 
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">

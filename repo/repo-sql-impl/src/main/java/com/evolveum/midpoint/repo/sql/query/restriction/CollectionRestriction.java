@@ -20,12 +20,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
-import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.PropertyDefinition;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.criterion.Criterion;
 
 /**
@@ -40,11 +38,9 @@ public class CollectionRestriction extends ItemRestriction<ValueFilter> {
         }
 
         ValueFilter valFilter = (ValueFilter) filter;
-        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-//        ItemPath fullPath = RUtil.createFullPath(valFilter);
         ItemPath fullPath = valFilter.getFullPath();
 
-        CollectionDefinition def = registry.findDefinition(context.getType(), fullPath, CollectionDefinition.class);
+        CollectionDefinition def = findProperDefinition(fullPath, CollectionDefinition.class);
         if (def == null) {
             return false;
         }
@@ -54,11 +50,9 @@ public class CollectionRestriction extends ItemRestriction<ValueFilter> {
 
     @Override
     public Criterion interpretInternal(ValueFilter filter) throws QueryException {
-//        ItemPath fullPath = RUtil.createFullPath(filter);
-    	ItemPath fullPath = filter.getFullPath();
-    	QueryContext context = getContext();
-        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        CollectionDefinition def = registry.findDefinition(context.getType(), fullPath, CollectionDefinition.class);
+        ItemPath fullPath = filter.getFullPath();
+        QueryContext context = getContext();
+        CollectionDefinition def = findProperDefinition(fullPath, CollectionDefinition.class);
 
         String alias = context.getAlias(fullPath);
         Object value = getValueFromFilter(filter, (PropertyDefinition) def.getDefinition());

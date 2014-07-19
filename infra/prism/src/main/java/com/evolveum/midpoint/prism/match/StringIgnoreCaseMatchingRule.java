@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism.match;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
@@ -72,7 +73,9 @@ public class StringIgnoreCaseMatchingRule implements MatchingRule<String> {
 			return false;
 		}
 		
-		return Pattern.matches(regex, a.toLowerCase()) || Pattern.matches(regex, a.toUpperCase());
+		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+		Matcher matcher = pattern.matcher(a);
+		return matcher.matches();
 	}
 
 }

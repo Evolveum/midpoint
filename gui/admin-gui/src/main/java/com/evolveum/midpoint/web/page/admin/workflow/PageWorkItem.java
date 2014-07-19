@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -43,22 +44,23 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.GeneralChangeApprovalWorkItemContents;
-
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -128,11 +130,11 @@ public class PageWorkItem extends PageAdminWorkItems {
         this(new PageParameters(), null);
     }
 
-    public PageWorkItem(PageParameters parameters, PageBase previousPage) {
+    public PageWorkItem(PageParameters parameters, PageTemplate previousPage) {
         this(parameters, previousPage, false);
     }
 
-    public PageWorkItem(PageParameters parameters, PageBase previousPage, boolean reinitializePreviousPage) {
+    public PageWorkItem(PageParameters parameters, PageTemplate previousPage, boolean reinitializePreviousPage) {
 
         this.parameters = parameters;
         setPreviousPage(previousPage);
@@ -212,19 +214,21 @@ public class PageWorkItem extends PageAdminWorkItems {
         PrismObject<UserType> prism = workItemDtoModel.getObject().getWorkItem().getRequester().asPrismObject();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(
+        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
                 createStringResource("pageWorkItem.requester.description").getString(),     // name (large font)
                 PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-                prism, status);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
+                prism, status, true, this);
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setShowAssignments(false);
         wrapper.setReadonly(true);
+        wrapper.initializeContainers(this);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
 
         return wrapper;
+       
     }
 
     private ObjectWrapper getObjectOldWrapper() {
@@ -239,19 +243,21 @@ public class PageWorkItem extends PageAdminWorkItems {
         }
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(
+        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
                 createStringResource("pageWorkItem.objectOld.description").getString(),     // name (large font)
                 PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-                prism, status);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
+                prism, status, true, this);
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setShowAssignments(true);
         wrapper.setReadonly(true);
+        wrapper.initializeContainers(this);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
 
         return wrapper;
+        
     }
 
     private GeneralChangeApprovalWorkItemContents getGeneralChangeApprovalWorkItemContents() {
@@ -275,17 +281,18 @@ public class PageWorkItem extends PageAdminWorkItems {
         }
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(
+        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
                 createStringResource("pageWorkItem.objectNew.description").getString(),     // name (large font)
                 PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-                prism, status);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
+                prism, status, true, this);
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setShowAssignments(true);
         wrapper.setReadonly(true);
+        wrapper.initializeContainers(this);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
 
         return wrapper;
     }
@@ -294,7 +301,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     private PrismObject<? extends ObjectType> createEmptyUserObject() {
         PrismObject<? extends ObjectType> p = new PrismObject<UserType>(UserType.COMPLEX_TYPE, UserType.class);
         try {
-            getWorkflowManager().getPrismContext().adopt(p);
+            getPrismContext().adopt(p);
         } catch (SchemaException e) {   // safe to convert; this should not occur
             throw new SystemException("Got schema exception when creating empty user object.", e);
         }
@@ -303,18 +310,23 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private ObjectWrapper getRequestSpecificWrapper() {
         GeneralChangeApprovalWorkItemContents wic = getGeneralChangeApprovalWorkItemContents();
-        PrismObject<?> prism = wic.getQuestionForm().asPrismObject();
+        PrismObject prism = wic.getQuestionForm().asPrismObject();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper("pageWorkItem.requestSpecifics", null, prism, status);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
-        wrapper.setShowEmpty(true);
-        wrapper.setMinimalized(false);
-        wrapper.setShowInheritedObjectAttributes(false);
+        try{
+            ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper("pageWorkItem.requestSpecifics", null, prism, status, true, this);
+            wrapper.setShowEmpty(true);
+            wrapper.setMinimalized(false);
+            wrapper.setShowInheritedObjectAttributes(false);
+            wrapper.initializeContainers(this);
+            if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+                showResultInSession(wrapper.getResult());
+            }
 
         return wrapper;
+        } catch (Exception ex){
+        	throw new SystemException("Got schema exception when creating general change approval work item contents.", ex);
+        }
     }
 
     private ObjectWrapper getAdditionalDataWrapper() {
@@ -328,33 +340,47 @@ public class PageWorkItem extends PageAdminWorkItems {
         }
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(
-                createStringResource("pageWorkItem.additionalData.description").getString(),     // name (large font)
-                PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-                prism, status);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
+        try {
+            ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
+                    createStringResource("pageWorkItem.additionalData.description").getString(),     // name (large font)
+                    PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
+                    prism, status, true, this);
+            wrapper.setShowEmpty(false);
+            wrapper.setMinimalized(true);
+            wrapper.setReadonly(true);
+            wrapper.initializeContainers(this);
+            if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+                showResultInSession(wrapper.getResult());
+            }
+            return wrapper;
+        } catch (Exception ex){
+            LoggingUtils.logException(LOGGER, "Couldn't get work item.", ex);
         }
-        wrapper.setShowEmpty(false);
-        wrapper.setMinimalized(true);
-        wrapper.setReadonly(true);
-
-        return wrapper;
+        return null;
+        
     }
 
     private ObjectWrapper getTrackingDataWrapper() {
         PrismObject<? extends ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getTrackingData().asPrismObject();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper("pageWorkItem.trackingData", null, prism, status);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
-        wrapper.setShowEmpty(false);
-        wrapper.setMinimalized(true);
-        wrapper.setReadonly(true);
+		try {
+			ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper("pageWorkItem.trackingData", null,
+					prism, status, true, this);
+			wrapper.setShowEmpty(false);
+			wrapper.setMinimalized(true);
+			wrapper.setReadonly(true);
+            wrapper.initializeContainers(this);
+            wrapper.setShowInheritedObjectAttributes(false);
+            if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+                showResultInSession(wrapper.getResult());
+            }
 
-        return wrapper;
+			return wrapper;
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get work item.", ex);
+		}
+		return null;
     }
 
     private WorkItemDetailedDto loadWorkItemDetailedDtoIfNecessary() {
@@ -367,7 +393,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkItemDetailedDto workItemDetailedDto = null;
         WorkItemType workItem = null;
         try {
-            WorkflowManager wfm = getWorkflowManager();
+            WorkflowService wfm = getWorkflowService();
             workItem = wfm.getWorkItemDetailsById(parameters.get(OnePageParameterEncoder.PARAMETER).toString(), result);
             workItemDetailedDto = new WorkItemDetailedDto(workItem, getPrismContext());
             result.recordSuccessIfUnknown();
@@ -390,7 +416,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         try {
             String taskId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
             LOGGER.trace("Loading process instance for task {}", taskId);
-            WorkflowManager wfm = getWorkflowManager();
+            WorkflowService wfm = getWorkflowService();
             processInstance = wfm.getProcessInstanceByWorkItemId(taskId, result);
             LOGGER.trace("Found process instance {}", processInstance);
             String shadowTaskOid = ((ProcessInstanceState) processInstance.getState()).getShadowTaskOid();
@@ -417,6 +443,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private void initLayout() {
         Form mainForm = new Form("mainForm");
+        mainForm.setMultiPart(true);
         add(mainForm);
 
         Label requestedBy = new Label("requestedBy", new PropertyModel(requesterModel, "object.asObjectable.name"));
@@ -732,13 +759,14 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         OperationResult result = new OperationResult(OPERATION_SAVE_WORK_ITEM);
 
-        ObjectWrapper rsWrapper = requestSpecificModel.getObject();
         try {
+            reviveModels();
+            ObjectWrapper rsWrapper = requestSpecificModel.getObject();
             PrismObject object = rsWrapper.getObject();
             ObjectDelta delta = rsWrapper.getObjectDelta();
             delta.applyTo(object);
 
-            getWorkflowManager().approveOrRejectWorkItemWithDetails(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), object, decision, result);
+            getWorkflowService().approveOrRejectWorkItemWithDetails(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), object, decision, result);
             setReinitializePreviousPages(true);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);
@@ -759,9 +787,9 @@ public class PageWorkItem extends PageAdminWorkItems {
     private void claimPerformed(AjaxRequestTarget target) {
 
         OperationResult result = new OperationResult(OPERATION_CLAIM_WORK_ITEM);
-        WorkflowManager workflowManagerImpl = getWorkflowManager();
+        WorkflowService workflowService = getWorkflowService();
         try {
-            workflowManagerImpl.claimWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
+            workflowService.claimWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
             setReinitializePreviousPages(true);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't claim work item due to an unexpected exception.", e);
@@ -780,9 +808,9 @@ public class PageWorkItem extends PageAdminWorkItems {
     private void releasePerformed(AjaxRequestTarget target) {
 
         OperationResult result = new OperationResult(OPERATION_RELEASE_WORK_ITEM);
-        WorkflowManager workflowManagerImpl = getWorkflowManager();
+        WorkflowService workflowService = getWorkflowService();
         try {
-            workflowManagerImpl.releaseWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
+            workflowService.releaseWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
             setReinitializePreviousPages(true);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't release work item due to an unexpected exception.", e);
@@ -802,4 +830,14 @@ public class PageWorkItem extends PageAdminWorkItems {
     public PageBase reinitialize() {
         return new PageWorkItem(parameters, getPreviousPage(), true);
     }
+
+    private void reviveModels() throws SchemaException {
+        WebMiscUtil.revive(requesterModel, getPrismContext());
+        WebMiscUtil.revive(objectOldModel, getPrismContext());
+        WebMiscUtil.revive(objectNewModel, getPrismContext());
+        WebMiscUtil.revive(requestSpecificModel, getPrismContext());
+        WebMiscUtil.revive(trackingDataModel, getPrismContext());
+        WebMiscUtil.revive(additionalDataModel, getPrismContext());
+    }
+
 }

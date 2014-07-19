@@ -60,15 +60,17 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 		return new LayerRefinedAttributeDefinition(rAttrDef, layer);
 	}
 	
-	static List<? extends LayerRefinedAttributeDefinition> wrapCollection(
+	static List<LayerRefinedAttributeDefinition> wrapCollection(
 			Collection<? extends ItemDefinition> defs, LayerType layer) {
-		List outs = new ArrayList<ItemDefinition>(defs.size());
+		List outs = new ArrayList<LayerRefinedAttributeDefinition>(defs.size());
 		for (ItemDefinition itemDef: defs) {
-			if (itemDef instanceof RefinedAttributeDefinition) {
-				outs.add(wrap((RefinedAttributeDefinition)itemDef, layer));
-			} else {
-				outs.add(itemDef);
-			}
+            if (itemDef instanceof LayerRefinedAttributeDefinition) {
+                outs.add(itemDef);
+            } else if (itemDef instanceof RefinedAttributeDefinition) {
+                outs.add(wrap((RefinedAttributeDefinition)itemDef, layer));
+            } else {
+                throw new IllegalStateException("Unexpected type of attribute definition: " + itemDef);
+            }
 		}
 		return outs;
 	}

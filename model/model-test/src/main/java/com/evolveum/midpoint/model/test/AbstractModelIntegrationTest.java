@@ -54,7 +54,7 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
@@ -80,6 +80,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
@@ -104,6 +105,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
@@ -129,15 +131,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.web.FilterInvocation;
 import org.testng.AssertJUnit;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -220,6 +227,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     
     @Autowired(required = false)
     protected UserProfileService userProfileService;
+    
+	@Autowired(required=true)
+	private SecurityEnforcer securityEnforcer;
 	
 	protected DummyAuditService dummyAuditService;
 	
@@ -727,7 +737,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			if (targetRef != null) {
 				if (targetRef.getType().equals(RoleType.COMPLEX_TYPE)) {
 					ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-					PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
+					PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
 					cval.setId(assignment.getId());
 					assignmentDelta.addValueToDelete(cval);
 					modifications.add(assignmentDelta);
@@ -805,7 +815,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation, 
 			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
+		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
 		if (add) {
 			assignmentDelta.addValueToAdd(cval);
 		} else {
@@ -884,7 +894,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ObjectDelta<UserType> createReplaceAccountConstructionUserDelta(String userOid, Long id, ConstructionType newValue) throws SchemaException {
         PrismContainerDefinition pcd = getAssignmentDefinition().findContainerDefinition(AssignmentType.F_CONSTRUCTION);
-        ContainerDelta<ConstructionType> acDelta = new ContainerDelta<ConstructionType>(new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT), new IdItemPathSegment(id), new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)), pcd);
+        ContainerDelta<ConstructionType> acDelta = new ContainerDelta<ConstructionType>(new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT), new IdItemPathSegment(id), new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)), pcd, prismContext);
 //                ContainerDelta.createDelta(prismContext, ConstructionType.class, AssignmentType.F_CONSTRUCTION);
         acDelta.setValueToReplace(newValue.asPrismContainerValue());
 //        PropertyDelta.createModificationReplaceProperty(
@@ -992,7 +1002,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
+        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
         		rAccount.getObjectClassDefinition().getTypeName());
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);
         AndFilter filter = AndFilter.createAnd(ocFilter, resourceRefFilter);
@@ -1068,8 +1078,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, username);
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, 
+        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, username);
+        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, 
         		rAccount.getObjectClassDefinition().getTypeName());
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, 
         		resource);
@@ -1576,7 +1586,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         	assignmentDeltaValue = assignmentDelta.getValuesToDelete().iterator().next();
         }
         PrismContainer<ActivationType> activationContainer = assignmentDeltaValue.findOrCreateContainer(AssignmentType.F_ACTIVATION);
-        PrismContainerValue<ActivationType> emptyValue = new PrismContainerValue<ActivationType>();
+        PrismContainerValue<ActivationType> emptyValue = new PrismContainerValue<ActivationType>(prismContext);
 		activationContainer.add(emptyValue);		
 	}
 	
@@ -2447,6 +2457,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		throw new IllegalArgumentException("Synchronization setting for "+type+" and name "+name+" not found in "+resource);
 	}
 	
+	protected void assertShadowKindIntent(String shadowOid, ShadowKindType expectedKind,
+			String expectedIntent) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertShadowKindIntent");
+		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		assertShadowKindIntent(shadow, expectedKind, expectedIntent);
+	}
+	
 	protected void assertShadowKindIntent(PrismObject<ShadowType> shadow, ShadowKindType expectedKind,
 			String expectedIntent) {
 		assertEquals("Wrong kind in "+shadow, expectedKind, shadow.asObjectable().getKind());
@@ -2540,5 +2559,57 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
         
 		modelService.executeChanges(deltas, null, task, result);
+	}
+	
+	protected void assertAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
+		assertAuthorized(principal, action, null);
+		assertAuthorized(principal, action, AuthorizationPhaseType.REQUEST);
+		assertAuthorized(principal, action, AuthorizationPhaseType.EXECUTION);
+	}
+
+	protected void assertAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException {
+		SecurityContext origContext = SecurityContextHolder.getContext();
+		createSecurityContext(principal);
+		try {
+			assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action, 
+					securityEnforcer.isAuthorized(action, phase, null, null, null, null));
+			if (phase == null) {
+				securityEnforcer.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(), 
+					createConfigAttributes(action));
+			}
+		} finally {
+			SecurityContextHolder.setContext(origContext);
+		}
+	}
+	
+	protected void assertNotAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
+		assertNotAuthorized(principal, action, null);
+		assertNotAuthorized(principal, action, AuthorizationPhaseType.REQUEST);
+		assertNotAuthorized(principal, action, AuthorizationPhaseType.EXECUTION);
+	}
+	
+	protected void assertNotAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException {
+		SecurityContext origContext = SecurityContextHolder.getContext();
+		createSecurityContext(principal);
+		boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, null, null, null, null);
+		SecurityContextHolder.setContext(origContext);
+		assertFalse("AuthorizationEvaluator.isAuthorized: Principal "+principal+" IS authorized for action "+action+" ("+phase+") but he should not be", isAuthorized);
+	}
+
+	protected void createSecurityContext(MidPointPrincipal principal) {
+		SecurityContext context = new SecurityContextImpl();
+		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
+		context.setAuthentication(authentication);
+		SecurityContextHolder.setContext(context);
+	}
+	
+	protected Object createSecureObject() {
+		return new FilterInvocation("/midpoint", "whateverServlet", "doSomething");
+	}
+	
+	protected Collection<ConfigAttribute> createConfigAttributes(String action) {
+		Collection<ConfigAttribute> attrs = new ArrayList<ConfigAttribute>();
+		attrs.add(new SecurityConfig(action));
+		return attrs;
 	}
 }

@@ -40,9 +40,7 @@
                     <ref>ri:carLicense</ref>
                     <outbound>
                     	<expression>
-		                    <value>
-		                        <ri:carLicense>C4PT41N</ri:carLicense>
-		                    </value>
+		                    <value>C4PT41N</value>
 		                </expression>
 		           	</outbound>
                 </attribute>    		
@@ -50,9 +48,7 @@
                     <ref>ri:businessCategory</ref>
                     <outbound>
                     	<expression>
-		                    <value>
-		                        <ri:businessCategory>cruise</ri:businessCategory>
-		                    </value>
+		                    <value>cruise</value>
 		                </expression>
 		            </outbound>
                 </attribute>    		

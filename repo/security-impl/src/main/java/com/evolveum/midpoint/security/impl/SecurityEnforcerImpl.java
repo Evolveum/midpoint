@@ -260,7 +260,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						@Override
 						public void visit(Visitable visitable) {
 							ItemPath itemPath = getPath(visitable);
-							if (itemPath != null) {
+							if (itemPath != null && !itemPath.isEmpty()) {
 								if (!isInList(itemPath, allowedItems)) {
 									LOGGER.trace("  DENY operation because item {} in the delta is not allowed", itemPath);
 									itemDecision.setValue(false);
@@ -274,7 +274,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						@Override
 						public void visit(Visitable visitable) {
 							ItemPath itemPath = getPath(visitable);
-							if (itemPath != null) {
+							if (itemPath != null && !itemPath.isEmpty()) {
 								if (!isInList(itemPath, allowedItems)) {
 									LOGGER.trace("  DENY operation because item {} in the object is not allowed", itemPath);
 									itemDecision.setValue(false);
@@ -307,7 +307,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	private boolean isInList(ItemPath itemPath, Collection<ItemPath> allowedItems) {
 		boolean itemAllowed = false;
 		for (ItemPath allowedPath: allowedItems) {
-			if (allowedPath.equivalent(itemPath)) {
+			if (allowedPath.isSubPathOrEquivalent(itemPath)) {
 				itemAllowed = true;
 				break;
 			}
@@ -800,6 +800,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						applicable = false;
 						for (ObjectSpecificationType objectSpecType: objectSpecTypes) {
 							ObjectFilter objSpecSecurityFilter = null;
+							TypeFilter objSpecTypeFilter = null;
 							SearchFilterType specFilterType = objectSpecType.getFilter();
 							ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
 							QName specTypeQName = objectSpecType.getType();
@@ -818,7 +819,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 											new Object[]{specObjectClass, objectType});
 									// The spec type is a subclass of requested type. So it might be returned from the search.
 									// We need to use type filter.
-									objSpecSecurityFilter = TypeFilter.createType(specTypeQName, null);
+									objSpecTypeFilter = TypeFilter.createType(specTypeQName, null);
 									// and now we have a more specific object definition to use later in filter processing
 									objectDefinition = (PrismObjectDefinition<O>) specObjectDef;
 								}
@@ -878,6 +879,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								LOGGER.trace("  org empty");
 							}
 							
+							if (objSpecTypeFilter != null) {
+								objSpecTypeFilter.setFilter(objSpecSecurityFilter);
+								objSpecSecurityFilter = objSpecTypeFilter;
+							}
+							
 							autzObjSecurityFilter = ObjectQueryUtil.filterOr(autzObjSecurityFilter, objSpecSecurityFilter);
 						}
 					} else {
@@ -926,13 +932,17 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 
 		if (securityFilterDeny == null) {
-			LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow: {}", 
-					new Object[]{principal.getUsername(), operationUrl, origWithAllowFilter});
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow:\n{}", 
+					new Object[]{principal.getUsername(), operationUrl, origWithAllowFilter==null?"null":origWithAllowFilter.debugDump()});
+			}
 			return origWithAllowFilter;
 		} else {
 			ObjectFilter secFilter = ObjectQueryUtil.filterAnd(origWithAllowFilter, NotFilter.createNot(securityFilterDeny));
-			LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow (with deny clauses): {}", 
-					new Object[]{principal.getUsername(), operationUrl, secFilter});
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow (with deny clauses):\n{}", 
+					new Object[]{principal.getUsername(), operationUrl, secFilter==null?"null":secFilter.debugDump()});
+			}
 			return secFilter;
 		}
 	}

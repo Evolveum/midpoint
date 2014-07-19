@@ -53,7 +53,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  * 
  */
-public abstract class Definition implements Serializable, DebugDumpable {
+public abstract class Definition implements Serializable, DebugDumpable, Revivable {
 
 	private static final long serialVersionUID = -2643332934312107274L;
 	protected QName typeName;
@@ -79,6 +79,9 @@ public abstract class Definition implements Serializable, DebugDumpable {
 		if (typeName == null) {
 			throw new IllegalArgumentException("Type name can't be null.");
 		}
+        if (prismContext == null) {
+            throw new IllegalArgumentException("prismContext can't be null.");
+        }
 		this.typeName = typeName;
 		this.prismContext = prismContext;
 	}
@@ -235,7 +238,7 @@ public abstract class Definition implements Serializable, DebugDumpable {
 		return XsdTypeMapper.toJavaType(getTypeName());
 	}
 	
-	abstract void revive(PrismContext prismContext);
+	public abstract void revive(PrismContext prismContext);
 	
 	public abstract Definition clone(); 
 	
@@ -245,7 +248,11 @@ public abstract class Definition implements Serializable, DebugDumpable {
 		clone.displayName = this.displayName;
 		clone.displayOrder = this.displayOrder;
 		clone.help = this.help;
-	}
+		clone.inherited = this.inherited;
+        clone.documentation = this.documentation;
+        clone.isAbstract = this.isAbstract;
+        clone.deprecated = this.deprecated;
+    }
 	
 	@Override
 	public int hashCode() {

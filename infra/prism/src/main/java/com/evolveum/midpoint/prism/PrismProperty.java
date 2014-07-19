@@ -66,6 +66,10 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
         super(name);
     }
 
+    public PrismProperty(QName name, PrismContext prismContext) {
+        super(name, prismContext);
+    }
+
     protected PrismProperty(QName name, PrismPropertyDefinition<T> definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }
@@ -336,12 +340,12 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     	
     @Override
 	public PropertyDelta<T> createDelta() {
-		return new PropertyDelta<T>(getPath(), getDefinition());
+		return new PropertyDelta<T>(getPath(), getDefinition(), prismContext);
 	}
     
     @Override
 	public PropertyDelta<T> createDelta(ItemPath path) {
-		return new PropertyDelta<T>(path, getDefinition());
+		return new PropertyDelta<T>(path, getDefinition(), prismContext);
 	}
     
     @Override

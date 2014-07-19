@@ -34,11 +34,12 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -261,7 +262,9 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         }
 
         for (ModifierThread mt : modifierThreads) {
-            AssertJUnit.assertTrue("Modifier thread " + mt.id + " finished with an exception: " + mt.threadResult, mt.threadResult == null);
+            if (mt.threadResult != null) {
+                throw new AssertionError("Modifier thread " + mt.id + " finished with an exception: " + mt.threadResult, mt.threadResult);
+            }
         }
     }
 
@@ -314,7 +317,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             }
         }
 
-        public void runOnce() {
+        public void runOnce() throws SchemaException {
 
             OperationResult result = new OperationResult("run");
 
@@ -328,7 +331,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             if (propertyDefinition1 == null) {
                 throw new IllegalArgumentException("No definition for " + attribute1 + " in " + userPrismDefinition);
             }
-            PropertyDelta delta1 = new PropertyDelta(attribute1, propertyDefinition1);
+            PropertyDelta delta1 = new PropertyDelta(attribute1, propertyDefinition1, prismContext);
             delta1.setValueToReplace(new PrismPropertyValue(poly ? new PolyString(dataWritten) : dataWritten));
             List<ItemDelta> deltas = new ArrayList<ItemDelta>();
             deltas.add(delta1);
@@ -342,9 +345,9 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 
                 ItemDelta delta2 = null;
                 if (propertyDefinition2.getClass().isAssignableFrom(PrismContainerDefinition.class)){
-                	delta2 = new ContainerDelta(attribute2, (PrismContainerDefinition) propertyDefinition2);
+                	delta2 = new ContainerDelta(attribute2, (PrismContainerDefinition) propertyDefinition2, prismContext);
                 } else{
-                	delta2 = new PropertyDelta(attribute2, (PrismPropertyDefinition) propertyDefinition2);
+                	delta2 = new PropertyDelta(attribute2, (PrismPropertyDefinition) propertyDefinition2, prismContext);
                 }
                 if (ConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
                     ConstructionType act = new ConstructionType();
@@ -452,7 +455,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         repositoryService.searchObjectsIterative(UserType.class,
                 ObjectQuery.createObjectQuery(
-                        EqualsFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(name))),
+                        EqualFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(name))),
                 new ResultHandler<UserType>() {
                     @Override
                     public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {

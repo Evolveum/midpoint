@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.application;
 
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -187,6 +188,8 @@ public final class DescriptorLoader {
             for (AuthorizationAction action : descriptor.action()) {
                 actions.add(new AuthorizationActionValue(action.actionUri(), action.label(), action.description()));
             }
+            actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_URI,
+                    AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
             this.actions.put(url, actions.toArray(new DisplayableValue[actions.size()]));
         }
     }

@@ -207,7 +207,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
     private void initModalWindows(){
         ModalWindow assignWindow = createModalWindow(ID_MODAL_ASSIGN,
-                createStringResource("AssignmentTablePanel.modal.title.selectAssignment"), 1100, 520);
+                createStringResource("AssignmentTablePanel.modal.title.selectAssignment"), 1100, 560);
         assignWindow.setContent(new AssignablePopupContent(assignWindow.getContentId()){
 
             @Override
@@ -260,7 +260,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
                     @Override
                     public void onClick(AjaxRequestTarget target){
-                        showAssignablePopupPerformed(target, ResourceType.class);
+                        showAssignablePopupPerformed(target, ResourceType.class, ResourceType.F_NAME);
                     }
                 });
         items.add(item);
@@ -270,7 +270,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
                     @Override
                     public void onClick(AjaxRequestTarget target){
-                        showAssignablePopupPerformed(target, RoleType.class);
+                        showAssignablePopupPerformed(target, RoleType.class, RoleType.F_NAME);
                     }
                 });
         items.add(item);
@@ -280,7 +280,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
                     @Override
                     public void onClick(AjaxRequestTarget target){
-                        showAssignablePopupPerformed(target, OrgType.class);
+                        showAssignablePopupPerformed(target, OrgType.class, OrgType.F_NAME);
                     }
                 });
         items.add(item);
@@ -318,10 +318,12 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
         window.show(target);
     }
 
-    private void showAssignablePopupPerformed(AjaxRequestTarget target, Class<? extends ObjectType> type){
+    private void showAssignablePopupPerformed(AjaxRequestTarget target, Class<? extends ObjectType> type,
+                                              QName searchParameter){
         ModalWindow modal = (ModalWindow) get(ID_MODAL_ASSIGN);
         AssignablePopupContent content = (AssignablePopupContent)modal.get(modal.getContentId());
         content.setType(type);
+        content.setSearchParameter(searchParameter);
         showModalWindow(ID_MODAL_ASSIGN, target);
     }
 
@@ -443,7 +445,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
     public ContainerDelta handleAssignmentDeltas(ObjectDelta<T> userDelta, PrismContainerDefinition def, QName assignmentPath)
             throws SchemaException {
-        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), assignmentPath, def);
+        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), assignmentPath, def, def.getPrismContext());           // hoping that def contains a prism context!
 
         //PrismObject<OrgType> org = (PrismObject<OrgType>)getModel().getObject().getAssignmentParent();
         //PrismObjectDefinition orgDef = org.getDefinition();
@@ -515,7 +517,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
         ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
         if (path != null) {
             for (ItemPathSegment seg : path.getSegments()) {
-                if (seg.equals(firstDeltaSegment)) {
+                if (seg.equivalent(firstDeltaSegment)) {
                     break;
                 }
                 newPath.add(seg);

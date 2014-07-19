@@ -20,9 +20,10 @@
     <div class="col-xs-10">
         <input type="checkbox" wicket:id="check"/>
 
-        <i class="silk-user" wicket:id="icon"></i>
+        <i wicket:id="icon"/>
         <span wicket:id="status"/>
-        <i class="fa fa-clock-o text-warning" wicket:id="trigger"/>
+        <i class="fa fa-clock-o text-success" wicket:id="trigger"/>
+        <i class="fa fa-shield text-warning" wicket:id="protected" wicket:message="title:CheckTableHeader.protected"/>
 
         <a wicket:id="link"><span class="name" wicket:id="name"/></a>
         <span class="description" wicket:id="description"/>

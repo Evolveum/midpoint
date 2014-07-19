@@ -43,9 +43,9 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
+import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskResultListener;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.model.sync.ReconciliationTaskHandler;
-import com.evolveum.midpoint.model.sync.ReconciliationTaskResultListener;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -91,6 +91,21 @@ public class TestImportReconDeprecated extends TestImportRecon {
 	@Override
 	protected File getDummyResourceAzureFile() {
 		return RESOURCE_DUMMY_AZURE_DEPRECATED_FILE;
+	}
+
+	@Override
+	public void test500ImportTAugustusFromResourceDummy() throws Exception {
+		// Not relevant for deprecated syntax
+	}
+
+	@Override
+	public void test502ImportAugustusFromResourceDummy() throws Exception {
+		// Not relevant for deprecated syntax
+	}
+
+	@Override
+	public void test510ImportFromResourceDummy() throws Exception {
+		// Not relevant for deprecated syntax
 	}
 	
 }

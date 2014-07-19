@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 package com.evolveum.midpoint.model.client;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -33,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.prism.xml.ns._public.query_3.FilterClauseType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -43,8 +46,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.handler.WSHandlerConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -82,8 +83,8 @@ public class ModelClientUtil {
 				"com.evolveum.prism.xml.ns._public.annotation_3:" +
 				"com.evolveum.prism.xml.ns._public.query_3:" +
 				"com.evolveum.prism.xml.ns._public.types_3:" +
-				"org.w3._2000._09.xmldsig:" +
-				"org.w3._2001._04.xmlenc");
+				"org.w3._2000._09.xmldsig_:" +
+				"org.w3._2001._04.xmlenc_");
 	}
 	
 	public static Element createPathElement(String stringPath, Document doc) {
@@ -94,11 +95,11 @@ public class ModelClientUtil {
     public static ItemPathType createItemPathType(String stringPath) {
         ItemPathType itemPathType = new ItemPathType();
         String pathDeclaration = "declare default namespace '" + NS_COMMON + "'; " + stringPath;
-        itemPathType.getContent().add(pathDeclaration);
+        itemPathType.setValue(pathDeclaration);
         return itemPathType;
     }
 
-    public static SearchFilterType parseSearchFilterType(String filterClauseAsXml) throws IOException, SAXException {
+    public static SearchFilterType parseSearchFilterType(String filterClauseAsXml) throws IOException, SAXException, JAXBException {
         Element filterClauseAsElement = parseElement(filterClauseAsXml);
         SearchFilterType searchFilterType = new SearchFilterType();
         searchFilterType.setFilterClause(filterClauseAsElement);
@@ -162,7 +163,7 @@ public class ModelClientUtil {
 		Document document = domDocumentBuilder.parse(IOUtils.toInputStream(stringXml, "utf-8"));
 		return getFirstChildElement(document);
 	}
-	
+
 	public static Element getFirstChildElement(Node parent) {
 		if (parent == null || parent.getChildNodes() == null) {
 			return null;

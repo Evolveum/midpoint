@@ -24,7 +24,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>2.3-SNAPSHOT</version>
+        <version>3.1-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism</artifactId>
-            <version>2.3-SNAPSHOT</version>
+            <version>3.1-SNAPSHOT</version>
         </dependency>
         <!-- <dependency>
             <groupId>com.sun.xsom</groupId>
@@ -55,7 +55,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-core</artifactId>
+            <artifactId>cxf-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
@@ -76,6 +76,10 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf.xjc-utils</groupId>
+            <artifactId>cxf-xjc-runtime</artifactId>
         </dependency>
         <!--<dependency>-->
             <!--<groupId>org.apache.cxf</groupId>-->
@@ -122,7 +126,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>2.3-SNAPSHOT</version>
+            <version>3.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -156,6 +160,32 @@
                        </plugins>
                    </configuration>
                </plugin>  -->
+            <plugin>
+                <!-- Used to pull XSD files from the JAR -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-prism-schema-files</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.evolveum.midpoint.infra</groupId>
+                                    <artifactId>prism</artifactId>
+                                    <version>3.1-SNAPSHOT</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                            <includes>**/*.xsd,**/*.dtd,**/*.wsdl</includes>
+                            <outputDirectory>${project.basedir}/target/additional-schemas/prism</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-codegen-plugin</artifactId>
@@ -207,7 +237,7 @@
                                 <wsdlOption>
                                     <wsdl>src/main/resources/xml/ns/private/model/modelWrapper.wsdl</wsdl>
                                     <wsdlLocation>classpath:xml/ns/private/model/modelWrapper.wsdl</wsdlLocation>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog.xml</catalog>
+                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-compile-time.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
@@ -234,7 +264,7 @@
                                                   This is the only way I found to generate equals and hashCode methods with CXF.
                                                   If you find anything better please correct it. -->
                                     <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper.wsdl</wsdl>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog.xml</catalog>
+                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-compile-time.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
@@ -318,7 +348,7 @@
                     <dependency>
                         <groupId>com.evolveum.midpoint.tools</groupId>
                         <artifactId>xjc-plugin</artifactId>
-                        <version>2.3-SNAPSHOT</version>
+                        <version>3.1-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -354,7 +384,7 @@
                <plugin>
 		<groupId>com.evolveum.midpoint.infra</groupId>
                 <artifactId>prism-maven-plugin</artifactId>
-                <version>2.3-SNAPSHOT</version>
+                <version>3.1-SNAPSHOT</version>
                 <configuration>
                     <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
@@ -375,6 +405,14 @@
                 </executions>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>target/additional-schemas</directory>
+            </resource>
+        </resources>
     </build>
 </project>
 

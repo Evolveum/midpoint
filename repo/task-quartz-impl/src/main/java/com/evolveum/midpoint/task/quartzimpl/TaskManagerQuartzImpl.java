@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -390,13 +390,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     private String waitingInfo(long waitForStop) {
         if (waitForStop == WAIT_INDEFINITELY) {
-            return "wait indefinitely";
+            return "stop tasks, and wait for their completion (if necessary)";
         } else if (waitForStop == DO_NOT_WAIT) {
             return "stop tasks, but do not wait";
         } else if (waitForStop == DO_NOT_STOP) {
             return "do not stop tasks";
         } else {
-            return "stop tasks and wait " + waitForStop + " ms for their completion";
+            return "stop tasks and wait " + waitForStop + " ms for their completion (if necessary)";
         }
     }
 
@@ -474,12 +474,14 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "resumeTask");
         result.addArbitraryObjectAsParam("task", task);
 
-        if (task.getExecutionStatus() != TaskExecutionStatus.SUSPENDED) {
-            String message = "Attempted to resume a task that is not in the SUSPENDED state (task = " + task + ", state = " + task.getExecutionStatus();
+        if (task.getExecutionStatus() != TaskExecutionStatus.SUSPENDED &&
+                !(task.getExecutionStatus() == TaskExecutionStatus.CLOSED && task.isCycle())) {
+            String message = "Attempted to resume a task that is not in the SUSPENDED state (or CLOSED for recurring tasks) (task = " + task + ", state = " + task.getExecutionStatus();
             LOGGER.error(message);
             result.recordFatalError(message);
             return;
         }
+        clearTaskOperationResult(task, parentResult);           // see a note on scheduleTaskNow
         resumeOrUnpauseTask(task, result);
     }
 
@@ -723,8 +725,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             }
         }
 
+        List<Task> tasksToBeSuspended = new ArrayList<>();
+        for (Task task : tasksToBeDeleted) {
+            if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+                tasksToBeSuspended.add(task);
+            }
+        }
+
         // now suspend the tasks before deletion
-        suspendTasksResolved(tasksToBeDeleted, suspendTimeout, result);
+        if (!tasksToBeSuspended.isEmpty()) {
+            suspendTasksResolved(tasksToBeSuspended, suspendTimeout, result);
+        }
 
         // delete them
         for (Task task : tasksToBeDeleted) {
@@ -1349,9 +1360,16 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public void scheduleTaskNow(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        /*
+         *  Note: we clear task operation result because this is what a user would generally expect when re-running a task
+         *  (MID-1920). We do NOT do that on each task run e.g. to have an ability to see last task execution status
+         *  during a next task run. (When the interval between task runs is too short, e.g. for live sync tasks.)
+         */
         if (task.isClosed()) {
+            clearTaskOperationResult(task, parentResult);
             executionManager.reRunClosedTask(task, parentResult);
         } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+            clearTaskOperationResult(task, parentResult);
             scheduleRunnableTaskNow(task, parentResult);
         } else {
             String message = "Task " + task + " cannot be run now, because it is not in RUNNABLE nor CLOSED state.";
@@ -1359,6 +1377,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             LOGGER.error(message);
             return;
         }
+    }
+
+    private void clearTaskOperationResult(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        OperationResult emptyTaskResult = new OperationResult("run");
+        emptyTaskResult.setStatus(OperationResultStatus.IN_PROGRESS);
+        task.setResultImmediate(emptyTaskResult, parentResult);
     }
 
     public void scheduleRunnableTaskNow(Task task, OperationResult parentResult) {
@@ -1429,7 +1453,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         ObjectFilter filter = null;
 //        try {
-            filter = EqualsFilter.createEqual(TaskType.F_TASK_IDENTIFIER, TaskType.class, prismContext, null, identifier);
+            filter = EqualFilter.createEqual(TaskType.F_TASK_IDENTIFIER, TaskType.class, prismContext, null, identifier);
 //        } catch (SchemaException e) {
 //            throw new SystemException("Cannot create filter for identifier value due to schema exception", e);
 //        }
@@ -1479,7 +1503,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         try {
             ObjectQuery obsoleteTasksQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(
                     LessFilter.createLess(TaskType.F_COMPLETION_TIMESTAMP, TaskType.class, getPrismContext(), timeXml, true),
-                    EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null)));
+                    EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null)));
 
             obsoleteTasks = repositoryService.searchObjects(TaskType.class, obsoleteTasksQuery, null, result);
         } catch (SchemaException e) {
@@ -1607,9 +1631,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         ObjectFilter filter, filter1 = null, filter2 = null;
 //        try {
-            filter1 = EqualsFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, prismContext, null, TaskExecutionStatusType.WAITING);
+            filter1 = EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, prismContext, null, TaskExecutionStatusType.WAITING);
             if (reason != null) {
-                filter2 = EqualsFilter.createEqual(TaskType.F_WAITING_REASON, TaskType.class, prismContext, null, reason.toTaskType());
+                filter2 = EqualFilter.createEqual(TaskType.F_WAITING_REASON, TaskType.class, prismContext, null, reason.toTaskType());
             }
 //        } catch (SchemaException e) {
 //            throw new SystemException("Cannot create filter for listing waiting tasks due to schema exception", e);

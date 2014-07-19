@@ -26,8 +26,10 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualified
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -49,10 +51,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.io.IOUtils;
 import org.apache.cxf.frontend.ClientProxy;
-import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.handler.WSHandlerConstants;
+import org.apache.wss4j.dom.handler.WSHandlerConstants;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.cxf.interceptor.LoggingInInterceptor;
+import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -68,6 +71,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ProxySelector;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -85,7 +89,7 @@ public class Main {
 	// Configuration
 	public static final String ADM_USERNAME = "administrator";
 	public static final String ADM_PASSWORD = "5ecr3t";
-	private static final String DEFAULT_ENDPOINT_URL = "http://localhost:8080/midpoint/model/model-1";
+	private static final String DEFAULT_ENDPOINT_URL = "http://localhost.:8080/midpoint/model/model-3";
 	
 	// Object OIDs
 	private static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-987987987988";
@@ -284,7 +288,7 @@ public class Main {
 	}
 
 	private static String createUserFromSystemResource(ModelPortType modelPort, String resourcePath) throws FileNotFoundException, JAXBException, FaultMessage {
-		UserType user = unmarshallResouce(resourcePath);
+		UserType user = unmarshallResource(resourcePath);
 		
 		return createUser(modelPort, user);
 	}
@@ -309,7 +313,7 @@ public class Main {
 		return element.getValue();
 	}
 	
-	private static <T> T unmarshallResouce(String path) throws JAXBException, FileNotFoundException {
+	private static <T> T unmarshallResource(String path) throws JAXBException, FileNotFoundException {
 		JAXBContext jc = ModelClientUtil.instantiateJaxbContext();
 		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
 		 
@@ -332,7 +336,7 @@ public class Main {
 		return element.getValue();
 	}
 
-	private static String createUser(ModelPortType modelPort, UserType userType) throws FaultMessage {
+    private static String createUser(ModelPortType modelPort, UserType userType) throws FaultMessage {
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
         deltaType.setChangeType(ChangeTypeType.ADD);
@@ -407,9 +411,13 @@ public class Main {
 
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
-        modelPort.executeChanges(deltaListType, null);
+        ObjectDeltaOperationListType objectDeltaOperationList = modelPort.executeChanges(deltaListType, null);
+        for (ObjectDeltaOperationType objectDeltaOperation : objectDeltaOperationList.getDeltaOperation()) {
+            if (!OperationResultStatusType.SUCCESS.equals(objectDeltaOperation.getExecutionResult().getStatus())) {
+                System.out.println("*** Operation result = " + objectDeltaOperation.getExecutionResult().getStatus() + ": " + objectDeltaOperation.getExecutionResult().getMessage());
+            }
+        }
 	}
-
 
 	private static AssignmentType createRoleAssignment(String roleOid) {
 		AssignmentType roleAssignment = new AssignmentType();
@@ -420,7 +428,7 @@ public class Main {
 		return roleAssignment;
 	}
 
-	private static UserType searchUserByName(ModelPortType modelPort, String username) throws SAXException, IOException, FaultMessage {
+	private static UserType searchUserByName(ModelPortType modelPort, String username) throws SAXException, IOException, FaultMessage, JAXBException {
 		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
 				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
@@ -447,7 +455,7 @@ public class Main {
 		throw new IllegalStateException("Expected to find a single user with username '"+username+"' but found "+objects.size()+" users instead");
 	}
 	
-	private static RoleType searchRoleByName(ModelPortType modelPort, String roleName) throws SAXException, IOException, FaultMessage {
+	private static RoleType searchRoleByName(ModelPortType modelPort, String roleName) throws SAXException, IOException, FaultMessage, JAXBException {
 		// WARNING: in a real case make sure that the role name is properly escaped before putting it in XML
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
 				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
@@ -474,7 +482,7 @@ public class Main {
 		throw new IllegalStateException("Expected to find a single role with name '"+roleName+"' but found "+objects.size()+" users instead");
 	}
 
-	private static Collection<RoleType> listRequestableRoles(ModelPortType modelPort) throws SAXException, IOException, FaultMessage {
+	private static Collection<RoleType> listRequestableRoles(ModelPortType modelPort) throws SAXException, IOException, FaultMessage, JAXBException {
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
 				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
 				  "<path>c:requestable</path>" +
@@ -515,6 +523,9 @@ public class Main {
 		}
 
 		System.out.println("Endpoint URL: "+endpointUrl);
+
+        // uncomment this if you want to use Fiddler or any other proxy
+        //ProxySelector.setDefault(new MyProxySelector("127.0.0.1", 8888));
 		
 		ModelService modelService = new ModelService();
 		ModelPortType modelPort = modelService.getModelPort();
@@ -534,8 +545,9 @@ public class Main {
 		
 		WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(outProps);
 		cxfEndpoint.getOutInterceptors().add(wssOut);
-        // enable the following to get client-side logging of outgoing requests
+        // enable the following to get client-side logging of outgoing requests and incoming responses
         //cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
+        //cxfEndpoint.getInInterceptors().add(new LoggingInInterceptor());
 
 		return modelPort;
 	}

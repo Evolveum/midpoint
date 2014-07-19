@@ -360,7 +360,7 @@ public class PrismSchema implements DebugDumpable {
 		return null;
 	}
 
-	/**
+    /**
 	 * Finds item definition by type.
 	 * 
 	 */

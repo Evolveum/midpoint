@@ -270,7 +270,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 			return false;
 		}
 		MapXNode other = (MapXNode) o;
-		return MiscUtil.unorderedCollectionEquals(this.values(), other.values());
+		return MiscUtil.unorderedCollectionEquals(this.entrySet(), other.entrySet());
 	}
 
 	public int hashCode() {
@@ -379,7 +379,39 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		public String toString() {
 			return "E(" + key + ": " + value + ")";
 		}
-		
-	}
+
+        /**
+         * Compares two entries of the MapXNode.
+         *
+         * It is questionable whether to compare QNames exactly or approximately (using QNameUtil.match) here.
+         * For the time being, exact comparison was chosen. The immediate reason is to enable correct
+         * processing of diff on RawTypes (e.g. to make "debug edit" to be able to change from xyz to c:xyz
+         * in element names, see MID-1969).
+         *
+         * TODO: In the long run, we have to think out where exactly we want to use approximate matching of QNames.
+         * E.g. it is reasonable to use it only where "deployer input" is expected (e.g. import of data objects),
+         * not in the internals of midPoint.
+         */
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Entry entry = (Entry) o;
+
+            if (key != null ? !key.equals(entry.key) : entry.key != null) return false;
+            if (value != null ? !value.equals(entry.value) : entry.value != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = key != null ? key.hashCode() : 0;
+            result = 31 * result + (value != null ? value.hashCode() : 0);
+            return result;
+        }
+    }
 
 }

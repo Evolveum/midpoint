@@ -1,13 +1,18 @@
 package com.evolveum.midpoint.web.component.menu.top;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.wicket.Application;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Page;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.protocol.http.WebApplication;
 
 import java.util.List;
 
@@ -16,13 +21,15 @@ import java.util.List;
  */
 public class TopMenuBar extends Panel {
 
-    private static String ID_TOP_MENU_BAR = "topMenuBar";
-    private static String ID_BAR_ITEM_LINK = "barItemLink";
-    private static String ID_CARET = "caret";
-    private static String ID_LABEL = "label";
-    private static String ID_MENU_ITEM = "menuItem";
-    private static String ID_MENU_ITEM_BODY = "menuItemBody";
     public static String ID_RIGHT_PANEL = "rightPanel";
+
+    private static final String ID_TOP_MENU_BAR = "topMenuBar";
+    private static final String ID_BAR_ITEM_LINK = "barItemLink";
+    private static final String ID_CARET = "caret";
+    private static final String ID_LABEL = "label";
+    private static final String ID_MENU_ITEM = "menuItem";
+    private static final String ID_MENU_ITEM_BODY = "menuItemBody";
+    private static final String ID_LOGO_LINK = "logoLink";
 
     public TopMenuBar(String id, List<MenuBarItem> items) {
         super(id);
@@ -51,6 +58,17 @@ public class TopMenuBar extends Panel {
         WebMarkupContainer rightPanel = new WebMarkupContainer(ID_RIGHT_PANEL);
         rightPanel.setVisible(false);
         add(rightPanel);
+
+        AjaxLink logoLink = new AjaxLink(ID_LOGO_LINK) {
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                Page page = getPage();
+                Application application = page.getApplication();
+                setResponsePage(application.getHomePage());
+            }
+        };
+        add(logoLink);
     }
 
     private void initMenuBarItem(ListItem<MenuBarItem> menuBar) {

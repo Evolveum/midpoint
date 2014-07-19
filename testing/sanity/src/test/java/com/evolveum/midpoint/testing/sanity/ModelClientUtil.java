@@ -84,18 +84,17 @@ public class ModelClientUtil {
 	}
 
     public static ItemPathType createItemPathType(String stringPath) {
-        ItemPathType itemPathType = new ItemPathType();
         String pathDeclaration = "declare default namespace '" + NS_COMMON + "'; " + stringPath;
-        itemPathType.getContent().add(pathDeclaration);
+        ItemPathType itemPathType = new ItemPathType(pathDeclaration);
         return itemPathType;
     }
 
-    public static SearchFilterType parseSearchFilterType(String filterClauseAsXml) throws IOException, SAXException {
-        Element filterClauseAsElement = parseElement(filterClauseAsXml);
-        SearchFilterType searchFilterType = new SearchFilterType();
-        searchFilterType.setFilterClause(filterClauseAsElement);
-        return searchFilterType;
-    }
+//    public static SearchFilterType parseSearchFilterType(String filterClauseAsXml) throws IOException, SAXException {
+//        Element filterClauseAsElement = parseElement(filterClauseAsXml);
+//        SearchFilterType searchFilterType = new SearchFilterType();
+//        searchFilterType.setFilterClause(filterClauseAsElement);
+//        return searchFilterType;
+//    }
 
     public static PolyStringType createPolyStringType(String string, Document doc) {
 		PolyStringType polyStringType = new PolyStringType();

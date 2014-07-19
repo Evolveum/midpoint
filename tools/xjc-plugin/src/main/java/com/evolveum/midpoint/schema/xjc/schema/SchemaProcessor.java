@@ -16,13 +16,46 @@
 
 package com.evolveum.midpoint.schema.xjc.schema;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.xjc.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Raw;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.xjc.PrismContainerArrayList;
+import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
+import com.evolveum.midpoint.prism.xjc.PrismReferenceArrayList;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.Processor;
-import com.sun.codemodel.*;
+import com.sun.codemodel.JAnnotatable;
+import com.sun.codemodel.JAnnotationArrayMember;
+import com.sun.codemodel.JAnnotationUse;
+import com.sun.codemodel.JAnnotationValue;
+import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JClassAlreadyExistsException;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JDocComment;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldRef;
+import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JFormatter;
+import com.sun.codemodel.JInvocation;
+import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JMod;
+import com.sun.codemodel.JOp;
+import com.sun.codemodel.JPrimitiveType;
+import com.sun.codemodel.JType;
+import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
+import com.sun.tools.xjc.model.CElementInfo;
 import com.sun.tools.xjc.model.CPropertyInfo;
 import com.sun.tools.xjc.model.CTypeInfo;
 import com.sun.tools.xjc.model.nav.NClass;
@@ -30,27 +63,51 @@ import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIDeclaration;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIXPluginCustomization;
+import com.sun.xml.xsom.XSComponent;
 import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSType;
-
-import org.jvnet.jaxb2_commons.lang.Equals;
 import org.apache.commons.lang.Validate;
+import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.HashCode;
 import org.w3c.dom.Element;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyAttribute;
+import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementDecl;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
-
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
-import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.*;
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.copyAnnotations;
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.createPSFField;
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.fieldFPrefixUnderscoredUpperCase;
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.findClassOutline;
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.getAnnotations;
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.getField;
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.getGetterMethod;
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.getSetterMethod;
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.hasAnnotation;
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.normalizeFieldName;
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.recreateMethod;
 
 /**
  * Custom XJC plugin used to update JAXB classes implementation and use Prism stuff as
@@ -67,6 +124,7 @@ public class SchemaProcessor implements Processor {
     //annotations for schema processor
     public static final QName A_PRISM_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "container");
     public static final QName A_PRISM_OBJECT = new QName(PrefixMapper.A.getNamespace(), "object");
+    public static final QName A_RAW_TYPE = new QName(PrefixMapper.A.getNamespace(), "rawType");
     
     //Public fields
     private static final String COMPLEX_TYPE_FIELD_NAME = "COMPLEX_TYPE";
@@ -149,7 +207,7 @@ public class SchemaProcessor implements Processor {
                     QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class, PrismContainerValue.class,
                     List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class, XmlType.class,
                     XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class, PrismContainer.class, Equals.class,
-                    PrismContainerArrayList.class, HashCode.class, PrismContainerDefinition.class, Containerable.class, Referencable.class);
+                    PrismContainerArrayList.class, HashCode.class, PrismContainerDefinition.class, Containerable.class, Referencable.class, Raw.class);
 
             StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
             stepSchemaConstants.run(outline, options, errorHandler);
@@ -164,6 +222,8 @@ public class SchemaProcessor implements Processor {
             updateFields(outline);
 
             updateObjectReferenceType(outline);
+
+            updateObjectFactoryElements(outline);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Couldn't process MidPoint JAXB customisation, reason: "
@@ -199,6 +259,9 @@ public class SchemaProcessor implements Processor {
 
         JDefinedClass definedClass = objectReferenceOutline.implClass;
         definedClass._implements(CLASS_MAP.get(Referencable.class));
+
+        createDefaultConstructor(definedClass);
+
         //add prism reference and get/set method for it
         JVar reference = definedClass.field(JMod.PRIVATE, PrismReferenceValue.class, REFERENCE_VALUE_FIELD_NAME);
         JMethod getReference = definedClass.method(JMod.PUBLIC, PrismReferenceValue.class, METHOD_AS_REFERENCE_VALUE);
@@ -318,6 +381,7 @@ public class SchemaProcessor implements Processor {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
+
             QName qname = getCClassInfoQName(entry.getValue());
             if (qname == null || !hasAnnotation(classOutline, A_PRISM_CONTAINER)) {
                 continue;
@@ -333,11 +397,19 @@ public class SchemaProcessor implements Processor {
 
             //inserting MidPointObject field into ObjectType class
             JVar containerValue = definedClass.field(JMod.PRIVATE, PrismContainerValue.class, CONTAINER_VALUE_FIELD_NAME);
+
+            // default constructor
+            createDefaultConstructor(definedClass);
+
             //create asPrismContainer
 //            createAsPrismContainer(classOutline, containerValue);
             createAsPrismContainerValue(definedClass, containerValue);
+
             //create setContainer
-            createSetContainerValueMethod(definedClass, containerValue);
+            JMethod setupContainerMethod = createSetContainerValueMethod(definedClass, containerValue);
+
+            // constructor with prismContext
+            createPrismContextContainerableConstructor(definedClass, setupContainerMethod);
 
 //            System.out.println("Creating toString, equals, hashCode methods.");
             //create toString, equals, hashCode
@@ -356,6 +428,41 @@ public class SchemaProcessor implements Processor {
 
         return containers;
     }
+
+    private JMethod createDefaultConstructor(JDefinedClass definedClass) {
+        JMethod constructor = definedClass.constructor(JMod.PUBLIC);
+        constructor.body().invoke("super").invoke("aaa");
+        return constructor;
+    }
+
+    private JMethod createPrismContextContainerableConstructor(JDefinedClass definedClass, JMethod setupContainerMethod) {
+        JMethod constructor = definedClass.constructor(JMod.PUBLIC);
+        constructor.param(PrismContext.class, "prismContext");
+
+        JBlock body = constructor.body();
+        body.invoke(setupContainerMethod).arg(JExpr._new(CLASS_MAP.get(PrismContainerValue.class)).arg(constructor.params().get(0)));
+        return constructor;
+    }
+
+    /*
+        public UserType(PrismContext prismContext) {
+            setupContainer(new PrismObject(_getContainerName(), this.getClass(), prismContext));
+        }
+     */
+
+    private JMethod createPrismContextObjectableConstructor(JDefinedClass definedClass) {
+        JMethod constructor = definedClass.constructor(JMod.PUBLIC);
+        constructor.param(PrismContext.class, "prismContext");
+
+        JBlock body = constructor.body();
+        body.invoke("setupContainer")
+                .arg(JExpr._new(CLASS_MAP.get(PrismObject.class))
+                        .arg(JExpr.invoke("_getContainerName"))
+                        .arg(JExpr.invoke("getClass"))
+                        .arg(constructor.params().get(0)));
+        return constructor;
+    }
+
 
 //    private void createAsPrismContainer(JDefinedClass definedClass) {
 //        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainer.class),
@@ -395,11 +502,27 @@ public class SchemaProcessor implements Processor {
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
             QName qname = getCClassInfoQName(entry.getValue());
-            if (qname == null || !hasAnnotation(classOutline, A_PRISM_OBJECT)) {
+
+            if (qname == null) {
+                continue;
+            }
+
+            boolean isDirectPrismObject = hasAnnotation(classOutline, A_PRISM_OBJECT);
+            boolean isIndirectPrismObject = hasParentAnnotation(classOutline, A_PRISM_OBJECT);
+
+            if (!isIndirectPrismObject) {
                 continue;
             }
 
             JDefinedClass definedClass = classOutline.implClass;
+
+            createDefaultConstructor(definedClass);
+            createPrismContextObjectableConstructor(definedClass);
+
+            if (!isDirectPrismObject) {
+                continue;
+            }
+
             definedClass._implements(CLASS_MAP.get(Objectable.class));
             containers.add(definedClass);
 
@@ -410,6 +533,7 @@ public class SchemaProcessor implements Processor {
 //            createGetContainerMethod(classOutline, container);
             //create setContainer
             createSetContainerMethod(definedClass, container);
+
             //create asPrismObject()
             createAsPrismObject(definedClass);
             createAsPrismContainer(classOutline, container);
@@ -430,6 +554,55 @@ public class SchemaProcessor implements Processor {
         removeCustomGeneratedMethod(outline);
 
         return containers;
+    }
+
+    /**
+     * Marks ObjectFactory.createXYZ methods for elements with a:rawType annotation as @Raw.
+     */
+    private void updateObjectFactoryElements(Outline outline) {
+        XSSchemaSet schemaSet = outline.getModel().schemaComponent;
+        for (CElementInfo elementInfo : outline.getModel().getAllElements()) {
+            QName name = elementInfo.getElementName();
+            XSComponent elementDecl;
+            if (elementInfo.getSchemaComponent() != null) {     // it's strange but elements seem not to have this filled-in...
+                elementDecl = elementInfo.getSchemaComponent();
+            } else {
+                elementDecl = schemaSet.getElementDecl(name.getNamespaceURI(), name.getLocalPart());
+            }
+            boolean isRaw = hasAnnotation(elementDecl, A_RAW_TYPE);
+            if (isRaw) {
+                System.out.println("*** Raw element found: " + elementInfo.getElementName());
+                JDefinedClass objectFactory = outline.getPackageContext(elementInfo._package()).objectFactory();
+                boolean methodFound = false;    // finding method corresponding to the given element
+                for (JMethod method : objectFactory.methods()) {
+                    for (JAnnotationUse annotationUse : method.annotations()) {
+                        if (XmlElementDecl.class.getName().equals(annotationUse.getAnnotationClass().fullName())) {
+                            // ugly method of finding the string value of the annotation members (couldn't find any better)
+                            JAnnotationValue namespaceValue = annotationUse.getAnnotationMembers().get("namespace");
+                            StringWriter namespaceWriter = new StringWriter();
+                            JFormatter namespaceFormatter = new JFormatter(namespaceWriter);
+                            namespaceValue.generate(namespaceFormatter);
+
+                            JAnnotationValue nameValue = annotationUse.getAnnotationMembers().get("name");
+                            StringWriter nameWriter = new StringWriter();
+                            JFormatter nameFormatter = new JFormatter(nameWriter);
+                            nameValue.generate(nameFormatter);
+
+                            if (("\""+name.getNamespaceURI()+"\"").equals(namespaceWriter.toString()) &&
+                                    ("\""+name.getLocalPart()+"\"").equals(nameWriter.toString())) {
+                                System.out.println("*** Annotating method as @Raw: " + method.name());
+                                method.annotate(Raw.class);
+                                methodFound = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!methodFound) {
+                    throw new IllegalStateException("No factory method found for element " + name);
+                }
+            }
+        }
     }
 
     private void createAsPrismObject(JDefinedClass definedClass) {
@@ -662,7 +835,7 @@ public class SchemaProcessor implements Processor {
         body._return(invocation);
     }
 
-    private void createSetContainerValueMethod(JDefinedClass definedClass, JVar container) {
+    private JMethod createSetContainerValueMethod(JDefinedClass definedClass, JVar container) {
         JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_CONTAINER_VALUE);
         JVar methodContainer = setContainer.param(PrismContainerValue.class, "containerValue");
         //create method body
@@ -690,6 +863,7 @@ public class SchemaProcessor implements Processor {
 //        then._throw(exception);
 
         body.assign(JExpr._this().ref(container), methodContainer);
+        return setContainer;
     }
     
     private void createSetContainerValueMethodInObject(JDefinedClass definedClass, JVar container) {
@@ -722,7 +896,7 @@ public class SchemaProcessor implements Processor {
         body._return(container);
     }
 
-    private void createSetContainerMethod(JDefinedClass definedClass, JVar container) {
+    private JMethod createSetContainerMethod(JDefinedClass definedClass, JVar container) {
         JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_CONTAINER);
         JVar methodContainer = setContainer.param(PrismObject.class, "container");
         //create method body
@@ -746,6 +920,7 @@ public class SchemaProcessor implements Processor {
 //        then._throw(exception);
 
         body.assign(JExpr._this().ref(container), methodContainer);
+        return setContainer;
     }
 
     private QName getCClassInfoQName(CClassInfo info) {
@@ -926,8 +1101,20 @@ public class SchemaProcessor implements Processor {
             JDefinedClass implClass = classOutline.implClass;
             Map<String, JFieldVar> fields = implClass.fields();
 
-            if (fields == null || !isContainer(classOutline.implClass, outline)) {
-                //it's PropertyContainer, MidPointObject class or doesn't have fields                
+            if (fields == null) {
+                continue;
+            }
+
+            // marks a:rawType fields with @Raw - this has to be executed for any bean, not only for prism containers
+            for (String field : fields.keySet()) {
+                JFieldVar fieldVar = fields.get(field);
+                if (hasAnnotation(classOutline, fieldVar, A_RAW_TYPE) != null) {
+                    annotateFieldAsRaw(fieldVar);
+                }
+            }
+
+            if (!isContainer(classOutline.implClass, outline)) {
+                //it's not a PropertyContainer, MidPointObject class
                 continue;
             }
 
@@ -1515,6 +1702,10 @@ public class SchemaProcessor implements Processor {
         }
 
         return isList;
+    }
+
+    private void annotateFieldAsRaw(JFieldVar fieldVar) {
+        fieldVar.annotate(CLASS_MAP.get(Raw.class));
     }
 
     private void annotateMethodWithXmlElement(JMethod method, JFieldVar field) {

@@ -5,7 +5,7 @@
 	<property name="ireport.y" value="0"/>
 	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
     <property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
-	<import value="com.evolveum.midpoint.report.ReportUtils"/>
+	<import value="com.evolveum.midpoint.report.impl.ReportUtils"/>
 	<template><![CDATA[$P{BaseTemplateStyles}]]></template>
 	<parameter name="BaseTemplateStyles" class="java.lang.String"/>
 	<parameter name="LOGO_PATH" class="java.lang.String"/>
@@ -24,7 +24,7 @@
 		<fieldDescription><![CDATA[eventStage]]></fieldDescription>
 	</field>
 	<field name="targetName" class="java.lang.String"/>
-	<field name="targetType" class="com.evolveum.midpoint.repo.sql.data.common.other.RContainerType">
+	<field name="targetType" class="com.evolveum.midpoint.repo.sql.data.common.other.RObjectType">
 		<fieldDescription><![CDATA[targetType]]></fieldDescription>
 	</field>
 	<field name="targetOwnerName" class="java.lang.String"/>

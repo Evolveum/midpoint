@@ -24,194 +24,15 @@
 		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">test report</norm>
 	</name>
 	<description>TEST Report with DataSource parameter.</description>
-	<template>
-		<jasperReport 
-			xmlns="http://jasperreports.sourceforge.net/jasperreports" 
-			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-			xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
-			name="reportUserTestDatasource" 
-			pageWidth="842" 
-			pageHeight="595" 
-			orientation="Landscape" 
-			whenNoDataType="AllSectionsNoDetail" 
-			columnWidth="802" 
-			leftMargin="20" 
-			rightMargin="20" 
-			topMargin="20" 
-			bottomMargin="20" 
-			uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
-			<parameter name="logoPath" class="java.lang.String"/>
-			<field name="name" class="java.lang.String"/>
-			<field name="firstName" class="java.lang.String"/>
-			<field name="lastName" class="java.lang.String"/>
-			<field name="activation" class="java.lang.String"/>
-			<background>
-				<band height="30" splitType="Stretch"/>
-			</background>
-			<title>
-				<band height="110" splitType="Stretch">
-					<frame>
-						<reportElement style="Title" mode="Opaque" x="1" y="0" width="799" height="67" backcolor="#267994" uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553"/>
-						<staticText>
-							<reportElement style="Title" x="10" y="13" width="266" height="38" uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c"/>
-							<textElement verticalAlignment="Middle"/>
-							<text><![CDATA[User Report]]></text>
-						</staticText>
-						<image>
-							<reportElement style="Title" x="589" y="13" width="203" height="45" uuid="b0a76e6a-8f61-4d60-8dcd-3e51adb4cd4c"/>
-							<imageExpression><![CDATA[$P{logoPath}]]></imageExpression>
-						</image>
-					</frame>
-					<staticText>
-						<reportElement style="Page header" x="400" y="87" width="150" height="20" uuid="3ff78fbf-8fce-4072-b691-7af047ea92a7"/>
-						<textElement verticalAlignment="Middle"/>
-						<text><![CDATA[Number of records:]]></text>
-					</staticText>
-					<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-						<reportElement style="Page header" x="550" y="67" width="250" height="20" uuid="09a7e272-204e-4078-8a5e-e472757424c1"/>
-						<textElement textAlignment="Right" verticalAlignment="Middle">
-							<font isBold="false"/>
-						</textElement>
-						<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
-					</textField>
-					<staticText>
-						<reportElement style="Page header" x="400" y="67" width="150" height="20" uuid="b0b9714f-96f5-4f58-824b-c81fd4d321f7"/>
-						<textElement verticalAlignment="Middle"/>
-						<text><![CDATA[Report generated on:]]></text>
-					</staticText>
-					<textField evaluationTime="Report" isBlankWhenNull="true">
-						<reportElement style="Page header" x="550" y="87" width="250" height="20" uuid="89251211-3f49-471d-b88d-5564c1bd04d1"/>
-						<textElement textAlignment="Right" verticalAlignment="Middle">
-							<font isBold="false"/>
-						</textElement>
-						<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
-					</textField>
-				</band>
-			</title>
-			<pageHeader>
-				<band splitType="Stretch"/>
-			</pageHeader>
-			<columnHeader>
-				<band height="24" splitType="Stretch">
-					<frame>
-						<reportElement style="Column header" mode="Transparent" x="1" y="5" width="800" height="19" isRemoveLineWhenBlank="true" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
-						<staticText>
-							<reportElement style="Column header" x="0" y="0" width="119" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
-							<textElement verticalAlignment="Middle"/>
-							<text><![CDATA[Name]]></text>
-						</staticText>
-						<staticText>
-							<reportElement style="Column header" x="119" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
-							<textElement verticalAlignment="Middle"/>
-							<text><![CDATA[First name]]></text>
-						</staticText>
-						<staticText>
-							<reportElement style="Column header" x="219" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
-							<textElement verticalAlignment="Middle"/>
-							<text><![CDATA[Last name]]></text>
-						</staticText>
-						<staticText>
-							<reportElement style="Column header" x="319" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
-							<textElement verticalAlignment="Middle"/>
-							<text><![CDATA[Activation]]></text>
-						</staticText>
-					</frame>
-				</band>
-			</columnHeader>
-			<detail>
-				<band height="20" splitType="Stretch">
-					<frame>
-						<reportElement style="Detail" x="0" y="1" width="800" height="19" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
-						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-							<reportElement style="Detail" x="0" y="1" width="120" height="18" uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
-						</textField>
-						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-							<reportElement style="Detail" x="120" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{firstName}]]></textFieldExpression>
-						</textField>
-						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-							<reportElement style="Detail" x="220" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{lastName}]]></textFieldExpression>
-						</textField>
-						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-							<reportElement style="Detail" x="320" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{activation}]]></textFieldExpression>
-						</textField>
-						<line>
-							<reportElement positionType="FixRelativeToBottom" x="0" y="17" width="800" height="1" uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043"/>
-							<graphicElement>
-								<pen lineWidth="0.5" lineColor="#999999"/>
-							</graphicElement>
-						</line>
-					</frame>
-				</band>
-			</detail>
-			<columnFooter>
-				<band height="7" splitType="Stretch">
-					<line>
-						<reportElement positionType="FixRelativeToBottom" x="0" y="3" width="800" height="1" uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043"/>
-						<graphicElement>
-							<pen lineWidth="0.5" lineColor="#999999"/>
-						</graphicElement>
-					</line>
-				</band>
-			</columnFooter>
-			<pageFooter>
-				<band height="32" splitType="Stretch">
-					<frame>
-						<reportElement style="Page footer" mode="Transparent" x="0" y="1" width="800" height="24" uuid="fbe8aae4-6500-468a-b1e8-700b569139a1"/>
-						<textField>
-							<reportElement style="Page footer" x="680" y="1" width="80" height="20" uuid="5c062c66-ba45-4288-9dcd-246e28c5af75"/>
-							<textElement textAlignment="Right" verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
-						</textField>
-						<textField pattern="EEEEE dd MMMMM yyyy">
-							<reportElement style="Page footer" x="2" y="1" width="197" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
-						</textField>
-						<textField evaluationTime="Report">
-							<reportElement style="Page footer" x="760" y="1" width="40" height="20" uuid="934b16e8-c3eb-4017-866a-0b7735bf2917"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
-						</textField>
-					</frame>
-				</band>
-			</pageFooter>
-		</jasperReport>
-	</template>
-	<templateStyle>
-		<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
-			<style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base"
-				   pdfEncoding="Cp1252"
-				   pdfFontName="Helvetica"
-                   vAlign="Middle"/>
-			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
-                   mode="Opaque"
-                   name="Title"
-                   style="Base"/>
-			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
-                   style="Base"/>
-			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
-                   isDefault="false"
-                   mode="Opaque"
-                   name="Column header"
-                   style="Base"/>
-			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
-			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
-                   style="Base"/>
-		</jasperTemplate>
-	</templateStyle>
+	<!-- flag if this report is "parent" report, used for gui -->
+	<parent>true</parent>
+	<template>UEdwaGMzQmxjbEpsY0c5eWRDQU5DaUFnSUNBSkNYaHRiRzV6UFNKb2RIUndPaTh2YW1GemNHVnljbVZ3YjNKMGN5NXpiM1Z5WTJWbWIzSm5aUzV1WlhRdmFtRnpjR1Z5Y21Wd2IzSjBjeUlnRFFvSkNRbDRiV3h1Y3pwNGMyazlJbWgwZEhBNkx5OTNkM2N1ZHpNdWIzSm5Mekl3TURFdldFMU1VMk5vWlcxaExXbHVjM1JoYm1ObElpQU5DZ2tKQ1hoemFUcHpZMmhsYldGTWIyTmhkR2x2YmowaWFIUjBjRG92TDJwaGMzQmxjbkpsY0c5eWRITXVjMjkxY21ObFptOXlaMlV1Ym1WMEwycGhjM0JsY25KbGNHOXlkSE1nYUhSMGNEb3ZMMnBoYzNCbGNuSmxjRzl5ZEhNdWMyOTFjbU5sWm05eVoyVXVibVYwTDNoelpDOXFZWE53WlhKeVpYQnZjblF1ZUhOa0lpQU5DZ2tKQ1c1aGJXVTlJbkpsY0c5eWRGVnpaWEpVWlhOMFJHRjBZWE52ZFhKalpTSWdEUW9KQ1Fsd1lXZGxWMmxrZEdnOUlqZzBNaUlnRFFvSkNRbHdZV2RsU0dWcFoyaDBQU0kxT1RVaUlBMEtDUWtKYjNKcFpXNTBZWFJwYjI0OUlreGhibVJ6WTJGd1pTSWdEUW9KQ1FsM2FHVnVUbTlFWVhSaFZIbHdaVDBpUVd4c1UyVmpkR2x2Ym5OT2IwUmxkR0ZwYkNJZ0RRb0pDUWxqYjJ4MWJXNVhhV1IwYUQwaU9EQXlJaUFOQ2drSkNXeGxablJOWVhKbmFXNDlJakl3SWlBTkNna0pDWEpwWjJoMFRXRnlaMmx1UFNJeU1DSWdEUW9KQ1FsMGIzQk5ZWEpuYVc0OUlqSXdJaUFOQ2drSkNXSnZkSFJ2YlUxaGNtZHBiajBpTWpBaUlBMEtDUWtKZFhWcFpEMGlOamRsTkRZMVl6VXRORFpsWVMwME1HUXlMV0psWVRBdE5EWTVZelpqWmpNNE9UTTNJajROQ2drSkNUeHdZWEpoYldWMFpYSWdibUZ0WlQwaWJHOW5iMUJoZEdnaUlHTnNZWE56UFNKcVlYWmhMbXhoYm1jdVUzUnlhVzVuSWk4K0RRb0pDUWs4Wm1sbGJHUWdibUZ0WlQwaWJtRnRaU0lnWTJ4aGMzTTlJbXBoZG1FdWJHRnVaeTVUZEhKcGJtY2lMejROQ2drSkNUeG1hV1ZzWkNCdVlXMWxQU0ptYVhKemRFNWhiV1VpSUdOc1lYTnpQU0pxWVhaaExteGhibWN1VTNSeWFXNW5JaTgrRFFvSkNRazhabWxsYkdRZ2JtRnRaVDBpYkdGemRFNWhiV1VpSUdOc1lYTnpQU0pxWVhaaExteGhibWN1VTNSeWFXNW5JaTgrRFFvSkNRazhabWxsYkdRZ2JtRnRaVDBpWVdOMGFYWmhkR2x2YmlJZ1kyeGhjM005SW1waGRtRXViR0Z1Wnk1VGRISnBibWNpTHo0TkNna0pDVHhpWVdOclozSnZkVzVrUGcwS0NRa0pDVHhpWVc1a0lHaGxhV2RvZEQwaU16QWlJSE53YkdsMFZIbHdaVDBpVTNSeVpYUmphQ0l2UGcwS0NRa0pQQzlpWVdOclozSnZkVzVrUGcwS0NRa0pQSFJwZEd4bFBnMEtDUWtKQ1R4aVlXNWtJR2hsYVdkb2REMGlNVEV3SWlCemNHeHBkRlI1Y0dVOUlsTjBjbVYwWTJnaVBnMEtDUWtKQ1FrOFpuSmhiV1UrRFFvSkNRa0pDUWs4Y21Wd2IzSjBSV3hsYldWdWRDQnpkSGxzWlQwaVZHbDBiR1VpSUcxdlpHVTlJazl3WVhGMVpTSWdlRDBpTVNJZ2VUMGlNQ0lnZDJsa2RHZzlJamM1T1NJZ2FHVnBaMmgwUFNJMk55SWdZbUZqYTJOdmJHOXlQU0lqTWpZM09UazBJaUIxZFdsa1BTSTBOR0psWkdGall5MW1ZVEl6TFRSbVpURXRZamN4WmkxbE5XRm1ZVGswTTJZMU5UTWlMejROQ2drSkNRa0pDVHh6ZEdGMGFXTlVaWGgwUGcwS0NRa0pDUWtKQ1R4eVpYQnZjblJGYkdWdFpXNTBJSE4wZVd4bFBTSlVhWFJzWlNJZ2VEMGlNVEFpSUhrOUlqRXpJaUIzYVdSMGFEMGlNalkySWlCb1pXbG5hSFE5SWpNNElpQjFkV2xrUFNKbU1tUTVPV05oWkMwNVpEZzBMVFJtTlRBdFlqUTFOUzAwTlROak9EZG1OakpqTkdNaUx6NE5DZ2tKQ1FrSkNRazhkR1Y0ZEVWc1pXMWxiblFnZG1WeWRHbGpZV3hCYkdsbmJtMWxiblE5SWsxcFpHUnNaU0l2UGcwS0NRa0pDUWtKQ1R4MFpYaDBQandoVzBORVFWUkJXMVZ6WlhJZ1VtVndiM0owWFYwK1BDOTBaWGgwUGcwS0NRa0pDUWtKUEM5emRHRjBhV05VWlhoMFBnMEtDUWtKQ1FrSlBHbHRZV2RsUGcwS0NRa0pDUWtKQ1R4eVpYQnZjblJGYkdWdFpXNTBJSE4wZVd4bFBTSlVhWFJzWlNJZ2VEMGlOVGc1SWlCNVBTSXhNeUlnZDJsa2RHZzlJakl3TXlJZ2FHVnBaMmgwUFNJME5TSWdkWFZwWkQwaVlqQmhOelpsTm1FdE9HWTJNUzAwWkRZd0xUaGtZMlF0TTJVMU1XRmtZalJqWkRSaklpOCtEUW9KQ1FrSkNRa0pQR2x0WVdkbFJYaHdjbVZ6YzJsdmJqNDhJVnREUkVGVVFWc2tVSHRzYjJkdlVHRjBhSDFkWFQ0OEwybHRZV2RsUlhod2NtVnpjMmx2Ymo0TkNna0pDUWtKQ1R3dmFXMWhaMlUrRFFvSkNRa0pDVHd2Wm5KaGJXVStEUW9KQ1FrSkNUeHpkR0YwYVdOVVpYaDBQZzBLQ1FrSkNRa0pQSEpsY0c5eWRFVnNaVzFsYm5RZ2MzUjViR1U5SWxCaFoyVWdhR1ZoWkdWeUlpQjRQU0kwTURBaUlIazlJamczSWlCM2FXUjBhRDBpTVRVd0lpQm9aV2xuYUhROUlqSXdJaUIxZFdsa1BTSXpabVkzT0daaVppMDRabU5sTFRRd056SXRZalk1TVMwM1lXWXdORGRsWVRreVlUY2lMejROQ2drSkNRa0pDVHgwWlhoMFJXeGxiV1Z1ZENCMlpYSjBhV05oYkVGc2FXZHViV1Z1ZEQwaVRXbGtaR3hsSWk4K0RRb0pDUWtKQ1FrOGRHVjRkRDQ4SVZ0RFJFRlVRVnRPZFcxaVpYSWdiMllnY21WamIzSmtjenBkWFQ0OEwzUmxlSFErRFFvSkNRa0pDVHd2YzNSaGRHbGpWR1Y0ZEQ0TkNna0pDUWtKUEhSbGVIUkdhV1ZzWkNCd1lYUjBaWEp1UFNKRlJVVkZSU0JrWkNCTlRVMU5UU0I1ZVhsNUxDQklTRHB0YlRwemN5SStEUW9KQ1FrSkNRazhjbVZ3YjNKMFJXeGxiV1Z1ZENCemRIbHNaVDBpVUdGblpTQm9aV0ZrWlhJaUlIZzlJalUxTUNJZ2VUMGlOamNpSUhkcFpIUm9QU0l5TlRBaUlHaGxhV2RvZEQwaU1qQWlJSFYxYVdROUlqQTVZVGRsTWpjeUxUSXdOR1V0TkRBM09DMDRZVFZsTFdVME56STNOVGMwTWpSak1TSXZQZzBLQ1FrSkNRa0pQSFJsZUhSRmJHVnRaVzUwSUhSbGVIUkJiR2xuYm0xbGJuUTlJbEpwWjJoMElpQjJaWEowYVdOaGJFRnNhV2R1YldWdWREMGlUV2xrWkd4bElqNE5DZ2tKQ1FrSkNRazhabTl1ZENCcGMwSnZiR1E5SW1aaGJITmxJaTgrRFFvSkNRa0pDUWs4TDNSbGVIUkZiR1Z0Wlc1MFBnMEtDUWtKQ1FrSlBIUmxlSFJHYVdWc1pFVjRjSEpsYzNOcGIyNCtQQ0ZiUTBSQlZFRmJibVYzSUdwaGRtRXVkWFJwYkM1RVlYUmxLQ2xkWFQ0OEwzUmxlSFJHYVdWc1pFVjRjSEpsYzNOcGIyNCtEUW9KQ1FrSkNUd3ZkR1Y0ZEVacFpXeGtQZzBLQ1FrSkNRazhjM1JoZEdsalZHVjRkRDROQ2drSkNRa0pDVHh5WlhCdmNuUkZiR1Z0Wlc1MElITjBlV3hsUFNKUVlXZGxJR2hsWVdSbGNpSWdlRDBpTkRBd0lpQjVQU0kyTnlJZ2QybGtkR2c5SWpFMU1DSWdhR1ZwWjJoMFBTSXlNQ0lnZFhWcFpEMGlZakJpT1RjeE5HWXRPVFptTlMwMFpqVTRMVGd5TkdJdFl6Z3habVEwWkRNeU1XWTNJaTgrRFFvSkNRa0pDUWs4ZEdWNGRFVnNaVzFsYm5RZ2RtVnlkR2xqWVd4QmJHbG5ibTFsYm5ROUlrMXBaR1JzWlNJdlBnMEtDUWtKQ1FrSlBIUmxlSFErUENGYlEwUkJWRUZiVW1Wd2IzSjBJR2RsYm1WeVlYUmxaQ0J2YmpwZFhUNDhMM1JsZUhRK0RRb0pDUWtKQ1R3dmMzUmhkR2xqVkdWNGRENE5DZ2tKQ1FrSlBIUmxlSFJHYVdWc1pDQmxkbUZzZFdGMGFXOXVWR2x0WlQwaVVtVndiM0owSWlCcGMwSnNZVzVyVjJobGJrNTFiR3c5SW5SeWRXVWlQZzBLQ1FrSkNRa0pQSEpsY0c5eWRFVnNaVzFsYm5RZ2MzUjViR1U5SWxCaFoyVWdhR1ZoWkdWeUlpQjRQU0kxTlRBaUlIazlJamczSWlCM2FXUjBhRDBpTWpVd0lpQm9aV2xuYUhROUlqSXdJaUIxZFdsa1BTSTRPVEkxTVRJeE1TMHpaalE1TFRRM01XUXRZamc0WkMwMU5UWTBZekZpWkRBMFpERWlMejROQ2drSkNRa0pDVHgwWlhoMFJXeGxiV1Z1ZENCMFpYaDBRV3hwWjI1dFpXNTBQU0pTYVdkb2RDSWdkbVZ5ZEdsallXeEJiR2xuYm0xbGJuUTlJazFwWkdSc1pTSStEUW9KQ1FrSkNRa0pQR1p2Ym5RZ2FYTkNiMnhrUFNKbVlXeHpaU0l2UGcwS0NRa0pDUWtKUEM5MFpYaDBSV3hsYldWdWRENE5DZ2tKQ1FrSkNUeDBaWGgwUm1sbGJHUkZlSEJ5WlhOemFXOXVQandoVzBORVFWUkJXeVJXZTFKRlVFOVNWRjlEVDFWT1ZIMWRYVDQ4TDNSbGVIUkdhV1ZzWkVWNGNISmxjM05wYjI0K0RRb0pDUWtKQ1R3dmRHVjRkRVpwWld4a1BnMEtDUWtKQ1R3dlltRnVaRDROQ2drSkNUd3ZkR2wwYkdVK0RRb0pDUWs4Y0dGblpVaGxZV1JsY2o0TkNna0pDUWs4WW1GdVpDQnpjR3hwZEZSNWNHVTlJbE4wY21WMFkyZ2lMejROQ2drSkNUd3ZjR0ZuWlVobFlXUmxjajROQ2drSkNUeGpiMngxYlc1SVpXRmtaWEkrRFFvSkNRa0pQR0poYm1RZ2FHVnBaMmgwUFNJeU5DSWdjM0JzYVhSVWVYQmxQU0pUZEhKbGRHTm9JajROQ2drSkNRa0pQR1p5WVcxbFBnMEtDUWtKQ1FrSlBISmxjRzl5ZEVWc1pXMWxiblFnYzNSNWJHVTlJa052YkhWdGJpQm9aV0ZrWlhJaUlHMXZaR1U5SWxSeVlXNXpjR0Z5Wlc1MElpQjRQU0l4SWlCNVBTSTFJaUIzYVdSMGFEMGlPREF3SWlCb1pXbG5hSFE5SWpFNUlpQnBjMUpsYlc5MlpVeHBibVZYYUdWdVFteGhibXM5SW5SeWRXVWlJSFYxYVdROUlqTmxPR1prWkRaa0xXRTJabVl0TkRRd055MDVZVEZsTFRWa05tSTBOekEyTXpBd1lTSXZQZzBLQ1FrSkNRa0pQSE4wWVhScFkxUmxlSFErRFFvSkNRa0pDUWtKUEhKbGNHOXlkRVZzWlcxbGJuUWdjM1I1YkdVOUlrTnZiSFZ0YmlCb1pXRmtaWElpSUhnOUlqQWlJSGs5SWpBaUlIZHBaSFJvUFNJeE1Ua2lJR2hsYVdkb2REMGlNVGdpSUhWMWFXUTlJamcyWXpjMFltVmlMV0prWkdRdE5EaGpZeTA1TkRWaExURTJOMkl5TmpGaU1XVXdZaUl2UGcwS0NRa0pDUWtKQ1R4MFpYaDBSV3hsYldWdWRDQjJaWEowYVdOaGJFRnNhV2R1YldWdWREMGlUV2xrWkd4bElpOCtEUW9KQ1FrSkNRa0pQSFJsZUhRK1BDRmJRMFJCVkVGYlRtRnRaVjFkUGp3dmRHVjRkRDROQ2drSkNRa0pDVHd2YzNSaGRHbGpWR1Y0ZEQ0TkNna0pDUWtKQ1R4emRHRjBhV05VWlhoMFBnMEtDUWtKQ1FrSkNUeHlaWEJ2Y25SRmJHVnRaVzUwSUhOMGVXeGxQU0pEYjJ4MWJXNGdhR1ZoWkdWeUlpQjRQU0l4TVRraUlIazlJakFpSUhkcFpIUm9QU0l4TURBaUlHaGxhV2RvZEQwaU1UZ2lJSFYxYVdROUlqZzJZemMwWW1WaUxXSmtaR1F0TkRoall5MDVORFZoTFRFMk4ySXlOakZpTVdVd1lpSXZQZzBLQ1FrSkNRa0pDVHgwWlhoMFJXeGxiV1Z1ZENCMlpYSjBhV05oYkVGc2FXZHViV1Z1ZEQwaVRXbGtaR3hsSWk4K0RRb0pDUWtKQ1FrSlBIUmxlSFErUENGYlEwUkJWRUZiUm1seWMzUWdibUZ0WlYxZFBqd3ZkR1Y0ZEQ0TkNna0pDUWtKQ1R3dmMzUmhkR2xqVkdWNGRENE5DZ2tKQ1FrSkNUeHpkR0YwYVdOVVpYaDBQZzBLQ1FrSkNRa0pDVHh5WlhCdmNuUkZiR1Z0Wlc1MElITjBlV3hsUFNKRGIyeDFiVzRnYUdWaFpHVnlJaUI0UFNJeU1Ua2lJSGs5SWpBaUlIZHBaSFJvUFNJeE1EQWlJR2hsYVdkb2REMGlNVGdpSUhWMWFXUTlJamcyWXpjMFltVmlMV0prWkdRdE5EaGpZeTA1TkRWaExURTJOMkl5TmpGaU1XVXdZaUl2UGcwS0NRa0pDUWtKQ1R4MFpYaDBSV3hsYldWdWRDQjJaWEowYVdOaGJFRnNhV2R1YldWdWREMGlUV2xrWkd4bElpOCtEUW9KQ1FrSkNRa0pQSFJsZUhRK1BDRmJRMFJCVkVGYlRHRnpkQ0J1WVcxbFhWMCtQQzkwWlhoMFBnMEtDUWtKQ1FrSlBDOXpkR0YwYVdOVVpYaDBQZzBLQ1FrSkNRa0pQSE4wWVhScFkxUmxlSFErRFFvSkNRa0pDUWtKUEhKbGNHOXlkRVZzWlcxbGJuUWdjM1I1YkdVOUlrTnZiSFZ0YmlCb1pXRmtaWElpSUhnOUlqTXhPU0lnZVQwaU1DSWdkMmxrZEdnOUlqRXdNQ0lnYUdWcFoyaDBQU0l4T0NJZ2RYVnBaRDBpT0Raak56UmlaV0l0WW1Sa1pDMDBPR05qTFRrME5XRXRNVFkzWWpJMk1XSXhaVEJpSWk4K0RRb0pDUWtKQ1FrSlBIUmxlSFJGYkdWdFpXNTBJSFpsY25ScFkyRnNRV3hwWjI1dFpXNTBQU0pOYVdSa2JHVWlMejROQ2drSkNRa0pDUWs4ZEdWNGRENDhJVnREUkVGVVFWdEJZM1JwZG1GMGFXOXVYVjArUEM5MFpYaDBQZzBLQ1FrSkNRa0pQQzl6ZEdGMGFXTlVaWGgwUGcwS0NRa0pDUWs4TDJaeVlXMWxQZzBLQ1FrSkNUd3ZZbUZ1WkQ0TkNna0pDVHd2WTI5c2RXMXVTR1ZoWkdWeVBnMEtDUWtKUEdSbGRHRnBiRDROQ2drSkNRazhZbUZ1WkNCb1pXbG5hSFE5SWpJd0lpQnpjR3hwZEZSNWNHVTlJbE4wY21WMFkyZ2lQZzBLQ1FrSkNRazhabkpoYldVK0RRb0pDUWtKQ1FrOGNtVndiM0owUld4bGJXVnVkQ0J6ZEhsc1pUMGlSR1YwWVdsc0lpQjRQU0l3SWlCNVBTSXhJaUIzYVdSMGFEMGlPREF3SWlCb1pXbG5hSFE5SWpFNUlpQjFkV2xrUFNJelpUaG1aR1EyWkMxaE5tWm1MVFEwTURjdE9XRXhaUzAxWkRaaU5EY3dOak13TUdFaUx6NE5DZ2tKQ1FrSkNUeDBaWGgwUm1sbGJHUWdhWE5UZEhKbGRHTm9WMmwwYUU5MlpYSm1iRzkzUFNKMGNuVmxJaUJwYzBKc1lXNXJWMmhsYms1MWJHdzlJblJ5ZFdVaVBnMEtDUWtKQ1FrSkNUeHlaWEJ2Y25SRmJHVnRaVzUwSUhOMGVXeGxQU0pFWlhSaGFXd2lJSGc5SWpBaUlIazlJakVpSUhkcFpIUm9QU0l4TWpBaUlHaGxhV2RvZEQwaU1UZ2lJSFYxYVdROUltVmlZV1ZtTVRaa0xUSTVNRE10TkRBeU9TMDVZVFppTFdRMFpESTBORFUxT0dGbE9TSXZQZzBLQ1FrSkNRa0pDVHgwWlhoMFJXeGxiV1Z1ZENCMlpYSjBhV05oYkVGc2FXZHViV1Z1ZEQwaVRXbGtaR3hsSWk4K0RRb0pDUWtKQ1FrSlBIUmxlSFJHYVdWc1pFVjRjSEpsYzNOcGIyNCtQQ0ZiUTBSQlZFRmJKRVo3Ym1GdFpYMWRYVDQ4TDNSbGVIUkdhV1ZzWkVWNGNISmxjM05wYjI0K0RRb0pDUWtKQ1FrOEwzUmxlSFJHYVdWc1pENE5DZ2tKQ1FrSkNUeDBaWGgwUm1sbGJHUWdhWE5UZEhKbGRHTm9WMmwwYUU5MlpYSm1iRzkzUFNKMGNuVmxJaUJwYzBKc1lXNXJWMmhsYms1MWJHdzlJblJ5ZFdVaVBnMEtDUWtKQ1FrSkNUeHlaWEJ2Y25SRmJHVnRaVzUwSUhOMGVXeGxQU0pFWlhSaGFXd2lJSGc5SWpFeU1DSWdlVDBpTVNJZ2QybGtkR2c5SWpFd01DSWdhR1ZwWjJoMFBTSXhPQ0lnZFhWcFpEMGlNamhpWWpsaU5EY3RZVFk1WXkwME9HVXhMVGt3TnpNdFpEVTBaRGt5TmpJME1tVTRJaTgrRFFvSkNRa0pDUWtKUEhSbGVIUkZiR1Z0Wlc1MElIWmxjblJwWTJGc1FXeHBaMjV0Wlc1MFBTSk5hV1JrYkdVaUx6NE5DZ2tKQ1FrSkNRazhkR1Y0ZEVacFpXeGtSWGh3Y21WemMybHZiajQ4SVZ0RFJFRlVRVnNrUm50bWFYSnpkRTVoYldWOVhWMCtQQzkwWlhoMFJtbGxiR1JGZUhCeVpYTnphVzl1UGcwS0NRa0pDUWtKUEM5MFpYaDBSbWxsYkdRK0RRb0pDUWtKQ1FrOGRHVjRkRVpwWld4a0lHbHpVM1J5WlhSamFGZHBkR2hQZG1WeVpteHZkejBpZEhKMVpTSWdhWE5DYkdGdWExZG9aVzVPZFd4c1BTSjBjblZsSWo0TkNna0pDUWtKQ1FrOGNtVndiM0owUld4bGJXVnVkQ0J6ZEhsc1pUMGlSR1YwWVdsc0lpQjRQU0l5TWpBaUlIazlJakVpSUhkcFpIUm9QU0l4TURBaUlHaGxhV2RvZEQwaU1UZ2lJSFYxYVdROUlqSTRZbUk1WWpRM0xXRTJPV010TkRobE1TMDVNRGN6TFdRMU5HUTVNall5TkRKbE9DSXZQZzBLQ1FrSkNRa0pDVHgwWlhoMFJXeGxiV1Z1ZENCMlpYSjBhV05oYkVGc2FXZHViV1Z1ZEQwaVRXbGtaR3hsSWk4K0RRb0pDUWtKQ1FrSlBIUmxlSFJHYVdWc1pFVjRjSEpsYzNOcGIyNCtQQ0ZiUTBSQlZFRmJKRVo3YkdGemRFNWhiV1Y5WFYwK1BDOTBaWGgwUm1sbGJHUkZlSEJ5WlhOemFXOXVQZzBLQ1FrSkNRa0pQQzkwWlhoMFJtbGxiR1ErRFFvSkNRa0pDUWs4ZEdWNGRFWnBaV3hrSUdselUzUnlaWFJqYUZkcGRHaFBkbVZ5Wm14dmR6MGlkSEoxWlNJZ2FYTkNiR0Z1YTFkb1pXNU9kV3hzUFNKMGNuVmxJajROQ2drSkNRa0pDUWs4Y21Wd2IzSjBSV3hsYldWdWRDQnpkSGxzWlQwaVJHVjBZV2xzSWlCNFBTSXpNakFpSUhrOUlqRWlJSGRwWkhSb1BTSXhNREFpSUdobGFXZG9kRDBpTVRnaUlIVjFhV1E5SWpJNFltSTVZalEzTFdFMk9XTXRORGhsTVMwNU1EY3pMV1ExTkdRNU1qWXlOREpsT0NJdlBnMEtDUWtKQ1FrSkNUeDBaWGgwUld4bGJXVnVkQ0IyWlhKMGFXTmhiRUZzYVdkdWJXVnVkRDBpVFdsa1pHeGxJaTgrRFFvSkNRa0pDUWtKUEhSbGVIUkdhV1ZzWkVWNGNISmxjM05wYjI0K1BDRmJRMFJCVkVGYkpFWjdZV04wYVhaaGRHbHZibjFkWFQ0OEwzUmxlSFJHYVdWc1pFVjRjSEpsYzNOcGIyNCtEUW9KQ1FrSkNRazhMM1JsZUhSR2FXVnNaRDROQ2drSkNRa0pDVHhzYVc1bFBnMEtDUWtKQ1FrSkNUeHlaWEJ2Y25SRmJHVnRaVzUwSUhCdmMybDBhVzl1Vkhsd1pUMGlSbWw0VW1Wc1lYUnBkbVZVYjBKdmRIUnZiU0lnZUQwaU1DSWdlVDBpTVRjaUlIZHBaSFJvUFNJNE1EQWlJR2hsYVdkb2REMGlNU0lnZFhWcFpEMGlZVFU1TVdRMFl6RXRNV05oWkMwMFpHRXlMVGxtT1dRdE1EZ3haalV6T1dVNU1EUXpJaTgrRFFvSkNRa0pDUWtKUEdkeVlYQm9hV05GYkdWdFpXNTBQZzBLQ1FrSkNRa0pDUWs4Y0dWdUlHeHBibVZYYVdSMGFEMGlNQzQxSWlCc2FXNWxRMjlzYjNJOUlpTTVPVGs1T1RraUx6NE5DZ2tKQ1FrSkNRazhMMmR5WVhCb2FXTkZiR1Z0Wlc1MFBnMEtDUWtKQ1FrSlBDOXNhVzVsUGcwS0NRa0pDUWs4TDJaeVlXMWxQZzBLQ1FrSkNUd3ZZbUZ1WkQ0TkNna0pDVHd2WkdWMFlXbHNQZzBLQ1FrSlBHTnZiSFZ0YmtadmIzUmxjajROQ2drSkNRazhZbUZ1WkNCb1pXbG5hSFE5SWpjaUlITndiR2wwVkhsd1pUMGlVM1J5WlhSamFDSStEUW9KQ1FrSkNUeHNhVzVsUGcwS0NRa0pDUWtKUEhKbGNHOXlkRVZzWlcxbGJuUWdjRzl6YVhScGIyNVVlWEJsUFNKR2FYaFNaV3hoZEdsMlpWUnZRbTkwZEc5dElpQjRQU0l3SWlCNVBTSXpJaUIzYVdSMGFEMGlPREF3SWlCb1pXbG5hSFE5SWpFaUlIVjFhV1E5SW1FMU9URmtOR014TFRGallXUXROR1JoTWkwNVpqbGtMVEE0TVdZMU16bGxPVEEwTXlJdlBnMEtDUWtKQ1FrSlBHZHlZWEJvYVdORmJHVnRaVzUwUGcwS0NRa0pDUWtKQ1R4d1pXNGdiR2x1WlZkcFpIUm9QU0l3TGpVaUlHeHBibVZEYjJ4dmNqMGlJems1T1RrNU9TSXZQZzBLQ1FrSkNRa0pQQzluY21Gd2FHbGpSV3hsYldWdWRENE5DZ2tKQ1FrSlBDOXNhVzVsUGcwS0NRa0pDVHd2WW1GdVpENE5DZ2tKQ1R3dlkyOXNkVzF1Um05dmRHVnlQZzBLQ1FrSlBIQmhaMlZHYjI5MFpYSStEUW9KQ1FrSlBHSmhibVFnYUdWcFoyaDBQU0l6TWlJZ2MzQnNhWFJVZVhCbFBTSlRkSEpsZEdOb0lqNE5DZ2tKQ1FrSlBHWnlZVzFsUGcwS0NRa0pDUWtKUEhKbGNHOXlkRVZzWlcxbGJuUWdjM1I1YkdVOUlsQmhaMlVnWm05dmRHVnlJaUJ0YjJSbFBTSlVjbUZ1YzNCaGNtVnVkQ0lnZUQwaU1DSWdlVDBpTVNJZ2QybGtkR2c5SWpnd01DSWdhR1ZwWjJoMFBTSXlOQ0lnZFhWcFpEMGlabUpsT0dGaFpUUXROalV3TUMwME5qaGhMV0l4WlRndE56QXdZalUyT1RFek9XRXhJaTgrRFFvSkNRa0pDUWs4ZEdWNGRFWnBaV3hrUGcwS0NRa0pDUWtKQ1R4eVpYQnZjblJGYkdWdFpXNTBJSE4wZVd4bFBTSlFZV2RsSUdadmIzUmxjaUlnZUQwaU5qZ3dJaUI1UFNJeElpQjNhV1IwYUQwaU9EQWlJR2hsYVdkb2REMGlNakFpSUhWMWFXUTlJalZqTURZeVl6WTJMV0poTkRVdE5ESTRPQzA1WkdOa0xUSTBObVV5T0dNMVlXWTNOU0l2UGcwS0NRa0pDUWtKQ1R4MFpYaDBSV3hsYldWdWRDQjBaWGgwUVd4cFoyNXRaVzUwUFNKU2FXZG9kQ0lnZG1WeWRHbGpZV3hCYkdsbmJtMWxiblE5SWsxcFpHUnNaU0l2UGcwS0NRa0pDUWtKQ1R4MFpYaDBSbWxsYkdSRmVIQnlaWE56YVc5dVBqd2hXME5FUVZSQld5SlFZV2RsSUNJckpGWjdVRUZIUlY5T1ZVMUNSVko5S3lJZ2IyWWlYVjArUEM5MFpYaDBSbWxsYkdSRmVIQnlaWE56YVc5dVBnMEtDUWtKQ1FrSlBDOTBaWGgwUm1sbGJHUStEUW9KQ1FrSkNRazhkR1Y0ZEVacFpXeGtJSEJoZEhSbGNtNDlJa1ZGUlVWRklHUmtJRTFOVFUxTklIbDVlWGtpUGcwS0NRa0pDUWtKQ1R4eVpYQnZjblJGYkdWdFpXNTBJSE4wZVd4bFBTSlFZV2RsSUdadmIzUmxjaUlnZUQwaU1pSWdlVDBpTVNJZ2QybGtkR2c5SWpFNU55SWdhR1ZwWjJoMFBTSXlNQ0lnZFhWcFpEMGlNamhpWWpsaU5EY3RZVFk1WXkwME9HVXhMVGt3TnpNdFpEVTBaRGt5TmpJME1tVTRJaTgrRFFvSkNRa0pDUWtKUEhSbGVIUkZiR1Z0Wlc1MElIWmxjblJwWTJGc1FXeHBaMjV0Wlc1MFBTSk5hV1JrYkdVaUx6NE5DZ2tKQ1FrSkNRazhkR1Y0ZEVacFpXeGtSWGh3Y21WemMybHZiajQ4SVZ0RFJFRlVRVnR1WlhjZ2FtRjJZUzUxZEdsc0xrUmhkR1VvS1YxZFBqd3ZkR1Y0ZEVacFpXeGtSWGh3Y21WemMybHZiajROQ2drSkNRa0pDVHd2ZEdWNGRFWnBaV3hrUGcwS0NRa0pDUWtKUEhSbGVIUkdhV1ZzWkNCbGRtRnNkV0YwYVc5dVZHbHRaVDBpVW1Wd2IzSjBJajROQ2drSkNRa0pDUWs4Y21Wd2IzSjBSV3hsYldWdWRDQnpkSGxzWlQwaVVHRm5aU0JtYjI5MFpYSWlJSGc5SWpjMk1DSWdlVDBpTVNJZ2QybGtkR2c5SWpRd0lpQm9aV2xuYUhROUlqSXdJaUIxZFdsa1BTSTVNelJpTVRabE9DMWpNMlZpTFRRd01UY3RPRFkyWVMwd1lqYzNNelZpWmpJNU1UY2lMejROQ2drSkNRa0pDUWs4ZEdWNGRFVnNaVzFsYm5RZ2RtVnlkR2xqWVd4QmJHbG5ibTFsYm5ROUlrMXBaR1JzWlNJdlBnMEtDUWtKQ1FrSkNUeDBaWGgwUm1sbGJHUkZlSEJ5WlhOemFXOXVQandoVzBORVFWUkJXeUlnSWlBcklDUldlMUJCUjBWZlRsVk5Ra1ZTZlYxZFBqd3ZkR1Y0ZEVacFpXeGtSWGh3Y21WemMybHZiajROQ2drSkNRa0pDVHd2ZEdWNGRFWnBaV3hrUGcwS0NRa0pDUWs4TDJaeVlXMWxQZzBLQ1FrSkNUd3ZZbUZ1WkQ0TkNna0pDVHd2Y0dGblpVWnZiM1JsY2o0TkNna0pQQzlxWVhOd1pYSlNaWEJ2Y25RKw==</template>
+	<templateStyle>UENGRVQwTlVXVkJGSUdwaGMzQmxjbFJsYlhCc1lYUmxEUW9nSUZCVlFreEpReUFpTFM4dlNtRnpjR1Z5VW1Wd2IzSjBjeTh2UkZSRUlGUmxiWEJzWVhSbEx5OUZUaUlOQ2lBZ0ltaDBkSEE2THk5cVlYTndaWEp5WlhCdmNuUnpMbk52ZFhKalpXWnZjbWRsTG01bGRDOWtkR1J6TDJwaGMzQmxjblJsYlhCc1lYUmxMbVIwWkNJK0RRb05DanhxWVhOd1pYSlVaVzF3YkdGMFpUNE5DZzBLSUNBZ0lEeHpkSGxzWlNCdVlXMWxQU0pDWVhObElpQnBjMFJsWm1GMWJIUTlJblJ5ZFdVaUlHaEJiR2xuYmowaVRHVm1kQ0lnZGtGc2FXZHVQU0pOYVdSa2JHVWlEUW9KQ1FsbWIyNTBVMmw2WlQwaU1UQWlJSEJrWmtadmJuUk9ZVzFsUFNKSVpXeDJaWFJwWTJFaUlIQmtaa1Z1WTI5a2FXNW5QU0pEY0RFeU5USWlJR2x6VUdSbVJXMWlaV1JrWldROUltWmhiSE5sSWo0TkNnazhMM04wZVd4bFBnMEtDUTBLQ1EwS0NUeHpkSGxzWlNCdVlXMWxQU0pVYVhSc1pTSWdjM1I1YkdVOUlrSmhjMlVpSUcxdlpHVTlJazl3WVhGMVpTSWdZbUZqYTJOdmJHOXlQU0lqTWpZM09UazBJZzBLQ1FsbWIzSmxZMjlzYjNJOUlpTkdSa1pHUmtZaUlHWnZiblJUYVhwbFBTSXlOaUl2UGcwS0NRa05DZ2s4YzNSNWJHVWdibUZ0WlQwaVVHRm5aU0JvWldGa1pYSWlJSE4wZVd4bFBTSkNZWE5sSWlBTkNna0pabTl5WldOdmJHOXlQU0lqTURBd01EQXdJaUJtYjI1MFUybDZaVDBpTVRJaUx6NE5DZ2tKRFFvSlBITjBlV3hsSUc1aGJXVTlJa052YkhWdGJpQm9aV0ZrWlhJaUlITjBlV3hsUFNKQ1lYTmxJaUJvUVd4cFoyNDlJa05sYm5SbGNpSU5DZ2tKYlc5a1pUMGlUM0JoY1hWbElpQm1iM0psWTI5c2IzSTlJaU5HUmtaR1JrWWlJR0poWTJ0amIyeHZjajBpSXpNek16TXpNeUlnWm05dWRGTnBlbVU5SWpFeUlpOCtEUW9KQ1EwS0NUeHpkSGxzWlNCdVlXMWxQU0pFWlhSaGFXd2lJSE4wZVd4bFBTSkNZWE5sSWcwS0NRbHBjMEp2YkdROUltWmhiSE5sSWk4K0RRb0pDUTBLQ1R4emRIbHNaU0J1WVcxbFBTSlFZV2RsSUdadmIzUmxjaUlnYzNSNWJHVTlJa0poYzJVaUlBMEtDUWxtYjNKbFkyOXNiM0k5SWlNd01EQXdNREFpSUdadmJuUlRhWHBsUFNJNUlpOCtEUW9KRFFvOEwycGhjM0JsY2xSbGJYQnNZWFJsUGc9PQ==</templateStyle>
 	<orientation>landscape</orientation>
 	<export>csv</export>
 	<!-- datasource sample, provider instance is obtained from spring context -->
 	<dataSource>
-		<providerClass>com.evolveum.midpoint.report.DataSourceReportProvider</providerClass>
+		<providerClass>com.evolveum.midpoint.report.impl.DataSourceReportProvider</providerClass>
 		<springBean>true</springBean>
 	</dataSource>
 	<field>
@@ -249,13 +70,15 @@
 				   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 		<r:logoPath>src/test/resources/reports/logo.jpg</r:logoPath>
 		<r:type>c:UserType</r:type>
-		<r:filter>
-			<q:substring>
-				<q:matching>normIgnoreCase</q:matching>
-				<q:path>c:name</q:path>
-				<q:value>user</q:value>
-			</q:substring>
-		</r:filter>
+		
+			<r:filter>
+				<q:substring>
+					<q:matching>normIgnoreCase</q:matching>
+					<q:path>c:name</q:path>
+					<q:value>user</q:value>
+				</q:substring>
+			</r:filter>
+
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->
 	<configurationSchema>
@@ -282,7 +105,7 @@
 					<xsd:sequence>
 						<!-- sample how query api datasource configuration should look like-->
 						<xsd:element name="type" type="xsd:QName"/>
-						<xsd:element name="filter" type="q:QueryType">
+						<xsd:element name="filter" type="q:SearchFilterType">
 							<xsd:annotation>
 								<xsd:appinfo>
 									<jaxb:dom/>

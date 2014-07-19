@@ -90,13 +90,13 @@ public class SchemaTestUtil {
 		PrismContainerDefinition activationContainer = complexTypeDefinition.findContainerDefinition(UserType.F_ACTIVATION);
 		PrismAsserts.assertDefinition(activationContainer, UserType.F_ACTIVATION, ActivationType.COMPLEX_TYPE, 0, 1);
 		assertFalse("Activation is runtime", activationContainer.isRuntimeSchema());
-		assertEquals("Activation size", 11, activationContainer.getDefinitions().size());
+		assertEquals("Activation size", 12, activationContainer.getDefinitions().size());
 		PrismAsserts.assertPropertyDefinition(activationContainer, ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
 		
 		PrismContainerDefinition assignmentContainer = complexTypeDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
 		PrismAsserts.assertDefinition(assignmentContainer, UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
 		assertFalse("Assignment is runtime", assignmentContainer.isRuntimeSchema());
-		assertEquals("Assignment size", 10, assignmentContainer.getDefinitions().size());
+		assertEquals("Assignment size", 9, assignmentContainer.getDefinitions().size());
 		
 		PrismContainerDefinition constructionContainer = assignmentContainer.findContainerDefinition(AssignmentType.F_CONSTRUCTION);
 		PrismAsserts.assertDefinition(constructionContainer, AssignmentType.F_CONSTRUCTION, ConstructionType.COMPLEX_TYPE, 0, 1);

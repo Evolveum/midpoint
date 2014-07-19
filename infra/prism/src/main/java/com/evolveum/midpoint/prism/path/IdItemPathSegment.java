@@ -79,6 +79,11 @@ public class IdItemPathSegment extends ItemPathSegment {
 		return true;
 	}
 
+    @Override
+    public boolean equivalent(Object obj) {
+        return equals(obj);
+    }
+
     public IdItemPathSegment clone() {
         IdItemPathSegment clone = new IdItemPathSegment();
         clone.id = this.id;

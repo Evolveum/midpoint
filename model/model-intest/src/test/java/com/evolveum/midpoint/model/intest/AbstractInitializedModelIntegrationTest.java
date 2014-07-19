@@ -34,9 +34,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.lens.Clockwork;
+import com.evolveum.midpoint.model.impl.lens.LensDebugListener;
 import com.evolveum.midpoint.model.intest.util.ProfilingLensDebugListener;
-import com.evolveum.midpoint.model.lens.Clockwork;
-import com.evolveum.midpoint.model.lens.LensDebugListener;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -92,9 +92,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected UserType userTypeGuybrush;
 	protected UserType userTypeElaine;
 	
-	protected ResourceType resourceOpenDjType;
-	protected PrismObject<ResourceType> resourceOpenDj;
-	
 	protected DummyResource dummyResource;
 	protected DummyResourceContoller dummyResourceCtl;
 	protected ResourceType resourceDummyType;
@@ -147,12 +144,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		clockwork.setDebugListener(lensDebugListener);
 		
 		// Resources
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID, initTask, initResult);
-		resourceOpenDjType = resourceOpenDj.asObjectable();
-		openDJController.setResource(resourceOpenDj);
-		if (!openDJController.isRunning()) {
-			initResult.muteLastSubresultError();
-		}
 				
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.extendSchemaPirate();
@@ -241,7 +232,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_PIRATE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_NICE_PIRATE_FILENAME, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_JUDGE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_EMPTY_FILE, RoleType.class, initResult);
 		
 		// Orgstruct
 		if (doAddOrgstruct()) {

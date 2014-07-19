@@ -23,7 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -1719,22 +1719,22 @@ public class TaskQuartzImpl implements Task {
 	}
 	
     private ItemDelta<?> setExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
-        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
     private ItemDelta<?> setExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition, Collection<? extends PrismReferenceValue> values) throws SchemaException {
-        ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
     private ItemDelta<?> addExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition, Collection<? extends PrismReferenceValue> values) throws SchemaException {
-        ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return addExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
     private ItemDelta<?> setExtensionContainerAndPrepareDelta(QName itemName, PrismContainerDefinition definition, Collection<? extends PrismContainerValue> values) throws SchemaException {
-        ItemDelta delta = new ContainerDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        ItemDelta delta = new ContainerDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
@@ -1772,7 +1772,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     private ItemDelta<?> addExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
-        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 
         delta.addValuesToAdd(values);
 
@@ -1784,7 +1784,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     private ItemDelta<?> deleteExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
-        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition);
+        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 
         delta.addValuesToDelete(values);
 
@@ -2261,7 +2261,7 @@ public class TaskQuartzImpl implements Task {
 
         ObjectFilter filter = null;
 //        try {
-            filter = EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, taskManager.getPrismContext(), null, getTaskIdentifier());
+            filter = EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, taskManager.getPrismContext(), null, getTaskIdentifier());
 //        } catch (SchemaException e) {
 //            throw new SystemException("Cannot create filter for 'parent equals task identifier' due to schema exception", e);
 //        }
@@ -2279,7 +2279,7 @@ public class TaskQuartzImpl implements Task {
 
         ObjectFilter filter = null;
 //        try {
-            filter = EqualsFilter.createEqual(TaskType.F_DEPENDENT, TaskType.class, taskManager.getPrismContext(), null, getTaskIdentifier());
+            filter = EqualFilter.createEqual(TaskType.F_DEPENDENT, TaskType.class, taskManager.getPrismContext(), null, getTaskIdentifier());
 //        } catch (SchemaException e) {
 //            throw new SystemException("Cannot create filter for 'dependent contains task identifier' due to schema exception", e);
 //        }

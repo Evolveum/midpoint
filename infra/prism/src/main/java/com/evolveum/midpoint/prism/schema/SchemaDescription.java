@@ -20,6 +20,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -27,6 +29,10 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import org.apache.cxf.wsdl.WSDLConstants;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -37,6 +43,9 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class SchemaDescription implements DebugDumpable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SchemaDescription.class);
+
 	private String path;
 	private String usualPrefix;
 	private String namespace;
@@ -145,8 +154,49 @@ public class SchemaDescription implements DebugDumpable {
 		desc.parseFromInputStream();
 		return desc;
 	}
-		
-	public static SchemaDescription parseFile(final File file) throws FileNotFoundException, SchemaException {
+
+    public static List<SchemaDescription> parseWsdlResource(final String resourcePath) throws SchemaException {
+        List<SchemaDescription> schemaDescriptions = new ArrayList<>();
+
+        InputStream inputStream = SchemaRegistry.class.getClassLoader().getResourceAsStream(resourcePath);
+        if (inputStream == null) {
+            throw new IllegalStateException("Cannot fetch system resource for schema " + resourcePath);
+        }
+        Node node;
+        try {
+            node = DOMUtil.parse(inputStream);
+        } catch (IOException e) {
+            throw new SchemaException("Cannot parse schema from system resource " + resourcePath, e);
+        }
+        Element rootElement = node instanceof Element ? (Element)node : DOMUtil.getFirstChildElement(node);
+        QName rootElementQName = DOMUtil.getQName(rootElement);
+        if (WSDLConstants.QNAME_DEFINITIONS.equals(rootElementQName)) {
+            Element types = DOMUtil.getChildElement(rootElement, WSDLConstants.QNAME_TYPES);
+            if (types == null) {
+                LOGGER.warn("No <types> section in WSDL document in system resource " + resourcePath);
+                return schemaDescriptions;
+            }
+            List<Element> schemaElements = DOMUtil.getChildElements(types, DOMUtil.XSD_SCHEMA_ELEMENT);
+            if (schemaElements.isEmpty()) {
+                LOGGER.warn("No schemas in <types> section in WSDL document in system resource " + resourcePath);
+                return schemaDescriptions;
+            }
+            int number = 1;
+            for (Element schemaElement : schemaElements) {
+                SchemaDescription desc = new SchemaDescription("schema #" + (number++) + " in system resource " + resourcePath);
+                desc.node = schemaElement;
+                desc.fetchBasicInfoFromSchema();
+                schemaDescriptions.add(desc);
+                LOGGER.trace("Schema registered from {}", desc.getSourceDescription());
+            }
+            return schemaDescriptions;
+        } else {
+            throw new SchemaException("WSDL system resource "+resourcePath+" does not start with wsdl:definitions element");
+        }
+    }
+
+
+    public static SchemaDescription parseFile(final File file) throws FileNotFoundException, SchemaException {
 		SchemaDescription desc = new SchemaDescription("file "+file.getPath());
 		desc.path = file.getPath();
 		desc.streamable = new InputStreamable() {

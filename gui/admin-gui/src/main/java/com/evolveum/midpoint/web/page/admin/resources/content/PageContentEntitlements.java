@@ -35,7 +35,7 @@ import org.apache.wicket.model.StringResourceModel;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/resources/content/entitlements", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DENY_ALL)})
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DEVEL_URL)})
 public class PageContentEntitlements extends PageAdminResources {
 
     private IModel<PrismObject<ResourceType>> resourceModel;

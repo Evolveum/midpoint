@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -186,6 +187,21 @@ public class PageUsers extends PageAdminUsers {
                     }
                 };
             }
+
+            @Override
+            protected IModel<String> createTitleModel(final IModel<UserListItemDto> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        String key = rowModel.getObject().getIconTitle();
+                        if (key == null) {
+                            return null;
+                        }
+                        return createStringResource(key).getString();
+                    }
+                };
+            }
         });
 
         IColumn column = new LinkColumn<UserListItemDto>(createStringResource("ObjectType.name"),
@@ -291,7 +307,7 @@ public class PageUsers extends PageAdminUsers {
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         provider.setOptions(options);
 
-        TablePanel table = new TablePanel<UserListItemDto>(ID_TABLE, provider, columns);
+        TablePanel table = new TablePanel(ID_TABLE, provider, columns, UserProfileStorage.TableId.PAGE_USERS_PANEL);
         table.setOutputMarkupId(true);
 
         UsersStorage storage = getSessionStorage().getUsers();
@@ -313,6 +329,7 @@ public class PageUsers extends PageAdminUsers {
         dto.setAccountCount(createAccountCount(obj));
         dto.setCredentials(obj.findContainer(UserType.F_CREDENTIALS));
         dto.setIcon(WebMiscUtil.createUserIcon(obj));
+        dto.setIconTitle(WebMiscUtil.createUserIconTitle(obj));
 
         dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
                 new ColumnMenuAction<UserListItemDto>() {
@@ -429,7 +446,8 @@ public class PageUsers extends PageAdminUsers {
 
         UsersStorage storage = getSessionStorage().getUsers();
         storage.setUsersSearch(model.getObject());
-        panel.setCurrentPage(storage.getUsersPaging());
+        storage.setUsersPaging(null);
+        panel.setCurrentPage(null);
 
         target.add(panel);
     }
@@ -652,7 +670,8 @@ public class PageUsers extends PageAdminUsers {
 
         UsersStorage storage = getSessionStorage().getUsers();
         storage.setUsersSearch(model.getObject());
-        panel.setCurrentPage(storage.getUsersPaging());
+        storage.setUsersPaging(null);
+        panel.setCurrentPage(null);
 
         target.add(get(ID_SEARCH_FORM));
         target.add(panel);

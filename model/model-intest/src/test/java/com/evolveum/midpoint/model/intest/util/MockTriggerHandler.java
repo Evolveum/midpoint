@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest.util;
 
-import com.evolveum.midpoint.model.trigger.TriggerHandler;
+import com.evolveum.midpoint.model.impl.trigger.TriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;

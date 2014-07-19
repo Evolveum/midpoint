@@ -173,6 +173,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE = new File(TEST_DIR, "role-org-read-orgs-ministry-of-rum.xml");
 	protected static final String ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_OID = "00000000-0000-0000-0000-00000000aa0d";
 
+	protected static final File ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE = new File(TEST_DIR, "role-filter-object-user-location-shadows.xml");
+	protected static final String ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_OID = "00000000-0000-0000-0000-00000000aa0e";
+
 	protected static final File ROLE_APPLICATION_1_FILE = new File(TEST_DIR, "role-application-1.xml");
 	protected static final String ROLE_APPLICATION_1_OID = "00000000-0000-0000-0000-00000000aaa1";
 
@@ -188,12 +191,6 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	private static final String LOG_PREFIX_ALLOW = "SSSSS=+ ";
 	
 	String userRumRogersOid;
-
-	@Autowired(required=true)
-	private UserProfileService userDetailsService;
-	
-	@Autowired(required=true)
-	private SecurityEnforcer securityEnforcer;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -217,6 +214,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_APPLICATION_ROLES_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE, RoleType.class, initResult);
 		
 		repoAddObjectFromFile(ROLE_APPLICATION_1_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_APPLICATION_2_FILE, RoleType.class, initResult);
@@ -270,7 +268,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_ADMINISTRATOR_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_ADMINISTRATOR_USERNAME);
         
         // THEN
         display("Administrator principal", principal);
@@ -288,7 +286,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
         
         // THEN
         assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
@@ -308,7 +306,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_BARBOSSA_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_BARBOSSA_USERNAME);
         
         // THEN
         display("Principal barbossa", principal);
@@ -331,7 +329,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
         
         // THEN
         display("Principal guybrush", principal);
@@ -358,7 +356,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
         
         // THEN
         assertJack(principal);
@@ -383,7 +381,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
         
         // THEN
         assertJack(principal);
@@ -405,7 +403,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_GUYBRUSH_OID, ROLE_NICE_PIRATE_OID, task, result);
         
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
         
         // THEN
         display("Principal guybrush", principal);
@@ -426,7 +424,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
         
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
         
         // THEN
         display("Principal guybrush", principal);
@@ -723,7 +721,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
         assertAssignmentsWithTargets(userJack, 1);
         
-        PrismObjectDefinition<UserType> userJackEditSchema = modelInteractionService.getEditObjectDefinition(userJack);
+        PrismObjectDefinition<UserType> userJackEditSchema = modelInteractionService.getEditObjectDefinition(userJack, null);
         display("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
         assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
@@ -922,7 +920,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetAllow(ShadowType.class, accountOid);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
         display("Jack's shadow", shadow);
-        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, resourceDummy);
+        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, resourceDummy, null);
         display("Refined objectclass def", rOcDef);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_NAME, true, true, true);
@@ -959,9 +957,130 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
 	}
 
+    @Test
+    public void test256AutzJackSelfAccountsPartialControl() throws Exception {
+        final String TEST_NAME = "test256AutzJackSelfAccountsPartialControl";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_OID);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+
+        assertAddDeny();
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_NICK_NAME, PrismTestUtil.createPolyString("jackie"));
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+
+        assertDeleteDeny();
+        assertDeleteDeny(UserType.class, USER_JACK_OID);
+
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        String accountOid = getSingleLinkOid(user);
+        assertGetAllow(ShadowType.class, accountOid);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
+        display("Jack's shadow", shadow);
+        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, resourceDummy, null);
+        display("Refined objectclass def", rOcDef);
+        assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);
+        assertAttributeFlags(rOcDef, SchemaConstants.ICFS_NAME, true, false, false);
+        assertAttributeFlags(rOcDef, new QName("location"), true, true, true);
+        assertAttributeFlags(rOcDef, new QName("weapon"), true, false, false);
+
+        // Not linked to jack
+        assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+
+        // Not linked to jack
+        assertAddDeny(ACCOUNT_JACK_DUMMY_RED_FILE);
+        // Not even jack's account
+        assertAddDeny(ACCOUNT_GUYBRUSH_DUMMY_FILE);
+
+//        // Linked to jack
+//        assertAllow("add jack's account to jack", new Attempt() {
+//            @Override
+//            public void run(Task task, OperationResult result) throws Exception {
+//                modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result);
+//            }
+//        });
+//        user = getUser(USER_JACK_OID);
+//        display("Jack after red account link", user);
+//        String accountRedOid = getLinkRefOid(user, RESOURCE_DUMMY_RED_OID);
+//        assertNotNull("Strange, red account not linked to jack", accountRedOid);
+//
+//        // Linked to other user
+//        assertDeny("add gyubrush's account", new Attempt() {
+//            @Override
+//            public void run(Task task, OperationResult result) throws Exception {
+//                modifyUserAddAccount(USER_LARGO_OID, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
+//            }
+//        });
+//
+//        assertDeleteAllow(ShadowType.class, accountRedOid);
+//        assertDeleteDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+    }
+
+    @Test
+    public void test260AutzJackObjectFilterLocationShadowRole() throws Exception {
+		final String TEST_NAME = "test260AutzJackObjectFilterLocationShadowRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        
+        assertSearch(UserType.class, null, 2);
+        assertSearch(ObjectType.class, null, 8);
+        assertSearch(OrgType.class, null, 6);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
+        assertSearch(ObjectType.class, createNameQuery(USER_JACK_USERNAME), 1);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
+        assertSearch(ObjectType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+
+        assertAddDeny();
+        
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+        assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
+        
+        assertDeleteDeny();
+        
+        // Linked to jack
+        assertAllow("add jack's account to jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result);
+			}
+		});
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("Jack after red account link", user);
+        String accountRedOid = getLinkRefOid(user, RESOURCE_DUMMY_RED_OID);
+        assertNotNull("Strange, red account not linked to jack", accountRedOid);
+        assertGetAllow(ShadowType.class, accountRedOid);
+	}
+
+	
 	@Test
-    public void test260AutzJackAssignApplicationRoles() throws Exception {
-		final String TEST_NAME = "test260AutzJackAssignApplicationRoles";
+    public void test270AutzJackAssignApplicationRoles() throws Exception {
+		final String TEST_NAME = "test270AutzJackAssignApplicationRoles";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
@@ -1441,58 +1560,6 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertNotNull("Null authorization", authorization);
 		assertEquals("Wrong decision in "+authorization, AuthorizationDecisionType.ALLOW, authorization.getDecision());
 		TestUtil.assertSetEquals("Wrong action in "+authorization, authorization.getAction(), action);
-	}
-	
-	private void assertAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
-		assertAuthorized(principal, action, null);
-		assertAuthorized(principal, action, AuthorizationPhaseType.REQUEST);
-		assertAuthorized(principal, action, AuthorizationPhaseType.EXECUTION);
-	}
-
-	private void assertAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException {
-		SecurityContext origContext = SecurityContextHolder.getContext();
-		createSecurityContext(principal);
-		try {
-			assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action, 
-					securityEnforcer.isAuthorized(action, phase, null, null, null, null));
-			if (phase == null) {
-				securityEnforcer.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(), 
-					createConfigAttributes(action));
-			}
-		} finally {
-			SecurityContextHolder.setContext(origContext);
-		}
-	}
-	
-	private void assertNotAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
-		assertNotAuthorized(principal, action, null);
-		assertNotAuthorized(principal, action, AuthorizationPhaseType.REQUEST);
-		assertNotAuthorized(principal, action, AuthorizationPhaseType.EXECUTION);
-	}
-	
-	private void assertNotAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException {
-		SecurityContext origContext = SecurityContextHolder.getContext();
-		createSecurityContext(principal);
-		boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, null, null, null, null);
-		SecurityContextHolder.setContext(origContext);
-		assertFalse("AuthorizationEvaluator.isAuthorized: Principal "+principal+" IS authorized for action "+action+" ("+phase+") but he should not be", isAuthorized);
-	}
-
-	private void createSecurityContext(MidPointPrincipal principal) {
-		SecurityContext context = new SecurityContextImpl();
-		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
-		context.setAuthentication(authentication);
-		SecurityContextHolder.setContext(context);
-	}
-	
-	private Object createSecureObject() {
-		return new FilterInvocation("/midpoint", "whateverServlet", "doSomething");
-	}
-
-	private Collection<ConfigAttribute> createConfigAttributes(String action) {
-		Collection<ConfigAttribute> attrs = new ArrayList<ConfigAttribute>();
-		attrs.add(new SecurityConfig(action));
-		return attrs;
 	}
 	
 	private <O extends ObjectType> void failDeny(String action, Class<O> type, ObjectQuery query, int expected, int actual) {

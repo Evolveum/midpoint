@@ -18,9 +18,6 @@ package com.evolveum.midpoint.prism;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-
 /**
  * MidPoint Object Definition.
  * 
@@ -54,6 +51,7 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 	
 	@Override
 	public PrismObject<T> instantiate(QName name) {
+        name = addNamespaceIfApplicable(name);
 		PrismObject<T> midPointObject = new PrismObject<T>(name, this, prismContext);
 		return midPointObject;
 	}
@@ -66,6 +64,10 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 	
 	public PrismObjectDefinition<T> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
 		return (PrismObjectDefinition<T>) super.cloneWithReplacedDefinition(itemName, newDefinition);
+	}
+	
+	public PrismContainerDefinition<?> getExtensionDefinition() {
+		return findContainerDefinition(getExtensionQName());
 	}
 
 	public void setExtensionDefinition(ComplexTypeDefinition extensionComplexTypeDefinition) {
@@ -106,6 +108,14 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 	private QName getExtensionQName() {
 		String namespace = getName().getNamespaceURI();
 		return new QName(namespace, PrismConstants.EXTENSION_LOCAL_NAME);
+	}
+	
+	public <I extends ItemDefinition> I getExtensionItemDefinition(QName elementName) {
+		PrismContainerDefinition<?> extensionDefinition = getExtensionDefinition();
+		if (extensionDefinition == null) {
+			return null;
+		}
+		return (I) extensionDefinition.findItemDefinition(elementName);
 	}
 
 	@Override

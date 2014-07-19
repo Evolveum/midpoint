@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
@@ -53,7 +55,7 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public class ObjectWrapper implements Serializable {
+public class ObjectWrapper implements Serializable, Revivable {
 
     public static final String F_DISPLAY_NAME = "displayName";
     public static final String F_SELECTED = "selected";
@@ -85,21 +87,61 @@ public class ObjectWrapper implements Serializable {
 
     private OperationResult result;
     private boolean protectedAccount;
+    
+    private List<PrismProperty> associations;
 
     private OperationResult fetchResult;
-
-    public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
-		Validate.notNull(object, "Object must not be null.");
-		Validate.notNull(status, "Container status must not be null.");
-
-		this.displayName = displayName;
-		this.description = description;
-		this.object = object;
-		this.status = status;
-
-        createContainers();
+    private PrismContainerDefinition objectDefinitionForEditing;                // a "static" (non-refined) definition that reflects editability of the object in terms of midPoint schema limitations and security
+    private RefinedObjectClassDefinition objectClassDefinitionForEditing;       // a refined definition of an resource object class that reflects its editability; applicable for shadows only
+    
+    public ObjectWrapper(String displayName, String description, PrismObject object, PrismContainerDefinition objectDefinitionForEditing, ContainerStatus status, PageBase pageBase) {
+        this(displayName, description, object, objectDefinitionForEditing, null, status, false, pageBase);
 	}
 
+    // delayContainerCreation is used in cases where caller wants to configure those aspects of the wrapper that must be set before container creation
+    public ObjectWrapper(String displayName, String description, PrismObject object, PrismContainerDefinition objectDefinitionForEditing, RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status, boolean delayContainerCreation, PageBase pageBase) {
+        Validate.notNull(object, "Object must not be null.");
+        Validate.notNull(status, "Container status must not be null.");
+        Validate.notNull(pageBase, "pageBase must not be null.");
+
+        this.displayName = displayName;
+        this.description = description;
+        this.object = object;
+        this.status = status;
+        this.objectDefinitionForEditing = objectDefinitionForEditing;
+        this.objectClassDefinitionForEditing = objectClassDefinitionForEditing;
+
+        if (!delayContainerCreation) {
+            initializeContainers(pageBase);
+        }
+	}
+
+    public void initializeContainers(PageBase pageBase) {
+        containers = createContainers(pageBase);
+    }
+
+    public void revive(PrismContext prismContext) throws SchemaException {
+        if (object != null) {
+            object.revive(prismContext);
+        }
+        if (oldDelta != null) {
+            oldDelta.revive(prismContext);
+        }
+        if (containers != null) {
+            for (ContainerWrapper containerWrapper : containers) {
+                containerWrapper.revive(prismContext);
+            }
+        }
+    }
+
+    public List<PrismProperty> getAssociations() {
+		return associations;
+	}
+    
+    public void setAssociations(List<PrismProperty> associations) {
+		this.associations = associations;
+	}
+    
     public OperationResult getFetchResult() {
         return fetchResult;
     }
@@ -187,16 +229,13 @@ public class ObjectWrapper implements Serializable {
 	}
 
 	public List<ContainerWrapper> getContainers() {
-		if (containers == null) {
-			containers = createContainers();
-		}
 		return containers;
 	}
 
 	public ContainerWrapper findContainerWrapper(ItemPath path) {
 		for (ContainerWrapper wrapper : getContainers()) {
             if (path != null) {
-                if (path.equals(wrapper.getPath())) {
+                if (path.equivalent(wrapper.getPath())) {
                     return wrapper;
                 }
             } else {
@@ -209,19 +248,19 @@ public class ObjectWrapper implements Serializable {
 		return null;
 	}
 
-	private List<ContainerWrapper> createCustomContainerWrapper(PrismObject object, QName name) {
+	private List<ContainerWrapper> createCustomContainerWrapper(PrismObject object, QName name, PageBase pageBase) {
 		PrismContainer container = object.findContainer(name);
 		ContainerStatus status = container == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING;
 		List<ContainerWrapper> list = new ArrayList<ContainerWrapper>();
 		if (container == null) {
-			PrismContainerDefinition definition = object.getDefinition().findContainerDefinition(name);
+			PrismContainerDefinition definition = getDefinition().findContainerDefinition(name);
 			container = definition.instantiate();
 		}
 
-        ContainerWrapper wrapper = new ContainerWrapper(this, container, status, new ItemPath(name));
+        ContainerWrapper wrapper = new ContainerWrapper(this, container, status, new ItemPath(name), pageBase);
         addSubresult(wrapper.getResult());
 		list.add(wrapper);
-		list.addAll(createContainerWrapper(container, new ItemPath(name)));
+		list.addAll(createContainerWrapper(container, new ItemPath(name), pageBase));     // [pm] is this OK? "name" is the name of the container itself; originally here was an empty path - that seems more logical
 
 		return list;
 	}
@@ -234,7 +273,7 @@ public class ObjectWrapper implements Serializable {
         result.addSubresult(subResult);
     }
 
-	private List<ContainerWrapper> createContainers() {
+	private List<ContainerWrapper> createContainers(PageBase pageBase) {
         result = new OperationResult(CREATE_CONTAINERS);
 
 		List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
@@ -251,29 +290,33 @@ public class ObjectWrapper implements Serializable {
 				}
 
 				ContainerWrapper container = new ContainerWrapper(this, attributes, status, new ItemPath(
-						ShadowType.F_ATTRIBUTES));
+						ShadowType.F_ATTRIBUTES), pageBase);
                 addSubresult(container.getResult());
 
 				container.setMain(true);
 				containers.add(container);
 
-				if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
-					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_ACTIVATION));
+				if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)) {
+					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_ACTIVATION, pageBase));
 				}
-				if (ShadowType.class.isAssignableFrom(clazz) &&
-						hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), CredentialsCapabilityType.class)) {
-					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_CREDENTIALS));
+				if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), CredentialsCapabilityType.class)) {
+					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_CREDENTIALS, pageBase));
+				}
+				
+				PrismContainer<ShadowAssociationType> associationContainer = object.findContainer(ShadowType.F_ASSOCIATION);
+				if (associationContainer != null) {
+					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_ASSOCIATION, pageBase));
 				}
             } else if (ResourceType.class.isAssignableFrom(clazz)) {
-                containers =  createResourceContainers();
+                containers = createResourceContainers(pageBase);
             } else if (ReportType.class.isAssignableFrom(clazz)) {
-                containers = createReportContainers();
+                containers = createReportContainers(pageBase);
 			} else {
-				ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), null);
+				ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), null, pageBase);
                 addSubresult(container.getResult());
 				containers.add(container);
 
-				containers.addAll(createContainerWrapper(object, null));
+				containers.addAll(createContainerWrapper(object, null, pageBase));
 			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Error occurred during container wrapping", ex);
@@ -287,7 +330,7 @@ public class ObjectWrapper implements Serializable {
 		return containers;
 	}
 
-    private List<ContainerWrapper> createReportContainers() throws SchemaException {
+    private List<ContainerWrapper> createReportContainers(PageBase pageBase) throws SchemaException {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
 
         PrismContainer container = object.findContainer(ReportType.F_CONFIGURATION);
@@ -303,7 +346,7 @@ public class ObjectWrapper implements Serializable {
             container = definition.instantiate();
         }
 
-        ContainerWrapper wrapper = new ContainerWrapper(this, container, status, new ItemPath(ReportType.F_CONFIGURATION));
+        ContainerWrapper wrapper = new ContainerWrapper(this, container, status, new ItemPath(ReportType.F_CONFIGURATION), pageBase);
         addSubresult(wrapper.getResult());
 
         containers.add(wrapper);
@@ -311,13 +354,13 @@ public class ObjectWrapper implements Serializable {
         return containers;
     }
 
-    private List<ContainerWrapper> createResourceContainers() throws SchemaException {
+    private List<ContainerWrapper> createResourceContainers(PageBase pageBase) throws SchemaException {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
         PrismObject<ConnectorType> connector = loadConnector();
 
-        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_CONFIGURATION_PROPERTIES, connector));
-        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_CONNECTOR_POOL_CONFIGURATION, connector));
-        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_TIMEOUTS, connector));
+        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_CONFIGURATION_PROPERTIES, connector, pageBase));
+        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_CONNECTOR_POOL_CONFIGURATION, connector, pageBase));
+        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_TIMEOUTS, connector, pageBase));
 
         return containers;
     }
@@ -328,7 +371,7 @@ public class ObjectWrapper implements Serializable {
         //todo reimplement
     }
 
-    private ContainerWrapper createResourceContainerWrapper(QName name, PrismObject<ConnectorType> connector)
+    private ContainerWrapper createResourceContainerWrapper(QName name, PrismObject<ConnectorType> connector, PageBase pageBase)
         throws SchemaException {
 
         PrismContainer container = object.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
@@ -348,13 +391,13 @@ public class ObjectWrapper implements Serializable {
         }
 
         ContainerWrapper wrapper = new ContainerWrapper(this, container, status,
-                new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, name));
+                new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, name), pageBase);
         addSubresult(wrapper.getResult());
 
         return wrapper;
     }
 
-	private List<ContainerWrapper> createContainerWrapper(PrismContainer parent, ItemPath path) {
+	private List<ContainerWrapper> createContainerWrapper(PrismContainer parent, ItemPath path, PageBase pageBase) {
 
 		PrismContainerDefinition definition = parent.getDefinition();
 		List<ContainerWrapper> wrappers = new ArrayList<ContainerWrapper>();
@@ -370,6 +413,9 @@ public class ObjectWrapper implements Serializable {
 			}
             if (ObjectSpecificationType.COMPLEX_TYPE.equals(def.getTypeName())) {
                 continue;       // TEMPORARY FIX
+            }
+            if (TriggerType.COMPLEX_TYPE.equals(def.getTypeName())) {
+                continue;       // TEMPORARY FIX TODO: remove after getEditSchema (authorization) will be fixed.
             }
             LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
 
@@ -389,16 +435,16 @@ public class ObjectWrapper implements Serializable {
 			PrismContainer prismContainer = object.findContainer(def.getName());
             ContainerWrapper container;
 			if (prismContainer != null) {
-                container = new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING, newPath);
+                container = new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING, newPath, pageBase);
 			} else {
 				prismContainer = containerDef.instantiate();
-				container = new ContainerWrapper(this, prismContainer, ContainerStatus.ADDING, newPath);
+				container = new ContainerWrapper(this, prismContainer, ContainerStatus.ADDING, newPath, pageBase);
 			}
             addSubresult(container.getResult());
             wrappers.add(container);
 
             if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {      // do not show internals of Assignments (e.g. activation)
-			    wrappers.addAll(createContainerWrapper(prismContainer, newPath));
+			    wrappers.addAll(createContainerWrapper(prismContainer, newPath, pageBase));
             }
 		}
 
@@ -448,7 +494,7 @@ public class ObjectWrapper implements Serializable {
 
 				ItemPath path = containerWrapper.getPath() != null ? containerWrapper.getPath()
 						: new ItemPath();
-				PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef);
+				PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef, propertyDef.getPrismContext());             // hoping the prismContext is there
 				for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
                     valueWrapper.normalize();
 					ValueStatus valueStatus = valueWrapper.getStatus();
@@ -459,11 +505,11 @@ public class ObjectWrapper implements Serializable {
 
 					//TODO: need to check if the resource has defined capabilities
                     //todo this is bad hack because now we have not tri-state checkbox
-					if (SchemaConstants.PATH_ACTIVATION.equals(path)) {
+					if (SchemaConstants.PATH_ACTIVATION.equivalent(path)) {
 
 						if (object.asObjectable() instanceof ShadowType
                                 && (((ShadowType) object.asObjectable()).getActivation() == null
-                                || ((ShadowType) object.asObjectable()).getActivation().isEnabled() == null)) {
+                                || ((ShadowType) object.asObjectable()).getActivation().getAdministrativeStatus() == null)) {
 
 							if (!hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
 								continue;
@@ -476,7 +522,7 @@ public class ObjectWrapper implements Serializable {
                     switch (valueWrapper.getStatus()) {
                         case ADDED:
                             if (newValCloned != null) {
-                                if (SchemaConstants.PATH_PASSWORD.equals(path)) {
+                                if (SchemaConstants.PATH_PASSWORD.equivalent(path)) {
                                     // password change will always look like add,
                                     // therefore we push replace
                                     pDelta.setValuesToReplace(Arrays.asList(newValCloned));
@@ -722,4 +768,18 @@ public class ObjectWrapper implements Serializable {
     public void setShowInheritedObjectAttributes(boolean showInheritedObjectAttributes) {
         this.showInheritedObjectAttributes = showInheritedObjectAttributes;
     }
+    
+    public PrismContainerDefinition getDefinition() {
+    	if (objectDefinitionForEditing != null){
+    		return objectDefinitionForEditing;
+    	}
+		return object.getDefinition();
+	}
+    
+    public PrismContainerDefinition getRefinedAttributeDefinition() {
+		if (objectClassDefinitionForEditing != null) {
+			return objectClassDefinitionForEditing.toResourceAttributeContainerDefinition();
+		}
+    	return null;
+	}
 }

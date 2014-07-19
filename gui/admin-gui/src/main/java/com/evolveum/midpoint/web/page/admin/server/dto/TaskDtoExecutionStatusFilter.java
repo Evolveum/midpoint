@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -52,8 +52,8 @@ public enum TaskDtoExecutionStatusFilter {
         }
     }
     
-    private EqualsFilter createExecutionStatusFilter(Class clazz, PrismContext prismContext, TaskExecutionStatusType value){
-    	return EqualsFilter.createEqual(TaskType.F_EXECUTION_STATUS, clazz, prismContext, null, value);
+    private EqualFilter createExecutionStatusFilter(Class clazz, PrismContext prismContext, TaskExecutionStatusType value){
+    	return EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS, clazz, prismContext, null, value);
     }
 
 

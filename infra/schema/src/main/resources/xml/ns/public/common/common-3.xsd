@@ -25,9 +25,9 @@
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             elementFormDefault="qualified"
             jaxb:extensionBindingPrefixes="xjc"
             jaxb:version="2.0">
@@ -46,7 +46,7 @@
             <a href="https://wiki.evolveum.com/display/midPoint/Data+Model">https://wiki.evolveum.com/display/midPoint/Data+Model</a>
             for more details.
 
-            <p>Version: 3.0-SNAPSHOT</p>
+            <p>Version: 3.1-SNAPSHOT</p>
 
             <p>Recommended namespace prefix: (default), c</p>
         </xsd:documentation>
@@ -2323,30 +2323,6 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="account" type="tns:ShadowType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	DEPRECATED: use link instead
-                            </xsd:documentation>
-                            <xsd:appinfo>
-		            			<a:deprecated>true</a:deprecated>
-                    			<a:objectReference>tns:accountRef</a:objectReference>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="accountRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	DEPRECATED: use linkRef instead
-                            </xsd:documentation>
-                            <xsd:appinfo>
-		            			<a:deprecated>true</a:deprecated>
-                    			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2578,18 +2554,6 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-
-                <xsd:element name="accountConstruction" type="tns:ConstructionType" minOccurs="0">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                        	DEPRECATED
-                        	Use "construction" element instead.
-                        </xsd:documentation>
-                        <xsd:appinfo>
-	            			<a:deprecated>true</a:deprecated>
-	            		</xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
                 
                 <xsd:element name="construction" type="tns:ConstructionType" minOccurs="0">
                     <xsd:annotation>
@@ -2618,9 +2582,9 @@
                     <xsd:documentation>
                         <p>
                         Reference to the tenant to which this assignment refers. This is an argument to the target of this
-                        assignment. E.g. is if frequenty used to parametrize the role which is assigned by this assignment.
+                        assignment. E.g. is if frequently used to parametrize the role which is assigned by this assignment.
                         However the exact interpretation of this value depends on the logic of the target role. It may be
-                        significat or it may be entirelly ignored.
+                        significant or it may be entirely ignored.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2638,7 +2602,7 @@
     <xsd:complexType name="MappingsType">
         <xsd:annotation>
             <xsd:documentation>
-                Genric set of mappings.
+                Generic set of mappings.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -2670,24 +2634,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                    	DEPRECATED. Use administrativeStatus instead.
-                    
-                        Flag that indicates if the described concept is active.
-
-                        true => active, enabled
-                        flase => inactive, disabled
-
-                        This defines the "administrative state", i.e. the administrator's decision.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                    	<a:deprecated>true</a:deprecated>
-                        <a:displayName>Enabled</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="administrativeStatus" type="tns:ActivationStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2838,6 +2784,37 @@
             	</xsd:annotation>
             </xsd:element>
             
+            <xsd:element name="lockoutStatus" type="tns:LockoutStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This defines the state of user or account lock-out. Lock-out means that the account
+                        was temporarily disabled due to failed login attempts or a similar abuse attempt.
+                        
+                        This value is usualy set by the resource (or midpoint internal authentication code).
+                        It is unlikely that it can be set to the "locked" value. However it usually can be used
+                        to unlock the account by setting this property to "normal" value.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Lock-out Status</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            
+            <xsd:element name="lockoutExpirationTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Timestamp of a moment when account lockout expires and the account will
+                        be normally usable again.
+                        
+                        This is only an informational value. It should be considered as read-only
+                        for most cases. It only makes sense if the lockoutStatus is not in the "normal" state.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Lock-out Expiration</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -2950,6 +2927,40 @@
                 </xsd:annotation>
             </xsd:enumeration>
              </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="LockoutStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                This defines the state of account lock-out. Lock-out means that the account
+                was temporarily disabled due to failed login attempts or a similar abuse attempt.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="normal">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Account is in normal (unlocked state). It is usable without limitations.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NORMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="locked">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		The account has been locked. Log-in to the account is temporarily disabled.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LOCKED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
     </xsd:simpleType>
 
     <xsd:complexType name="ResourceType">
@@ -3214,17 +3225,6 @@
         <xsd:sequence>
         <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
                          maxOccurs="unbounded"/>
-            <xsd:element name="accountType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
-                         maxOccurs="unbounded">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			DEPRECATED. Use objectType instead.
-            		</xsd:documentation>
-            		<xsd:appinfo>
-            			<a:deprecated>true</a:deprecated>
-            		</xsd:appinfo>
-            	</xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="schemaHandling" type="tns:SchemaHandlingType"/>
@@ -3240,16 +3240,6 @@
         <xsd:sequence>
         	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"/>
         	<xsd:element name="intent" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			DEPRECATED. Use "intent" instead.
-            		</xsd:documentation>
-            		<xsd:appinfo>
-            			<a:deprecated>true</a:deprecated>
-            		</xsd:appinfo>
-            	</xsd:annotation>
-            </xsd:element>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0" default="false">
@@ -3417,9 +3407,9 @@
    					<xsd:element name="order" type="xsd:int" minOccurs="0" default="0">
    						<xsd:annotation>
    							<xsd:documentation>
-   								Specifies the order in which the dependency is applied. Lower-order dependecies
+   								Specifies the order in which the dependency is applied. Lower-order dependencies
    								are applied before higher-order dependencies. Dependencies with the same order
-   								are applied at the same time. There must be no circular dependency fromed from
+   								are applied at the same time. There must be no circular dependency formed from
    								dependencies of the same order.
    							</xsd:documentation>
    						</xsd:annotation>
@@ -3443,9 +3433,9 @@
                 <xsd:annotation>
                 	<xsd:documentation>
                 		If the object that we depend on is not provisioned then the dependent object will
-                		not be provisioned either. Attempt to provision it will end up with and error.
+                		not be provisioned either. Attempt to provision it will end up with an error.
                 		If the object that we depend on is being provisioned in the same operation (context) as
-                		the dependent object then they will be provisioned in order: independed first, dependent second.
+                		the dependent object then they will be provisioned in order: independent first, dependent second.
                 		Proper inbound-template-outbound sequence of mapping will be executed between the provisionings.
                 	</xsd:documentation>
                     <xsd:appinfo>
@@ -3457,13 +3447,13 @@
                 <xsd:annotation>
                 	<xsd:documentation>
                 		If the object that we depend on is being provisioned in the same operation (context) as
-                		the dependent object then they will be provisioned in order: independed first, dependent second.
+                		the dependent object then they will be provisioned in order: independent first, dependent second.
                 		Proper inbound-template-outbound sequence of mapping will be executed between the provisionings.
                 		But no error is thrown if the dependent object is provisioned without the other object.
                 		If both objects are being provisioned in the same operation (context) and provisioning of the
                 		object that we depend on fails the provisioning of the dependent object will be skipped.
                 		The relaxed strictness guarantees ordering in case that both objects are being provisioned 
-                		in the same operation (context) and delaying of the operation on dependend resource in case
+                		in the same operation (context) and delaying of the operation on dependent resource in case
                 		the operation on independent resource fails.
                 	</xsd:documentation>
                     <xsd:appinfo>
@@ -3475,12 +3465,12 @@
                 <xsd:annotation>
                 	<xsd:documentation>
                 		If the object that we depend on is being provisioned in the same operation (context) as
-                		the dependent object then they will be provisioned in order: independed first, dependent second.
+                		the dependent object then they will be provisioned in order: independent first, dependent second.
                 		Proper inbound-template-outbound sequence of mapping will be executed between the provisionings.
                 		But NO ERROR is thrown if the dependent object is provisioned without the other object. Not even if
-                		they are provisioned in the same operation (context) an the independend object fails.
+                		they are provisioned in the same operation (context) an the independent object fails.
                 		The lax strictness only guarantees ordering in case that both objects are being (successfully) provisioned.
-                		It does not guaratee anything else.
+                		It does not guarantee anything else.
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="LAX"/>
@@ -3851,16 +3841,6 @@
 		            </xsd:documentation>
 		        </xsd:annotation>                
             </xsd:element>
-            <xsd:element name="enabled" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
-		    	<xsd:annotation>
-		            <xsd:documentation>
-		                DEPRECATED
-		            </xsd:documentation>
-		            <xsd:appinfo>
-            			<a:deprecated>true</a:deprecated>
-            		</xsd:appinfo>
-		        </xsd:annotation>                
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -3991,11 +3971,29 @@
         	<xsd:extension base="tns:ResourceItemDefinitionType">
 		     	<xsd:sequence>
 		     		<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"></xsd:element>
-		     		<xsd:element name="intent" type="xsd:string" minOccurs="0"></xsd:element>
+		     		<xsd:element name="intent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A set of intents corresponding to this association type.
+                                NOTE: All of them must point to the same resource ObjectClass!
+                            </xsd:documentation>
+                        </xsd:annotation>
+		     		</xsd:element>
 		     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0"></xsd:element>
 		     		<xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
 		     		<xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
-		     		<xsd:element name="explicitReferentialIntegrity" type="xsd:boolean"  minOccurs="0" default="true"></xsd:element>
+		     		<xsd:element name="explicitReferentialIntegrity" type="xsd:boolean"  minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether you require midPoint to provide referential integrity for object-to-subject associations.
+
+                                Used for resources that do not provide referential integrity by themselves, e.g. for OpenDJ with
+                                default settings (i.e. with referential integrity plugin turned off).
+
+                                For resources having referential integrity, e.g. for Active Directory, set this parameter to false.
+                            </xsd:documentation>
+                        </xsd:annotation>
+		     		</xsd:element>
 		     	</xsd:sequence>
 		     </xsd:extension>
 	     </xsd:complexContent>
@@ -4570,16 +4568,6 @@
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="ref" type="xsd:QName" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			DEPRECATED. Only for use in search filters. Can be removed once the filters are fixed.
-            		</xsd:documentation>
-            		<xsd:appinfo>
-            			<a:deprecated>true</a:deprecated>
-            		</xsd:appinfo>
-            	</xsd:annotation>
-            </xsd:element>
             <xsd:element name="stringFilter" type="tns:StringFilterType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="variable" type="tns:ExpressionVariableDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -4611,17 +4599,6 @@
                 
                 It must be a top-level element so the processor of Query schema can find it. See prism query-2 schema.
             </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-    
-    <xsd:element name="valueExpression" type="tns:ExpressionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                DEPRECATED. For compatibility only (search filters).
-            </xsd:documentation>
-            <xsd:appinfo>
-            		<a:deprecated>true</a:deprecated>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
     
@@ -4688,26 +4665,26 @@
             <xsd:element ref="tns:description" minOccurs="0"/>
             <!-- This needs to be a sequence of optional elements instead of choice due to a JAXB "feature" that generates XML not valid with the schema. -->
            	<xsd:element name="path" type="t:ItemPathType" minOccurs="0"/>
-               <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
-                   <xsd:annotation>
-                       <xsd:documentation>
-                           TODO
-                       </xsd:documentation>
-                   </xsd:annotation>
-               </xsd:element>
-               <xsd:element ref="tns:value" minOccurs="0">
-                   <xsd:annotation>
-                       <xsd:documentation>
-                           TODO
-                       </xsd:documentation>
-                   </xsd:annotation>
-               </xsd:element>
+            <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:value" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:element name="expressionEvaluator" abstract="true"/>
 
-    <xsd:element name="value" type="t:RawType" substitutionGroup="tns:expressionEvaluator" nillable="true">
+    <xsd:element name="value" type="xsd:anyType" substitutionGroup="tns:expressionEvaluator" nillable="true">
         <xsd:annotation>
             <xsd:documentation>
                 Static value for the attribute or property.
@@ -4731,6 +4708,9 @@
                 this to "nil" and also setting "authoritative" flag
                 may enforce removal of all attribute values (if used properly).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:rawType/>
+            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -4751,6 +4731,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="mode" type="tns:GenerateExpressionEvaluatorModeType" minOccurs="0" default="policy"/>
         	<xsd:element name="valuePolicyRef" type="tns:ObjectReferenceType" minOccurs="0">
         		<xsd:annotation>
 	                <xsd:documentation>
@@ -4765,6 +4746,43 @@
     </xsd:complexType>
 
     <xsd:element name="generate" type="tns:GenerateExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+    
+    <xsd:simpleType name="GenerateExpressionEvaluatorModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Value generator mode.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="policy">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Generator generates the value according to the applicable value policy (e.g. a password policy).
+                		The it generates a random string that satisfies the policy. If no policy can be determined then
+                		a reasonable default policy is assumed.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="POLICY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="uuid">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		The generator generates a random Universally Unique Identifier (UUID) string.
+                		The generated UUID is currently version 4 and complies with ISO/IEC 11578:1996, but this
+                		can change in the future.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UUID"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:element name="script" type="tns:ScriptExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
@@ -5050,34 +5068,24 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
-        		<xsd:annotation>
-        			<xsd:documentation>
-        				DEPRECATED, not used, never been used
-        			</xsd:documentation>
-        			<xsd:appinfo>
-        				<a:deprecated/>
-        			</xsd:appinfo>
-        		</xsd:annotation>
-        	</xsd:element>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>Flag indicating if this synchronization specification is enabled. If it is not,
                         then the system will ignore this definition.
                         If enabled, the synchronization should start with most recent change
-                        after enablinh synchronization. It will NOT pull in even the changes that
+                        after enabling synchronization. It will NOT pull in even the changes that
                         were done during disabled synchronization.</p>
 
                         <p>If this flag is not present the synchronization is assumed to be enabled.
-                        This flag is meant to act as a tool to temprarily disable synchronizatoin without loosing the
+                        This flag is meant to act as a tool to temporarily disable synchronization without loosing the
                         configuration and and state or for forcing the synchronization engine to "skip" some changes.</p>
                         
                         <p>Note that this is different than disabling/deleting the synchronization task. If the task
-                        is stopped, midPont will not poll for changes at all. This means that the changes will
+                        is stopped, midPoint will not poll for changes at all. This means that the changes will
                         still be "pending" on the resource and once the task is enabled it will pull such changes.
                         On the other hand, disabling synchronization using this flag and leaving the task running will
-                        "acknowldge" all changes without doing anything.</p>
+                        "acknowledge" all changes without doing anything.</p>
                         
                         <p>Also note that disabling synchronization using this flag will disable all the flavors, e.g.
                         it will also disable import from resource.</p>
@@ -5153,16 +5161,6 @@
             			If not present the attribute values will only be reconciled if they are available ("automatic" mode).
             			No additional read will be executed. 
             		</xsd:documentation>
-            	</xsd:annotation>
-            </xsd:element>
-            <xsd:element name="reconcileAttributes" type="xsd:boolean" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			DEPRECATED. Use "reconcile" instead. 
-            		</xsd:documentation>
-            		<xsd:appinfo>
-            			<a:deprecated/>
-            		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="opportunistic" type="xsd:boolean" minOccurs="0" default="true">
@@ -5291,7 +5289,7 @@
             			This overrides other template definitions (system global, resource).
             		</xsd:documentation>
             		<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     </xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
@@ -5336,7 +5334,7 @@
         				DEPRECATED. For compatibility only. Use objectTemplateRef in reaction instead.
         			</xsd:documentation>
         			<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     	<a:deprecated/>
                     </xsd:appinfo>
         		</xsd:annotation>
@@ -5347,7 +5345,7 @@
         				DEPRECATED. For compatibility only. Use objectTemplateRef in reaction instead.
         			</xsd:documentation>
         			<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     	<a:deprecated/>
                     </xsd:appinfo>
         		</xsd:annotation>
@@ -5810,16 +5808,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="resourceObjectShadow" type="tns:ShadowType" substitutionGroup="c:object">
-    	<xsd:annotation>
-    		<xsd:documentation>
-    			DEPRECATED. Use "shadow" element instead.
-    		</xsd:documentation>
-    		<xsd:appinfo>
-        			<a:deprecated>true</a:deprecated>
-       		</xsd:appinfo>
-    	</xsd:annotation>
-    </xsd:element>
     <xsd:element name="account" type="tns:ShadowType" substitutionGroup="c:object">
      	<xsd:annotation>
      		<xsd:documentation>
@@ -5878,11 +5866,11 @@
                 the implementation of the caching and fetching strategy, configuration of the
                 provisioning subsystem or operation that was invoked.
 
-                While this object is stored, attibutes set will contain attribute values that
+                When this object is stored, attribute set will contain attribute values that
                 are (persistently) cached from the resource.
 
-                At the normal case there should be at least attributes that identify the
-                resource object on the resouce (identifiers). This will be a single attribute
+                In the normal case, there should be at least attributes that identify the
+                resource object on the resource (identifiers). This will be a single attribute
                 in a normal case, something like uid, username, DN, etc. But if a single attribute
                 is not enough to identify the account, more than one attribute may be present.
 
@@ -5890,7 +5878,7 @@
                 user should have account on the resource, but the account is not yet created
                 and no identifier is yet assigned to it.
 
-                This schema does not distinguish which attributes are idenfiers are which are
+                This schema does not distinguish which attributes are identifiers and which are
                 ordinary attributes. That can be learned from the resource schema provided by
                 resource or resource connector.
 
@@ -5942,6 +5930,7 @@
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+    <xsd:element name="shadowAssociation" type="tns:ShadowAssociationType" />
 
     <xsd:complexType name="ShadowIdentifiersType">
     	<xsd:annotation>
@@ -5973,42 +5962,6 @@
     		<xsd:element name="full" type="xsd:boolean" minOccurs="0"/>
     	</xsd:sequence>
     </xsd:complexType>
-
-    <xsd:complexType name="AccountShadowType">
-        <xsd:annotation>
-            <xsd:documentation>
-            	DEPRECATED
-            	
-                Account object type. Represents account on a target system. In the minimal form it
-                contains only identifiers and meta-data, but it may also be used for locally caching
-                the account data (in local repository).
-
-                This object is supposed to be stored in LOCAL REPOSITORY, it is NOT the object on
-                provisioning resource. For that please see the resource schema which is dynamic and may
-                be different for each resource.
-            </xsd:documentation>
-            <xsd:appinfo>
-         			<a:deprecated>true</a:deprecated>
-         		</xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ShadowType">
-                <xsd:sequence>
-                    <xsd:element name="accountType" type="xsd:string" minOccurs="0">
-                    	<xsd:annotation>
-                    		<xsd:documentation>
-                    			DEPRECATED. Replaced by "intent" in tns:ShadowType.
-                    		</xsd:documentation>
-                    		<xsd:appinfo>
-		            			<a:deprecated>true</a:deprecated>
-		            		</xsd:appinfo>
-                    	</xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
 
     <!-- CONVENIENCE ELEMENTS Following definitions are there to use in examples, 
 		import files, etc. These should not be used in the services -->
@@ -7063,7 +7016,7 @@
     
     <xsd:element name="entryValue" abstract="true"/>
     
-    <xsd:element name="paramValue" type="t:RawType" substitutionGroup="tns:entryValue" nillable="true">
+    <xsd:element name="paramValue" type="xsd:anyType" substitutionGroup="tns:entryValue" nillable="true">
         <xsd:annotation>
             <xsd:documentation>
                 Static value for the attribute or property.
@@ -7087,6 +7040,9 @@
                 this to "nil" and also setting "authoritative" flag
                 may enforce removal of all attribute values (if used properly).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:rawType/>
+            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -7357,9 +7313,15 @@
                      </xsd:documentation>
                      <xsd:appinfo>
              			<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
-             			<a:deprecated/>
              		</xsd:appinfo>
                  </xsd:annotation>
+             </xsd:element>
+             <xsd:element name="oidNameBoundMode" type="xsd:boolean" minOccurs="0" default="false">
+             	<xsd:annotation>
+             		<xsd:documentation>
+             			A mode in which OID and name of the speciefied object are the same.
+             		</xsd:documentation>
+             	</xsd:annotation>
              </xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
@@ -9353,8 +9315,13 @@
                 <xsd:sequence>
                     <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0"/>
                     <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded"/>
-                   	<xsd:element name="template" type="t:XmlAsStringType" minOccurs="0"/>
-                	<xsd:element name="templateStyle" type="t:XmlAsStringType" minOccurs="0"/>
+                    
+
+                    <xsd:element name="template" type="xsd:base64Binary" minOccurs="0" maxOccurs="1" />
+                    <xsd:element name="templateStyle" type="xsd:base64Binary" minOccurs="0" maxOccurs="1" />
+                       
+<!--                    	<xsd:element name="template" type="t:XmlAsStringType" minOccurs="0"/> -->
+<!--                 	<xsd:element name="templateStyle" type="t:XmlAsStringType" minOccurs="0"/> -->
                     <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
     				    <xsd:annotation>
                             <xsd:documentation>

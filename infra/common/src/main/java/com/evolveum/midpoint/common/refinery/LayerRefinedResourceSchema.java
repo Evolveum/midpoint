@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -39,6 +42,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
+ *
+ * This class enhances RefinedResourceSchema with a layer-specific view.
+ *
+ * TODO: However, there are a few unresolved issues that should be dealt with:
+ *
+ * 1) Although it might seem to contain LayerRefinedObjectClassDefinitions (LROCDs), it is not the case:
+ * it generates them on the fly by calling LROCD.wrap method every time.
+ *
+ * 2) When accessing attributes via findItemDefinition of this object, a non-layered version
+ * of attribute container is returned.
  *
  */
 public class LayerRefinedResourceSchema extends RefinedResourceSchema {
@@ -190,6 +203,63 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 
 	public boolean isEmpty() {
 		return refinedResourceSchema.isEmpty();
+	}
+	
+	public Collection<ObjectClassComplexTypeDefinition> getObjectClassDefinitions() {
+		return refinedResourceSchema.getObjectClassDefinitions();
+	}
+
+	public ObjectClassComplexTypeDefinition createObjectClassDefinition(String localTypeName) {
+		return refinedResourceSchema.createObjectClassDefinition(localTypeName);
+	}
+
+	public ObjectClassComplexTypeDefinition createObjectClassDefinition(QName typeName) {
+		return refinedResourceSchema.createObjectClassDefinition(typeName);
+	}
+
+	public Collection<? extends RefinedObjectClassDefinition> getRefinedDefinitions() {
+		return refinedResourceSchema.getRefinedDefinitions();
+	}
+
+	public ObjectClassComplexTypeDefinition findObjectClassDefinition(ShadowType shadow) {
+		return refinedResourceSchema.findObjectClassDefinition(shadow);
+	}
+
+	public ObjectClassComplexTypeDefinition findObjectClassDefinition(String localName) {
+		return refinedResourceSchema.findObjectClassDefinition(localName);
+	}
+
+	public Collection<PrismObjectDefinition> getObjectDefinitions() {
+		return refinedResourceSchema.getObjectDefinitions();
+	}
+
+	public Collection<ComplexTypeDefinition> getComplexTypeDefinitions() {
+		return refinedResourceSchema.getComplexTypeDefinitions();
+	}
+
+	public ObjectClassComplexTypeDefinition findObjectClassDefinition(ShadowKindType kind, String intent) {
+		return refinedResourceSchema.findObjectClassDefinition(kind, intent);
+	}
+
+	public ObjectClassComplexTypeDefinition findDefaultObjectClassDefinition(ShadowKindType kind) {
+		return refinedResourceSchema.findDefaultObjectClassDefinition(kind);
+	}
+
+	public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName objectClassQName) {
+		return refinedResourceSchema.findObjectClassDefinition(objectClassQName);
+	}
+
+	public <X extends Objectable> PrismObjectDefinition<X> findObjectDefinitionByTypeAssumeNs(QName typeName) {
+		return refinedResourceSchema.findObjectDefinitionByTypeAssumeNs(typeName);
+	}
+
+	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByCompileTimeClass(
+			Class<C> type) {
+		return refinedResourceSchema.findContainerDefinitionByCompileTimeClass(type);
+	}
+
+	public PrismReferenceDefinition findReferenceDefinitionByElementName(QName elementName) {
+		return refinedResourceSchema.findReferenceDefinitionByElementName(elementName);
 	}
 
 	@Override

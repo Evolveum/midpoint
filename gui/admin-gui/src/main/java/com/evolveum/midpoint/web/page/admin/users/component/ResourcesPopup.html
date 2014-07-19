@@ -18,12 +18,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 	<div class="popupWindow">
-        <div class="popupContent">
+        <form wicket:id="searchForm" class="form-inline pull-right"
+              style="padding: 5px;">
+
+            <div wicket:id="basicSearch" />
+        </form>
+
+        <div class="clearfix">
             <div wicket:id="table"/>
         </div>
-        <div class="popupButtons">
+
+        <p align="center">
             <a class="btn btn-success" wicket:id="add" />
-        </div>
+        </p>
    	</div>
 </wicket:panel>
 </html>

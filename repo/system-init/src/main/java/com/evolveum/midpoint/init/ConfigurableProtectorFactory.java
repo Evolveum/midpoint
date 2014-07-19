@@ -19,14 +19,18 @@ package com.evolveum.midpoint.init;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.crypto.AESProtector;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.security.KeyStore;
 
 /**
  * @author lazyman
@@ -53,9 +57,27 @@ public class ConfigurableProtectorFactory {
             return;
         }
 
-        String keyStoreName = ks.getName();
-        if (!ClassPathUtil.extractFileFromClassPath("com/../../" + keyStoreName, protectorConfig.getKeyStorePath())) {
-            ClassPathUtil.extractFileFromClassPath(keyStoreName, protectorConfig.getKeyStorePath());
+        //todo improve
+        FileOutputStream fos = null;
+        try {
+            KeyStore keystore = KeyStore.getInstance("jceks");
+            char[] password = "changeit".toCharArray();
+
+            keystore.load(null, password);
+
+            KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+            keyGen.init(128);
+            SecretKey secretKey = keyGen.generateKey();
+
+            keystore.setKeyEntry("default", secretKey, "midpoint".toCharArray(), null);
+
+            fos = new FileOutputStream(protectorConfig.getKeyStorePath());
+            keystore.store(fos, password);
+            fos.close();
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't generate keystore, reason: " + ex.getMessage(), ex);
+        } finally {
+            IOUtils.closeQuietly(fos);
         }
     }
 

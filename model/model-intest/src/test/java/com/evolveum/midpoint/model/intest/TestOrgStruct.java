@@ -384,7 +384,6 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 			assertAssignedOrg(user, orgOid);
 	        assertHasOrg(user, orgOid);
 		}
-		assertAssignments(user, orgOids.length);
 		assertHasOrgs(user, orgOids.length);
 	}
 	

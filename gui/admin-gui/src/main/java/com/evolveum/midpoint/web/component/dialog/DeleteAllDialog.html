@@ -1,0 +1,82 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div wicket:id="content" style="padding: 5px 5px 5px 5px">
+
+        <p align="left">
+            <span>
+                <wicket:message key="deleteAllDialog.message.choose" />
+            </span>
+        </p>
+
+        <div class="row" style="margin: 0px 0px 0px 0px">
+            <div class="col-md-4">
+                <label><wicket:message key="deleteAllDialog.label.users" /></label>
+            </div>
+            <div class="col-md-1">
+                <input type="checkbox" wicket:id="checkboxUsers"/>
+            </div>
+            <div class="col-md-6">
+                <span wicket:id="confirmTextUsers" />
+            </div>
+        </div>
+
+        <div class="row" style="margin: 0px 0px 0px 0px">
+            <div class="col-md-4">
+                <label><wicket:message key="deleteAllDialog.label.org" /></label>
+            </div>
+            <div class="col-md-1">
+                <input type="checkbox" wicket:id="checkboxOrg"/>
+            </div>
+            <div class="col-md-6">
+                <span wicket:id="confirmTextOrgUnits" />
+            </div>
+        </div>
+
+        <div class="row" style="margin: 0px 0px 0px 0px">
+            <div class="col-md-4">
+                <label><wicket:message key="deleteAllDialog.label.shadow.account" /></label>
+            </div>
+            <div class="col-md-1">
+                <input type="checkbox" wicket:id="checkboxAccountShadow"/>
+            </div>
+            <div class="col-md-6">
+                <span wicket:id="confirmTextAccountShadow" />
+            </div>
+        </div>
+
+        <div class="row" style="margin: 0px 0px 0px 0px">
+            <div class="col-md-4">
+                <label><wicket:message key="deleteAllDialog.label.shadow.nonAccount" /></label>
+            </div>
+            <div class="col-md-1">
+                <input type="checkbox" wicket:id="checkboxNonAccountShadow"/>
+            </div>
+            <div class="col-md-6">
+                <span wicket:id="confirmTextNonAccountShadows" />
+            </div>
+        </div>
+
+        <p align="center">
+            <b><span wicket:id="totalCountLabel" /></b>
+        </p>
+
+        <p align="center">
+            <a class="btn btn-primary btn-sm" wicket:id="yes" />
+            <a class="btn btn-default btn-sm" wicket:id="no" />
+        </p>
+    </div>
+</wicket:panel>

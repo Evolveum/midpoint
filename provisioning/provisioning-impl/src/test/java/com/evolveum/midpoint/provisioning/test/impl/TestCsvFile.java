@@ -327,8 +327,8 @@ public class TestCsvFile extends AbstractIntegrationTest {
 		script.setCode("src/test/script/csvscript.sh");
 		ProvisioningScriptArgumentType argument = new ProvisioningScriptArgumentType();
 		argument.setName("NAME");
-		JAXBElement<RawType> valueEvaluator = new ObjectFactory().createValue(null);
-        RawType value = new RawType(new PrimitiveXNode<String>("World"));
+		JAXBElement<RawType> valueEvaluator = (JAXBElement) new ObjectFactory().createValue(null);
+        RawType value = new RawType(new PrimitiveXNode<String>("World"), prismContext);
 		valueEvaluator.setValue(value);
 		argument.getExpressionEvaluator().add(valueEvaluator);
 		script.getArgument().add(argument);

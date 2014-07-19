@@ -43,9 +43,8 @@ This resource definition contains also definition to enable synchronization.
         <connectorRef type="ConnectorType">
             <filter>
                 <q:equal>
-                    <q:value>
-                        <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-                    </q:value>
+                    <q:path>connectorType</q:path>
+                    <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
                 </q:equal>
             </filter>
         </connectorRef>
@@ -95,8 +94,8 @@ This resource definition contains also definition to enable synchronization.
         <schemaHandling>
             <!-- Definition of default account type.
                  This is now the only account type that OpenIDM can work with. -->
-            <accountType>
-                <name>default</name>
+            <objectType>
+                <intent>default</intent>
                 <!-- Readable name for the account type -->
                 <displayName>Default Account</displayName>
                 <default>true</default>
@@ -433,7 +432,7 @@ This resource definition contains also definition to enable synchronization.
                         </target>
                     </inbound>
                 </attribute>
-            </accountType>
+            </objectType>
         </schemaHandling>
         <!--
             Synchronization section describes the synchronization policy, timing,
@@ -457,9 +456,8 @@ This resource definition contains also definition to enable synchronization.
 	                     equal to the "uid" attribute of the account. Simply speaking,
 	                     it will look for match in usernames in the IDM and the resource. -->
 	                <q:equal>
-	                    <q:path>.</q:path>
+	                    <q:path>name</q:path>
 	                    <expression>
-	                        <ref>name</ref>
 	                        <script>
 		                        <code>
 		                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";

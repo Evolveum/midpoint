@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;
 import com.evolveum.midpoint.web.page.admin.server.dto.StartEndDateValidator;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -57,8 +58,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowInformationPanel;
-import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -68,23 +67,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -93,7 +85,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.*;
@@ -117,6 +108,7 @@ public class PageTaskEdit extends PageAdminTasks {
 	private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
     private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTask";
     private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
+    private static final String OPERATION_RUN_NOW_TASK = DOT_CLASS + "runNowTask";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_IDENTIFIER = "identifier";
@@ -136,6 +128,7 @@ public class PageTaskEdit extends PageAdminTasks {
     private static final String ID_OPERATION_RESULT_PANEL = "operationResultPanel";
     private static final String ID_SUSPEND = "suspend";
     private static final String ID_RESUME = "resume";
+    private static final String ID_RUN_NOW = "runNow";
     private static final String ID_DRY_RUN = "dryRun";
 
     private IModel<TaskDto> model;
@@ -147,7 +140,7 @@ public class PageTaskEdit extends PageAdminTasks {
         this(new PageParameters(), null);
     }
 
-    public PageTaskEdit(PageParameters parameters, PageBase previousPage) {
+    public PageTaskEdit(PageParameters parameters, PageTemplate previousPage) {
 
         this.parameters = parameters;
         setPreviousPage(previousPage);
@@ -169,9 +162,28 @@ public class PageTaskEdit extends PageAdminTasks {
         return TaskDtoExecutionStatus.RUNNABLE.equals(exec) || TaskDtoExecutionStatus.RUNNING.equals(exec);
     }
 
+    private boolean isRunnable() {
+        TaskDtoExecutionStatus exec = model.getObject().getExecution();
+        return TaskDtoExecutionStatus.RUNNABLE.equals(exec);
+    }
+
     private boolean isRunning() {
         TaskDtoExecutionStatus exec = model.getObject().getExecution();
         return TaskDtoExecutionStatus.RUNNING.equals(exec);
+    }
+
+    private boolean isClosed() {
+        TaskDtoExecutionStatus exec = model.getObject().getExecution();
+        return TaskDtoExecutionStatus.CLOSED.equals(exec);
+    }
+
+    private boolean isRecurring() {
+        return model.getObject().getRecurring();
+    }
+
+    private boolean isSuspended() {
+        TaskDtoExecutionStatus exec = model.getObject().getExecution();
+        return TaskDtoExecutionStatus.SUSPENDED.equals(exec);
     }
 
     private TaskDto loadTask() {
@@ -695,7 +707,7 @@ public class PageTaskEdit extends PageAdminTasks {
 
             @Override
             public boolean isVisible() {
-                return isRunnableOrRunning();
+                return !edit && isRunnableOrRunning();
             }
         });
         mainForm.add(suspend);
@@ -711,11 +723,27 @@ public class PageTaskEdit extends PageAdminTasks {
 
             @Override
             public boolean isVisible() {
-                return !isRunning();
+                return !edit && (isSuspended() || (isClosed() && isRecurring()));
             }
         });
         mainForm.add(resume);
-	}
+
+        AjaxButton runNow = new AjaxButton(ID_RUN_NOW, createStringResource("pageTaskEdit.button.runNow")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                runNowPerformed(target);
+            }
+        };
+        runNow.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return !edit && (isRunnable() || (isClosed() && !isRecurring()));
+            }
+        });
+        mainForm.add(runNow);
+    }
 
 	private List<IColumn<OperationResult, String>> initResultColumns() {
 		List<IColumn<OperationResult, String>> columns = new ArrayList<IColumn<OperationResult, String>>();
@@ -864,7 +892,25 @@ public class PageTaskEdit extends PageAdminTasks {
         setResponsePage(PageTasks.class);
     }
 
-	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
+    private void runNowPerformed(AjaxRequestTarget target) {
+        String oid = model.getObject().getOid();
+        OperationResult result = new OperationResult(OPERATION_RUN_NOW_TASK);
+        try {
+            getTaskService().scheduleTasksNow(Arrays.asList(oid), result);
+            result.computeStatus();
+
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully scheduled to run.");
+            }
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't schedule the task due to an unexpected exception", e);
+        }
+
+        showResultInSession(result);
+        setResponsePage(PageTasks.class);
+    }
+
+    private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 
 		public EmptyOnBlurAjaxFormUpdatingBehaviour() {
 			super("onBlur");

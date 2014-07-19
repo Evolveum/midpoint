@@ -268,8 +268,8 @@
    </schema>
       
 	<schemaHandling>
-		<accountType>
-			<name>default</name>
+		<objectType>
+			<intent>default</intent>
 			<displayName>Default Account</displayName>
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
@@ -419,7 +419,7 @@
             </protected>
 			
             <activation>
-                <enabled>
+                  <administrativeStatus>
                     <outbound/>
                     <inbound>
                     	<strength>weak</strength>
@@ -427,7 +427,7 @@
                             <asIs/>
                         </expression>
                     </inbound>
-                </enabled>
+                  </administrativeStatus>
             </activation>
 			
             <credentials>
@@ -446,7 +446,7 @@
                 </password>
             </credentials>
             
-		</accountType>
+		</objectType>
 	</schemaHandling>
 
 
@@ -478,7 +478,10 @@
 	                <q:equal>
 	                    <q:path>c:name</q:path>
 	                    <expression>
-				<path>$account/attributes/ri:uid</path>
+				<path>
+				declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+				$account/attributes/ri:uid
+				</path>
 	                    </expression>
 	                </q:equal>
 	            </correlation>

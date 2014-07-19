@@ -100,8 +100,7 @@ This resource definition contains only the very basic definitions for midPoint t
         -->
 
 		<schemaHandling>
-			<accountType>
-				<name>default</name>
+			<objectType>
 				<displayName>Default Account</displayName>
 				<default>true</default>
 				<objectClass>ri:AccountObjectClass</objectClass>
@@ -189,7 +188,7 @@ changed, so this outbound will not be processed.
 Please note that AD itself does not support changing the _PASSWORD_EXPIRED__
 to "false". The only way of resetting the flag is to change user's password.
 -->
-					<ref>ri:__PASSWORD_EXPIRED__</ref>
+					<ref>icfs:passwordExpired</ref>
 					<outbound>
 						<expression>
 							<value>true</value>
@@ -212,7 +211,7 @@ to "false". The only way of resetting the flag is to change user's password.
 						<outbound/>
 				    </password>
 				</credentials>
-			</accountType>
+			</objectType>
 		</schemaHandling>
 		<scripts>
 			<script>

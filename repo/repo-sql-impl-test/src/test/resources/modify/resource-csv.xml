@@ -86,8 +86,8 @@ object.
 
             <!-- Definition of default account type.
                  This is now the only account type that midPoint can work with. -->
-            <accountType>
-                <name>default</name>
+            <objectType>
+                <intent>default</intent>
 
                 <!-- Readable name for the account type -->
                 <displayName>Default Account</displayName>
@@ -210,7 +210,7 @@ object.
                         </inbound>
                     </administrativeStatus>
                 </activation>
-            </accountType>
+            </objectType>
         </schemaHandling>
         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
         	<configured>
@@ -245,17 +245,16 @@ object.
 	                    The correlation rule always looks for users, so it will not match
 	                    any other object type.
 	                </q:description>
-	                <filter>
-	                	<q:equal>
-		                    <q:path>name</q:path>
-		                    <valueExpression>
-		                        <ref>name</ref>
-		                        <code>
-		                            $c:account/c:attributes/icfs:name
-		                        </code>
-		                    </valueExpression>
-	                	</q:equal>
-	                </filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                            <script>
+                                <code>
+                                    $c:account/c:attributes/icfs:name
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
 	            </correlation>
 	
 	            <!-- Confirmation rule may be here, but as the search above will

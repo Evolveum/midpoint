@@ -53,6 +53,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -270,7 +271,15 @@ public class PageUser extends PageAdminUsers {
         }
 
         ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
+        ObjectWrapper wrapper = null;
+        try{
+        	wrapper = ObjectWrapperUtil.createObjectWrapper("pageUser.userDetails", null, user, status, this);
+        } catch (Exception ex){
+        	result.recordFatalError("Couldn't get user.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
+            wrapper = new ObjectWrapper("pageUser.userDetails", null, user, null, status, this);
+        }
+//        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
         if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }
@@ -625,12 +634,30 @@ public class PageUser extends PageAdminUsers {
 
                 ResourceType resource = accountType.getResource();
                 String resourceName = WebMiscUtil.getName(resource);
-
-                ObjectWrapper wrapper = new ObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
-                        .getName()), account, ContainerStatus.MODIFYING);
+                
+                ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
+                        .getName()), account, ContainerStatus.MODIFYING, true, this);
+//                ObjectWrapper wrapper = new ObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
+//                        .getName()), account, ContainerStatus.MODIFYING);
                 wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
                 wrapper.setSelectable(true);
                 wrapper.setMinimalized(true);
+                
+                PrismContainer<ShadowAssociationType> associationContainer = account.findContainer(ShadowType.F_ASSOCIATION);
+                if (associationContainer != null && associationContainer.getValues() != null){
+                	List<PrismProperty> associations = new ArrayList<>(associationContainer.getValues().size());
+                	for (PrismContainerValue associationVal : associationContainer.getValues()){
+                		ShadowAssociationType associationType = (ShadowAssociationType) associationVal.asContainerable();
+                		PrismObject<ShadowType> association = getModelService().getObject(ShadowType.class, associationType.getShadowRef().getOid(), null, task, subResult);
+                		associations.add(association.findProperty(ShadowType.F_NAME));
+                		
+                	}
+                	
+                	wrapper.setAssociations(associations);
+                	
+                }
+
+                wrapper.initializeContainers(this);
 
                 list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
 
@@ -808,8 +835,8 @@ public class PageUser extends PageAdminUsers {
         }
         try {
             filters.add(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class, getPrismContext(), oid));
-            filters.add(NotFilter.createNot(EqualsFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, getPrismContext(), null, TaskExecutionStatusType.CLOSED)));
-            filters.add(EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
+            filters.add(NotFilter.createNot(EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, getPrismContext(), null, TaskExecutionStatusType.CLOSED)));
+            filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
         } catch (SchemaException e) {
             throw new SystemException("Unexpected SchemaException when creating task filter", e);
         }
@@ -865,23 +892,27 @@ public class PageUser extends PageAdminUsers {
 
     private void initResourceModal() {
         ModalWindow window = createModalWindow(MODAL_ID_RESOURCE,
-                createStringResource("pageUser.title.selectResource"), 1100, 520);
+                createStringResource("pageUser.title.selectResource"), 1100, 560);
 
-        SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel);
-        window.setContent(new ResourcesPopup(window.getContentId(), provider) {
+        final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel);
+        window.setContent(new ResourcesPopup(window.getContentId()) {
+
+            @Override
+            public SimpleUserResourceProvider getProvider(){
+                return provider;
+            }
 
             @Override
             protected void addPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
                 addSelectedAccountPerformed(target, newResources);
             }
         });
-
         add(window);
     }
 
     private void initAssignableModal() {
         ModalWindow window = createModalWindow(MODAL_ID_ASSIGNABLE,
-                createStringResource("pageUser.title.selectAssignable"), 1100, 520);
+                createStringResource("pageUser.title.selectAssignable"), 1100, 560);
         window.setContent(new AssignablePopupContent(window.getContentId()) {
 
             @Override
@@ -1072,7 +1103,7 @@ public class PageUser extends PageAdminUsers {
     }
 
     private ReferenceDelta prepareUserAccountsDeltaForModify(PrismReferenceDefinition refDef) throws SchemaException {
-        ReferenceDelta refDelta = new ReferenceDelta(refDef);
+        ReferenceDelta refDelta = new ReferenceDelta(refDef, getPrismContext());
 
         List<UserAccountDto> accounts = accountsModel.getObject();
         for (UserAccountDto accDto : accounts) {
@@ -1113,7 +1144,7 @@ public class PageUser extends PageAdminUsers {
 
     private ContainerDelta handleAssignmentDeltas(ObjectDelta<UserType> userDelta, PrismContainerDefinition def)
             throws SchemaException {
-        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), UserType.F_ASSIGNMENT, def);
+        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), UserType.F_ASSIGNMENT, def, getPrismContext());
 
         PrismObject<UserType> user = userModel.getObject().getObject();
         PrismObjectDefinition userDef = user.getDefinition();
@@ -1185,7 +1216,7 @@ public class PageUser extends PageAdminUsers {
         ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
         if (path != null) {
             for (ItemPathSegment seg : path.getSegments()) {
-                if (seg.equals(firstDeltaSegment)) {
+                if (seg.equivalent(firstDeltaSegment)) {
                     break;
                 }
                 newPath.add(seg);
@@ -1232,11 +1263,12 @@ public class PageUser extends PageAdminUsers {
         // try {
 
         try {
+            reviveModels();
+
             delta = userWrapper.getObjectDelta();
             if (userWrapper.getOldDelta() != null) {
                 delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
             }
-            delta.setPrismContext(getPrismContext());
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
@@ -1357,6 +1389,13 @@ public class PageUser extends PageAdminUsers {
             target.add(getFeedbackPanel());
         }
 
+    }
+
+    private void reviveModels() throws SchemaException {
+        WebMiscUtil.revive(userModel, getPrismContext());
+        WebMiscUtil.revive(accountsModel, getPrismContext());
+        WebMiscUtil.revive(assignmentsModel, getPrismContext());
+        WebMiscUtil.revive(summaryUser, getPrismContext());
     }
 
     private boolean executeForceDelete(ObjectWrapper userWrapper, Task task, ModelExecuteOptions options,
@@ -1521,8 +1560,10 @@ public class PageUser extends PageAdminUsers {
 
                 getPrismContext().adopt(shadow);
 
-                ObjectWrapper wrapper = new ObjectWrapper(WebMiscUtil.getOrigStringFromPoly(resource.getName()), null,
-                        shadow.asPrismObject(), ContainerStatus.ADDING);
+                ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(WebMiscUtil.getOrigStringFromPoly(resource.getName()), null,
+                        shadow.asPrismObject(), ContainerStatus.ADDING, this);
+//                ObjectWrapper wrapper = new ObjectWrapper(WebMiscUtil.getOrigStringFromPoly(resource.getName()), null,
+//                        shadow.asPrismObject(), ContainerStatus.ADDING);
                 if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
                     showResultInSession(wrapper.getResult());
                 }

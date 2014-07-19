@@ -25,7 +25,7 @@
 	<oid>WILL-BE-DYNAMICALY-REPLACED-BY-TEST-CODE</oid>
 	<itemDelta>
 		<modificationType>add</modificationType>
-		<path>assignment</path>
+		<path>c:assignment</path>
 		<value>
 			<c:construction>
 				<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />

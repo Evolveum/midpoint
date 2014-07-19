@@ -111,8 +111,9 @@ public class StaticExpressionUtil {
 			}
 			
 			JAXBElement<?> jaxbElement = (JAXBElement<?>)valueElement;
-			if (!RawType.class.isAssignableFrom(jaxbElement.getDeclaredType())) {
-				throw new SchemaException("Literal expression cannot handle JAXBElement value type "+jaxbElement.getDeclaredType()+" in "
+            // not checking declaredType because it may be Object.class instead ... but actual type must be of RawType
+            if (jaxbElement.getValue() != null && !(jaxbElement.getValue() instanceof RawType)) {
+				throw new SchemaException("Literal expression cannot handle JAXBElement value type "+jaxbElement.getValue().getClass()+" in "
 						+contextDescription);
 			}
 			

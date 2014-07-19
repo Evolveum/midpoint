@@ -31,7 +31,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -238,7 +238,7 @@ public class TestParseDiffPatch {
 
         ObjectModificationType objectModificationType = DeltaConvertor.toObjectModificationType(userDelta);
         System.out.println("Modification XML:");
-        System.out.println(JaxbTestUtil.marshalWrap(objectModificationType));
+        System.out.println(PrismTestUtil.serializeAnyDataWrapped(objectModificationType));
         assertEquals("Wrong delta OID", userBefore.getOid(), objectModificationType.getOid());
         List<ItemDeltaType> propertyModifications = objectModificationType.getItemDelta();
         assertEquals("Unexpected number of modifications", 3, propertyModifications.size());
@@ -352,7 +352,7 @@ public class TestParseDiffPatch {
 
         ObjectModificationType objectModificationType =  DeltaConvertor.toObjectModificationType(diffDelta);
         System.out.println("Modification XML:");
-        System.out.println(JaxbTestUtil.marshalWrap(objectModificationType));
+        System.out.println(PrismTestUtil.serializeAnyDataWrapped(objectModificationType));
 
         // Check for xsi:type
 //        Element tokenElement = (Element) objectModificationType.getModification().get(0).getValue().getAny().get(0);
@@ -427,13 +427,14 @@ public class TestParseDiffPatch {
         assertEquals("Wrong delta OID", "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", resourceDelta.getOid());
         assertEquals("Wrong change type", ChangeType.MODIFY, resourceDelta.getChangeType());
         Collection<? extends ItemDelta> modifications = resourceDelta.getModifications();
-        assertEquals("Unexpected number of modifications", 6, modifications.size());
+        assertEquals("Unexpected number of modifications", 7, modifications.size());
         PrismAsserts.assertContainerDelete(resourceDelta, ResourceType.F_SCHEMA);
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("update"), 3);
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("scriptOnResource"), 4);
         PrismAsserts.assertPropertyDelete(resourceDelta,
         		new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "producerBufferSize")),
         		100);
+        PrismAsserts.assertPropertyReplaceSimple(resourceDelta, ResourceType.F_SYNCHRONIZATION);
         // Configuration properties changes
         assertConfigurationPropertyChange(resourceDelta, "principal");
         assertConfigurationPropertyChange(resourceDelta, "credentials");
@@ -591,7 +592,7 @@ public class TestParseDiffPatch {
 	}
 
     private void assertXmlPolyMod(ObjectModificationType objectModificationType, QName propertyName,
-            ModificationTypeType modType, PolyStringType... expectedValues) {
+            ModificationTypeType modType, PolyStringType... expectedValues) throws SchemaException {
     	//FIXME: 
         for (ItemDeltaType mod : objectModificationType.getItemDelta()) {
         	 if (!propertyName.equals(mod.getPath().getItemPath().last())) {
@@ -604,9 +605,9 @@ public class TestParseDiffPatch {
         }
     }
     
-    private void assertModificationPolyStringValue(RawType value, PolyStringType... expectedValues){
-    	List<Object> elements = value.getContent();
-        assertFalse(elements.isEmpty());
+    private void assertModificationPolyStringValue(RawType value, PolyStringType... expectedValues) throws SchemaException {
+    	XNode xnode = value.serializeToXNode();
+        assertFalse(xnode.isEmpty());
 //        Object first = elements.get(0);
 //        QName elementQName = JAXBUtil.getElementQName(first);
 //        if (!propertyName.equals(elementQName)) {
@@ -614,21 +615,14 @@ public class TestParseDiffPatch {
 //        }
 
        
-        assertEquals(expectedValues.length, elements.size());
-        for (Object element : elements) {
-            boolean found = false;
-            for (PolyStringType expectedValue: expectedValues) {
-                JAXBElement<PolyStringType> jaxbElement = (JAXBElement<PolyStringType>)element;
-//                Element orig = DOMUtil.getChildElement(domElement, new QName(SchemaConstantsGenerated.NS_TYPES, "orig"));
-//                Element norm = DOMUtil.getChildElement(domElement, new QName(SchemaConstantsGenerated.NS_TYPES, "norm"));
-                PolyStringType polyString = jaxbElement.getValue();
-             
-                if (expectedValue.getOrig().equals(polyString.getOrig()) && expectedValue.getNorm().equals(polyString.getNorm())) {
-                    found = true;
-                }
+        PolyStringType valueAsPoly = value.getPrismContext().getXnodeProcessor().parseAtomicValue(xnode, PolyStringType.COMPLEX_TYPE);
+        boolean found = false;
+        for (PolyStringType expectedValue: expectedValues) {
+            if (expectedValue.getOrig().equals(valueAsPoly.getOrig()) && expectedValue.getNorm().equals(valueAsPoly.getNorm())) {
+                found = true;
             }
-            assertTrue(found);
         }
+        assertTrue(found);
     }
 
     private boolean equal(String value, Element element) {
@@ -643,32 +637,32 @@ public class TestParseDiffPatch {
         return value.equals(element.getTextContent());
     }
 
-	private void assertXmlMod(ObjectModificationType objectModificationType, QName propertyName,
-			ModificationTypeType modType, String... expectedValues) {
-		for (ItemDeltaType mod: objectModificationType.getItemDelta()) {
-			assertEquals(modType, mod.getModificationType());
-			for (RawType val : mod.getValue()){
-				List<Object> elements = val.getContent();
-				assertFalse(elements.isEmpty());
-				Object first = elements.get(0);
-//				QName elementQName = JAXBUtil.getElementQName(first);
-				if (propertyName.equals(mod.getPath().getItemPath().last())) {
-					
-					assertEquals(expectedValues.length, elements.size());
-					for (Object element: elements) {
-						boolean found = false;
-						for (String expectedValue: expectedValues) {
-							Element domElement = (Element)element;
-							if (expectedValue.equals(domElement.getTextContent())) {
-								found = true;
-							}
-						}
-						assertTrue(found);
-					}
-				}
-			}
-		}
-	}
+//	private void assertXmlMod(ObjectModificationType objectModificationType, QName propertyName,
+//			ModificationTypeType modType, String... expectedValues) {
+//		for (ItemDeltaType mod: objectModificationType.getItemDelta()) {
+//			assertEquals(modType, mod.getModificationType());
+//			for (RawType val : mod.getValue()){
+//				List<Object> elements = val.getContent();
+//				assertFalse(elements.isEmpty());
+//				Object first = elements.get(0);
+////				QName elementQName = JAXBUtil.getElementQName(first);
+//				if (propertyName.equals(mod.getPath().getItemPath().last())) {
+//
+//					assertEquals(expectedValues.length, elements.size());
+//					for (Object element: elements) {
+//						boolean found = false;
+//						for (String expectedValue: expectedValues) {
+//							Element domElement = (Element)element;
+//							if (expectedValue.equals(domElement.getTextContent())) {
+//								found = true;
+//							}
+//						}
+//						assertTrue(found);
+//					}
+//				}
+//			}
+//		}
+//	}
 
 
 }

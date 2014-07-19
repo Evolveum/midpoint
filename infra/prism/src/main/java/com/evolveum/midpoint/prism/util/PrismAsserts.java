@@ -28,6 +28,8 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -60,7 +62,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -334,8 +336,14 @@ public class PrismAsserts {
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
 		assertReplace(propertyDelta, expectedValues);
 	}
-		
-	public static <T> void assertReplace(PropertyDelta<T> propertyDelta, T... expectedValues) {
+
+    public static void assertPropertyReplaceSimple(ObjectDelta<?> objectDelta, QName propertyName) {
+        PropertyDelta<Object> propertyDelta = objectDelta.findPropertyDelta(propertyName);
+        assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
+        assertTrue("No values to replace", propertyDelta.getValuesToReplace() != null && !propertyDelta.getValuesToReplace().isEmpty());
+    }
+
+    public static <T> void assertReplace(PropertyDelta<T> propertyDelta, T... expectedValues) {
 		assertSet("delta "+propertyDelta+" for "+propertyDelta.getElementName(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
@@ -818,17 +826,17 @@ public class PrismAsserts {
 	
 	public static void assertEqualsFilter(ObjectFilter objectFilter, QName expectedFilterDef,
 			QName expectedTypeName, ItemPath path) {
-		assertEquals("Wrong filter class", EqualsFilter.class, objectFilter.getClass());
-		EqualsFilter filter = (EqualsFilter) objectFilter;
+		assertEquals("Wrong filter class", EqualFilter.class, objectFilter.getClass());
+		EqualFilter filter = (EqualFilter) objectFilter;
 		//we don't have definition in all situation..this is almost OK..it will be computed dynamicaly
 		if (filter.getDefinition() != null){
 			assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
 			assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
 		}
-		assertEquals("Wrong filter path", path, filter.getFullPath());
+		assertPathEquivalent("Wrong filter path", path, filter.getFullPath());
 	}
 	
-	public static <T> void assertEqualsFilterValue(EqualsFilter filter, T value) {
+	public static <T> void assertEqualsFilterValue(EqualFilter filter, T value) {
 		List<? extends PrismValue> values = filter.getValues();
 		assertEquals("Wrong number of filter values", 1, values.size());
 		assertEquals("Wrong filter value class", PrismPropertyValue.class, values.get(0).getClass());
@@ -843,7 +851,7 @@ public class PrismAsserts {
 		RefFilter filter = (RefFilter) objectFilter;
 		assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
 		assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
-		assertEquals("Wrong filter path", path, filter.getFullPath());
+		assertPathEquivalent("Wrong filter path", path, filter.getFullPath());
 	}
 	
 	// Local version of JUnit assers to avoid pulling JUnit dependecy to main
@@ -851,8 +859,12 @@ public class PrismAsserts {
 	static void assertNotNull(String string, Object object) {
 		assert object != null : string;
 	}
-	
-	public static void assertEquals(String message, Object expected, Object actual) {
+
+    private static void assertTrue(String message, boolean test) {
+        assert test : message;
+    }
+
+    public static void assertEquals(String message, Object expected, Object actual) {
 		assert MiscUtil.equals(expected, actual) : message 
 				+ ": expected " + MiscUtil.getValueWithClass(expected)
 				+ ", was " + MiscUtil.getValueWithClass(actual);
@@ -911,5 +923,27 @@ public class PrismAsserts {
 	public static void assertAssignableFrom(Class<?> expected, Object actualObject) {
 		assert expected.isAssignableFrom(actualObject.getClass()) : "Expected "+expected+" but got "+actualObject.getClass();
 	}
+
+    public static void assertPathEquivalent(String message, ItemPath expected, ItemPath actual) {
+        if (!expected.equivalent(actual)) {
+            assert false : message
+                    + ": expected " + MiscUtil.getValueWithClass(expected)
+                    + ", was " + MiscUtil.getValueWithClass(actual);
+        }
+    }
+
+    public static void assertPathEqualsExceptForPrefixes(String message, ItemPath expected, ItemPath actual) {
+        assertEquals(message + ": wrong path size", expected.size(), actual.size());
+        for (int i = 0; i < expected.size(); i++) {
+            ItemPathSegment expectedSegment = expected.getSegments().get(i);
+            ItemPathSegment actualSegment = actual.getSegments().get(i);
+            if (expectedSegment instanceof NameItemPathSegment) {
+                assertEquals(message + ": wrong path segment #" + (i+1), ((NameItemPathSegment) expectedSegment).getName(),
+                        ((NameItemPathSegment) actualSegment).getName());
+            } else {
+                assertEquals(message + ": wrong path segment #" + (i+1), expectedSegment, actualSegment);
+            }
+        }
+    }
 
 }

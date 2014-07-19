@@ -47,6 +47,7 @@
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
+                                declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-3';
 								$c:locality
 							</code>
 						</script>

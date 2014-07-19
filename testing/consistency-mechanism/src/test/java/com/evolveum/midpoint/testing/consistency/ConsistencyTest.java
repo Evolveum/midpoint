@@ -45,14 +45,11 @@ import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.EmbeddedUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
@@ -114,7 +111,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -134,12 +130,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
@@ -255,7 +249,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	private static final String REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT = "src/test/resources/request/user-modify-assign-account.xml";
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY = "src/test/resources/request/user-modify-add-account-directly.xml";
-		private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT = "src/test/resources/request/user-modify-delete-account.xml";
+	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT = "src/test/resources/request/user-modify-delete-account.xml";
 	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-delete-account-communication-problem.xml";
 	
 	
@@ -508,19 +502,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		ActivationCapabilityType capActivation = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
-		if (capActivation != null && capActivation.getEnableDisable() != null
-				&& capActivation.getEnableDisable().getAttribute() != null) {
-			// There is simulated activation capability, check if the attribute
-			// is in schema.
-			QName enableAttrName = capActivation.getEnableDisable().getAttribute();
-			ResourceAttributeDefinition enableAttrDef = accountDefinition
-					.findAttributeDefinition(enableAttrName);
-			display("Simulated activation attribute definition", enableAttrDef);
-			assertNotNull("No definition for enable attribute " + enableAttrName
-					+ " in account (resource from " + source + ")", enableAttrDef);
-			assertTrue("Enable attribute " + enableAttrName + " is not ignored (resource from " + source
-					+ ")", enableAttrDef.isIgnored());
-		}
+		if (capActivation != null && capActivation.getStatus() != null && capActivation.getStatus().getAttribute() != null) {
+            // There is simulated activation capability, check if the attribute is in schema.
+            QName enableAttrName = capActivation.getStatus().getAttribute();
+            ResourceAttributeDefinition enableAttrDef = accountDefinition.findAttributeDefinition(enableAttrName);
+            display("Simulated activation attribute definition", enableAttrDef);
+            assertNotNull("No definition for enable attribute " + enableAttrName + " in account (resource from " + source + ")", enableAttrDef);
+            assertTrue("Enable attribute " + enableAttrName + " is not ignored (resource from " + source + ")", enableAttrDef.isIgnored());
+        }
 	}
 
 	private void checkOpenDjConfiguration(PrismObject<ResourceType> resource, String source) {
@@ -677,8 +666,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		TestUtil.displayTestTile("test013prepareOpenDjWithAccounts");
 		OperationResult parentResult = new OperationResult("test013prepareOpenDjWithAccounts");
 
-		ShadowType jackeAccount = unmarshallJaxbFromFile(REQUEST_ADD_ACCOUNT_JACKIE,
-				ShadowType.class);
+		ShadowType jackeAccount = unmarshallValueFromFile(REQUEST_ADD_ACCOUNT_JACKIE,
+                ShadowType.class);
 
 		Task task = taskManager.createTaskInstance();
 		String oid = provisioningService.addObject(jackeAccount.asPrismObject(), null, null, task, parentResult);
@@ -790,7 +779,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult secondResult = new OperationResult(
 				"test013prepareOpenDjWithAccounts - add second account");
 
-		ShadowType shadow = unmarshallJaxbFromFile(ACCOUNT_DENIELS_FILENAME, ShadowType.class);
+		ShadowType shadow = unmarshallValueFromFile(ACCOUNT_DENIELS_FILENAME, ShadowType.class);
 
 		provisioningService.addObject(shadow.asPrismObject(), null, null, task, secondResult);
 
@@ -909,7 +898,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 			ItemDefinition syncDef = resourceTypeOpenDjrepo.asPrismObject().getDefinition().findItemDefinition(ResourceType.F_SYNCHRONIZATION);
 			assertNotNull("null definition for sync delta", syncDef);
 
-			ObjectDeltaType omt = unmarshallJaxbFromFile(REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION, ObjectDeltaType.class);
+			ObjectDeltaType omt = unmarshallValueFromFile(REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION, ObjectDeltaType.class);
 			ObjectDelta objectDelta = DeltaConvertor.createObjectDelta(omt, prismContext);
 //			assertEquals(1, omt.getItemDelta().size());
 //			ItemDeltaType syncItemType = omt.getItemDelta().get(0);
@@ -2122,11 +2111,11 @@ LOGGER.info("starting rename");
 		modelService.executeChanges(deltas, options, task, parentResult);
 	}
 	
-	private Collection<ObjectDelta<? extends ObjectType>> createDeltas(Class type, String requestFilename, String objectOid) throws FileNotFoundException, SchemaException, JAXBException{
+	private Collection<ObjectDelta<? extends ObjectType>> createDeltas(Class type, String requestFilename, String objectOid) throws IOException, SchemaException, JAXBException{
 		
 		try{
-		ObjectDeltaType objectChange = unmarshallJaxbFromFile(
-				requestFilename, ObjectDeltaType.class);
+		ObjectDeltaType objectChange = unmarshallValueFromFile(
+                requestFilename, ObjectDeltaType.class);
 		LOGGER.info("unmarshalled delta: {}" + objectChange);
 		LOGGER.info("object type in delta {}", objectChange.getObjectType());
 		objectChange.setOid(objectOid);

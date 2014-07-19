@@ -56,6 +56,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Raw;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -118,7 +119,8 @@ public class ItemDeltaType implements Serializable, Cloneable {
 //    @XmlAnyElement
     protected ItemPathType path;
     @XmlElement(required = true)
-    protected List<RawType> value;
+    @Raw
+    protected List<Object> value;           // Object is here to show as xsd:anyType in WSDL
 
     /**
      * Gets the value of the modificationType property.
@@ -178,18 +180,18 @@ public class ItemDeltaType implements Serializable, Cloneable {
      */
     public List<RawType> getValue() {
     	if (value == null){
-    		value = new ArrayList<RawType>();
+    		value = new ArrayList<>();
     	}
-        return value;
+        return (List<RawType>) (List) value;        // brutal hack
     }
     
-    public List<Object> getAnyValues(){
-    	List<Object> vals = new ArrayList<Object>();
-    	for (RawType raw : value){
-    		vals.addAll(raw.getContent());
-    	}
-    	return vals;
-    }
+//    public List<Object> getAnyValues(){
+//    	List<Object> vals = new ArrayList<Object>();
+//    	for (Object raw : value){
+//    		vals.addAll(((RawType) raw).getContent());
+//    	}
+//    	return vals;
+//    }
 
     /**
      * Sets the value of the value property.

@@ -102,6 +102,13 @@ public class ObjectDeltaType implements Serializable {
     protected List<ItemDeltaType> itemDelta;
 
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectDeltaType");
+    public final static QName F_CHANGE_TYPE = new QName(PrismConstants.NS_TYPES, "changeType");
+    public final static QName F_OBJECT_TYPE = new QName(PrismConstants.NS_TYPES, "objectType");
+    public final static QName F_OBJECT_TO_ADD = new QName(PrismConstants.NS_TYPES, "objectToAdd");
+    public final static QName F_ITEM_DETLA = new QName(PrismConstants.NS_TYPES, "itemDelta");
+    
+    
+    
 
 
     /**

@@ -31,15 +31,9 @@ import java.util.Date;
 public class XmlGregorianCalendarModel extends Model<Date> {
 
     private IModel<XMLGregorianCalendar> model;
-    private boolean copyTime;
 
     public XmlGregorianCalendarModel(IModel<XMLGregorianCalendar> model) {
-        this(model, true);
-    }
-
-    public XmlGregorianCalendarModel(IModel<XMLGregorianCalendar> model, boolean copyTime) {
         this.model = model;
-        this.copyTime = copyTime;
     }
 
     @Override
@@ -56,27 +50,7 @@ public class XmlGregorianCalendarModel extends Model<Date> {
         if (object == null) {
             model.setObject(null);
         } else {
-            if (copyTime) {
-                Date d = getObject();
-                object = copyTime(d, object);
-            }
             model.setObject(MiscUtil.asXMLGregorianCalendar(object));
         }
-    }
-
-    private Date copyTime(Date from, Date to) {
-        if (from == null || to == null) {
-            return to;
-        }
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(from);
-
-        to = DateUtils.setHours(to, calendar.get(Calendar.HOUR_OF_DAY));
-        to = DateUtils.setMinutes(to, calendar.get(Calendar.MINUTE));
-        to = DateUtils.setSeconds(to, calendar.get(Calendar.SECOND));
-        to = DateUtils.setMilliseconds(to, calendar.get(Calendar.MILLISECOND));
-
-        return to;
     }
 }

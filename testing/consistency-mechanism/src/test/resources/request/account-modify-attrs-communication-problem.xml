@@ -26,12 +26,12 @@
 	<oid>will be replaced by the test code</oid>
 	<itemDelta>
 		<modificationType>add</modificationType>
-		<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";attributes/ri:employeeNumber</path>
+		<path>c:attributes/ri:employeeNumber</path>
 		<value>emp4321</value>
 	</itemDelta>
 	<itemDelta>
 		<modificationType>replace</modificationType>
-		<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";attributes/ri:givenName</path>
+		<path>c:attributes/ri:givenName</path>
 		<value>Jackkk</value>
 	</itemDelta>
 <!-- 	<modification> -->

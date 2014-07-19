@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -55,7 +56,8 @@ import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountOwnerCh
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.session.ResourceContentStorage;
+import com.evolveum.midpoint.web.session.ResourcesStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -68,6 +70,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
@@ -121,7 +124,7 @@ public class PageContentAccounts extends PageAdminResources {
 
             @Override
             protected AccountContentSearchDto load() {
-                ResourceContentStorage storage = getSessionStorage().getResourceContent();
+                ResourcesStorage storage = getSessionStorage().getResources();
                 AccountContentSearchDto dto = storage.getAccountContentSearch();
 
                 if(dto == null){
@@ -235,7 +238,7 @@ public class PageContentAccounts extends PageAdminResources {
         provider.setQuery(createQuery());
 
         List<IColumn> columns = initColumns();
-        TablePanel table = new TablePanel(ID_TABLE, provider, columns);
+        TablePanel table = new TablePanel(ID_TABLE, provider, columns, UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
@@ -249,7 +252,7 @@ public class PageContentAccounts extends PageAdminResources {
         columns.add(column);
 
         column = new LinkColumn<AccountContentDto>(
-                createStringResource("pageContentAccounts.name"), "accountName") {
+                createStringResource("pageContentAccounts.name"), AccountContentDto.F_ACCOUNT_NAME) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<AccountContentDto> rowModel) {
@@ -276,7 +279,17 @@ public class PageContentAccounts extends PageAdminResources {
         };
         columns.add(column);
 
-        column = new EnumPropertyColumn(createStringResource("pageContentAccounts.situation"), "situation") {
+        column = new PropertyColumn(createStringResource("pageContentAccounts.kind"), AccountContentDto.F_KIND);
+        columns.add(column);
+
+        column = new PropertyColumn(createStringResource("pageContentAccounts.intent"), AccountContentDto.F_INTENT);
+        columns.add(column);
+
+        column = new PropertyColumn(createStringResource("pageContentAccounts.objectClass"),
+                AccountContentDto.F_OBJECT_CLASS);
+        columns.add(column);
+
+        column = new EnumPropertyColumn(createStringResource("pageContentAccounts.situation"), AccountContentDto.F_SITUATION) {
 
             @Override
             protected String translate(Enum en) {
@@ -527,29 +540,30 @@ public class PageContentAccounts extends PageAdminResources {
         try {
             ObjectQuery query = null;
 
-            List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
+            List<ObjectFilter> conditions = new ArrayList<>();
             ObjectClassComplexTypeDefinition def = getAccountDefinition();
             if (dto.isIdentifiers()) {
 
-                List<ResourceAttributeDefinition> identifiers = new ArrayList<ResourceAttributeDefinition>();
+                List<ResourceAttributeDefinition> identifiers = new ArrayList<>();
                 if (def.getIdentifiers() != null) {
                     identifiers.addAll(def.getIdentifiers());
                 }
 
                 //TODO set matching rule instead fo null
                 for (ResourceAttributeDefinition attrDef : identifiers) {
-                    conditions.add(EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
+                    conditions.add(EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()),
+                            attrDef, dto.getSearchText()));
                 }
             }
 
             if (dto.isName()) {
-                List<ResourceAttributeDefinition> secondaryIdentifiers = new ArrayList<ResourceAttributeDefinition>();
+                List<ResourceAttributeDefinition> secondaryIdentifiers = new ArrayList<>();
                 if (def.getSecondaryIdentifiers() != null) {
                     secondaryIdentifiers.addAll(def.getSecondaryIdentifiers());
                 }
                 for (ResourceAttributeDefinition attrDef : secondaryIdentifiers) {
-                    conditions.add(SubstringFilter.createSubstring(new ItemPath(ShadowType.F_ATTRIBUTES),
-                            attrDef, dto.getSearchText()));
+                    conditions.add(SubstringFilter.createSubstring(
+                            new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, dto.getSearchText()));
                 }
             }
 
@@ -709,9 +723,10 @@ public class PageContentAccounts extends PageAdminResources {
         AccountContentDataProvider provider = (AccountContentDataProvider)table.getDataProvider();
         provider.setQuery(null);
 
-        ResourceContentStorage storage = getSessionStorage().getResourceContent();
+        ResourcesStorage storage = getSessionStorage().getResources();
         storage.setAccountContentSearch(searchModel.getObject());
-        panel.setCurrentPage(storage.getAccountContentPaging());
+        storage.setAccountContentPaging(null);
+        panel.setCurrentPage(null);
 
         target.add(get(ID_SEARCH_FORM));
         target.add(panel);

@@ -28,8 +28,9 @@ public class TestParseUserXml extends TestParseUser{
 	protected String getFilenameSuffix() {
 		return "xml";
 	}
-	
-	@Test
+
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxb() throws Exception {
 		final String TEST_NAME = "testPrismParseJaxb";
 		PrismTestUtil.displayTestTitle(TEST_NAME);
@@ -63,7 +64,8 @@ public class TestParseUserXml extends TestParseUser{
 	 * The definition should be set properly even if the declared type is ObjectType. The Prism should determine
 	 * the actual type.
 	 */
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxbObjectType() throws Exception {
 		final String TEST_NAME = "testPrismParseJaxbObjectType";
 		PrismTestUtil.displayTestTitle(TEST_NAME);
@@ -90,7 +92,8 @@ public class TestParseUserXml extends TestParseUser{
 	/**
 	 * Parsing in form of JAXBELement
 	 */
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxbElement() throws Exception {
 		final String TEST_NAME = "testPrismParseJaxbElement";
 		PrismTestUtil.displayTestTitle(TEST_NAME);
@@ -118,7 +121,8 @@ public class TestParseUserXml extends TestParseUser{
 	/**
 	 * Parsing in form of JAXBELement, with declared ObjectType
 	 */
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxbElementObjectType() throws Exception {
 		final String TEST_NAME = "testPrismParseJaxbElementObjectType";
 		PrismTestUtil.displayTestTitle(TEST_NAME);

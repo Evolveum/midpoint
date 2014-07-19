@@ -18,7 +18,6 @@ package com.evolveum.midpoint.test;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -29,15 +28,13 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -74,10 +71,8 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.AssertJUnit;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -359,10 +354,8 @@ public class IntegrationTestTools {
 		throw new RuntimeException("Timeout while "+message);
 	}
 
-	public static void displayJaxb(String title, Object o, QName qname) throws JAXBException {
-		Document doc = DOMUtil.getDocument();
-		Element element = JaxbTestUtil.getInstance().marshalObjectToDom(o, qname, doc);
-		String serialized = DOMUtil.serializeDOMToString(element);
+	public static void displayJaxb(String title, Object o, QName defaultElementName) throws SchemaException {
+		String serialized = PrismTestUtil.serializeAnyData(o, defaultElementName);
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(serialized);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n" + serialized);
@@ -440,7 +433,7 @@ public class IntegrationTestTools {
 				+ result.debugDump());
 	}
 	
-	public static void display(String title, OperationResultType result) throws JAXBException {
+	public static void display(String title, OperationResultType result) throws SchemaException {
 		displayJaxb(title, result, SchemaConstants.C_RESULT);
 	}
 
@@ -508,7 +501,7 @@ public class IntegrationTestTools {
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, QName objectClass, PrismContext prismContext) throws SchemaException {
 		AndFilter and = AndFilter.createAnd(
 				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid()),
-				EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, objectClass));
+				EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, objectClass));
 		ObjectQuery query = ObjectQuery.createObjectQuery(and);
 		return query;
 	}
@@ -635,7 +628,7 @@ public class IntegrationTestTools {
 		PrismReferenceDefinition itemDef = resourceShadow.asPrismObject().getDefinition().findReferenceDefinition(ShadowType.F_RESOURCE_REF);
 		filter = AndFilter.createAnd(
 					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, ShadowUtil.getResourceOid(resourceShadow)),
-					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, new PrismPropertyValue(uidValue)));
+					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, new PrismPropertyValue(uidValue)));
 			
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 

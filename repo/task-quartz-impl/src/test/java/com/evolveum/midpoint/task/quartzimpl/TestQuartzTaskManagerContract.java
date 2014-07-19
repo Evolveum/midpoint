@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -392,7 +392,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();
         property.setRealValue(100);
 
-        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition());
+        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition(), prismContext);
         //delta.addV(property.getValues());
         delta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
 
@@ -1411,8 +1411,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task rootTask = taskManager.createTaskInstance((PrismObject<TaskType>) (PrismObject) addObjectFromFile(taskFilename(test)), result);
         String oid = rootTask.getOid();
 
-        ObjectFilter filter1 = EqualsFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, prismContext, null, TaskExecutionStatusType.WAITING);
-        ObjectFilter filter2 = EqualsFilter.createEqual(TaskType.F_WAITING_REASON, TaskType.class, prismContext, null, TaskWaitingReasonType.WORKFLOW);
+        ObjectFilter filter1 = EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, prismContext, null, TaskExecutionStatusType.WAITING);
+        ObjectFilter filter2 = EqualFilter.createEqual(TaskType.F_WAITING_REASON, TaskType.class, prismContext, null, TaskWaitingReasonType.WORKFLOW);
         ObjectFilter filter3 = AndFilter.createAnd(filter1, filter2);
 
         List<PrismObject<TaskType>> prisms1 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter1), null, result);
@@ -1597,11 +1597,11 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     // TODO: maybe we should move them to a common utility class
 
-    private void assertAttribute(AccountShadowType repoShadow, ResourceType resource, String name, String value) {
+    private void assertAttribute(ShadowType repoShadow, ResourceType resource, String name, String value) {
         assertAttribute(repoShadow, new QName(ResourceTypeUtil.getResourceNamespace(resource), name), value);
     }
 
-    private void assertAttribute(AccountShadowType repoShadow, QName name, String value) {
+    private void assertAttribute(ShadowType repoShadow, QName name, String value) {
         boolean found = false;
         List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
         for (Object element : xmlAttributes) {

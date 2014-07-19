@@ -24,6 +24,10 @@ import java.io.Serializable;
 public class TaskDtoProviderOptions implements Serializable {
 
     // default values must be 'most informative'
+
+    /**
+     * Whether to ask for things requiring cluster communication (e.g. on which node is the task really executing)
+     */
     private boolean useClusterInformation = true;
     private boolean resolveObjectRef = true;
     private boolean resolveOwnerRef = true;            // currently unused

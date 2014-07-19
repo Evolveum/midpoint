@@ -16,9 +16,12 @@
 
 package com.evolveum.midpoint.prism.parser;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.Handler;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Node;
 
 import javax.xml.XMLConstants;
@@ -34,6 +37,7 @@ import javax.xml.namespace.QName;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +46,13 @@ import java.util.Map;
  * @author mederly
  */
 public class PrismBeanInspector {
+
+    private PrismContext prismContext;
+
+    public PrismBeanInspector(PrismContext prismContext) {
+        Validate.notNull(prismContext, "prismContext");
+        this.prismContext = prismContext;
+    }
 
     //region Caching mechanism (multiple dimensions)
 
@@ -66,7 +77,7 @@ public class PrismBeanInspector {
     private <V, P1, P2> V find2(final Map<P1,Map<P2,V>> cache, final P1 param1, final P2 param2, final Getter2<V, P1, P2> getter) {
         Map<P2, V> cache2 = cache.get(param1);
         if (cache2 == null) {
-            cache2 = new HashMap<>();
+            cache2 = Collections.synchronizedMap(new HashMap());
             cache.put(param1, cache2);
         }
         return find1(cache2, param2, new Getter1<V, P2>() {
@@ -84,7 +95,7 @@ public class PrismBeanInspector {
     private <V, P1, P2, P3> V find3(final Map<P1,Map<P2,Map<P3,V>>> cache, final P1 param1, final P2 param2, final P3 param3, final Getter3<V, P1, P2, P3> getter) {
         Map<P2, Map<P3, V>> cache2 = cache.get(param1);
         if (cache2 == null) {
-            cache2 = new HashMap<>();
+            cache2 = Collections.synchronizedMap(new HashMap());
             cache.put(param1, cache2);
         }
         return find2(cache2, param2, param3, new Getter2<V, P2, P3>() {
@@ -98,7 +109,7 @@ public class PrismBeanInspector {
 
     //region Individual inspection methods - cached versions
 
-    private Map<Class<? extends Object>, String> _determineNamespace = new HashMap<>();
+    private Map<Class<? extends Object>, String> _determineNamespace = Collections.synchronizedMap(new HashMap());
 
     String determineNamespace(Class<? extends Object> paramType) {
         return find1(_determineNamespace, paramType, new Getter1<String,Class<? extends Object>>() {
@@ -109,7 +120,18 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Field,Map<Method,Boolean>> _isAttribute = new HashMap<>();
+    private Map<Class<? extends Object>, QName> _determineTypeForClass = Collections.synchronizedMap(new HashMap());
+
+    QName determineTypeForClass(Class<? extends Object> paramType) {
+        return find1(_determineTypeForClass, paramType, new Getter1<QName,Class<? extends Object>>() {
+            @Override
+            public QName get(Class<? extends Object> paramType) {
+                return determineTypeForClassUncached(paramType);
+            }
+        });
+    }
+
+    private Map<Field,Map<Method,Boolean>> _isAttribute = Collections.synchronizedMap(new HashMap());
 
     boolean isAttribute(Field field, Method getter) {
         return find2(_isAttribute, field, getter, new Getter2<Boolean,Field,Method>() {
@@ -120,7 +142,7 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Class,Map<String,Method>> _findSetter = new HashMap<>();
+    private Map<Class,Map<String,Method>> _findSetter = Collections.synchronizedMap(new HashMap());
 
     <T> Method findSetter(Class<T> beanClass, String fieldName) {
         return find2(_findSetter, beanClass, fieldName, new Getter2<Method,Class,String>() {
@@ -131,7 +153,7 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Package,Class> _getObjectFactoryClass = new HashMap<>();
+    private Map<Package,Class> _getObjectFactoryClass = Collections.synchronizedMap(new HashMap());
     Class getObjectFactoryClass(Package aPackage) {
         return find1(_getObjectFactoryClass, aPackage, new Getter1<Class,Package>() {
             @Override
@@ -141,7 +163,7 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Class<? extends Object>, List<String>> _getPropOrder = new HashMap<>();
+    private Map<Class<? extends Object>, List<String>> _getPropOrder = Collections.synchronizedMap(new HashMap());
 
     List<String> getPropOrder(Class<? extends Object> beanClass) {
         return find1(_getPropOrder, beanClass, new Getter1<List<String>, Class<? extends Object>>() {
@@ -152,7 +174,7 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Class,Map<String,Method>> _findElementMethodInObjectFactory = new HashMap<>();
+    private Map<Class,Map<String,Method>> _findElementMethodInObjectFactory = Collections.synchronizedMap(new HashMap());
 
     Method findElementMethodInObjectFactory(Class objectFactoryClass, String propName) {
         return find2(_findElementMethodInObjectFactory, objectFactoryClass, propName, new Getter2<Method,Class,String>() {
@@ -163,7 +185,7 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Class,Map<Method,Field>> _lookupSubstitution = new HashMap<>();
+    private Map<Class,Map<Method,Field>> _lookupSubstitution = Collections.synchronizedMap(new HashMap());
 
     <T> Field lookupSubstitution(Class<T> beanClass, Method elementMethod) {
         return find2(_lookupSubstitution, beanClass, elementMethod, new Getter2<Field,Class,Method>() {
@@ -174,7 +196,7 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Class,Map<String,String>> _findEnumFieldName = new HashMap<>();
+    private Map<Class,Map<String,String>> _findEnumFieldName = Collections.synchronizedMap(new HashMap());
 
     <T> String findEnumFieldName(Class<T> classType, String primValue) {
         return find2(_findEnumFieldName, classType, primValue, new Getter2<String,Class,String>() {
@@ -185,7 +207,7 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Field,Map<Class<? extends Object>,Map<String,QName>>> _findFieldTypeName = new HashMap<>();
+    private Map<Field,Map<Class<? extends Object>,Map<String,QName>>> _findFieldTypeName = Collections.synchronizedMap(new HashMap());
 
     QName findFieldTypeName(Field field, Class<? extends Object> beanClass, String defaultNamespacePlaceholder) {
         return find3(_findFieldTypeName, field, beanClass, defaultNamespacePlaceholder, new Getter3<QName,Field,Class<? extends Object>,String>() {
@@ -196,7 +218,18 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Class,Map<String,Method>> _findPropertyGetter = new HashMap<>();
+    private Map<String,Map<Class<? extends Object>,Map<String,QName>>> _findFieldElementQName = Collections.synchronizedMap(new HashMap());
+
+    QName findFieldElementQName(String fieldName, Class<? extends Object> beanClass, String defaultNamespace) {
+        return find3(_findFieldElementQName, fieldName, beanClass, defaultNamespace, new Getter3<QName, String, Class<? extends Object>, String>() {
+            @Override
+            public QName get(String fieldName, Class<? extends Object> beanClass, String defaultNamespace) {
+                return findFieldElementQNameUncached(fieldName, beanClass, defaultNamespace);
+            }
+        });
+    }
+
+    private Map<Class,Map<String,Method>> _findPropertyGetter = Collections.synchronizedMap(new HashMap());
 
     public <T> Method findPropertyGetter(Class<T> beanClass, String propName) {
         return find2(_findPropertyGetter, beanClass, propName, new Getter2<Method,Class,String>() {
@@ -207,7 +240,7 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Class,Map<String,Field>> _findPropertyField = new HashMap<>();
+    private Map<Class,Map<String,Field>> _findPropertyField = Collections.synchronizedMap(new HashMap());
 
     public <T> Field findPropertyField(Class<T> beanClass, String propName) {
         return find2(_findPropertyField, beanClass, propName, new Getter2<Field,Class,String>() {
@@ -309,15 +342,33 @@ public class PrismBeanInspector {
         }
 
         String namespace = xmlType.namespace();
-        if (namespace == null || PrismBeanConverter.DEFAULT_NAMESPACE_PLACEHOLDER.equals(namespace)) {
+        if (namespace == null || PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
             XmlSchema xmlSchema = beanClass.getPackage().getAnnotation(XmlSchema.class);
             namespace = xmlSchema.namespace();
         }
-        if (StringUtils.isBlank(namespace) || PrismBeanConverter.DEFAULT_NAMESPACE_PLACEHOLDER.equals(namespace)) {
+        if (StringUtils.isBlank(namespace) || PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
             return null;
         }
 
         return namespace;
+    }
+
+    private QName determineTypeForClassUncached(Class<? extends Object> beanClass) {
+        XmlType xmlType = beanClass.getAnnotation(XmlType.class);
+        if (xmlType == null) {
+            return null;
+        }
+
+        String namespace = xmlType.namespace();
+        if (namespace == null || PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
+            XmlSchema xmlSchema = beanClass.getPackage().getAnnotation(XmlSchema.class);
+            namespace = xmlSchema.namespace();
+        }
+        if (StringUtils.isBlank(namespace) || PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
+            return null;
+        }
+
+        return new QName(namespace, xmlType.name());
     }
 
     private <T> Method findSetterUncached(Class<T> classType, String fieldName) {
@@ -513,8 +564,18 @@ public class PrismBeanInspector {
                 String propTypeLocalPart = xmlType.name();
                 if (propTypeLocalPart != null) {
                     String propTypeNamespace = xmlType.namespace();
-                    if (propTypeNamespace == null || propTypeNamespace.equals(PrismBeanConverter.DEFAULT_NAMESPACE_PLACEHOLDER)) {
-                        propTypeNamespace = schemaNamespace;
+                    if (propTypeNamespace == null || propTypeNamespace.equals(PrismBeanConverter.DEFAULT_PLACEHOLDER)) {
+                        if (prismContext != null) {     // hopefully this is always the case!
+                            PrismSchema schema = prismContext.getSchemaRegistry().findSchemaByCompileTimeClass(fieldType);
+                            if (schema != null && schema.getNamespace() != null) {
+                                propTypeNamespace = schema.getNamespace();
+                            }
+                        }
+                        if (propTypeNamespace == null) {
+                            // schemaNamespace is only a poor indicator of required namespace (consider e.g. having c:UserType in apit:ObjectListType)
+                            // so we use it only if we couldn't find anything else
+                            propTypeNamespace = schemaNamespace;
+                        }
                     }
                     propTypeQname = new QName(propTypeNamespace, propTypeLocalPart);
                 }
@@ -522,6 +583,29 @@ public class PrismBeanInspector {
         }
 
         return propTypeQname;
+    }
+
+    private QName findFieldElementQNameUncached(String fieldName, Class beanClass, String defaultNamespace) {
+        Field field;
+        try {
+            field = beanClass.getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            return new QName(defaultNamespace, fieldName);               // TODO implement this if needed (lookup the getter method instead of the field)
+        }
+        String realLocalName = fieldName;
+        String realNamespace = defaultNamespace;
+        XmlElement xmlElement = field.getAnnotation(XmlElement.class);
+        if (xmlElement != null) {
+            String name = xmlElement.name();
+            if (name != null && !PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(name)) {
+                realLocalName = name;
+            }
+            String namespace = xmlElement.namespace();
+            if (namespace != null && !PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
+                realNamespace = namespace;
+            }
+        }
+        return new QName(realNamespace, realLocalName);
     }
     //endregion
 }

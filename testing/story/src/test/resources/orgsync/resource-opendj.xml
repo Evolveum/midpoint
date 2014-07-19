@@ -105,6 +105,12 @@
 	                    <path>$user/fullName</path>
                     </source>
                 </outbound>
+                <inbound>
+                	<strength>weak</strength>
+                	<target>
+	                    <path>$user/fullName</path>
+                    </target>
+                </inbound>
             </attribute>
 
             <attribute>
@@ -114,6 +120,12 @@
                 		<path>familyName</path>
                 	</source>
                 </outbound>
+                <inbound>
+                 	<strength>weak</strength>
+                	<target>
+	                    <path>$user/familyName</path>
+                    </target>
+                </inbound>
             </attribute>
 
             <attribute>
@@ -123,6 +135,12 @@
                 		<path>givenName</path>
                 	</source>
                 </outbound>
+                <inbound>
+                	<strength>weak</strength>
+                	<target>
+	                    <path>$user/givenName</path>
+                    </target>
+                </inbound>
             </attribute>
 
             <attribute>
@@ -136,6 +154,12 @@
                 		<path>$user/name</path>
                 	</source>
                 </outbound>
+                <inbound>
+                	<strength>weak</strength>
+                	<target>
+	                    <path>$user/name</path>
+                    </target>
+                </inbound>                
             </attribute>
 
             <association>
@@ -147,16 +171,27 @@
             	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </association>
+
+            <protected>
+				<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+			</protected>
             
             <activation>
                 <administrativeStatus>
                     <outbound/>
+                    <inbound/>
                 </administrativeStatus>
             </activation>
-            
+            			
             <credentials>
                 <password>
                     <outbound/>
+                    <inbound>
+                    	<strength>weak</strength>
+                    	<expression>
+                    		<generate/>
+                    	</expression>
+                    </inbound>
                 </password>
             </credentials>
 
@@ -200,14 +235,27 @@
                 		<path>$focus/name</path>
                 	</source>
                 </outbound>
+                <inbound>
+                	<strength>weak</strength>
+                	<target>
+                		<path>$focus/name</path>
+               		</target>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:description</ref>
                 <outbound>
+                	<strength>strong</strength>
                 	<source>
                 		<path>description</path>
                 	</source>
                 </outbound>
+                <inbound>
+                	<strength>weak</strength>
+                	<target>
+                		<path>$focus/description</path>
+               		</target>
+                </inbound>
             </attribute>
         </objectType>
 
@@ -291,12 +339,59 @@
 	            <q:equal>
 	                <q:path>c:name</q:path>
 	                <expression>
-	                	<path>$shadow/attributes/ri:uid</path>
+	                	<path>
+	                		declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+	                		$shadow/attributes/ri:uid
+                		</path>
 	                </expression>
 	            </q:equal>
 	        </correlation>
 
-            <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+	        <reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+	            </action>
+	        </reaction>
+		</objectSynchronization>
+		
+		<objectSynchronization>
+			<name>group sync</name>
+			<objectClass>ri:GroupObjectClass</objectClass>
+			<kind>entitlement</kind>
+			<intent>ldapGroup</intent>
+			<focusType>c:RoleType</focusType>
+	        <enabled>true</enabled>
+	        <correlation>
+	            <q:equal>
+	                <q:path>c:name</q:path>
+	                <expression>
+	                	<path>
+	                		declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+	                		$shadow/attributes/ri:cn
+	                	</path>
+	                </expression>
+	            </q:equal>
+	        </correlation>
 
 	        <reaction>
 	            <situation>linked</situation>
@@ -336,7 +431,10 @@
 	            <q:equal>
 	                <q:path>c:name</q:path>
 	                <expression>
-	                	<path>$shadow/attributes/ri:ou</path>
+	                	<path>
+	                		declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+	                		$shadow/attributes/ri:ou
+	                	</path>
 	                </expression>
 	            </q:equal>
 	        </correlation>

@@ -26,6 +26,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -178,7 +181,7 @@ public abstract class TestParseUser {
 	}
 
 	
-	void assertUser(PrismObject<UserType> user) {
+	void assertUser(PrismObject<UserType> user) throws SchemaException {
 		user.checkConsistence();
 		assertUserPrism(user);
 		assertUserJaxb(user.asObjectable());
@@ -277,7 +280,7 @@ public abstract class TestParseUser {
 		assertNotNull("No "+message+" filter", filter);
 	}
 
-	private void assertUserJaxb(UserType userType) {
+	private void assertUserJaxb(UserType userType) throws SchemaException {
 		assertEquals("Wrong name", PrismTestUtil.createPolyStringType("jack"), userType.getName());
 		assertEquals("Wrong fullName (orig)", "Jack Sparrow", userType.getFullName().getOrig());
         assertEquals("Wrong fullName (norm)", "jack sparrow", userType.getFullName().getNorm());
@@ -307,7 +310,7 @@ public abstract class TestParseUser {
 		assertEquals("Wrong ref3 type (jaxb)", ShadowType.COMPLEX_TYPE, ref3.getType());
 		SearchFilterType ref3Filter = ref3.getFilter();
 		assertNotNull("No ref3 filter (jaxb,class)", ref3Filter);
-		assertFilterElement("ref filter (jaxb)", ref3Filter.getFilterClause());
+		assertFilterElement("ref filter (jaxb)", ref3Filter.getFilterClauseAsElement());
 	}
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,

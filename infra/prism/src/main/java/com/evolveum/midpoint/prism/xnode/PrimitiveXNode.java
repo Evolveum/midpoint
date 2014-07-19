@@ -107,6 +107,35 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 	}
 
     /**
+     * Returns parsed value without actually changing node state from UNPARSED to PARSED
+     * (if node is originally unparsed).
+     *
+     * Useful when we are not sure about the type name and do not want to record parsed
+     * value based on wrong type name.
+     */
+    public T getParsedValueWithoutRecording(QName typeName) throws SchemaException {
+        if (isParsed()) {
+            return value;
+        } else {
+            return valueParser.parse(typeName);
+        }
+    }
+
+    /**
+	 * Returns a value that is correctly string-formatted according
+	 * to its type definition. Works properly only if definition is set.
+	 */
+	public String getFormattedValue() {
+//		if (getTypeQName() == null) {
+//			throw new IllegalStateException("Cannot fetch formatted value if type definition is not set");
+//		}
+		if (!isParsed()) {
+			throw new IllegalStateException("Cannot fetch formatted value if the xnode is not parsed");
+		}
+        return formatValue(value);
+	}
+
+    /**
      * Returns formatted parsed value without actually changing node state from UNPARSED to PARSED
      * (if node is originally unparsed).
      *
@@ -117,31 +146,15 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
      * @return properly formatted value
      */
     public String getGuessedFormattedValue() throws SchemaException {
+        if (isParsed()) {
+            return getFormattedValue();
+        }
         if (getTypeQName() == null) {
             throw new IllegalStateException("Cannot fetch formatted value if type definition is not set");
         }
-        if (isParsed()) {
-            return getFormattedValue();
-        } else {
-            T value = valueParser.parse(getTypeQName());
-            return formatValue(value);
-        }
-    }
-
-    /**
-	 * Returns a value that is correctly string-formatted according
-	 * to its type definition. Works properly only if definition is set.
-	 */
-	public String getFormattedValue() {
-		if (getTypeQName() == null) {
-			throw new IllegalStateException("Cannot fetch formatted value if type definition is not set");
-		}
-		if (!isParsed()) {
-			throw new IllegalStateException("Cannot fetch formatted value if the xnode is not parsed");
-		}
-		T value = getValue();
+        T value = valueParser.parse(getTypeQName());
         return formatValue(value);
-	}
+    }
 
     private String formatValue(T value) {
         if (value instanceof PolyString) {

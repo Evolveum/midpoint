@@ -25,8 +25,10 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -38,7 +40,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -93,6 +96,7 @@ public class TestQueryConvertor {
 			"filter-account-by-attributes-and-resource-ref.xml");
 	private static final File FILTER_OR_COMPOSITE = new File(TEST_DIR, "filter-or-composite.xml");
 	private static final File FILTER_CONNECTOR_BY_TYPE_FILE = new File(TEST_DIR, "filter-connector-by-type.xml");
+	private static final File FILTER_BY_TYPE_FILE = new File(TEST_DIR, "filter-by-type.xml");
 
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -116,28 +120,28 @@ public class TestQueryConvertor {
 		ObjectFilter first = getFilterCondition(filter, 0);
 		PrismAsserts.assertEqualsFilter(first, ShadowType.F_FAILED_OPERATION_TYPE, FAILED_OPERATION_TYPE_QNAME,
 				new ItemPath(ShadowType.F_FAILED_OPERATION_TYPE));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) first, FailedOperationTypeType.ADD);
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, FailedOperationTypeType.ADD);
 
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, ShadowType.F_NAME, PolyStringType.COMPLEX_TYPE, new ItemPath(
 				ShadowType.F_NAME));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, createPolyString("someName"));
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, createPolyString("someName"));
 
 		QueryType convertedQueryType = toQueryType(query);
 		System.out.println("Re-converted query type");
 		System.out.println(convertedQueryType.debugDump());
 		
 		SearchFilterType convertedFilterType = convertedQueryType.getFilter();
-		MapXNode xFilter = convertedFilterType.serializeToXNode(getPrismContext());
+		MapXNode xFilter = convertedFilterType.serializeToXNode();
 		PrismAsserts.assertSize(xFilter, 1);
 		PrismAsserts.assertSubnode(xFilter, AndFilter.ELEMENT_NAME, MapXNode.class);
 		MapXNode xandmap = (MapXNode) xFilter.get(AndFilter.ELEMENT_NAME);
 		PrismAsserts.assertSize(xandmap, 1);
-		PrismAsserts.assertSubnode(xandmap, EqualsFilter.ELEMENT_NAME, ListXNode.class);
-		ListXNode xequalsList = (ListXNode) xandmap.get(EqualsFilter.ELEMENT_NAME);
+		PrismAsserts.assertSubnode(xandmap, EqualFilter.ELEMENT_NAME, ListXNode.class);
+		ListXNode xequalsList = (ListXNode) xandmap.get(EqualFilter.ELEMENT_NAME);
 		PrismAsserts.assertSize(xequalsList, 2);
 		
-		Element filterClauseElement = convertedFilterType.getFilterClause();
+		Element filterClauseElement = convertedFilterType.getFilterClauseAsElement();
 		System.out.println("Serialized filter (JAXB->DOM)");
 		System.out.println(DOMUtil.serializeDOMToString(filterClauseElement));
 		
@@ -145,17 +149,17 @@ public class TestQueryConvertor {
 		DomAsserts.assertSubElements(filterClauseElement, 2);
 		
 		Element firstSubelement = DOMUtil.getChildElement(filterClauseElement, 0);
-		DomAsserts.assertElementQName(firstSubelement, EqualsFilter.ELEMENT_NAME);
+		DomAsserts.assertElementQName(firstSubelement, EqualFilter.ELEMENT_NAME);
 		Element firstValueElement = DOMUtil.getChildElement(firstSubelement, PrismConstants.Q_VALUE);
 		DomAsserts.assertTextContent(firstValueElement, "add");
 		
 		Element secondSubelement = DOMUtil.getChildElement(filterClauseElement, 1);
-		DomAsserts.assertElementQName(secondSubelement, EqualsFilter.ELEMENT_NAME);
+		DomAsserts.assertElementQName(secondSubelement, EqualFilter.ELEMENT_NAME);
 		Element secondValueElement = DOMUtil.getChildElement(secondSubelement, PrismConstants.Q_VALUE);
 		DomAsserts.assertTextContent(secondValueElement, "someName");
 	}
 
-	@Test
+    @Test
 	public void testAccountQueryAttributesAndResource() throws Exception {
 		displayTestTitle("testAccountQueryAttributesAndResource");
 
@@ -176,10 +180,10 @@ public class TestQueryConvertor {
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, ICF_NAME, DOMUtil.XSD_STRING, new ItemPath(ShadowType.F_ATTRIBUTES,
 				ICF_NAME));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
 
 		QueryType convertedQueryType = toQueryType(query);
-		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClause()));
+		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement()));
 
 		// TODO: add some asserts
 	}
@@ -199,17 +203,17 @@ public class TestQueryConvertor {
 
 		ObjectFilter first = getFilterCondition(filter, 0);
 		PrismAsserts.assertEqualsFilter(first, ShadowType.F_INTENT, DOMUtil.XSD_STRING, new ItemPath(ShadowType.F_INTENT));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) first, "some account type");
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, "some account type");
 
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, fooBlaDefinition, DOMUtil.XSD_STRING, new ItemPath(
 				ShadowType.F_ATTRIBUTES, fooBlaDefinition));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, "foo value");
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "foo value");
 
 		ObjectFilter third = getFilterCondition(filter, 2);
 		PrismAsserts.assertEqualsFilter(third, stringExtensionDefinition, DOMUtil.XSD_STRING, new ItemPath(
 				ShadowType.F_EXTENSION, stringExtensionDefinition));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) third, "uid=test,dc=example,dc=com");
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) third, "uid=test,dc=example,dc=com");
 
 		ObjectFilter forth = getFilterCondition(filter, 3);
 		PrismAsserts.assertRefFilter(forth, ShadowType.F_RESOURCE_REF, ObjectReferenceType.COMPLEX_TYPE, new ItemPath(
@@ -217,7 +221,7 @@ public class TestQueryConvertor {
 		assertRefFilterValue((RefFilter) forth, "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 
 		QueryType convertedQueryType = toQueryType(query);
-		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClause()));
+		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement()));
 
 		// TODO: add some asserts
 	}
@@ -235,7 +239,44 @@ public class TestQueryConvertor {
 			ObjectFilter filter = query.getFilter();
 			PrismAsserts.assertEqualsFilter(query.getFilter(), ConnectorType.F_CONNECTOR_TYPE, DOMUtil.XSD_STRING,
 					new ItemPath(ConnectorType.F_CONNECTOR_TYPE));
-			PrismAsserts.assertEqualsFilterValue((EqualsFilter) filter, "org.identityconnectors.ldap.LdapConnector");
+			PrismAsserts.assertEqualsFilterValue((EqualFilter) filter, "org.identityconnectors.ldap.LdapConnector");
+
+			QueryType convertedQueryType = toQueryType(query);
+			displayQueryType(convertedQueryType);
+		} catch (SchemaException ex) {
+			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			throw ex;
+		} catch (RuntimeException ex) {
+			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			throw ex;
+		} catch (Exception ex) {
+			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			throw ex;
+		}
+
+	}
+	
+	@Test
+	public void testTypeFilterQuery() throws Exception {
+		displayTestTitle("testConnectorQuery");
+		SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
+		ObjectQuery query = null;
+		try {
+			query = QueryJaxbConvertor.createObjectQuery(ConnectorType.class, filterType, getPrismContext());
+			displayQuery(query);
+
+			assertNotNull(query);
+			ObjectFilter filter = query.getFilter();
+			assertTrue("filter is not an instance of type filter", filter instanceof TypeFilter);
+			
+			TypeFilter typeFilter = (TypeFilter) filter;
+			assertEquals(typeFilter.getType(), UserType.COMPLEX_TYPE);
+			assertNotNull("filter in type filter must not be null", typeFilter.getFilter());
+			PrismAsserts.assertEqualsFilter(typeFilter.getFilter(), UserType.COMPLEX_TYPE, DOMUtil.XSD_QNAME, new ItemPath(UserType.F_NAME));
+			PrismAsserts.assertEqualsFilterValue((EqualFilter) typeFilter.getFilter(), "some name identificator");
+//			PrismAsserts.assertEqualsFilter(query.getFilter(), ConnectorType.F_CONNECTOR_TYPE, DOMUtil.XSD_STRING,
+//					new ItemPath(ConnectorType.F_CONNECTOR_TYPE));
+//			PrismAsserts.assertEqualsFilterValue((EqualsFilter) filter, "org.identityconnectors.ldap.LdapConnector");
 
 			QueryType convertedQueryType = toQueryType(query);
 			displayQueryType(convertedQueryType);
@@ -296,12 +337,12 @@ public class TestQueryConvertor {
 		ObjectFilter first = getFilterCondition(filter, 0);
 		PrismAsserts.assertEqualsFilter(first, GenericObjectType.F_NAME, PolyStringType.COMPLEX_TYPE, new ItemPath(
 				GenericObjectType.F_NAME));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) first, createPolyString("generic object"));
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, createPolyString("generic object"));
 		// check second condition
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, intExtensionDefinition, DOMUtil.XSD_INT, new ItemPath(
 				ObjectType.F_EXTENSION, new QName(NS_EXTENSION, "intType")));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, 123);
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, 123);
 
 		QueryType convertedQueryType = toQueryType(query);
 		assertNotNull("Re-serialized query is null ", convertedQueryType);
@@ -331,7 +372,7 @@ public class TestQueryConvertor {
 				System.out.println("QUERY Pretty print: " + query.toString());
 
 				QueryType convertedQueryType = QueryJaxbConvertor.createQueryType(query, getPrismContext());
-				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClause()));
+				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement()));
 			} catch (SchemaException ex) {
 				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
 				throw ex;

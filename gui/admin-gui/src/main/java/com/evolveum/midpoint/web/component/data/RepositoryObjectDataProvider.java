@@ -92,10 +92,10 @@ public class RepositoryObjectDataProvider
             for (PrismObject<? extends ObjectType> object : list) {
                 getAvailableData().add(createItem(object, result));
             }
-
-            result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list objects.", ex);
+        } finally {
+            result.computeStatusIfUnknown();
         }
 
         if (!result.isSuccess()) {
@@ -174,10 +174,10 @@ public class RepositoryObjectDataProvider
             count = getModel().countObjects(type, getQuery(),
                     SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw()),
                     getPage().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
-
-            result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
+        } finally {
+            result.computeStatusIfUnknown();
         }
 
         if (!result.isSuccess()) {

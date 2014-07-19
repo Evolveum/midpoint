@@ -69,7 +69,7 @@
     <xsd:complexType name="FilterClauseType">
         <xsd:annotation>
             <xsd:appinfo>
-                 <jaxb:dom/> 
+                 <jaxb:dom/>            <!-- this is necessary for the model-client -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -186,10 +186,10 @@
 			<xsd:element ref="tns:filterClause" minOccurs="1" maxOccurs="1">
 			    <xsd:annotation>
 			        <xsd:appinfo>
-			        	<jaxb:dom/>
+			        	<jaxb:dom/>                 <!-- this is necessary for the model-client -->
 			        </xsd:appinfo>
 			    </xsd:annotation>
-			</xsd:element>            	
+			</xsd:element>
     	</xsd:sequence>
     </xsd:complexType>
 
@@ -293,7 +293,17 @@
     <!-- Following element should be constrained a bit more, because their value 
 		is always string respectively. But we don't know how to constrain it now 
 		and we do not have the time to find out. Therefore it should be OK for now. -->
-    <xsd:element name="substring" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+	<xsd:complexType name="SubstringFilterClauseType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:PropertySimpleValueFilterClauseType">
+				<xsd:sequence>
+					<xsd:element name="anchorStart" type="xsd:boolean" minOccurs="0" default="false"/>
+					<xsd:element name="anchorEnd" type="xsd:boolean" minOccurs="0" default="false"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+    <xsd:element name="substring" substitutionGroup="tns:filterClause" type="tns:SubstringFilterClauseType"/>
 
 	<xsd:element name="org" substitutionGroup="tns:filterClause" type="tns:PropertyComplexValueFilterClauseType"/>
 	<xsd:element name="orgRef" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>

@@ -100,6 +100,7 @@ public abstract class SchemaConstants {
 	public static final QName C_SHADOW = new QName(NS_C, "shadow");
 	public static final QName C_SHADOW_TYPE = new QName(NS_C, "ShadowType");
 	public static final QName C_ATTRIBUTES = new QName(NS_C, "attributes");
+    public static final QName C_ASSOCIATION = new QName(NS_C, "association");
 	public static final QName C_CREDENTIALS_TYPE = new QName(NS_C, "CredentialsType");
 	public static final QName C_CREDENTIALS = new QName(NS_C, "credentials");
 	public static final QName C_ACTIVATION = new QName(NS_C, "activation");
@@ -132,7 +133,9 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_ACTIVATION_VALID_FROM = new ItemPath(C_ACTIVATION, ActivationType.F_VALID_FROM);
 	public static final ItemPath PATH_ACTIVATION_VALID_TO = new ItemPath(C_ACTIVATION, ActivationType.F_VALID_TO);
 	public static final ItemPath PATH_ACTIVATION_DISABLE_REASON = new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_REASON);
+	public static final ItemPath PATH_ACTIVATION_LOCKOUT_STATUS = new ItemPath(C_ACTIVATION, ActivationType.F_LOCKOUT_STATUS);
 	public static final ItemPath PATH_ATTRIBUTES = new ItemPath(C_ATTRIBUTES);
+    public static final ItemPath PATH_ASSOCIATION = new ItemPath(C_ASSOCIATION);
 	public static final ItemPath PATH_TRIGGER = new ItemPath(ObjectType.F_TRIGGER);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
@@ -149,6 +152,7 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");
 
 	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
+    public static final String NS_MODEL_WS = NS_MODEL + "/model-3";
 	
 	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-3";
 	public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_MODEL_CHANNEL, "webService");
@@ -214,4 +218,5 @@ public abstract class SchemaConstants {
 
     public static final QName APIT_ITEM_LIST = new QName(SchemaConstants.NS_API_TYPES, "itemList");
     public static final QName C_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
+
 }

@@ -233,15 +233,15 @@ public abstract class AbstractParser implements Parser {
 //			f.
 			
 			int i = parser.getCurrentTokenId();
-			System.out.println("id token : " + i);
+			//System.out.println("id token : " + i);
 //			Object o =parser.readValueAsTree();
 			
 			System.out.println("id: " + JsonTokenId.ID_START_OBJECT);
 			JsonToken t = parser.getCurrentToken();
-			System.out.println("cuurent: " + t);
+			//System.out.println("cuurent: " + t);
 			
 			JsonToken nt = parser.nextToken();
-			System.out.println("cuurent: " + nt);
+			//System.out.println("cuurent: " + nt);
 			
 //			JsonToken t = parser.getCurrentToken();
 //			System.out.println("cuurent: " + t);
@@ -289,11 +289,11 @@ public abstract class AbstractParser implements Parser {
 	private <T> void parseJsonObject(XNode xmap, QName propertyName, final JsonNode obj, final JsonParser parser) throws SchemaException {
 		try{
 			JsonToken token = parser.nextToken();
-			System.out.println("token " + token);
+			//System.out.println("token " + token);
 			JsonToken current = parser.getCurrentToken();
-			System.out.println("current " + current);
+			//System.out.println("current " + current);
 			JsonToken value = parser.nextValue();
-			System.out.println("value " + value);
+			//System.out.println("value " + value);
 			if (token == null){
 				token = parser.nextToken();
 			}
@@ -369,7 +369,7 @@ public abstract class AbstractParser implements Parser {
 	}
 	
 	private <T> void parseSpecial(XNode xmap, QName propertyName, JsonNode obj, final JsonParser parser) throws SchemaException{
-		System.out.println("special");
+		//System.out.println("special");
 		QName typeDefinition = extractTypeName(obj, parser);
 		
 		if (typeDefinition != null){
@@ -390,14 +390,14 @@ public abstract class AbstractParser implements Parser {
 	private PrimitiveXNode createPrimitiveXNode(JsonNode node, JsonParser parser, QName typeDefinition){
 		PrimitiveXNode primitive = new PrimitiveXNode();
 		boolean f = parser.canReadObjectId();
-		System.out.println("can read obj id: " + f);
-		try{
-		System.out.println("obj id: " + parser.getObjectId());
-		System.out.println("type id: " + parser.getTypeId());
-		
-		} catch (Exception e){
-			throw new IllegalStateException(e);
-		}
+		//System.out.println("can read obj id: " + f);
+		//try{
+		//System.out.println("obj id: " + parser.getObjectId());
+		//System.out.println("type id: " + parser.getTypeId());
+		//
+		//} catch (Exception e){
+		//	throw new IllegalStateException(e);
+		//}
 		ValueParser vp = new JsonValueParser(parser, node);
 		primitive.setValueParser(vp);
 		if (typeDefinition != null){
@@ -437,7 +437,7 @@ public abstract class AbstractParser implements Parser {
 	
 	private QName extractTypeName(JsonNode node, JsonParser parser) throws SchemaException{
 		if (node.has(TYPE_DEFINITION)){
-			System.out.println("has type def");
+			//System.out.println("has type def");
 			JsonNode typeDef =  node.get(TYPE_DEFINITION);
 			ObjectMapper m = (ObjectMapper) parser.getCodec();
 			ObjectReader r = m.reader(QName.class);

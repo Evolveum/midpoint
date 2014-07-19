@@ -95,8 +95,8 @@ public class MiscSchemaUtil {
 	public static ImportOptionsType getDefaultImportOptions() {
 		ImportOptionsType options = new ImportOptionsType();
 		options.setOverwrite(false);
-		options.setValidateStaticSchema(true);
-		options.setValidateDynamicSchema(true);
+		options.setValidateStaticSchema(false);
+		options.setValidateDynamicSchema(false);
 		options.setEncryptProtectedValues(true);
 		options.setFetchResourceSchema(false);
 		options.setSummarizeErrors(true);

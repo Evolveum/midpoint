@@ -42,11 +42,12 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.dto.RolesSearchDto;
 import com.evolveum.midpoint.web.session.RolesStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -116,12 +117,22 @@ public class PageRoles extends PageAdminRoles {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        ObjectDataProvider provider = new ObjectDataProvider(PageRoles.this, RoleType.class);
+        ObjectDataProvider provider = new ObjectDataProvider(PageRoles.this, RoleType.class) {
+
+            @Override
+            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+                RolesStorage storage = getSessionStorage().getRoles();
+                storage.setRolesPaging(paging);
+            }
+        };
         provider.setQuery(createQuery());
 
         List<IColumn<RoleType, String>> columns = initColumns();
-        TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
+        TablePanel table = new TablePanel<>(ID_TABLE, provider, columns, UserProfileStorage.TableId.TABLE_ROLES);
         table.setOutputMarkupId(true);
+        RolesStorage storage = getSessionStorage().getRoles();
+        table.setCurrentPage(storage.getRolesPaging());
+
         mainForm.add(table);
 
         add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE, createStringResource("pageRoles.dialog.title.confirmDelete"),
@@ -299,8 +310,10 @@ public class PageRoles extends PageAdminRoles {
 
         RolesStorage storage = getSessionStorage().getRoles();
         storage.setRolesSearch(searchModel.getObject());
+        storage.setRolesPaging(null);
 
         TablePanel table = getRoleTable();
+        table.setCurrentPage(null);
         target.add(table);
         target.add(getFeedbackPanel());
     }
@@ -310,6 +323,7 @@ public class PageRoles extends PageAdminRoles {
         String text = dto.getText();
         Boolean requestable = dto.getRequestableValue();
         ObjectQuery query = new ObjectQuery();
+        List<ObjectFilter> filters = new ArrayList<>();
 
         if(StringUtils.isNotEmpty(text)){
             PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
@@ -317,49 +331,30 @@ public class PageRoles extends PageAdminRoles {
 
             ObjectFilter substring = SubstringFilter.createSubstring(RoleType.F_NAME, RoleType.class, getPrismContext(),
                     PolyStringNormMatchingRule.NAME, normalizedText);
-
-            if(requestable == null){
-                query.setFilter(substring);
-            } else {
-                EqualsFilter boolFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                        null, requestable);
-
-                if (requestable == true){
-                    query.setFilter(AndFilter.createAnd(substring, boolFilter));
-
-                } else {
-                    boolFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                            null, false);
-                    EqualsFilter nullFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                            null, null);
-                    OrFilter or = OrFilter.createOr(boolFilter, nullFilter);
-                    query.setFilter(AndFilter.createAnd(substring, or));
-                }
-            }
-
-            return query;
-        }else{
-            if(requestable == null){
-                query.setFilter(null);
-            } else {
-                EqualsFilter boolFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                        null, requestable);
-
-                if (requestable == true){
-                    query.setFilter(boolFilter);
-                }
-                else {
-                    boolFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                            null, false);
-                    EqualsFilter nullFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                            null, null);
-
-                    OrFilter or = OrFilter.createOr(boolFilter, nullFilter);
-                    query.setFilter(or);
-                }
-            }
-            return query;
+            filters.add(substring);
         }
+
+        if(requestable != null){
+            EqualFilter requestableFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                        null, requestable);
+
+            if (requestable){
+                filters.add(requestableFilter);
+            } else {
+                requestableFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                        null, false);
+                EqualFilter nullFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                        null, null);
+                OrFilter or = OrFilter.createOr(requestableFilter, nullFilter);
+                filters.add(or);
+            }
+        }
+
+        if(!filters.isEmpty()){
+            query.setFilter(AndFilter.createAnd(filters));
+        }
+
+        return query;
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target){
@@ -372,6 +367,8 @@ public class PageRoles extends PageAdminRoles {
 
         RolesStorage storage = getSessionStorage().getRoles();
         storage.setRolesSearch(searchModel.getObject());
+        storage.setRolesPaging(null);
+
         panel.setCurrentPage(storage.getRolesPaging());
 
         target.add(get(ID_SEARCH_FORM));

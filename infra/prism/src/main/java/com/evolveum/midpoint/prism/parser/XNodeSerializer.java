@@ -67,6 +67,9 @@ public class XNodeSerializer {
 	
 	private PrismBeanConverter beanConverter;
 	private boolean serializeCompositeObjects = false;
+
+    // TODO think out where to put this key
+    public static final String USER_DATA_KEY_COMMENT = XNodeSerializer.class.getName()+".comment";
 	
 	public XNodeSerializer(PrismBeanConverter beanConverter) {
 		super();
@@ -183,22 +186,7 @@ public class XNodeSerializer {
             return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
         }
         if (beanConverter.getPrismContext() == null) {
-            // HACK. Ugly hack. We need to make sure that the bean converter has a prism context.
-            // If it does not then it cannot serialize any values and the subsequent calls may fail.
-            // The bean converter usually has a context. The context may be missing if it was initialized
-            // inside one of the JAXB getters/setters.
-            // We need to get rid of JAXB entirelly to get rid of hacks like this
-            PrismContext context = null;
-            if (definition != null) {
-                context = definition.getPrismContext();
-            }
-            if (context == null && itemValue.getParent() != null) {
-                context = itemValue.getParent().getPrismContext();
-            }
-            if (context == null) {
-                throw new SystemException("Cannot determine prism context when serializing "+itemValue);
-            }
-            beanConverter.setPrismContext(context);
+            throw new IllegalStateException("No prismContext in beanConverter!");
         }
         if (itemValue instanceof PrismReferenceValue) {
             xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition);
@@ -211,6 +199,10 @@ public class XNodeSerializer {
         }
         if (definition.isDynamic()) {
             xnode.setExplicitTypeDeclaration(true);
+        }
+        Object commentValue = itemValue.getUserData(USER_DATA_KEY_COMMENT);
+        if (commentValue != null) {
+            xnode.setComment(commentValue.toString());
         }
 //		System.out.println("item value serialization: \n" + xnode.debugDump());
         return xnode;
@@ -295,7 +287,7 @@ public class XNodeSerializer {
         }
         SearchFilterType filter = value.getFilter();
         if (filter != null) {
-            XNode xsubnode = filter.serializeToXNode(value.getPrismContext());
+            XNode xsubnode = filter.serializeToXNode();
             xmap.put(createReferenceQName(XNode.KEY_REFERENCE_FILTER, namespace), xsubnode);
         }
 
@@ -305,7 +297,7 @@ public class XNodeSerializer {
         }
         if ((serializeCompositeObjects || isComposite) && value.getObject() != null) {
             XNode xobjnode = serializeObjectContent(value.getObject());
-            xmap.put(XNode.KEY_REFERENCE_OBJECT, xobjnode);
+            xmap.put(createReferenceQName(XNode.KEY_REFERENCE_OBJECT, namespace), xobjnode);
         }
 
         return xmap;
@@ -326,35 +318,19 @@ public class XNodeSerializer {
     private <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition) throws SchemaException {
         QName typeQName = definition.getTypeName();
         T realValue = value.getValue();
-        if (realValue instanceof SchemaDefinitionType) {
-            return serializeSchemaDefinition((SchemaDefinitionType)realValue);
-        } else if (realValue instanceof ProtectedDataType<?>) {
-            MapXNode xProtected = serializeProtectedDataType((ProtectedDataType<?>) realValue);
-            if (definition.isDynamic()){
-                xProtected.setExplicitTypeDeclaration(true);
-                xProtected.setTypeQName(definition.getTypeName());
-            }
-            return xProtected;
-        } else if (realValue instanceof PolyString) {
+        if (realValue instanceof PolyString) {
             return serializePolyString((PolyString) realValue);
-        } else if (realValue instanceof ItemPathType){
-            return serializeItemPathType((ItemPathType) realValue);
         } else if (beanConverter.canProcess(typeQName)) {
-            return beanConverter.marshall(realValue);
+            XNode xnode = beanConverter.marshall(realValue);
+            if (realValue instanceof ProtectedDataType<?> && definition.isDynamic()) {          // why is this?
+                xnode.setExplicitTypeDeclaration(true);
+                xnode.setTypeQName(definition.getTypeName());
+            }
+            return xnode;
         } else {
             // primitive value
             return createPrimitiveXNode(realValue, typeQName);
         }
-    }
-
-    private XNode serializeItemPathType(ItemPathType itemPath) {
-        PrimitiveXNode<ItemPath> xprim = new PrimitiveXNode<ItemPath>();
-        if (itemPath != null){
-            ItemPath path = itemPath.getItemPath();
-            xprim.setValue(path);
-            xprim.setTypeQName(ItemPath.XSD_TYPE);
-        }
-        return xprim;
     }
 
     private XNode serializePolyString(PolyString realValue) {
@@ -362,30 +338,6 @@ public class XNodeSerializer {
         xprim.setValue(realValue);
         xprim.setTypeQName(PolyStringType.COMPLEX_TYPE);
         return xprim;
-    }
-
-    // TODO create more appropriate interface to be able to simply serialize ProtectedStringType instances
-    public <T> MapXNode serializeProtectedDataType(ProtectedDataType<T> protectedType) throws SchemaException {
-        MapXNode xmap = new MapXNode();
-        if (protectedType.getEncryptedDataType() != null) {
-            EncryptedDataType encryptedDataType = protectedType.getEncryptedDataType();
-            MapXNode xEncryptedDataType = (MapXNode) beanConverter.marshall(encryptedDataType);
-            xmap.put(ProtectedDataType.F_ENCRYPTED_DATA, xEncryptedDataType);
-        } else if (protectedType.getClearValue() != null){
-            QName type = XsdTypeMapper.toXsdType(protectedType.getClearValue().getClass());
-            PrimitiveXNode xClearValue = createPrimitiveXNode(protectedType.getClearValue(), type);
-            xmap.put(ProtectedDataType.F_CLEAR_VALUE, xClearValue);
-        }
-        // TODO: clearValue
-        return xmap;
-    }
-
-    private XNode serializeSchemaDefinition(SchemaDefinitionType schemaDefinitionType) {
-        SchemaXNode xschema = new SchemaXNode();
-        xschema.setSchemaElement(schemaDefinitionType.getSchema());
-        MapXNode xmap = new MapXNode();
-        xmap.put(DOMUtil.XSD_SCHEMA_ELEMENT,xschema);
-        return xmap;
     }
 
     private <T> XNode serializePropertyRawValue(PrismPropertyValue<T> value) throws SchemaException {

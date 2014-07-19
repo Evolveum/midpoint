@@ -194,7 +194,11 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 
     @Override
 	public SubstringFilter clone() {
-		return new SubstringFilter(getFullPath(),getDefinition(), getMatchingRule(), getValues());
+        SubstringFilter filter = new SubstringFilter(getFullPath(), getDefinition(), getMatchingRule(), getValues());
+        filter.anchorStart = anchorStart;
+        filter.anchorEnd = anchorEnd;
+
+        return filter;
 	}
 
 	@Override

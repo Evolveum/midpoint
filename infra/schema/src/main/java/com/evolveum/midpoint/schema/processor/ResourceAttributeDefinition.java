@@ -56,6 +56,7 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 	}
 
 	public ResourceAttribute instantiate(QName name) {
+        name = addNamespaceIfApplicable(name);
 		return new ResourceAttribute(name, this, prismContext);
 	}
 

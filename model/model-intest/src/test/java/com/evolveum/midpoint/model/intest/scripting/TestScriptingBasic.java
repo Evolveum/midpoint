@@ -16,10 +16,10 @@
 package com.evolveum.midpoint.model.intest.scripting;
 
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
+import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.model.scripting.Data;
-import com.evolveum.midpoint.model.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.test.LogfileTestTailer;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -184,7 +184,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         IntegrationTestTools.display("output", output.getData());
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals(9, output.getData().size());
+        assertEquals(8, output.getData().size());
     }
 
     @Test

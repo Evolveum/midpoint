@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -32,7 +33,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvi
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -294,10 +294,10 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
         OperationResult result = new OperationResult(OPERATION_STOP_PROCESS_INSTANCES);
 
-        WorkflowManager workflowManagerImpl = getWorkflowManager();
+        WorkflowService workflowService = getWorkflowService();
         for (ProcessInstanceDto processInstanceDto : processInstanceDtoList) {
             try {
-                workflowManagerImpl.stopProcessInstance(processInstanceDto.getInstanceId(),
+                workflowService.stopProcessInstance(processInstanceDto.getInstanceId(),
                         WebMiscUtil.getOrigStringFromPoly(user.getName()), result);
             } catch (Exception ex) {    // todo
                 result.createSubresult("stopProcessInstance").recordPartialError("Couldn't stop process instance " + processInstanceDto.getName(), ex);
@@ -305,7 +305,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         }
         for (ProcessInstanceDto processInstanceDto : finishedProcessInstanceDtoList) {
             try {
-                workflowManagerImpl.deleteProcessInstance(processInstanceDto.getInstanceId(), result);
+                workflowService.deleteProcessInstance(processInstanceDto.getInstanceId(), result);
             } catch (Exception ex) {    // todo
                 result.createSubresult("deleteProcessInstance").recordPartialError("Couldn't delete process instance " + processInstanceDto.getName(), ex);
             }

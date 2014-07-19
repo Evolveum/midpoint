@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+
+	<c:resource oid="11111111-2222-3333-4444-000000000000" xsi:type="c:ResourceType">
+
+		<name>Active Directory Group Sync</name>
+
+        <description>A sample resource that synchronizes AD groups with midPoint roles.</description>
+
+		<!-- Reference to the ICF AD connector. OID is "virtual" for now. -->
+		<connectorRef type="ConnectorType">
+			<filter>
+				<q:equal>
+					<q:path>c:connectorType</q:path>
+					<q:value>Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</q:value>
+				</q:equal>
+			</filter>
+		</connectorRef>
+
+		<!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+		<connectorConfiguration>
+
+			<!-- Configuration specific for the Active Directory connector -->
+			<icfc:configurationProperties
+                xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector">
+				<icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
+				<icfcad:DirectoryAdminPassword><clearValue>secret</clearValue></icfcad:DirectoryAdminPassword>
+				<icfcad:ObjectClass>User</icfcad:ObjectClass>
+				<icfcad:Container>dc=example,dc=com</icfcad:Container>
+				<icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
+				<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName><!-- This is the hostname of AD server as seen from the ConnectorServer instance! -->
+				<icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
+				<icfcad:DomainName>example.com</icfcad:DomainName>
+				<icfcad:SyncGlobalCatalogServer>localhost</icfcad:SyncGlobalCatalogServer><!-- hostname of DC to look up for changes when synchronizing -->
+				<icfcad:SyncDomainController>localhost</icfcad:SyncDomainController><!-- hostname of DC to look up for changes when synchronizing -->
+			</icfc:configurationProperties>
+
+			<icfc:resultsHandlerConfiguration>
+				<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+			</icfc:resultsHandlerConfiguration>
+
+		</connectorConfiguration>
+
+		<!-- Resource Schema Handling definition.
+             This part defines how the schema will be used by midPoint.
+             It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+        -->
+
+		<schemaHandling>
+
+            <!-- handling of user accounts -->
+
+			<objectType>
+                <kind>account</kind>
+				<displayName>Default Account</displayName>
+				<default>true</default>
+				<objectClass>ri:AccountObjectClass</objectClass>
+
+				<attribute>
+					<ref>ri:givenName</ref>
+					<displayName>Given Name</displayName>
+					<outbound>
+						<source>
+							<path>$user/givenName</path>
+						</source>
+					</outbound>
+					<inbound>
+						<target>
+							<path>$user/givenName</path>
+						</target>
+					</inbound>
+				</attribute>
+				<attribute>
+					<ref>ri:sn</ref>
+					<displayName>Surname</displayName>
+					<outbound>
+						<source>
+							<path>$user/familyName</path>
+						</source>
+					</outbound>
+					<inbound>
+						<target>
+							<path>$user/familyName</path>
+						</target>
+					</inbound>
+				</attribute>
+				<attribute>
+					<ref>ri:sAMAccountName</ref>
+					<displayName>Login name</displayName>
+					<outbound>
+						<source>
+							<path>$user/name</path>
+						</source>
+					</outbound>
+					<inbound>
+						<target>
+							<path>$user/name</path>
+						</target>
+					</inbound>
+				</attribute>
+
+				<attribute>
+					<ref>icfs:name</ref>
+					<displayName>Distinguished Name</displayName>
+
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
+
+					<outbound>
+						<source>
+							<path>$user/name</path>
+						</source>
+						<expression>
+							<script>
+								<code>
+				'cn='+name+',ou=Users,dc=example,dc=com'
+								</code>
+							</script>
+						</expression>
+					</outbound>
+				</attribute>
+
+                <!-- This defines an association between user and groups he is a member of -->
+                <association>
+                    <ref>ri:group</ref>
+                    <displayName>AD Group Membership</displayName>
+                    <kind>entitlement</kind>
+                    <intent>group</intent>
+                    <direction>objectToSubject</direction>
+                    <associationAttribute>ri:member</associationAttribute>
+                    <valueAttribute>icfs:name</valueAttribute>
+                    <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+                </association>
+
+				<iteration>
+					<maxIterations>5</maxIterations>
+				</iteration>
+				<protected>
+					<icfs:name>cn=Administrator,ou=Users,dc=example,dc=com</icfs:name>
+				</protected>
+				<activation>
+					<administrativeStatus>
+						<outbound/>
+					</administrativeStatus>
+				</activation>
+				<credentials>
+					<password>
+						<outbound/>
+                        <inbound>
+                            <strength>weak</strength>
+                            <expression>
+                                <generate/>
+                            </expression>
+                        </inbound>
+					</password>
+				</credentials>
+
+            </objectType>
+
+            <!-- handling of groups -->
+
+            <objectType>
+                <kind>entitlement</kind>
+                <intent>group</intent>
+                <displayName>AD Group</displayName>
+                <default>true</default>
+                <objectClass>ri:CustomGroupObjectClass</objectClass>
+                <attribute>
+                    <ref>icfs:name</ref>
+                    <matchingRule>mr:stringIgnoreCase</matchingRule>
+                    <outbound>
+                        <source>
+                            <path>$focus/name</path>
+                        </source>
+                        <expression>
+                            <script>
+                                <code>
+                                    'cn='+name+',ou=Groups,dc=example,dc=com'
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:cn</ref>
+                    <matchingRule>mr:stringIgnoreCase</matchingRule>
+                    <outbound>
+                        <source>
+                            <path>$focus/name</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>$focus/name</path>
+                        </target>
+                    </inbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:description</ref>
+                    <outbound>
+                        <strength>strong</strength>
+                        <source>
+                            <path>description</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <strength>weak</strength>
+                        <target>
+                            <path>$focus/description</path>
+                        </target>
+                    </inbound>
+                </attribute>
+            </objectType>
+
+		</schemaHandling>
+        <!--
+            Synchronization section describes the synchronization policy, timing,
+            reactions and similar synchronization settings.
+        -->
+        <synchronization>
+            <objectSynchronization>
+                <!-- Synchronizing users -->
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <enabled>true</enabled>
+
+                <correlation>
+                    <q:description>
+	                    Correlation expression is a search query.
+	                    Following search query will look for users that have "name"
+	                    equal to the "sAMAccountName" attribute of the account. Simply speaking,
+	                    it will look for match in usernames in the IDM and the resource.
+	                    The correlation rule always looks for users, so it will not match
+	                    any other object type.
+                    </q:description>
+                    <q:equal>
+                        <q:path>c:name</q:path>
+                        <expression>
+                            <path>$shadow/attributes/sAMAccountName</path>
+        				</expression>
+			        </q:equal>
+        		</correlation>
+
+		        <!-- Confirmation rule may be here, but as the search above will
+	                 always return at most one match, the confirmation rule is not needed. -->
+
+		        <!-- Following section describes reactions to a situations.
+	                 The setting here assumes that this resource is authoritative,
+	                 therefore all accounts created on the resource should be
+	                 reflected as new users in IDM.
+	                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+	             -->
+                <reaction>
+                    <situation>linked</situation>
+                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+                </reaction>
+            </objectSynchronization>
+
+            <objectSynchronization>
+                <!-- Synchronizing groups with roles -->
+                <objectClass>ri:CustomGroupObjectClass</objectClass>
+                <kind>entitlement</kind>
+                <intent>group</intent>
+                <focusType>c:RoleType</focusType>
+                <enabled>true</enabled>
+
+                <correlation>
+                    <q:equal>
+                        <q:path>c:name</q:path>
+                        <expression>
+                            <path>$shadow/attributes/samAccountName</path>
+                        </expression>
+                    </q:equal>
+                </correlation>
+                <reaction>
+                    <situation>linked</situation>
+                    <synchronize>true</synchronize>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <synchronize>true</synchronize>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    </action>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <synchronize>true</synchronize>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                    </action>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <synchronize>true</synchronize>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                    </action>
+                </reaction>
+            </objectSynchronization>
+
+        </synchronization>
+    </c:resource>
+
+    <task oid="11111111-2222-3333-4444-100000000000">
+        <name>Synchronization: Active Directory (users)</name>
+        <taskIdentifier>11111111-2222-3333-4444-100000000000</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>runnable</executionStatus>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+        <objectRef oid="11111111-2222-3333-4444-000000000000" type="c:ResourceType"/>
+        <recurrence>recurring</recurrence>
+        <binding>tight</binding>
+        <schedule>
+            <interval>5</interval>
+        </schedule>
+    </task>
+
+    <task oid="11111111-2222-3333-4444-100000000001">
+        <name>Synchronization: Active Directory (groups)</name>
+        <extension>
+            <mext:kind xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">entitlement</mext:kind>
+        </extension>
+        <taskIdentifier>11111111-2222-3333-4444-100000000001</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>runnable</executionStatus>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+        <objectRef oid="11111111-2222-3333-4444-000000000000" type="c:ResourceType"/>
+        <recurrence>recurring</recurrence>
+        <binding>tight</binding>
+        <schedule>
+            <interval>5</interval>
+        </schedule>
+    </task>
+
+</objects>

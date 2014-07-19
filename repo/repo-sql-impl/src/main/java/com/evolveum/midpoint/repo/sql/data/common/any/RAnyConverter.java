@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -249,14 +250,6 @@ public class RAnyConverter {
         }
     }
 
-    private Element createElement(QName name) {
-        if (document == null) {
-            document = DOMUtil.getDocument();
-        }
-
-        return DOMUtil.createElement(document, name);
-    }
-
     private void addValueToItem(RAnyValue value, Item item) throws SchemaException {
         Object realValue = createRealValue(value, item.getDefinition().getTypeName());
         if (!(value instanceof ROExtReference) && realValue == null) {
@@ -338,37 +331,12 @@ public class RAnyConverter {
      * extension value is or can be saved.
      *
      * @param definition
-     * @param value
-     * @param <T>
+     *
      * @return One of "strings", "longs", "dates", "clobs"
      * @throws SchemaException
      */
-    public static <T extends ObjectType> String getAnySetType(ItemDefinition definition, Element value) throws
-            SchemaException {
-        QName typeName = definition == null ? DOMUtil.resolveXsiType(value) : definition.getTypeName();
-        Validate.notNull(typeName, "Definition was not defined for element value '"
-                + DOMUtil.getQNameWithoutPrefix(value) + "' and it doesn't have xsi:type.");
-
-        ValueType valueType = getValueType(typeName);
-        switch (valueType) {
-            case DATE:
-                return "dates";
-            case LONG:
-                return "longs";
-            case STRING:
-            default:
-                boolean indexed = definition == null ? isIndexable(typeName) : isIndexable(definition);
-                if (indexed) {
-                    return "strings";
-                } else {
-                    return "clobs";
-                }
-        }
-    }
-
-
     public static <T extends ObjectType> String getAnySetType(ItemDefinition definition) throws
-            SchemaException {
+            SchemaException, QueryException {
         QName typeName = definition.getTypeName();
 
         ValueType valueType = getValueType(typeName);
@@ -382,7 +350,7 @@ public class RAnyConverter {
                 if (isIndexable(definition)) {
                     return "strings";
                 } else {
-                    return "clobs";
+                    throw new QueryException("Can't query CLOB (non indexed string) value, definition " + definition);
                 }
         }
     }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 
 import javax.xml.namespace.QName;
 
@@ -101,6 +102,12 @@ public class TypeFilter extends ObjectFilter {
 
     @Override
     public String toString() {
-        return debugDump();
+    	StringBuilder sb = new StringBuilder();
+		sb.append("TYPE(");
+		sb.append(PrettyPrinter.prettyPrint(type));
+		sb.append(",");
+		sb.append(filter);
+		sb.append(")");
+		return sb.toString();
     }
 }

@@ -25,9 +25,14 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -37,7 +42,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -143,9 +148,9 @@ public class TestJaxbConstruction {
 		// accountRef/account
 		ObjectReferenceType accountRefType = new ObjectReferenceType();
 		accountRefType.setOid(USER_ACCOUNT_REF_1_OID);
-		Element filterElement = createFilter();
+		MapXNode filterElement = createFilter();
 		SearchFilterType filter = new SearchFilterType();
-		filter.setFilterClause(filterElement);
+		filter.setFilterClauseXNode(filterElement);
 		accountRefType.setFilter(filter);
 		userType.getLinkRef().add(accountRefType);
 		
@@ -162,12 +167,14 @@ public class TestJaxbConstruction {
 //        assertEquals("Difference filter", filterElement, prismFilter);
 
         ShadowType accountShadowType = new ShadowType();
+        prismContext.adopt(accountShadowType);
         accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
         userType.getLink().add(accountShadowType);
         //value still should be only one... (reference was only resolved)
         assertEquals("2/ Wrong accountRef values", 1, user.findReference(UserType.F_LINK_REF).getValues().size());
 
 		accountShadowType = new ShadowType();
+        prismContext.adopt(accountShadowType);
 		accountShadowType.setOid(USER_ACCOUNT_REF_2_OID);
 		userType.getLink().add(accountShadowType);
 
@@ -209,9 +216,9 @@ public class TestJaxbConstruction {
 		ObjectReferenceType accountRefType = new ObjectReferenceType();
 		accountRefType.setOid(USER_ACCOUNT_REF_1_OID);
 		
-		Element filterElement = createFilter();
+		MapXNode filterElement = createFilter();
 		SearchFilterType filter = new SearchFilterType();
-		filter.setFilterClause(filterElement);
+		filter.setFilterClauseXNode(filterElement);
 		accountRefType.setFilter(filter);
 		userType.getLinkRef().add(accountRefType);
 		
@@ -527,17 +534,17 @@ public class TestJaxbConstruction {
 		stringProperty.setRealValue("fifteen men on a dead man chest");
 	}
 	
-	private Element createFilter(){
-		Document doc = DOMUtil.getDocument();
-		Element filterElement = doc.createElementNS(SchemaConstantsGenerated.NS_QUERY, "equal");
-		Element path = doc.createElementNS(SchemaConstantsGenerated.NS_QUERY, "path");
-		path.setTextContent("name");
-		filterElement.appendChild(path);
-		
-		Element value = doc.createElementNS(SchemaConstantsGenerated.NS_QUERY, "value");
-		path.setTextContent("čučoriedka");
-		filterElement.appendChild(value);
-		return filterElement;
+	private MapXNode createFilter(){
+
+        MapXNode filter = new MapXNode();
+        MapXNode equalsElement = (MapXNode) filter.put(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"), new MapXNode());
+
+        PrimitiveXNode<ItemPathType> pathElement = new PrimitiveXNode<>(new ItemPathType(new ItemPath(new QName("name"))));
+        equalsElement.put(new QName(SchemaConstantsGenerated.NS_QUERY, "path"), pathElement);
+
+        PrimitiveXNode<String> valueElement = new PrimitiveXNode<>("čučoriedka");
+        equalsElement.put(new QName(SchemaConstantsGenerated.NS_QUERY, "value"), valueElement);
+		return filter;
 	}
 
 }

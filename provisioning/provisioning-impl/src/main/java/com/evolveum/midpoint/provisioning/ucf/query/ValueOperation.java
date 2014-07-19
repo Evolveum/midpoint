@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.filter.Filter;
@@ -29,7 +30,7 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
@@ -54,21 +55,16 @@ public class ValueOperation extends Operation {
 
 		ValueFilter valueFilter= (ValueFilter) objectFilter;
 		if (valueFilter.getParentPath() != null && !valueFilter.getParentPath().isEmpty()
-				&& valueFilter.getParentPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES))) {
+				&& valueFilter.getParentPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES))) {
 			try {
 				QName propName = valueFilter.getDefinition().getName();
 				String icfName = icfNameMapper.convertAttributeNameToIcf(propName, getInterpreter()
 						.getResourceSchemaNamespace());
 				
-				if (objectFilter instanceof EqualsFilter) {
-					EqualsFilter<T> eq = (EqualsFilter<T>) objectFilter;
+				if (objectFilter instanceof EqualFilter) {
+					EqualFilter<T> eq = (EqualFilter<T>) objectFilter;
 					
-					Collection<Object> convertedValues = new ArrayList<Object>();
-					for (PrismValue value : eq.getValues()) {
-						Object converted = UcfUtil.convertValueToIcf(value, null, propName);
-						convertedValues.add(converted);
-					}
-
+					Collection<Object> convertedValues = convertValues(propName, eq.getValues());
 					if (convertedValues.isEmpty()) {
 						// See MID-1460
 						throw new UnsupportedOperationException("Equals filter with a null value is NOT supported by ICF");
@@ -84,12 +80,7 @@ public class ValueOperation extends Operation {
 				} else if (objectFilter instanceof InFilter) {
 					InFilter<T> in = (InFilter<T>) objectFilter;
 					
-					Collection<Object> convertedValues = new ArrayList<Object>();
-					for (PrismValue value : in.getValues()) {
-						Object converted = UcfUtil.convertValueToIcf(value, null, propName);
-						convertedValues.add(converted);
-					}
-
+					Collection convertedValues = convertValues(propName, (List) in.getValues());
 					if (convertedValues.isEmpty()) {
 						throw new IllegalArgumentException("In filter with a null value makes no sense");
 					} else {
@@ -99,8 +90,16 @@ public class ValueOperation extends Operation {
 				
 				} else if (objectFilter instanceof SubstringFilter) {
 					SubstringFilter substring = (SubstringFilter) objectFilter;
-					Object converted = UcfUtil.convertValueToIcf(substring.getValues(), null, propName);
-					return FilterBuilder.contains(AttributeBuilder.build(icfName, converted));
+                    Collection<Object> convertedValues = convertValues(propName, substring.getValues());
+                    if (convertedValues.isEmpty()) {
+                        throw new IllegalArgumentException("Substring filter with null value makes no sense");
+                    } else {
+                        if (convertedValues.size() != 1) {
+                            throw new IllegalArgumentException("Substring filter with multiple values makes no sense");
+                            //maybe it does, through OR clauses
+                        }
+                        return FilterBuilder.contains(AttributeBuilder.build(icfName, convertedValues.iterator().next()));
+                    }
 				} else {
 					throw new UnsupportedOperationException("Unsupported filter type: " + objectFilter.debugDump());
 				}
@@ -111,7 +110,15 @@ public class ValueOperation extends Operation {
 		} else {
 			throw new UnsupportedOperationException("Unsupported parent path "+valueFilter.getParentPath()+" in filter: " + objectFilter.debugDump());
 		}
-		
 	}
 
+    private <T> Collection<Object> convertValues(QName propName, List<PrismPropertyValue<T>> values) throws SchemaException {
+        Collection<Object> convertedValues = new ArrayList<>();
+        for (PrismValue value : values) {
+            Object converted = UcfUtil.convertValueToIcf(value, null, propName);
+            convertedValues.add(converted);
+        }
+
+        return convertedValues;
+    }
 }

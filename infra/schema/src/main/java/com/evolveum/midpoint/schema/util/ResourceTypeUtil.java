@@ -25,6 +25,8 @@ import javax.xml.namespace.QName;
 
 
 
+
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -55,6 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -329,6 +333,26 @@ public class ResourceTypeUtil {
 		return true;
 	}
 	
+	public static boolean hasResourceNativeActivationLockoutCapability(ResourceType resource) {
+		ActivationCapabilityType activationCapability = null;
+		// check resource native capabilities. if resource cannot do
+		// activation, it sholud be null..
+		if (resource.getCapabilities() != null && resource.getCapabilities().getNative() != null) {
+			activationCapability = CapabilityUtil.getCapability(resource.getCapabilities().getNative().getAny(),
+					ActivationCapabilityType.class);
+		}
+		if (activationCapability == null) {
+			return false;
+		}
+		
+		ActivationLockoutStatusCapabilityType lockoutStatus = activationCapability.getLockoutStatus();
+		if (lockoutStatus == null) {
+			return false;
+		}
+		
+		return true;
+	}
+	
 	public static boolean hasResourceConfiguredActivationCapability(ResourceType resource) {
 		if (resource.getCapabilities() == null) {
 			return false;
@@ -352,29 +376,22 @@ public class ResourceTypeUtil {
         if (schemaHandling == null) {
             return null;
         }
-        for (ResourceObjectTypeDefinitionType acct: schemaHandling.getObjectType()) {
-			if (acct.getKind() == kind) {
-				if (intent == null && acct.isDefault()) {
-					return acct;
+        if (kind == null) {
+        	kind = ShadowKindType.ACCOUNT;
+        }
+        for (ResourceObjectTypeDefinitionType objType: schemaHandling.getObjectType()) {
+			if (objType.getKind() == kind || (objType.getKind() == null && kind == ShadowKindType.ACCOUNT)) {
+				if (intent == null && objType.isDefault()) {
+					return objType;
 				}
-				if (acct.getIntent() != null && acct.getIntent().equals(intent)) {
-					return acct;
+				if (objType.getIntent() != null && objType.getIntent().equals(intent)) {
+					return objType;
 				}
-				if (acct.getName() != null && acct.getName().equals(intent)) {
-					return acct;
+				if (objType.getIntent() == null && objType.isDefault() && intent != null && intent.equals(SchemaConstants.INTENT_DEFAULT)) {
+					return objType;
 				}
 			}
 		}
-        if (kind == ShadowKindType.ACCOUNT) {
-			for (ResourceObjectTypeDefinitionType acct: schemaHandling.getAccountType()) {
-				if (intent == null && acct.isDefault()) {
-					return acct;
-				}
-				if (acct.getName().equals(intent)) {
-					return acct;
-				}
-			}
-        }
 		return null;
 	}
 

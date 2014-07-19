@@ -113,6 +113,8 @@
     			<q:value>captain</q:value>
     		</q:equal>
     	</filter>
-    </accountRef>    
+    </accountRef>
+
+    <special>got it!</special>
 
 </user>

@@ -55,6 +55,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.*;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -112,6 +113,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final String OPERATION_UPDATE_OBJECTS = DOT_CLASS + "updateObjects";
     private static final String OPERATION_UPDATE_OBJECT = DOT_CLASS + "updateObject";
     private static final String OPERATION_RECOMPUTE = DOT_CLASS + "recompute";
+    private static final String OPERATION_LOAD_PARENTS = DOT_CLASS + "loadParents";
 
     private static final String ID_TREE = "tree";
     private static final String ID_TREE_CONTAINER = "treeContainer";
@@ -168,6 +170,40 @@ public class TreeTablePanel extends SimplePanel<String> {
             @Override
             protected void rowSelected(AjaxRequestTarget target, IModel<OrgTableDto> row, Operation operation) {
                 moveConfirmedPerformed(target, selected.getObject(), row.getObject(), operation);
+            }
+
+            @Override
+            public ObjectQuery createRootQuery(){
+                ArrayList<String> oids = new ArrayList<String>();
+                ObjectQuery query = new ObjectQuery();
+
+                if(isMovingRoot() && getRootFromProvider() != null){
+                    oids.add(getRootFromProvider().getOid());
+                }
+
+                //Selection from table, but only if we are not moving root
+                if(!isMovingRoot()){
+                    oids.remove(getRootFromProvider().getOid());
+
+                    List<OrgTableDto> objects = WebMiscUtil.getSelectedData(getTable());
+                    if(!objects.isEmpty()){
+                        for(OrgTableDto dto: objects){
+                            oids.add(dto.getOid());
+
+                            //TODO - uncomment this, if parentOrgOid filtering is also required (see issue MID-1780)
+                            //oids.addAll(getOrgParentOids(dto.getOid()));
+                        }
+                    }
+                }
+
+                if(oids.isEmpty()){
+                    return null;
+                }
+
+                ObjectFilter oidFilter = InOidFilter.createInOid(oids);
+                query.setFilter(NotFilter.createNot(oidFilter));
+
+                return query;
             }
         });
 
@@ -262,6 +298,21 @@ public class TreeTablePanel extends SimplePanel<String> {
         initSearch();
     }
 
+    private List<String> getOrgParentOids(String orgOid){
+        List<String> parentOids = new ArrayList<String>();
+        OperationResult result = new OperationResult(OPERATION_LOAD_PARENTS);
+        PrismObject<OrgType> org = WebModelUtils.loadObject(OrgType.class, orgOid, result, getPageBase());
+        OrgType orgObject = org.asObjectable();
+
+        if(orgObject.getParentOrg() != null && !orgObject.getParentOrg().isEmpty()){
+            for(OrgType parentOrg: orgObject.getParentOrg()){
+                parentOids.add(parentOrg.getOid());
+            }
+        }
+
+        return parentOids;
+    }
+
     private void initTable() {
         Form form = new Form(ID_FORM);
         form.setOutputMarkupId(true);
@@ -280,7 +331,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         };
         tableProvider.setOptions(WebModelUtils.createMinimalOptions());
         List<IColumn<OrgTableDto, String>> tableColumns = createTableColumns();
-        TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, 10);
+        TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, UserProfileStorage.TableId.TREE_TABLE_PANEL);
         table.setOutputMarkupId(true);
         form.add(table);
     }
@@ -609,10 +660,10 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private void movePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation) {
-        movePerformed(target, operation, null);
+        movePerformed(target, operation, null, false);
     }
 
-    private void movePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation, OrgTableDto selected) {
+    private void movePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation, OrgTableDto selected, boolean movingRoot) {
         List<OrgTableDto> objects;
         if (selected == null) {
             objects = isAnythingSelected(target);
@@ -625,6 +676,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         }
 
         OrgUnitBrowser dialog = (OrgUnitBrowser) get(ID_MOVE_POPUP);
+        dialog.setMovingRoot(movingRoot);
         dialog.setOperation(operation);
         dialog.setSelectedObjects(objects);
         dialog.show(target);
@@ -747,6 +799,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         basicSearch.getModel().setObject(null);
 
         TablePanel table = getTable();
+        table.setCurrentPage(null);
 
         target.add(table);
         target.add(get(ID_SEARCH_FORM));
@@ -757,7 +810,6 @@ public class TreeTablePanel extends SimplePanel<String> {
         String oid = dto != null ? dto.getOid() : getModel().getObject();
 
         OrgFilter org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
-//        return ObjectQuery.createObjectQuery(org);
 
         BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
         String object = basicSearch.getModelObject();
@@ -773,7 +825,6 @@ public class TreeTablePanel extends SimplePanel<String> {
         if (StringUtils.isEmpty(normalizedString)) {
             return ObjectQuery.createObjectQuery(org);
         }
-
 
         SubstringFilter substring =  SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, context,
                 PolyStringNormMatchingRule.NAME, normalizedString);
@@ -802,7 +853,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     private void moveRootPerformed(AjaxRequestTarget target) {
         OrgTreeDto root = getRootFromProvider();
         OrgTableDto dto = new OrgTableDto(root.getOid(), root.getType());
-        movePerformed(target, OrgUnitBrowser.Operation.MOVE, dto);
+        movePerformed(target, OrgUnitBrowser.Operation.MOVE, dto, true);
     }
 
     private void updateActivationPerformed(AjaxRequestTarget target, boolean enable) {

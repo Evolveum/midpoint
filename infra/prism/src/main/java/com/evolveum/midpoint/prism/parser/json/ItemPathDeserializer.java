@@ -32,7 +32,7 @@ public class ItemPathDeserializer extends JsonDeserializer<ItemPath>{
 		if (StringUtils.isBlank(path)){
 			throw new IllegalStateException("Error while deserializing path. No path specified.");
 		}
-		System.out.println("path: " + path);
+		//System.out.println("path: " + path);
 //		if (path.startsWith("declare.*")){
 			XPathHolder holder = new XPathHolder(path);
 			return holder.toItemPath();

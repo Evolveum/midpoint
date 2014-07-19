@@ -43,7 +43,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -74,7 +73,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -127,6 +126,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
@@ -528,7 +528,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Check native capabilities
 		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
-		display("Native capabilities", JaxbTestUtil.marshalWrap(nativeCapabilities));
+		display("Native capabilities", PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
 		display("Resource", resourceType);
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
@@ -603,7 +603,7 @@ public class TestDummy extends AbstractDummyTest {
 		CapabilitiesType capabilitiesType = resourceType.getCapabilities();
 		assertNotNull("No capabilities in repo, the capabilities were not cached", capabilitiesType);
 		CapabilityCollectionType nativeCapabilities = capabilitiesType.getNative();
-		System.out.println("Native capabilities: " + JaxbTestUtil.marshalWrap(nativeCapabilities));
+		System.out.println("Native capabilities: " + PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
 		System.out.println("resource: " + resourceType.asPrismObject().debugDump());
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
@@ -1688,8 +1688,8 @@ public class TestDummy extends AbstractDummyTest {
 		ShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_SCRIPT, ShadowType.class);
 		display("Account before add", account);
 
-		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
 		// WHEN
 		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), scriptsType, null, task, result);
@@ -1741,8 +1741,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 		
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
 				ACCOUNT_NEW_SCRIPT_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Will Turner");
@@ -1790,8 +1790,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 		
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
 				ACCOUNT_NEW_SCRIPT_OID, ShadowType.F_DESCRIPTION, prismContext, "Blah blah");
@@ -1832,8 +1832,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 		
 		// WHEN
 		provisioningService.deleteObject(ShadowType.class, ACCOUNT_NEW_SCRIPT_OID, null, scriptsType,
@@ -1869,8 +1869,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 		
 		ProvisioningScriptType script = scriptsType.getScript().get(0);
 		
@@ -1935,8 +1935,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test152EnableAccount() throws Exception {
-		final String TEST_NAME = "test152EnableAccount";
+	public void test151EnableAccount() throws Exception {
+		final String TEST_NAME = "test151EnableAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -1979,8 +1979,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test155SetValidFrom() throws Exception {
-		final String TEST_NAME = "test155SetValidFrom";
+	public void test152SetValidFrom() throws Exception {
+		final String TEST_NAME = "test152SetValidFrom";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -2026,8 +2026,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test156SetValidTo() throws Exception {
-		final String TEST_NAME = "test156SetValidTo";
+	public void test153SetValidTo() throws Exception {
+		final String TEST_NAME = "test153SetValidTo";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
@@ -2072,10 +2072,94 @@ public class TestDummy extends AbstractDummyTest {
 		
 		assertSteadyResource();
 	}
+	
+	@Test
+	public void test155GetLockedoutAccount() throws Exception {
+		final String TEST_NAME = "test155GetLockedoutAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+		dummyAccount.setLockout(true);
+
+		// WHEN
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
+		ShadowType shadowType = shadow.asObjectable();
+
+		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		TestUtil.assertSuccess(result);
+
+		display("Retrieved account shadow", shadowType);
+
+		assertNotNull("No dummy account", shadowType);
+		
+		if (supportsActivation()) {
+			PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, 
+				LockoutStatusType.LOCKED);
+		} else {
+			PrismAsserts.assertNoItem(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
+		}
+
+		checkAccountWill(shadowType, result);
+
+		checkConsistency(shadowType.asPrismObject());
+		
+		assertSteadyResource();
+	}
+	
+	@Test
+	public void test156UnlockAccount() throws Exception {
+		final String TEST_NAME = "test156UnlockAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, 
+				result).asObjectable();
+		assertNotNull(accountType);
+		display("Retrieved account shadow", accountType);
+
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+		assertTrue("Account is not locked", dummyAccount.isLockout());
+		
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, prismContext,
+				LockoutStatusType.NORMAL);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("modifyObject result", result);
+		TestUtil.assertSuccess(result);
+		
+		delta.checkConsistence();
+		// check if activation was changed
+		dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+		assertFalse("Dummy account "+ACCOUNT_WILL_USERNAME+" is locked, expected unlocked", dummyAccount.isLockout());
+		
+		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
+	}
 
 	@Test
-	public void test158GetAccount() throws Exception {
-		final String TEST_NAME = "test158GetAccount";
+	public void test159GetAccount() throws Exception {
+		final String TEST_NAME = "test159GetAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
@@ -2097,8 +2181,11 @@ public class TestDummy extends AbstractDummyTest {
 		if (supportsActivation()) {
 			PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
 				ActivationStatusType.ENABLED);
+			PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, 
+					LockoutStatusType.NORMAL);
 		} else {
 			PrismAsserts.assertNoItem(shadow, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+			PrismAsserts.assertNoItem(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
 		}
 
 		checkAccountWill(shadowType, result);
@@ -2226,7 +2313,7 @@ public class TestDummy extends AbstractDummyTest {
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		ResourceAttributeDefinition attrDef = objectClassDef.findAttributeDefinition(attrQName);
-		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attrPVal);
+		ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attrPVal);
 		
 		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, expectedAccountNames);
 	}
@@ -3209,8 +3296,19 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		testAddProtectedAccount(TEST_NAME, "Xavier");
 		testAddProtectedAccount(TEST_NAME, "Xenophobia");
+		testAddProtectedAccount(TEST_NAME, "nobody-adm");
+		testAddAccount(TEST_NAME, "abcadm");
 		testAddAccount(TEST_NAME, "piXel");
 		testAddAccount(TEST_NAME, "supernaturalius");
+	}
+	
+	@Test
+	public void test511AddProtectedAccountCaseIgnore() throws Exception {
+		final String TEST_NAME = "test511AddProtectedAccountCaseIgnore";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		testAddAccount(TEST_NAME, "xaxa");
+		testAddAccount(TEST_NAME, "somebody-ADM");
 	}
 	
 	private PrismObject<ShadowType> createAccountShadow(String username) throws SchemaException {
@@ -3230,7 +3328,7 @@ public class TestDummy extends AbstractDummyTest {
 		return shadow;
 	}
 	
-	private void testAddProtectedAccount(final String TEST_NAME, String username) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException {
+	protected void testAddProtectedAccount(final String TEST_NAME, String username) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
