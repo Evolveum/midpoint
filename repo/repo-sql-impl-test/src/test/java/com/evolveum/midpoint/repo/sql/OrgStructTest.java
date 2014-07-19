@@ -124,12 +124,10 @@ public class OrgStructTest extends BaseSQLRepoTest {
         OrgType pRoot = repositoryService.getObject(OrgType.class, ORG_PROJECT_ROOT_OID, null, opResult).asObjectable();
         AssertJUnit.assertEquals("PRoot", pRoot.getName().getOrig());
 
-//		QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
-        ObjectQuery query = new ObjectQuery();
-        PrismObjectDefinition<UserType> userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        query.setFilter(EqualFilter.createEqual(UserType.F_NAME, userObjectDef.findPropertyDefinition(UserType.F_NAME), null, ELAINE_NAME));
-        
-        EqualsFilter equals = EqualsFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, ELAINE_NAME);
+        PrismObjectDefinition<UserType> userObjectDef = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class);
+
+        EqualFilter equals = EqualFilter.createEqual(UserType.F_NAME, userObjectDef.findPropertyDefinition(UserType.F_NAME), null, ELAINE_NAME);
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class,
                 ObjectQuery.createObjectQuery(equals), null, opResult);
 
