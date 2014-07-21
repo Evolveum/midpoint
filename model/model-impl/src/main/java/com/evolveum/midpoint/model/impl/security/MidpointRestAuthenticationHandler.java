@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.model.impl.security;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.Date;
@@ -7,7 +8,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.MessageProcessingException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Link;
@@ -21,8 +25,6 @@ import javax.ws.rs.core.Response.StatusType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
-import org.apache.cxf.jaxrs.ext.RequestHandler;
-import org.apache.cxf.jaxrs.ext.ResponseHandler;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.jaxrs.model.OperationResourceInfo;
 import org.apache.cxf.message.Message;
@@ -38,7 +40,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class MidpointRestAuthenticationHandler implements RequestHandler, ResponseHandler {
+public class MidpointRestAuthenticationHandler implements ContainerRequestFilter, ContainerResponseFilter {
 	 
 	@Autowired(required =true)
 	private UserProfileService userDetails;
@@ -133,11 +135,23 @@ public class MidpointRestAuthenticationHandler implements RequestHandler, Respon
 //            return Response.status(401).header("WWW-Authenticate", "Basic").build();
 //        }
     }
+//
+//	@Override
+//	public Response handleResponse(Message m, OperationResourceInfo ori, Response response) {
+//		securityEnforcer.setupPreAuthenticatedSecurityContext((PrismObject) null);
+//		return null;
+//	}
 
 	@Override
-	public Response handleResponse(Message m, OperationResourceInfo ori, Response response) {
-		securityEnforcer.setupPreAuthenticatedSecurityContext((PrismObject) null);
-		return null;
+	public void filter(ContainerRequestContext arg0, ContainerResponseContext arg1) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void filter(ContainerRequestContext arg0) throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
  
 }

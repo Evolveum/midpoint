@@ -44,8 +44,8 @@ import org.apache.cxf.phase.Phase;
 import org.apache.cxf.phase.PhaseInterceptor;
 import org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor;
 import org.apache.ws.commons.schema.utils.DOMUtil;
-import org.apache.ws.security.WSSecurityException;
-import org.apache.ws.security.util.WSSecurityUtil;
+import org.apache.wss4j.common.ext.WSSecurityException;
+import org.apache.wss4j.dom.util.WSSecurityUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -160,7 +160,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
                 	LOGGER.debug("Access to web service denied for user '{}': not authorized", 
                 			new Object[]{username});
                 	auditLoginFailure(username);
-                	throw new Fault(new WSSecurityException("Unauthorized"));
+                	throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, "Not authorized"));
                 }
             }
         } catch (WSSecurityException e) {
@@ -172,7 +172,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         	LOGGER.debug("Access to web service denied for user '{}': object not found: {}", 
         			new Object[]{username, e.getMessage(), e});
         	auditLoginFailure(username);
-            throw new Fault(new WSSecurityException("Unauthorized"));
+            throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, "Not authorized"));
 		}
 
         LOGGER.debug("Access to web service allowed for user '{}'", username);

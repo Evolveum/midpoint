@@ -32,7 +32,7 @@ import javax.xml.transform.stream.StreamSource;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import org.apache.cxf.common.WSDLConstants;
+import org.apache.cxf.wsdl.WSDLConstants;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

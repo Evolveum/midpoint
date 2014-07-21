@@ -46,7 +46,7 @@
     </documentation>
 
 	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"
-			location="../common/fault-3.wsdl"/>
+			location="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"/>
 			
     <types>
         <!-- Element form name is QUALIFIED to prevent some problems with marshalling/unmarshalling. This deviates from RPC/Literal convention, but we

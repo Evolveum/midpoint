@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponse
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -34,8 +35,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.io.IOUtils;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.handler.WSHandlerConstants;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.dom.handler.WSHandlerConstants;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -44,6 +45,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
