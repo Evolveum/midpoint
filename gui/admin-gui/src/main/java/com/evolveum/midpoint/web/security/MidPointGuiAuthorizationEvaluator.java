@@ -118,7 +118,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
             addSecurityConfig(filterInvocation, guiConfigAttr, entry.getKey(), entry.getValue());
         }
 
-        if (configAttributes == null && guiConfigAttr.isEmpty()) {
+        if (configAttributes == null || guiConfigAttr.isEmpty()) {
             return;
         }
 

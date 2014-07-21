@@ -168,6 +168,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	private <O extends ObjectType, T extends ObjectType> boolean isAuthorizedInternal(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver)
 			throws SchemaException {	
+		
+		if (AuthorizationConstants.AUTZ_NO_ACCESS_URL.equals(operationUrl)){
+			return false;
+		}
+		
 		if (phase == null) {
 			throw new IllegalArgumentException("No phase");
 		}
@@ -181,6 +186,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				if (authority instanceof Authorization) {
 					Authorization autz = (Authorization)authority;
 					LOGGER.trace("Evaluating authorization {}", autz);
+					
 					// First check if the authorization is applicable.
 					
 					// action
