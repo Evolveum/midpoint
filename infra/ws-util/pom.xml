@@ -77,6 +77,12 @@
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-simple</artifactId>
         </dependency>
+        <dependency>
+        	<!-- NOT needed specifically for this module. But it will be needed for any
+        	     dependent module that generates the classes. -->
+            <groupId>org.apache.cxf.xjc-utils</groupId>
+            <artifactId>cxf-xjc-runtime</artifactId>
+        </dependency>
         <!-- Test -->
 		<dependency>
 			<groupId>org.testng</groupId>
