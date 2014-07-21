@@ -31,7 +31,7 @@ import org.apache.wicket.util.lang.Bytes;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/test", action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DEVEL_URL)})
+@PageDescriptor(url = "/admin/test", action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_NO_ACCESS_URL)})
 public class PageTest extends PageBase {
 
     public PageTest() {

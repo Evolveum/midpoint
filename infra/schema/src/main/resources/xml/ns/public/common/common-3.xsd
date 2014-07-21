@@ -3234,7 +3234,7 @@
             <xsd:documentation>
                 Defines a type from the resource schema (object class)
                 that can be used for creating accounts, entitlements and possible other concepts.
-                This is abstract supertype for other types.
+                This is abstract supertype for other types. 
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -3242,12 +3242,13 @@
         	<xsd:element name="intent" type="xsd:string" minOccurs="0"/>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
-            <xsd:element name="default" type="xsd:boolean" minOccurs="0" default="false">
+            <xsd:element name="default" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Specifies whether this type is the default type for the resource.
-                        Only one type for each class can be default. Setting this flag for more than one type is
-                        an error.
+                        Only one type for each class can be default. Setting this flag to true for more than one type is
+                        an error. If the flag is not set, the value is inherited from resource schema. If the resource 
+                        schema does not have this flag set, the default value is false.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

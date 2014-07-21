@@ -44,7 +44,7 @@ import org.apache.wicket.model.StringResourceModel;
 //        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
 //        AuthorizationConstants.NS_AUTHORIZATION + "#resourceWizard"})
 @PageDescriptor(url = "/admin/resources/wizard",
-        action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DEVEL_URL)})
+        action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_NO_ACCESS_URL)})
 public class PageResourceWizard extends PageAdminResources {
 
     private static final String ID_WIZARD = "wizard";
