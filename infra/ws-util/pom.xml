@@ -60,11 +60,11 @@
 			<groupId>xml-resolver</groupId>
 			<artifactId>xml-resolver</artifactId>
 		</dependency>
-		<dependency> 
+<!-- 		<dependency> 
             <groupId>org.jvnet.jaxb2_commons</groupId>
             <artifactId>jaxb2-basics-runtime</artifactId>
             <version>0.6.3</version>
-        </dependency>
+        </dependency>  -->
         <dependency>
 			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-rt-ws-security</artifactId>
