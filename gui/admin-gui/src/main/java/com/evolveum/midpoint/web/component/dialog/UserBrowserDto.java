@@ -23,6 +23,12 @@ import java.io.Serializable;
  */
 public class UserBrowserDto implements Serializable {
 
+    public static final String F_SEARCH_TEXT = "searchText";
+    public static final String F_NAME = "name";
+    public static final String F_FULL_NAME = "fullName";
+    public static final String F_GIVEN_NAME = "givenName";
+    public static final String F_FAMILY_NAME = "familyName";
+
     private String searchText;
     private boolean name = true;
     private boolean fullName;
