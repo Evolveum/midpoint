@@ -162,7 +162,7 @@ public class TaskDto extends Selectable {
     private void fillInResourceReference(TaskType task, TaskManager manager, OperationResult result, ModelService service){
         ObjectReferenceType ref = task.getObjectRef();
 
-        if(ResourceType.COMPLEX_TYPE.equals(ref.getType())){
+        if(ref != null && ResourceType.COMPLEX_TYPE.equals(ref.getType())){
             resourceRef = new TaskAddResourcesDto(ref.getOid(), getTaskObjectName(task, manager, service, result));
         }
     }
