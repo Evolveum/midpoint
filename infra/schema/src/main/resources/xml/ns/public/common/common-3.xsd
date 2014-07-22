@@ -6789,6 +6789,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    
+                    <xsd:element name="mailDomain" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Domain part of RFC822 e-mail address that applies to this organization.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Mail Domain</a:displayName>
+                                <a:displayOrder>220</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
 
                     <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
