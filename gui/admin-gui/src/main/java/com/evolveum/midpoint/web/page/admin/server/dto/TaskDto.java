@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationS
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
 import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -86,10 +87,14 @@ public class TaskDto extends Selectable {
     public static final String F_TASK_OPERATION_RESULT = "taskOperationResult";
     public static final String F_PROGRESS_DESCRIPTION = "progressDescription";
     public static final String F_DRY_RUN = "dryRun";
+    public static final String F_RESOURCE_REFERENCE = "resourceRef";
 
     private List<String> handlerUriList;
     private String parentTaskName;
     private String parentTaskOid;
+
+    //resource reference
+    private TaskAddResourcesDto resourceRef;
 
     // scheduling information
     private Integer interval;
@@ -141,6 +146,7 @@ public class TaskDto extends Selectable {
         fillInTimestamps(taskType);
         fillInHandlerUriList(taskType);
         fillInScheduleAttributes(taskType);
+        fillInResourceReference(taskType, taskManager, thisOpResult, modelService);
         fillInObjectRefAttributes(taskType, modelService, taskManager, options, thisOpResult);
         fillInParentTaskAttributes(taskType, taskService, options, thisOpResult);
         fillInOperationResultAttributes(taskType);
@@ -151,6 +157,14 @@ public class TaskDto extends Selectable {
         thisOpResult.computeStatusIfUnknown();
 
         fillDryRun(taskType);
+    }
+
+    private void fillInResourceReference(TaskType task, TaskManager manager, OperationResult result, ModelService service){
+        ObjectReferenceType ref = task.getObjectRef();
+
+        if(ref != null && ResourceType.COMPLEX_TYPE.equals(ref.getType())){
+            resourceRef = new TaskAddResourcesDto(ref.getOid(), getTaskObjectName(task, manager, service, result));
+        }
     }
 
     private void fillDryRun(TaskType taskType) {
@@ -686,5 +700,13 @@ public class TaskDto extends Selectable {
 
     public void setDryRun(boolean dryRun) {
         this.dryRun = dryRun;
+    }
+
+    public TaskAddResourcesDto getResource() {
+        return resourceRef;
+    }
+
+    public void setResource(TaskAddResourcesDto resource) {
+        this.resourceRef = resource;
     }
 }

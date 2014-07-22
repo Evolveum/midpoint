@@ -94,6 +94,7 @@ public abstract class AbstractWebServiceClient<P,S extends Service> {
 	}
 	
 	protected void init(String[] args) throws ParseException {
+		options.addOption("a", "authentication", true, "Authentication type ("+WSHandlerConstants.USERNAME_TOKEN+", none)");
 		options.addOption("u", "user", true, "Username");
 		options.addOption("p", "password", true, "Password");
 		options.addOption("P", "password-type", true, "Password type (text or digest)");
@@ -164,14 +165,22 @@ public abstract class AbstractWebServiceClient<P,S extends Service> {
 		
 		Map<String,Object> wssProps = new HashMap<String,Object>();
 		
-		wssProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.USERNAME_TOKEN);
-		wssProps.put(WSHandlerConstants.USER, username);
-		wssProps.put(WSHandlerConstants.PASSWORD_TYPE, getPasswordType());
-		wssProps.put(WSHandlerConstants.PW_CALLBACK_CLASS, ClientPasswordHandler.class.getName());
-		ClientPasswordHandler.setPassword(password);
+		if (!commandLine.hasOption('a') || 
+				(commandLine.hasOption('a') && WSHandlerConstants.USERNAME_TOKEN.equals(commandLine.getOptionValue('a')))) {
 		
-		WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(wssProps);
-		cxfEndpoint.getOutInterceptors().add(wssOut);
+			wssProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.USERNAME_TOKEN);
+			wssProps.put(WSHandlerConstants.USER, username);
+			wssProps.put(WSHandlerConstants.PASSWORD_TYPE, getPasswordType());
+			wssProps.put(WSHandlerConstants.PW_CALLBACK_CLASS, ClientPasswordHandler.class.getName());
+			ClientPasswordHandler.setPassword(password);
+			
+			WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(wssProps);
+			cxfEndpoint.getOutInterceptors().add(wssOut);
+		} else if (commandLine.hasOption('a') && "none".equals(commandLine.getOptionValue('a'))) {
+			// Nothing to do
+		} else {
+			throw new IllegalArgumentException("Unknown authentication mechanism '"+commandLine.getOptionValue('a')+"'");
+		}
 		
 		if (commandLine.hasOption('m')) {
 			cxfEndpoint.getInInterceptors().add(new LoggingInInterceptor());
