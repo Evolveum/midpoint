@@ -806,6 +806,7 @@ public class ResourceObjectConverter {
 			}
 			XMLGregorianCalendar xmlCal = validFromPropertyDelta.getPropertyNew().getRealValue();
 			LOGGER.trace("Found activation validFrom change to: {}", xmlCal);
+			//TODO:  why this if?? do we really want to not allow to set validFrom/validTo to null value?? the same for validTo
 			if (xmlCal != null) {
 				operations.add(new PropertyModificationOperation(validFromPropertyDelta));
 			}
