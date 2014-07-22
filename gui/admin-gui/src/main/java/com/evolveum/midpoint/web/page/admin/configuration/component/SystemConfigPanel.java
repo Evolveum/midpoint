@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
@@ -101,7 +102,15 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         TextField<String> userNameField = new TextField<>(ID_USERNAME, new PropertyModel<String>(getModel(), "notificationConfig.username"));
         PasswordTextField passwordField = new PasswordTextField(ID_PASSWORD, new PropertyModel<String>(getModel(), "notificationConfig.password"));
         passwordField.setRequired(false);
-        passwordField.setResetPassword(false);
+
+        if(getModel().getObject() != null){
+            if(getModel().getObject().getNotificationConfig().getPassword() != null){
+                passwordField.add(new AttributeAppender("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.set")));
+            } else {
+                passwordField.add(new AttributeAppender("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.empty")));
+            }
+        }
+
         TextField<String> redirectToFileField = new TextField<>(ID_REDIRECT_TO_FILE, new PropertyModel<String>(getModel(), "notificationConfig.redirectToFile"));
 
         IModel choices = WebMiscUtil.createReadonlyModelFromEnum(MailTransportSecurityType.class);
