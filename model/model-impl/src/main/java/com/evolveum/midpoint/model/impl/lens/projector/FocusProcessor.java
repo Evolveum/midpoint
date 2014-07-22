@@ -64,6 +64,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -98,13 +99,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEv
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
@@ -210,27 +212,8 @@ public class FocusProcessor {
 		
 		while (true) {
 			
-			ObjectTypeTemplateType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-			if (objectPolicyConfigurationType != null && BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
-				// Generate the name now - unless it is already present
-				PrismObject<F> focusNew = focusContext.getObjectNew();
-				if (focusNew != null) {
-					PolyStringType focusNewName = focusNew.asObjectable().getName();
-					if (focusNewName == null) {
-						String newName = focusNew.getOid();
-						if (newName == null) {
-							newName = OidUtil.generateOid();
-						}
-						LOGGER.trace("Generating new name (bound to OID): {}", newName);
-						PrismObjectDefinition<F> focusDefinition = focusContext.getObjectDefinition();
-						PrismPropertyDefinition<PolyString> focusNameDef = focusDefinition.findPropertyDefinition(FocusType.F_NAME);
-						PropertyDelta<PolyString> nameDelta = focusNameDef.createEmptyDelta(new ItemPath(FocusType.F_NAME));
-						nameDelta.setValueToReplace(new PrismPropertyValue<PolyString>(new PolyString(newName), OriginType.USER_POLICY, null));
-						focusContext.swallowToSecondaryDelta(nameDelta);
-						focusContext.recompute();
-					}
-				}
-			}
+			ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
+			applyObjectPolicyConstraints(focusContext, objectPolicyConfigurationType);
 		
 			ExpressionVariables variables = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(), null, null, null, context.getSystemConfiguration());
 			if (iterationToken == null) {
@@ -395,6 +378,68 @@ public class FocusProcessor {
 		
 	}
 	
+	private <F extends FocusType> void applyObjectPolicyConstraints(LensFocusContext<F> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType) throws SchemaException {
+		if (objectPolicyConfigurationType == null) {
+			return;
+		}
+		
+		PrismObject<F> focusNew = focusContext.getObjectNew();
+		if (focusNew == null) {
+			// This is delete. Nothing to do.
+			return;
+		}
+		
+		for (PropertyConstraintType propertyConstraintType: objectPolicyConfigurationType.getPropertyConstraint()) {
+			ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
+			if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
+				PrismProperty<Object> prop = focusNew.findProperty(itemPath);
+				if (prop == null || prop.isEmpty()) {
+					String newValue = focusNew.getOid();
+					if (newValue == null) {
+						newValue = OidUtil.generateOid();
+					}
+					LOGGER.trace("Generating new OID-bound value for {}: {}", itemPath, newValue);
+					PrismObjectDefinition<F> focusDefinition = focusContext.getObjectDefinition();
+					PrismPropertyDefinition<Object> propDef = focusDefinition.findPropertyDefinition(itemPath);
+					if (propDef == null) {
+						throw new SchemaException("No definition for property "+itemPath+" in "+focusDefinition+" as specified in object policy");
+					}
+					PropertyDelta<Object> propDelta = propDef.createEmptyDelta(itemPath);
+					if (String.class.isAssignableFrom(propDef.getTypeClass())) {
+						propDelta.setValueToReplace(new PrismPropertyValue<Object>(newValue, OriginType.USER_POLICY, null));
+					} else if (PolyString.class.isAssignableFrom(propDef.getTypeClass())) {
+						propDelta.setValueToReplace(new PrismPropertyValue<Object>(new PolyString(newValue), OriginType.USER_POLICY, null));
+					} else {
+						throw new SchemaException("Unsupported type "+propDef.getTypeName()+" for property "+itemPath+" in "+focusDefinition+" as specified in object policy, only string and polystring properties are supported for OID-bound mode");
+					}					
+					focusContext.swallowToSecondaryDelta(propDelta);
+					focusContext.recompute();
+				}
+			}
+		}
+		
+		// Deprecated
+		if (BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
+			// Generate the name now - unless it is already present
+			if (focusNew != null) {
+				PolyStringType focusNewName = focusNew.asObjectable().getName();
+				if (focusNewName == null) {
+					String newValue = focusNew.getOid();
+					if (newValue == null) {
+						newValue = OidUtil.generateOid();
+					}
+					LOGGER.trace("Generating new name (bound to OID): {}", newValue);
+					PrismObjectDefinition<F> focusDefinition = focusContext.getObjectDefinition();
+					PrismPropertyDefinition<PolyString> focusNameDef = focusDefinition.findPropertyDefinition(FocusType.F_NAME);
+					PropertyDelta<PolyString> nameDelta = focusNameDef.createEmptyDelta(new ItemPath(FocusType.F_NAME));
+					nameDelta.setValueToReplace(new PrismPropertyValue<PolyString>(new PolyString(newValue), OriginType.USER_POLICY, null));
+					focusContext.swallowToSecondaryDelta(nameDelta);
+					focusContext.recompute();
+				}
+			}
+		}
+	}
+
 	private <F extends FocusType> boolean willResetIterationCounter(LensFocusContext<F> focusContext) throws SchemaException {
 		ObjectDelta<F> focusDelta = focusContext.getDelta();
 		if (focusDelta == null) {

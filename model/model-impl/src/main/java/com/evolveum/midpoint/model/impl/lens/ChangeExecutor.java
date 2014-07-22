@@ -32,6 +32,7 @@ import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -148,22 +149,16 @@ public class ChangeExecutor {
     	
     	LensFocusContext<O> focusContext = syncContext.getFocusContext();
     	if (focusContext != null) {
-	        ObjectDelta<O> userDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
-	        if (userDelta != null) {
+	        ObjectDelta<O> focusDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
+	        if (focusDelta != null) {
 	        	
-	        	ObjectTypeTemplateType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-	        	if (objectPolicyConfigurationType != null && BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
-	        		PrismObject<O> objectNew = focusContext.getObjectNew();
-	        		if (userDelta.isAdd() && objectNew.getOid() == null) {
-	        			String name = objectNew.asObjectable().getName().getOrig();
-	        			focusContext.setOid(name);
-	        		}
-	        	}
+	        	ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
+	        	applyObjectPolicy(focusContext, focusDelta, objectPolicyConfigurationType);
 	
 	        	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_FOCUS+"."+focusContext.getObjectTypeClass().getSimpleName());
 	        	try {
 	        		
-		            executeDelta(userDelta, focusContext, syncContext, null, null, task, subResult);
+		            executeDelta(focusDelta, focusContext, syncContext, null, null, task, subResult);
 		
 	                subResult.computeStatus();
 	                
@@ -312,6 +307,31 @@ public class ChangeExecutor {
         result.computeStatusComposite();
 
     }
+
+	private <O extends ObjectType> void applyObjectPolicy(LensFocusContext<O> focusContext, ObjectDelta<O> focusDelta, 
+			ObjectPolicyConfigurationType objectPolicyConfigurationType) {
+		if (objectPolicyConfigurationType == null) {
+			return;
+		}
+		PrismObject<O> objectNew = focusContext.getObjectNew();
+		if (focusDelta.isAdd() && objectNew.getOid() == null) {
+		
+			for (PropertyConstraintType propertyConstraintType: objectPolicyConfigurationType.getPropertyConstraint()) {
+				if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
+					ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
+					PrismProperty<Object> prop = objectNew.findProperty(itemPath);
+					String stringValue = prop.getRealValue().toString();
+					focusContext.setOid(stringValue);
+				}
+			}
+			
+			// deprecated
+			if (BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
+				String name = objectNew.asObjectable().getName().getOrig();
+				focusContext.setOid(name);
+	    	}
+		}
+	}
 
 	private <P extends ObjectType> void recordProjectionExecutionException(Exception e, LensProjectionContext accCtx,
 			OperationResult subResult, SynchronizationPolicyDecision decision) {
