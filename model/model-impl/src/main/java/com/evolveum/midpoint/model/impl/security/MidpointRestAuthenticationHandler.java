@@ -27,6 +27,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.jaxrs.model.OperationResourceInfo;
+import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,7 +52,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 	@Autowired(required = true)
 	private Protector protector;
 	
-    public Response handleRequest(Message m, ClassResourceInfo resourceClass) {
+    public Response handleRequest(Message m) {
         AuthorizationPolicy policy = (AuthorizationPolicy)m.get(AuthorizationPolicy.class);
         
         OperationResourceInfo ori = m.getExchange().get(OperationResourceInfo.class);
@@ -137,20 +138,24 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
     }
 //
 //	@Override
-//	public Response handleResponse(Message m, OperationResourceInfo ori, Response response) {
+//	public Response handleResponse(Message m, Response response) {
 //		securityEnforcer.setupPreAuthenticatedSecurityContext((PrismObject) null);
 //		return null;
 //	}
 
 	@Override
 	public void filter(ContainerRequestContext arg0, ContainerResponseContext arg1) throws IOException {
-		// TODO Auto-generated method stub
+		Message m = JAXRSUtils.getCurrentMessage();
+		handleRequest(m);
+		
+//		handleResponse(m, ori, response)
 		
 	}
 
 	@Override
 	public void filter(ContainerRequestContext arg0) throws IOException {
-		// TODO Auto-generated method stub
+		Message m = JAXRSUtils.getCurrentMessage();
+		handleRequest(m);
 		
 	}
  
