@@ -32,7 +32,9 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -109,6 +111,49 @@ public class TestDummyNoActivation extends TestDummy {
 			
 		}
 
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		TestUtil.assertFailure(result);
+		
+		delta.checkConsistence();
+		// check if activation was unchanged
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
+		
+		syncServiceMock.assertNotifyFailureOnly();
+		
+		assertSteadyResource();
+	}
+	
+	@Override
+	public void test151ActivationStatusUndefinedAccount() throws Exception {
+		final String TEST_NAME = "test151EnableAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
+				ActivationStatusType.DISABLED);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		
+		try {
+			// WHEN
+			provisioningService.modifyObject(ShadowType.class, delta.getOid(),
+				delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (SchemaException e) {
+			// This is expected
+			
+		}
+		
 		// THEN
 		result.computeStatus();
 		display("modifyObject result", result);
@@ -258,6 +303,55 @@ public class TestDummyNoActivation extends TestDummy {
 		syncServiceMock.assertNotifyFailureOnly();
 		
 		assertSteadyResource();
+	}
+	
+	@Override
+	public void test154DeleteValidToValidFrom() throws Exception {
+		final String TEST_NAME = "test153SetValidTo";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
+				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
+		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+		PropertyDelta validFromDelta = PropertyDelta.createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM, def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM), VALID_FROM_MILLIS);
+		delta.addModification(validFromDelta);
+		delta.checkConsistence();
+		
+		
+		try {
+			// WHEN
+			provisioningService.modifyObject(ShadowType.class, delta.getOid(),
+				delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (SchemaException e) {
+			// This is expected
+			
+		}
+		
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		TestUtil.assertFailure(result);
+		
+		delta.checkConsistence();
+		// check if activation was changed
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
+		assertNull("Unexpected account validFrom in account "+ACCOUNT_WILL_USERNAME+": "+dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
+		assertNull("Unexpected account validTo in account "+ACCOUNT_WILL_USERNAME+": "+dummyAccount.getValidTo(), dummyAccount.getValidTo());
+		
+		syncServiceMock.assertNotifyFailureOnly();
+		
+		assertSteadyResource();
+		
 	}
 	
 	@Test

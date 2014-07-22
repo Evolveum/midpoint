@@ -479,6 +479,9 @@ public class XmlTypeConverter {
     }
 
     public static long toMillis(XMLGregorianCalendar xmlCal) {
+    	if (xmlCal == null){
+    		return 0;
+    	}
         return xmlCal.toGregorianCalendar().getTimeInMillis();
     }
     

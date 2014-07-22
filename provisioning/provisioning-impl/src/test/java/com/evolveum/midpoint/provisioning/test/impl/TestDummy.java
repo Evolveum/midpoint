@@ -2120,8 +2120,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 	
-	//TODO: if this needed?? for now, we don't allow to set activation valid from and valid to to null value...
-	@Test(enabled = false)
+	@Test
 	public void test154DeleteValidToValidFrom() throws Exception {
 		final String TEST_NAME = "test154DeleteValidToValidFrom";
 		TestUtil.displayTestTile(TEST_NAME);
