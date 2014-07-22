@@ -594,12 +594,10 @@
                 <dependency>
                         <artifactId>jaxb-api</artifactId>
                         <groupId>javax.xml.bind</groupId>
-			<version>${jaxb.version}</version>
                 </dependency>
                 <dependency>
                         <artifactId>jaxb-core</artifactId>
                         <groupId>com.sun.xml.bind</groupId>
-			<version>${jaxb.version}</version>
 		</dependency>
 	    </dependencies>
 
