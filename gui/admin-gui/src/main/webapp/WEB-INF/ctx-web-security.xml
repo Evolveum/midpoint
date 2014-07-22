@@ -26,7 +26,12 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
 
     <global-method-security secured-annotations="enabled"/>
 
+	<!-- Web services have their own authentication and authorization using CXF interceptors. -->
     <http pattern="/model/**" security="none"/>
+    <http pattern="/ws/**" security="none"/>
+    
+    <!-- REST services have their own authentication and authorization. -->
+    <http pattern="/rest/**" security="none"/>
 
     <http pattern="/js/**" security="none"/>
     <http pattern="/css/**" security="none"/>
