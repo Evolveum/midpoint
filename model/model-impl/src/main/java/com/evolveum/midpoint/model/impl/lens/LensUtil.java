@@ -1149,6 +1149,16 @@ public class LensUtil {
 					} else {
 						PropertyDelta<Object> nameDelta = focusDelta.findPropertyDelta(itemPath);
 						if (nameDelta != null) {
+							if (nameDelta.isReplace()) {
+								Collection<PrismPropertyValue<Object>> valuesToReplace = nameDelta.getValuesToReplace();
+								if (valuesToReplace.size() == 1) {
+									String stringValue = valuesToReplace.iterator().next().getValue().toString();
+									if (focusContext.getOid().equals(stringValue)) {
+										// This is OK. It is most likely a correction made by a recompute.
+										continue;
+									}
+								}
+							}
 							throw new PolicyViolationException("Cannot change "+itemPath+" in oid bound mode");
 						}
 					}
