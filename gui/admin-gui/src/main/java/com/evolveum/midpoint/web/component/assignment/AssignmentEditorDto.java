@@ -214,9 +214,13 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         }
 
         if(tenantRef != null && AssignmentEditorDtoType.ROLE.equals(this.type)){
-            ObjectReferenceType ref = new ObjectReferenceType();
-            ref.setOid(this.tenantRef.getOid());
-            newAssignment.setTenantRef(ref);
+            if(tenantRef.getOid() == null){
+                newAssignment.setTenantRef(null);
+            } else {
+                ObjectReferenceType ref = new ObjectReferenceType();
+                ref.setOid(this.tenantRef.getOid());
+                newAssignment.setTenantRef(ref);
+            }
         }
 
         ConstructionType construction = newAssignment.getConstruction();
