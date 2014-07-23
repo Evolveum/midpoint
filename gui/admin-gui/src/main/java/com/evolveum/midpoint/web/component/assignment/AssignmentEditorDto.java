@@ -213,7 +213,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
             newAssignment.setActivation(null);
         }
 
-        if(tenantRef != null){
+        if(tenantRef != null && AssignmentEditorDtoType.ROLE.equals(this.type)){
             ObjectReferenceType ref = new ObjectReferenceType();
             ref.setOid(this.tenantRef.getOid());
             newAssignment.setTenantRef(ref);
