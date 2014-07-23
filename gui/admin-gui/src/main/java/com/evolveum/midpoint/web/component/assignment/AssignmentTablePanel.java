@@ -133,7 +133,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
                 }
             }
 
-            list.add(new AssignmentEditorDto(targetObject, type, UserDtoStatus.MODIFY, assignment));
+            list.add(new AssignmentEditorDto(targetObject, type, UserDtoStatus.MODIFY, assignment, getPageBase()));
         }
 
         Collections.sort(list);
@@ -383,7 +383,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
                 AssignmentType assignment = new AssignmentType();
                 assignment.setTargetRef(targetRef);
 
-                AssignmentEditorDto dto = new AssignmentEditorDto(object, aType, UserDtoStatus.ADD, assignment);
+                AssignmentEditorDto dto = new AssignmentEditorDto(object, aType, UserDtoStatus.ADD, assignment, getPageBase());
                 dto.setMinimized(false);
                 dto.setShowEmpty(true);
 
@@ -414,7 +414,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
         List<AssignmentEditorDto> assignments = assignmentModel.getObject();
         AssignmentEditorDto dto = new AssignmentEditorDto(resource, AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION,
-                UserDtoStatus.ADD, assignment);
+                UserDtoStatus.ADD, assignment, getPageBase());
         assignments.add(dto);
 
         dto.setMinimized(false);

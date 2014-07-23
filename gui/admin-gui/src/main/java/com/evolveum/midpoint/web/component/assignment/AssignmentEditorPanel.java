@@ -19,6 +19,9 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -34,6 +37,9 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -98,9 +104,10 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private static final String ID_TARGET = "target";
     private static final String ID_TARGET_CONTAINER = "targetContainer";
     private static final String ID_CONSTRUCTION_CONTAINER = "constructionContainer";
+    private static final String ID_CONTAINER_TENANT_REF = "tenantRefContainer";
+    private static final String ID_TENANT_CHOOSER = "tenantRefChooser";
 
     private IModel<List<ACAttributeDto>> attributesModel;
-
 
     public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
         super(id, model);
@@ -249,6 +256,39 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         TextField relation = new TextField(ID_RELATION, new PropertyModel(getModel(), AssignmentEditorDto.F_RELATION));
         relation.setEnabled(false);
         body.add(relation);
+
+        //TODO - add VisibleEnableBehaviour so we can only edit tenantRef in RoleAssignments
+        WebMarkupContainer tenantRefContainer = new WebMarkupContainer(ID_CONTAINER_TENANT_REF);
+        ChooseTypePanel tenantRef = new ChooseTypePanel(ID_TENANT_CHOOSER,
+                new PropertyModel<ObjectViewDto>(getModel(), AssignmentEditorDto.F_TENANT_REF)){
+
+            @Override
+            protected ObjectQuery getChooseQuery(){
+                ObjectQuery query = new ObjectQuery();
+
+                ObjectFilter filter = EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
+                        getPageBase().getPrismContext(), null, true);
+                query.setFilter(filter);
+
+                return query;
+            }
+        };
+        tenantRefContainer.add(tenantRef);
+        tenantRefContainer.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                AssignmentEditorDto dto = getModel().getObject();
+                if(dto != null){
+                    if(AssignmentEditorDtoType.ROLE.equals(dto.getType())){
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        });
+        body.add(tenantRefContainer);
 
         WebMarkupContainer activationBlock = new WebMarkupContainer(ID_ACTIVATION_BLOCK);
         activationBlock.add(new VisibleEnableBehaviour() {

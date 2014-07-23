@@ -743,7 +743,7 @@ public class PageUser extends PageAdminUsers {
                 }
             }
 
-            list.add(new AssignmentEditorDto(targetObject, type, UserDtoStatus.MODIFY, assignment));
+            list.add(new AssignmentEditorDto(targetObject, type, UserDtoStatus.MODIFY, assignment, this));
         }
 
         Collections.sort(list);
@@ -1598,7 +1598,7 @@ public class PageUser extends PageAdminUsers {
 
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
         AssignmentEditorDto dto = new AssignmentEditorDto(resource, AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION,
-                UserDtoStatus.ADD, assignment);
+                UserDtoStatus.ADD, assignment, this);
         assignments.add(dto);
 
         dto.setMinimized(false);
@@ -1632,7 +1632,7 @@ public class PageUser extends PageAdminUsers {
                 AssignmentType assignment = new AssignmentType();
                 assignment.setTargetRef(targetRef);
 
-                AssignmentEditorDto dto = new AssignmentEditorDto(object, aType, UserDtoStatus.ADD, assignment);
+                AssignmentEditorDto dto = new AssignmentEditorDto(object, aType, UserDtoStatus.ADD, assignment, this);
                 dto.setMinimized(false);
                 dto.setShowEmpty(true);
 
