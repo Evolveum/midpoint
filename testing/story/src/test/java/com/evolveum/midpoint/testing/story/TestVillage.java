@@ -133,6 +133,8 @@ public class TestVillage extends AbstractStoryTest {
 	
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "village");
 	
+	public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+	
 	public static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
 	public static final String OBJECT_TEMPLATE_USER_OID = "10000000-0000-0000-0000-000000000222";
 		
@@ -183,10 +185,12 @@ public class TestVillage extends AbstractStoryTest {
 	protected static final File TASK_LIVE_SYNC_DUMMY_SOURCE_FILE = new File(TEST_DIR, "task-dumy-source-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_SOURCE_OID = "10000000-0000-0000-5555-555500000001";
 	
-	private static final String USER_MIKE_FILENAME = COMMON_DIR_NAME + "/user-mike.xml";
-	private static final File USER_MIKE_FILE = new File(USER_MIKE_FILENAME);
+	private static final File USER_MIKE_FILE = new File(COMMON_DIR, "user-mike.xml");
 	private static final String USER_MIKE_OID = "c0c010c0-d34d-b33f-f00d-222333111111";
-	
+
+	private static final File USER_MURRAY_FILE = new File(TEST_DIR, "user-murray.xml");
+	private static final String USER_MURRAY_OID = "c0c010c0-d34d-b33f-f00d-1111111111aa";
+
 	private static final String ACCOUNT_HERMAN_USERNAME = "ht";
 	private static final String ACCOUNT_HERMAN_FIST_NAME = "Herman";
 	private static final String ACCOUNT_HERMAN_LAST_NAME = "Toothrot";
@@ -309,6 +313,11 @@ public class TestVillage extends AbstractStoryTest {
 		// Tasks
 		importObjectFromFile(TASK_LIVE_SYNC_DUMMY_SOURCE_FILE, initResult);
 		
+	}
+	
+	@Override
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_FILE;
 	}
 	
 	@Test
@@ -706,6 +715,32 @@ public class TestVillage extends AbstractStoryTest {
       //TODO: assertions
 	}
 	
+	/**
+	 * User is added to repo directly, so he does not have OID in employee number.
+	 * Recompute should fix that. This is a migration scenario.
+	 */
+	@Test
+    public void test350AddRepoUserNoEmployeeNumberRecompute() throws Exception {
+		final String TEST_NAME = "test350AddRepoUserNoEmployeeNumberRecompute";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_MURRAY_FILE);
+        repositoryService.addObject(user, null, result);
+ 
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        recomputeUser(USER_MURRAY_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        user = getUser(USER_MURRAY_OID);
+        assertEmployeeNumber(user);        
+	}
 	
 	private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		UserType userType = user.asObjectable();
@@ -741,6 +776,7 @@ public class TestVillage extends AbstractStoryTest {
         display("User", user);
    		assertUser(user, user.getOid(), username, firstName+" "+lastName,
    				firstName, lastName);
+   		assertEmployeeNumber(user);
    		assertLinks(user, 1);
         assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
         assertAssignments(user, RoleType.class, 0);
@@ -758,6 +794,7 @@ public class TestVillage extends AbstractStoryTest {
         display("User", user);
    		assertUser(user, user.getOid(), username, firstName+" "+lastName,
    				firstName, lastName);
+   		assertEmployeeNumber(user);
         assertLinks(user, 2);
         assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
         
@@ -771,6 +808,11 @@ public class TestVillage extends AbstractStoryTest {
 		IntegrationTestTools.assertIcfsNameAttribute(shadow, "uid="+username+",ou=people,dc=example,dc=com");
 	}
 	
+	private void assertEmployeeNumber(PrismObject<UserType> user) {
+		String employeeNumber = user.asObjectable().getEmployeeNumber();
+		assertEquals("Wrong employeeNumber in "+user, user.getOid(), employeeNumber);
+	}
+
 	private String getUsername(String firstName, String lastName, String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		String username = firstName+"."+lastName;
 		if (orgName != null) {
