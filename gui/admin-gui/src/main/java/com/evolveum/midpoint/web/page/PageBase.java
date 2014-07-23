@@ -20,11 +20,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
-import com.evolveum.midpoint.model.api.ModelDiagnosticService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.TaskService;
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -59,6 +55,8 @@ public abstract class PageBase extends PageTemplate {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
+    @SpringBean(name = "modelController")
+    private ScriptingService scriptingService;
     @SpringBean(name = "modelController")
     private ModelService modelService;
     @SpringBean(name = "modelController")
@@ -119,6 +117,10 @@ public abstract class PageBase extends PageTemplate {
 
     public ModelService getModelService() {
         return modelService;
+    }
+
+    public ScriptingService getScriptingService(){
+        return scriptingService;
     }
 
     public TaskService getTaskService() {

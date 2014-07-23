@@ -1846,7 +1846,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
     }
     //endregion
 
-    //region Scripting (bulka actions)
+    //region Scripting (bulk actions)
     @Override
     public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException {
         scriptingExpressionEvaluator.evaluateExpressionInBackground(objectType, filter, actionName, task, parentResult);
