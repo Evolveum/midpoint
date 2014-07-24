@@ -256,8 +256,8 @@ public class RepositoryCache implements RepositoryService {
 	
 	@Override
 	public <F extends FocusType> PrismObject<F> searchShadowOwner(
-			String shadowOid, OperationResult parentResult) throws ObjectNotFoundException {
-		return repository.searchShadowOwner(shadowOid, parentResult);
+			String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException {
+		return repository.searchShadowOwner(shadowOid, options, parentResult);
 	}
 
 	@Override

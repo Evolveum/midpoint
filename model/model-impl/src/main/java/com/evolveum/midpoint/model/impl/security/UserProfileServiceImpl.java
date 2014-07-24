@@ -228,7 +228,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 		}
 		PrismObject<F> owner;
 		try {
-			owner = repositoryService.searchShadowOwner(shadow.getOid(), new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));
+			owner = repositoryService.searchShadowOwner(shadow.getOid(), null, new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));
 		} catch (ObjectNotFoundException e) {
 			throw new SystemException(e.getMessage(), e);
 		}

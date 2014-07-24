@@ -514,9 +514,11 @@ public class ChangeExecutor {
     	result.addParam("accountRef", projectionOid);
 		
     	PrismObject<ShadowType> account = null;
+    	GetOperationOptions getOptions = GetOperationOptions.createNoFetch();
+    	getOptions.setAllowNotFound(true);
     	try {
     		account = provisioning.getObject(ShadowType.class, projectionOid, 
-    				SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+    				SelectorOptions.createCollection(getOptions), task, result);
     	} catch (Exception ex){
     		LOGGER.trace("Problem with getting account, skipping modifying situation in account.");
 			return;

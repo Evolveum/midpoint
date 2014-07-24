@@ -438,7 +438,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
-	public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, OperationResult parentResult)
+	public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws ObjectNotFoundException;
 
 	/**

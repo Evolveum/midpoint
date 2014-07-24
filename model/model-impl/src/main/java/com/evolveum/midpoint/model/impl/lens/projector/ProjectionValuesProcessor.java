@@ -61,6 +61,8 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -299,7 +301,9 @@ public class ProjectionValuesProcessor {
 		        			}
 			        		
 			        		if (conflict) {
-                                PrismObject<F> focus = repositoryService.searchShadowOwner(checker.getConflictingShadow().getOid(), result);
+								PrismObject<F> focus = repositoryService.searchShadowOwner(checker
+										.getConflictingShadow().getOid(), SelectorOptions
+										.createCollection(GetOperationOptions.createAllowNotFound()), result);
 				        		
 				        		
 				        		//the owner of the shadow exist and it is a current user..so the shadow was successfully created, linked etc..no other recompute is needed..

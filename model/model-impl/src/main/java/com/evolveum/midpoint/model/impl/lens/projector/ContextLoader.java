@@ -279,11 +279,14 @@ public class ContextLoader {
 			if (projectionOid != null) {
                 PrismObject<F> shadowOwner = null;
                 try {
-				    shadowOwner = cacheRepositoryService.searchShadowOwner(projectionOid, result);
+					shadowOwner = cacheRepositoryService.searchShadowOwner(projectionOid,
+							SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
+							result);
                 } catch (ObjectNotFoundException e) {
                     // This may happen, e.g. if the shadow is already deleted
                     // just ignore it. pretend that it has no owner
-                    result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
+                	LOGGER.trace("Shadow with oid {} doesn't have owner. Continue with processing shadow.", projectionOid);
+//                    result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
                 }
 				if (shadowOwner != null) {
 					if (focusOid == null || focusOid.equals(shadowOwner.getOid())) {
