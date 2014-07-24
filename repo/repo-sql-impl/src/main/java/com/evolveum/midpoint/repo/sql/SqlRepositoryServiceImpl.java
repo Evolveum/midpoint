@@ -238,7 +238,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
-            rollbackTransaction(session, ex, result, true);
+        	GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
             throw ex;
         } catch (SchemaException ex) {
             rollbackTransaction(session, ex, "Schema error while getting object with oid: "

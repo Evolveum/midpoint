@@ -293,7 +293,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (ObjectNotFoundException e) {
-			ModelUtils.recordFatalError(result, e);
+			if (GetOperationOptions.isAllowNotFound(rootOptions)){
+				result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
+			} else {
+				ModelUtils.recordFatalError(result, e);
+			}
 			throw e;
 		} catch (CommunicationException e) {
 			ModelUtils.recordFatalError(result, e);
