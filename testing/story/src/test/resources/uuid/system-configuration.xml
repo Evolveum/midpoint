@@ -36,9 +36,12 @@
             <append>true</append>
         </appender>
     </logging>
-    <objectTemplate>
+    <defaultObjectPolicyConfiguration>
     	<type>UserType</type>
     	<objectTemplateRef oid="10000000-0000-0000-0000-000000000222"/>
-    	<oidNameBoundMode>true</oidNameBoundMode>
-    </objectTemplate>
+    	<propertyConstraint>
+    		<path>name</path>
+    		<oidBound>true</oidBound>
+    	</propertyConstraint>
+    </defaultObjectPolicyConfiguration>
 </systemConfiguration>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,11 +87,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificati
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
@@ -1118,25 +1119,70 @@ public class LensUtil {
 				if (namePolyType == null) {
 					throw new SchemaException("Focus "+focusObjectNew+" does not have a name after "+activityDescription);
 				}
-				ObjectTypeTemplateType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-				if (objectPolicyConfigurationType != null && BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
-					ObjectDelta<F> focusDelta = focusContext.getDelta();
-					if (focusDelta != null) {
-						if (focusDelta.isAdd()) {
-							if (namePolyType != null) {
-								// name delta is OK, but it has to match
-								if (focusObjectNew.getOid() != null) {
-									if (!focusObjectNew.getOid().equals(namePolyType.getOrig())) {
-										throw new PolicyViolationException("Cannot set name to a value different than OID in name-oid bound mode");
+				ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
+				checkObjectPolicy(focusContext, objectPolicyConfigurationType);
+			}
+		}
+	}
+
+	private static <F extends ObjectType> void checkObjectPolicy(LensFocusContext<F> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType) throws SchemaException, PolicyViolationException {
+		if (objectPolicyConfigurationType == null) {
+			return;
+		}
+		PrismObject<F> focusObjectNew = focusContext.getObjectNew();
+		ObjectDelta<F> focusDelta = focusContext.getDelta();
+		
+		for (PropertyConstraintType propertyConstraintType: objectPolicyConfigurationType.getPropertyConstraint()) {
+			ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
+			if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
+				if (focusDelta != null) {
+					if (focusDelta.isAdd()) {
+						PrismProperty<Object> propNew = focusObjectNew.findProperty(itemPath);
+						if (propNew != null) {
+							// prop delta is OK, but it has to match
+							if (focusObjectNew.getOid() != null) {
+								if (!focusObjectNew.getOid().equals(propNew.getRealValue().toString())) {
+									throw new PolicyViolationException("Cannot set "+itemPath+" to a value different than OID in oid bound mode");
+								}
+							}
+						}
+					} else {
+						PropertyDelta<Object> nameDelta = focusDelta.findPropertyDelta(itemPath);
+						if (nameDelta != null) {
+							if (nameDelta.isReplace()) {
+								Collection<PrismPropertyValue<Object>> valuesToReplace = nameDelta.getValuesToReplace();
+								if (valuesToReplace.size() == 1) {
+									String stringValue = valuesToReplace.iterator().next().getValue().toString();
+									if (focusContext.getOid().equals(stringValue)) {
+										// This is OK. It is most likely a correction made by a recompute.
+										continue;
 									}
 								}
 							}
-						} else {
-							PropertyDelta<Object> nameDelta = focusDelta.findPropertyDelta(FocusType.F_NAME);
-							if (nameDelta != null) {
-								throw new PolicyViolationException("Cannot change name in name-oid bound mode");
+							throw new PolicyViolationException("Cannot change "+itemPath+" in oid bound mode");
+						}
+					}
+				}
+			}
+		}
+		
+		// Deprecated
+		if (BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
+			if (focusDelta != null) {
+				if (focusDelta.isAdd()) {
+					PolyStringType namePolyType = focusObjectNew.asObjectable().getName();
+					if (namePolyType != null) {
+						// name delta is OK, but it has to match
+						if (focusObjectNew.getOid() != null) {
+							if (!focusObjectNew.getOid().equals(namePolyType.getOrig())) {
+								throw new PolicyViolationException("Cannot set name to a value different than OID in name-oid bound mode");
 							}
 						}
+					}
+				} else {
+					PropertyDelta<Object> nameDelta = focusDelta.findPropertyDelta(FocusType.F_NAME);
+					if (nameDelta != null) {
+						throw new PolicyViolationException("Cannot change name in name-oid bound mode");
 					}
 				}
 			}

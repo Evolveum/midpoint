@@ -17,11 +17,16 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -36,16 +41,21 @@ import java.util.List;
  */
 public class AssignmentEditorDto extends SelectableBean implements Comparable<AssignmentEditorDto> {
 
+    private static final String DOT_CLASS = AssignmentEditorDto.class.getName() + ".";
+    private static final String OPERATION_LOAD_ORG_TENANT = DOT_CLASS + "loadTenantOrg";
+
     public static final String F_TYPE = "type";
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
     public static final String F_ACTIVATION = "activation";
     public static final String F_RELATION = "relation";
+    public static final String F_TENANT_REF = "tenantRef";
 
     private String name;
     private AssignmentEditorDtoType type;
     private UserDtoStatus status;
     private AssignmentType oldAssignment;
+    private ObjectViewDto<OrgType> tenantRef;
 
     private boolean showEmpty = false;
     private boolean minimized = true;
@@ -53,7 +63,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     private AssignmentType newAssignment;
     private List<ACAttributeDto> attributes;
 
-    public AssignmentEditorDto(ObjectType targetObject, AssignmentEditorDtoType type, UserDtoStatus status, AssignmentType assignment) {
+    public AssignmentEditorDto(ObjectType targetObject, AssignmentEditorDtoType type, UserDtoStatus status, AssignmentType assignment, PageBase pageBase) {
         Validate.notNull(status, "User dto status must not be null.");
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(assignment, "Assignment must not be null.");
@@ -76,6 +86,28 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 //        }
 
         this.name = getNameForTargetObject(targetObject);
+        this.tenantRef = loadTenantReference(targetObject, assignment, pageBase);
+    }
+
+    private ObjectViewDto loadTenantReference(ObjectType object, AssignmentType assignment, PageBase page){
+        ObjectViewDto dto;
+
+        if(object instanceof RoleType){
+            if(assignment.getTenantRef() != null){
+                ObjectReferenceType ref = assignment.getTenantRef();
+
+                OperationResult result = new OperationResult(OPERATION_LOAD_ORG_TENANT);
+                PrismObject<OrgType> org = WebModelUtils.loadObject(OrgType.class, ref.getOid(), result, page);
+
+                dto = new ObjectViewDto(ref.getOid(), WebMiscUtil.getName(org.asObjectable()));
+                dto.setType(OrgType.class);
+                return dto;
+            }
+        }
+
+        dto = new ObjectViewDto();
+        dto.setType(OrgType.class);
+        return dto;
     }
 
     private String getNameForTargetObject(ObjectType object) {
@@ -181,6 +213,16 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
             newAssignment.setActivation(null);
         }
 
+        if(tenantRef != null && AssignmentEditorDtoType.ROLE.equals(this.type)){
+            if(tenantRef.getOid() == null){
+                newAssignment.setTenantRef(null);
+            } else {
+                ObjectReferenceType ref = new ObjectReferenceType();
+                ref.setOid(this.tenantRef.getOid());
+                newAssignment.setTenantRef(ref);
+            }
+        }
+
         ConstructionType construction = newAssignment.getConstruction();
         if (construction == null) {
             return newAssignment.asPrismContainerValue();
@@ -244,5 +286,13 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         }
 
         return 0;
+    }
+
+    public ObjectViewDto<OrgType> getTenantRef() {
+        return tenantRef;
+    }
+
+    public void setTenantRef(ObjectViewDto<OrgType> tenantRef) {
+        this.tenantRef = tenantRef;
     }
 }

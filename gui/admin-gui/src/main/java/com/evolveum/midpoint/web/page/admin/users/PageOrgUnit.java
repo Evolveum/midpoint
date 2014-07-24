@@ -86,6 +86,7 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_DISPLAY_NAME = "displayName";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_REQUESTABLE = "requestable";
+    private static final String ID_TENANT = "tenant";
     private static final String ID_IDENTIFIER = "identifier";
     private static final String ID_COST_CENTER = "costCenter";
     private static final String ID_LOCALITY = "locality";
@@ -204,6 +205,10 @@ public class PageOrgUnit extends PageAdminUsers {
         CheckFormGroup requestable = new CheckFormGroup(ID_REQUESTABLE, new PrismPropertyModel(orgModel,
                 OrgType.F_REQUESTABLE), createStringResource("OrgType.requestable"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         form.add(requestable);
+
+        CheckFormGroup tenant = new CheckFormGroup(ID_TENANT, new PrismPropertyModel(orgModel,
+                OrgType.F_TENANT), createStringResource("OrgType.tenant"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+        form.add(tenant);
 
         TextFormGroup identifier = new TextFormGroup(ID_IDENTIFIER, new PrismPropertyModel(orgModel, OrgType.F_IDENTIFIER),
                 createStringResource("OrgType.identifier"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);

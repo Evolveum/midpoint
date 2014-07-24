@@ -390,15 +390,33 @@ public class ContextLoader {
 		Class<F> focusType = focusContext.getObjectTypeClass();
 
 		ObjectReferenceType templateRef = null;
-		for (ObjectTypeTemplateType policyConfigurationType: systemConfigurationType.getObjectTemplate()) {
-			QName typeQName = policyConfigurationType.getType();
+		ObjectPolicyConfigurationType policyConfigurationType = null;
+		for (ObjectPolicyConfigurationType aPolicyConfigurationType: systemConfigurationType.getDefaultObjectPolicyConfiguration()) {
+			QName typeQName = aPolicyConfigurationType.getType();
 			ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
 			if (objectType == null) {
-				throw new ConfigurationException("Unknown type "+typeQName+" in object template definition in system configuration");
+				throw new ConfigurationException("Unknown type "+typeQName+" in default object policy definition in system configuration");
 			}
 			if (objectType.getClassDefinition() == focusType) {
-				templateRef = policyConfigurationType.getObjectTemplateRef();
-				focusContext.setObjectPolicyConfigurationType(policyConfigurationType);
+				templateRef = aPolicyConfigurationType.getObjectTemplateRef();
+				focusContext.setObjectPolicyConfigurationType(aPolicyConfigurationType);
+				policyConfigurationType = aPolicyConfigurationType;
+			}
+		}
+
+		if (policyConfigurationType == null) {
+			// Deprecated
+			for (ObjectPolicyConfigurationType aPolicyConfigurationType: systemConfigurationType.getObjectTemplate()) {
+				QName typeQName = aPolicyConfigurationType.getType();
+				ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
+				if (objectType == null) {
+					throw new ConfigurationException("Unknown type "+typeQName+" in object template definition in system configuration");
+				}
+				if (objectType.getClassDefinition() == focusType) {
+					templateRef = aPolicyConfigurationType.getObjectTemplateRef();
+					focusContext.setObjectPolicyConfigurationType(aPolicyConfigurationType);
+					policyConfigurationType = aPolicyConfigurationType;
+				}
 			}
 		}
 		

@@ -68,7 +68,7 @@ public class NotificationConfigurationDto implements Serializable{
                 username = serverConfig.getUsername();
 
                 if(serverConfig.getPassword() != null){
-                    password = "Set";
+                    password = "";
                 } else {
                     password = null;
                 }

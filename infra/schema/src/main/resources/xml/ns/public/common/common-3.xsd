@@ -7248,18 +7248,36 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="objectTemplate" type="tns:ObjectTypeTemplateType" minOccurs="0" maxOccurs="unbounded">
-                    <xsd:annotation>
-						<xsd:documentation>
-							Definition of default object templates for a individual object type. The templates will be used
-							"universally" during all operations with specified object types - unless the templates are overriden
-							in other definitions (e.g. in resource).
-						</xsd:documentation>
-						<xsd:appinfo>
-							<a:container/>
-						</xsd:appinfo>
-					</xsd:annotation>
+                    <xsd:element name="objectTemplate" type="tns:ObjectPolicyConfigurationType" minOccurs="0" maxOccurs="unbounded">
+	                    <xsd:annotation>
+							<xsd:documentation>
+								Definition of default object templates for a individual object type. The templates will be used
+								"universally" during all operations with specified object types - unless the templates are overriden
+								in other definitions (e.g. in resource).
+								
+								DEPRECATED. Use defaultFocusPolicy instead.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:container/>
+								<a:deprecated>true</a:deprecated>
+							</xsd:appinfo>
+						</xsd:annotation>
                     </xsd:element>
+                    
+                    <xsd:element name="defaultObjectPolicyConfiguration" type="tns:ObjectPolicyConfigurationType" minOccurs="0" maxOccurs="unbounded">
+	                    <xsd:annotation>
+							<xsd:documentation>
+								Definition of default object policy for a individual object type. The definition of this policy
+								contains object template and other similar settings. The policy will be used
+								"universally" during all operations with specified object types - unless it is overriden
+								in other definitions (e.g. in resource or org).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:container/>
+							</xsd:appinfo>
+						</xsd:annotation>
+                    </xsd:element>
+                    
 
                     <xsd:element name="connectorFramework" minOccurs="0" maxOccurs="1" type="tns:ConnectorFrameworkType">
                         <xsd:annotation>
@@ -7302,10 +7320,12 @@
     <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
    
 
-	<xsd:complexType name="ObjectTypeTemplateType">
+	<xsd:complexType name="ObjectPolicyConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Definition of default object templates for a specific object type.
+				Definition of policy for a specific object type. It defines object template
+				and similar settings that apply to the object alone. This policy settings
+				apply to the object internal structure without regard to other objects.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
@@ -7329,11 +7349,42 @@
              		</xsd:appinfo>
                  </xsd:annotation>
              </xsd:element>
+             <xsd:element name="propertyConstraint" type="tns:PropertyConstraintType" minOccurs="0" maxOccurs="unbounded"/>
              <xsd:element name="oidNameBoundMode" type="xsd:boolean" minOccurs="0" default="false">
              	<xsd:annotation>
              		<xsd:documentation>
              			A mode in which OID and name of the speciefied object are the same.
              		</xsd:documentation>
+             		<xsd:appinfo>
+             			<a:deprecated>true</a:deprecated>
+             		</xsd:appinfo>
+             	</xsd:annotation>
+             </xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="PropertyConstraintType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Definition of a property constraints.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="path" type="t:ItemPathType" minOccurs="1" maxOccurs="1">
+			</xsd:element>
+			<!-- TODO: uniqueness constraint -->
+             <xsd:element name="oidBound" type="xsd:boolean" minOccurs="0" default="false">
+             	<xsd:annotation>
+             		<xsd:documentation>
+             			The property value will be bound to OID. This property will be set to the value
+             			of OID and it cannot be changed.
+             		</xsd:documentation>
+             		<xsd:appinfo>
+             			<a:deprecated>true</a:deprecated>
+             		</xsd:appinfo>
              	</xsd:annotation>
              </xsd:element>
 		</xsd:sequence>

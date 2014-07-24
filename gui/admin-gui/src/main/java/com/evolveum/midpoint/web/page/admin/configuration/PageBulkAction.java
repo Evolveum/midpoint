@@ -16,7 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
@@ -40,6 +44,11 @@ import org.apache.wicket.model.PropertyModel;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_NO_ACCESS_URL)
 })
 public class PageBulkAction extends PageAdminConfiguration {
+
+    private static final Trace LOGGER = TraceManager.getTrace(PageBulkAction.class);
+
+    private static final String DOT_CLASS = PageBulkAction.class.getName() + ".";
+    private static final String OPERATION_PERFORM_BULK = "performBulkAction";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_START = "start";
@@ -80,6 +89,10 @@ public class PageBulkAction extends PageAdminConfiguration {
     private void startPerformed(AjaxRequestTarget target) {
         model.getObject();
 
-        //todo implement
+        Task task = createSimpleTask(OPERATION_PERFORM_BULK);
+        OperationResult result = new OperationResult(OPERATION_PERFORM_BULK);
+
+        //TODO - continue here - we need to find a way to serialize XML String to JAXBElement<? extends ScriptingExpressionType> expression to continue
+//        getScriptingService().evaluateExpressionInBackground(, task, result);
     }
 }
