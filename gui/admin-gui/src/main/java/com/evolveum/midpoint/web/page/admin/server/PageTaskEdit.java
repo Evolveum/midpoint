@@ -61,6 +61,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -110,6 +111,8 @@ public class PageTaskEdit extends PageAdminTasks {
     private static final String ID_HANDLER_URI_LIST = "handlerUriList";
     private static final String ID_HANDLER_URI = "handlerUri";
     private static final String ID_RESOURCE_REF = "resourceRef";
+    private static final String ID_KIND = "kind";
+    private static final String ID_INTENT = "intent";
     private static final String ID_MODEL_OPERATION_STATUS_LABEL = "modelOperationStatusLabel";
     private static final String ID_MODEL_OPERATION_STATUS_PANEL = "modelOperationStatusPanel";
     private static final String ID_SUBTASKS_LABEL = "subtasksLabel";
@@ -442,6 +445,7 @@ public class PageTaskEdit extends PageAdminTasks {
         });
         resource.setOutputMarkupId(true);
         resource.add(new VisibleEnableBehaviour() {
+
             @Override
             public boolean isEnabled() {
                 if(!edit)
@@ -456,6 +460,56 @@ public class PageTaskEdit extends PageAdminTasks {
         });
         mainForm.add(resource);
 
+        final DropDownChoice kind = new DropDownChoice(ID_KIND,
+                new PropertyModel<ShadowKindType>(model, TaskDto.F_KIND),
+                new AbstractReadOnlyModel<List<ShadowKindType>>() {
+
+                    @Override
+                    public List<ShadowKindType> getObject() {
+                        return createShadowKindTypeList();
+                    }
+                }, new IChoiceRenderer<ShadowKindType>() {
+
+            @Override
+            public Object getDisplayValue(ShadowKindType object) {
+                return object.value();
+            }
+
+            @Override
+            public String getIdValue(ShadowKindType object, int index) {
+                return Integer.toString(index);
+            }
+        });
+        kind.setOutputMarkupId(true);
+        kind.setNullValid(true);
+        kind.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isEnabled() {
+                if(!edit)
+                    return false;
+
+                TaskDto dto = model.getObject();
+                return TaskCategory.RECONCILIATION.equals(dto.getCategory());
+            }
+        });
+        mainForm.add(kind);
+
+        final TextField<String> intent = new TextField<>(ID_INTENT, new PropertyModel<String>(model, TaskDto.F_INTENT));
+        mainForm.add(intent);
+        intent.setOutputMarkupId(true);
+        intent.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isEnabled() {
+                if(!edit)
+                    return false;
+
+                TaskDto dto = model.getObject();
+                return TaskCategory.RECONCILIATION.equals(dto.getCategory());
+            }
+        });
+
 		Label node = new Label("node", new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
@@ -468,6 +522,16 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		mainForm.add(node);
 	}
+
+    private List<ShadowKindType> createShadowKindTypeList(){
+        List<ShadowKindType> kindList = new ArrayList<>();
+
+        kindList.add(ShadowKindType.ACCOUNT);
+        kindList.add(ShadowKindType.ENTITLEMENT);
+        kindList.add(ShadowKindType.GENERIC);
+
+        return kindList;
+    }
 
 	private void initSchedule(Form mainForm) {
         //todo probably can be removed, visibility can be updated in children (already components) [lazyman]
@@ -899,8 +963,8 @@ public class PageTaskEdit extends PageAdminTasks {
 //        }
         existingTask.setThreadStopAction(tsa);
 
+        SchemaRegistry registry = getPrismContext().getSchemaRegistry();
         if (dto.isDryRun()) {
-            SchemaRegistry registry = getPrismContext().getSchemaRegistry();
             PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
             PrismProperty dryRun = new PrismProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
             dryRun.setDefinition(def);
@@ -913,6 +977,37 @@ public class PageTaskEdit extends PageAdminTasks {
                 existingTask.deleteExtensionProperty(dryRun);
             }
         }
+
+        if(dto.getKind() != null){
+            PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_KIND);
+            PrismProperty kind = new PrismProperty(SchemaConstants.MODEL_EXTENSION_KIND);
+            kind.setDefinition(def);
+            kind.setRealValue(dto.getKind());
+
+            existingTask.addExtensionProperty(kind);
+        } else {
+            PrismProperty kind = existingTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_KIND);
+
+            if(kind != null){
+                existingTask.deleteExtensionProperty(kind);
+            }
+        }
+
+        if(dto.getIntent() != null && StringUtils.isNotEmpty(dto.getIntent())){
+            PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_INTENT);
+            PrismProperty intent = new PrismProperty(SchemaConstants.MODEL_EXTENSION_INTENT);
+            intent.setDefinition(def);
+            intent.setRealValue(dto.getIntent());
+
+            existingTask.addExtensionProperty(intent);
+        } else {
+            PrismProperty intent = existingTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_INTENT);
+
+            if(intent != null){
+                existingTask.deleteExtensionProperty(intent);
+            }
+        }
+
 		return existingTask;
 	}
 

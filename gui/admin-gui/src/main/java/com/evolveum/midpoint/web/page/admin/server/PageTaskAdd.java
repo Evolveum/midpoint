@@ -47,6 +47,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -80,6 +81,30 @@ public class PageTaskAdd extends PageAdminTasks {
     private static final long serialVersionUID = 2317887071933841581L;
 
     private static final String ID_DRY_RUN = "dryRun";
+    private static final String ID_KIND = "kind";
+    private static final String ID_INTENT = "intent";
+    private static final String ID_FORM_MAIN = "mainForm";
+    private static final String ID_NAME = "name";
+    private static final String ID_CATEGORY = "category";
+    private static final String ID_RESOURCE = "resource";
+    private static final String ID_RUN_UNTIL_NODW_DOWN = "runUntilNodeDown";
+    private static final String ID_CREATE_SUSPENDED = "createSuspended";
+    private static final String ID_THREAD_STOP = "threadStop";
+    private static final String ID_MISFIRE_ACTION = "misfireAction";
+    private static final String ID_RECURRING = "recurring";
+    private static final String ID_CONTAINER = "container";
+    private static final String ID_BOUND_CONTAINER = "boundContainer";
+    private static final String ID_BOUND_HELP = "boundHelp";
+    private static final String ID_BOUND = "bound";
+    private static final String ID_INTERVAL_CONTAINER = "intervalContainer";
+    private static final String ID_INTERVAL = "interval";
+    private static final String ID_CRON_CONTAINER = "cronContainer";
+    private static final String ID_CRON = "cron";
+    private static final String ID_CRON_HELP = "cronHelp";
+    private static final String ID_NO_START_BEFORE_FIELD = "notStartBeforeField";
+    private static final String ID_NO_START_AFTER_FIELD = "notStartAfterField";
+    private static final String ID_BUTTON_BACK = "backButton";
+    private static final String ID_BUTTON_SAVE = "saveButton";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageTaskAdd.class);
     private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
@@ -103,11 +128,11 @@ public class PageTaskAdd extends PageAdminTasks {
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new Form(ID_FORM_MAIN);
         add(mainForm);
 
-        final DropDownChoice resource = new DropDownChoice("resource",
-                new PropertyModel<TaskAddResourcesDto>(model, "resource"),
+        final DropDownChoice resource = new DropDownChoice(ID_RESOURCE,
+                new PropertyModel<TaskAddResourcesDto>(model, TaskAddDto.F_RESOURCE),
                 new AbstractReadOnlyModel<List<TaskAddResourcesDto>>() {
 
                     @Override
@@ -125,8 +150,7 @@ public class PageTaskAdd extends PageAdminTasks {
             public String getIdValue(TaskAddResourcesDto dto, int index) {
                 return Integer.toString(index);
             }
-        }
-        );
+        });
         resource.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -140,7 +164,51 @@ public class PageTaskAdd extends PageAdminTasks {
         });
         resource.setOutputMarkupId(true);
         mainForm.add(resource);
-        DropDownChoice type = new DropDownChoice("category", new PropertyModel<String>(model, "category"),
+
+        final DropDownChoice kind = new DropDownChoice(ID_KIND,
+                new PropertyModel<ShadowKindType>(model, TaskAddDto.F_KIND),
+                new AbstractReadOnlyModel<List<ShadowKindType>>() {
+
+                    @Override
+                    public List<ShadowKindType> getObject() {
+                        return createShadowKindTypeList();
+                    }
+                }, new IChoiceRenderer<ShadowKindType>() {
+
+            @Override
+            public Object getDisplayValue(ShadowKindType object) {
+                return object.value();
+            }
+
+            @Override
+            public String getIdValue(ShadowKindType object, int index) {
+                return Integer.toString(index);
+            }
+        });
+        kind.setOutputMarkupId(true);
+        kind.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isEnabled() {
+                TaskAddDto dto = model.getObject();
+                return TaskCategory.RECONCILIATION.equals(dto.getCategory());
+            }
+        });
+        mainForm.add(kind);
+
+        final TextField<String> intent = new TextField<>(ID_INTENT, new PropertyModel<String>(model, TaskAddDto.F_INTENT));
+        mainForm.add(intent);
+        intent.setOutputMarkupId(true);
+        intent.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isEnabled() {
+                TaskAddDto dto = model.getObject();
+                return TaskCategory.RECONCILIATION.equals(dto.getCategory());
+            }
+        });
+
+        DropDownChoice type = new DropDownChoice(ID_CATEGORY, new PropertyModel<String>(model, TaskAddDto.F_CATEGORY),
                 new AbstractReadOnlyModel<List<String>>() {
 
                     @Override
@@ -158,20 +226,20 @@ public class PageTaskAdd extends PageAdminTasks {
             public String getIdValue(String item, int index) {
                 return Integer.toString(index);
             }
-
-        }
-        );
+        });
         type.add(new AjaxFormComponentUpdatingBehavior("onChange") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(resource);
+                target.add(intent);
+                target.add(kind);
             }
         });
         type.setRequired(true);
         mainForm.add(type);
 
-        TextField<String> name = new TextField<String>("name", new PropertyModel<String>(model, "name"));
+        TextField<String> name = new TextField<>(ID_NAME, new PropertyModel<String>(model, TaskAddDto.F_NAME));
         name.setRequired(true);
         mainForm.add(name);
 
@@ -185,14 +253,14 @@ public class PageTaskAdd extends PageAdminTasks {
     }
 
     private void initScheduling(final Form mainForm) {
-        final WebMarkupContainer container = new WebMarkupContainer("container");
+        final WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
         mainForm.add(container);
 
-        final IModel<Boolean> recurringCheck = new PropertyModel<Boolean>(model, "reccuring");
-        final IModel<Boolean> boundCheck = new PropertyModel<Boolean>(model, "bound");
+        final IModel<Boolean> recurringCheck = new PropertyModel<>(model, TaskAddDto.F_RECURRING);
+        final IModel<Boolean> boundCheck = new PropertyModel<>(model, TaskAddDto.F_BOUND);
 
-        final WebMarkupContainer boundContainer = new WebMarkupContainer("boundContainer");
+        final WebMarkupContainer boundContainer = new WebMarkupContainer(ID_BOUND_CONTAINER);
         boundContainer.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -204,7 +272,7 @@ public class PageTaskAdd extends PageAdminTasks {
         boundContainer.setOutputMarkupId(true);
         container.add(boundContainer);
 
-        final WebMarkupContainer intervalContainer = new WebMarkupContainer("intervalContainer");
+        final WebMarkupContainer intervalContainer = new WebMarkupContainer(ID_INTERVAL_CONTAINER);
         intervalContainer.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -216,7 +284,7 @@ public class PageTaskAdd extends PageAdminTasks {
         intervalContainer.setOutputMarkupId(true);
         container.add(intervalContainer);
 
-        final WebMarkupContainer cronContainer = new WebMarkupContainer("cronContainer");
+        final WebMarkupContainer cronContainer = new WebMarkupContainer(ID_CRON_CONTAINER);
         cronContainer.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -228,7 +296,7 @@ public class PageTaskAdd extends PageAdminTasks {
         cronContainer.setOutputMarkupId(true);
         container.add(cronContainer);
 
-        AjaxCheckBox recurring = new AjaxCheckBox("recurring", recurringCheck) {
+        AjaxCheckBox recurring = new AjaxCheckBox(ID_RECURRING, recurringCheck) {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -237,7 +305,7 @@ public class PageTaskAdd extends PageAdminTasks {
         };
         mainForm.add(recurring);
 
-        AjaxCheckBox bound = new AjaxCheckBox("bound", boundCheck) {
+        AjaxCheckBox bound = new AjaxCheckBox(ID_BOUND, boundCheck) {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -246,29 +314,29 @@ public class PageTaskAdd extends PageAdminTasks {
         };
         boundContainer.add(bound);
 
-        Label boundHelp = new Label("boundHelp");
+        Label boundHelp = new Label(ID_BOUND_HELP);
         boundHelp.add(new InfoTooltipBehavior());
         boundContainer.add(boundHelp);
 
-        TextField<Integer> interval = new TextField<Integer>("interval",
-                new PropertyModel<Integer>(model, "interval"));
+        TextField<Integer> interval = new TextField<>(ID_INTERVAL,
+                new PropertyModel<Integer>(model, TaskAddDto.F_INTERVAL));
         interval.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         intervalContainer.add(interval);
 
-        TextField<String> cron = new TextField<String>("cron", new PropertyModel<String>(
-                model, "cron"));
+        TextField<String> cron = new TextField<>(ID_CRON, new PropertyModel<String>(
+                model, TaskAddDto.F_CRON));
         cron.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 //		if (recurringCheck.getObject() && !boundCheck.getObject()) {
 //			cron.setRequired(true);
 //		}
         cronContainer.add(cron);
 
-        Label cronHelp = new Label("cronHelp");
+        Label cronHelp = new Label(ID_CRON_HELP);
         cronHelp.add(new InfoTooltipBehavior());
         cronContainer.add(cronHelp);
 
-        final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField",
-                new PropertyModel<Date>(model, "notStartBefore")) {
+        final DateTimeField notStartBefore = new DateTimeField(ID_NO_START_BEFORE_FIELD,
+                new PropertyModel<Date>(model, TaskAddDto.F_NOT_START_BEFORE)) {
             @Override
             protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
                 return DateTextField.forDatePattern(id, dateFieldModel, "dd/MMM/yyyy"); // todo i18n
@@ -277,8 +345,8 @@ public class PageTaskAdd extends PageAdminTasks {
         notStartBefore.setOutputMarkupId(true);
         mainForm.add(notStartBefore);
 
-        final DateTimeField notStartAfter = new DateTimeField("notStartAfterField", new PropertyModel<Date>(
-                model, "notStartAfter")) {
+        final DateTimeField notStartAfter = new DateTimeField(ID_NO_START_AFTER_FIELD, new PropertyModel<Date>(
+                model, TaskAddDto.F_NOT_START_AFTER)) {
             @Override
             protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
                 return DateTextField.forDatePattern(id, dateFieldModel, "dd/MMM/yyyy"); // todo i18n
@@ -293,15 +361,15 @@ public class PageTaskAdd extends PageAdminTasks {
     }
 
     private void initAdvanced(Form mainForm) {
-        CheckBox runUntilNodeDown = new CheckBox("runUntilNodeDown", new PropertyModel<Boolean>(model,
-                "runUntilNodeDown"));
+        CheckBox runUntilNodeDown = new CheckBox(ID_RUN_UNTIL_NODW_DOWN, new PropertyModel<Boolean>(model,
+                TaskAddDto.F_RUN_UNTIL_NODW_DOWN));
         mainForm.add(runUntilNodeDown);
 
-        final IModel<Boolean> createSuspendedCheck = new PropertyModel<Boolean>(model, "suspendedState");
-        CheckBox createSuspended = new CheckBox("createSuspended", createSuspendedCheck);
+        final IModel<Boolean> createSuspendedCheck = new PropertyModel<>(model, TaskAddDto.F_SUSPENDED_STATE);
+        CheckBox createSuspended = new CheckBox(ID_CREATE_SUSPENDED, createSuspendedCheck);
         mainForm.add(createSuspended);
 
-        DropDownChoice threadStop = new DropDownChoice("threadStop", new Model<ThreadStopActionType>() {
+        DropDownChoice threadStop = new DropDownChoice(ID_THREAD_STOP, new Model<ThreadStopActionType>() {
 
             @Override
             public ThreadStopActionType getObject() {
@@ -326,14 +394,14 @@ public class PageTaskAdd extends PageAdminTasks {
 
         mainForm.add(new TsaValidator(runUntilNodeDown, threadStop));
 
-        DropDownChoice misfire = new DropDownChoice("misfireAction", new PropertyModel<MisfireActionType>(
-                model, "misfireAction"), WebMiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
+        DropDownChoice misfire = new DropDownChoice(ID_MISFIRE_ACTION, new PropertyModel<MisfireActionType>(
+                model, TaskAddDto.F_MISFIRE_ACTION), WebMiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
                 new EnumChoiceRenderer<MisfireActionType>(PageTaskAdd.this));
         mainForm.add(misfire);
     }
 
     private void initButtons(final Form mainForm) {
-        AjaxSubmitButton saveButton = new AjaxSubmitButton("saveButton",
+        AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_BUTTON_SAVE,
                 createStringResource("PageBase.button.save")) {
 
             @Override
@@ -348,7 +416,7 @@ public class PageTaskAdd extends PageAdminTasks {
         };
         mainForm.add(saveButton);
 
-        AjaxButton backButton = new AjaxButton("backButton",
+        AjaxButton backButton = new AjaxButton(ID_BUTTON_BACK,
                 createStringResource("PageBase.button.back")) {
 
             @Override
@@ -360,7 +428,7 @@ public class PageTaskAdd extends PageAdminTasks {
     }
 
     private List<String> createCategoryList() {
-        List<String> categories = new ArrayList<String>();
+        List<String> categories = new ArrayList<>();
 
         // todo change to something better and add i18n
 //		TaskManager manager = getTaskManager();
@@ -379,6 +447,16 @@ public class PageTaskAdd extends PageAdminTasks {
         categories.add(TaskCategory.USER_RECOMPUTATION);
         categories.add(TaskCategory.DEMO);
         return categories;
+    }
+
+    private List<ShadowKindType> createShadowKindTypeList(){
+        List<ShadowKindType> kindList = new ArrayList<>();
+
+        kindList.add(ShadowKindType.ACCOUNT);
+        kindList.add(ShadowKindType.ENTITLEMENT);
+        kindList.add(ShadowKindType.GENERIC);
+
+        return kindList;
     }
 
     private List<TaskAddResourcesDto> createResourceList() {
@@ -503,6 +581,28 @@ public class PageTaskAdd extends PageAdminTasks {
             PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
             dryRun.setDefinition(def);
             dryRun.setRealValue(true);
+        }
+
+        if(dto.getKind() != null){
+            PrismObject<TaskType> prismTask = task.asPrismObject();
+            ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND);
+            PrismProperty kind = prismTask.findOrCreateProperty(path);
+
+            SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+            PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_KIND);
+            kind.setDefinition(def);
+            kind.setRealValue(dto.getKind());
+        }
+
+        if(dto.getIntent() != null && StringUtils.isNotEmpty(dto.getIntent())){
+            PrismObject<TaskType> prismTask = task.asPrismObject();
+            ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT);
+            PrismProperty intent = prismTask.findOrCreateProperty(path);
+
+            SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+            PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_INTENT);
+            intent.setDefinition(def);
+            intent.setRealValue(dto.getIntent());
         }
 
         return task;

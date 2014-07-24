@@ -1260,7 +1260,6 @@ public class PageUser extends PageAdminUsers {
         ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
         ModelExecuteOptions options = executeOptions.createOptions();
         LOGGER.debug("Using options {}.", new Object[]{executeOptions});
-        // try {
 
         try {
             reviveModels();

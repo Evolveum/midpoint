@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 
 /**
@@ -28,6 +29,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType
 public class TaskAddDto implements Serializable {
 
     public static final String F_DRY_RUN = "dryRun";
+    public static final String F_KIND = "kind";
+    public static final String F_INTENT = "intent";
+    public static final String F_RESOURCE = "resource";
+    public static final String F_CATEGORY = "category";
+    public static final String F_NAME = "name";
+    public static final String F_RECURRING = "reccuring";
+    public static final String F_BOUND = "bound";
+    public static final String F_INTERVAL = "interval";
+    public static final String F_CRON = "cron";
+    public static final String F_NOT_START_BEFORE = "notStartBefore";
+    public static final String F_NOT_START_AFTER = "notStartAfter";
+    public static final String F_RUN_UNTIL_NODW_DOWN = "runUntilNodeDown";
+    public static final String F_SUSPENDED_STATE = "suspendedState";
+    public static final String F_THREAD_STOP = "threadStop";
+    public static final String F_MISFIRE_ACTION = "misfireAction";
 
 	private String category;
 	private TaskAddResourcesDto resource;
@@ -49,6 +65,8 @@ public class TaskAddDto implements Serializable {
 	private MisfireActionType misfireAction = MisfireActionType.EXECUTE_IMMEDIATELY;
 
     private boolean dryRun;
+    private ShadowKindType kind;
+    private String intent;
 	
 	public String getCategory() {
 		return category;
@@ -160,5 +178,21 @@ public class TaskAddDto implements Serializable {
 
     public void setDryRun(boolean dryRun) {
         this.dryRun = dryRun;
+    }
+
+    public ShadowKindType getKind() {
+        return kind;
+    }
+
+    public void setKind(ShadowKindType kind) {
+        this.kind = kind;
+    }
+
+    public String getIntent() {
+        return intent;
+    }
+
+    public void setIntent(String intent) {
+        this.intent = intent;
     }
 }
