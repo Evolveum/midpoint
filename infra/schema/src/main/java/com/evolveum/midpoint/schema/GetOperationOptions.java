@@ -88,6 +88,14 @@ public class GetOperationOptions implements Serializable, Cloneable {
 	 * from the gui, for example
 	 */
 	Boolean doNotDiscovery;
+	
+	/**
+	 * This flag indicated if the "object not found" error is critical for
+	 * processing the original request. If it is not, we just ignore it and
+	 * don't log it. In other cases, error in logs may lead to misleading
+	 * information..
+	 */
+	Boolean allowNotFound;
 
 	public RetrieveOption getRetrieve() {
 		return retrieve;
@@ -238,11 +246,35 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		return options.doNotDiscovery;
 	}
 	
-	public static GetOperationOptions createDoNotDiscovery() {
+	public static GetOperationOptions createAllowNotFound() {
 		GetOperationOptions opts = new GetOperationOptions();
-		opts.setDoNotDiscovery(true);
+		opts.setAllowNotFound(true);
 		return opts;
 	}
+	
+	public Boolean getAllowNotFound() {
+		return allowNotFound;
+	}
+
+		public void setAllowNotFound(Boolean allowNotFound) {
+			this.allowNotFound = allowNotFound;
+		}
+		
+		public static boolean isAllowNotFound(GetOperationOptions options) {
+			if (options == null) {
+				return false;
+			}
+			if (options.allowNotFound == null) {
+				return false;
+			}
+			return options.allowNotFound;
+		}
+		
+		public static GetOperationOptions createDoNotDiscovery() {
+			GetOperationOptions opts = new GetOperationOptions();
+			opts.setDoNotDiscovery(true);
+			return opts;
+		}
 
 
 	@Override
@@ -253,6 +285,7 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		result = prime * result + ((raw == null) ? 0 : raw.hashCode());
 		result = prime * result + ((resolve == null) ? 0 : resolve.hashCode());
 		result = prime * result + ((doNotDiscovery == null) ? 0 : doNotDiscovery.hashCode());
+		result = prime * result + ((allowNotFound == null) ? 0 : allowNotFound.hashCode());
 		return result;
 	}
 
@@ -285,6 +318,13 @@ public class GetOperationOptions implements Serializable, Cloneable {
 				return false;
 		} else if (!doNotDiscovery.equals(other.doNotDiscovery))
 			return false;
+		
+		if (allowNotFound == null) {
+			if (other.allowNotFound != null)
+				return false;
+		} else if (!allowNotFound.equals(other.allowNotFound))
+			return false;
+		
         if (retrieve != null ? !retrieve.equals(other.retrieve) : other.retrieve != null)
             return false;
 
@@ -299,13 +339,14 @@ public class GetOperationOptions implements Serializable, Cloneable {
         clone.resolve = this.resolve;
         clone.resolveNames = this.resolveNames;
         clone.retrieve = this.retrieve;
+        clone.allowNotFound = this.allowNotFound;
         return clone;
     }
 
 	@Override
 	public String toString() {
 		return "GetOperationOptions(resolve=" + resolve + ", noFetch=" + noFetch
-				+ ", raw=" + raw + ", doNotDiscovery="+doNotDiscovery+", retrieve="+retrieve+")";
+				+ ", raw=" + raw + ", doNotDiscovery="+doNotDiscovery+", retrieve="+retrieve+", allowNotFound="+ allowNotFound +")";
 	}
 
 }

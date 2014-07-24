@@ -22,6 +22,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
@@ -177,16 +179,18 @@ public class InitialDataImport {
 
         boolean importObject = true;
         try {
-            model.getObject(object.getCompileTimeClass(), object.getOid(), null, task, result);
+            model.getObject(object.getCompileTimeClass(), object.getOid(), SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()), task, result);
             importObject = false;
             result.recordSuccess();
         } catch (ObjectNotFoundException ex) {
             importObject = true;
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from model", ex,
-                    object.getOid());
-            result.recordWarning("Couldn't get object with oid '" + object.getOid() + "' from model",
-                    ex);
+        	if (!importObject){
+	            LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from model", ex,
+	                    object.getOid());
+	            result.recordWarning("Couldn't get object with oid '" + object.getOid() + "' from model",
+	                    ex);
+        	}
         }
 
         if (!importObject) {

@@ -72,7 +72,9 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -402,11 +404,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			Validate.notEmpty(shadowOid, "Couldn't get resource object shadow oid from change.");
 			PrismObject<F> owner = null;
 			try {
-				owner = repositoryService.searchShadowOwner(shadowOid, subResult);
+				owner = repositoryService.searchShadowOwner(shadowOid, SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()), subResult);
 			} catch (ObjectNotFoundException e) {
 				// Shadow is gone. This should not normally happen. But if it does then it is no
 				// tragedy. If the shadow is gone then it has no owner and the situation is quite clear.
-				subResult.getLastSubresult().setStatus(OperationResultStatus.NOT_APPLICABLE);
+//				subResult.getLastSubresult().setStatus(OperationResultStatus.NOT_APPLICABLE);
 			}
 
 			if (owner != null) {
