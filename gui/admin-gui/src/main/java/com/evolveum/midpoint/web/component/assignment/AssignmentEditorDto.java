@@ -85,8 +85,9 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 //            newAssignment.setConstruction(construction.clone());
 //        }
 
-        this.name = getNameForTargetObject(targetObject);
         this.tenantRef = loadTenantReference(targetObject, assignment, pageBase);
+
+        this.name = getNameForTargetObject(targetObject);
     }
 
     private ObjectViewDto loadTenantReference(ObjectType object, AssignmentType assignment, PageBase page){
@@ -137,12 +138,18 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
             builder.append(" (").append(getRelation()).append(')');
         }
 
+        if(object instanceof RoleType){
+            if(tenantRef != null && tenantRef.getOid() != null){
+                builder.append(" - ").append(tenantRef.getName());
+            }
+        }
+
         return builder.toString();
     }
 
     public List<ACAttributeDto> getAttributes() {
         if (attributes == null) {
-            attributes = new ArrayList<ACAttributeDto>();
+            attributes = new ArrayList<>();
         }
         return attributes;
     }
