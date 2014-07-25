@@ -705,14 +705,34 @@ public class TestVillage extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        // TODO
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID);
         display("Org", org);
         assertLinks(org, 2);
         
         SearchResultEntry ouEntry = openDJController.fetchAndAssertEntry("ou=Jolly Roger,dc=example,dc=com", "organizationalUnit");
         SearchResultEntry groupEntry = openDJController.fetchAndAssertEntry("cn=admins,ou=Jolly Roger,dc=example,dc=com", "groupOfUniqueNames");
-      //TODO: assertions
+      //TODO: more assertions
+	}
+	
+	@Test
+    public void test319DeleteProjectJollyRoger() throws Exception {
+		final String TEST_NAME = "test319DeleteProjectJollyRoger";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+		
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        deleteObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID, task, result);
+        openDJController.assertNoEntry("ou=Jolly Roger,dc=example,dc=com");
+        openDJController.assertNoEntry("cn=admins,ou=Jolly Roger,dc=example,dc=com");
 	}
 	
 	/**
