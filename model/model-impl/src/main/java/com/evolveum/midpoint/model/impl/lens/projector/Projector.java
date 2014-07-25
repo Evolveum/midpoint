@@ -165,12 +165,11 @@ public class Projector {
 			        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 							continue;
 			        	}
-			        	String projectionDesc = getProjectionDesc(projectionContext);
 			        	activationProcessor.processActivation(context, projectionContext, now, task, result);
 			        	projectionContext.recompute();
-			        	LensUtil.traceContext(LOGGER, activityDescription, "projection activation of "+projectionDesc, false, context, false);
 			        }
 		        }
+		        LensUtil.traceContext(LOGGER, activityDescription, "projection activation of all resources", false, context, false);
 		
 		        dependencyProcessor.sortProjectionsToWaves(context);
 		        maxWaves = dependencyProcessor.computeMaxWaves(context);

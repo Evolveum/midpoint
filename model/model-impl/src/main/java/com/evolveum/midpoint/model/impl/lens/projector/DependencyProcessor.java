@@ -114,8 +114,10 @@ public class DependencyProcessor {
 		}
 		if (projectionContext.isDelete()) {
 			// When deprovisioning (deleting) the dependencies needs to be processed in reverse
+			LOGGER.trace("Determining wave for (deprovision): {}", projectionContext);
 			return determineProjectionWaveDeprovision(context, projectionContext, inDependency, depPath);
 		} else {
+			LOGGER.trace("Determining wave for (provision): {}", projectionContext);
 			return determineProjectionWaveProvision(context, projectionContext, inDependency, depPath);
 		}
 	}
@@ -128,9 +130,9 @@ public class DependencyProcessor {
 		int determinedWave = 0;
 		int determinedOrder = 0;
 		for (ResourceObjectTypeDependencyType outDependency: projectionContext.getDependencies()) {
-//			if (LOGGER.isTraceEnabled()) {
-//				LOGGER.trace("DEP: {}", outDependency);
-//			}
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("DEP: {}", outDependency);
+			}
 			if (inDependency != null && isHigerOrder(outDependency, inDependency)) {
 				// There is incomming dependency. Deal only with dependencies of this order and lower
 				// otherwise we can end up in endless loop even for legal dependencies.
@@ -144,7 +146,7 @@ public class DependencyProcessor {
 //			if (LOGGER.isTraceEnabled()) {
 //				LOGGER.trace("DEP: {} -> {}", refDiscr, dependencyProjectionContext);
 //			}
-			if (dependencyProjectionContext == null) {
+			if (dependencyProjectionContext == null || dependencyProjectionContext.isDelete()) {
 				ResourceObjectTypeDependencyStrictnessType outDependencyStrictness = ResourceTypeUtil.getDependencyStrictness(outDependency);
 				if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
 					throw new PolicyViolationException("Unsatisfied strict dependency of account "+projectionContext.getResourceShadowDiscriminator()+
@@ -197,9 +199,9 @@ public class DependencyProcessor {
 		for (DependencyAndSource ds: findReverseDependecies(context, projectionContext)) {
 			LensProjectionContext dependencySourceContext = ds.sourceProjectionContext;
 			ResourceObjectTypeDependencyType outDependency = ds.dependency;
-//				if (LOGGER.isTraceEnabled()) {
-//					LOGGER.trace("DEP(rev): {}", outDependency);
-//				}
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("DEP(rev): {}", outDependency);
+				}
 			if (inDependency != null && isHigerOrder(outDependency, inDependency)) {
 				// There is incomming dependency. Deal only with dependencies of this order and lower
 				// otherwise we can end up in endless loop even for legal dependencies.
