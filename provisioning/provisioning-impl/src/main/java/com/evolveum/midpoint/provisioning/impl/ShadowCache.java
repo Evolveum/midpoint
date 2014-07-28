@@ -445,7 +445,7 @@ public abstract class ShadowCache {
 
 		afterModifyOnResource(shadow, modifications, parentResult);
 
-		Collection<PropertyDelta<?>> renameDeltas = distillRenameDeltas(modifications, shadow, objectClassDefinition);
+		Collection<PropertyDelta<?>> renameDeltas = distillRenameDeltas(modifications, shadow, objectClassDefinition, task, parentResult);
 
 		Collection<? extends ItemDelta> sideEffectDelta = convertToPropertyDelta(sideEffectChanges);
 		if (renameDeltas != null) {
@@ -472,7 +472,7 @@ public abstract class ShadowCache {
 	}
 
 	private Collection<PropertyDelta<?>> distillRenameDeltas(Collection<? extends ItemDelta> modifications, 
-			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PropertyDelta<String> nameDelta = (PropertyDelta<String>) ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
 		if (nameDelta == null){
 			return null;
@@ -493,8 +493,9 @@ public abstract class ShadowCache {
 		// $shadow/name
 		if (!newName.equals(shadow.asObjectable().getName().getOrig())){
 			
+			PrismObject<ShadowType> fullShadow = getShadow(shadow.getOid(), shadow, null, task, parentResult);
 			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
-					new PolyString(newName));
+					ProvisioningUtil.determineShadowName(fullShadow));
 			deltas.add(shadowNameDelta);
 		}
 		

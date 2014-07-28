@@ -67,6 +67,18 @@ public class ShadowUtil {
 		return attributesContainer.getSecondaryIdentifiers();	
 	}
 	
+	public static ResourceAttribute<String> getNamingAttribute(ShadowType shadow){
+		return getNamingAttribute(shadow.asPrismObject());
+	}
+	
+	public static ResourceAttribute<String> getNamingAttribute(PrismObject<? extends ShadowType> shadow) {
+		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+		if (attributesContainer == null) {
+			return null;
+		}
+		return attributesContainer.getNamingAttribute();	
+	}
+	
 	public static Collection<ResourceAttribute<?>> getAttributes(ShadowType shadowType) {
 		return getAttributes(shadowType.asPrismObject());
 	}
@@ -148,7 +160,7 @@ public class ShadowUtil {
 	}
 	
 
-	private static String getSingleStringAttributeValue(PrismObject<ShadowType> shadow, QName attrName) {
+	public static String getSingleStringAttributeValue(PrismObject<ShadowType> shadow, QName attrName) {
 		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null) {
 			return null;
