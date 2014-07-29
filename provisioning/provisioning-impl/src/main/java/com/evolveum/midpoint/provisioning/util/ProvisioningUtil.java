@@ -120,6 +120,10 @@ public class ProvisioningUtil {
 
 	}
 	
+	public static <T extends ShadowType> PolyString determineShadowName(ShadowType shadow) throws SchemaException {
+		return determineShadowName(shadow.asPrismObject());
+	}
+	
 	public static <T extends ShadowType> PolyString determineShadowName(PrismObject<T> shadow) throws SchemaException {
 		String stringName = determineShadowStringName(shadow);
 		if (stringName == null) {
