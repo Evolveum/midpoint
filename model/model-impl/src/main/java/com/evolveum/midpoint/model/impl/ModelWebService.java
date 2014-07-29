@@ -17,6 +17,8 @@ package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPort;
+import com.evolveum.midpoint.model.api.ScriptExecutionResult;
+import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.common.util.AbstractModelWebService;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.scripting.Data;
@@ -108,7 +110,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
     private ModelController modelController;
 		
     @Autowired
-    private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    private ScriptingService scriptingService;
 
 	@Override
 	public void getObject(QName objectType, String oid, SelectorQualifiedGetOptionsType optionsType,
@@ -273,22 +275,22 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         try {
             for (JAXBElement<?> script : scriptsToExecute) {
 
-                ExecutionContext outputContext = scriptingExpressionEvaluator.evaluateExpression((ScriptingExpressionType) script.getValue(), task, result);
+                ScriptExecutionResult executionResult = scriptingService.evaluateExpression((ScriptingExpressionType) script.getValue(), task, result);
 
                 SingleScriptOutputType output = new SingleScriptOutputType();
                 outputs.getOutput().add(output);
 
-                output.setTextOutput(outputContext.getConsoleOutput());
+                output.setTextOutput(executionResult.getConsoleOutput());
                 if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
-                    output.setXmlData(prepareXmlData(outputContext.getFinalOutput()));
+                    output.setXmlData(prepareXmlData(executionResult.getDataOutput()));
                 } else {
                     // temporarily we send serialized XML in the case of MSL output
-                    ItemListType jaxbOutput = prepareXmlData(outputContext.getFinalOutput());
+                    ItemListType jaxbOutput = prepareXmlData(executionResult.getDataOutput());
                     output.setMslData(prismContext.serializeAnyData(jaxbOutput, SchemaConstants.C_VALUE, PrismContext.LANG_XML));
                 }
             }
             result.computeStatusIfUnknown();
-        } catch (ScriptExecutionException|JAXBException|SchemaException|RuntimeException e) {
+        } catch (ScriptExecutionException|JAXBException|SchemaException|RuntimeException|SecurityViolationException e) {
             result.recordFatalError(e.getMessage(), e);
             LoggingUtils.logException(LOGGER, "Exception while executing script", e);
         }
@@ -297,10 +299,10 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         return response;
     }
 
-    private ItemListType prepareXmlData(Data output) throws JAXBException, SchemaException {
+    private ItemListType prepareXmlData(List<Item> output) throws JAXBException, SchemaException {
         ItemListType itemListType = new ItemListType();
         if (output != null) {
-            for (Item item : output.getData()) {
+            for (Item item : output) {
                 RawType rawType = prismContext.toRawType(item);
                 itemListType.getItem().add(rawType);
             }

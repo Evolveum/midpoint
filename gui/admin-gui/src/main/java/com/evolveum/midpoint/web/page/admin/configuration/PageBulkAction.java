@@ -17,11 +17,14 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -119,19 +122,22 @@ public class PageBulkAction extends PageAdminConfiguration {
             if (bulkActionDto.isAsync()) {
                 try {
                     getScriptingService().evaluateExpressionInBackground(expression, task, result);
-                } catch (SchemaException e) {
-                    result.recordFatalError("Couldn't submit bulk action to execution because of schema exception", e);
+                    result.recordStatus(OperationResultStatus.IN_PROGRESS, task.getName() + " has been successfully submitted to execution");
+                } catch (SchemaException|SecurityViolationException e) {
+                    result.recordFatalError("Couldn't submit bulk action to execution", e);
                 }
             } else {
                 try {
-                    getScriptingService().evaluateExpression(expression, task, result);
-                } catch (ScriptExecutionException e) {
+                    ScriptExecutionResult executionResult = getScriptingService().evaluateExpression(expression, task, result);
+                    result.recordStatus(OperationResultStatus.SUCCESS, "Action executed. Returned " + executionResult.getDataOutput().size() + " item(s). Console and data output available via 'Export to XML' function.");
+                    result.addReturn("console", executionResult.getConsoleOutput());
+                    result.addCollectionOfSerializablesAsReturn("data", executionResult.getDataOutput());
+                } catch (ScriptExecutionException|SchemaException|SecurityViolationException e) {
                     result.recordFatalError("Couldn't execute bulk action", e);
                 }
             }
         }
 
-        result.computeStatusIfUnknown();
         showResult(result);
         target.add(getFeedbackPanel());
     }

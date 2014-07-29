@@ -20,9 +20,9 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 /**
@@ -46,7 +46,7 @@ public interface ScriptingService {
      *
      * TODO consider removing this method (it was meant as a simplified version of the method below)
      */
-    public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException;
+    public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
 
     /**
      * Asynchronously executes any scripting expression.
@@ -59,7 +59,7 @@ public interface ScriptingService {
      * @param parentResult
      * @throws SchemaException
      */
-    public void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException;
+    public void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
 
     /**
      * Synchronously executes any scripting expression (with no input data).
@@ -72,5 +72,5 @@ public interface ScriptingService {
      * TODO return ExecutionContext (requires moving the context to model api)
      */
 
-    public void evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException;
+    public ScriptExecutionResult evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException, SchemaException, SecurityViolationException;
 }
