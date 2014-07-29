@@ -102,7 +102,7 @@ public class Main {
 		try {
 			
 			ModelPortType modelPort = createModelPort(args);
-			
+
 			SystemConfigurationType configurationType = getConfiguration(modelPort);
 			System.out.println("Got system configuration");
 			System.out.println(configurationType);
@@ -500,7 +500,7 @@ public class Main {
 		ObjectListType objectList = objectListHolder.value;
 		return (Collection) objectList.getObject();
 	}
-	
+
 	private static void deleteUser(ModelPortType modelPort, String oid) throws FaultMessage {
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
@@ -514,6 +514,20 @@ public class Main {
         executeOptionsType.setRaw(true);
         modelPort.executeChanges(deltaListType, executeOptionsType);
 	}
+
+    private static void deleteTask(ModelPortType modelPort, String oid) throws FaultMessage {
+        ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(TaskType.class));
+        deltaType.setChangeType(ChangeTypeType.DELETE);
+        deltaType.setOid(oid);
+
+        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
+        deltaListType.getDelta().add(deltaType);
+
+        ModelExecuteOptionsType executeOptionsType = new ModelExecuteOptionsType();
+        executeOptionsType.setRaw(true);
+        modelPort.executeChanges(deltaListType, executeOptionsType);
+    }
 	
 	public static ModelPortType createModelPort(String[] args) {
 		String endpointUrl = DEFAULT_ENDPOINT_URL;

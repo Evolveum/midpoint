@@ -28,6 +28,7 @@ import java.util.Set;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
@@ -484,8 +485,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
                             String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result1);
                             delta.setOid(oid);
                         } else if (delta.isDelete()) {
-                            PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
-                            securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
+                            if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+                                // getting the object is avoided in case of administrator's request in order to allow deleting malformed (unreadable) objects
+                                PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+                                securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
+                            }
                             if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
                                 Utils.clearRequestee(task);
                                 provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
@@ -1857,9 +1861,15 @@ public class ModelController implements ModelService, ModelInteractionService, T
     }
 
     @Override
-    public void evaluateExpressionInBackground(JAXBElement<? extends ScriptingExpressionType> expression, Task task, OperationResult parentResult) throws SchemaException {
+    public void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException {
         scriptingExpressionEvaluator.evaluateExpressionInBackground(expression, task, parentResult);
     }
+
+    @Override
+    public void evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException {
+        scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
+    }
+
     //endregion
 
 }

@@ -16,9 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -26,6 +29,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.BulkActionDto;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
@@ -33,15 +37,16 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import javax.xml.bind.JAXBElement;
+
 /**
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/config/bulk", action = {
-//        @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
-//                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-//        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#bulkAction",
-//                label = "PageBulkAction.auth.bulkAction.label", description = "PageBulkAction.auth.bulkAction.description")
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_NO_ACCESS_URL)
+        @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
+                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#bulkAction",
+                label = "PageBulkAction.auth.bulkAction.label", description = "PageBulkAction.auth.bulkAction.description")
 })
 public class PageBulkAction extends PageAdminConfiguration {
 
@@ -87,12 +92,47 @@ public class PageBulkAction extends PageAdminConfiguration {
     }
 
     private void startPerformed(AjaxRequestTarget target) {
-        model.getObject();
-
         Task task = createSimpleTask(OPERATION_PERFORM_BULK);
         OperationResult result = new OperationResult(OPERATION_PERFORM_BULK);
 
-        //TODO - continue here - we need to find a way to serialize XML String to JAXBElement<? extends ScriptingExpressionType> expression to continue
-//        getScriptingService().evaluateExpressionInBackground(, task, result);
+        BulkActionDto bulkActionDto = model.getObject();
+
+        ScriptingExpressionType expression = null;
+        try {
+            Object parsed = getPrismContext().parseAnyValue(bulkActionDto.getScript(), PrismContext.LANG_XML);
+            if (parsed == null) {
+                result.recordFatalError("No bulk action object was provided.");
+            }
+            if (parsed instanceof JAXBElement) {
+                parsed = ((JAXBElement) parsed).getValue();
+            }
+            if (parsed instanceof ScriptingExpressionType) {
+                expression = (ScriptingExpressionType) parsed;
+            } else {
+                result.recordFatalError("Provided XML text is not a bulk action object. An instance of {scripting-3}ScriptingExpressionType is expected; you have provided " + parsed.getClass() + " instead.");
+            }
+        } catch (SchemaException|RuntimeException e) {
+            result.recordFatalError("Couldn't parse bulk action object", e);
+        }
+
+        if (expression != null) {
+            if (bulkActionDto.isAsync()) {
+                try {
+                    getScriptingService().evaluateExpressionInBackground(expression, task, result);
+                } catch (SchemaException e) {
+                    result.recordFatalError("Couldn't submit bulk action to execution because of schema exception", e);
+                }
+            } else {
+                try {
+                    getScriptingService().evaluateExpression(expression, task, result);
+                } catch (ScriptExecutionException e) {
+                    result.recordFatalError("Couldn't execute bulk action", e);
+                }
+            }
+        }
+
+        result.computeStatusIfUnknown();
+        showResult(result);
+        target.add(getFeedbackPanel());
     }
 }

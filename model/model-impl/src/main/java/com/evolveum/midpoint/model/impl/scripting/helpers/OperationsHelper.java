@@ -20,7 +20,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.impl.scripting.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
