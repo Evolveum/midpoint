@@ -30,7 +30,7 @@ public final class PropertyModificationOperation extends Operation {
 		super();
 		this.propertyDelta = propertyDelta;
 	}
-
+	
 	public PropertyDelta getPropertyDelta() {
 		return propertyDelta;
 	}
@@ -47,5 +47,5 @@ public final class PropertyModificationOperation extends Operation {
 		sb.append(propertyDelta.debugDump(indent+1));
 		return sb.toString();
 	}
-	
+
 }
