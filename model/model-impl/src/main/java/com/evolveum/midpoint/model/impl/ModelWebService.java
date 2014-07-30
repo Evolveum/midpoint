@@ -15,17 +15,15 @@
  */
 package com.evolveum.midpoint.model.impl;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPort;
+import com.evolveum.midpoint.model.api.ScriptExecutionResult;
+import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.common.util.AbstractModelWebService;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.impl.scripting.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -41,18 +39,14 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -81,14 +75,12 @@ import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponse
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ItemListType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.xml.bind.JAXBElement;
@@ -118,7 +110,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
     private ModelController modelController;
 		
     @Autowired
-    private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    private ScriptingService scriptingService;
 
 	@Override
 	public void getObject(QName objectType, String oid, SelectorQualifiedGetOptionsType optionsType,
@@ -275,7 +267,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         return scriptsToExecute;
     }
 
-    private ExecuteScriptsResponseType doExecuteScripts(List<JAXBElement<?>> scriptsToExecute, ExecuteScriptsOptionsType options, Task task, OperationResult result) throws ScriptExecutionException, JAXBException, SchemaException {
+    private ExecuteScriptsResponseType doExecuteScripts(List<JAXBElement<?>> scriptsToExecute, ExecuteScriptsOptionsType options, Task task, OperationResult result) {
         ExecuteScriptsResponseType response = new ExecuteScriptsResponseType();
         ScriptOutputsType outputs = new ScriptOutputsType();
         response.setOutputs(outputs);
@@ -283,22 +275,22 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         try {
             for (JAXBElement<?> script : scriptsToExecute) {
 
-                ExecutionContext outputContext = scriptingExpressionEvaluator.evaluateExpression(script, task, result);
+                ScriptExecutionResult executionResult = scriptingService.evaluateExpression((ScriptingExpressionType) script.getValue(), task, result);
 
                 SingleScriptOutputType output = new SingleScriptOutputType();
                 outputs.getOutput().add(output);
 
-                output.setTextOutput(outputContext.getConsoleOutput());
+                output.setTextOutput(executionResult.getConsoleOutput());
                 if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
-                    output.setXmlData(prepareXmlData(outputContext.getFinalOutput()));
+                    output.setXmlData(prepareXmlData(executionResult.getDataOutput()));
                 } else {
                     // temporarily we send serialized XML in the case of MSL output
-                    ItemListType jaxbOutput = prepareXmlData(outputContext.getFinalOutput());
+                    ItemListType jaxbOutput = prepareXmlData(executionResult.getDataOutput());
                     output.setMslData(prismContext.serializeAnyData(jaxbOutput, SchemaConstants.C_VALUE, PrismContext.LANG_XML));
                 }
             }
             result.computeStatusIfUnknown();
-        } catch (Exception e) {         // FIXME little bit brutal treatment
+        } catch (ScriptExecutionException|JAXBException|SchemaException|RuntimeException|SecurityViolationException e) {
             result.recordFatalError(e.getMessage(), e);
             LoggingUtils.logException(LOGGER, "Exception while executing script", e);
         }
@@ -307,10 +299,10 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         return response;
     }
 
-    private ItemListType prepareXmlData(Data output) throws JAXBException, SchemaException {
+    private ItemListType prepareXmlData(List<Item> output) throws JAXBException, SchemaException {
         ItemListType itemListType = new ItemListType();
         if (output != null) {
-            for (Item item : output.getData()) {
+            for (Item item : output) {
                 RawType rawType = prismContext.toRawType(item);
                 itemListType.getItem().add(rawType);
             }

@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.scripting.expressions;
 
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.impl.scripting.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.helpers.ExpressionHelper;
 import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -35,8 +35,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
@@ -99,7 +99,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                     }
                     JAXBElement<?> childExpression = searchExpression.getScriptingExpression();
                     try {
-                        outputData.addAllFrom(scriptingExpressionEvaluator.evaluateExpression(childExpression, Data.create(object), context, result));
+                        outputData.addAllFrom(scriptingExpressionEvaluator.evaluateExpression((ScriptingExpressionType) childExpression.getValue(), Data.create(object), context, result));
                     } catch (ScriptExecutionException e) {
                         throw new SystemException(e);           // todo think about this
                     }

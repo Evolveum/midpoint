@@ -62,6 +62,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -71,9 +72,10 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -130,7 +132,7 @@ public class ResourceObjectConverter {
 	@Autowired(required=true)
 	private PrismContext prismContext;
 
-	private PrismObjectDefinition<ShadowType> shadowTypeDefinition;
+//	private PrismObjectDefinition<ShadowType> shadowTypeDefinition;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -432,8 +434,17 @@ public class ResourceObjectConverter {
 						"Unable to modify account in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 			}
 	
+//			PrismObject<ShadowType> currentShadow = null;
+			if (avoidDuplicateValues(resource) || isRename(operations)) {
+				// We need to filter out the deltas that add duplicate values or remove values that are not there
+				shadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, null, parentResult);
+			}
+			
 			// Execute primary ICF operation on this shadow
-			sideEffectChanges = executeModify(connector, resource, objectClassDefinition, identifiers, operations, parentResult);
+			sideEffectChanges = executeModify(connector, resource, shadow, objectClassDefinition, identifiers, operations, parentResult);
+			
+			
+
 		}
 
         /*
@@ -444,6 +455,11 @@ public class ResourceObjectConverter {
         for (ItemDelta itemDelta : itemDeltas) {
             itemDelta.applyTo(shadowAfter);
         }
+        
+        if (isRename(operations)){
+			Collection<PropertyModificationOperation> renameOperations = distillRenameDeltas(itemDeltas, shadowAfter, objectClassDefinition);
+			sideEffectChanges.addAll(renameOperations);
+		}
 
         // Execute entitlement modification on other objects (if needed)
 		executeEntitlementChangesModify(connector, resource, objectClassDefinition, shadowBefore, shadowAfter, scripts, itemDeltas, parentResult);
@@ -452,7 +468,7 @@ public class ResourceObjectConverter {
 		return sideEffectChanges;
 	}
 
-	private Collection<PropertyModificationOperation> executeModify(ConnectorInstance connector, ResourceType resource,
+	private Collection<PropertyModificationOperation> executeModify(ConnectorInstance connector, ResourceType resource, PrismObject<ShadowType> currentShadow, 
 			RefinedObjectClassDefinition objectClassDefinition, Collection<? extends ResourceAttribute<?>> identifiers, 
 					Collection<Operation> operations, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		Collection<PropertyModificationOperation> sideEffectChanges = null;
@@ -464,10 +480,14 @@ public class ResourceObjectConverter {
 		// Invoke ICF
 		try {
 			
-			if (avoidDuplicateValues(resource)) {
-				// We need to filter out the deltas that add duplicate values or remove values that are not there
+			
+			
+			if (avoidDuplicateValues(resource)){
 				
-				PrismObject<ShadowType> currentShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, null, parentResult);
+				if (currentShadow == null){
+					currentShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, null, parentResult);
+				}
+				
 				Collection<Operation> filteredOperations = new ArrayList(operations.size());
 				for (Operation origOperation: operations) {
 					if (origOperation instanceof PropertyModificationOperation) {
@@ -506,7 +526,8 @@ public class ResourceObjectConverter {
 			
 			sideEffectChanges = connector.modifyObject(objectClassDefinition, identifiers, operations,
 					parentResult);
-
+			
+			
 		LOGGER.debug("PROVISIONING MODIFY successful, side-effect changes {}",
 				SchemaDebugUtil.debugDump(sideEffectChanges));
 
@@ -539,6 +560,95 @@ public class ResourceObjectConverter {
 		
 		return sideEffectChanges;
 	}
+	
+	private boolean isRename(Collection<Operation> modifications){
+		for (Operation op : modifications){
+			if (!(op instanceof PropertyModificationOperation)){
+				continue;
+			}
+			
+			if (((PropertyModificationOperation)op).getPropertyDelta().getPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
+				return true;
+			}
+		}
+		return false;
+//		return ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class) != null;
+	}
+	
+//	private Collection<PropertyModificationOperation> distillRenameDeltas(Collection<Operation> modifications, 
+//	PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+//		
+//		PropertyModificationOperation nameDelta =null;
+//		
+//		for (Operation op : modifications){
+//			
+//			if (!(op instanceof PropertyModificationOperation)){
+//				continue;
+//			}
+//			
+//			if (((PropertyModificationOperation)op).getPropertyDelta().getPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
+//				nameDelta = (PropertyModificationOperation) op;
+//			}
+//		}
+//		
+//		PropertyDelta<String> namePropertyDelta = nameDelta.getPropertyDelta();
+//		
+//		PrismProperty<String> name = namePropertyDelta.getPropertyNew();
+//		String newName = name.getRealValue();
+//		
+//		Collection<PropertyModificationOperation> deltas = new ArrayList<PropertyModificationOperation>();
+//		
+//		// $shadow/attributes/icfs:name
+////		String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getElementName()));
+//		PropertyDelta<String> cloneNameDelta = namePropertyDelta.clone();
+//		cloneNameDelta.clearValuesToReplace();
+//		cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(newName));
+//		PropertyModificationOperation operation = new PropertyModificationOperation(cloneNameDelta);
+//		deltas.add(operation);
+//		
+//		// $shadow/name
+//		if (!newName.equals(shadow.asObjectable().getName().getOrig())){
+//			
+//			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
+//					ProvisioningUtil.determineShadowName(shadow));
+//			operation = new PropertyModificationOperation(shadowNameDelta);
+//			deltas.add(operation);
+//		}
+//	
+//		return deltas;
+//}
+	private Collection<PropertyModificationOperation> distillRenameDeltas(Collection<? extends ItemDelta> modifications, 
+			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+				
+		PropertyDelta<String> nameDelta = (PropertyDelta<String>) ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
+		if (nameDelta == null){
+			return null;
+		}
+				
+				PrismProperty<String> name = nameDelta.getPropertyNew();
+				String newName = name.getRealValue();
+				
+				Collection<PropertyModificationOperation> deltas = new ArrayList<PropertyModificationOperation>();
+				
+				// $shadow/attributes/icfs:name
+//				String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getElementName()));
+				PropertyDelta<String> cloneNameDelta = nameDelta.clone();
+				cloneNameDelta.clearValuesToReplace();
+				cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(newName));
+				PropertyModificationOperation operation = new PropertyModificationOperation(cloneNameDelta);
+				deltas.add(operation);
+				
+				// $shadow/name
+//				if (!newName.equals(shadow.asObjectable().getName().getOrig())){
+					
+					PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
+							ProvisioningUtil.determineShadowName(shadow));
+					operation = new PropertyModificationOperation(shadowNameDelta);
+					deltas.add(operation);
+//				}
+			
+				return deltas;
+		}
 	
 	private void executeEntitlementChangesAdd(ConnectorInstance connector, ResourceType resource,
 			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
@@ -613,7 +723,7 @@ public class ResourceObjectConverter {
 			
 			// TODO: better handling of result, partial failures, etc.
 			
-			executeModify(connector, resource, ocDef, identifiers, operations, parentResult);
+			executeModify(connector, resource, null, ocDef, identifiers, operations, parentResult);
 			
 		}
 	}

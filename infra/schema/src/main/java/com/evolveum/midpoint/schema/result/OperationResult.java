@@ -21,9 +21,6 @@ import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -37,7 +34,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EntryType;
@@ -672,6 +668,10 @@ public class OperationResult implements Serializable, DebugDumpable {
     // Copies a collection to a OperationResult's param field. Primarily used to overcome the fact that Collection is not Serializable
     public void addCollectionOfSerializablesAsParam(String paramName, Collection<? extends Serializable> paramValue) {
         addParam(paramName, paramValue != null ? new ArrayList(paramValue) : null);
+    }
+
+    public void addCollectionOfSerializablesAsReturn(String name, Collection<? extends Serializable> value) {
+        addReturn(name, value != null ? new ArrayList(value) : null);
     }
 
     public void addArbitraryCollectionAsParam(String paramName, Collection values) {
