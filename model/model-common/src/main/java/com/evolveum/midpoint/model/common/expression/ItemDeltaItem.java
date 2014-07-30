@@ -200,7 +200,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 		ItemDelta<X> subDelta= null;
 		if (delta != null) {
 			if (delta instanceof ContainerDelta<?>) {
-				subDelta = (ItemDelta<X>) ((ContainerDelta<?>)delta).findItemDelta(path);
+				subDelta = (ItemDelta<X>) ((ContainerDelta<?>)delta).getSubDelta(path);
 			} else {
 				CompareResult compareComplex = delta.getPath().compareComplex(newResolvePath);
 				if (compareComplex == CompareResult.EQUIVALENT || compareComplex == CompareResult.SUBPATH) {

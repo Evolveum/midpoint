@@ -149,7 +149,8 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		return item instanceof PrismContainer;
 	}
 
-	public ItemDelta<?> findItemDelta(ItemPath path) {
+	@Override
+	public ItemDelta<?> getSubDelta(ItemPath path) {
 		if (path.isEmpty()) {
 			return this;
 		}

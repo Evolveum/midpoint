@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PartiallyResolvedValue;
@@ -26,6 +29,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PartiallyResolvedDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -117,19 +121,48 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 				}
 			}
 		}
-		ItemDelta<V> itemDelta= null;
+		ItemDelta<V> itemDelta = null;
+		Collection<? extends ItemDelta<?>> subSubItemDeltas = null;
 		if (delta != null) {
-			PartiallyResolvedDelta<V> partialDelta = delta.findPartial(path);
-			if (partialDelta != null) {
-				itemDelta = partialDelta.getDelta();
-				if (subResidualPath == null) {
-					subResidualPath = partialDelta.getResidualPath();
-				}
+			if (delta.getChangeType() == ChangeType.ADD) {
+				PrismObject<T> objectToAdd = delta.getObjectToAdd();
+	            PartiallyResolvedValue<V> partialValue = objectToAdd.findPartial(path);
+	            if (partialValue != null && partialValue.getItem() != null) {
+		            Item<V> item = partialValue.getItem();
+		            itemDelta = item.createDelta();
+		            itemDelta.addValuesToAdd(item.getClonedValues());
+	            } else {
+	            	// No item for this path, itemDelta will stay empty.
+	            }
+			} else if (delta.getChangeType() == ChangeType.DELETE) {
+				// TODO
+				throw new UnsupportedOperationException("delete");
+			} else if (delta.getChangeType() == ChangeType.MODIFY) {
+				for (ItemDelta<?> modification: delta.getModifications()) {
+	        		CompareResult compareComplex = modification.getPath().compareComplex(path);
+	        		if (compareComplex == CompareResult.EQUIVALENT) {
+	        			if (itemDelta != null) {
+	        				throw new IllegalStateException("Conflicting modification in delta "+delta+": "+itemDelta+" and "+modification);
+	        			}
+	        			itemDelta = (ItemDelta<V>) modification;
+	        		} else if (compareComplex == CompareResult.SUPERPATH) {
+	        			if (subSubItemDeltas == null) {
+	        				subSubItemDeltas = new ArrayList<>();
+	        			}
+	        			((Collection)subSubItemDeltas).add(modification);
+	        		} else if (compareComplex == CompareResult.SUBPATH) {
+	        			if (itemDelta != null) {
+	        				throw new IllegalStateException("Conflicting modification in delta "+delta+": "+itemDelta+" and "+modification);
+	        			}
+	        			itemDelta = (ItemDelta<V>) modification.getSubDelta(path);	        			
+	        		}
+	        	}
 			}
 		}
 		ItemDeltaItem<V> subIdi = new ItemDeltaItem<V>(subItemOld, itemDelta, subItemNew);
-		subIdi.setResidualPath(subResidualPath);
+		subIdi.setSubItemDeltas(subSubItemDeltas);
 		subIdi.setResolvePath(path);
+		subIdi.setResidualPath(subResidualPath);
 		return subIdi;
 	}
 
