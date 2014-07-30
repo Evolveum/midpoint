@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.ScriptExecutionResult;
+import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -24,6 +27,8 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -51,7 +56,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
 	private TaskManager taskManager;
 
     @Autowired
-    private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    private ScriptingService scriptingService;
 
 	@Override
 	public TaskRunResult run(Task task) {
@@ -60,16 +65,18 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
 		TaskRunResult runResult = new TaskRunResult();
 
         PrismProperty<ExecuteScriptType> executeScriptProperty = task.getExtensionProperty(SchemaConstants.SE_EXECUTE_SCRIPT);
-        if (executeScriptProperty == null) {
+        if (executeScriptProperty == null || executeScriptProperty.getValue().getValue() == null ||
+                executeScriptProperty.getValue().getValue().getScriptingExpression() == null) {
             throw new IllegalStateException("There's no script to be run in task " + task + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");
         }
 
         try {
-            ExecutionContext resultingContext = scriptingExpressionEvaluator.evaluateExpression(executeScriptProperty.getRealValue(), task, result);
-            LOGGER.debug("Execution result:\n", resultingContext.getConsoleOutput());
+            ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getValue().getValue().getScriptingExpression().getValue(), task, result);
+            LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
+            LOGGER.debug("Execution result:\n", executionResult.getConsoleOutput());
             result.computeStatus();
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-        } catch (ScriptExecutionException e) {
+        } catch (ScriptExecutionException|SecurityViolationException|SchemaException e) {
             result.recordFatalError("Couldn't execute script: " + e.getMessage(), e);
             LoggingUtils.logException(LOGGER, "Couldn't execute script", e);
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);

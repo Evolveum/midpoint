@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.impl.scripting.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -39,7 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterVal
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBElement;
 
 import java.util.ArrayList;
 import java.util.Collection;

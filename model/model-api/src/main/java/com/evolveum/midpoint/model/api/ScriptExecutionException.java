@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.model.impl.scripting;
+package com.evolveum.midpoint.model.api;
 
 /**
  * Wraps any exceptions that occur during execution of expressions. (ExpressionEvaluationException would be more appropriate, but this name is already used elsewhere.)

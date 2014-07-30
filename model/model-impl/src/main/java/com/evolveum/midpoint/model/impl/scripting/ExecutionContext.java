@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
+import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -79,5 +81,14 @@ public class ExecutionContext {
 
     public void setFinalOutput(Data finalOutput) {
         this.finalOutput = finalOutput;
+    }
+
+    public ScriptExecutionResult toExecutionResult() {
+        List<Item> items = null;
+        if (getFinalOutput() != null) {
+            items = getFinalOutput().getData();
+        }
+        ScriptExecutionResult result = new ScriptExecutionResult(getConsoleOutput(), items);
+        return result;
     }
 }

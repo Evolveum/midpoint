@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.impl.scripting.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -35,7 +35,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;

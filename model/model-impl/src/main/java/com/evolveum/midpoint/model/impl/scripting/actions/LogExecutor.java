@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.impl.scripting.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;

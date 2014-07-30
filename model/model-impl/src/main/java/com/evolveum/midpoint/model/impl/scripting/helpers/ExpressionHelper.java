@@ -18,18 +18,15 @@ package com.evolveum.midpoint.model.impl.scripting.helpers;
 
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.impl.scripting.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.xml.bind.JAXBElement;
 
 import java.util.List;
 
