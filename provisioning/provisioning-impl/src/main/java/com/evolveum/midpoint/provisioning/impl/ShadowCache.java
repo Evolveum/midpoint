@@ -478,7 +478,7 @@ public abstract class ShadowCache {
 			return null;
 		}
 
-		PrismProperty<String> name = nameDelta.getPropertyNew();
+		PrismProperty<String> name = nameDelta.getPropertyNewMatchingPath();
 		String newName = name.getRealValue();
 		
 		Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>();

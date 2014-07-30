@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -75,13 +76,10 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
 		}
 		super.applyDefinition(definition);
 	}
-
+	
 	@Override
-	public void applyTo(Item item) throws SchemaException {
-		if (!(item instanceof PrismReference)) {
-			throw new SchemaException("Cannot apply reference delta "+this+" to item "+item+" of type "+item.getClass());
-		}
-		super.applyTo(item);
+	protected boolean isApplicableToType(Item item) {
+		return item instanceof PrismReference;
 	}
 	
 	@Override

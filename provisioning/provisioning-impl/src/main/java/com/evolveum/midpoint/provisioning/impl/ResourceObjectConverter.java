@@ -779,7 +779,7 @@ public class ResourceObjectConverter {
 			if (activationCapabilityType == null) {
 				throw new SchemaException("Attempt to change activation administrativeStatus on "+resource+" which does not have the capability");
 			}
-			ActivationStatusType status = enabledPropertyDelta.getPropertyNew().getRealValue();
+			ActivationStatusType status = enabledPropertyDelta.getPropertyNewMatchingPath().getRealValue();
 			LOGGER.trace("Found activation administrativeStatus change to: {}", status);
 	
 //			if (status != null) {
@@ -804,7 +804,7 @@ public class ResourceObjectConverter {
 			if (activationCapabilityType == null || activationCapabilityType.getValidFrom() == null) {
 				throw new SchemaException("Attempt to change activation validFrom on "+resource+" which does not have the capability");
 			}
-			XMLGregorianCalendar xmlCal = validFromPropertyDelta.getPropertyNew().getRealValue();
+			XMLGregorianCalendar xmlCal = validFromPropertyDelta.getPropertyNewMatchingPath().getRealValue();
 			LOGGER.trace("Found activation validFrom change to: {}", xmlCal);
 			operations.add(new PropertyModificationOperation(validFromPropertyDelta));
 		}
@@ -816,7 +816,7 @@ public class ResourceObjectConverter {
 			if (activationCapabilityType == null || activationCapabilityType.getValidTo() == null) {
 				throw new SchemaException("Attempt to change activation validTo on "+resource+" which does not have the capability");
 			}
-			XMLGregorianCalendar xmlCal = validToPropertyDelta.getPropertyNew().getRealValue();
+			XMLGregorianCalendar xmlCal = validToPropertyDelta.getPropertyNewMatchingPath().getRealValue();
 			LOGGER.trace("Found activation validTo change to: {}", xmlCal);
 				operations.add(new PropertyModificationOperation(validToPropertyDelta));
 		}
@@ -827,7 +827,7 @@ public class ResourceObjectConverter {
 			if (activationCapabilityType == null) {
 				throw new SchemaException("Attempt to change activation lockoutStatus on "+resource+" which does not have the capability");
 			}
-			LockoutStatusType status = lockoutPropertyDelta.getPropertyNew().getRealValue();
+			LockoutStatusType status = lockoutPropertyDelta.getPropertyNewMatchingPath().getRealValue();
 			LOGGER.trace("Found activation lockoutStatus change to: {}", status);
 
 			if (ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resource)) {
@@ -859,7 +859,7 @@ public class ResourceObjectConverter {
 		}
 		
 		PropertyDelta simulatedActivationDelta = PropertyDelta.findPropertyDelta(objectChange, activationAttribute.getPath());
-		PrismProperty simulatedAcviationProperty = simulatedActivationDelta.getPropertyNew();
+		PrismProperty simulatedAcviationProperty = simulatedActivationDelta.getPropertyNewMatchingPath();
 		Collection realValues = simulatedAcviationProperty.getRealValues();
 		if (realValues.isEmpty()){
 			//nothing to do, no value for simulatedActivation
@@ -895,7 +895,7 @@ public class ResourceObjectConverter {
 		}
 		
 		PropertyDelta simulatedActivationDelta = PropertyDelta.findPropertyDelta(objectChange, activationAttribute.getPath());
-		PrismProperty simulatedAcviationProperty = simulatedActivationDelta.getPropertyNew();
+		PrismProperty simulatedAcviationProperty = simulatedActivationDelta.getPropertyNewMatchingPath();
 		Collection realValues = simulatedAcviationProperty.getRealValues();
 		if (realValues.isEmpty()){
 			//nothing to do, no value for simulatedActivation

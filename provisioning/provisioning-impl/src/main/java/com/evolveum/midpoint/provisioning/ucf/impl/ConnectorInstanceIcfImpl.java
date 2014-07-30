@@ -2217,7 +2217,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private <T> T getPropertyNewValue(PropertyDelta propertyDelta, Class<T> clazz) throws SchemaException {
-		PrismProperty<PrismPropertyValue<T>> prop = propertyDelta.getPropertyNew();
+		PrismProperty<PrismPropertyValue<T>> prop = propertyDelta.getPropertyNewMatchingPath();
 		if (prop == null){
 			return null;
 		}
@@ -2243,7 +2243,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} else if (!passwordDelta.getElementName().equals(PasswordType.F_VALUE)) {
 			return;
 		}
-		PrismProperty<ProtectedStringType> newPassword = passwordDelta.getPropertyNew();
+		PrismProperty<ProtectedStringType> newPassword = passwordDelta.getPropertyNewMatchingPath();
 		if (newPassword == null || newPassword.isEmpty()) {
 			LOGGER.trace("Skipping processing password delta. Password delta does not contain new value.");
 			return;

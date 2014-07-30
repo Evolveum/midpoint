@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -26,50 +27,50 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
  */
 public class AssignmentPathVariables {
 	
-	private PrismContainerValue<AssignmentType> magicAssignment;
-	private PrismContainerValue<AssignmentType> immediateAssignment;
-	private PrismContainerValue<AssignmentType> thisAssignment;
-	private PrismContainerValue<AssignmentType> focusAssignment;
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>> magicAssignment;
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>> immediateAssignment;
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>> thisAssignment;
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>> focusAssignment;
 	private PrismObject<? extends AbstractRoleType> immediateRole;
-	
-	public PrismContainerValue<AssignmentType> getMagicAssignment() {
+
+	public ItemDeltaItem<PrismContainerValue<AssignmentType>> getMagicAssignment() {
 		return magicAssignment;
 	}
-	
-	public void setMagicAssignment(PrismContainerValue<AssignmentType> magicAssignment) {
+
+	public void setMagicAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>> magicAssignment) {
 		this.magicAssignment = magicAssignment;
 	}
-	
-	public PrismContainerValue<AssignmentType> getImmediateAssignment() {
+
+	public ItemDeltaItem<PrismContainerValue<AssignmentType>> getImmediateAssignment() {
 		return immediateAssignment;
 	}
-	
-	public void setImmediateAssignment(PrismContainerValue<AssignmentType> immediateAssignment) {
+
+	public void setImmediateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>> immediateAssignment) {
 		this.immediateAssignment = immediateAssignment;
 	}
-	
-	public PrismContainerValue<AssignmentType> getThisAssignment() {
+
+	public ItemDeltaItem<PrismContainerValue<AssignmentType>> getThisAssignment() {
 		return thisAssignment;
 	}
-	
-	public void setThisAssignment(PrismContainerValue<AssignmentType> thisAssignment) {
+
+	public void setThisAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>> thisAssignment) {
 		this.thisAssignment = thisAssignment;
 	}
-	
-	public PrismContainerValue<AssignmentType> getFocusAssignment() {
+
+	public ItemDeltaItem<PrismContainerValue<AssignmentType>> getFocusAssignment() {
 		return focusAssignment;
 	}
 
-	public void setFocusAssignment(PrismContainerValue<AssignmentType> focusAssignment) {
+	public void setFocusAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>> focusAssignment) {
 		this.focusAssignment = focusAssignment;
 	}
 
 	public PrismObject<? extends AbstractRoleType> getImmediateRole() {
 		return immediateRole;
 	}
-	
+
 	public void setImmediateRole(PrismObject<? extends AbstractRoleType> immediateRole) {
 		this.immediateRole = immediateRole;
 	}
-
+	
 }

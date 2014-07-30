@@ -43,6 +43,9 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -58,6 +61,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -84,6 +88,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_HONORABILITY_FILE = new File(TEST_DIR, "role-honorability.xml");
 	protected static final String ROLE_HONORABILITY_OID = "12345678-d34d-b33f-f00d-555555557701";
+	
+	protected static final File ROLE_CLERIC_FILE = new File(TEST_DIR, "role-cleric.xml");
+	protected static final String ROLE_CLERIC_OID = "12345678-d34d-b33f-f00d-555555557702";
 
 	private final String EXISTING_GOSSIP = "Black spot!"; 
 	
@@ -101,6 +108,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_BLACK_SEA_PIRATE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_INDIAN_OCEAN_PIRATE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_HONORABILITY_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_CLERIC_FILE, RoleType.class, initResult);
 	}
 	
 	@Test
@@ -940,6 +948,88 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignedNoRole(userJack);
+        assertNoLinkedAccount(userJack);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	@Test
+    public void test530JackAssignRoleCleric() throws Exception {
+		final String TEST_NAME = "test530JackAssignRoleCleric";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignRole(USER_JACK_OID, ROLE_CLERIC_OID, task, result);
+        
+        // THEN
+        assertAssignedRole(USER_JACK_OID, ROLE_CLERIC_OID, task, result);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Holy man");
+	}
+	
+	@Test
+    public void test532JackModifyAssignmentRoleCleric() throws Exception {
+		final String TEST_NAME = "test532JackModifyAssignmentRoleCleric";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = getObject(UserType.class, USER_JACK_OID);
+        
+        ItemPath itemPath = new ItemPath(
+        		new NameItemPathSegment(UserType.F_ASSIGNMENT),
+        		new IdItemPathSegment(user.asObjectable().getAssignment().get(0).getId()),
+        		new NameItemPathSegment(AssignmentType.F_DESCRIPTION));
+		ObjectDelta<UserType> assignmentDelta = ObjectDelta.createModificationReplaceProperty(
+        		UserType.class, USER_JACK_OID, itemPath, prismContext, "soul");
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(assignmentDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_CLERIC_OID, task, result);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Holy soul");
+	}
+	
+	@Test
+    public void test539JackUnAssignRoleCleric() throws Exception {
+		final String TEST_NAME = "test539JackUnAssignRoleCleric";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = getObject(UserType.class, USER_JACK_OID);
+        
+        AssignmentType assignmentType = new AssignmentType();
+        assignmentType.setId(user.asObjectable().getAssignment().get(0).getId());
+		ObjectDelta<UserType> assignmentDelta = ObjectDelta.createModificationDeleteContainer(
+        		UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT, prismContext, assignmentType);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(assignmentDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignedNoRole(userJack);
         assertNoLinkedAccount(userJack);

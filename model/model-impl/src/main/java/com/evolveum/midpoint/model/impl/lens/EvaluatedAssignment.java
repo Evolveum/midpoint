@@ -18,8 +18,10 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -48,7 +50,7 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignment.class);
 
-	private AssignmentType assignmentType;
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi;
 	private Collection<Construction<F>> constructions;
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<Authorization> authorizations;
@@ -63,13 +65,17 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		authorizations = new ArrayList<>();
 		focusMappings = new ArrayList<>();
 	}
-	
-	public AssignmentType getAssignmentType() {
-		return assignmentType;
+
+	public ItemDeltaItem<PrismContainerValue<AssignmentType>> getAssignmentIdi() {
+		return assignmentIdi;
 	}
 
-	public void setAssignmentType(AssignmentType assignmentType) {
-		this.assignmentType = assignmentType;
+	public void setAssignmentIdi(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi) {
+		this.assignmentIdi = assignmentIdi;
+	}
+	
+	public AssignmentType getAssignmentType() {
+		return assignmentIdi.getItemNew().getValue(0).asContainerable();
 	}
 
 	public Collection<Construction<F>> getConstructions() {
@@ -138,7 +144,7 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 	
 	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		for (Construction<F> construction :constructions) {
-			construction.setUserOdo(focusOdo);
+			construction.setFocusOdo(focusOdo);
 			LOGGER.trace("Evaluating construction '{}' in {}", construction, construction.getSource());
 			construction.evaluate(task, result);
 		}

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -188,7 +189,7 @@ public class AssignmentProcessor {
         ContainerDelta<AssignmentType> assignmentDelta = getExecutionWaveAssignmentDelta(focusContext);
         assignmentDelta.expand(focusContext.getObjectCurrent());
 
-        LOGGER.trace("Assignment delta {}", assignmentDelta.debugDump());
+        LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDump());
 
         Collection<PrismContainerValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
 
@@ -236,31 +237,35 @@ public class AssignmentProcessor {
         for (PrismContainerValue<AssignmentType> assignmentCVal : allAssignments) {
             AssignmentType assignmentType = assignmentCVal.asContainerable();
             PrismContainerValue<AssignmentType> assignmentCValOld = assignmentCVal;
+            ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+            assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
             
             boolean forceRecon = false;
             // This really means whether the WHOLE assignment was changed (e.g. added/delted/replaced). It tells nothing
             // about "micro-changes" inside assignment, these will be processed later.
-            boolean isAssignmentChanged = containsRealValue(changedAssignments,assignmentCVal);
+            boolean isAssignmentChanged = containsRealValue(changedAssignments, assignmentCVal);
             String assignmentPlacementDesc;
+            
             if (isAssignmentChanged) {
+            	// Whole assignment added or deleted
             	assignmentPlacementDesc = "delta for "+source;
             } else {
             	assignmentPlacementDesc = source.toString();
             	Collection<? extends ItemDelta<?>> assignmentItemDeltas = getExecutionWaveAssignmentItemDeltas(focusContext, assignmentCVal.getId());
             	if (assignmentItemDeltas != null && !assignmentItemDeltas.isEmpty()) {
-	            	// Make sure we clone first to avoid side-effects
-	            	PrismContainerValue<AssignmentType> assignmentCValClone = assignmentCVal.clone();
-	            	assignmentCValClone.setParent(assignmentCVal.getParent());
-	            	assignmentCVal = assignmentCValClone;
-	            	assignmentType = assignmentCVal.asContainerable();
-	            	applyAssignemntMicroDeltas(assignmentItemDeltas, assignmentCVal);
-	            	// We do not exactly know what was changed. This may be a replace change, etc.
-	            	// Even if we know we do not bother to compute it now. This is not a performance-critical case anyway
-	            	// So we just force reconciliation for this case. It will sort it out.
+            		// Small changes inside assignment, but otherwise the assignment stays as it is (not added or deleted)
+            		assignmentIdi.setSubItemDeltas(assignmentItemDeltas);
+            		
+            		// The subItemDeltas above will handle some changes. But not other.
+            		// E.g. a replace of the whole construction will not be handled properly.
+            		// Therefore we force recon to sort it out.
 	            	forceRecon = true;
+	            	
 	            	isAssignmentChanged = true;
             	}
             }
+            
+            assignmentIdi.recompute();
             
             // The following code is using collectToAccountMap() to collect the account constructions to one of the three "delta"
             // sets (zero, plus, minus). It is handling several situations that needs to be handled specially.
@@ -274,7 +279,7 @@ public class AssignmentProcessor {
             	if (LOGGER.isTraceEnabled()) {
             		LOGGER.trace("Processing focus delete for: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
             	}
-            	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+            	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                 if (evaluatedAssignment == null) {
                 	continue;
                 }
@@ -296,21 +301,21 @@ public class AssignmentProcessor {
             		boolean willHaveValue = assignmentDelta.isValueToReplace(assignmentCVal, true);
             		if (hadValue && willHaveValue) {
             			// No change
-            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
     	                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
             		} else if (willHaveValue) {
             			// add
-            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
 	                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
             		} else if (hadValue) {
             			// delete
-            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, true, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
@@ -336,7 +341,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, phantom add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 				            	}
-		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -345,7 +350,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 				            	}
-		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -357,7 +362,7 @@ public class AssignmentProcessor {
 		                	if (LOGGER.isTraceEnabled()) {
 			            		LOGGER.trace("Processing changed assignment, delete: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
-		                	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, true, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                    if (evaluatedAssignment == null) {
 		                    	continue;
 		                    }
@@ -376,7 +381,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}", new Object[]{isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
-		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -386,7 +391,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}", new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
-		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -396,7 +401,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}", new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
-		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -410,7 +415,7 @@ public class AssignmentProcessor {
 		            		LOGGER.trace("Processing unchanged assignment {}", new Object[]{SchemaDebugUtil.prettyPrint(assignmentCVal)});
 		            	}
 		            	boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
-		            	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		            	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                if (evaluatedAssignment == null) {
 		                	continue;
 		                }
@@ -756,18 +761,18 @@ public class AssignmentProcessor {
 		return all;
 	}
 	
-	private <F extends FocusType> EvaluatedAssignment<F> evaluateAssignment(AssignmentType assignmentType, 
-			LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator, 
+	private <F extends FocusType> EvaluatedAssignment<F> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi,
+			boolean evaluateOld, LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator, 
 			String assignmentPlacementDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
         try{
         	// Evaluate assignment. This follows to the assignment targets, follows to the inducements, 
         	// evaluates all the expressions, etc. 
-        	EvaluatedAssignment<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, task, result);
+        	EvaluatedAssignment<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, evaluateOld, source, assignmentPlacementDesc, task, result);
         	context.rememberResources(evaluatedAssignment.getResources(result));
         	return evaluatedAssignment;
         } catch (ObjectNotFoundException ex){
         	if (LOGGER.isTraceEnabled()) {
-            	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(assignmentType));
+            	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(LensUtil.getAssignmentType(assignmentIdi, evaluateOld)));
             }
         	if (ModelExecuteOptions.isForce(context.getOptions())){
         		return null;
@@ -775,6 +780,7 @@ public class AssignmentProcessor {
         	ModelUtils.recordFatalError(result, ex);
         	return null;
         } catch (SchemaException ex){
+        	AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
         	if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(assignmentType));
             }
@@ -861,20 +867,6 @@ public class AssignmentProcessor {
 			return false;
 		}
 		return accountConstructionPack.isForceRecon();
-	}
-
-
-	private void applyAssignemntMicroDeltas(Collection<? extends ItemDelta<?>> assignmentItemDeltas, PrismContainerValue<AssignmentType> assignmentCVal) throws SchemaException {
-		for (ItemDelta<?> assignmentItemDelta: assignmentItemDeltas) {
-			ItemDelta<?> assignmentItemDeltaClone = assignmentItemDelta.clone();
-			ItemPath deltaPath = assignmentItemDeltaClone.getParentPath();
-			ItemPath tailPath = deltaPath.tail();
-			if (tailPath.first() instanceof IdItemPathSegment) {
-				tailPath = tailPath.tail();
-			}
-			assignmentItemDeltaClone.setParentPath(tailPath);
-			assignmentItemDeltaClone.applyTo(assignmentCVal);
-		}
 	}
 
 	/**

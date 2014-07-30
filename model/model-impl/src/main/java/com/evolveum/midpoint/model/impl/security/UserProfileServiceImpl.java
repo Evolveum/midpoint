@@ -19,11 +19,14 @@ package com.evolveum.midpoint.model.impl.security;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.UserComputer;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -157,7 +160,7 @@ public class UserProfileServiceImpl implements UserProfileService {
             return;
         }
 		
-		AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
+		AssignmentEvaluator<UserType> assignmentEvaluator = new AssignmentEvaluator<>();
         assignmentEvaluator.setRepository(repositoryService);
         assignmentEvaluator.setFocusOdo(new ObjectDeltaObject<UserType>(userType.asPrismObject(), null, userType.asPrismObject()));
         assignmentEvaluator.setChannel(null);
@@ -174,7 +177,10 @@ public class UserProfileServiceImpl implements UserProfileService {
         OperationResult result = new OperationResult(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
         for(AssignmentType assignmentType: userType.getAssignment()) {
         	try {
-				EvaluatedAssignment assignment = assignmentEvaluator.evaluate(assignmentType, userType, userType.toString(), null, result);
+        		ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+        		assignmentIdi.recompute();
+				EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, false, userType, userType.toString(), null, result);
 				if (assignment.isValid()) {
 					authorizations.addAll(assignment.getAuthorizations());
 				}
