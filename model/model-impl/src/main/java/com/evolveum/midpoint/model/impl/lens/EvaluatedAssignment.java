@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
@@ -51,7 +52,7 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignment.class);
 
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi;
-	private Collection<Construction<F>> constructions;
+	private DeltaSetTriple<Construction<F>> constructions;
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<Authorization> authorizations;
 	private Collection<Mapping<? extends PrismPropertyValue<?>>> focusMappings;
@@ -60,7 +61,7 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 	private boolean forceRecon;
 
 	public EvaluatedAssignment() {
-		constructions = new ArrayList<>();
+		constructions = new DeltaSetTriple<>();
 		orgRefVals = new ArrayList<>();
 		authorizations = new ArrayList<>();
 		focusMappings = new ArrayList<>();
@@ -78,12 +79,12 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		return assignmentIdi.getItemNew().getValue(0).asContainerable();
 	}
 
-	public Collection<Construction<F>> getConstructions() {
+	public DeltaSetTriple<Construction<F>> getConstructions() {
 		return constructions;
 	}
 
-	public void addConstruction(Construction<F> contruction) {
-		constructions.add(contruction);
+	public void addConstructionZero(Construction<F> contruction) {
+		constructions.addToZeroSet(contruction);
 	}
 	
 	public Collection<PrismReferenceValue> getOrgRefVals() {
@@ -136,14 +137,14 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 
 	public Collection<ResourceType> getResources(OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Collection<ResourceType> resources = new ArrayList<ResourceType>();
-		for (Construction<F> acctConstr: constructions) {
+		for (Construction<F> acctConstr: constructions.getAllValues()) {
 			resources.add(acctConstr.getResource(result));
 		}
 		return resources;
 	}
 	
 	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		for (Construction<F> construction :constructions) {
+		for (Construction<F> construction :constructions.getAllValues()) {
 			construction.setFocusOdo(focusOdo);
 			LOGGER.trace("Evaluating construction '{}' in {}", construction, construction.getSource());
 			construction.evaluate(task, result);
@@ -163,11 +164,7 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
 		if (!constructions.isEmpty()) {
 			sb.append("\n");
-			DebugUtil.debugDumpLabel(sb, "Constructions", indent+1);
-			for (Construction<F> ac: constructions) {
-				sb.append("\n");
-				sb.append(ac.debugDump(indent+2));
-			}
+			DebugUtil.debugDumpWithLabel(sb, "Constructions", constructions, indent+1);
 		}
 		if (!orgRefVals.isEmpty()) {
 			sb.append("\n");

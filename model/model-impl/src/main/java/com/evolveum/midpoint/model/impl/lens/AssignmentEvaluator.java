@@ -290,7 +290,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		// Do not evaluate the construction here. We will do it in the second pass. Just prepare everything to be evaluated.
 		
-		evaluatedAssignment.addConstruction(construction);
+		evaluatedAssignment.addConstructionZero(construction);
 	}
 	
 	private void evaluateFocusMappings(EvaluatedAssignment<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 

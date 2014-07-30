@@ -123,7 +123,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		assertEquals(1,evaluatedAssignment.getConstructions().size());
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 		
-		Construction<UserType> construction = evaluatedAssignment.getConstructions().iterator().next();
+		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
 		display("Evaluated construction", construction);
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 	}
@@ -168,7 +168,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		assertEquals(1,evaluatedAssignment.getConstructions().size());
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 		
-		Construction<UserType> construction = evaluatedAssignment.getConstructions().iterator().next();
+		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 	}
 	
@@ -220,7 +220,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		assertEquals(1,evaluatedAssignment.getConstructions().size());
 		PrismAsserts.assertParentConsistency(user);
 		
-		Construction<UserType> construction = evaluatedAssignment.getConstructions().iterator().next();
+		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 		assertEquals(1,construction.getAttributeMappings().size());
 		Mapping<PrismPropertyValue<String>> attributeMapping = (Mapping<PrismPropertyValue<String>>) construction.getAttributeMappings().iterator().next();
@@ -280,7 +280,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		assertEquals(1,evaluatedAssignment.getConstructions().size());
 		PrismAsserts.assertParentConsistency(user);
 		
-		Construction<UserType> construction = evaluatedAssignment.getConstructions().iterator().next();
+		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 		assertEquals(1,construction.getAttributeMappings().size());
 		Mapping<PrismPropertyValue<String>> attributeMapping = (Mapping<PrismPropertyValue<String>>) construction.getAttributeMappings().iterator().next();
