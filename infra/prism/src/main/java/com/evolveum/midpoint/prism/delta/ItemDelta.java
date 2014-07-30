@@ -1002,6 +1002,10 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		cleanupAllTheWayUp(item);
 	}
 	
+	public ItemDelta<?> getSubDelta(ItemPath path) {
+		return this;
+	}
+	
 	public boolean isApplicableTo(Item item) {
 		if (item == null) {
 			return false;
