@@ -936,6 +936,13 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		}
 	}
 	
+	public static void applyToMatchingPath(Collection<? extends ItemDelta> deltas, PrismContainer propertyContainer)
+			throws SchemaException {
+		for (ItemDelta delta : deltas) {
+			delta.applyToMatchingPath(propertyContainer);
+		}
+	}
+	
 	public void applyTo(Item item) throws SchemaException {
 		ItemPath itemPath = item.getPath();
 		ItemPath deltaPath = getPath();
@@ -947,7 +954,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 			if (item instanceof PrismContainer<?>) {
 				PrismContainer<?> container = (PrismContainer<?>)item;
 				ItemPath remainderPath = deltaPath.remainder(itemPath);
-				Item subItem = container.findOrCreateItem(remainderPath, getItemClass());
+				Item subItem = container.findOrCreateItem(remainderPath, getItemClass(), getDefinition());
 				applyToMatchingPath(subItem);
 			} else {
 				throw new SchemaException("Cannot apply delta "+this+" to "+item+" as delta path is below the item path and the item is not a container");
