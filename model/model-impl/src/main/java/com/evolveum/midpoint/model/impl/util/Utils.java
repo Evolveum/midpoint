@@ -392,7 +392,7 @@ public final class Utils {
     		return false;
     	}
 		
-    	PrismProperty<Boolean> item = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+    	PrismProperty<Boolean> item = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 		if (item == null || item.isEmpty()){
 			return false;
 		}
