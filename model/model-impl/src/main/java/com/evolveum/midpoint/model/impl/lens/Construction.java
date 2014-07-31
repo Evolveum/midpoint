@@ -546,7 +546,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabel(sb, "Construction", indent);
 		if (refinedObjectClassDefinition == null) {
-			sb.append("null");
+			sb.append(" (no object class definition)");
 		} else {
 			sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
 		}
@@ -566,8 +566,10 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 				sb.append(mapping.debugDump(indent+2));
 			}
 		}
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "assignmentPath", assignmentPath, indent + 1);
+		if (assignmentPath != null) {
+			sb.append("\n");
+			sb.append(assignmentPath.debugDump(indent+1));
+		}
 		return sb.toString();
 	}
 

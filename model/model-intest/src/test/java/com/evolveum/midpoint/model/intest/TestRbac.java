@@ -1068,13 +1068,39 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(USER_JACK_OID, ROLE_WANNABE_OID, task, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
+	
+	/**
+	 * Remove honorifixSuffix. This triggers a condition in Wannabe role inducement. 
+	 * But as the whole role has false condition nothing should happen.
+	 */
+	@Test
+    public void test541JackRemoveHonorificSuffixWannabe() throws Exception {
+		final String TEST_NAME = "test541JackRemoveHonorificSuffixWannabe";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_WANNABE_OID, task, result);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
 
 	/**
 	 * Modify employeeType. This triggers a condition in Wannabe role.
 	 */
 	@Test
-    public void test541JackModifyEmployeeTypeWannabe() throws Exception {
-		final String TEST_NAME = "test541JackModifyEmployeeTypeWannabe";
+    public void test542JackModifyEmployeeTypeWannabe() throws Exception {
+		final String TEST_NAME = "test542JackModifyEmployeeTypeWannabe";
         TestUtil.displayTestTile(this, TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1093,6 +1119,86 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(USER_JACK_OID, ROLE_WANNABE_OID, task, result);
         assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Wannabe Cpt. Where's the rum?");
+	}
+	
+	/**
+	 * Remove honorifixPrefix. This triggers a condition in Wannabe role and should remove an account.
+	 */
+	@Test
+    public void test543JackRemoveHonorificPrefixWannabe() throws Exception {
+		final String TEST_NAME = "test543JackRemoveHonorificPrefixWannabe";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_WANNABE_OID, task, result);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	/**
+	 * Set honorifixSuffix. This triggers conditions and adds a sub-role Honorable Wannabe.
+	 */
+	@Test
+    public void test544JackSetHonorificSuffixWannabe() throws Exception {
+		final String TEST_NAME = "test544JackSetHonorificSuffixWannabe";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, 
+				PrismTestUtil.createPolyString("PhD."));
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_WANNABE_OID, task, result);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!", "Whatever. -- jack");
+	}
+	
+	/**
+	 * Restore honorifixPrefix. The title should be replaced again.
+	 */
+	@Test
+    public void test545JackRestoreHonorificPrefixWannabe() throws Exception {
+		final String TEST_NAME = "test545JackRestoreHonorificPrefixWannabe";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, task, result, 
+				PrismTestUtil.createPolyString("captain"));
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_WANNABE_OID, task, result);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Wannabe captain Where's the rum?");
 	}
 	
 	/**

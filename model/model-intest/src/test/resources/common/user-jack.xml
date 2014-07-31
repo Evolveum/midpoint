@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@
     <familyName>Sparrow</familyName>
     <additionalName>Jackie</additionalName>
     <honorificPrefix>Cpt.</honorificPrefix>
-    
     <honorificSuffix>PhD.</honorificSuffix>
     <emailAddress>jack.sparrow@evolveum.com</emailAddress>
     <telephoneNumber>555-1234</telephoneNumber>

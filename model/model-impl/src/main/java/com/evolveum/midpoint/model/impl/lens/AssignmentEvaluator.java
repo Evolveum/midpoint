@@ -255,17 +255,22 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		MappingType conditionType = assignmentType.getCondition();
 		if (conditionType != null) {
-			PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateMappingAsCondition(conditionType, source, task, result);
+			PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateMappingAsCondition(conditionType,
+					assignmentType, source, task, result);
 			boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
 			boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
 			PlusMinusZero condMode = ExpressionUtil.computeConditionResultMode(condOld, condNew);
 			if (condMode == null || (condMode == PlusMinusZero.ZERO && !condNew)) {
-				LOGGER.trace("Skipping evaluation of "+assignmentType+" because of condition result");
+				LOGGER.trace("Skipping evaluation of "+assignmentType+" because of condition result ({} -> {}: {})",
+						new Object[]{ condOld, condNew, condMode });
 				assignmentPath.remove(assignmentPathSegment);
 				evalAssignment.setValid(false);
 				return;
 			}
+			PlusMinusZero origMode = mode;
 			mode = PlusMinusZero.compute(mode, condMode);
+			LOGGER.trace("Evaluated condition in assignment {} -> {}: {} + {} = {}", new Object[]{
+					condOld, condNew, origMode, condMode, mode });
 		}
 		
 		boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
@@ -426,15 +431,21 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		MappingType conditionType = roleType.getCondition();
 		if (conditionType != null) {
-			PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateMappingAsCondition(conditionType, source, task, result);
+			PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateMappingAsCondition(conditionType,
+					null, source, task, result);
 			boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
 			boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
 			PlusMinusZero condMode = ExpressionUtil.computeConditionResultMode(condOld, condNew);
 			if (condMode == null || (condMode == PlusMinusZero.ZERO && !condNew)) {
-				LOGGER.trace("Skipping evaluation of "+roleType+" because of condition result");
+				LOGGER.trace("Skipping evaluation of "+roleType+" because of condition result ({} -> {}: {})",
+						new Object[]{ condOld, condNew, condMode });
 				return false;
 			}
+			PlusMinusZero origMode = mode;
 			mode = PlusMinusZero.compute(mode, condMode);
+			LOGGER.trace("Evaluated condition in {}: {} -> {}: {} + {} = {}", new Object[]{
+					roleType, condOld, condNew, origMode, condMode, mode });
+
 		}
 		
 		int evaluationOrder = assignmentPath.getEvaluationOrder();
@@ -560,9 +571,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 	
-	public PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateMappingAsCondition(MappingType conditionType, ObjectType source, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	public PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateMappingAsCondition(MappingType conditionType, 
+			AssignmentType sourceAssignment, ObjectType source, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		String desc;
+		if (sourceAssignment == null) {
+			desc = "condition in " + source; 
+		} else {
+			desc = "condition in assignment in " + source;
+		}
 		Mapping<? extends PrismPropertyValue<Boolean>> mapping = mappingFactory.createMapping(conditionType,
-				"condition in " + source);
+				desc);
 		
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);

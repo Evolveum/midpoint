@@ -127,8 +127,20 @@ public class AssignmentPath implements DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabel(sb, "AssignmentPath", indent);
-		sb.append("\n");
-		DebugUtil.debugDump(segments, indent + 1);
+		if (segments == null || segments.isEmpty()) {
+			sb.append(" (empty)");
+		} else {
+			sb.append(" (").append(segments.size()).append(")");
+			if (DebugUtil.isDetailedDebugDump()) {
+				DebugUtil.debugDump(sb, segments, indent + 1, false);
+			} else {
+				for (AssignmentPathSegment segment: segments) {
+					sb.append("\n");
+					DebugUtil.indentDebugDump(sb, indent + 1);
+					sb.append(segment.toString());
+				}
+			}
+		}
 		return sb.toString();
 	}	
 	
