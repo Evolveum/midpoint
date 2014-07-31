@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  * @author semancik
  *
  */
-public class PartiallyResolvedValue<V extends PrismValue> {
+public class PartiallyResolvedItem<V extends PrismValue> {
 	
 	private Item<V> item;
 	private ItemPath residualPath;
 	
-	public PartiallyResolvedValue(Item<V> item, ItemPath residualPath) {
+	public PartiallyResolvedItem(Item<V> item, ItemPath residualPath) {
 		super();
 		this.item = item;
 		this.residualPath = residualPath;
@@ -65,7 +65,7 @@ public class PartiallyResolvedValue<V extends PrismValue> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		PartiallyResolvedValue other = (PartiallyResolvedValue) obj;
+		PartiallyResolvedItem other = (PartiallyResolvedItem) obj;
 		if (item == null) {
 			if (other.item != null)
 				return false;
@@ -81,7 +81,7 @@ public class PartiallyResolvedValue<V extends PrismValue> {
 
 	@Override
 	public String toString() {
-		return "PartiallyResolvedValue(item=" + item + ", residualPath=" + residualPath + ")";
+		return "PartiallyResolvedItem(item=" + item + ", residualPath=" + residualPath + ")";
 	}
 
 }

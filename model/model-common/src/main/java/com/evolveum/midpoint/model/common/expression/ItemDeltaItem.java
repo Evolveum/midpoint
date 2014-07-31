@@ -22,7 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PartiallyResolvedValue;
+import com.evolveum.midpoint.prism.PartiallyResolvedItem;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -181,7 +181,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 		ItemPath subResidualPath = null;
 		ItemPath newResolvePath = resolvePath.subPath(path);
 		if (itemOld != null) {
-			PartiallyResolvedValue<X> partialItemOld = itemOld.findPartial(path);
+			PartiallyResolvedItem<X> partialItemOld = itemOld.findPartial(path);
 			if (partialItemOld != null) {
 				subItemOld = partialItemOld.getItem();
 				subResidualPath = partialItemOld.getResidualPath();
@@ -189,7 +189,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 		}
 		Item<X> subItemNew = null;
 		if (itemNew != null) {
-			PartiallyResolvedValue<X> partialItemNew = itemNew.findPartial(path);
+			PartiallyResolvedItem<X> partialItemNew = itemNew.findPartial(path);
 			if (partialItemNew != null) {
 				subItemNew = partialItemNew.getItem();
 				if (subResidualPath == null) {

@@ -22,6 +22,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -361,15 +363,17 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 	}
 
 	@Override
-	public <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path) {
+	public <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-			return new PartiallyResolvedValue<X>((Item<X>)this, null);
+			return new PartiallyResolvedItem<X>((Item<X>)this, null);
 		}
-		if (!isSingleValue()) {
-    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value property " + getElementName());
-    	}
-		PrismPropertyValue<T> value = getValue();
-		return value.findPartial(path);
+		for (PrismPropertyValue<T> pvalue: getValues()) {
+			T value = pvalue.getValue();
+			if (!(value instanceof Structured)) {
+				throw new IllegalArgumentException("Attempt to resolve sub-path '"+path+"' on non-structured property value "+pvalue);
+			}
+		}
+		return new PartiallyResolvedItem<X>((Item<X>)this, path);
 	}
 
 	public PropertyDelta<T> diff(PrismProperty<T> other) {

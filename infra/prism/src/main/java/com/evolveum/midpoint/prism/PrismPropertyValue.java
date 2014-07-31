@@ -209,16 +209,8 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	}
 
 	@Override
-	public <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path) {
-		if (path == null || path.isEmpty()) {
-			return new PartiallyResolvedValue<X>((Item<X>)getParent(), null);
-		}
-		T value = getValue();
-		if (value instanceof Structured) {
-			return new PartiallyResolvedValue<X>((Item<X>)getParent(), path);
-		} else {
-			throw new IllegalArgumentException("Attempt to resolve sub-path '"+path+"' on non-structured property value "+value);
-		}
+	public <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path) {
+		throw new UnsupportedOperationException("Attempt to invoke findPartialItem on a property value");
 	}
 
 	void checkValue() {
