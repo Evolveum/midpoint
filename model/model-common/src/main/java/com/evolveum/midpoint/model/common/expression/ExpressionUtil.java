@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -552,5 +553,42 @@ public class ExpressionUtil {
 	private static boolean hasExplicitTarget(MappingType mappingType) {
 		return mappingType.getTarget() != null;
 	}
+	
+	public static boolean computeConditionResult(Collection<PrismPropertyValue<Boolean>> booleanPropertyValues) {
+		if (booleanPropertyValues == null || booleanPropertyValues.isEmpty()) {
+			// No value means false
+			return false;
+		}
+		boolean hasFalse = false;
+		for (PrismPropertyValue<Boolean> pval: booleanPropertyValues) {
+			Boolean value = pval.getValue();
+			if (Boolean.TRUE.equals(value)) {
+				return true;
+			}
+			if (Boolean.FALSE.equals(value)) {
+				hasFalse = true;
+			}
+		}
+		if (hasFalse) {
+			return false;
+		}
+		// No value or all values null. Return default.
+		return true;
+	}
 
+	public static PlusMinusZero computeConditionResultMode(boolean condOld, boolean condNew) {
+		if (condOld && condNew) {
+			return PlusMinusZero.ZERO;
+		}
+		if (!condOld && !condNew) {
+			return null;
+		}
+		if (condOld && !condNew) {
+			return PlusMinusZero.MINUS;
+		}
+		if (!condOld && condNew) {
+			return PlusMinusZero.PLUS;
+		}
+		throw new IllegalStateException("notreached");
+	}
 }

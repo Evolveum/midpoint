@@ -87,6 +87,14 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		constructions.addToZeroSet(contruction);
 	}
 	
+	public void addConstructionPlus(Construction<F> contruction) {
+		constructions.addToPlusSet(contruction);
+	}
+	
+	public void addConstructionMinus(Construction<F> contruction) {
+		constructions.addToMinusSet(contruction);
+	}
+	
 	public Collection<PrismReferenceValue> getOrgRefVals() {
 		return orgRefVals;
 	}

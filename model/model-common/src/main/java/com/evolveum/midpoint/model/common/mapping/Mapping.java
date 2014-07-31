@@ -647,25 +647,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 			// If condition is not present at all consider it to be true
 			return true;
 		}
-		if (booleanPropertyValues == null || booleanPropertyValues.isEmpty()) {
-			// No value means false
-			return false;
-		}
-		boolean hasFalse = false;
-		for (PrismPropertyValue<Boolean> pval: booleanPropertyValues) {
-			Boolean value = pval.getValue();
-			if (Boolean.TRUE.equals(value)) {
-				return true;
-			}
-			if (Boolean.FALSE.equals(value)) {
-				hasFalse = true;
-			}
-		}
-		if (hasFalse) {
-			return false;
-		}
-		// No value or all values null. Return default.
-		return true;
+		return ExpressionUtil.computeConditionResult(booleanPropertyValues);
 	}
 
 	public Boolean evaluateTimeConstraintValid(OperationResult result) throws SchemaException, ObjectNotFoundException {

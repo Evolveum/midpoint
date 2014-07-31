@@ -49,7 +49,7 @@
     		</source>
     		<expression>
     			<script>
-    				<code>honorificPrefix?.trim()</code>
+    				<code>(Boolean)honorificPrefix?.trim()</code>
     			</script>
     		</expression>
     	</condition>
@@ -63,7 +63,7 @@
     		</source>
     		<expression>
     			<script>
-    				<code>honorificSuffix?.trim()</code>
+    				<code>(Boolean)honorificSuffix?.trim()</code>
     			</script>
     		</expression>
     	</condition>

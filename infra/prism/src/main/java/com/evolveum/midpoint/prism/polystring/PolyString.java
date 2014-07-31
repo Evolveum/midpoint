@@ -155,6 +155,10 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	public int length() {
 		return orig.length();
 	}
+	
+	public PolyString trim() {
+		return new PolyString(orig.trim(), norm.trim());
+	}
 
 	@Override
 	public int hashCode() {
