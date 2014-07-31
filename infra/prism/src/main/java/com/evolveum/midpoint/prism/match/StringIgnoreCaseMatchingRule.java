@@ -68,7 +68,7 @@ public class StringIgnoreCaseMatchingRule implements MatchingRule<String> {
 	}
 
 	@Override
-	public boolean matches(String a, String regex) {
+	public boolean matchRegex(String a, String regex) {
 		if (a == null){
 			return false;
 		}

@@ -77,7 +77,7 @@ public class DefaultMatchingRule<T> implements MatchingRule<T> {
 	}
 
 	@Override
-	public boolean matches(T a, String regex) {
+	public boolean matchRegex(T a, String regex) {
 		String valueToMatch = null;  
 		if (a instanceof Matchable){
 			return ((Matchable) a).matches(regex);

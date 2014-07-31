@@ -54,7 +54,7 @@ public class ValueMatcher<T> {
 	}
 	
 	public boolean matches(T realValue, String regex){
-		return matchingRule.matches(realValue, regex);
+		return matchingRule.matchRegex(realValue, regex);
 	}
 	
 	public boolean hasRealValue(PrismProperty<T> property, PrismPropertyValue<T> pValue) {
