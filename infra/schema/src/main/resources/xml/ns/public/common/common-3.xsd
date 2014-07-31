@@ -2592,6 +2592,15 @@
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            
+            <xsd:element name="condition" type="tns:MappingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The assignment is applied only if the condition is evaluated to true.
+                        If condition is not present, it is assumed to be true.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
 
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
@@ -6105,6 +6114,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="condition" type="tns:MappingType" minOccurs="0">
+		               <xsd:annotation>
+		                   <xsd:documentation>
+		                       The role is applied only if the condition is evaluated to true.
+		                       If condition is not present, it is assumed to be true.
+		                   </xsd:documentation>
+		               </xsd:annotation>
+		           </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -6587,14 +6604,6 @@
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
-            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The account is implied only if the condition is evaluated to true.
-                        If condition is not present, it is assumed to be true.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>

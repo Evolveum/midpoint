@@ -91,6 +91,12 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_CLERIC_FILE = new File(TEST_DIR, "role-cleric.xml");
 	protected static final String ROLE_CLERIC_OID = "12345678-d34d-b33f-f00d-555555557702";
+	
+	protected static final File ROLE_WANNABE_FILE = new File(TEST_DIR, "role-wannabe.xml");
+	protected static final String ROLE_WANNABE_OID = "12345678-d34d-b33f-f00d-555555557703";
+	
+	protected static final File ROLE_HONORABLE_WANNABE_FILE = new File(TEST_DIR, "role-honorable-wannabe.xml");
+	protected static final String ROLE_HONORABLE_WANNABE_OID = "12345678-d34d-b33f-f00d-555555557704";
 
 	private final String EXISTING_GOSSIP = "Black spot!"; 
 	
@@ -109,6 +115,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_INDIAN_OCEAN_PIRATE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_HONORABILITY_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_CLERIC_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_WANNABE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_HONORABLE_WANNABE_FILE, RoleType.class, initResult);
 	}
 	
 	@Test
@@ -1033,6 +1041,82 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignedNoRole(userJack);
         assertNoLinkedAccount(userJack);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	/**
+	 * Wannabe role is conditional. All conditions should be false now. So no provisioning should happen.
+	 */
+	@Test
+    public void test540JackAssignRoleWannabe() throws Exception {
+		final String TEST_NAME = "test540JackAssignRoleWannabe";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, ROLE_WANNABE_OID);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_WANNABE_OID, task, result);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+
+	/**
+	 * Modify employeeType. This triggers a condition in Wannabe role.
+	 */
+	@Test
+    public void test541JackModifyEmployeeTypeWannabe() throws Exception {
+		final String TEST_NAME = "test541JackModifyEmployeeTypeWannabe";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, "wannabe");
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_WANNABE_OID, task, result);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Wannabe Cpt. Where's the rum?");
+	}
+	
+	/**
+	 * The account should be gone - regardless of the condition state.
+	 */
+	@Test
+    public void test549JackUnassignRoleWannabe() throws Exception {
+		final String TEST_NAME = "test549JackUnassignRoleWannabe";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, ROLE_WANNABE_OID);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNotAssignedRole(USER_JACK_OID, ROLE_WANNABE_OID, task, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	

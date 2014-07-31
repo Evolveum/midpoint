@@ -54,9 +54,11 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Handler;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -82,7 +84,7 @@ public class MappingEvaluationHelper {
     private PrismContext prismContext;
 
     @Autowired(required = true)
-    private MappingFactory valueConstructionFactory;
+    private MappingFactory mappingFactory;
 
     /**
      * strongMappingWasUsed: Returns true here if the value was (at least partly) determined by a strong mapping.
@@ -114,7 +116,7 @@ public class MappingEvaluationHelper {
 
 		for (MappingType mappingType: mappingTypes) {
 			
-			Mapping<V> mapping = valueConstructionFactory.createMapping(mappingType, mappingDesc);
+			Mapping<V> mapping = mappingFactory.createMapping(mappingType, mappingDesc);
 		
 			if (!mapping.isApplicableToChannel(params.getContext().getChannel())) {
 	        	continue;
@@ -381,7 +383,5 @@ public class MappingEvaluationHelper {
 		
 		
 	}
-	
-	
 
 }

@@ -19,8 +19,8 @@ package com.evolveum.midpoint.util;
  * @author semancik
  *
  */
-public interface Transformer<T> {
+public interface Transformer<T,X> {
 
-	T transform(T in);
+	X transform(T in);
 	
 }

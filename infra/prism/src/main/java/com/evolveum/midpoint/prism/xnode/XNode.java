@@ -141,11 +141,11 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
         return cloneTransformKeys(null);
     }
 
-	public XNode cloneTransformKeys(Transformer<QName> keyTransformer) {
+	public XNode cloneTransformKeys(Transformer<QName,QName> keyTransformer) {
 		return cloneTransformKeys(keyTransformer, this);
 	}
 	
-	private <X extends XNode> X cloneTransformKeys(Transformer<QName> keyTransformer, X xnode) {
+	private <X extends XNode> X cloneTransformKeys(Transformer<QName,QName> keyTransformer, X xnode) {
 		if (xnode instanceof PrimitiveXNode<?>) {
 			return xnode;
 		} else if (xnode instanceof MapXNode) {

@@ -55,7 +55,7 @@ public class XNodeProcessorUtil {
                  
 //                xmlCipherData.getSingleSubEntry(ProtectedDataType.F_XML_ENC_CIPHER_VALUE.getLocalPart());
                 
-                MapXNode xConvertedEncryptedData = (MapXNode) xLegacyEncryptedData.cloneTransformKeys(new Transformer<QName>() {
+                MapXNode xConvertedEncryptedData = (MapXNode) xLegacyEncryptedData.cloneTransformKeys(new Transformer<QName,QName>() {
                     @Override
                     public QName transform(QName in) {
                         String elementName = StringUtils.uncapitalize(in.getLocalPart());

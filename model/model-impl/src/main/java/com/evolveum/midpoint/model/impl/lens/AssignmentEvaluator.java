@@ -28,23 +28,33 @@ import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluationHelper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.Transformer;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -72,6 +82,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusTy
  */
 public class AssignmentEvaluator<F extends FocusType> {
 	
+	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
+	
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentEvaluator.class);
 
 	private RepositoryService repository;
@@ -85,6 +97,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	XMLGregorianCalendar now;
 	private boolean evaluateConstructions = true;
 	private PrismObject<SystemConfigurationType> systemConfiguration;
+	private MappingEvaluationHelper mappingEvaluationHelper;
 	
 	public RepositoryService getRepository() {
 		return repository;
@@ -174,6 +187,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 		this.systemConfiguration = systemConfiguration;
 	}
 	
+	public MappingEvaluationHelper getMappingEvaluationHelper() {
+		return mappingEvaluationHelper;
+	}
+
+	public void setMappingEvaluationHelper(MappingEvaluationHelper mappingEvaluationHelper) {
+		this.mappingEvaluationHelper = mappingEvaluationHelper;
+	}
+
 	public EvaluatedAssignment<F> evaluate(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi, 
 			boolean evaluateOld, ObjectType source, String sourceDescription, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
@@ -371,30 +392,40 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private void evaluateAbstractRole(EvaluatedAssignment<F> assignment, AssignmentPathSegment assignmentPathSegment, 
-			boolean evaluateOld, AbstractRoleType role, ObjectType source, String sourceDescription,
+	private boolean evaluateAbstractRole(EvaluatedAssignment<F> assignment, AssignmentPathSegment assignmentPathSegment, 
+			boolean evaluateOld, AbstractRoleType roleType, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
+		
+		MappingType conditionType = roleType.getCondition();
+		if (conditionType != null) {
+			DeltaSetTriple<Boolean> conditionTriple = evaluateMappingAsCondition(conditionType, source, task, result);
+			if (conditionTriple != null) {
+				// TODO
+				
+				
+			}
+		}
 		
 		int evaluationOrder = assignmentPath.getEvaluationOrder();
 		ObjectType orderOneObject;
 		if (evaluationOrder == 1) {
-			orderOneObject = role;
+			orderOneObject = roleType;
 		} else {
 			AssignmentPathSegment last = assignmentPath.last();
 			if (last != null && last.getOrderOneObject() != null) {
 				orderOneObject = last.getOrderOneObject();
 			} else {
-				orderOneObject = role;
+				orderOneObject = roleType;
 			}
 		}
-		for (AssignmentType roleInducement : role.getInducement()) {
+		for (AssignmentType roleInducement : roleType.getInducement()) {
 			ItemDeltaItem<PrismContainerValue<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
 			roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleInducement));
 			roleInducementIdi.recompute();
 			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleInducementIdi, null);
-			roleAssignmentPathSegment.setSource(role);
-			String subSourceDescription = role+" in "+sourceDescription;
+			roleAssignmentPathSegment.setSource(roleType);
+			String subSourceDescription = roleType+" in "+sourceDescription;
 			Integer inducementOrder = roleInducement.getOrder();
 			if (inducementOrder == null) {
 				inducementOrder = 1;
@@ -402,12 +433,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (inducementOrder == evaluationOrder) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("E{}: evaluate inducement({}) {} in {}",
-						new Object[]{evaluationOrder, inducementOrder, dumpAssignment(roleInducement), role});
+						new Object[]{evaluationOrder, inducementOrder, dumpAssignment(roleInducement), roleType});
 				}
 				roleAssignmentPathSegment.setEvaluateConstructions(true);
 				roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
 				roleAssignmentPathSegment.setOrderOneObject(orderOneObject);
-				evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, role, subSourceDescription, assignmentPath, task, result);
+				evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, roleType, subSourceDescription, assignmentPath, task, result);
 //			} else if (inducementOrder < assignmentPath.getEvaluationOrder()) {
 //				LOGGER.trace("Follow({}) inducement({}) in role {}",
 //						new Object[]{evaluationOrder, inducementOrder, source});
@@ -417,30 +448,32 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("E{}: NOT evaluate inducement({}) {} in {}",
-						new Object[]{evaluationOrder, inducementOrder, dumpAssignment(roleInducement), role});
+						new Object[]{evaluationOrder, inducementOrder, dumpAssignment(roleInducement), roleType});
 				}
 			}
 		}
-		for (AssignmentType roleAssignment : role.getAssignment()) {
+		for (AssignmentType roleAssignment : roleType.getAssignment()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("E{}: follow assignment {} in {}",
-					new Object[]{evaluationOrder, dumpAssignment(roleAssignment), role});
+					new Object[]{evaluationOrder, dumpAssignment(roleAssignment), roleType});
 			}
 			ItemDeltaItem<PrismContainerValue<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
 			roleAssignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleAssignment));
 			roleAssignmentIdi.recompute();
 			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleAssignmentIdi, null);
-			roleAssignmentPathSegment.setSource(role);
-			String subSourceDescription = role+" in "+sourceDescription;
+			roleAssignmentPathSegment.setSource(roleType);
+			String subSourceDescription = roleType+" in "+sourceDescription;
 			roleAssignmentPathSegment.setEvaluateConstructions(false);
 			roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder+1);
 			roleAssignmentPathSegment.setOrderOneObject(orderOneObject);
-			evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, role, subSourceDescription, assignmentPath, task, result);
+			evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, roleType, subSourceDescription, assignmentPath, task, result);
 		}
-		for(AuthorizationType authorizationType: role.getAuthorization()) {
+		for(AuthorizationType authorizationType: roleType.getAuthorization()) {
 			Authorization authorization = createAuthorization(authorizationType);
 			assignment.addAuthorization(authorization);
 		}
+		
+		return true;
 	}
 	
 	public static String dumpAssignment(AssignmentType assignmentType) { 
@@ -496,5 +529,37 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 		}
 	}
+	
+	public DeltaSetTriple<Boolean> evaluateMappingAsCondition(MappingType conditionType, ObjectType source, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		Mapping<? extends PrismPropertyValue<Boolean>> mapping = mappingFactory.createMapping(conditionType,
+				"condition in " + source);
+		
+		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
+		mapping.setSourceContext(focusOdo);
+		mapping.setRootNode(focusOdo);
+		mapping.setOriginType(OriginType.ASSIGNMENTS);
+		mapping.setOriginObject(source);
+		
+		// TODO: assignment path variables?
+
+		ItemDefinition outputDefinition = new PrismPropertyDefinition<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+		mapping.setDefaultTargetDefinition(outputDefinition);
+
+		LensUtil.evaluateMapping(mapping, lensContext, task, result);
+		
+		PrismValueDeltaSetTriple<? extends PrismPropertyValue<Boolean>> mappingOutputTriple = mapping.getOutputTriple();
+		DeltaSetTriple<Boolean> outputTriple = new DeltaSetTriple<>(); 
+		Transformer<PrismPropertyValue<Boolean>, Boolean> transformer = new Transformer<PrismPropertyValue<Boolean>, Boolean>() {
+			@Override
+			public Boolean transform(PrismPropertyValue<Boolean> in) {
+				return in.getValue(); 
+			}
+		};
+		mappingOutputTriple.transform(outputTriple, transformer);
+		return outputTriple;
+	}
+
 
 }
