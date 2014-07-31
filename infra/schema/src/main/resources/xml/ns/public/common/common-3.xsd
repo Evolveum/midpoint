@@ -6041,7 +6041,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:FocusType">
                 <xsd:sequence>
-                	<xsd:element name="displayName" type="t:PolyStringType">
+                	<xsd:element name="displayName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                             	Human-readable name of the role or org. It may be quite long, container national characters
