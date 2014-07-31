@@ -25,6 +25,8 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.UserComputer;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -41,6 +43,8 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -84,6 +88,9 @@ public class UserProfileServiceImpl implements UserProfileService {
     
     @Autowired(required = true)
     private PrismContext prismContext;
+    
+    @Autowired(required = true)
+    private TaskManager taskManager;
 
     @Override
     public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException {
@@ -169,18 +176,25 @@ public class UserProfileServiceImpl implements UserProfileService {
         assignmentEvaluator.setMappingFactory(valueConstructionFactory);
         assignmentEvaluator.setActivationComputer(activationComputer);
         assignmentEvaluator.setNow(clock.currentTimeXMLGregorianCalendar());
+        
         // We do need only authorizations. Therefore we not need to evaluate constructions,
         // so switching it off is faster. It also avoids nasty problems with resources being down,
         // resource schema not available, etc.
         assignmentEvaluator.setEvaluateConstructions(false);
+        
+        // We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
+        // will need something to push on the stack. So give them context placeholder.
+        LensContext<UserType> lensContext = new LensContextPlaceholder<>(prismContext);
+		assignmentEvaluator.setLensContext(lensContext);
 		
-        OperationResult result = new OperationResult(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
+		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
+        OperationResult result = task.getResult();
         for(AssignmentType assignmentType: userType.getAssignment()) {
         	try {
         		ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
         		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
         		assignmentIdi.recompute();
-				EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, false, userType, userType.toString(), null, result);
+				EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, false, userType, userType.toString(), task, result);
 				if (assignment.isValid()) {
 					authorizations.addAll(assignment.getAuthorizations());
 				}

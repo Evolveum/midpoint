@@ -125,6 +125,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         this.focusClass = focusClass;
     }
 	
+	protected LensContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+	
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
