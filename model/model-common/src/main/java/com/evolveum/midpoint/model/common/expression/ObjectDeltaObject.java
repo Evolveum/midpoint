@@ -20,7 +20,7 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PartiallyResolvedValue;
+import com.evolveum.midpoint.prism.PartiallyResolvedItem;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -105,7 +105,7 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 		Item<V> subItemOld = null;
 		ItemPath subResidualPath = null;
 		if (oldObject != null) {
-			PartiallyResolvedValue<V> partialOld = oldObject.findPartial(path);
+			PartiallyResolvedItem<V> partialOld = oldObject.findPartial(path);
 			if (partialOld != null) {
 				subItemOld = partialOld.getItem();
 				subResidualPath = partialOld.getResidualPath();
@@ -113,7 +113,7 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 		}
 		Item<V> subItemNew = null;
 		if (newObject != null) {
-			PartiallyResolvedValue<V> partialNew = newObject.findPartial(path);
+			PartiallyResolvedItem<V> partialNew = newObject.findPartial(path);
 			if (partialNew != null) {
 				subItemNew = partialNew.getItem();
 				if (subResidualPath == null) {
@@ -126,7 +126,7 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 		if (delta != null) {
 			if (delta.getChangeType() == ChangeType.ADD) {
 				PrismObject<T> objectToAdd = delta.getObjectToAdd();
-	            PartiallyResolvedValue<V> partialValue = objectToAdd.findPartial(path);
+	            PartiallyResolvedItem<V> partialValue = objectToAdd.findPartial(path);
 	            if (partialValue != null && partialValue.getItem() != null) {
 		            Item<V> item = partialValue.getItem();
 		            itemDelta = item.createDelta();
@@ -135,8 +135,17 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 	            	// No item for this path, itemDelta will stay empty.
 	            }
 			} else if (delta.getChangeType() == ChangeType.DELETE) {
-				// TODO
-				throw new UnsupportedOperationException("delete");
+				if (subItemOld != null) {
+					ItemPath subPath = subItemOld.getPath().remainder(path);
+					PartiallyResolvedItem<V> partialValue = subItemOld.findPartial(subPath);
+		            if (partialValue != null && partialValue.getItem() != null) {
+			            Item<V> item = partialValue.getItem();
+			            itemDelta = item.createDelta();
+			            itemDelta.addValuesToDelete(item.getClonedValues());
+		            } else {
+		            	// No item for this path, itemDelta will stay empty.
+		            }
+				}
 			} else if (delta.getChangeType() == ChangeType.MODIFY) {
 				for (ItemDelta<?> modification: delta.getModifications()) {
 	        		CompareResult compareComplex = modification.getPath().compareComplex(path);

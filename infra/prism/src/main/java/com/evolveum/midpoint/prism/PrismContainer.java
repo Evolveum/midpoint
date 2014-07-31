@@ -352,9 +352,9 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 	}
 
 	@Override
-	public <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path) {
+	public <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-    		return new PartiallyResolvedValue<X>((Item<X>)this, null);
+    		return new PartiallyResolvedItem<X>((Item<X>)this, null);
     	}
     	
     	IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);

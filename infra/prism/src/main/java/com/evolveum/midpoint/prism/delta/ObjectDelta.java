@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PartiallyResolvedValue;
+import com.evolveum.midpoint.prism.PartiallyResolvedItem;
 import com.evolveum.midpoint.prism.PathVisitable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -269,7 +269,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     
     public <V extends PrismValue> PartiallyResolvedDelta<V> findPartial(ItemPath propertyPath) {
         if (changeType == ChangeType.ADD) {
-            PartiallyResolvedValue<V> partialValue = objectToAdd.findPartial(propertyPath);
+            PartiallyResolvedItem<V> partialValue = objectToAdd.findPartial(propertyPath);
             if (partialValue == null || partialValue.getItem() == null) {
                 return null;
             }

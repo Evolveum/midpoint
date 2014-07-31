@@ -252,7 +252,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 	
 	public abstract Object find(ItemPath path);
 	
-	public abstract <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path);
+	public abstract <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path);
 	
 	@Override
 	public int hashCode() {
