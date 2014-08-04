@@ -25,6 +25,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.BulkActionDto;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
@@ -79,7 +81,7 @@ public class PageBulkAction extends PageAdminConfiguration {
         AceEditor editor = new AceEditor(ID_EDITOR, new PropertyModel<String>(model, BulkActionDto.F_SCRIPT));
         mainForm.add(editor);
 
-        AjaxSubmitButton start = new AjaxSubmitButton(ID_START, createStringResource("PageBulkUsers.button.start")) {
+        AjaxSubmitButton start = new AjaxSubmitButton(ID_START, createStringResource("PageBulkAction.button.start")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
@@ -100,6 +102,12 @@ public class PageBulkAction extends PageAdminConfiguration {
 
         BulkActionDto bulkActionDto = model.getObject();
 
+        if(StringUtils.isEmpty(bulkActionDto.getScript())){
+            warn(getString("PageBulkAction.message.emptyString"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
         ScriptingExpressionType expression = null;
         try {
             Object parsed = getPrismContext().parseAnyValue(bulkActionDto.getScript(), PrismContext.LANG_XML);
@@ -116,6 +124,7 @@ public class PageBulkAction extends PageAdminConfiguration {
             }
         } catch (SchemaException|RuntimeException e) {
             result.recordFatalError("Couldn't parse bulk action object", e);
+            LoggingUtils.logException(LOGGER, "Couldn't parse bulk action object", e);
         }
 
         if (expression != null) {
@@ -125,6 +134,7 @@ public class PageBulkAction extends PageAdminConfiguration {
                     result.recordStatus(OperationResultStatus.IN_PROGRESS, task.getName() + " has been successfully submitted to execution");
                 } catch (SchemaException|SecurityViolationException e) {
                     result.recordFatalError("Couldn't submit bulk action to execution", e);
+                    LoggingUtils.logException(LOGGER, "Couldn't submit bulk action to execution", e);
                 }
             } else {
                 try {
@@ -134,6 +144,7 @@ public class PageBulkAction extends PageAdminConfiguration {
                     result.addCollectionOfSerializablesAsReturn("data", executionResult.getDataOutput());
                 } catch (ScriptExecutionException|SchemaException|SecurityViolationException e) {
                     result.recordFatalError("Couldn't execute bulk action", e);
+                    LoggingUtils.logException(LOGGER, "Couldn't execute bulk action", e);
                 }
             }
         }
