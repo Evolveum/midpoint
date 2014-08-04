@@ -47,6 +47,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.Source;
 import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
@@ -72,7 +73,9 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -172,22 +175,20 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 		OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
 		try {
-			ResourceType resourceType = change.getResource().asObjectable();
+			
 			PrismObject<? extends ShadowType> currentShadow = change.getCurrentShadow();
-			if (currentShadow != null) {
-				ShadowType currentShadowType = currentShadow.asObjectable();
-				if (currentShadowType.isProtectedObject() != null && currentShadowType.isProtectedObject()) {
-					LOGGER.trace("SYNCHRONIZATION skipping {} because it is protected", currentShadowType);
-					// Just make sure there is no misleading synchronization situation in the shadow
-					if (currentShadowType.getSynchronizationSituation() != null) {
-						ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, currentShadowType.getOid(),
-								ShadowType.F_SYNCHRONIZATION_SITUATION, prismContext);
-						provisioningService.modifyObject(ShadowType.class, currentShadowType.getOid(), 
-								shadowDelta.getModifications(), null, null, task, subResult);
-					}
-					subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
-					return;
+			
+			if (isProtected((PrismObject<ShadowType>) currentShadow)){
+				LOGGER.trace("SYNCHRONIZATION skipping {} because it is protected", currentShadow);
+				// Just make sure there is no misleading synchronization situation in the shadow
+				if (currentShadow.asObjectable().getSynchronizationSituation() != null) {
+					ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, currentShadow.getOid(),
+							ShadowType.F_SYNCHRONIZATION_SITUATION, prismContext);
+					provisioningService.modifyObject(ShadowType.class, currentShadow.getOid(), 
+							shadowDelta.getModifications(), null, null, task, subResult);
 				}
+				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
+				return;
 			}
 			
 			PrismObject<? extends ShadowType> applicableShadow = currentShadow;
@@ -196,6 +197,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				applicableShadow = change.getOldShadow();
 			}
 			
+			ResourceType resourceType = change.getResource().asObjectable();
 			PrismObject<SystemConfigurationType> configuration = Utils.getSystemConfiguration(repositoryService, subResult);
 			
 			ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType,
@@ -208,12 +210,20 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
 				return;
 			}
-			
+						
 			if (!isSynchronizationEnabled(synchronizationPolicy)) {
 				String message = "SYNCHRONIZATION is not enabled for " + resourceType
 						+ " ignoring change from channel " + change.getSourceChannel();
 				LOGGER.debug(message);
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
+				return;
+			}
+			
+			//check if the kind/intent in the syncPolicy satisfy constaints defined in task
+			if (!satisfyTaskConstaints(synchronizationPolicy, task)){
+				LOGGER.trace("SYNCHRONIZATION skipping {} because it does not match kind/intent defined in task",new Object[] {
+						applicableShadow});
+				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
 				return;
 			}
 			
@@ -270,6 +280,42 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 	}
 	
+	private boolean satisfyTaskConstaints(ObjectSynchronizationType synchronizationPolicy, Task task) {
+		PrismProperty<ShadowKindType> kind = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_KIND);
+		if (kind != null && !kind.isEmpty()){
+			ShadowKindType kindValue = kind.getRealValue();
+			if (!synchronizationPolicy.getKind().equals(kindValue)){
+				return false;
+			}
+		}
+		
+		PrismProperty<String> intent = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_INTENT);
+		if (intent != null && !intent.isEmpty()){
+			String intentValue = intent.getRealValue();
+			if (StringUtils.isEmpty(synchronizationPolicy.getIntent())){
+				return false;
+			}
+			if (!synchronizationPolicy.getIntent().equals(intentValue)){
+				return false;
+			}
+		}
+		
+		return true;
+	}
+
+	private boolean isProtected(PrismObject<ShadowType> shadow){
+		if (shadow == null){
+			return false;
+		}
+		
+		ShadowType currentShadowType = shadow.asObjectable();
+		if (currentShadowType.isProtectedObject() == null){
+			return false;
+		}
+		
+		return currentShadowType.isProtectedObject();
+	}
+		
 	private <F extends FocusType> Class<F> determineFocusClass(ObjectSynchronizationType synchronizationPolicy, ResourceType resource) throws ConfigurationException {
 		QName focusTypeQName = synchronizationPolicy.getFocusType();
 		if (focusTypeQName == null) {
@@ -402,11 +448,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			Validate.notEmpty(shadowOid, "Couldn't get resource object shadow oid from change.");
 			PrismObject<F> owner = null;
 			try {
-				owner = repositoryService.searchShadowOwner(shadowOid, subResult);
+				owner = repositoryService.searchShadowOwner(shadowOid, SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()), subResult);
 			} catch (ObjectNotFoundException e) {
 				// Shadow is gone. This should not normally happen. But if it does then it is no
 				// tragedy. If the shadow is gone then it has no owner and the situation is quite clear.
-				subResult.getLastSubresult().setStatus(OperationResultStatus.NOT_APPLICABLE);
+//				subResult.getLastSubresult().setStatus(OperationResultStatus.NOT_APPLICABLE);
 			}
 
 			if (owner != null) {

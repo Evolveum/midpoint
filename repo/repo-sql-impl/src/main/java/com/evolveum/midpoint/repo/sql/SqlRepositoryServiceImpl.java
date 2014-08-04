@@ -238,7 +238,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
-            rollbackTransaction(session, ex, result, true);
+        	GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
             throw ex;
         } catch (SchemaException ex) {
             rollbackTransaction(session, ex, "Schema error while getting object with oid: "
@@ -262,7 +263,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, OperationResult result)
+    public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException {
         Validate.notEmpty(shadowOid, "Oid must not be null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
@@ -277,14 +278,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         while (true) {
             try {
-                return searchShadowOwnerAttempt(shadowOid, subResult);
+                return searchShadowOwnerAttempt(shadowOid, options, subResult);
             } catch (RuntimeException ex) {
                 attempt = logOperationAttempt(shadowOid, operation, attempt, ex, subResult);
             }
         }
     }
 
-    private <F extends FocusType> PrismObject<F> searchShadowOwnerAttempt(String shadowOid, OperationResult result)
+    private <F extends FocusType> PrismObject<F> searchShadowOwnerAttempt(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException {
         PrismObject<F> owner = null;
         Session session = null;
@@ -316,11 +317,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             GetObjectResult focus = focuses.get(0);
-            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, null, session);
+            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, options, session);
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
-            rollbackTransaction(session, ex, result, true);
+        	GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
             throw ex;
         } catch (SchemaException | RuntimeException ex) {
             handleGeneralException(ex, session, result);

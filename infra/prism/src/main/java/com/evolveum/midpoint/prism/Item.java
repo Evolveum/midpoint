@@ -445,7 +445,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
 
     public abstract Object find(ItemPath path);
     
-    public abstract <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path);
+    public abstract <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path);
     
     public Collection<? extends ItemDelta> diff(Item<V> other) {
     	return diff(other, true, false);

@@ -26,7 +26,12 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
 
     <global-method-security secured-annotations="enabled"/>
 
+	<!-- Web services have their own authentication and authorization using CXF interceptors. -->
     <http pattern="/model/**" security="none"/>
+    <http pattern="/ws/**" security="none"/>
+    
+    <!-- REST services have their own authentication and authorization. -->
+    <http pattern="/rest/**" security="none"/>
 
     <http pattern="/js/**" security="none"/>
     <http pattern="/css/**" security="none"/>
@@ -39,9 +44,10 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
         <intercept-url pattern="/j_spring_security_check" />
         <intercept-url pattern="/spring_security_login" />
 
-        <intercept-url pattern="/login" />
+        <intercept-url pattern="/login"/>
 
         <intercept-url pattern="/bootstrap" />
+        
 
         <intercept-url pattern="/admin/**" access="isFullyAuthenticated()"/>  <!--  access="isAuthenticated()"/> -->
 
@@ -54,7 +60,7 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
         <!-- <custom-filter position="PRE_AUTH_FILTER" ref="requestHeaderAuthenticationFilter" />  -->
 
         <form-login login-page="/login" default-target-url="/home" />
-         
+        <intercept-url pattern="/**" access="isFullyAuthenticated()"/> 
     </http>
 
     <beans:bean id="accessDecisionManager" class="com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator">

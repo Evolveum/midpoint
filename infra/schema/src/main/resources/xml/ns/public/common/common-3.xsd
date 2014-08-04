@@ -2592,6 +2592,15 @@
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            
+            <xsd:element name="condition" type="tns:MappingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The assignment is applied only if the condition is evaluated to true.
+                        If condition is not present, it is assumed to be true.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
 
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
@@ -3234,7 +3243,7 @@
             <xsd:documentation>
                 Defines a type from the resource schema (object class)
                 that can be used for creating accounts, entitlements and possible other concepts.
-                This is abstract supertype for other types.
+                This is abstract supertype for other types. 
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -3242,12 +3251,13 @@
         	<xsd:element name="intent" type="xsd:string" minOccurs="0"/>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
-            <xsd:element name="default" type="xsd:boolean" minOccurs="0" default="false">
+            <xsd:element name="default" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Specifies whether this type is the default type for the resource.
-                        Only one type for each class can be default. Setting this flag for more than one type is
-                        an error.
+                        Only one type for each class can be default. Setting this flag to true for more than one type is
+                        an error. If the flag is not set, the value is inherited from resource schema. If the resource 
+                        schema does not have this flag set, the default value is false.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -6031,6 +6041,35 @@
         <xsd:complexContent>
             <xsd:extension base="tns:FocusType">
                 <xsd:sequence>
+                	<xsd:element name="displayName" type="t:PolyStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	Human-readable name of the role or org. It may be quite long, container national characters
+                            	and there is no uniqueness requirement.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>Display Name</a:displayName>
+		                    	<a:displayOrder>100</a:displayOrder>
+		                    </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="identifier" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifier of the role or org. It should be a structured information usually used for
+                                refering to the role or org or correlating it in various systems. E.g. numeric organizational
+                                unit identifier, role code, etc. It should be unique in its "own" scope. E.g. an organizational
+                                unit identifier should be unique in the scope of all organizational units but it may conflict 
+                                with an identifier of a project.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>Identifier</a:displayName>
+		                    	<a:displayOrder>110</a:displayOrder>
+		                    </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                   
                    <xsd:element name="inducement" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -6104,6 +6143,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="condition" type="tns:MappingType" minOccurs="0">
+		               <xsd:annotation>
+		                   <xsd:documentation>
+		                       The role is applied only if the condition is evaluated to true.
+		                       If condition is not present, it is assumed to be true.
+		                   </xsd:documentation>
+		               </xsd:annotation>
+		           </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -6586,14 +6633,6 @@
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
-            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The account is implied only if the condition is evaluated to true.
-                        If condition is not present, it is assumed to be true.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -6707,35 +6746,7 @@
         <xsd:complexContent>
             <xsd:extension base="c:AbstractRoleType">
                 <xsd:sequence>
-                    <xsd:element name="displayName" type="t:PolyStringType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	Human-readable name of the org. It may be quite long, container national characters
-                            	and there is no uniqueness requirement.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-		                    	<a:displayName>Display Name</a:displayName>
-		                    	<a:displayOrder>100</a:displayOrder>
-		                    </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="identifier" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Identifier of the org. It should be a structured information usually used for
-                                refering to the org or correlating it in various systems. E.g. numeric organizational
-                                unit identifier. It should be unique in its "own" scope. E.g. an organizational unit identifier
-                                should be unique in the scope of all organizational units but it may conflict with an
-                                identifier of a project.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-		                    	<a:displayName>Identifier</a:displayName>
-		                    	<a:displayOrder>110</a:displayOrder>
-		                    </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
+                    
                     <xsd:element name="orgType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -6785,6 +6796,18 @@
                             <xsd:appinfo>
                                 <a:displayName>Locality</a:displayName>
                                 <a:displayOrder>210</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                    <xsd:element name="mailDomain" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Domain part of RFC822 e-mail address that applies to this organization.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Mail Domain</a:displayName>
+                                <a:displayOrder>220</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -7235,18 +7258,36 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="objectTemplate" type="tns:ObjectTypeTemplateType" minOccurs="0" maxOccurs="unbounded">
-                    <xsd:annotation>
-						<xsd:documentation>
-							Definition of default object templates for a individual object type. The templates will be used
-							"universally" during all operations with specified object types - unless the templates are overriden
-							in other definitions (e.g. in resource).
-						</xsd:documentation>
-						<xsd:appinfo>
-							<a:container/>
-						</xsd:appinfo>
-					</xsd:annotation>
+                    <xsd:element name="objectTemplate" type="tns:ObjectPolicyConfigurationType" minOccurs="0" maxOccurs="unbounded">
+	                    <xsd:annotation>
+							<xsd:documentation>
+								Definition of default object templates for a individual object type. The templates will be used
+								"universally" during all operations with specified object types - unless the templates are overriden
+								in other definitions (e.g. in resource).
+								
+								DEPRECATED. Use defaultFocusPolicy instead.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:container/>
+								<a:deprecated>true</a:deprecated>
+							</xsd:appinfo>
+						</xsd:annotation>
                     </xsd:element>
+                    
+                    <xsd:element name="defaultObjectPolicyConfiguration" type="tns:ObjectPolicyConfigurationType" minOccurs="0" maxOccurs="unbounded">
+	                    <xsd:annotation>
+							<xsd:documentation>
+								Definition of default object policy for a individual object type. The definition of this policy
+								contains object template and other similar settings. The policy will be used
+								"universally" during all operations with specified object types - unless it is overriden
+								in other definitions (e.g. in resource or org).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:container/>
+							</xsd:appinfo>
+						</xsd:annotation>
+                    </xsd:element>
+                    
 
                     <xsd:element name="connectorFramework" minOccurs="0" maxOccurs="1" type="tns:ConnectorFrameworkType">
                         <xsd:annotation>
@@ -7289,10 +7330,12 @@
     <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
    
 
-	<xsd:complexType name="ObjectTypeTemplateType">
+	<xsd:complexType name="ObjectPolicyConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Definition of default object templates for a specific object type.
+				Definition of policy for a specific object type. It defines object template
+				and similar settings that apply to the object alone. This policy settings
+				apply to the object internal structure without regard to other objects.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
@@ -7316,11 +7359,42 @@
              		</xsd:appinfo>
                  </xsd:annotation>
              </xsd:element>
+             <xsd:element name="propertyConstraint" type="tns:PropertyConstraintType" minOccurs="0" maxOccurs="unbounded"/>
              <xsd:element name="oidNameBoundMode" type="xsd:boolean" minOccurs="0" default="false">
              	<xsd:annotation>
              		<xsd:documentation>
              			A mode in which OID and name of the speciefied object are the same.
              		</xsd:documentation>
+             		<xsd:appinfo>
+             			<a:deprecated>true</a:deprecated>
+             		</xsd:appinfo>
+             	</xsd:annotation>
+             </xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="PropertyConstraintType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Definition of a property constraints.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="path" type="t:ItemPathType" minOccurs="1" maxOccurs="1">
+			</xsd:element>
+			<!-- TODO: uniqueness constraint -->
+             <xsd:element name="oidBound" type="xsd:boolean" minOccurs="0" default="false">
+             	<xsd:annotation>
+             		<xsd:documentation>
+             			The property value will be bound to OID. This property will be set to the value
+             			of OID and it cannot be changed.
+             		</xsd:documentation>
+             		<xsd:appinfo>
+             			<a:deprecated>true</a:deprecated>
+             		</xsd:appinfo>
              	</xsd:annotation>
              </xsd:element>
 		</xsd:sequence>

@@ -1419,22 +1419,28 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			try {
 				updateAttributes = convertFromResourceObject(updateValues, result);
+				
+				if (activationDeltas != null) {
+					// Activation change means modification of attributes
+					convertFromActivation(updateAttributes, activationDeltas);
+				}
+
+				if (passwordDelta != null) {
+					// Activation change means modification of attributes
+					convertFromPassword(updateAttributes, passwordDelta);
+				}
+				
 			} catch (SchemaException ex) {
 				result.recordFatalError(
 						"Error while converting resource object attributes. Reason: " + ex.getMessage(), ex);
 				throw new SchemaException("Error while converting resource object attributes. Reason: "
 						+ ex.getMessage(), ex);
+			} catch (RuntimeException ex) {
+				result.recordFatalError("Error while converting resource object attributes. Reason: " + ex.getMessage(), ex);
+				throw ex;
 			}
 
-			if (activationDeltas != null) {
-				// Activation change means modification of attributes
-				convertFromActivation(updateAttributes, activationDeltas);
-			}
-
-			if (passwordDelta != null) {
-				// Activation change means modification of attributes
-				convertFromPassword(updateAttributes, passwordDelta);
-			}
+			
 
 			OperationOptions options = new OperationOptionsBuilder().build();
 			icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".update");
@@ -2190,23 +2196,38 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		for (PropertyDelta<?> propDelta : activationDeltas) {
 			if (propDelta.getElementName().equals(ActivationType.F_ADMINISTRATIVE_STATUS)) {
-				ActivationStatusType status = propDelta.getPropertyNew().getValue(ActivationStatusType.class).getValue();
+				ActivationStatusType status = getPropertyNewValue(propDelta, ActivationStatusType.class);
+				
 				// Not entirely correct, TODO: refactor later
 				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, status == ActivationStatusType.ENABLED));
 			} else if (propDelta.getElementName().equals(ActivationType.F_VALID_FROM)) {
-				XMLGregorianCalendar xmlCal = propDelta.getPropertyNew().getValue(XMLGregorianCalendar.class).getValue();
-				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, XmlTypeConverter.toMillis(xmlCal)));
+				XMLGregorianCalendar xmlCal = getPropertyNewValue(propDelta, XMLGregorianCalendar.class);//propDelta.getPropertyNew().getValue(XMLGregorianCalendar.class).getValue();
+				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, xmlCal != null ? XmlTypeConverter.toMillis(xmlCal) : null));
 			} else if (propDelta.getElementName().equals(ActivationType.F_VALID_TO)) {
-				XMLGregorianCalendar xmlCal = propDelta.getPropertyNew().getValue(XMLGregorianCalendar.class).getValue();
-				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(xmlCal)));
+				XMLGregorianCalendar xmlCal = getPropertyNewValue(propDelta, XMLGregorianCalendar.class);//propDelta.getPropertyNew().getValue(XMLGregorianCalendar.class).getValue();
+				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, xmlCal != null ? XmlTypeConverter.toMillis(xmlCal) : null));
 			} else if (propDelta.getElementName().equals(ActivationType.F_LOCKOUT_STATUS)) {
-				LockoutStatusType status = propDelta.getPropertyNew().getValue(LockoutStatusType.class).getValue();
+				LockoutStatusType status = getPropertyNewValue(propDelta, LockoutStatusType.class);//propDelta.getPropertyNew().getValue(LockoutStatusType.class).getValue();
 				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.LOCK_OUT_NAME, status != LockoutStatusType.NORMAL));
 			} else {
 				throw new SchemaException("Got unknown activation attribute delta " + propDelta.getElementName());
 			}
 		}
 
+	}
+
+	private <T> T getPropertyNewValue(PropertyDelta propertyDelta, Class<T> clazz) throws SchemaException {
+		PrismProperty<PrismPropertyValue<T>> prop = propertyDelta.getPropertyNewMatchingPath();
+		if (prop == null){
+			return null;
+		}
+		PrismPropertyValue<T> propValue = prop.getValue(clazz);
+		
+		if (propValue == null){
+			return null;
+		}
+		
+		return propValue.getValue();
 	}
 
 	private void convertFromPassword(Set<Attribute> attributes, PropertyDelta<ProtectedStringType> passwordDelta) throws SchemaException {
@@ -2222,7 +2243,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} else if (!passwordDelta.getElementName().equals(PasswordType.F_VALUE)) {
 			return;
 		}
-		PrismProperty<ProtectedStringType> newPassword = passwordDelta.getPropertyNew();
+		PrismProperty<ProtectedStringType> newPassword = passwordDelta.getPropertyNewMatchingPath();
 		if (newPassword == null || newPassword.isEmpty()) {
 			LOGGER.trace("Skipping processing password delta. Password delta does not contain new value.");
 			return;

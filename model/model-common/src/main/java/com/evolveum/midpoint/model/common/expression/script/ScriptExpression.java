@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -65,6 +66,7 @@ public class ScriptExpression {
     private Collection<FunctionLibrary> functions;
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpression.class);
+	private static final int MAX_CODE_CHARS = 42;
 
     ScriptExpression(ScriptEvaluator evaluator, ScriptExpressionEvaluatorType scriptType) {
         this.scriptType = scriptType;
@@ -166,7 +168,7 @@ public class ScriptExpression {
 	}
 
 	private String formatCode() {
-        return scriptType.getCode();
+		return DebugUtil.excerpt(scriptType.getCode().replaceAll("[\\s\\r\\n]+", " "), MAX_CODE_CHARS);
     }
 	
 	public ItemPath parsePath(String path) {
@@ -182,6 +184,11 @@ public class ScriptExpression {
 //			return null;
 //		}
 //		return xPathHolder.toItemPath();
+	}
+
+	@Override
+	public String toString() {
+		return "ScriptExpression(" + formatCode() + ")";
 	}
 
 }

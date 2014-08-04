@@ -71,7 +71,7 @@ public class PolyStringStrictMatchingRule implements MatchingRule<PolyString> {
 	}
 
 	@Override
-	public boolean matches(PolyString a, String regex) {
+	public boolean matchRegex(PolyString a, String regex) {
 		if (a == null){
 			return false;
 		}

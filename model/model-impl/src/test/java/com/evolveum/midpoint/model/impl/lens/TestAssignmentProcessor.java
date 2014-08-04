@@ -166,6 +166,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
         	accContext.getConstructionDeltaSetTriple();
+        display("accountConstructionDeltaSetTriple", accountConstructionDeltaSetTriple);
         
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);

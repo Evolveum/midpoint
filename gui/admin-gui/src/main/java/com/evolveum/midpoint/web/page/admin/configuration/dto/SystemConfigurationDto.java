@@ -39,14 +39,14 @@ public class SystemConfigurationDto implements Serializable {
     private NotificationConfigurationDto notificationConfig;
 
     public SystemConfigurationDto(){
-        this(null, null);
+        this(null);
     }
 
-    public SystemConfigurationDto(PrismObject<SystemConfigurationType> config, Protector protector) {
-        init(config.asObjectable(), protector);
+    public SystemConfigurationDto(PrismObject<SystemConfigurationType> config) {
+        init(config.asObjectable());
     }
 
-    private void init(SystemConfigurationType config, Protector protector){
+    private void init(SystemConfigurationType config){
         if(config == null){
             return;
         }
@@ -66,7 +66,7 @@ public class SystemConfigurationDto implements Serializable {
         objectTemplateDto = loadObjectTemplate(config);
 
         if(config.getNotificationConfiguration() != null){
-            notificationConfig = new NotificationConfigurationDto(config.getNotificationConfiguration(), protector);
+            notificationConfig = new NotificationConfigurationDto(config.getNotificationConfiguration());
         } else {
             notificationConfig = new NotificationConfigurationDto();
         }
@@ -76,9 +76,9 @@ public class SystemConfigurationDto implements Serializable {
         ValuePolicyType passPolicy = config.getGlobalPasswordPolicy();
 
         if(passPolicy != null){
-            passPolicyDto = new ObjectViewDto<ValuePolicyType>(passPolicy.getOid(), passPolicy.getName().getOrig());
+            passPolicyDto = new ObjectViewDto<>(passPolicy.getOid(), passPolicy.getName().getOrig());
         }else {
-            passPolicyDto = new ObjectViewDto<ValuePolicyType>();
+            passPolicyDto = new ObjectViewDto<>();
         }
 
         passPolicyDto.setType(ValuePolicyType.class);
@@ -89,9 +89,9 @@ public class SystemConfigurationDto implements Serializable {
         ObjectTemplateType objectTemplate = config.getDefaultUserTemplate();
 
         if(objectTemplate != null){
-            objectTemplateDto = new ObjectViewDto<ObjectTemplateType>(objectTemplate.getOid(), objectTemplate.getName().getOrig());
+            objectTemplateDto = new ObjectViewDto<>(objectTemplate.getOid(), objectTemplate.getName().getOrig());
         }else {
-            objectTemplateDto = new ObjectViewDto<ObjectTemplateType>();
+            objectTemplateDto = new ObjectViewDto<>();
         }
 
         objectTemplateDto.setType(ObjectTemplateType.class);

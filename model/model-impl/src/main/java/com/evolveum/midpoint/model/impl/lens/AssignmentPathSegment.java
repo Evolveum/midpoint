@@ -15,6 +15,13 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.util.Collection;
+
+import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -26,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class AssignmentPathSegment implements DebugDumpable {
 	
-	private AssignmentType assignmentType;
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi;
 	private ObjectType target;
 	private ObjectType source;
 	private boolean evaluateConstructions = true;
@@ -34,18 +41,18 @@ public class AssignmentPathSegment implements DebugDumpable {
 	private int evaluationOrder;
 	private ObjectType varThisObject;
 	
-	AssignmentPathSegment(AssignmentType assignmentType, ObjectType target) {
+	AssignmentPathSegment(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi, ObjectType target) {
 		super();
-		this.assignmentType = assignmentType;
+		this.assignmentIdi = assignmentIdi;
 		this.target = target;
 	}
 
-	public AssignmentType getAssignmentType() {
-		return assignmentType;
+	public ItemDeltaItem<PrismContainerValue<AssignmentType>> getAssignmentIdi() {
+		return assignmentIdi;
 	}
 
-	public void setAssignmentType(AssignmentType assignmentType) {
-		this.assignmentType = assignmentType;
+	public void setAssignmentIdi(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi) {
+		this.assignmentIdi = assignmentIdi;
 	}
 
 	public ObjectType getTarget() {
@@ -100,7 +107,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((assignmentType == null) ? 0 : assignmentType.hashCode());
+		result = prime * result + ((assignmentIdi == null) ? 0 : assignmentIdi.hashCode());
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((target == null) ? 0 : target.hashCode());
 		return result;
@@ -115,10 +122,10 @@ public class AssignmentPathSegment implements DebugDumpable {
 		if (getClass() != obj.getClass())
 			return false;
 		AssignmentPathSegment other = (AssignmentPathSegment) obj;
-		if (assignmentType == null) {
-			if (other.assignmentType != null)
+		if (assignmentIdi == null) {
+			if (other.assignmentIdi != null)
 				return false;
-		} else if (!assignmentType.equals(other.assignmentType))
+		} else if (!assignmentIdi.equals(other.assignmentIdi))
 			return false;
 		if (source == null) {
 			if (other.source != null)
@@ -142,8 +149,12 @@ public class AssignmentPathSegment implements DebugDumpable {
 		};
 		sb.append(" ");
 		sb.append(source).append(" ");
-		if (assignmentType.getConstruction() != null) {
-			sb.append("Constr '"+assignmentType.getConstruction().getDescription()+"' ");
+		PrismContainer<AssignmentType> assignment = (PrismContainer<AssignmentType>) assignmentIdi.getAnyItem();
+		if (assignment != null) {
+			AssignmentType assignmentType = assignment.getValue().asContainerable();
+			if (assignmentType.getConstruction() != null) {
+				sb.append("Constr '"+assignmentType.getConstruction().getDescription()+"' ");
+			}
 		}
 		if (target != null) {
 			sb.append("-> ").append(target);
@@ -168,7 +179,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "evaluationOrder", evaluationOrder, indent + 1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "assignmentType", assignmentType.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "assignment", assignmentIdi.toString(), indent + 1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "target", target==null?"null":target.toString(), indent + 1);
 		sb.append("\n");

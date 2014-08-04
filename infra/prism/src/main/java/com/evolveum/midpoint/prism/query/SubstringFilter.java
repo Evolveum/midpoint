@@ -247,7 +247,7 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 					if (!anchorEnd) {
 						sb.append(".*");
 					}
-					if (matching.matches(value, sb.toString())){
+					if (matching.matchRegex(value, sb.toString())){
 						return true;
 					}
 				}

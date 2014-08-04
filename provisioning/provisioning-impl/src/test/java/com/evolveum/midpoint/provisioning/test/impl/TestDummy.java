@@ -62,6 +62,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -1888,8 +1889,8 @@ public class TestDummy extends AbstractDummyTest {
 		
 		assertSteadyResource();
 	}
-
-	@Test
+	
+		@Test
 	public void test150DisableAccount() throws Exception {
 		final String TEST_NAME = "test150DisableAccount";
 		TestUtil.displayTestTile(TEST_NAME);
@@ -1933,6 +1934,50 @@ public class TestDummy extends AbstractDummyTest {
 		
 		assertSteadyResource();
 	}
+		
+		@Test
+		public void test151ActivationStatusUndefinedAccount() throws Exception {
+			final String TEST_NAME = "test151ActivationStatusUndefinedAccount";
+			TestUtil.displayTestTile(TEST_NAME);
+			// GIVEN
+
+			Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+			OperationResult result = task.getResult();
+
+			ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, 
+					result).asObjectable();
+			assertNotNull(accountType);
+			display("Retrieved account shadow", accountType);
+
+			DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+			assertFalse("Account is not disabled", dummyAccount.isEnabled());
+			
+			syncServiceMock.reset();
+
+			ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
+					ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
+					ActivationStatusType.DISABLED);
+			display("ObjectDelta", delta);
+			delta.checkConsistence();
+
+			// WHEN
+			provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+					new OperationProvisioningScriptsType(), null, task, result);
+
+			// THEN
+			result.computeStatus();
+			display("modifyObject result", result);
+			TestUtil.assertSuccess(result);
+			
+			delta.checkConsistence();
+			// check if activation was changed
+			dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+			assertFalse("Dummy account "+ACCOUNT_WILL_USERNAME+" is enabled, expected disabled", dummyAccount.isEnabled());
+			
+			syncServiceMock.assertNotifySuccessOnly();
+			
+			assertSteadyResource();
+		}
 	
 	@Test
 	public void test151EnableAccount() throws Exception {
@@ -1977,6 +2022,8 @@ public class TestDummy extends AbstractDummyTest {
 		
 		assertSteadyResource();
 	}
+	
+	
 	
 	@Test
 	public void test152SetValidFrom() throws Exception {
@@ -2066,6 +2113,57 @@ public class TestDummy extends AbstractDummyTest {
 		dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertEquals("Wrong account validFrom in account "+ACCOUNT_WILL_USERNAME, new Date(VALID_FROM_MILLIS), dummyAccount.getValidFrom());
 		assertEquals("Wrong account validTo in account "+ACCOUNT_WILL_USERNAME, new Date(VALID_TO_MILLIS), dummyAccount.getValidTo());
+		assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
+		
+		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
+	}
+	
+	@Test
+	public void test154DeleteValidToValidFrom() throws Exception {
+		final String TEST_NAME = "test154DeleteValidToValidFrom";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		ShadowType accountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, 
+				result).asObjectable();
+		assertNotNull(accountType);
+
+		display("Retrieved account shadow", accountType);
+
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+		assertTrue(dummyAccount.isEnabled());
+		
+		syncServiceMock.reset();
+
+//		long millis = VALID_TO_MILLIS;
+		
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
+				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
+		PrismObjectDefinition def = accountType.asPrismObject().getDefinition();
+		PropertyDelta validFromDelta = PropertyDelta.createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM, def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM), VALID_FROM_MILLIS);
+		delta.addModification(validFromDelta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(),
+				delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		TestUtil.assertSuccess(result);
+		
+		delta.checkConsistence();
+		// check if activation was changed
+		dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+		assertNull("Wrong account validTo in account "+ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
+		assertNull("Wrong account validFrom in account "+ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
 		assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
 		
 		syncServiceMock.assertNotifySuccessOnly();

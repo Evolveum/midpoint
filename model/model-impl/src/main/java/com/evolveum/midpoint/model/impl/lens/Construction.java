@@ -90,7 +90,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	private OriginType originType;
 	private String channel;
 	private LensContext<F> lensContext;
-	private ObjectDeltaObject<F> userOdo;
+	private ObjectDeltaObject<F> focusOdo;
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
 	private MappingFactory mappingFactory;
@@ -142,8 +142,8 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		this.lensContext = lensContext;
 	}
 
-	public void setUserOdo(ObjectDeltaObject<F> userOdo) {
-		this.userOdo = userOdo;
+	public void setFocusOdo(ObjectDeltaObject<F> focusOdo) {
+		this.focusOdo = focusOdo;
 	}
 
 	public ObjectResolver getObjectResolver() {
@@ -176,6 +176,10 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 
 	public void setMappingFactory(MappingFactory mappingFactory) {
 		this.mappingFactory = mappingFactory;
+	}
+
+	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
+		return refinedObjectClassDefinition;
 	}
 
 	public ShadowKindType getKind() {
@@ -435,12 +439,12 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 			return null;
 		}
 		
-		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
 		mapping.setMappingQName(mappingQName);
-		mapping.setSourceContext(userOdo);
-		mapping.setRootNode(userOdo);
+		mapping.setSourceContext(focusOdo);
+		mapping.setRootNode(focusOdo);
 		mapping.setDefaultTargetDefinition(outputDefinition);
 		mapping.setOriginType(originType);
 		mapping.setOriginObject(source);
@@ -456,10 +460,10 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		
 		// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present
 		// (e.g. in old values in ADD situations and new values in DELETE situations).
-		if (userOdo.getOldObject() == null) {
+		if (focusOdo.getOldObject() == null) {
 			mapping.setConditionMaskOld(false);
 		}
-		if (userOdo.getNewObject() == null) {
+		if (focusOdo.getNewObject() == null) {
 			mapping.setConditionMaskNew(false);
 		}
 
@@ -542,7 +546,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabel(sb, "Construction", indent);
 		if (refinedObjectClassDefinition == null) {
-			sb.append("null");
+			sb.append(" (no object class definition)");
 		} else {
 			sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
 		}
@@ -562,8 +566,10 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 				sb.append(mapping.debugDump(indent+2));
 			}
 		}
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "assignmentPath", assignmentPath, indent + 1);
+		if (assignmentPath != null) {
+			sb.append("\n");
+			sb.append(assignmentPath.debugDump(indent+1));
+		}
 		return sb.toString();
 	}
 

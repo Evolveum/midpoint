@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -188,7 +190,7 @@ public class AssignmentProcessor {
         ContainerDelta<AssignmentType> assignmentDelta = getExecutionWaveAssignmentDelta(focusContext);
         assignmentDelta.expand(focusContext.getObjectCurrent());
 
-        LOGGER.trace("Assignment delta {}", assignmentDelta.debugDump());
+        LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDump());
 
         Collection<PrismContainerValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
 
@@ -206,11 +208,9 @@ public class AssignmentProcessor {
         assignmentEvaluator.setNow(now);
         assignmentEvaluator.setSystemConfiguration(context.getSystemConfiguration());
 
-        // We will be collecting the evaluated account constructions into these three sets. 
+        // We will be collecting the evaluated account constructions into these three maps. 
         // It forms a kind of delta set triple for the account constructions.
-        Map<ResourceShadowDiscriminator, ConstructionPack> zeroConstructionMap = new HashMap<ResourceShadowDiscriminator, ConstructionPack>();
-        Map<ResourceShadowDiscriminator, ConstructionPack> plusConstructionMap = new HashMap<ResourceShadowDiscriminator, ConstructionPack>();
-        Map<ResourceShadowDiscriminator, ConstructionPack> minusConstructionMap = new HashMap<ResourceShadowDiscriminator, ConstructionPack>();
+        DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple = new DeltaMapTriple<>();
 
         LOGGER.trace("Current assignments {}", SchemaDebugUtil.prettyPrint(assignmentsCurrent));
         LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
@@ -236,31 +236,35 @@ public class AssignmentProcessor {
         for (PrismContainerValue<AssignmentType> assignmentCVal : allAssignments) {
             AssignmentType assignmentType = assignmentCVal.asContainerable();
             PrismContainerValue<AssignmentType> assignmentCValOld = assignmentCVal;
+            ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+            assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
             
             boolean forceRecon = false;
             // This really means whether the WHOLE assignment was changed (e.g. added/delted/replaced). It tells nothing
             // about "micro-changes" inside assignment, these will be processed later.
-            boolean isAssignmentChanged = containsRealValue(changedAssignments,assignmentCVal);
+            boolean isAssignmentChanged = containsRealValue(changedAssignments, assignmentCVal);
             String assignmentPlacementDesc;
+            
             if (isAssignmentChanged) {
+            	// Whole assignment added or deleted
             	assignmentPlacementDesc = "delta for "+source;
             } else {
             	assignmentPlacementDesc = source.toString();
             	Collection<? extends ItemDelta<?>> assignmentItemDeltas = getExecutionWaveAssignmentItemDeltas(focusContext, assignmentCVal.getId());
             	if (assignmentItemDeltas != null && !assignmentItemDeltas.isEmpty()) {
-	            	// Make sure we clone first to avoid side-effects
-	            	PrismContainerValue<AssignmentType> assignmentCValClone = assignmentCVal.clone();
-	            	assignmentCValClone.setParent(assignmentCVal.getParent());
-	            	assignmentCVal = assignmentCValClone;
-	            	assignmentType = assignmentCVal.asContainerable();
-	            	applyAssignemntMicroDeltas(assignmentItemDeltas, assignmentCVal);
-	            	// We do not exactly know what was changed. This may be a replace change, etc.
-	            	// Even if we know we do not bother to compute it now. This is not a performance-critical case anyway
-	            	// So we just force reconciliation for this case. It will sort it out.
+            		// Small changes inside assignment, but otherwise the assignment stays as it is (not added or deleted)
+            		assignmentIdi.setSubItemDeltas(assignmentItemDeltas);
+            		
+            		// The subItemDeltas above will handle some changes. But not other.
+            		// E.g. a replace of the whole construction will not be handled properly.
+            		// Therefore we force recon to sort it out.
 	            	forceRecon = true;
+	            	
 	            	isAssignmentChanged = true;
             	}
             }
+            
+            assignmentIdi.recompute();
             
             // The following code is using collectToAccountMap() to collect the account constructions to one of the three "delta"
             // sets (zero, plus, minus). It is handling several situations that needs to be handled specially.
@@ -274,7 +278,7 @@ public class AssignmentProcessor {
             	if (LOGGER.isTraceEnabled()) {
             		LOGGER.trace("Processing focus delete for: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
             	}
-            	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+            	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                 if (evaluatedAssignment == null) {
                 	continue;
                 }
@@ -296,21 +300,21 @@ public class AssignmentProcessor {
             		boolean willHaveValue = assignmentDelta.isValueToReplace(assignmentCVal, true);
             		if (hadValue && willHaveValue) {
             			// No change
-            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
     	                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
             		} else if (willHaveValue) {
             			// add
-            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
 	                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
             		} else if (hadValue) {
             			// delete
-            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, true, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
@@ -336,7 +340,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, phantom add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 				            	}
-		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -345,7 +349,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 				            	}
-		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -357,7 +361,7 @@ public class AssignmentProcessor {
 		                	if (LOGGER.isTraceEnabled()) {
 			            		LOGGER.trace("Processing changed assignment, delete: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
-		                	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, true, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                    if (evaluatedAssignment == null) {
 		                    	continue;
 		                    }
@@ -376,7 +380,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}", new Object[]{isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
-		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -386,7 +390,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}", new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
-		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -396,7 +400,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}", new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
-		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -410,7 +414,7 @@ public class AssignmentProcessor {
 		            		LOGGER.trace("Processing unchanged assignment {}", new Object[]{SchemaDebugUtil.prettyPrint(assignmentCVal)});
 		            	}
 		            	boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
-		            	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		            	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                if (evaluatedAssignment == null) {
 		                	continue;
 		                }
@@ -451,14 +455,11 @@ public class AssignmentProcessor {
 		// because there may be interaction from focusMappings of some roles to outbound mappings of other roles.
 		// Now we have complete focus with all the focusMappings so we can evaluate the constructions
 		evaluateConstructions(context, evaluatedAssignmentTriple, task, result);
-		collectToConstructionMap(context, evaluatedAssignmentTriple.getZeroSet(), zeroConstructionMap, result);
-    	collectToConstructionMap(context, evaluatedAssignmentTriple.getPlusSet(), plusConstructionMap, result);
-    	collectToConstructionMap(context, evaluatedAssignmentTriple.getMinusSet(), minusConstructionMap, result);
+		collectToConstructionMaps(context, evaluatedAssignmentTriple, constructionMapTriple, result);
         
         if (LOGGER.isTraceEnabled()) {
             // Dump the maps
-            LOGGER.trace("Projection maps:\nZERO:\n{}\nPLUS:\n{}\nMINUS:\n{}\n", new Object[]{dumpAccountMap(zeroConstructionMap),
-                    dumpAccountMap(plusConstructionMap), dumpAccountMap(minusConstructionMap)});
+            LOGGER.trace("Projection maps:\n{}", constructionMapTriple.debugDump());
         }
         
         // Now we are processing constructions from all the three sets once again. We will create projection contexts
@@ -466,7 +467,7 @@ public class AssignmentProcessor {
         // I.e. zero means unchanged, plus means added, minus means deleted. That will be recorded in the SynchronizationPolicyDecision.
         // We will also collect all the construction triples to projection context. These will be used later for computing
         // actual attribute deltas (in consolidation processor).
-        Collection<ResourceShadowDiscriminator> allAccountTypes = MiscUtil.union(zeroConstructionMap.keySet(), plusConstructionMap.keySet(), minusConstructionMap.keySet());
+        Collection<ResourceShadowDiscriminator> allAccountTypes = constructionMapTriple.unionKeySets();
         for (ResourceShadowDiscriminator rat : allAccountTypes) {
 
             if (rat.getResourceOid() == null) {
@@ -478,7 +479,7 @@ public class AssignmentProcessor {
             String desc = rat.toHumanReadableString();
 
             // SITUATION: The projection should exist (if valid), there is NO CHANGE in assignments
-            if (zeroConstructionMap.containsKey(rat)) {
+            if (constructionMapTriple.getZeroMap().containsKey(rat)) {
             	
                 LensProjectionContext projectionContext = context.findProjectionContext(rat);
                 if (projectionContext == null) {
@@ -487,7 +488,7 @@ public class AssignmentProcessor {
                 	// Pretend that the assignment was just added. That should do.
                 	projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
                 }
-                ConstructionPack constructionPack = zeroConstructionMap.get(rat);
+                ConstructionPack constructionPack = constructionMapTriple.getZeroMap().get(rat);
                 if (constructionPack.hasValidAssignment()) {
                 	LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
 	            	projectionContext.setLegal(true);
@@ -502,13 +503,13 @@ public class AssignmentProcessor {
 
                 
             // SITUATION: The projection is both ASSIGNED and UNASSIGNED
-            } else if (plusConstructionMap.containsKey(rat) && minusConstructionMap.containsKey(rat)) {
+            } else if (constructionMapTriple.getPlusMap().containsKey(rat) && constructionMapTriple.getMinusMap().containsKey(rat)) {
             	// Account was removed and added in the same operation. This is the case if e.g. one role is
             	// removed and another is added and they include the same account.
             	// Keep original account state
             	
-            	ConstructionPack plusPack = plusConstructionMap.get(rat);
-            	ConstructionPack minusPack = minusConstructionMap.get(rat);
+            	ConstructionPack plusPack = constructionMapTriple.getPlusMap().get(rat);
+            	ConstructionPack minusPack = constructionMapTriple.getMinusMap().get(rat);
             	
             	if (plusPack.hasValidAssignment() && minusPack.hasValidAssignment()) {
             	
@@ -568,9 +569,9 @@ public class AssignmentProcessor {
                 
 
             // SITUATION: The projection is ASSIGNED
-            } else if (plusConstructionMap.containsKey(rat)) {
+            } else if (constructionMapTriple.getPlusMap().containsKey(rat)) {
             	
-            	ConstructionPack constructionPack = plusConstructionMap.get(rat);
+            	ConstructionPack constructionPack = constructionMapTriple.getPlusMap().get(rat);
                 if (constructionPack.hasValidAssignment()) {
 	            	LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
 	            	projectionContext.setAssigned(true);
@@ -586,7 +587,7 @@ public class AssignmentProcessor {
                 }
 
         	// SITUATION: The projection is UNASSIGNED
-            } else if (minusConstructionMap.containsKey(rat)) {
+            } else if (constructionMapTriple.getMinusMap().containsKey(rat)) {
             	
             	if (accountExists(context,rat)) {
             		LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
@@ -615,14 +616,14 @@ public class AssignmentProcessor {
 
             PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountDeltaSetTriple = 
             		new PrismValueDeltaSetTriple<PrismPropertyValue<Construction>>(
-            				getConstructions(zeroConstructionMap.get(rat)),
-            				getConstructions(plusConstructionMap.get(rat)),
-            				getConstructions(minusConstructionMap.get(rat)));
+            				getConstructions(constructionMapTriple.getZeroMap().get(rat)),
+            				getConstructions(constructionMapTriple.getPlusMap().get(rat)),
+            				getConstructions(constructionMapTriple.getMinusMap().get(rat)));
             LensProjectionContext accountContext = context.findProjectionContext(rat);
             if (accountContext != null) {
             	// This can be null in a exotic case if we delete already deleted account
             	accountContext.setConstructionDeltaSetTriple(accountDeltaSetTriple);
-            	if (isForceRecon(zeroConstructionMap.get(rat)) || isForceRecon(plusConstructionMap.get(rat)) || isForceRecon(minusConstructionMap.get(rat))) {
+            	if (isForceRecon(constructionMapTriple.getZeroMap().get(rat)) || isForceRecon(constructionMapTriple.getPlusMap().get(rat)) || isForceRecon(constructionMapTriple.getMinusMap().get(rat))) {
             		accountContext.setDoReconciliation(true);
             	}
             }
@@ -703,38 +704,71 @@ public class AssignmentProcessor {
     	}
     }
     
-    private <F extends FocusType> void collectToConstructionMap(LensContext<F> context,
+    private <F extends FocusType> void collectToConstructionMaps(LensContext<F> context,
+    		DeltaSetTriple<EvaluatedAssignment<F>> evaluatedAssignmentTriple, 
+    		DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple,
+    		OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	
+    	collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getZeroSet(), constructionMapTriple, PlusMinusZero.ZERO, result);
+    	collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getPlusSet(), constructionMapTriple, PlusMinusZero.PLUS, result);
+    	collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getMinusSet(), constructionMapTriple, PlusMinusZero.MINUS, result);
+    }
+    
+    private <F extends FocusType> void collectToConstructionMapFromEvaluatedAssignments(LensContext<F> context,
     		Collection<EvaluatedAssignment<F>> evaluatedAssignments,
-    		Map<ResourceShadowDiscriminator, ConstructionPack> constructionMap, 
+    		DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple, PlusMinusZero mode,
     		OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		for (EvaluatedAssignment<F> evaluatedAssignment: evaluatedAssignments) {
 	    	if (LOGGER.isTraceEnabled()) {
-	    		LOGGER.trace("Collecting evaluated assignment:\n{}", evaluatedAssignment.debugDump());
+	    		LOGGER.trace("Collecting constructions from evaluated assignment:\n{}", evaluatedAssignment.debugDump());
 	    	}
-	        for (Construction<F> construction : evaluatedAssignment.getConstructions()) {
-	            String resourceOid = construction.getResource(result).getOid();
-	            String intent = construction.getIntent();
-	            ShadowKindType kind = construction.getKind();
-	            ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
-	            intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
-	            ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent);
-	            ConstructionPack constructionPack = null;
-	            if (constructionMap.containsKey(rat)) {
-	                constructionPack = constructionMap.get(rat);
-	            } else {
-	                constructionPack = new ConstructionPack();
-	                constructionMap.put(rat, constructionPack);
-	            }
-	            constructionPack.add(new PrismPropertyValue<Construction>(construction));
-	            if (evaluatedAssignment.isValid()) {
-	            	constructionPack.setHasValidAssignment(true);
-	            }
-	            if (evaluatedAssignment.isForceRecon()) {
-	            	constructionPack.setForceRecon(true);
-	            }
-	        }
-    	}
+	    	DeltaSetTriple<Construction<F>> constructionTriple = evaluatedAssignment.getConstructions();
+	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getZeroSet(), constructionMapTriple, mode, PlusMinusZero.ZERO, result);
+	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getPlusSet(), constructionMapTriple, mode, PlusMinusZero.PLUS, result);
+	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getMinusSet(), constructionMapTriple, mode, PlusMinusZero.MINUS, result);
+		}
     }
+    
+    private <F extends FocusType> void collectToConstructionMapFromEvaluatedConstructions(LensContext<F> context,
+    		EvaluatedAssignment<F> evaluatedAssignment,
+    		Collection<Construction<F>> evaluatedConstructions,
+    		DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple, 
+    		PlusMinusZero mode1, PlusMinusZero mode2,
+    		OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	
+        for (Construction<F> construction : evaluatedConstructions) {
+        	
+        	PlusMinusZero mode = PlusMinusZero.compute(mode1, mode2);
+        	Map<ResourceShadowDiscriminator, ConstructionPack> constructionMap = constructionMapTriple.getMap(mode);
+        	if (constructionMap == null) {
+        		continue;
+        	}
+        	
+            String resourceOid = construction.getResource(result).getOid();
+            String intent = construction.getIntent();
+            ShadowKindType kind = construction.getKind();
+            ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
+            intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
+            ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent);
+            ConstructionPack constructionPack = null;
+            if (constructionMap.containsKey(rat)) {
+                constructionPack = constructionMap.get(rat);
+            } else {
+                constructionPack = new ConstructionPack();
+                constructionMap.put(rat, constructionPack);
+            }
+            constructionPack.add(new PrismPropertyValue<Construction>(construction));
+            if (evaluatedAssignment.isValid()) {
+            	constructionPack.setHasValidAssignment(true);
+            }
+            if (evaluatedAssignment.isForceRecon()) {
+            	constructionPack.setForceRecon(true);
+            }
+        }
+	}
+    
+    
+
     
 	private Collection<PrismContainerValue<AssignmentType>> mergeAssignments(
 			Collection<PrismContainerValue<AssignmentType>> currentAssignments,
@@ -756,18 +790,18 @@ public class AssignmentProcessor {
 		return all;
 	}
 	
-	private <F extends FocusType> EvaluatedAssignment<F> evaluateAssignment(AssignmentType assignmentType, 
-			LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator, 
+	private <F extends FocusType> EvaluatedAssignment<F> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi,
+			boolean evaluateOld, LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator, 
 			String assignmentPlacementDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
         try{
         	// Evaluate assignment. This follows to the assignment targets, follows to the inducements, 
         	// evaluates all the expressions, etc. 
-        	EvaluatedAssignment<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, task, result);
+        	EvaluatedAssignment<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, evaluateOld, source, assignmentPlacementDesc, task, result);
         	context.rememberResources(evaluatedAssignment.getResources(result));
         	return evaluatedAssignment;
         } catch (ObjectNotFoundException ex){
         	if (LOGGER.isTraceEnabled()) {
-            	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(assignmentType));
+            	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(LensUtil.getAssignmentType(assignmentIdi, evaluateOld)));
             }
         	if (ModelExecuteOptions.isForce(context.getOptions())){
         		return null;
@@ -775,6 +809,7 @@ public class AssignmentProcessor {
         	ModelUtils.recordFatalError(result, ex);
         	return null;
         } catch (SchemaException ex){
+        	AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
         	if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(assignmentType));
             }
@@ -861,20 +896,6 @@ public class AssignmentProcessor {
 			return false;
 		}
 		return accountConstructionPack.isForceRecon();
-	}
-
-
-	private void applyAssignemntMicroDeltas(Collection<? extends ItemDelta<?>> assignmentItemDeltas, PrismContainerValue<AssignmentType> assignmentCVal) throws SchemaException {
-		for (ItemDelta<?> assignmentItemDelta: assignmentItemDeltas) {
-			ItemDelta<?> assignmentItemDeltaClone = assignmentItemDelta.clone();
-			ItemPath deltaPath = assignmentItemDeltaClone.getParentPath();
-			ItemPath tailPath = deltaPath.tail();
-			if (tailPath.first() instanceof IdItemPathSegment) {
-				tailPath = tailPath.tail();
-			}
-			assignmentItemDeltaClone.setParentPath(tailPath);
-			assignmentItemDeltaClone.applyTo(assignmentCVal);
-		}
 	}
 
 	/**
@@ -1110,8 +1131,8 @@ public class AssignmentProcessor {
 			// Same thing, this cannot exclude itself
 			return;
 		}
-		for(Construction constructionA: assignmentA.getConstructions()) {
-			for(Construction constructionB: assignmentB.getConstructions()) {
+		for(Construction constructionA: assignmentA.getConstructions().getNonNegativeValues()) {
+			for(Construction constructionB: assignmentB.getConstructions().getNonNegativeValues()) {
 				checkExclusion(constructionA, assignmentA, constructionB, assignmentB);
 			}
 		}

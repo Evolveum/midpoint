@@ -145,14 +145,12 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 	}
 	
 	@Override
-	public void applyTo(Item item) throws SchemaException {
-		if (!(item instanceof PrismContainer)) {
-			throw new SchemaException("Cannot apply container delta "+this+" to item "+item+" of type "+item.getClass());
-		}
-		super.applyTo(item);
+	protected boolean isApplicableToType(Item item) {
+		return item instanceof PrismContainer;
 	}
-	
-	public ItemDelta<?> findItemDelta(ItemPath path) {
+
+	@Override
+	public ItemDelta<?> getSubDelta(ItemPath path) {
 		if (path.isEmpty()) {
 			return this;
 		}

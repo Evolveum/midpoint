@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.Transformer;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -322,6 +323,21 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 		}
 		for (T element: set) {
 			visitor.visit(element);
+		}
+	}
+	
+	public <X> void transform(DeltaSetTriple<X> transformTarget, Transformer<T,X> transformer) {
+		for (T orig: getZeroSet()) {
+			X transformed = transformer.transform(orig);
+			transformTarget.addToZeroSet(transformed);
+		}
+		for (T orig: getPlusSet()) {
+			X transformed = transformer.transform(orig);
+			transformTarget.addToPlusSet(transformed);
+		}
+		for (T orig: getMinusSet()) {
+			X transformed = transformer.transform(orig);
+			transformTarget.addToMinusSet(transformed);
 		}
 	}
 

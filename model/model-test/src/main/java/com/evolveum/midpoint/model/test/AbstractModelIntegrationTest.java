@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,11 +109,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -1484,27 +1484,36 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismObject<SystemConfigurationType> systemConfig = repositoryService.getObject(SystemConfigurationType.class,
 				SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, parentResult);
 		
-		PrismContainerValue<ObjectTypeTemplateType> deleteValue = null;
-		for (ObjectTypeTemplateType objectTemplate: systemConfig.asObjectable().getObjectTemplate()) {
-			if (objectType.equals(objectTemplate)) {
-				deleteValue = objectTemplate.asPrismContainerValue();
+		PrismContainerValue<ObjectPolicyConfigurationType> oldValue = null;
+		for (ObjectPolicyConfigurationType focusPolicyType: systemConfig.asObjectable().getDefaultObjectPolicyConfiguration()) {
+			if (objectType.equals(focusPolicyType.getType())) {
+				oldValue = focusPolicyType.asPrismContainerValue();
 			}
 		}
 		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>();
 		
-		if (deleteValue != null) {
-			ContainerDelta<ObjectTypeTemplateType> deleteDelta = ContainerDelta.createModificationDelete(SystemConfigurationType.F_OBJECT_TEMPLATE, 
-					SystemConfigurationType.class, prismContext, deleteValue);
+		if (oldValue != null) {
+			ContainerDelta<ObjectPolicyConfigurationType> deleteDelta = ContainerDelta.createModificationDelete(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION, 
+					SystemConfigurationType.class, prismContext, oldValue.clone());
 			((Collection)modifications).add(deleteDelta);
 		}
 		
-		ObjectTypeTemplateType newTemplateType = new ObjectTypeTemplateType();
-		newTemplateType.setType(objectType);
+		ObjectPolicyConfigurationType newFocusPolicyType;
+		ContainerDelta<ObjectPolicyConfigurationType> addDelta;
+		if (oldValue == null) {
+			newFocusPolicyType = new ObjectPolicyConfigurationType();
+			newFocusPolicyType.setType(objectType);
+			addDelta = ContainerDelta.createModificationAdd(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION, 
+					SystemConfigurationType.class, prismContext, newFocusPolicyType);
+		} else {
+			PrismContainerValue<ObjectPolicyConfigurationType> newValue = oldValue.clone();
+			addDelta = ContainerDelta.createModificationAdd(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION, 
+					SystemConfigurationType.class, prismContext, newValue);
+			newFocusPolicyType = newValue.asContainerable();
+		}
 		ObjectReferenceType templateRef = new ObjectReferenceType();
 		templateRef.setOid(userTemplateOid);
-		newTemplateType.setObjectTemplateRef(templateRef);
-		ContainerDelta<ObjectTypeTemplateType> addDelta = ContainerDelta.createModificationAdd(SystemConfigurationType.F_OBJECT_TEMPLATE, 
-				SystemConfigurationType.class, prismContext, newTemplateType);
+		newFocusPolicyType.setObjectTemplateRef(templateRef);
 		((Collection)modifications).add(addDelta);
 		
 		repositoryService.modifyObject(SystemConfigurationType.class,

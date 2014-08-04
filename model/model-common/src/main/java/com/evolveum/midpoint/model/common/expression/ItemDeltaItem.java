@@ -22,7 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PartiallyResolvedValue;
+import com.evolveum.midpoint.prism.PartiallyResolvedItem;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -49,9 +49,11 @@ public class ItemDeltaItem<V extends PrismValue> {
 	ItemPath resolvePath = ItemPath.EMPTY_PATH;
 	ItemPath residualPath = null;
 	
-	public ItemDeltaItem() {
-		
-	}
+	// The deltas in sub-items. E.g. if this object represents "ContainerDeltaContainer"
+	// this property contains property deltas that may exist inside the container.
+	Collection<? extends ItemDelta<?>> subItemDeltas;
+	
+	public ItemDeltaItem() { }
 	
 	public ItemDeltaItem(Item<V> itemOld, ItemDelta<V> delta, Item<V> itemNew) {
 		super();
@@ -121,8 +123,16 @@ public class ItemDeltaItem<V extends PrismValue> {
 		this.resolvePath = resolvePath;
 	}
 
+	public Collection<? extends ItemDelta<?>> getSubItemDeltas() {
+		return subItemDeltas;
+	}
+
+	public void setSubItemDeltas(Collection<? extends ItemDelta<?>> subItemDeltas) {
+		this.subItemDeltas = subItemDeltas;
+	}
+
 	public boolean isNull() {
-		return itemOld == null && itemNew == null && delta == null;
+		return itemOld == null && itemNew == null && delta == null && subItemDeltas == null;
 	}
 	
 	public QName getElementName() {
@@ -149,9 +159,17 @@ public class ItemDeltaItem<V extends PrismValue> {
 	
 	public void recompute() throws SchemaException {
 		if (delta != null) {
-			itemNew = delta.getItemNew(itemOld);
+			itemNew = delta.getItemNewMatchingPath(itemOld);
 		} else {
 			itemNew = itemOld;
+		}
+		if (subItemDeltas != null && !subItemDeltas.isEmpty()) {
+			if (itemNew == null) {
+				throw new SchemaException("Cannot apply subitem delta to null new item");
+			}
+			for (ItemDelta<?> subItemDelta: subItemDeltas) {
+				itemNew = (Item<V>) subItemDelta.getItemNew((Item) itemNew);
+			}
 		}
 	}
 
@@ -163,7 +181,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 		ItemPath subResidualPath = null;
 		ItemPath newResolvePath = resolvePath.subPath(path);
 		if (itemOld != null) {
-			PartiallyResolvedValue<X> partialItemOld = itemOld.findPartial(path);
+			PartiallyResolvedItem<X> partialItemOld = itemOld.findPartial(path);
 			if (partialItemOld != null) {
 				subItemOld = partialItemOld.getItem();
 				subResidualPath = partialItemOld.getResidualPath();
@@ -171,7 +189,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 		}
 		Item<X> subItemNew = null;
 		if (itemNew != null) {
-			PartiallyResolvedValue<X> partialItemNew = itemNew.findPartial(path);
+			PartiallyResolvedItem<X> partialItemNew = itemNew.findPartial(path);
 			if (partialItemNew != null) {
 				subItemNew = partialItemNew.getItem();
 				if (subResidualPath == null) {
@@ -179,20 +197,46 @@ public class ItemDeltaItem<V extends PrismValue> {
 				}
 			}
 		}
-		ItemDelta<X> subItemDelta= null;
+		ItemDelta<X> subDelta= null;
 		if (delta != null) {
 			if (delta instanceof ContainerDelta<?>) {
-				subItemDelta = (ItemDelta<X>) ((ContainerDelta<?>)delta).findItemDelta(path);
+				subDelta = (ItemDelta<X>) ((ContainerDelta<?>)delta).getSubDelta(path);
 			} else {
 				CompareResult compareComplex = delta.getPath().compareComplex(newResolvePath);
 				if (compareComplex == CompareResult.EQUIVALENT || compareComplex == CompareResult.SUBPATH) {
-					subItemDelta = (ItemDelta<X>) delta;	
+					subDelta = (ItemDelta<X>) delta;	
 				}
 			}
 		}
-		ItemDeltaItem<X> subIdi = new ItemDeltaItem<X>(subItemOld, subItemDelta, subItemNew);
+		ItemDeltaItem<X> subIdi = new ItemDeltaItem<X>(subItemOld, subDelta, subItemNew);
 		subIdi.setResidualPath(subResidualPath);
 		subIdi.resolvePath = newResolvePath;
+		
+		if (subItemDeltas != null) {
+			Item<X> subAnyItem = subIdi.getAnyItem();
+			Collection<ItemDelta<?>> subSubItemDeltas = new ArrayList<>();
+			for (ItemDelta<?> subItemDelta: subItemDeltas) {
+				CompareResult compareComplex = subItemDelta.getPath().compareComplex(subAnyItem.getPath());
+				if (compareComplex == CompareResult.EQUIVALENT || compareComplex == CompareResult.SUBPATH) {
+					subSubItemDeltas.add(subItemDelta);
+				}
+			}
+			if (!subSubItemDeltas.isEmpty()) {
+				// Niceness optimization
+				if (subDelta == null && subSubItemDeltas.size() == 1) {
+					ItemDelta<?> subSubItemDelta = subSubItemDeltas.iterator().next();
+					if (subSubItemDelta.isApplicableTo(subAnyItem)) {
+						subDelta = (ItemDelta<X>) subSubItemDelta;
+						subIdi.setDelta(subDelta);
+					} else {
+						subIdi.setSubItemDeltas(subSubItemDeltas);
+					}
+				} else {
+					subIdi.setSubItemDeltas(subSubItemDeltas);
+				}
+			}
+		}
+		
 		return subIdi;
 	}
 	
@@ -294,6 +338,41 @@ public class ItemDeltaItem<V extends PrismValue> {
 			outputSet.add(new PrismPropertyValue<X>(outputRval));
 		}
 		return outputSet;
+	}
+	
+	public void applyDefinition(ItemDefinition def, boolean force) throws SchemaException {
+		if (itemNew != null) {
+			itemNew.applyDefinition(def, force);
+		}
+		if (itemOld != null) {
+			itemOld.applyDefinition(def, force);
+		}
+		if (delta != null) {
+			delta.applyDefinition(def, force);
+		}
+	}
+	
+	public ItemDeltaItem<V> clone() {
+		ItemDeltaItem<V> clone = new ItemDeltaItem<>();
+		copyValues(clone);
+		return clone;
+	}
+
+	protected void copyValues(ItemDeltaItem<V> clone) {
+		if (this.itemNew != null) {
+			clone.itemNew = this.itemNew.clone();
+		}
+		if (this.delta != null) {
+			clone.delta = this.delta.clone();
+		}
+		if (this.itemOld != null) {
+			clone.itemOld = this.itemOld.clone();
+		}
+		clone.residualPath = this.residualPath;
+		clone.resolvePath = this.resolvePath;
+		if (this.subItemDeltas != null) {
+			clone.subItemDeltas = ItemDelta.cloneCollection(this.subItemDeltas);
+		}
 	}
 
 	@Override

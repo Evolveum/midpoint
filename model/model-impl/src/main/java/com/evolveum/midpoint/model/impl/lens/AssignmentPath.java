@@ -18,6 +18,8 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -36,9 +38,9 @@ public class AssignmentPath implements DebugDumpable {
 		segments = createNewSegments();
 	}
 	
-	AssignmentPath(AssignmentType assignmentType) {
+	AssignmentPath(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi) {
 		this.segments = createNewSegments();
-		segments.add(new AssignmentPathSegment(assignmentType, null));
+		segments.add(new AssignmentPathSegment(assignmentIdi, null));
 	}
 
 	private List<AssignmentPathSegment> createNewSegments() {
@@ -58,8 +60,8 @@ public class AssignmentPath implements DebugDumpable {
 	}
 
 	
-	public AssignmentType getFirstAssignment() {
-		return segments.get(0).getAssignmentType();
+	public AssignmentPathSegment getFirstAssignmentSegment() {
+		return segments.get(0);
 	}
 	
 	public boolean isEmpty() {
@@ -125,8 +127,20 @@ public class AssignmentPath implements DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabel(sb, "AssignmentPath", indent);
-		sb.append("\n");
-		DebugUtil.debugDump(segments, indent + 1);
+		if (segments == null || segments.isEmpty()) {
+			sb.append(" (empty)");
+		} else {
+			sb.append(" (").append(segments.size()).append(")");
+			if (DebugUtil.isDetailedDebugDump()) {
+				DebugUtil.debugDump(sb, segments, indent + 1, false);
+			} else {
+				for (AssignmentPathSegment segment: segments) {
+					sb.append("\n");
+					DebugUtil.indentDebugDump(sb, indent + 1);
+					sb.append(segment.toString());
+				}
+			}
+		}
 		return sb.toString();
 	}	
 	

@@ -647,25 +647,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 			// If condition is not present at all consider it to be true
 			return true;
 		}
-		if (booleanPropertyValues == null || booleanPropertyValues.isEmpty()) {
-			// No value means false
-			return false;
-		}
-		boolean hasFalse = false;
-		for (PrismPropertyValue<Boolean> pval: booleanPropertyValues) {
-			Boolean value = pval.getValue();
-			if (Boolean.TRUE.equals(value)) {
-				return true;
-			}
-			if (Boolean.FALSE.equals(value)) {
-				hasFalse = true;
-			}
-		}
-		if (hasFalse) {
-			return false;
-		}
-		// No value or all values null. Return default.
-		return true;
+		return ExpressionUtil.computeConditionResult(booleanPropertyValues);
 	}
 
 	public Boolean evaluateTimeConstraintValid(OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -831,6 +813,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		ItemDelta<X> delta = null;
 		Item<X> itemNew = null;
 		ItemPath residualPath = null;
+		Collection<? extends ItemDelta<?>> subItemDeltas = null;
 		if (sourceObject != null) {
 			if (sourceObject instanceof ItemDeltaItem<?>) {
 				itemOld = ((ItemDeltaItem<X>)sourceObject).getItemOld();
@@ -838,6 +821,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 				itemNew = ((ItemDeltaItem<X>)sourceObject).getItemNew();
 				residualPath = ((ItemDeltaItem<X>)sourceObject).getResidualPath();
 				resolvePath = ((ItemDeltaItem<X>)sourceObject).getResolvePath();
+				subItemDeltas = ((ItemDeltaItem<X>)sourceObject).getSubItemDeltas();
 			} else if (sourceObject instanceof Item<?>) {
 				itemOld = (Item<X>) sourceObject;
 				itemNew = (Item<X>) sourceObject;
@@ -848,6 +832,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		Source<X> source = new Source<X>(itemOld, delta, itemNew, name);
 		source.setResidualPath(residualPath);
 		source.setResolvePath(resolvePath);
+		source.setSubItemDeltas(subItemDeltas);
 		return source;
 	}
 	

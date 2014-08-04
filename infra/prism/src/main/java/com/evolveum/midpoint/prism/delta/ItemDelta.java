@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.commons.lang.Validate;
 
 /**
@@ -907,19 +909,6 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 			valuesToDelete = null;
 		}
 	}
-
-	/**
-	 * Apply this delta (path) to a property container.
-	 */
-	public void applyTo(PrismContainer<?> propertyContainer) throws SchemaException {
-		ItemPath itemPath = getPath();
-		Item<?> item = propertyContainer.findOrCreateItem(itemPath, getItemClass(), getDefinition());
-		if (item == null) {
-			throw new IllegalStateException("Cannot apply delta because cannot find item "+itemPath+" in "+propertyContainer);
-		}
-		applyTo(item);
-		cleanupAllTheWayUp(item);
-	}
 	
 	private void cleanupAllTheWayUp(Item<?> item) {
 		if (item.isEmpty()) {
@@ -947,30 +936,51 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		}
 	}
 	
-	/**
-	 * Apply this delta (path) to a property container.
-	 */
-	public void applyTo(PrismContainerValue<?> propertyContainerVal) throws SchemaException {
-		ItemPath itemPath = getPath();
-		Item<?> item = propertyContainerVal.findOrCreateItem(itemPath, getItemClass(), getDefinition());
-		if (item == null) {
-			throw new IllegalStateException("Cannot apply delta because cannot find item "+itemPath+" in "+propertyContainerVal);
-		}
-		applyTo(item);
-		if (item.isEmpty()) {
-			propertyContainerVal.remove(item);
+	public static void applyToMatchingPath(Collection<? extends ItemDelta> deltas, PrismContainer propertyContainer)
+			throws SchemaException {
+		for (ItemDelta delta : deltas) {
+			delta.applyToMatchingPath(propertyContainer);
 		}
 	}
-
-	/**
-	 * Apply this delta (path) to a property.
-	 */
+	
 	public void applyTo(Item item) throws SchemaException {
+		ItemPath itemPath = item.getPath();
+		ItemPath deltaPath = getPath();
+		CompareResult compareComplex = itemPath.compareComplex(deltaPath);
+		if (compareComplex == CompareResult.EQUIVALENT) {
+			applyToMatchingPath(item);
+			cleanupAllTheWayUp(item);
+		} else if (compareComplex == CompareResult.SUBPATH) {
+			if (item instanceof PrismContainer<?>) {
+				PrismContainer<?> container = (PrismContainer<?>)item;
+				ItemPath remainderPath = deltaPath.remainder(itemPath);
+				Item subItem = container.findOrCreateItem(remainderPath, getItemClass(), getDefinition());
+				applyToMatchingPath(subItem);
+			} else {
+				throw new SchemaException("Cannot apply delta "+this+" to "+item+" as delta path is below the item path and the item is not a container");
+			}
+		} else if (compareComplex == CompareResult.SUPERPATH) {
+			throw new SchemaException("Cannot apply delta "+this+" to "+item+" as delta path is above the item path");
+		} else if (compareComplex == CompareResult.NO_RELATION) {
+			throw new SchemaException("Cannot apply delta "+this+" to "+item+" as paths do not match");
+		}
+	}
+	
+	/**
+	 * Applies delta to item were path of the delta and path of the item matches (skips path checks).
+	 */
+	public void applyToMatchingPath(Item item) throws SchemaException {
 		if (item.getDefinition() == null && getDefinition() != null){
 			item.applyDefinition(getDefinition());
 		}
+		if (!getItemClass().isAssignableFrom(item.getClass())) {
+			throw new SchemaException("Cannot apply delta "+this+" to "+item+" because the deltas is applicable only to "+getItemClass().getSimpleName());
+		}
 		if (valuesToReplace != null) {
 			item.replaceAll(PrismValue.cloneCollection(valuesToReplace));
+			// Application of delta might have removed values therefore leaving empty items.
+			// Those needs to be cleaned-up (removed) as empty item is not a legal state.
+			cleanupAllTheWayUp(item);
 			return;
 		}
 		if (valuesToAdd != null) {
@@ -987,8 +997,27 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		if (valuesToDelete != null) {
 			item.removeAll(valuesToDelete);
 		}
-		
+		// Application of delta might have removed values therefore leaving empty items.
+		// Those needs to be cleaned-up (removed) as empty item is not a legal state.
+		cleanupAllTheWayUp(item);
 	}
+	
+	public ItemDelta<?> getSubDelta(ItemPath path) {
+		return this;
+	}
+	
+	public boolean isApplicableTo(Item item) {
+		if (item == null) {
+			return false;
+		}
+		if (!isApplicableToType(item)) {
+			return false;
+		}
+		// TODO: maybe check path?
+		return true;
+	}
+	
+	protected abstract boolean isApplicableToType(Item item);
 	
 	public static void accept(Collection<? extends ItemDelta> modifications, Visitor visitor, ItemPath path,
 			boolean recursive) {
@@ -1001,19 +1030,6 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 				modification.accept(visitor, path.substract(modPath), recursive);
 			}
 		}
-	}
-
-	
-	public <I extends Item> I computeChangedItem(I oldItem) throws SchemaException {
-		if (isEmpty()) {
-			return oldItem;
-		}
-		if (oldItem == null) {
-			// Instantiate empty item
-			oldItem = (I) getDefinition().instantiate();
-		}
-		applyTo(oldItem);
-		return oldItem;
 	}
 
 	/**
@@ -1032,14 +1048,33 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		if (definition == null) {
 			throw new IllegalStateException("No definition in "+this);
 		}
+		Item<V> itemNew;
 		if (itemOld == null) {
 			if (isEmpty()) {
 				return null;
 			}
-			itemOld = definition.instantiate(getElementName());
+			itemNew = definition.instantiate(getElementName());
+		} else {
+			itemNew = itemOld.clone();
 		}
-		Item<V> itemNew = itemOld.clone();
 		applyTo(itemNew);
+		return itemNew;
+	}
+	
+	public Item<V> getItemNewMatchingPath(Item<V> itemOld) throws SchemaException {
+		if (definition == null) {
+			throw new IllegalStateException("No definition in "+this);
+		}
+		Item<V> itemNew;
+		if (itemOld == null) {
+			if (isEmpty()) {
+				return null;
+			}
+			itemNew = definition.instantiate(getElementName());
+		} else {
+			itemNew = itemOld.clone();
+		}
+		applyToMatchingPath(itemNew);
 		return itemNew;
 	}
 	
@@ -1101,6 +1136,18 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		}
 		return clonedSet;
 	}
+	
+	public static <D extends ItemDelta<?>> Collection<D> cloneCollection(Collection<D> orig) {
+		if (orig == null) {
+			return null;
+		}
+		Collection<D> clone = new ArrayList<>(orig.size());
+		for (D delta: orig) {
+			clone.add((D)delta.clone());
+		}
+		return clone;
+	}
+
 
 	@Deprecated
 	public static <T extends PrismValue> PrismValueDeltaSetTriple<T> toDeltaSetTriple(Item<T> item, ItemDelta<T> delta, 

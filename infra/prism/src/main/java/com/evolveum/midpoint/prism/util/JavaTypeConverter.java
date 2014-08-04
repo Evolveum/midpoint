@@ -81,8 +81,14 @@ public class JavaTypeConverter {
 		if (expectedType == Boolean.class && rawValue instanceof String) {
 			return (T) (Boolean)Boolean.parseBoolean(((String)rawValue));
 		}
+		if (expectedType == Boolean.class && rawValue instanceof PolyString) {
+			return (T) (Boolean)Boolean.parseBoolean(((PolyString)rawValue).toString());
+		}
 		if (expectedType == boolean.class && rawValue instanceof String) {
 			return (T) (Boolean)Boolean.parseBoolean(((String)rawValue));
+		}
+		if (expectedType == boolean.class && rawValue instanceof PolyString) {
+			return (T) (Boolean)Boolean.parseBoolean(((PolyString)rawValue).toString());
 		}
 		if (expectedType == String.class && rawValue instanceof Boolean) {
 			return (T) rawValue.toString();

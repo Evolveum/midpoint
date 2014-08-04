@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.aspectj.weaver.patterns.NamePattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -640,6 +641,46 @@ public class ShadowManager {
 		}
 	}
 	
+	public <T> void normalizeDeltas(Collection<? extends ItemDelta<PrismPropertyValue<T>>> deltas,
+			RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+		// TODO Auto-generated method stub
+		for (ItemDelta<PrismPropertyValue<T>> delta : deltas){
+			if (!ShadowType.F_ATTRIBUTES.equals(ItemPath.getName(delta.getPath().first()))){
+				continue;
+			}
+			RefinedAttributeDefinition rAttrDef = objectClassDefinition.findAttributeDefinition(delta.getElementName());
+			if (rAttrDef == null){
+				throw new SchemaException("Failed to normalize attribute: " + delta.getElementName()+ ". Definition for this attribute doesn't exist.");
+			}
+			normalizeDelta(delta, rAttrDef);
+		}
+		
+		
+	}
+	
+	private <T> void normalizeDelta(ItemDelta<PrismPropertyValue<T>> delta, RefinedAttributeDefinition rAttrDef) throws SchemaException{
+		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName());
+		if (matchingRule != null) {
+			if (delta.getValuesToReplace() != null){
+				normalizeValues(delta.getValuesToReplace(), matchingRule);
+			}
+			if (delta.getValuesToAdd() != null){
+				normalizeValues(delta.getValuesToAdd(), matchingRule);
+			}
+			
+			if (delta.getValuesToDelete() != null){
+				normalizeValues(delta.getValuesToDelete(), matchingRule);
+			}
+		}
+	}
+	
+	private <T> void normalizeValues(Collection<PrismPropertyValue<T>> values, MatchingRule<T> matchingRule){
+		for (PrismPropertyValue<T> pval: values) {
+			T normalizedRealValue = matchingRule.normalize(pval.getValue());
+			pval.setValue(normalizedRealValue);
+		}
+	}
+	
 	<T> T getNormalizedAttributeValue(PrismPropertyValue<T> pval, RefinedAttributeDefinition rAttrDef) throws SchemaException {
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName());
 		if (matchingRule != null) {
@@ -670,5 +711,7 @@ public class ShadowManager {
 		Collection<T> valuesA = getNormalizedAttributeValues(attributeA, refinedAttributeDefinition);
 		return MiscUtil.unorderedCollectionEquals(valuesA, Arrays.asList(valuesB));
 	}
+
+	
 
 }

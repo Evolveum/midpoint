@@ -532,7 +532,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
     @Override
-	public <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path) {
+	public <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path) {
     	if (path == null || path.isEmpty()) {
     		// Incomplete path
     		return null;

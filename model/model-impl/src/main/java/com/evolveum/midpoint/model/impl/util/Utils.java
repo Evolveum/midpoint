@@ -52,6 +52,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -390,7 +392,7 @@ public final class Utils {
     		return false;
     	}
 		
-    	PrismProperty<Boolean> item = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+    	PrismProperty<Boolean> item = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 		if (item == null || item.isEmpty()){
 			return false;
 		}
@@ -468,7 +470,7 @@ public final class Utils {
 		PrismObject<SystemConfigurationType> systemConfiguration = null;
 		try {
 				systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-						null, result);
+						SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()), result);
 		} catch (ObjectNotFoundException e) {
 			// just go on ... we will return and continue
 			// This is needed e.g. to set up new system configuration is the old one gets deleted

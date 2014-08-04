@@ -16,26 +16,14 @@
 
 package com.evolveum.midpoint.model.api;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Interface of the Model subsystem that provides scripting (bulk actions) operations.
@@ -55,18 +43,34 @@ public interface ScriptingService {
      *             and assigns ScriptExecutionTaskHandler to it, to execute the script.
      * @param parentResult
      * @throws SchemaException
+     *
+     * TODO consider removing this method (it was meant as a simplified version of the method below)
      */
-    public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException;
+    public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
 
     /**
      * Asynchronously executes any scripting expression.
      *
      * @param expression Expression to be executed.
-     * @param task Task in context of which the script should execute. The task should be "clean", i.e.
-     *             (1) transient, (2) without any handler. This method puts the task into background,
-     *             and assigns ScriptExecutionTaskHandler to it, to execute the script.
+     * @param task Task in context of which the script should execute.
+     *             The task should be "clean", i.e. (1) transient, (2) without any handler.
+     *             This method puts the task into background, and assigns ScriptExecutionTaskHandler
+     *             to it, to execute the script.
      * @param parentResult
      * @throws SchemaException
      */
-    public void evaluateExpressionInBackground(JAXBElement<? extends ScriptingExpressionType> expression, Task task, OperationResult parentResult) throws SchemaException;
+    public void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
+
+    /**
+     * Synchronously executes any scripting expression (with no input data).
+     *
+     * @param expression Scripting expression to execute.
+     * @param task Task in context of which the script should execute (in foreground!)
+     * @param result Operation result
+     * @throws ScriptExecutionException
+     *
+     * TODO return ExecutionContext (requires moving the context to model api)
+     */
+
+    public ScriptExecutionResult evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException, SchemaException, SecurityViolationException;
 }

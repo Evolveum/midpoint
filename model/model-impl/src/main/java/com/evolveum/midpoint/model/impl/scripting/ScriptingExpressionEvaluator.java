@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SearchEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SelectEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.helpers.JaxbHelper;
@@ -43,16 +44,13 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SelectExpressionTy
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -111,7 +109,7 @@ public class ScriptingExpressionEvaluator {
         ActionExpressionType action = new ActionExpressionType();
         action.setType(actionName);
         search.setScriptingExpression(objectFactory.createAction(action));
-        evaluateExpressionInBackground(objectFactory.createSearch(search), task, parentResult);
+        evaluateExpressionInBackground(search, task, parentResult);
     }
 
     /**
@@ -124,7 +122,7 @@ public class ScriptingExpressionEvaluator {
      * @param parentResult
      * @throws SchemaException
      */
-    public void evaluateExpressionInBackground(JAXBElement<? extends ScriptingExpressionType> expression, Task task, OperationResult parentResult) throws SchemaException {
+    public void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "evaluateExpressionInBackground");
         if (!task.isTransient()) {
             throw new IllegalStateException("Task must be transient");
@@ -133,7 +131,7 @@ public class ScriptingExpressionEvaluator {
             throw new IllegalStateException("Task must not have a handler");
         }
         ExecuteScriptType executeScriptType = new ExecuteScriptType();
-        executeScriptType.setScriptingExpression(expression);
+        executeScriptType.setScriptingExpression(jaxbHelper.toJaxbElement(expression));
         task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, executeScriptType);
         task.setHandlerUri(ScriptExecutionTaskHandler.HANDLER_URI);
         taskManager.switchToBackground(task, result);
@@ -148,26 +146,41 @@ public class ScriptingExpressionEvaluator {
      * @param result Operation result
      * @return ExecutionContext, from which the caller can retrieve the output data via getFinalOutput() method,
      *         and the console output via getConsoleOutput() method.
-     * @throws ScriptExecutionException
+     * @throws com.evolveum.midpoint.model.api.ScriptExecutionException
      */
-    public ExecutionContext evaluateExpression(JAXBElement<?> expression, Task task, OperationResult result) throws ScriptExecutionException {
+
+    public ExecutionContext evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException {
         ExecutionContext context = new ExecutionContext(task);
-        Data output = evaluateExpression(expression, Data.createEmpty(), context, result);
+        Data output;
+        try {
+            output = evaluateExpression(expression, Data.createEmpty(), context, result);
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't execute script", e);
+            throw new ScriptExecutionException("Couldn't execute script: " + e.getMessage(), e);
+        }
         result.computeStatusIfUnknown();
         context.setFinalOutput(output);
         return context;
     }
 
+//    public ExecutionContext evaluateExpression(JAXBElement<? extends ScriptingExpressionType> expression, Task task, OperationResult result) throws ScriptExecutionException {
+//        ExecutionContext context = new ExecutionContext(task);
+//        Data output = evaluateExpression(expression.getValue(), Data.createEmpty(), context, result);
+//        result.computeStatusIfUnknown();
+//        context.setFinalOutput(output);
+//        return context;
+//    }
+
     public ExecutionContext evaluateExpression(ExecuteScriptType executeScript, Task task, OperationResult result) throws ScriptExecutionException {
-        return evaluateExpression(executeScript.getScriptingExpression(), task, result);
+        return evaluateExpression(executeScript.getScriptingExpression().getValue(), task, result);
     }
 
-    public ExecutionContext evaluateExpression(JAXBElement<?> expression, OperationResult result) throws ScriptExecutionException {
+    public ExecutionContext evaluateExpression(ScriptingExpressionType expression, OperationResult result) throws ScriptExecutionException {
         Task task = taskManager.createTaskInstance();
         return evaluateExpression(expression, task, result);
     }
 
-    public Data evaluateExpression(JAXBElement<?> expression, Data input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException {
+    public Data evaluateExpression(JAXBElement<? extends ScriptingExpressionType> expression, Data input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException {
         return evaluateExpression((ScriptingExpressionType) expression.getValue(), input, context, parentResult);
     }
 

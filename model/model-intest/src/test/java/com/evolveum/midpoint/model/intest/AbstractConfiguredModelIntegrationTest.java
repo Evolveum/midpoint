@@ -327,6 +327,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String AUTZ_COMMAND_URL = QNameUtil.qNameToUri(AUTZ_COMMAND_QNAME);
 	protected static final QName AUTZ_PUNISH_QNAME = new QName(NS_TEST_AUTZ, "punish");
 	protected static final String AUTZ_PUNISH_URL = QNameUtil.qNameToUri(AUTZ_PUNISH_QNAME);
+	protected static final QName AUTZ_CAPSIZE_QNAME = new QName(NS_TEST_AUTZ, "capsize");
+	protected static final String AUTZ_CAPSIZE_URL = QNameUtil.qNameToUri(AUTZ_CAPSIZE_QNAME);
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
 	

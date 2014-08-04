@@ -86,9 +86,11 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_DISPLAY_NAME = "displayName";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_REQUESTABLE = "requestable";
+    private static final String ID_TENANT = "tenant";
     private static final String ID_IDENTIFIER = "identifier";
     private static final String ID_COST_CENTER = "costCenter";
     private static final String ID_LOCALITY = "locality";
+    private static final String ID_MAIL_DOMAIN = "mailDomain";
     private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
     private static final String ID_VALID_FROM = "validFrom";
     private static final String ID_VALID_TO = "validTo";
@@ -104,6 +106,7 @@ public class PageOrgUnit extends PageAdminUsers {
     private IModel<PrismObject<OrgType>> orgModel;
     private IModel<List<OrgType>> parentOrgUnitsModel;
     private IModel<List<PrismPropertyValue>> orgTypeModel;
+    private IModel<List<PrismPropertyValue>> orgMailDomainModel;
 
     public PageOrgUnit() {
         this(null);
@@ -123,7 +126,7 @@ public class PageOrgUnit extends PageAdminUsers {
 
             @Override
             protected List<PrismPropertyValue> load() {
-                List<PrismPropertyValue> values = new ArrayList<PrismPropertyValue>();
+                List<PrismPropertyValue> values = new ArrayList<>();
 
                 PrismObject<OrgType> org = orgModel.getObject();
                 PrismProperty orgType = org.findProperty(OrgType.F_ORG_TYPE);
@@ -131,6 +134,24 @@ public class PageOrgUnit extends PageAdminUsers {
                     values.add(new PrismPropertyValue(null, OriginType.USER_ACTION, null));
                 } else {
                     values.addAll(orgType.getValues());
+                }
+
+                return values;
+            }
+        };
+
+        orgMailDomainModel = new LoadableModel<List<PrismPropertyValue>>(false) {
+
+            @Override
+            protected List<PrismPropertyValue> load() {
+                List<PrismPropertyValue> values = new ArrayList<>();
+
+                PrismObject<OrgType> org = orgModel.getObject();
+                PrismProperty orgMailDomain = org.findProperty(OrgType.F_MAIL_DOMAIN);
+                if(orgMailDomain == null || orgMailDomain.isEmpty()){
+                    values.add(new PrismPropertyValue(null, OriginType.USER_ACTION, null));
+                } else {
+                    values.addAll(orgMailDomain.getValues());
                 }
 
                 return values;
@@ -185,6 +206,10 @@ public class PageOrgUnit extends PageAdminUsers {
                 OrgType.F_REQUESTABLE), createStringResource("OrgType.requestable"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         form.add(requestable);
 
+        CheckFormGroup tenant = new CheckFormGroup(ID_TENANT, new PrismPropertyModel(orgModel,
+                OrgType.F_TENANT), createStringResource("OrgType.tenant"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+        form.add(tenant);
+
         TextFormGroup identifier = new TextFormGroup(ID_IDENTIFIER, new PrismPropertyModel(orgModel, OrgType.F_IDENTIFIER),
                 createStringResource("OrgType.identifier"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(identifier);
@@ -218,7 +243,7 @@ public class PageOrgUnit extends PageAdminUsers {
 
             @Override
             protected IModel<String> createTextModel(IModel model) {
-                return new PropertyModel<String>(model, "value");
+                return new PropertyModel(model, "value");
             }
 
             @Override
@@ -227,6 +252,21 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         };
         form.add(orgType);
+
+        MultiValueTextFormGroup mailDomain = new MultiValueTextFormGroup(ID_MAIL_DOMAIN, orgMailDomainModel,
+                createStringResource("OrgType.mailDomain"), ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
+
+            @Override
+            protected IModel<String> createTextModel(IModel model) {
+                return new PropertyModel(model, "value");
+            }
+
+            @Override
+            protected Serializable createNewEmptyItem() {
+                return new PrismPropertyValue(null, OriginType.USER_ACTION, null);
+            }
+        };
+        form.add(mailDomain);
 
         MultiValueChoosePanel parentOrgType = new MultiValueChoosePanel(ID_PARENT_ORG_UNITS, parentOrgUnitsModel,
                 createStringResource("ObjectType.parentOrgRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false, OrgType.class) {
@@ -379,6 +419,17 @@ public class PageOrgUnit extends PageAdminUsers {
         for (PrismPropertyValue type : orgTypes) {
             if (StringUtils.isNotEmpty((String) type.getValue())) {
                 orgType.addValue(type);
+            }
+        }
+
+        //update mailDomain values
+        List<PrismPropertyValue> orgMailDomains = orgMailDomainModel.getObject();
+        PrismProperty mailDomain = org.findOrCreateProperty(OrgType.F_MAIL_DOMAIN);
+        mailDomain.clear();
+
+        for(PrismPropertyValue mail: orgMailDomains){
+            if(StringUtils.isNotEmpty((String)mail.getValue())){
+                mailDomain.addValue(mail);
             }
         }
 

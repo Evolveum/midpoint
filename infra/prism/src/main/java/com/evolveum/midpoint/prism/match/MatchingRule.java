@@ -48,7 +48,7 @@ public interface MatchingRule<T> {
 	/**
 	 * Matches value against given regex. 
 	 */
-	boolean matches(T a, String regex);
+	boolean matchRegex(T a, String regex);
 	
 	/**
 	 * Returns a normalized version of the value.

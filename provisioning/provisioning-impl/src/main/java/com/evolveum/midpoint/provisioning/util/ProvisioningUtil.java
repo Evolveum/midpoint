@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.common.StaticExpressionUtil;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
@@ -119,6 +120,10 @@ public class ProvisioningUtil {
 
 	}
 	
+	public static <T extends ShadowType> PolyString determineShadowName(ShadowType shadow) throws SchemaException {
+		return determineShadowName(shadow.asPrismObject());
+	}
+	
 	public static <T extends ShadowType> PolyString determineShadowName(PrismObject<T> shadow) throws SchemaException {
 		String stringName = determineShadowStringName(shadow);
 		if (stringName == null) {
@@ -129,7 +134,8 @@ public class ProvisioningUtil {
 
 	public static <T extends ShadowType> String determineShadowStringName(PrismObject<T> shadow) throws SchemaException {
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-		if (attributesContainer.getNamingAttribute() == null) {
+		ResourceAttribute<String> namingAttribute = attributesContainer.getNamingAttribute();
+		if (namingAttribute == null || namingAttribute.isEmpty()) {
 			// No naming attribute defined. Try to fall back to identifiers.
 			Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
 			// We can use only single identifiers (not composite)
@@ -153,7 +159,20 @@ public class ProvisioningUtil {
 			throw new SchemaException("No naming attribute defined (and identifier not usable)");
 		}
 		// TODO: Error handling
-		return attributesContainer.getNamingAttribute().getValue().getValue();
+		List<PrismPropertyValue<String>> possibleValues = namingAttribute.getValues();
+		
+		if (possibleValues.size() > 1){
+			throw new SchemaException("Cannot determine name of shadow. Found more than one value for naming attribute (attr: "+namingAttribute.getElementName()+", values: {}"+possibleValues+")" );
+		}
+		
+		PrismPropertyValue<String> value = possibleValues.iterator().next();
+		
+		if (value == null){
+			throw new SchemaException("Naming attribute has no value. Could not determine shadow name.");
+		}
+		
+		return value.getValue();
+//		return attributesContainer.getNamingAttribute().getValue().getValue();
 	}
 
 	

@@ -30,7 +30,8 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 	DISCOVER_CONNECTORS("discoverConnectors", "Discover Connectors", "DISCOVER_CONNECTORS_HELP"), 
 	
 	ASSIGN("assign", "Assign", "ASSIGN_HELP"),
-	UNASSIGN("unassign", "Unassign", "UNASSIGN_HELP");
+	UNASSIGN("unassign", "Unassign", "UNASSIGN_HELP"),
+    EXECUTE_SCRIPT("executeScript", "Execute script", "EXECUTE_SCRIPT_HELP");
 	
 	private String url;
 	private String label;

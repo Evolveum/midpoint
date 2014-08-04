@@ -310,7 +310,7 @@ public class ActivationProcessor {
     	
     	if (statusDelta != null && !statusDelta.isDelete()) {
     		// timestamps
-    		PrismProperty<ActivationStatusType> statusPropNew = (PrismProperty<ActivationStatusType>) statusDelta.getItemNew();
+    		PrismProperty<ActivationStatusType> statusPropNew = (PrismProperty<ActivationStatusType>) statusDelta.getItemNewMatchingPath(null);
     		ActivationStatusType statusNew = statusPropNew.getRealValue();
 			PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(statusNew,
 					now, getActivationDefinition(), OriginType.OUTBOUND);

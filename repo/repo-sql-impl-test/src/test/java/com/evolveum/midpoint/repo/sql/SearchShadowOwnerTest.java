@@ -44,7 +44,7 @@ public class SearchShadowOwnerTest extends BaseSQLRepoTest {
         //searching owner for non existing shadow
         OperationResult result = new OperationResult("List owner");
         try {
-            repositoryService.searchShadowOwner("12345", result);
+            repositoryService.searchShadowOwner("12345", null, result);
         } finally {
             result.computeStatus();
             AssertJUnit.assertTrue("current status" + result.getStatus(), result.isFatalError());
@@ -74,7 +74,7 @@ public class SearchShadowOwnerTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("List owner");
 
         //look for account owner
-        PrismObject<UserType> user = repositoryService.searchShadowOwner("11223344", result);
+        PrismObject<UserType> user = repositoryService.searchShadowOwner("11223344", null,  result);
 
         assertNotNull("No owner for account", user);
         PrismProperty name = user.findProperty(ObjectType.F_NAME);
@@ -87,7 +87,7 @@ public class SearchShadowOwnerTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("List owner");
 
         //look for account owner
-        PrismObject<RoleType> role = repositoryService.searchShadowOwner("11223355", result);
+        PrismObject<RoleType> role = repositoryService.searchShadowOwner("11223355", null, result);
 
         assertNotNull("No owner for account", role);
         PrismProperty name = role.findProperty(ObjectType.F_NAME);

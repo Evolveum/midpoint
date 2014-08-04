@@ -112,7 +112,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             PrismObject<SystemConfigurationType> systemConfig = getModelService().getObject(SystemConfigurationType.class,
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, task, result);
 
-            dto = new SystemConfigurationDto(systemConfig, getMidpointApplication().getProtector());
+            dto = new SystemConfigurationDto(systemConfig);
             result.recordSuccess();
         } catch(Exception ex){
             LoggingUtils.logException(LOGGER, "Couldn't load system configuration", ex);
@@ -399,9 +399,11 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             mailServerConfig.setUsername(dto.getUsername());
             mailServerConfig.setTransportSecurity(dto.getMailTransportSecurityType());
 
-            ProtectedStringType pass = new ProtectedStringType();
-            pass.setClearValue(dto.getPassword());
-            mailServerConfig.setPassword(pass);
+            if(dto.getPassword() != null && StringUtils.isNotEmpty(dto.getPassword())){
+                ProtectedStringType pass = new ProtectedStringType();
+                pass.setClearValue(dto.getPassword());
+                mailServerConfig.setPassword(pass);
+            }
 
             if(mailConfig.getServer().isEmpty()){
                 if(dto.isConfigured())

@@ -27,6 +27,7 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -445,15 +446,16 @@ public abstract class ShadowCache {
 
 		afterModifyOnResource(shadow, modifications, parentResult);
 
-		Collection<PropertyDelta<?>> renameDeltas = distillRenameDeltas(modifications, shadow, objectClassDefinition);
+//		Collection<PropertyDelta<?>> renameDeltas = distillRenameDeltas(modifications, shadow, objectClassDefinition, task, parentResult);
 
-		Collection<? extends ItemDelta> sideEffectDelta = convertToPropertyDelta(sideEffectChanges);
-		if (renameDeltas != null) {
-			((Collection) sideEffectDelta).addAll(renameDeltas);
-		}
+		Collection<PropertyDelta<PrismPropertyValue>> sideEffectDelta = convertToPropertyDelta(sideEffectChanges);
+//		shadowManager.
+//		if (renameDeltas != null) {
+//			((Collection) sideEffectDelta).addAll(renameDeltas);
+//		}
 		if (!sideEffectDelta.isEmpty()) {
 			try {
-
+				shadowManager.normalizeDeltas(sideEffectDelta, objectClassDefinition);
 				repositoryService.modifyObject(shadow.getCompileTimeClass(), oid, sideEffectDelta, parentResult);
 				
 			} catch (ObjectAlreadyExistsException ex) {
@@ -471,39 +473,40 @@ public abstract class ShadowCache {
 		return oid;
 	}
 
-	private Collection<PropertyDelta<?>> distillRenameDeltas(Collection<? extends ItemDelta> modifications, 
-			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
-		PropertyDelta<String> nameDelta = (PropertyDelta<String>) ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
-		if (nameDelta == null){
-			return null;
-		}
+//	private Collection<PropertyDelta<?>> distillRenameDeltas(Collection<? extends ItemDelta> modifications, 
+//			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+//		PropertyDelta<String> nameDelta = (PropertyDelta<String>) ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
+//		if (nameDelta == null){
+//			return null;
+//		}
+//
+//		PrismProperty<String> name = nameDelta.getPropertyNew();
+//		String newName = name.getRealValue();
+//		
+//		Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>();
+//		
+//		// $shadow/attributes/icfs:name
+//		String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getElementName()));
+//		PropertyDelta<String> cloneNameDelta = nameDelta.clone();
+//		cloneNameDelta.clearValuesToReplace();
+//		cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(normalizedNewName));
+//		deltas.add(cloneNameDelta);
+//		
+//		// $shadow/name
+//		if (!newName.equals(shadow.asObjectable().getName().getOrig())){
+//			
+//			PrismObject<ShadowType> fullShadow = getShadow(shadow.getOid(), shadow, null, task, parentResult);
+//			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
+//					ProvisioningUtil.determineShadowName(fullShadow));
+//			deltas.add(shadowNameDelta);
+//		}
+//		
+//		return deltas;
+//	}
 
-		PrismProperty<String> name = nameDelta.getPropertyNew();
-		String newName = name.getRealValue();
-		
-		Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>();
-		
-		// $shadow/attributes/icfs:name
-		String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getElementName()));
-		PropertyDelta<String> cloneNameDelta = nameDelta.clone();
-		cloneNameDelta.clearValuesToReplace();
-		cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(normalizedNewName));
-		deltas.add(cloneNameDelta);
-		
-		// $shadow/name
-		if (!newName.equals(shadow.asObjectable().getName().getOrig())){
-			
-			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
-					new PolyString(newName));
-			deltas.add(shadowNameDelta);
-		}
-		
-		return deltas;
-	}
-
-	private Collection<? extends ItemDelta> convertToPropertyDelta(
+	private Collection<PropertyDelta<PrismPropertyValue>> convertToPropertyDelta(
 			Collection<PropertyModificationOperation> sideEffectChanges) {
-		Collection<PropertyDelta> sideEffectDelta = new ArrayList<PropertyDelta>();
+		Collection<PropertyDelta<PrismPropertyValue>> sideEffectDelta = new ArrayList<PropertyDelta<PrismPropertyValue>>();
 		if (sideEffectChanges != null) {
 			for (PropertyModificationOperation mod : sideEffectChanges){
 				sideEffectDelta.add(mod.getPropertyDelta());

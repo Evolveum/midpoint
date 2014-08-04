@@ -216,7 +216,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} else {
 			// Not resource
 		
-			PrismObject<T> repositoryObject = getRepoObject(type, oid, result);
+			PrismObject<T> repositoryObject = getRepoObject(type, oid, rootOptions, result);
 		
 			if (GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isRaw(rootOptions)) {
 			
@@ -239,7 +239,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						if (GetOperationOptions.isRaw(rootOptions)){
 							logWarning(LOGGER, result, "Resource defined in shadow does not exist:  " + e.getMessage(), e);
 						} else{
-						recordFatalError(LOGGER, result, "Resource defined in shadow does not exist:  " + e.getMessage(), e);
+							recordFatalError(LOGGER, result, "Resource defined in shadow does not exist:  " + e.getMessage(), e);
 						throw e;
 						}
 					} catch (CommunicationException e) {
@@ -263,7 +263,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 							(PrismObject<ShadowType>) (repositoryObject), options, task, result);
 		
 				} catch (ObjectNotFoundException e) {
-					recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+					if (!GetOperationOptions.isAllowNotFound(rootOptions)){
+						recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+					}
 					throw e;
 				} catch (CommunicationException e) {
 					recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
@@ -782,7 +784,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		// getting object to modify
-		PrismObject<T> object = getRepoObject(type, oid, result);
+		PrismObject<T> object = getRepoObject(type, oid, null, result);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("**PROVISIONING: modifyObject: object to modify:\n{}.", object.debugDump());
@@ -845,7 +847,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		PrismObject<T> object = getRepoObject(type, oid, result);
+		//TODO: is critical when shadow does not exits anymore?? do we need to log it?? if not, change null to allowNotFound options
+		PrismObject<T> object = getRepoObject(type, oid, null, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("**PROVISIONING: Object from repository to delete:\n{}", object.debugDump());
 		}
@@ -958,7 +961,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		PrismObject<ResourceType> resource = null;
 		
 		try {
-			resource = getRepoObject(ResourceType.class, resourceOid, testResult);
+			resource = getRepoObject(ResourceType.class, resourceOid, null, testResult);
 			resourceManager.testConnection(resource, testResult);
 
 //		} catch (ObjectNotFoundException ex) {
@@ -1563,12 +1566,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return resourceObjectShadowDefinition;
 	}
 	
-	private <T extends ObjectType> PrismObject<T> getRepoObject(Class<T> type, String oid, OperationResult result) throws ObjectNotFoundException, SchemaException{
+	private <T extends ObjectType> PrismObject<T> getRepoObject(Class<T> type, String oid, GetOperationOptions options, OperationResult result) throws ObjectNotFoundException, SchemaException{
 		
 		try {
 			return getCacheRepositoryService().getObject(type, oid, null, result);
 		} catch (ObjectNotFoundException e) {
-			recordFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);
+			if (!GetOperationOptions.isAllowNotFound(options)){
+				recordFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);
+			}
 //			result.recordFatalError("Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);
 			throw e;
 		} catch (SchemaException ex) {

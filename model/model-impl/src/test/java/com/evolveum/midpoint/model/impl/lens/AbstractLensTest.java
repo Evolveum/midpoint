@@ -54,6 +54,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 	protected static final File TEST_DIR_COMMON = new File("./src/test/resources/common");
 	
 	protected static final File ASSIGNMENT_DIRECT_FILE = new File(TEST_DIR, "assignment-direct.xml");
+	protected static final File ASSIGNMENT_DIRECT_EXPRESSION_FILE = new File(TEST_DIR, "assignment-direct-expression.xml");
 	
 	protected static final File USER_DRAKE_FILE = new File(TEST_DIR, "user-drake.xml");
 
@@ -77,6 +78,9 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 	
 	protected static final File ROLE_PIRATE_FILE = new File(TEST_DIR, "role-pirate.xml");
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
+	
+	protected static final File ROLE_MUTINIER_FILE = new File(TEST_DIR, "role-mutinier.xml");
+	protected static final String ROLE_MUTINIER_OID = "12345678-d34d-b33f-f00d-555555556668";
 	
 	protected static final File ORG_BRETHREN_FILE = new File(TEST_DIR, "org-brethren.xml");
 	protected static final String ORG_BRETHREN_OID = "9c6bfc9a-ca01-11e3-a5aa-001e8c717e5b";

@@ -175,9 +175,9 @@ public class PrismReference extends Item<PrismReferenceValue> {
     
     
 	@Override
-	public <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path) {
+	public <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-			return new PartiallyResolvedValue<X>((Item<X>)this, null);
+			return new PartiallyResolvedItem<X>((Item<X>)this, null);
 		}
 		if (!isSingleValue()) {
     		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value reference " + getElementName());

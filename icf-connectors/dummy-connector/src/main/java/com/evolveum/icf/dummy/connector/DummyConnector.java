@@ -1269,6 +1269,11 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			throw new IllegalArgumentException("Empty date attribute was provided");
 		}
 		Object object = attr.getValue().get(0);
+		
+		if (object == null){
+			return null;
+		}
+		
 		if (!(object instanceof Long)) {
 			throw new IllegalArgumentException("Date attribute was provided as "+object.getClass().getName()+" while expecting long");
 		}

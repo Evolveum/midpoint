@@ -26,4 +26,28 @@ public enum PlusMinusZero {
 
 	PLUS, MINUS, ZERO;
 	
+	public static PlusMinusZero compute(PlusMinusZero mode1, PlusMinusZero mode2) {
+		if (mode1 == null || mode2 == null) {
+			return null;
+		}
+		switch (mode1) {
+			case PLUS: switch (mode2) {
+				case PLUS: return PlusMinusZero.PLUS;
+				case ZERO: return PlusMinusZero.PLUS;
+				case MINUS: return null;
+			}
+			case ZERO: switch (mode2) {
+				case PLUS: return PlusMinusZero.PLUS;
+				case ZERO: return PlusMinusZero.ZERO;
+				case MINUS: return PlusMinusZero.MINUS;
+			}
+			case MINUS: switch (mode2) {
+				case PLUS: return null;
+				case ZERO: return PlusMinusZero.MINUS;
+				case MINUS: return PlusMinusZero.MINUS;
+			}
+		}
+		// notreached
+		throw new IllegalStateException();
+	}
 }

@@ -768,15 +768,16 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 				return false;
 			}
 		}
-		if (shadowType.getIntent() == null) {
-			if (isDefault) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
+		if (shadowType.getIntent() != null) {
+//			if (isDefault) {
+//				return true;
+//			} else {
+//				return false;
+//			}
+//		} else {
 			return MiscUtil.equals(intent, shadowType.getIntent());
-		}
+		} 
+		return true;
 	}
 
     @Override

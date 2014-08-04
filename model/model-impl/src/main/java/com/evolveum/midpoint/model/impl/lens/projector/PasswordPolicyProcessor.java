@@ -123,18 +123,18 @@ public class PasswordPolicyProcessor {
 				passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
 				if (passwordValueDelta == null) {
 					LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
-					return ;
+					return;
 				}
 				if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null) {
 					if (passwordValueDelta.isAdd()) {
-						password = passwordValueDelta.getPropertyNew();
+						password = (PrismProperty<PasswordType>) passwordValueDelta.getItemNewMatchingPath(null);
 					} else if (passwordValueDelta.isDelete()) {
 						password = null;
 					} else {
-						password = passwordValueDelta.getPropertyNew();
+						password = (PrismProperty<PasswordType>) passwordValueDelta.getItemNewMatchingPath(null);
 					}
 				} else {
-					password = passwordValueDelta.getPropertyNew();
+					password = (PrismProperty<PasswordType>) passwordValueDelta.getItemNewMatchingPath(null);
 				}
 			}
 		}
@@ -302,7 +302,7 @@ public class PasswordPolicyProcessor {
 					LOGGER.trace("Skipping processing password policies. Shadow delta does not contain password change.");
 					return;
 				}
-				password = passwordValueDelta.getPropertyNew();
+				password = (PrismProperty<PasswordType>) passwordValueDelta.getItemNewMatchingPath(null);
 			}
 		}
 

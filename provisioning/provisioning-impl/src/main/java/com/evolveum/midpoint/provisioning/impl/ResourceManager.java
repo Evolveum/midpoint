@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -879,8 +880,9 @@ public class ResourceManager {
        
         ReferenceDelta connectorRefDelta = ReferenceDelta.findReferenceModification(delta.getModifications(), ResourceType.F_CONNECTOR_REF);
         if (connectorRefDelta != null){
-        	if (connectorRefDelta.getItemNew().getValues().size() == 1){
-        		PrismReferenceValue connectorRefValue = connectorRefDelta.getItemNew().getValues().iterator().next();
+        	Item<PrismReferenceValue> connectorRefNew = connectorRefDelta.getItemNewMatchingPath(null);
+        	if (connectorRefNew.getValues().size() == 1){
+        		PrismReferenceValue connectorRefValue = connectorRefNew.getValues().iterator().next();
         		if (connectorRefValue.getOid() != null && !connectorOid.equals(connectorRefValue.getOid())){
         			connectorOid = connectorRefValue.getOid();
         		}

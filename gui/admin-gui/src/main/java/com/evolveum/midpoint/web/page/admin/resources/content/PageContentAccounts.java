@@ -558,8 +558,10 @@ public class PageContentAccounts extends PageAdminResources {
 
             if (dto.isName()) {
                 List<ResourceAttributeDefinition> secondaryIdentifiers = new ArrayList<>();
-                if (def.getSecondaryIdentifiers() != null) {
-                    secondaryIdentifiers.addAll(def.getSecondaryIdentifiers());
+                if (def.getNamingAttribute() != null) {
+                    secondaryIdentifiers.add(def.getNamingAttribute());
+                } else if (def.getSecondaryIdentifiers() != null){
+                	secondaryIdentifiers.addAll(def.getSecondaryIdentifiers());
                 }
                 for (ResourceAttributeDefinition attrDef : secondaryIdentifiers) {
                     conditions.add(SubstringFilter.createSubstring(

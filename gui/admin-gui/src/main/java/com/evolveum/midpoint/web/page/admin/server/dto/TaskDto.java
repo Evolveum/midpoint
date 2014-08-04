@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationS
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
 import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -86,10 +87,16 @@ public class TaskDto extends Selectable {
     public static final String F_TASK_OPERATION_RESULT = "taskOperationResult";
     public static final String F_PROGRESS_DESCRIPTION = "progressDescription";
     public static final String F_DRY_RUN = "dryRun";
+    public static final String F_KIND = "kind";
+    public static final String F_INTENT = "intent";
+    public static final String F_RESOURCE_REFERENCE = "resourceRef";
 
     private List<String> handlerUriList;
     private String parentTaskName;
     private String parentTaskOid;
+
+    //resource reference
+    private TaskAddResourcesDto resourceRef;
 
     // scheduling information
     private Integer interval;
@@ -123,6 +130,8 @@ public class TaskDto extends Selectable {
     private List<WfHistoryEventDto> workflowHistory;
 
     private boolean dryRun;
+    private ShadowKindType kind;
+    private String intent;
 
     private TaskType taskType;
 
@@ -141,6 +150,7 @@ public class TaskDto extends Selectable {
         fillInTimestamps(taskType);
         fillInHandlerUriList(taskType);
         fillInScheduleAttributes(taskType);
+        fillInResourceReference(taskType, taskManager, thisOpResult, modelService);
         fillInObjectRefAttributes(taskType, modelService, taskManager, options, thisOpResult);
         fillInParentTaskAttributes(taskType, taskService, options, thisOpResult);
         fillInOperationResultAttributes(taskType);
@@ -150,10 +160,19 @@ public class TaskDto extends Selectable {
         fillInWorkflowAttributes(taskType);
         thisOpResult.computeStatusIfUnknown();
 
-        fillDryRun(taskType);
+        //dryRun, intent and kind
+        fillFromExtension(taskType);
     }
 
-    private void fillDryRun(TaskType taskType) {
+    private void fillInResourceReference(TaskType task, TaskManager manager, OperationResult result, ModelService service){
+        ObjectReferenceType ref = task.getObjectRef();
+
+        if(ref != null && ResourceType.COMPLEX_TYPE.equals(ref.getType())){
+            resourceRef = new TaskAddResourcesDto(ref.getOid(), getTaskObjectName(task, manager, service, result));
+        }
+    }
+
+    private void fillFromExtension(TaskType taskType) {
         PrismObject<TaskType> task = taskType.asPrismObject();
         if (task.getExtension() == null) {
             dryRun = false;
@@ -163,10 +182,19 @@ public class TaskDto extends Selectable {
         PrismProperty<Boolean> item = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
         if (item == null || item.getRealValue() == null) {
             dryRun = false;
-            return;
+        } else {
+            dryRun = item.getRealValue();
         }
 
-        dryRun = item.getRealValue();
+        PrismProperty<ShadowKindType> kindItem = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_KIND);
+        if(kindItem != null && kindItem.getRealValue() != null){
+            kind = kindItem.getRealValue();
+        }
+
+        PrismProperty<String> intentItem = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_INTENT);
+        if(intentItem != null && intentItem.getRealValue() != null){
+            intent = intentItem.getRealValue();
+        }
     }
 
     private void fillInTimestamps(TaskType taskType) {
@@ -686,5 +714,37 @@ public class TaskDto extends Selectable {
 
     public void setDryRun(boolean dryRun) {
         this.dryRun = dryRun;
+    }
+
+    public TaskAddResourcesDto getResource() {
+        return resourceRef;
+    }
+
+    public void setResource(TaskAddResourcesDto resource) {
+        this.resourceRef = resource;
+    }
+
+    public String getIntent() {
+        return intent;
+    }
+
+    public void setIntent(String intent) {
+        this.intent = intent;
+    }
+
+    public TaskType getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskType(TaskType taskType) {
+        this.taskType = taskType;
+    }
+
+    public ShadowKindType getKind() {
+        return kind;
+    }
+
+    public void setKind(ShadowKindType kind) {
+        this.kind = kind;
     }
 }

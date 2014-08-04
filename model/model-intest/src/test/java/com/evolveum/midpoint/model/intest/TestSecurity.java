@@ -184,6 +184,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
 	protected static final File ROLE_BUSINESS_1_FILE = new File(TEST_DIR, "role-business-1.xml");
 	protected static final String ROLE_BUSINESS_1_OID = "00000000-0000-0000-0000-00000000aab1";
+	
+	protected static final File ROLE_CONDITIONAL_FILE = new File(TEST_DIR, "role-conditional.xml");
+	protected static final String ROLE_CONDITIONAL_OID = "00000000-0000-0000-0000-00000000aac1";
 
 	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
 	private static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
@@ -219,6 +222,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_APPLICATION_1_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_APPLICATION_2_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BUSINESS_1_FILE, RoleType.class, initResult);
+		
+		repoAddObjectFromFile(ROLE_CONDITIONAL_FILE, RoleType.class, initResult);
 		
 		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
 		
@@ -344,6 +349,80 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 	}
 	
+	@Test
+    public void test060GuybrushConditionalRoleFalse() throws Exception {
+		final String TEST_NAME = "test060GuybrushConditionalRoleFalse";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        
+        assignRole(USER_GUYBRUSH_OID, ROLE_CONDITIONAL_OID);
+
+        // WHEN
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        
+        // THEN
+        display("Principal guybrush", principal);
+        assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
+        assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
+        assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
+        display("User in principal guybrush", principal.getUser().asPrismObject());
+        
+        principal.getUser().asPrismObject().checkConsistence(true, true);
+        
+        assertNotAuthorized(principal, AUTZ_LOOT_URL);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+	}
+	
+	@Test
+    public void test061GuybrushConditionalRoleTrue() throws Exception {
+		final String TEST_NAME = "test061GuybrushConditionalRoleTrue";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, "looser");
+
+        // WHEN
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        
+        // THEN
+        display("Principal guybrush", principal);
+        assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
+        assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
+        assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
+        display("User in principal guybrush", principal.getUser().asPrismObject());
+        
+        principal.getUser().asPrismObject().checkConsistence(true, true);
+        
+        assertNotAuthorized(principal, AUTZ_LOOT_URL);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+        assertNotAuthorized(principal, AUTZ_CAPSIZE_URL);
+	}
+	
+	@Test
+    public void test062GuybrushConditionalRoleUnassign() throws Exception {
+		final String TEST_NAME = "test062GuybrushConditionalRoleUnassign";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        
+        unassignRole(USER_GUYBRUSH_OID, ROLE_CONDITIONAL_OID);
+
+        // WHEN
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        
+        // THEN
+        display("Principal guybrush", principal);
+        assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
+        assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
+        assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
+        display("User in principal guybrush", principal.getUser().asPrismObject());
+        
+        principal.getUser().asPrismObject().checkConsistence(true, true);
+        
+        assertNotAuthorized(principal, AUTZ_LOOT_URL);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+	}
 	
 	@Test
     public void test100JackRolePirate() throws Exception {

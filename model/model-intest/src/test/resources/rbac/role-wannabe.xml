@@ -1,0 +1,81 @@
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="12345678-d34d-b33f-f00d-555555557703"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>Wannabe</name>
+    <description>A role full of conditions</description>
+    <inducement id="1111">
+    	<construction id="60004" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+    		<kind>account</kind>
+    		<attribute>
+                <ref>ri:title</ref>
+                <outbound>
+                	<source>
+                		<path>$user/description</path>
+                	</source>
+                	<source>
+                		<path>$user/honorificPrefix</path>
+                	</source>
+                	<expression>
+                		<script>
+                			<code>
+                				'Wannabe ' + honorificPrefix + ' ' + (description==null?"whatever":description)
+                			</code>
+                		</script>
+					</expression>
+				</outbound>
+            </attribute>
+    	</construction>
+    	<condition>
+    		<source>
+    			<path>$user/honorificPrefix</path>
+    		</source>
+    		<expression>
+    			<script>
+    				<code>(Boolean)honorificPrefix?.trim()</code>
+    			</script>
+    		</expression>
+    	</condition>
+    </inducement>
+    <inducement id="1112">
+    	<!-- Honorable Wannabe -->
+    	<targetRef oid="12345678-d34d-b33f-f00d-555555557704" type="RoleType"/>
+    	<condition>
+    		<source>
+    			<path>$user/honorificSuffix</path>
+    		</source>
+    		<expression>
+    			<script>
+    				<code>(Boolean)honorificSuffix?.trim()</code>
+    			</script>
+    		</expression>
+    	</condition>
+    </inducement>
+    <condition>
+   		<source>
+   			<path>$user/employeeType</path>
+   		</source>
+   		<expression>
+   			<script>
+   				<code>employeeType == 'wannabe'</code>
+   			</script>
+   		</expression>
+   	</condition>
+</role>

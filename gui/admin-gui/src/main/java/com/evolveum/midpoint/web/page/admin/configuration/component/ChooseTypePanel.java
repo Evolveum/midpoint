@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
@@ -94,9 +95,18 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
             protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
                 choosePerformed(target, object);
             }
+
+            @Override
+            protected ObjectQuery getDataProviderQuery(){
+                return getChooseQuery();
+            }
         };
 
         add(dialog);
+    }
+
+    protected ObjectQuery getChooseQuery(){
+        return null;
     }
 
     private void choosePerformed(AjaxRequestTarget target, ObjectType object){

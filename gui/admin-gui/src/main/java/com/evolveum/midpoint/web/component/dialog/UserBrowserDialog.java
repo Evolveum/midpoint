@@ -27,7 +27,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -50,7 +50,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
 
@@ -61,6 +60,16 @@ import java.util.List;
  * @author lazyman
  */
 public class UserBrowserDialog extends ModalWindow {
+
+    private static final String ID_SEARCH_FORM = "searchForm";
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_CHECK_NAME = "nameCheck";
+    private static final String ID_CHECK_FULL_NAME = "fullNameCheck";
+    private static final String ID_CHECK_GIVEN_NAME = "givenNameCheck";
+    private static final String ID_CHECK_FAMILY_NAME = "familyNameCheck";
+    private static final String ID_BASIC_SEARCH = "basicSearch";
+    private static final String ID_BUTTON_CANCEL = "cancelButton";
+    private static final String ID_TABLE = "table";
 
     private static final Trace LOGGER = TraceManager.getTrace(UserBrowserDialog.class);
     private IModel<UserBrowserDto> model;
@@ -102,44 +111,51 @@ public class UserBrowserDialog extends ModalWindow {
     }
 
     private void initLayout(WebMarkupContainer content) {
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new Form(ID_MAIN_FORM);
         content.add(mainForm);
 
-        TextField<String> search = new TextField<String>("searchText", new PropertyModel<String>(model, "searchText"));
-        mainForm.add(search);
+        Form searchForm = new Form(ID_SEARCH_FORM);
+        searchForm.setOutputMarkupId(true);
+        content.add(searchForm);
 
-        CheckBox nameCheck = new CheckBox("nameCheck", new PropertyModel<Boolean>(model, "name"));
-        mainForm.add(nameCheck);
-        CheckBox fullNameCheck = new CheckBox("fullNameCheck", new PropertyModel<Boolean>(model, "fullName"));
-        mainForm.add(fullNameCheck);
-        CheckBox givenNameCheck = new CheckBox("givenNameCheck", new PropertyModel<Boolean>(model, "givenName"));
-        mainForm.add(givenNameCheck);
-        CheckBox familyNameCheck = new CheckBox("familyNameCheck", new PropertyModel<Boolean>(model, "familyName"));
-        mainForm.add(familyNameCheck);
+//        TextField<String> search = new TextField<String>("searchText", new PropertyModel<String>(model, "searchText"));
+//        mainForm.add(search);
 
+        CheckBox nameCheck = new CheckBox(ID_CHECK_NAME, new PropertyModel<Boolean>(model, UserBrowserDto.F_NAME));
+        searchForm.add(nameCheck);
+        CheckBox fullNameCheck = new CheckBox(ID_CHECK_FULL_NAME, new PropertyModel<Boolean>(model, UserBrowserDto.F_FULL_NAME));
+        searchForm.add(fullNameCheck);
+        CheckBox givenNameCheck = new CheckBox(ID_CHECK_GIVEN_NAME, new PropertyModel<Boolean>(model, UserBrowserDto.F_GIVEN_NAME));
+        searchForm.add(givenNameCheck);
+        CheckBox familyNameCheck = new CheckBox(ID_CHECK_FAMILY_NAME, new PropertyModel<Boolean>(model, UserBrowserDto.F_FAMILY_NAME));
+        searchForm.add(familyNameCheck);
+
+        BasicSearchPanel<UserBrowserDto> basicSearch = new BasicSearchPanel<UserBrowserDto>(ID_BASIC_SEARCH) {
+
+            @Override
+            protected IModel<String> createSearchTextModel() {
+                return new PropertyModel<>(model, UserBrowserDto.F_SEARCH_TEXT);
+            }
+
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
+                UserBrowserDialog.this.searchPerformed(target);
+            }
+
+            @Override
+            protected void clearSearchPerformed(AjaxRequestTarget target) {
+                UserBrowserDialog.this.clearSearchPerformed(target);
+            }
+        };
+        searchForm.add(basicSearch);
 
         List<IColumn<SelectableBean<UserType>, String>> columns = initColumns();
-        TablePanel table = new TablePanel<SelectableBean<UserType>>("table",
+        TablePanel table = new TablePanel<>(ID_TABLE,
                 new ObjectDataProvider(getPageBase(), UserType.class), columns);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
-        AjaxSubmitButton searchButton = new AjaxSubmitButton("searchButton",
-                createStringResource("userBrowserDialog.button.searchButton")) {
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getPageBase().getFeedbackPanel());
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                searchPerformed(target);
-            }
-        };
-        mainForm.add(searchButton);
-
-        AjaxButton cancelButton = new AjaxButton("cancelButton",
+        AjaxButton cancelButton = new AjaxButton(ID_BUTTON_CANCEL,
                 createStringResource("userBrowserDialog.button.cancelButton")) {
 
             @Override
@@ -176,7 +192,7 @@ public class UserBrowserDialog extends ModalWindow {
             }
         });
 
-        IColumn column = new LinkColumn<SelectableBean<UserType>>(createStringResource("userBrowserDialog.name"), "name", "value.name") {
+        IColumn column = new LinkColumn<SelectableBean<UserType>>(createStringResource("userBrowserDialog.name"), UserBrowserDto.F_NAME, "value.name") {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
@@ -186,13 +202,13 @@ public class UserBrowserDialog extends ModalWindow {
         };
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("userBrowserDialog.givenName"), "givenName", "value.givenName");
+        column = new PropertyColumn(createStringResource("userBrowserDialog.givenName"), UserBrowserDto.F_GIVEN_NAME, SelectableBean.F_VALUE + ".givenName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("userBrowserDialog.familyName"), "familyName", "value.familyName");
+        column = new PropertyColumn(createStringResource("userBrowserDialog.familyName"), UserBrowserDto.F_FAMILY_NAME, SelectableBean.F_VALUE + ".familyName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("userBrowserDialog.fullName"), "fullName", "value.fullName.orig");
+        column = new PropertyColumn(createStringResource("userBrowserDialog.fullName"), UserBrowserDto.F_FULL_NAME, SelectableBean.F_VALUE + ".fullName.orig");
         columns.add(column);
 
         column = new AbstractColumn<SelectableBean<UserType>, String>(createStringResource("userBrowserDialog.email")) {
@@ -273,6 +289,18 @@ public class UserBrowserDialog extends ModalWindow {
         }
 
         return query;
+    }
+
+    private void clearSearchPerformed(AjaxRequestTarget target){
+        model.setObject(new UserBrowserDto());
+
+        TablePanel panel = getTable();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(null);
+
+        target.add(getContent().get(ID_SEARCH_FORM));
+        target.add(panel);
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {

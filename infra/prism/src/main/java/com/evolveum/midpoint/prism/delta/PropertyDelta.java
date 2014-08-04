@@ -123,20 +123,8 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     }
     
     @Override
-	public void applyTo(Item item) throws SchemaException {
-		if (item instanceof PrismProperty) {
-			super.applyTo(item);
-		} else if (item instanceof PrismContainer<?>) {
-			PrismContainer<?> container = (PrismContainer<?>)item;
-			ItemPath remainderPath = getPath().remainder(item.getPath());
-			PrismProperty<?> property = container.findProperty(remainderPath);
-			if (property == null) {
-				throw new SchemaException("Cannot apply property delta "+this+" to item "+item+" because there is no property with path "+remainderPath);
-			}
-			applyTo(property);
-    	} else {
-			throw new SchemaException("Cannot apply property delta "+this+" to item "+item+" of type "+item.getClass());
-		}
+	protected boolean isApplicableToType(Item item) {
+		return item instanceof PrismProperty;
 	}
     
 	@Override
@@ -265,16 +253,16 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
      * Returns the "new" state of the property - the state that would be after the delta
      * is applied.
      */
-    public PrismProperty<T> getPropertyNew() throws SchemaException {
-        return (PrismProperty<T>) super.getItemNew();
+    public PrismProperty<T> getPropertyNewMatchingPath() throws SchemaException {
+        return (PrismProperty<T>) super.getItemNewMatchingPath(null);
     }
     
     /**
      * Returns the "new" state of the property - the state that would be after the delta
      * is applied.
      */
-    public PrismProperty<T> getPropertyNew(PrismProperty<T> propertyOld) throws SchemaException {
-        return (PrismProperty<T>) super.getItemNew(propertyOld);
+    public PrismProperty<T> getPropertyNewMatchingPath(PrismProperty<T> propertyOld) throws SchemaException {
+        return (PrismProperty<T>) super.getItemNewMatchingPath(propertyOld);
     }
     
     @Override
