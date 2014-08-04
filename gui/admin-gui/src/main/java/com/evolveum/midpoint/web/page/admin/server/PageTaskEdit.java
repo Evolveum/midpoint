@@ -423,7 +423,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		mainForm.add(execution);
 
-        final DropDownChoice resource = new DropDownChoice(ID_RESOURCE_REF,
+        final DropDownChoice<TaskAddResourcesDto> resource = new DropDownChoice<>(ID_RESOURCE_REF,
                 new PropertyModel<TaskAddResourcesDto>(model, TaskDto.F_RESOURCE_REFERENCE),
                 new AbstractReadOnlyModel<List<TaskAddResourcesDto>>() {
 
