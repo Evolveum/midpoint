@@ -100,6 +100,13 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
                 OperationResult result = new OperationResult(OPERATION_LOAD_ORG_TENANT);
                 PrismObject<OrgType> org = WebModelUtils.loadObject(OrgType.class, ref.getOid(), result, page);
 
+                //TODO - show user some error about not loading role tenants of OrgType
+                if(org == null){
+                    dto = new ObjectViewDto();
+                    dto.setType(OrgType.class);
+                    return dto;
+                }
+
                 dto = new ObjectViewDto(ref.getOid(), WebMiscUtil.getName(org.asObjectable()));
                 dto.setType(OrgType.class);
                 return dto;
