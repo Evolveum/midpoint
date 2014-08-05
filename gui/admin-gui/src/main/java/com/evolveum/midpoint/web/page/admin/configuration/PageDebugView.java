@@ -118,7 +118,9 @@ public class PageDebugView extends PageAdminConfiguration {
             MidPointApplication application = PageDebugView.this.getMidpointApplication();
 
             GetOperationOptions rootOptions = GetOperationOptions.createRaw();
-            rootOptions.setResolveNames(true);
+
+            //TODO - uncomment this when bug with loading tenant references will be solved
+            // rootOptions.setResolveNames(true);
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
             // FIXME: ObjectType.class will not work well here. We need more specific type.
             //todo on page debug list create page params, put there oid and class for object type and send that to this page....read it here
