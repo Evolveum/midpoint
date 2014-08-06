@@ -76,9 +76,11 @@ public class PageRole extends PageAdminRoles{
     private static final String ID_BUTTON_BACK = "backButton";
     private static final String ID_BUTTON_SAVE = "saveButton";
     private static final String ID_NAME = "name";
+    private static final String ID_DISPLAY_NAME = "displayName";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_ROLE_TYPE = "roleType";
     private static final String ID_REQUESTABLE = "requestable";
+    private static final String ID_IDENTIFIER = "identifier";
     private static final String ID_DATE_FROM = "dateFrom";
     private static final String ID_DATE_TO = "dateTo";
     private static final String ID_ADMIN_STATUS = "adminStatus";
@@ -203,6 +205,10 @@ public class PageRole extends PageAdminRoles{
                 createStringResource("PageRoleEditor.label.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         form.add(name);
 
+        TextFormGroup displayName = new TextFormGroup(ID_DISPLAY_NAME, new PrismPropertyModel(model,
+                RoleType.F_DISPLAY_NAME), createStringResource("PageRoleEditor.label.displayName"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
+        form.add(displayName);
+
         TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION, new PrismPropertyModel(model, RoleType.F_DESCRIPTION),
                 createStringResource("PageRoleEditor.label.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(description);
@@ -214,6 +220,10 @@ public class PageRole extends PageAdminRoles{
         CheckFormGroup requestable = new CheckFormGroup(ID_REQUESTABLE, new PrismPropertyModel(model, RoleType.F_REQUESTABLE),
                 createStringResource("PageRoleEditor.label.requestable"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         form.add(requestable);
+
+        TextFormGroup identifier = new TextFormGroup(ID_IDENTIFIER, new PrismPropertyModel(model, RoleType.F_IDENTIFIER),
+                createStringResource("PageRoleEditor.label.identifier"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        form.add(identifier);
 
         IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ActivationStatusType.class);
         IChoiceRenderer renderer = new EnumChoiceRenderer();
