@@ -206,7 +206,7 @@ public class PageRole extends PageAdminRoles{
         form.add(name);
 
         TextFormGroup displayName = new TextFormGroup(ID_DISPLAY_NAME, new PrismPropertyModel(model,
-                RoleType.F_DISPLAY_NAME), createStringResource("PageRoleEditor.label.displayName"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
+                RoleType.F_DISPLAY_NAME), createStringResource("PageRoleEditor.label.displayName"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(displayName);
 
         TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION, new PrismPropertyModel(model, RoleType.F_DESCRIPTION),
