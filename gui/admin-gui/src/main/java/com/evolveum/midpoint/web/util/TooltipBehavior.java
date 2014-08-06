@@ -36,7 +36,7 @@ public class TooltipBehavior extends Behavior {
         component.setOutputMarkupId(true);
 
         component.add(AttributeModifier.replace("data-toggle", "tooltip"));
-        component.add(new AttributeModifier("data-placement", "right") {
+        component.add(new AttributeModifier("data-placement", getDataPlacement()) {
 
             @Override
             protected String newValue(String currentValue, String replacementValue) {
@@ -55,8 +55,12 @@ public class TooltipBehavior extends Behavior {
         StringBuilder sb = new StringBuilder();
         sb.append("$('#");
         sb.append(component.getMarkupId());
-        sb.append("').tooltip();");
+        sb.append("').tooltip({html:true});");
 
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
+    }
+
+    public String getDataPlacement(){
+        return "right";
     }
 }
