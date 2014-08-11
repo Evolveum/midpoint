@@ -1,0 +1,164 @@
+#
+# Copyright (c) 2010-2014 Evolveum
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+#
+# This is an import LDIF file intended to create a some structure
+# for "example.com" organization including few users. It is used as an example.
+#
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2014-08-06T17:33:01.515
+dn: dc=example,dc=com
+objectclass: top
+objectclass: domain
+dc: example
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2014-08-06T17:33:01.554
+dn: ou=People, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: People
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2014-08-06T17:33:01.581
+dn: uid=jbond, ou=People, dc=example,dc=com
+cn: James Bond (007)
+sn: Bond
+givenname: James
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Operations
+ou: People
+o: MI6
+l: World
+uid: jbond
+mail: jbond@example.com
+telephonenumber: +1 408 555 1234
+facsimiletelephonenumber: +1 408 555 4321
+roomnumber: 777
+userpassword: supersecret
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2014-08-06T17:33:01.596
+dn: uid=cptjack, ou=People, dc=example,dc=com
+cn: cpt. Jack Sparrow
+sn: Sparrow
+givenname: Jack
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Operations
+ou: People
+l: Caribbean
+uid: cptjack
+mail: jack@example.com
+telephonenumber: +421 910 123456
+facsimiletelephonenumber: +1 408 555 1111
+roomnumber: 666
+userpassword: d3adM3nT3llN0Tal3s
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2014-08-06T17:33:01.630
+dn: uid=will, ou=People, dc=example,dc=com
+cn: Will Turner
+sn: Turner
+givenname: William
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Operations
+ou: People
+l: Caribbean
+uid: will
+mail: will@example.com
+telephonenumber: +421 910 654321
+facsimiletelephonenumber: +1 408 555 1111
+roomnumber: 555
+userpassword: elizAb3th
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2014-08-06T17:33:01.656
+dn: uid=barbossa, ou=People, dc=example,dc=com
+cn: Hector Barbossa
+sn: Barbossa
+givenname: Hector
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Operations
+ou: People
+l: Caribbean
+uid: barbossa
+mail: captain.barbossa@example.com
+telephonenumber: +421 910 382734
+facsimiletelephonenumber: +1 408 555 1111
+roomnumber: 111
+userpassword: jack
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2014-08-06T17:33:01.696
+dn: ou=Groups, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: Groups
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2014-08-06T17:33:01.722
+dn: cn=Pirates,ou=groups,dc=example,dc=com
+objectclass: top
+objectclass: groupOfNames
+cn: Pirates
+ou: groups
+member: uid=cptjack, ou=People, dc=example,dc=com
+member: uid=will, ou=People, dc=example,dc=com
+description: Arrrrr!
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2014-08-06T17:33:01.729
+dn: ou=Administrators, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: Administrators
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2014-08-06T17:33:01.769
+dn: uid=idm, ou=Administrators,dc=example,dc=com
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: idm
+cn: IDM Administrator
+sn: IDM Administrator
+description: Special LDAP acccount used by the IDM to access the LDAP data.
+ou: Administrators
+userPassword: secret
