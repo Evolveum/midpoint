@@ -47,6 +47,9 @@ public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
 
     private static final String DEFAULT_SORTABLE_PROPERTY = null;
 
+    private static final String ID_TABLE = "table";
+    private static final String ID_BUTTON_CANCEL = "cancelButton";
+
     private static final Trace LOGGER = TraceManager.getTrace(ChooseTypeDialog.class);
     Class<T> objectType;
     private boolean initialized;
@@ -84,11 +87,11 @@ public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
         List<IColumn<SelectableBean<ObjectType>, String>> columns = initColumns();
         ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), this.objectType);
         provider.setQuery(getDataProviderQuery());
-        TablePanel table = new TablePanel<>("table", provider, columns);
+        TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
         content.add(table);
 
-        AjaxButton cancelButton = new AjaxButton("cancelButton",
+        AjaxButton cancelButton = new AjaxButton(ID_BUTTON_CANCEL,
                 createStringResource("chooseTypeDialog.button.cancel")) {
 
             @Override
@@ -117,7 +120,7 @@ public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
     }
 
     public void updateTablePerformed(AjaxRequestTarget target, ObjectQuery query){
-        TablePanel table = (TablePanel) get(StringUtils.join(new String[]{CONTENT_ID, "table"}, ":"));
+        TablePanel table = (TablePanel) get(StringUtils.join(new String[]{CONTENT_ID, ID_TABLE}, ":"));
         DataTable dataTable = table.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider)dataTable.getDataProvider();
         provider.setQuery(query);

@@ -106,7 +106,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
                 }));
                 listItem.add(textWrapper);
 
-                TextField text = new TextField<String>(ID_TEXT, createTextModel(listItem.getModel()));
+                TextField text = new TextField<>(ID_TEXT, createTextModel(listItem.getModel()));
                 text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {}
@@ -137,7 +137,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        editValuePerformed(target, listItem);
+                        editValuePerformed(target);
                     }
                 };
                 textWrapper.add(edit);
@@ -203,7 +203,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addValuePerformed(target, item);
+                addValuePerformed(target);
             }
         };
         add.add(new VisibleEnableBehaviour() {
@@ -226,7 +226,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
 
             @Override
             public boolean isVisible() {
-                return isRemoveButtonVisible(item);
+                return isRemoveButtonVisible();
             }
         });
         buttonGroup.add(remove);
@@ -244,14 +244,14 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
         return false;
     }
 
-    protected void editValuePerformed(AjaxRequestTarget target, ListItem<T> item){
+    protected void editValuePerformed(AjaxRequestTarget target){
         ModalWindow window = (ModalWindow) get(MODAL_ID_CHOOSE_PANEL);
         ChooseTypeDialog dialog = (ChooseTypeDialog)window;
         dialog.updateTablePerformed(target, createChooseQuery());
         window.show(target);
     }
 
-    protected boolean isRemoveButtonVisible(ListItem<T> item) {
+    protected boolean isRemoveButtonVisible() {
         int size = getModelObject().size();
         if (size > 0) {
             return true;
@@ -260,7 +260,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
         return false;
     }
 
-    protected void addValuePerformed(AjaxRequestTarget target, ListItem<T> item) {
+    protected void addValuePerformed(AjaxRequestTarget target) {
         List<T> objects = getModelObject();
         objects.add(createNewEmptyItem());
 

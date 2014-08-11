@@ -17,18 +17,26 @@
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.model.IModel;
-
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
  */
 public class SystemConfigurationDto implements Serializable {
+
+    public static final String F_AEP_LEVEL = "aepLevel";
+    public static final String F_AUDIT_CLEANUP = "auditCleanupValue";
+    public static final String F_TASK_CLEANUP = "taskCleanupValue";
+    public static final String F_PASSWORD_POLICY = "passPolicyDto";
+    public static final String F_OBJECT_TEMPLATE = "objectTemplateDto";
+    public static final String F_OBJECT_POLICY_LIST = "objectPolicyList";
+    public static final String F_NOTIFICATION_CONFIGURATION = "notificationConfig";
+
     private AEPlevel aepLevel;
 
     private String auditCleanupValue;
@@ -36,6 +44,7 @@ public class SystemConfigurationDto implements Serializable {
 
     private ObjectViewDto<ValuePolicyType> passPolicyDto;
     private ObjectViewDto<ObjectTemplateType> objectTemplateDto;
+    private List<ObjectPolicyConfigurationTypeDto> objectPolicyList;
     private NotificationConfigurationDto notificationConfig;
 
     public SystemConfigurationDto(){
@@ -64,6 +73,16 @@ public class SystemConfigurationDto implements Serializable {
 
         passPolicyDto = loadPasswordPolicy(config);
         objectTemplateDto = loadObjectTemplate(config);
+
+        objectPolicyList = new ArrayList<>();
+        List<ObjectPolicyConfigurationType> objectPolicies = config.getDefaultObjectPolicyConfiguration();
+        if(objectPolicies != null && !objectPolicies.isEmpty()){
+            for(ObjectPolicyConfigurationType policy: objectPolicies){
+                objectPolicyList.add(new ObjectPolicyConfigurationTypeDto(policy));
+            }
+        } else {
+            objectPolicyList.add(new ObjectPolicyConfigurationTypeDto());
+        }
 
         if(config.getNotificationConfiguration() != null){
             notificationConfig = new NotificationConfigurationDto(config.getNotificationConfiguration());
@@ -144,5 +163,13 @@ public class SystemConfigurationDto implements Serializable {
 
     public void setNotificationConfig(NotificationConfigurationDto notificationConfig) {
         this.notificationConfig = notificationConfig;
+    }
+
+    public List<ObjectPolicyConfigurationTypeDto> getObjectPolicyList() {
+        return objectPolicyList;
+    }
+
+    public void setObjectPolicyList(List<ObjectPolicyConfigurationTypeDto> objectPolicyList) {
+        this.objectPolicyList = objectPolicyList;
     }
 }

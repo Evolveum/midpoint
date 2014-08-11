@@ -26,5 +26,11 @@
 		<!-- OpenDJ -->
     		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
     	</construction>
-    </inducement>    
+    </inducement>
+    <inducement>
+    	<construction>
+		<!-- OpenLDAP -->
+    		<resourceRef oid="d0811790-1d80-11e4-86b2-3c970e467874" type="c:ResourceType"/>
+    	</construction>
+    </inducement>
 </role>
