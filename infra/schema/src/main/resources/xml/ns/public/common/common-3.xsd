@@ -2576,6 +2576,7 @@
             <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
 
 			<xsd:element name="order" type="xsd:int" minOccurs="0"/>
+			<xsd:element name="focusType" type="xsd:QName" minOccurs="0"/>
 			
 			<xsd:element name="tenantRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
