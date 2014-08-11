@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -315,6 +316,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             s = saveLogging(target, s);
             s = saveNotificationConfiguration(s);
+            saveObjectPolicies(s);
 
             if(LOGGER.isTraceEnabled())
                 LOGGER.trace("Saving logging configuration.");
@@ -357,6 +359,40 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         showResultInSession(result);
         target.add(getFeedbackPanel());
         resetPerformed(target);
+    }
+
+    private void saveObjectPolicies(SystemConfigurationType systemConfig){
+        List<ObjectPolicyConfigurationTypeDto> configList = systemConfigPanel.getModel().getObject().getObjectPolicyList();
+        List<ObjectPolicyConfigurationType> confList = new ArrayList<>();
+
+        ObjectPolicyConfigurationType newObjectPolicyConfig;
+        for(ObjectPolicyConfigurationTypeDto o: configList){
+            newObjectPolicyConfig = new ObjectPolicyConfigurationType();
+            newObjectPolicyConfig.setType(o.getType());
+            newObjectPolicyConfig.setObjectTemplateRef(o.getTemplateRef());
+
+            List<PropertyConstraintType> constraintList = new ArrayList<>();
+            PropertyConstraintType property;
+
+            if(o.getConstraints() != null){
+                for(PropertyConstraintTypeDto c: o.getConstraints()){
+                    if(StringUtils.isNotEmpty(c.getPropertyPath())){
+                        property = new PropertyConstraintType();
+                        property.setOidBound(c.isOidBound());
+                        property.setPath(new ItemPathType(c.getPropertyPath()));
+
+                        constraintList.add(property);
+                    }
+                }
+            }
+
+            newObjectPolicyConfig.getPropertyConstraint().addAll(constraintList);
+
+            confList.add(newObjectPolicyConfig);
+        }
+
+        systemConfig.getDefaultObjectPolicyConfiguration().clear();
+        systemConfig.getDefaultObjectPolicyConfiguration().addAll(confList);
     }
 
     /*

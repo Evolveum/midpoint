@@ -32,8 +32,8 @@ public class PropertyConstraintTypeDto implements Serializable{
 
     public PropertyConstraintTypeDto(PropertyConstraintType property){
         if(property != null){
-            if(property.getPath() != null){
-                propertyPath = property.getPath().toString();
+            if(property.getPath() != null && property.getPath().getItemPath() != null){
+                propertyPath = property.getPath().getItemPath().toString();
             }
 
             if(property.isOidBound() != null){

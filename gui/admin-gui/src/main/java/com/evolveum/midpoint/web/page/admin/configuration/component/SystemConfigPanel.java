@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.ObjectPolicyConfigurationEditor;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -83,7 +84,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         add(userTemplateChoosePanel);
 
         ObjectPolicyConfigurationEditor objectPolicyEditor = new ObjectPolicyConfigurationEditor(ID_OBJECT_POLICY_EDITOR,
-                new PropertyModel<List<ObjectPolicyConfigurationType>>(getModel(), SystemConfigurationDto.F_OBJECT_POLICY_LIST));
+                new PropertyModel<List<ObjectPolicyConfigurationTypeDto>>(getModel(), SystemConfigurationDto.F_OBJECT_POLICY_LIST));
         add(objectPolicyEditor);
 
         DropDownChoice<AEPlevel> aepLevel = new DropDownChoice<>(ID_GLOBAL_AEP,

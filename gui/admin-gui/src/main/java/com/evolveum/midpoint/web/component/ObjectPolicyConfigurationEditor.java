@@ -20,12 +20,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectPolicyDialog;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -50,7 +51,7 @@ import java.util.List;
  *  @author shood
  */
 
-public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPolicyConfigurationType>> {
+public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPolicyConfigurationTypeDto>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyConfigurationEditor.class);
 
@@ -73,7 +74,7 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
     private static final String CLASS_MULTI_VALUE = "multivalue-form";
     private static final String OFFSET_CLASS = "col-md-offset-4";
 
-    public ObjectPolicyConfigurationEditor(String id, IModel<List<ObjectPolicyConfigurationType>> model){
+    public ObjectPolicyConfigurationEditor(String id, IModel<List<ObjectPolicyConfigurationTypeDto>> model){
         super(id, model);
 
         setOutputMarkupId(true);
@@ -85,7 +86,7 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
         final Label label = new Label(ID_LABEL, createStringResource("objectPolicyConfigurationEditor.label"));
         add(label);
 
-        ListView repeater = new ListView<ObjectPolicyConfigurationType>(ID_REPEATER, getModel()) {
+        ListView repeater = new ListView<ObjectPolicyConfigurationTypeDto>(ID_REPEATER, getModel()) {
 
             @Override
             protected void populateItem(final ListItem item) {
@@ -104,6 +105,7 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
                 item.add(textWrapper);
 
                 TextField name = new TextField<>(ID_NAME, createNameModel(item.getModel()));
+                name.setOutputMarkupId(true);
                 name.add(new AjaxFormComponentUpdatingBehavior("onblur") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {}
@@ -142,6 +144,7 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
         };
 
         initDialog();
+        repeater.setOutputMarkupId(true);
         add(repeater);
     }
 
@@ -150,12 +153,34 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
 
             @Override
             protected void savePerformed(AjaxRequestTarget target){
+                ObjectPolicyConfigurationTypeDto oldConfig = getModel().getObject().getConfig();
+                ObjectPolicyConfigurationTypeDto newConfig = getModel().getObject().preparePolicyConfig();
 
+                ObjectPolicyConfigurationEditor.this.replace(oldConfig, newConfig);
 
-
+                target.add(ObjectPolicyConfigurationEditor.this);
+                close(target);
             }
         };
         add(editor);
+    }
+
+    private void replace(ObjectPolicyConfigurationTypeDto old, ObjectPolicyConfigurationTypeDto newC){
+        boolean added = false;
+
+        List<ObjectPolicyConfigurationTypeDto> list = getModelObject();
+        for(ObjectPolicyConfigurationTypeDto o: list){
+            if(old.equals(o)){
+                o.setConstraints(newC.getConstraints());
+                o.setTemplateRef(newC.getTemplateRef());
+                o.setType(newC.getType());
+                added = true;
+            }
+        }
+
+        if(!added){
+            list.add(newC);
+        }
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem item){
@@ -213,17 +238,17 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
         return false;
     }
 
-    private IModel<String> createNameModel(final IModel<ObjectPolicyConfigurationType> model){
-        return new AbstractReadOnlyModel<String>() {
+    private IModel<String> createNameModel(final IModel<ObjectPolicyConfigurationTypeDto> model){
+        return new LoadableModel<String>() {
 
             @Override
-            public String getObject() {
+            public String load() {
                 OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_TEMPLATE);
                 StringBuilder sb = new StringBuilder();
-                ObjectPolicyConfigurationType config = model.getObject();
+                ObjectPolicyConfigurationTypeDto config = model.getObject();
 
                 if(config != null){
-                    ObjectReferenceType ref = config.getObjectTemplateRef();
+                    ObjectReferenceType ref = config.getTemplateRef();
 
                     if(ref != null){
                         String oid = ref.getOid();
@@ -247,18 +272,18 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
     }
 
     private void addPerformed(AjaxRequestTarget target){
-        List<ObjectPolicyConfigurationType> list = getModelObject();
-        list.add(new ObjectPolicyConfigurationType());
+        List<ObjectPolicyConfigurationTypeDto> list = getModelObject();
+        list.add(new ObjectPolicyConfigurationTypeDto());
 
         target.add(this);
     }
 
     private void removePerformed(AjaxRequestTarget target, ListItem item){
-        List<ObjectPolicyConfigurationType> list = getModelObject();
-        Iterator<ObjectPolicyConfigurationType> iterator = list.iterator();
+        List<ObjectPolicyConfigurationTypeDto> list = getModelObject();
+        Iterator<ObjectPolicyConfigurationTypeDto> iterator = list.iterator();
 
         while (iterator.hasNext()){
-            ObjectPolicyConfigurationType object = iterator.next();
+            ObjectPolicyConfigurationTypeDto object = iterator.next();
 
             if(object.equals(item.getModelObject())){
                 iterator.remove();
@@ -267,7 +292,7 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
         }
 
         if(list.size() == 0){
-            list.add(new ObjectPolicyConfigurationType());
+            list.add(new ObjectPolicyConfigurationTypeDto());
         }
 
         target.add(this);
@@ -275,7 +300,7 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
 
     private void editPerformed(AjaxRequestTarget target, ListItem item){
         ObjectPolicyDialog window = (ObjectPolicyDialog) get(ID_MODAL_WINDOW);
-        window.updateModel(target, (ObjectPolicyConfigurationType)item.getModelObject());
+        window.updateModel(target, (ObjectPolicyConfigurationTypeDto)item.getModelObject());
         window.show(target);
     }
 

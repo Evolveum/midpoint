@@ -17,11 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -47,7 +44,7 @@ public class SystemConfigurationDto implements Serializable {
 
     private ObjectViewDto<ValuePolicyType> passPolicyDto;
     private ObjectViewDto<ObjectTemplateType> objectTemplateDto;
-    private List<ObjectPolicyConfigurationType> objectPolicyList;
+    private List<ObjectPolicyConfigurationTypeDto> objectPolicyList;
     private NotificationConfigurationDto notificationConfig;
 
     public SystemConfigurationDto(){
@@ -77,15 +74,14 @@ public class SystemConfigurationDto implements Serializable {
         passPolicyDto = loadPasswordPolicy(config);
         objectTemplateDto = loadObjectTemplate(config);
 
+        objectPolicyList = new ArrayList<>();
         List<ObjectPolicyConfigurationType> objectPolicies = config.getDefaultObjectPolicyConfiguration();
         if(objectPolicies != null && !objectPolicies.isEmpty()){
-//            TODO - uncomment and replace other 2 lines when problem with not Serializable Anon objects is fixed
-//            objectPolicyList = objectPolicies;
-            objectPolicyList = new ArrayList<>();
-            objectPolicyList.add(new ObjectPolicyConfigurationType());
+            for(ObjectPolicyConfigurationType policy: objectPolicies){
+                objectPolicyList.add(new ObjectPolicyConfigurationTypeDto(policy));
+            }
         } else {
-            objectPolicyList = new ArrayList<>();
-            objectPolicyList.add(new ObjectPolicyConfigurationType());
+            objectPolicyList.add(new ObjectPolicyConfigurationTypeDto());
         }
 
         if(config.getNotificationConfiguration() != null){
@@ -169,11 +165,11 @@ public class SystemConfigurationDto implements Serializable {
         this.notificationConfig = notificationConfig;
     }
 
-    public List<ObjectPolicyConfigurationType> getObjectPolicyList() {
+    public List<ObjectPolicyConfigurationTypeDto> getObjectPolicyList() {
         return objectPolicyList;
     }
 
-    public void setObjectPolicyList(List<ObjectPolicyConfigurationType> objectPolicyList) {
+    public void setObjectPolicyList(List<ObjectPolicyConfigurationTypeDto> objectPolicyList) {
         this.objectPolicyList = objectPolicyList;
     }
 }

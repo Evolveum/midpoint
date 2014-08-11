@@ -106,7 +106,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
                 }));
                 listItem.add(textWrapper);
 
-                TextField text = new TextField<String>(ID_TEXT, createTextModel(listItem.getModel()));
+                TextField text = new TextField<>(ID_TEXT, createTextModel(listItem.getModel()));
                 text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {}

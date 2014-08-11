@@ -23,11 +23,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectTemplateConfigTypeReferenceDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.PropertyConstraintTypeDto;
@@ -86,10 +87,9 @@ public class ObjectPolicyDialog extends ModalWindow{
     private static final String OFFSET_CLASS = "col-md-offset-4";
 
     private boolean initialized;
-    private boolean isEditing;
     private IModel<ObjectPolicyDialogDto> model;
 
-    public ObjectPolicyDialog(String id, final ObjectPolicyConfigurationType config){
+    public ObjectPolicyDialog(String id, final ObjectPolicyConfigurationTypeDto config){
         super(id);
 
         model = new LoadableModel<ObjectPolicyDialogDto>(false) {
@@ -101,7 +101,7 @@ public class ObjectPolicyDialog extends ModalWindow{
         };
 
         setOutputMarkupId(true);
-        createTitle();
+        setTitle(createStringResource("ObjectPolicyDialog.label"));
         showUnloadConfirmation(false);
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(ObjectPolicyDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
@@ -114,26 +114,16 @@ public class ObjectPolicyDialog extends ModalWindow{
         setContent(content);
     }
 
-    private ObjectPolicyDialogDto loadModel(ObjectPolicyConfigurationType config){
+    private ObjectPolicyDialogDto loadModel(ObjectPolicyConfigurationTypeDto config){
         ObjectPolicyDialogDto dto;
 
         if(config == null){
-            dto = new ObjectPolicyDialogDto(new ObjectPolicyConfigurationType(), getPageBase());
-            isEditing = false;
+            dto = new ObjectPolicyDialogDto(new ObjectPolicyConfigurationTypeDto(), getPageBase());
         } else {
             dto = new ObjectPolicyDialogDto(config, getPageBase());
-            isEditing = true;
         }
 
         return dto;
-    }
-
-    private void createTitle(){
-        if(isEditing){
-            setTitle(createStringResource("ObjectPolicyDialog.label.edit"));
-        } else {
-            setTitle(createStringResource("ObjectPolicyDialog.label.new"));
-        }
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
@@ -152,19 +142,18 @@ public class ObjectPolicyDialog extends ModalWindow{
         initialized = true;
     }
 
-    public void updateModel(AjaxRequestTarget target, ObjectPolicyConfigurationType config){
+    public void updateModel(AjaxRequestTarget target, ObjectPolicyConfigurationTypeDto config){
         model.setObject(new ObjectPolicyDialogDto(config, getPageBase()));
         target.add(getContent());
     }
 
     public void initLayout(WebMarkupContainer content){
-
         Form form = new Form(ID_FORM);
         form.setOutputMarkupId(true);
         content.add(form);
 
         DropDownFormGroup type = new DropDownFormGroup(ID_TYPE, new PropertyModel<QName>(model,
-                "config.type"), createTypeChoiceList(),
+                ObjectPolicyDialogDto.F_TYPE), createTypeChoiceList(),
                 new IChoiceRenderer<QName>() {
 
                     @Override
@@ -177,10 +166,9 @@ public class ObjectPolicyDialog extends ModalWindow{
                         return Integer.toString(index);
                     }
                 }, createStringResource("ObjectPolicyDialog.type"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        type.getInput().setNullValid(true);
         form.add(type);
 
-        DropDownFormGroup template = new DropDownFormGroup(ID_OBJECT_TEMPLATE, new PropertyModel(model, ObjectPolicyDialogDto.F_TEMPLATE_REF),
+        DropDownFormGroup template = new DropDownFormGroup(ID_OBJECT_TEMPLATE, new PropertyModel<ObjectTemplateConfigTypeReferenceDto>(model, ObjectPolicyDialogDto.F_TEMPLATE_REF),
                 createObjectTemplateList(), new IChoiceRenderer<ObjectTemplateConfigTypeReferenceDto>() {
             @Override
             public Object getDisplayValue(ObjectTemplateConfigTypeReferenceDto object) {
@@ -192,7 +180,6 @@ public class ObjectPolicyDialog extends ModalWindow{
                 return Integer.toString(index);
             }
         }, createStringResource("ObjectPolicyDialog.template"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        template.getInput().setNullValid(true);
         form.add(template);
 
         ListView repeater = new ListView<PropertyConstraintTypeDto>(ID_REPEATER,
@@ -244,19 +231,21 @@ public class ObjectPolicyDialog extends ModalWindow{
         };
         form.add(repeater);
 
-        AjaxButton cancel = new AjaxButton(ID_BUTTON_CANCEL,
+        AjaxSubmitButton cancel = new AjaxSubmitButton(ID_BUTTON_CANCEL,
                 createStringResource("ObjectPolicyDialog.button.cancel")) {
+
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 cancelPerformed(target);
             }
         };
         form.add(cancel);
 
-        AjaxButton save = new AjaxButton(ID_BUTTON_SAVE,
+        AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE,
                 createStringResource("ObjectPolicyDialog.button.save")) {
+
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 savePerformed(target);
             }
         };
@@ -400,5 +389,9 @@ public class ObjectPolicyDialog extends ModalWindow{
 
     private PageBase getPageBase() {
         return (PageBase) getPage();
+    }
+
+    public IModel<ObjectPolicyDialogDto> getModel(){
+        return model;
     }
 }
