@@ -2805,8 +2805,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test223EntitleAccountWillPillage() throws Exception {
-		final String TEST_NAME = "test223EntitleAccountWillPillage";
+	public void test222EntitleAccountWillPillage() throws Exception {
+		final String TEST_NAME = "test222EntitleAccountWillPillage";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -2854,8 +2854,8 @@ public class TestDummy extends AbstractDummyTest {
 	 * Reads the will accounts, checks that both entitlements are there.
 	 */
 	@Test
-	public void test224GetPillagingPirateWill() throws Exception {
-		final String TEST_NAME = "test224GetPillagingPirateWill";
+	public void test223GetPillagingPirateWill() throws Exception {
+		final String TEST_NAME = "test223GetPillagingPirateWill";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -2892,10 +2892,68 @@ public class TestDummy extends AbstractDummyTest {
 		
 		assertSteadyResource();
 	}
+	
+	/**
+	 * Create a fresh group directly on the resource. So we are sure there is no shadow
+	 * for it yet. Add will to this group. Get will account. Make sure that the group is
+	 * in the associations.
+	 */
+	@Test
+	public void test224GetFoolishPirateWill() throws Exception {
+		final String TEST_NAME = "test224GetFoolishPirateWill";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		DummyGroup groupFools = new DummyGroup("fools");
+		dummyResource.addGroup(groupFools);
+		groupFools.addMember(ACCOUNT_WILL_USERNAME);
+		
+		syncServiceMock.reset();
+
+		// WHEN
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("Account", account);
+		
+		display(result);
+		TestUtil.assertSuccess(result);
+		
+		PrismObject<ShadowType> foolsShadow = findShadowByName(new QName(RESOURCE_DUMMY_NS, OBJECTCLAS_GROUP_LOCAL_NAME), "fools", resource, result);
+		assertNotNull("No shadow for group fools", foolsShadow);
+		
+		assertEntitlementGroup(account, GROUP_PIRATES_OID);
+		assertEntitlementGroup(account, foolsShadow.getOid());
+		assertEntitlementPriv(account, PRIVILEGE_PILLAGE_OID);
+		
+		// Just make sure nothing has changed
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+		assertNotNull("Account will is gone!", dummyAccount);
+		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
+		
+		// Make sure that privilege object is still there
+		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
+		assertNotNull("Privilege object is gone!", priv);
+		
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
+		assertMember(group, getWillRepoIcfName());
+		
+		String foolsIcfUid = getIcfUid(foolsShadow);
+		groupFools = getDummyGroupAssert("fools", foolsIcfUid);
+		assertMember(group, getWillRepoIcfName());
+		
+		assertSteadyResource();
+	}
 		
 	@Test
-	public void test225DetitleAccountWillPirates() throws Exception {
-		final String TEST_NAME = "test225DetitleAccountWillPirates";
+	public void test228DetitleAccountWillPirates() throws Exception {
+		final String TEST_NAME = "test228DetitleAccountWillPirates";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -2938,8 +2996,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test228DetitleAccountWillPillage() throws Exception {
-		final String TEST_NAME = "test228DetitleAccountWillPillage";
+	public void test229DetitleAccountWillPillage() throws Exception {
+		final String TEST_NAME = "test229DetitleAccountWillPillage";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -3507,7 +3565,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Even though the operation failed a shadow should be created for the conflicting object
 		
-		PrismObject<ShadowType> accountRepo = findShadowByUsername(getMurrayRepoIcfName(), resource, result);		
+		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getMurrayRepoIcfName(), resource, result);		
 		assertNotNull("Shadow was not created in the repository", accountRepo);
 		display("Repository shadow", accountRepo);
 		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
@@ -3605,7 +3663,7 @@ public class TestDummy extends AbstractDummyTest {
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
 		assertEquals("Unexpected number of attributes", 4, attributes.size());
 		
-		PrismObject<ShadowType> accountRepo = findShadowByUsername(getBlackbeardRepoIcfName(), resource, result);		
+		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);		
 		assertNotNull("Shadow was not created in the repository", accountRepo);
 		display("Repository shadow", accountRepo);
 		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
@@ -3676,7 +3734,7 @@ public class TestDummy extends AbstractDummyTest {
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
 		assertEquals("Unexpected number of attributes", 4, attributes.size());
 
-		PrismObject<ShadowType> accountRepo = findShadowByUsername(getBlackbeardRepoIcfName(), resource, result);		
+		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);		
 		assertNotNull("Shadow was not created in the repository", accountRepo);
 		display("Repository shadow", accountRepo);
 		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
@@ -3746,7 +3804,7 @@ public class TestDummy extends AbstractDummyTest {
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, drakeAccountOid, null, result);
 		display("Drake repo shadow", repoShadow);
 		
-		PrismObject<ShadowType> accountRepo = findShadowByUsername(getDrakeRepoIcfName(), resource, result);	
+		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getDrakeRepoIcfName(), resource, result);	
 		assertNotNull("Shadow was not created in the repository", accountRepo);
 		display("Repository shadow", accountRepo);
 		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
