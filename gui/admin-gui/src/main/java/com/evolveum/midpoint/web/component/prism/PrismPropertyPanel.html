@@ -17,7 +17,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="col-xs-4">
+    <div wicket:id="labelContainer" class="col-xs-4">
         <span wicket:id="label"/>
         <span wicket:id="required" style="color: #f00; font-weight: bold;"
                 wicket:message="title:prismPropertyPanel.required">*</span>
@@ -27,8 +27,8 @@
               wicket:message="title:prismPropertyPanel.hasPendingModification">*</span>
         <i wicket:id="help"/>
     </div>
-    <div class="col-xs-8" wicket:id="values">
-        <div class="row" wicket:id="value"/>
+    <div class="col-md-6" wicket:id="values">
+        <div wicket:id="value"/>
     </div>
 </wicket:panel>
 </html>
