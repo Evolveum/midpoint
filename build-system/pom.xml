@@ -72,7 +72,7 @@
         <activiti-spring.version>5.15.1</activiti-spring.version>
         <commons-email.version>1.3</commons-email.version>
         <xmlsec.version>2.0.1</xmlsec.version>
-        <connid.version>1.4.0.0-SNAPSHOT</connid.version>
+        <connid.version>1.4.0.1-SNAPSHOT</connid.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -371,12 +371,12 @@
             </dependency>
             <!--  Identity conectors  -->
             <dependency>
-                <groupId>org.connid</groupId>
+                <groupId>net.tirasa.connid</groupId>
                 <artifactId>connector-framework</artifactId>
                 <version>${connid.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.connid</groupId>
+                <groupId>net.tirasa.connid</groupId>
                 <artifactId>connector-framework-internal</artifactId>
                 <version>${connid.version}</version>
             </dependency>
@@ -593,7 +593,7 @@
       </repository>
       <snapshotRepository>
         <id>evolveum-nexus</id>
-        <name>Internal Releases</name>
+        <name>Internal Snapshots</name>
         <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
       </snapshotRepository>
     </distributionManagement>

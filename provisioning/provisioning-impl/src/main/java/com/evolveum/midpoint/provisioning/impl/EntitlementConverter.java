@@ -168,7 +168,7 @@ class EntitlementConverter {
 	}
 	
 	private <S extends ShadowType,T> void postProcessEntitlementEntitlementToSubject(ConnectorInstance connector, 
-			ResourceType resourceType, PrismObject<S> resourceObject, 
+			ResourceType resourceType, final PrismObject<S> resourceObject, 
 			RefinedObjectClassDefinition objectClassDefinition, RefinedAssociationDefinition assocDefType,
 			final RefinedObjectClassDefinition entitlementDef,
 			ResourceAttributeContainer attributesContainer, final PrismContainer<ShadowAssociationType> associationContainer,
@@ -229,6 +229,10 @@ class EntitlementConverter {
 					
 					// Remember the full shadow in user data. This is used later as an optimization to create the shadow in repo 
 					identifiersContainer.setUserData(ResourceObjectConverter.FULL_SHADOW_KEY, entitlementShadow);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Processed entitlement-to-subject association for account {} and entitlement {}",
+								ShadowUtil.getHumanReadableName(resourceObject), ShadowUtil.getHumanReadableName(entitlementShadow));
+					}
 				} catch (SchemaException e) {
 					throw new TunnelException(e);
 				}
@@ -237,6 +241,10 @@ class EntitlementConverter {
 		};
 		
 		try {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Processed entitlement-to-subject association for account {}: query {}",
+						ShadowUtil.getHumanReadableName(resourceObject), query);
+			}
 			connector.search(entitlementDef, query, handler, attributesToReturn, parentResult);
 		} catch (TunnelException e) {
 			throw (SchemaException)e.getCause();

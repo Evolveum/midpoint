@@ -393,4 +393,41 @@ public class ShadowUtil {
 		return MiscUtil.equals(intent, shadowType.getIntent());
 	}
 	
+	public static String getHumanReadableName(PrismObject<? extends ShadowType> shadow) {
+		if (shadow == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder();
+		ShadowType shadowType = shadow.asObjectable();
+		ShadowKindType kind = shadowType.getKind();
+		if (kind != null) {
+			sb.append(kind).append(" ");
+		}
+		sb.append("shadow ");
+		boolean first = true;
+		for(ResourceAttribute iattr: getIdentifiers(shadow)) {
+			if (first) {
+				sb.append("[");
+				first  = false;
+			} else {
+				sb.append(",");
+			}
+			sb.append(iattr.getElementName().getLocalPart());
+			sb.append("=");
+			sb.append(iattr.getRealValue());
+		}
+		if (first) {
+			sb.append("[");
+		}
+		sb.append("]");
+		return shadow.toString();
+	}
+	
+	public static String getHumanReadableName(ShadowType shadowType) {
+		if (shadowType == null) {
+			return "null";
+		}
+		return getHumanReadableName(shadowType.asPrismObject());
+	}
+	
 }
