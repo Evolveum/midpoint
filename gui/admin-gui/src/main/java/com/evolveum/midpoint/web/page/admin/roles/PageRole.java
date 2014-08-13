@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.roles;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -32,22 +33,28 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.form.*;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
-import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
+import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.Collection;
@@ -69,6 +76,7 @@ public class PageRole extends PageAdminRoles{
 
     private static final String DOT_CLASS = PageRole.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE = DOT_CLASS + "loadRole";
+    private static final String OPERATION_CREATE_ROLE_WRAPPER = DOT_CLASS + "createRoleWrapper";
     private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
     private static final String OPERATION_SAVE_ROLE = DOT_CLASS + "saveRole";
 
@@ -84,15 +92,19 @@ public class PageRole extends PageAdminRoles{
     private static final String ID_DATE_FROM = "dateFrom";
     private static final String ID_DATE_TO = "dateTo";
     private static final String ID_ADMIN_STATUS = "adminStatus";
+    private static final String ID_EXTENSION = "extension";
+    private static final String ID_EXTENSION_LABEL = "extensionLabel";
+    private static final String ID_EXTENSION_PROPERTY = "property";
 
     private static final String ID_INDUCEMENTS = "inducementsPanel";
     private static final String ID_ASSIGNMENTS = "assignmentsPanel";
 
-
     private static final String ID_LABEL_SIZE = "col-md-4";
-    private static final String ID_INPUT_SIZE = "col-md-8";
+    private static final String ID_INPUT_SIZE = "col-md-6";
 
     private IModel<PrismObject<RoleType>> model;
+    private IModel<ContainerWrapper> extensionModel;
+    private ObjectWrapper roleWrapper;
 
     public PageRole(){
 
@@ -100,6 +112,14 @@ public class PageRole extends PageAdminRoles{
             @Override
             protected PrismObject<RoleType> load() {
                 return loadRole();
+            }
+        };
+
+        extensionModel = new LoadableModel<ContainerWrapper>(false) {
+
+            @Override
+            protected ContainerWrapper load() {
+                return loadRoleWrapper();
             }
         };
 
@@ -131,7 +151,7 @@ public class PageRole extends PageAdminRoles{
                     return createStringResource("PageRoleEditor.subtitle.newRole").getObject();
                 }
 
-                String roleName = model.getObject().asObjectable().getName().getOrig();
+                String roleName = WebMiscUtil.getName(model.getObject());
                 return createStringResource("PageRoleEditor.subtitle.editingRole", roleName).getString();
             }
         };
@@ -172,6 +192,38 @@ public class PageRole extends PageAdminRoles{
         return role;
     }
 
+    private ContainerWrapper loadRoleWrapper(){
+        OperationResult result = new OperationResult(OPERATION_CREATE_ROLE_WRAPPER);
+        ContainerStatus status = isEditing() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+        ObjectWrapper wrapper = null;
+        ContainerWrapper extensionContainer = null;
+        PrismObject<RoleType> role = model.getObject();
+
+        try{
+            wrapper = ObjectWrapperUtil.createObjectWrapper("PageRoleEditor.extension", null, role, status, this);
+        } catch (Exception e){
+            result.recordFatalError("Couldn't create role wrapper.", e);
+            LoggingUtils.logException(LOGGER, "Couldn't create role wrapper", e);
+            wrapper = new ObjectWrapper("PageRoleEditor.extension", null, role, null, status, this);
+        }
+
+        if(wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())){
+            showResultInSession(wrapper.getResult());
+        }
+
+        wrapper.setShowEmpty(true);
+        roleWrapper = wrapper;
+
+        List<ContainerWrapper> list = wrapper.getContainers();
+        for(ContainerWrapper cont: list){
+            if("extension".equals(cont.getItem().getDefinition().getName().getLocalPart())){
+                extensionContainer = cont;
+            }
+        }
+
+        return extensionContainer;
+    }
+
     private boolean isEditing(){
         StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         return oid != null && StringUtils.isNotEmpty(oid.toString());
@@ -198,7 +250,7 @@ public class PageRole extends PageAdminRoles{
     }
 
     private void initLayout(){
-        Form form = new Form(ID_MAIN_FORM);
+        final Form form = new Form(ID_MAIN_FORM);
         add(form);
 
         TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel(model, RoleType.F_NAME),
@@ -272,7 +324,64 @@ public class PageRole extends PageAdminRoles{
         };
         form.add(inducements);
 
+        Label extensionLabel = new Label(ID_EXTENSION_LABEL, createStringResource("PageRoleEditor.subtitle.extension"));
+        extensionLabel.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                if(extensionModel == null || extensionModel.getObject() == null
+                        || extensionModel.getObject().getProperties().isEmpty()){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        });
+        form.add(extensionLabel);
+
+        ListView<PropertyWrapper> extensionProperties = new ListView<PropertyWrapper>(ID_EXTENSION,
+                new PropertyModel(extensionModel, "properties")) {
+
+            @Override
+            protected void populateItem(ListItem<PropertyWrapper> item) {
+                PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form){
+
+                    @Override
+                    protected String getValuesClass(){
+                        return ID_INPUT_SIZE;
+                    }
+
+                    @Override
+                    protected String getValueCssClass(){
+                        return "";
+                    }
+
+                    @Override
+                    protected String getInputCssClass(){
+                        return "";
+                    }
+                };
+                propertyPanel.get("labelContainer:label").add(new AttributeAppender("style", "font-weight:bold;"));
+                propertyPanel.get("labelContainer").add(new AttributeModifier("class", ID_LABEL_SIZE + " control-label"));
+                item.add(propertyPanel);
+                item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
+            }
+        };
+        extensionProperties.setReuseItems(true);
+        form.add(extensionProperties);
+
         initButtons(form);
+    }
+
+    private IModel<String> createStyleClassModel(final IModel<PropertyWrapper> wrapper) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                PropertyWrapper property = wrapper.getObject();
+                return property.isVisible() ? "visible" : null;
+            }
+        };
     }
 
     private void initButtons(Form form){
@@ -344,7 +453,15 @@ public class PageRole extends PageAdminRoles{
                 }
             }
 
+            ObjectDelta extensionDelta = saveExtension(result);
+
             if (delta != null) {
+                if(extensionDelta != null){
+                    for(ItemDelta itemDelta: (List<ItemDelta>)extensionDelta.getModifications()){
+                        delta.addModification(itemDelta);
+                    }
+                }
+
                 Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
                 modelService.executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_ROLE), result);
             }
@@ -362,6 +479,30 @@ public class PageRole extends PageAdminRoles{
             showResult(result);
             target.add(getFeedbackPanel());
         }
+    }
+
+    private ObjectDelta saveExtension(OperationResult result){
+        ObjectDelta delta = null;
+
+        try {
+            WebMiscUtil.revive(extensionModel, getPrismContext());
+            WebMiscUtil.revive(model, getPrismContext());
+
+            delta = roleWrapper.getObjectDelta();
+            if(roleWrapper.getOldDelta() != null){
+                delta = ObjectDelta.summarize(roleWrapper.getOldDelta(), delta);
+            }
+
+            if(LOGGER.isTraceEnabled()){
+                LOGGER.trace("Role delta computed from extension:\n{}", new Object[]{delta.debugDump(3)});
+            }
+        } catch (Exception e){
+            result.recordFatalError(getString("PageRoleEditor.message.cantCreateExtensionDelta"), e);
+            LoggingUtils.logException(LOGGER, "Can't create delta for role extension.", e);
+            showResult(result);
+        }
+
+        return delta;
     }
 
     private void backPerformed(AjaxRequestTarget target){

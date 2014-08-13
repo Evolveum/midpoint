@@ -44,6 +44,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -64,18 +65,26 @@ import java.util.List;
 public class PrismValuePanel extends Panel {
 
     private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_VALUE_CONTAINER = "valueContainer";
 
     private IModel<ValueWrapper> model;
 
-    public PrismValuePanel(String id, IModel<ValueWrapper> model, IModel<String> label, Form form) {
+    public PrismValuePanel(String id, IModel<ValueWrapper> model, IModel<String> label, Form form,
+                           String valueCssClass, String inputCssClass){
         super(id);
         Validate.notNull(model, "Property value model must not be null.");
         this.model = model;
 
-        initLayout(label, form);
+        initLayout(label, form, valueCssClass, inputCssClass);
     }
 
-    private void initLayout(IModel<String> label, Form form) {
+    private void initLayout(IModel<String> label, Form form, String valueCssClass, String inputCssClass) {
+        //container
+        WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
+        valueContainer.setOutputMarkupId(true);
+        valueContainer.add(new AttributeModifier("class", valueCssClass));
+        add(valueContainer);
+
         //feedback
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
@@ -83,8 +92,9 @@ public class PrismValuePanel extends Panel {
 
         //input
         InputPanel input = createInputComponent("input", label, form);
+        input.add(new AttributeModifier("class", inputCssClass));
         initAccessBehaviour(input);
-        add(input);
+        valueContainer.add(input);
 
         feedback.setFilter(new ComponentFeedbackMessageFilter(input.getBaseFormComponent()));
 
@@ -103,7 +113,7 @@ public class PrismValuePanel extends Panel {
                 return isAddButtonVisible();
             }
         });
-        add(addButton);
+        valueContainer.add(addButton);
 
         AjaxLink removeButton = new AjaxLink("removeButton") {
 
@@ -119,7 +129,7 @@ public class PrismValuePanel extends Panel {
                 return isRemoveButtonVisible();
             }
         });
-        add(removeButton);
+        valueContainer.add(removeButton);
     }
 
     private IModel<String> createHelpModel() {

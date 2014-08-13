@@ -290,23 +290,31 @@ public class PrismObjectPanel extends Panel {
         add(body);
 
         ListView<ContainerWrapper> containers = new ListView<ContainerWrapper>("containers",
-                new PropertyModel<List<ContainerWrapper>>(model, "containers")) {
+                createContainerModel(model)) {
 
             @Override
             protected void populateItem(ListItem<ContainerWrapper> item) {
-                item.add(new PrismContainerPanel("container", item.getModel(), form));
+                createContainerPanel(item, form);
             }
         };
         containers.setReuseItems(true);
         body.add(containers);
     }
 
+    protected IModel<List<ContainerWrapper>> createContainerModel(IModel<ObjectWrapper> model){
+        return new PropertyModel<>(model, "containers");
+    }
+
+    protected void createContainerPanel(ListItem<ContainerWrapper> item, Form form){
+        item.add(new PrismContainerPanel("container", item.getModel(), form));
+    }
+
     protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {
-        return new PropertyModel<String>(model, "displayName");
+        return new PropertyModel<>(model, "displayName");
     }
 
     protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
-        return new PropertyModel<String>(model, "description");
+        return new PropertyModel<>(model, "description");
     }
 
     private void initButtons(WebMarkupContainer headerPanel, final IModel<ObjectWrapper> model) {
