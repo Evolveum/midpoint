@@ -421,7 +421,7 @@ public class PageRole extends PageAdminRoles{
 
             ObjectDelta delta = null;
             if (!isEditing()) {
-                delta = ObjectDelta.createAddDelta(newRole);
+                delta = saveExtension(result);
 
                 //handle assignments
                 PrismObjectDefinition orgDef = newRole.getDefinition();

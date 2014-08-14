@@ -661,6 +661,12 @@ public class PageOrgUnit extends PageAdminUsers {
                     LOGGER.trace("Saving changes for org. unit: {}", delta.debugDump());
                 }
                 getModelService().executeChanges(deltas, null, createSimpleTask(SAVE_UNIT), result);
+
+                //save extension when adding new Org. - improve later
+                if(!isEditing() && extensionDelta != null){
+                    ObjectDelta extDelta = delta.getObjectToAdd().diff(extensionDelta.getObjectToAdd());
+                    getModelService().executeChanges(WebMiscUtil.createDeltaCollection(extDelta), null, createSimpleTask(SAVE_UNIT), result);
+                }
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't save org. unit", ex);
