@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectTemplateConf
 import com.evolveum.midpoint.web.page.admin.configuration.dto.PropertyConstraintTypeDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -105,7 +106,7 @@ public class ObjectPolicyDialog extends ModalWindow{
         showUnloadConfirmation(false);
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(ObjectPolicyDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
-        setInitialWidth(615);
+        setInitialWidth(625);
         setInitialHeight(400);
         setWidthUnit("px");
 
@@ -210,6 +211,7 @@ public class ObjectPolicyDialog extends ModalWindow{
                 textWrapper.add(property);
 
                 CheckBox oidBound = new CheckBox(ID_OID_BOUND, new PropertyModel<Boolean>(item.getModel(), PropertyConstraintTypeDto.F_OID_BOUND));
+                oidBound.add(AttributeModifier.replace("title", createStringResource("ObjectPolicyDialog.label.oidBound.help")));
                 textWrapper.add(oidBound);
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);

@@ -24,12 +24,12 @@
     <wicket:container wicket:id="repeater">
         <div class="col-lg-4" wicket:id="textWrapper">
             <div class="input-group input-group-sm">
+                <input type="text" class="form-control input-sm" wicket:id="name" />
                 <span class="input-group-btn">
                     <button wicket:id="edit" class="btn btn-primary" type="button">
                         <wicket:message key="objectPolicyConfigurationEditor.button.edit" />
                     </button>
                 </span>
-                <input type="text" class="form-control input-sm" wicket:id="name" />
                 <span class="text-danger" wicket:id="feedback"/>
             </div>
         </div>
