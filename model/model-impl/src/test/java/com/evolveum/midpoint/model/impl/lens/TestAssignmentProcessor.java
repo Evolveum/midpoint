@@ -75,8 +75,6 @@ import static org.testng.AssertJUnit.*;
 /**
  * @author semancik
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
-@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAssignmentProcessor extends AbstractLensTest {
 
     private static final ItemPath ATTRIBUTES_PARENT_PATH = new ItemPath(ShadowType.F_ATTRIBUTES);
