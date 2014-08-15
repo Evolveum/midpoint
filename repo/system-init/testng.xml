@@ -15,9 +15,6 @@
   ~ limitations under the License.
   -->
 <suite name="Suite" parallel="none">
-	<listeners>
-		<listener class-name="com.evolveum.midpoint.tools.testng.TestMethodLoggerListener"/>
-	</listeners>
 	<test name="Test" parallel="none">
 		<classes>
 			<class name="com.evolveum.midpoint.init.ConfigurationLoadTest"/>
