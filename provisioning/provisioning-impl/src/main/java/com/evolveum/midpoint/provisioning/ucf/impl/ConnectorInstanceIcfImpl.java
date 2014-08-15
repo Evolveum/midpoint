@@ -189,6 +189,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	Protector protector;
 	PrismContext prismContext;
 	private IcfNameMapper icfNameMapper;
+	private IcfConvertor icfConvertor;
 
 	private ResourceSchema resourceSchema = null;
 	private Collection<Object> capabilities = null;
@@ -204,6 +205,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		this.connectorSchema = connectorSchema;
 		this.protector = protector;
 		this.prismContext = prismContext;
+		icfConvertor = new IcfConvertor(protector, resourceSchemaNamespace);
 	}
 
 	public String getDescription() {
@@ -224,6 +226,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	public void setIcfNameMapper(IcfNameMapper icfNameMapper) {
 		this.icfNameMapper = icfNameMapper;
+		icfConvertor.setIcfNameMapper(icfNameMapper);
 	}
 
 	/*
@@ -956,7 +959,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		PrismObjectDefinition<T> shadowDefinition = toShadowDefinition(objectClassDefinition);
-		PrismObject<T> shadow = convertToResourceObject(co, shadowDefinition, false);
+		PrismObject<T> shadow = icfConvertor.convertToResourceObject(co, shadowDefinition, false);
 
 		result.recordSuccess();
 		return shadow;
@@ -1112,7 +1115,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("midPoint object before conversion:\n{}", attributesContainer.debugDump());
 			}
-			attributes = convertFromResourceObject(attributesContainer, result);
+			attributes = icfConvertor.convertFromResourceObject(attributesContainer, result);
 
 			if (objectType.getCredentials() != null && objectType.getCredentials().getPassword() != null) {
 				PasswordType password = objectType.getCredentials().getPassword();
@@ -1197,12 +1200,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new GenericFrameworkException("ICF did not returned UID after create");
 		}
 
-		ResourceAttributeDefinition uidDefinition = getUidDefinition(attributesContainer.getDefinition());
+		ResourceAttributeDefinition uidDefinition = IcfUtil.getUidDefinition(attributesContainer.getDefinition());
 		if (uidDefinition == null) {
 			throw new IllegalArgumentException("No definition for ICF UID attribute found in definition "
 					+ attributesContainer.getDefinition());
 		}
-		ResourceAttribute<?> attribute = createUidAttribute(uid, uidDefinition);
+		ResourceAttribute<?> attribute = IcfUtil.createUidAttribute(uid, uidDefinition);
 		attributesContainer.getValue().addReplaceExisting(attribute);
 		icfResult.recordSuccess();
 
@@ -1357,7 +1360,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (addValues != null && !addValues.isEmpty()) {
 				Set<Attribute> attributes = null;
 				try {
-					attributes = convertFromResourceObject(addValues, result);
+					attributes = icfConvertor.convertFromResourceObject(addValues, result);
 				} catch (SchemaException ex) {
 					result.recordFatalError("Error while converting resource object attributes. Reason: "
 							+ ex.getMessage(), ex);
@@ -1418,7 +1421,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			Set<Attribute> updateAttributes = null;
 
 			try {
-				updateAttributes = convertFromResourceObject(updateValues, result);
+				updateAttributes = icfConvertor.convertFromResourceObject(updateValues, result);
 				
 				if (activationDeltas != null) {
 					// Activation change means modification of attributes
@@ -1495,7 +1498,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (valuesToRemove != null && !valuesToRemove.isEmpty()) {
 				Set<Attribute> attributes = null;
 				try {
-					attributes = convertFromResourceObject(valuesToRemove, result);
+					attributes = icfConvertor.convertFromResourceObject(valuesToRemove, result);
 				} catch (SchemaException ex) {
 					result.recordFatalError("Error while converting resource object attributes. Reason: "
 							+ ex.getMessage(), ex);
@@ -1850,7 +1853,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 				PrismObject<T> resourceObject;
 				try {
-					resourceObject = convertToResourceObject(connectorObject, objectDefinition, false);
+					resourceObject = icfConvertor.convertToResourceObject(connectorObject, objectDefinition, false);
 				} catch (SchemaException e) {
 					throw new IntermediateException(e);
 				}
@@ -1949,10 +1952,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return null;
 	}
 
-	private ResourceAttributeDefinition getUidDefinition(ResourceAttributeContainerDefinition def) {
-		return def.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
-	}
-
 	private ResourceAttributeDefinition getUidDefinition(Collection<? extends ResourceAttribute<?>> identifiers) {
 		for (ResourceAttribute<?> attr : identifiers) {
 			if (attr.getElementName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
@@ -1962,236 +1961,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return null;
 	}
 
-	private ResourceAttribute<String> createUidAttribute(Uid uid, ResourceAttributeDefinition uidDefinition) {
-		ResourceAttribute<String> uidRoa = uidDefinition.instantiate();
-		uidRoa.setValue(new PrismPropertyValue<String>(uid.getUidValue()));
-		return uidRoa;
-	}
+	
+	
 
-	/**
-	 * Converts ICF ConnectorObject to the midPoint ResourceObject.
-	 * <p/>
-	 * All the attributes are mapped using the same way as they are mapped in
-	 * the schema (which is actually no mapping at all now).
-	 * <p/>
-	 * If an optional ResourceObjectDefinition was provided, the resulting
-	 * ResourceObject is schema-aware (getDefinition() method works). If no
-	 * ResourceObjectDefinition was provided, the object is schema-less. TODO:
-	 * this still needs to be implemented.
-	 * 
-	 * @param co
-	 *            ICF ConnectorObject to convert
-	 * @param def
-	 *            ResourceObjectDefinition (from the schema) or null
-	 * @param full
-	 *            if true it describes if the returned resource object should
-	 *            contain all of the attributes defined in the schema, if false
-	 *            the returned resource object will contain only attributed with
-	 *            the non-null values.
-	 * @return new mapped ResourceObject instance.
-	 * @throws SchemaException
-	 */
-	private <T extends ShadowType> PrismObject<T> convertToResourceObject(ConnectorObject co,
-			PrismObjectDefinition<T> objectDefinition, boolean full) throws SchemaException {
+	
 
-		PrismObject<T> shadowPrism = null;
-		if (objectDefinition != null) {
-			shadowPrism = objectDefinition.instantiate();
-		} else {
-			throw new SchemaException("No definition");
-		}
+	
 
-		// LOGGER.trace("Instantiated prism object {} from connector object.",
-		// shadowPrism.debugDump());
-
-		T shadow = shadowPrism.asObjectable();
-		ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) shadowPrism
-				.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
-		ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
-		shadow.setObjectClass(attributesContainerDefinition.getTypeName());
-
-		LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.debugDump());
-
-		// Uid is always there
-		Uid uid = co.getUid();
-		ResourceAttribute<String> uidRoa = createUidAttribute(uid, getUidDefinition(attributesContainerDefinition));
-		attributesContainer.getValue().add(uidRoa);
-
-		for (Attribute icfAttr : co.getAttributes()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Reading ICF attribute {}: {}", icfAttr.getName(), icfAttr.getValue());
-			}
-			if (icfAttr.getName().equals(Uid.NAME)) {
-				// UID is handled specially (see above)
-				continue;
-			}
-			if (icfAttr.getName().equals(OperationalAttributes.PASSWORD_NAME)) {
-				// password has to go to the credentials section
-				ProtectedStringType password = getSingleValue(icfAttr, ProtectedStringType.class);
-				ShadowUtil.setPassword(shadow, password);
-				LOGGER.trace("Converted password: {}", password);
-				continue;
-			}
-			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_NAME)) {
-				Boolean enabled = getSingleValue(icfAttr, Boolean.class);
-				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
-				ActivationStatusType activationStatusType;
-				if (enabled) {
-					activationStatusType = ActivationStatusType.ENABLED;
-				} else {
-					activationStatusType = ActivationStatusType.DISABLED;
-				}
-				activationType.setAdministrativeStatus(activationStatusType);
-				activationType.setEffectiveStatus(activationStatusType);
-				LOGGER.trace("Converted activation administrativeStatus: {}", activationStatusType);
-				continue;
-			}
-			
-			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_DATE_NAME)) {
-				Long millis = getSingleValue(icfAttr, Long.class);
-				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
-				activationType.setValidFrom(XmlTypeConverter.createXMLGregorianCalendar(millis));
-				continue;
-			}
-
-			if (icfAttr.getName().equals(OperationalAttributes.DISABLE_DATE_NAME)) {
-				Long millis = getSingleValue(icfAttr, Long.class);
-				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
-				activationType.setValidTo(XmlTypeConverter.createXMLGregorianCalendar(millis));
-				continue;
-			}
-			
-			if (icfAttr.getName().equals(OperationalAttributes.LOCK_OUT_NAME)) {
-				Boolean lockOut = getSingleValue(icfAttr, Boolean.class);
-				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
-				LockoutStatusType lockoutStatusType;
-				if (lockOut) {
-					lockoutStatusType = LockoutStatusType.LOCKED;
-				} else {
-					lockoutStatusType = LockoutStatusType.NORMAL;
-				}
-				activationType.setLockoutStatus(lockoutStatusType);
-				LOGGER.trace("Converted activation lockoutStatus: {}", lockoutStatusType);
-				continue;
-			}
-
-			QName qname = icfNameMapper.convertAttributeNameToQName(icfAttr.getName(), getSchemaNamespace());
-			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname);
-
-			if (attributeDefinition == null) {
-				throw new SchemaException("Unknown attribute "+qname+" in definition of object class "+attributesContainerDefinition.getTypeName()+". Original ICF name: "+icfAttr.getName(), qname);
-			}
-
-			ResourceAttribute<Object> resourceAttribute = attributeDefinition.instantiate(qname);
-
-			// if true, we need to convert whole connector object to the
-			// resource object also with the null-values attributes
-			if (full) {
-				if (icfAttr.getValue() != null) {
-					// Convert the values. While most values do not need
-					// conversions, some
-					// of them may need it (e.g. GuardedString)
-					for (Object icfValue : icfAttr.getValue()) {
-						Object value = convertValueFromIcf(icfValue, qname);
-						resourceAttribute.add(new PrismPropertyValue<Object>(value));
-					}
-				}
-
-				LOGGER.trace("Converted attribute {}", resourceAttribute);
-				attributesContainer.getValue().add(resourceAttribute);
-
-				// in this case when false, we need only the attributes with the
-				// non-null values.
-			} else {
-				if (icfAttr.getValue() != null && !icfAttr.getValue().isEmpty()) {
-					// Convert the values. While most values do not need
-					// conversions, some
-					// of them may need it (e.g. GuardedString)
-					boolean empty = true;
-					for (Object icfValue : icfAttr.getValue()) {
-						if (icfValue != null) {
-							Object value = convertValueFromIcf(icfValue, qname);
-							empty = false;
-							resourceAttribute.add(new PrismPropertyValue<Object>(value));
-						}
-					}
-
-					if (!empty) {
-						LOGGER.trace("Converted attribute {}", resourceAttribute);
-						attributesContainer.getValue().add(resourceAttribute);
-					}
-
-				}
-			}
-
-		}
-
-		return shadowPrism;
-	}
-
-	private <T> T getSingleValue(Attribute icfAttr, Class<T> type) throws SchemaException {
-		List<Object> values = icfAttr.getValue();
-		if (values != null && !values.isEmpty()) {
-			if (values.size() > 1) {
-				throw new SchemaException("Expected single value for " + icfAttr.getName());
-			}
-			Object val = convertValueFromIcf(values.get(0), null);
-			if (type.isAssignableFrom(val.getClass())) {
-				return (T) val;
-			} else {
-				throw new SchemaException("Expected type " + type.getName() + " for " + icfAttr.getName()
-						+ " but got " + val.getClass().getName());
-			}
-		} else {
-			throw new SchemaException("Empty value for " + icfAttr.getName());
-		}
-
-	}
-
-	private Set<Attribute> convertFromResourceObject(ResourceAttributeContainer attributesPrism,
-			OperationResult parentResult) throws SchemaException {
-		Collection<ResourceAttribute<?>> resourceAttributes = attributesPrism.getAttributes();
-		return convertFromResourceObject(resourceAttributes, parentResult);
-	}
-
-	private Set<Attribute> convertFromResourceObject(Collection<ResourceAttribute<?>> resourceAttributes,
-			OperationResult parentResult) throws SchemaException {
-
-		Set<Attribute> attributes = new HashSet<Attribute>();
-		if (resourceAttributes == null) {
-			// returning empty set
-			return attributes;
-		}
-
-		for (ResourceAttribute<?> attribute : resourceAttributes) {
-			QName midPointAttrQName = attribute.getElementName();
-			if (midPointAttrQName.equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
-				throw new SchemaException("ICF UID explicitly specified in attributes");
-			}
-
-			String icfAttrName = icfNameMapper.convertAttributeNameToIcf(midPointAttrQName, getSchemaNamespace());
-
-			Set<Object> convertedAttributeValues = new HashSet<Object>();
-			for (PrismPropertyValue<?> value : attribute.getValues()) {
-				convertedAttributeValues.add(UcfUtil.convertValueToIcf(value, protector, attribute.getElementName()));
-			}
-
-			Attribute connectorAttribute = AttributeBuilder.build(icfAttrName, convertedAttributeValues);
-
-			attributes.add(connectorAttribute);
-		}
-		return attributes;
-	}
-
-	private Object convertValueFromIcf(Object icfValue, QName propName) {
-		if (icfValue == null) {
-			return null;
-		}
-		if (icfValue instanceof GuardedString) {
-			return fromGuardedString((GuardedString) icfValue);
-		}
-		return icfValue;
-	}
+	
 
 	private void convertFromActivation(Set<Attribute> updateAttributes,
 			Collection<PropertyDelta<?>> activationDeltas) throws SchemaException {
@@ -2273,9 +2050,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				LOGGER.trace("START creating delta of type DELETE");
 				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(
 						ShadowType.class, ChangeType.DELETE, prismContext);
-				ResourceAttribute<String> uidAttribute = createUidAttribute(
+				ResourceAttribute<String> uidAttribute = IcfUtil.createUidAttribute(
 						icfDelta.getUid(),
-						getUidDefinition(objClassDefinition
+						IcfUtil.getUidDefinition(objClassDefinition
 								.toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES)));
 				Collection<ResourceAttribute<?>> identifiers = new ArrayList<ResourceAttribute<?>>(1);
 				identifiers.add(uidAttribute);
@@ -2289,7 +2066,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				LOGGER.trace("Object definition: {}", objectDefinition);
 				
 				LOGGER.trace("START creating delta of type CREATE_OR_UPDATE");
-				PrismObject<ShadowType> currentShadow = convertToResourceObject(icfDelta.getObject(),
+				PrismObject<ShadowType> currentShadow = icfConvertor.convertToResourceObject(icfDelta.getObject(),
 						objectDefinition, false);
 
 				if (LOGGER.isTraceEnabled()) {
@@ -2791,21 +2568,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
-	private ProtectedStringType fromGuardedString(GuardedString icfValue) {
-		final ProtectedStringType ps = new ProtectedStringType();
-		icfValue.access(new GuardedString.Accessor() {
-			@Override
-			public void access(char[] passwordChars) {
-				try {
-					ps.setClearValue(new String(passwordChars));
-					protector.encrypt(ps);
-				} catch (EncryptionException e) {
-					throw new IllegalStateException("Protector failed to encrypt password");
-				}
-			}
-		});
-		return ps;
-	}
+	
 
 	/*
 	 * (non-Javadoc)

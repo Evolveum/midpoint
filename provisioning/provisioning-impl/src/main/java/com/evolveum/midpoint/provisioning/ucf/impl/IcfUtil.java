@@ -49,11 +49,16 @@ import org.identityconnectors.framework.common.exceptions.OperationTimeoutExcept
 import org.identityconnectors.framework.common.exceptions.PermissionDeniedException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -421,6 +426,16 @@ class IcfUtil {
 		} else {
 			sb.append(ex.getMessage());
 		}
+	}
+	
+	public static ResourceAttributeDefinition getUidDefinition(ResourceAttributeContainerDefinition def) {
+		return def.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+	}
+	
+	public static ResourceAttribute<String> createUidAttribute(Uid uid, ResourceAttributeDefinition uidDefinition) {
+		ResourceAttribute<String> uidRoa = uidDefinition.instantiate();
+		uidRoa.setValue(new PrismPropertyValue<String>(uid.getUidValue()));
+		return uidRoa;
 	}
 
 }

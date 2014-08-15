@@ -27,7 +27,11 @@
 	<logger name="com.evolveum.midpoint.provisioning.impl" level="ALL" />
 	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="INFO"/>
+    
+    <!-- Do not change this. Make sure complete ConnId logging is always enabled in
+         the tests. If there is any bug in ConnId logging this should reveal it. -->
     <logger name="org.identityconnectors" level="TRACE" />
+    
     <logger name="com.evolveum.icf" level="TRACE" />
     <logger name="org.forgerock.openicf" level="TRACE" />
 	<logger name="PROFILING" level="TRACE" />
