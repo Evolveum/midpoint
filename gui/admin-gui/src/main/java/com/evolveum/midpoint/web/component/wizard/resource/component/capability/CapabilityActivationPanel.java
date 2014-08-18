@@ -89,7 +89,7 @@ public class CapabilityActivationPanel  extends SimplePanel{
         add(statusEnableList);
 
         CapabilityListRepeater statusDisableList = new CapabilityListRepeater(ID_STATUS_DISABLE_LIST,
-                new PropertyModel<List<String>>(getModel(), "capability.status.enableValue")){
+                new PropertyModel<List<String>>(getModel(), "capability.status.disableValue")){
 
             @Override
             protected StringResourceModel createEmptyItemPlaceholder(){

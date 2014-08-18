@@ -17,250 +17,33 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+
+    <div wicket:id="capabilitySelectPopup" />
+
     <div class="row capability">
-    <div class="col-xs-5 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-3 col-lg-offset-3">
-        <h3>Capabilities</h3>
-        <table class="table table-striped table-condensed">
-            <tr>
-                <td class="capability-item">
-                    <div class="cap-header"><input type="checkbox" value="checked"/>&nbsp;<a>Read</a></div>
-                </td>
-                <td><a class="btn btn-danger btn-sm"><i class="fa fa-fw fa-minus"/></a></td>
-            </tr>
-            <tr>
-                <td class="capability-item">
-                    <div class="cap-header"><input type="checkbox" value="checked"/>&nbsp;<a>Update</a></div>
-                </td>
-                <td><a class="btn btn-danger btn-sm"><i class="fa fa-fw fa-minus"/></a></td>
-            </tr>
-            <tr>
-                <td class="capability-item">
-                    <div class="cap-header"><input type="checkbox" value="checked"/>&nbsp;<a>Create</a></div>
-                </td>
-                <td><a class="btn btn-danger btn-sm"><i class="fa fa-fw fa-minus"/></a></td>
-            </tr>
-            <tr>
-                <td class="capability-item">
-                    <div class="cap-header"><input type="checkbox" value="checked"/>&nbsp;<a>Delete</a></div>
-                </td>
-                <td><a class="btn btn-danger btn-sm"><i class="fa fa-fw fa-minus"/></a></td>
-            </tr>
-            <tr>
-                <td class="capability-item">
-                    <div class="cap-header"><input type="checkbox" value="checked"/>&nbsp;<a>Live sync</a></div>
-                </td>
-                <td><a class="btn btn-danger btn-sm"><i class="fa fa-fw fa-minus"/></a></td>
-            </tr>
-            <tr>
-                <td class="capability-item">
-                    <div class="cap-header"><input type="checkbox" value="checked"/>&nbsp;<a>Test connection</a></div>
-                </td>
-                <td><a class="btn btn-danger btn-sm"><i class="fa fa-fw fa-minus"/></a></td>
-            </tr>
-            <tr class="success">
-                <td class="capability-item">
-                    <div class="cap-header"><input type="checkbox" value="checked"/>&nbsp;<a>Activation</a></div>
-                </td>
-                <td><a class="btn btn-danger btn-sm"><i class="fa fa-fw fa-minus"/></a></td>
-            </tr>
-            <tr>
-                <td class="capability-item">
-                    <div class="cap-header"><input type="checkbox" value="checked"/>&nbsp;<a>Credentials</a></div>
-                </td>
-                <td><a class="btn btn-danger btn-sm"><i class="fa fa-fw fa-minus"/></a></td>
-            </tr>
-            <tr>
-                <td class="capability-item">
-                    <div class="cap-header"><input type="checkbox" value="checked"/>&nbsp;<a>Scripts</a></div>
-                </td>
-                <td><a class="btn btn-danger btn-sm"><i class="fa fa-fw fa-minus"/></a></td>
-            </tr>
-        </table>
-        <div class="main-button-bar">
-            <a class="btn btn-success"><i class="fa fa-fw fa-plus"/></a>
-        </div>
-    </div>
+        <div class="col-xs-5 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-3 col-lg-offset-3">
 
+            <table class="table table-striped table-condensed">
+                <tbody wicket:id="tableRows">
+                <tr wicket:id="capabilityRow">
+                    <td class="capability-item">
+                        <a wicket:id="capabilityLink">
+                            <span wicket:id="capabilityName" />
+                        </a>
+                    </td>
+                    <td>
+                        <a wicket:id="capabilityDelete" class="btn btn-danger btn-sm"><i class="fa fa-fw fa-minus" /></a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
 
-    <div class="col-xs-7 col-sm-6 col-md-5">
-        <h3>Activation configuration</h3>
-
-        <!-- scripts configuration -->
-        <!--
-        <dl class="dl-horizontal">
-            <dt>Enabled</dt>
-            <dd><input type="checkbox" value="checked"/></dd>
-        </dl>
-        <dl class="dl-horizontal">
-            <dt>On connector</dt>
-            <dd class="cap-dl-multivalue">
-                <div class="input-group">
-                    <input type="text" class="form-control input-sm" value="java"/>
-                        <span class="input-group-btn">
-                            <a class="btn btn-sm btn-danger" title="Remove">
-                                <i class="fa fa-minus"/>
-                            </a>
-                            <a class="btn btn-sm btn-success" title="Add">
-                                <i class="fa fa-plus"/>
-                            </a>
-                        </span>
-                </div>
-            </dd>
-            <dd>
-                <div class="input-group">
-                    <input type="text" class="form-control input-sm" value="sql"/>
-                        <span class="input-group-btn">
-                            <a class="btn btn-sm btn-danger" title="Remove">
-                                <i class="fa fa-minus"/>
-                            </a>
-                            <a class="btn btn-sm btn-success" title="Add">
-                                <i class="fa fa-plus"/>
-                            </a>
-                        </span>
-                </div>
-            </dd>
-        </dl>
-        <dl class="dl-horizontal">
-            <dt>On connector</dt>
-            <dd class="cap-dl-multivalue">
-                <div class="input-group">
-                    <input type="text" class="form-control input-sm"/>
-                        <span class="input-group-btn">
-                            <a class="btn btn-sm btn-danger disabled" title="Remove">
-                                <i class="fa fa-minus"/>
-                            </a>
-                            <a class="btn btn-sm btn-success" title="Add">
-                                <i class="fa fa-plus"/>
-                            </a>
-                        </span>
-                </div>
-            </dd>
-        </dl>
-        -->
-
-        <!-- credentials configuration -->
-        <!--
-        <dl class="dl-horizontal">
-            <dt>Enabled</dt>
-            <dd><input type="checkbox" value="checked"/></dd>
-        </dl>
-        <h4>Password</h4>
-        <div class="row">
-            <div class="col-xs-6">
-                <dl class="dl-horizontal">
-                    <dt>Enabled</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-            </div>
-            <div class="col-xs-6">
-                <dl class="dl-horizontal">
-                    <dt>Returned by default</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-            </div>
-        </div>
-        -->
-
-        <!-- activation configuration -->
-
-        <h4>Enabled/disabled</h4>
-        <div class="row">
-            <div class="col-xs-6">
-                <dl class="dl-horizontal">
-                    <dt>Enabled</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-            </div>
-            <div class="col-xs-6">
-                <dl class="dl-horizontal">
-                    <dt>Returned by default</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-                <dl class="dl-horizontal">
-                    <dt>Ignore attribute</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-            </div>
-        </div>
-        <dl class="dl-horizontal">
-            <dt>Attribute name</dt>
-            <dd><select class="form-control input-sm"></select></dd>
-        </dl>
-        <dl class="dl-horizontal">
-            <dt>Enable list</dt>
-            <dd class="cap-dl-multivalue">
-                <div class="input-group">
-                    <input type="text" class="form-control input-sm"/>
-                                <span class="input-group-btn">
-                                    <a class="btn btn-sm btn-danger disabled" title="Remove">
-                                        <i class="fa fa-minus"/>
-                                    </a>
-                                    <a class="btn btn-sm btn-success" title="Add">
-                                        <i class="fa fa-plus"/>
-                                    </a>
-                                </span>
-                </div>
-            </dd>
-        </dl>
-        <dl class="dl-horizontal">
-            <dt>Disable list</dt>
-            <dd class="cap-dl-multivalue">
-                <div class="input-group">
-                    <input type="text" class="form-control input-sm"/>
-                                <span class="input-group-btn">
-                                    <a class="btn btn-sm btn-danger" title="Remove">
-                                        <i class="fa fa-minus"/>
-                                    </a>
-                                    <a class="btn btn-sm btn-success" title="Add">
-                                        <i class="fa fa-plus"/>
-                                    </a>
-                                </span>
-                </div>
-            </dd>
-            <dd>
-                <div class="input-group">
-                    <input type="text" class="form-control input-sm"/>
-                                <span class="input-group-btn">
-                                    <a class="btn btn-sm btn-danger" title="Remove">
-                                        <i class="fa fa-minus"/>
-                                    </a>
-                                    <a class="btn btn-sm btn-success" title="Add">
-                                        <i class="fa fa-plus"/>
-                                    </a>
-                                </span>
-                </div>
-            </dd>
-        </dl>
-
-        <h4>Status</h4>
-        <p class="text-danger">The same as enabled/disabled</p>
-
-        <div class="row">
-            <div class="col-xs-6">
-                <h4>Valid from</h4>
-                <dl class="dl-horizontal">
-                    <dt>Enabled</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-                <dl class="dl-horizontal">
-                    <dt>Returned by default</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-            </div>
-            <div class="col-xs-6">
-                <h4>Valid to</h4>
-                <dl class="dl-horizontal">
-                    <dt>Enabled</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
-                <dl class="dl-horizontal">
-                    <dt>Returned by default</dt>
-                    <dd><input type="checkbox" value="checked"/></dd>
-                </dl>
+            <div class="main-button-bar">
+                <a wicket:id="capabilityAdd" class="btn btn-success"><i class="fa fa-fw fa-plus"/></a>
             </div>
         </div>
 
-    </div>
+        <div class="col-xs-5 col-sm-4 col-md-4 col-lg-3" wicket:id="capabilityConfig" />
     </div>
 </wicket:panel>
 </html>
