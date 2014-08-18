@@ -73,7 +73,8 @@ public class ExpressionTestUtil {
     	Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
         functions.add(ExpressionUtil.createBasicFunctionLibrary(prismContext, protector));
         functions.add(ExpressionUtil.createLogFunctionLibrary(prismContext));
-        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(resolver, prismContext, functions, protector);
+        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(resolver, prismContext, protector);
+        scriptExpressionFactory.setFunctions(functions);
         XPathScriptEvaluator xpathEvaluator = new XPathScriptEvaluator(prismContext);
         scriptExpressionFactory.registerEvaluator(XPathScriptEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
         Jsr223ScriptEvaluator groovyEvaluator = new Jsr223ScriptEvaluator("Groovy", prismContext, protector);

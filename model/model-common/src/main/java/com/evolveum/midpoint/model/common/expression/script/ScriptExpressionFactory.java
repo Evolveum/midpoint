@@ -41,31 +41,19 @@ public class ScriptExpressionFactory {
 	
 	public static String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
 	
-	private Map<String,ScriptEvaluator> evaluators = new HashMap<String, ScriptEvaluator>();
+	private Map<String,ScriptEvaluator> evaluatorMap = new HashMap<String, ScriptEvaluator>();
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
 	private Collection<FunctionLibrary> functions;
 	private Protector protector;
 	
-	public ScriptExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext, 
-			Collection<FunctionLibrary> functions, Protector protector) {
+	public ScriptExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext,
+			Protector protector) {
 		this.prismContext = prismContext;
 		this.objectResolver = objectResolver;
-		this.functions = functions;
 		this.protector = protector;
 	}
-	
-	/**
-	 * Constructor created especially to be used from the Spring context.
-	 */
-	public ScriptExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext, 
-			Collection<FunctionLibrary> functions, Protector protector, Collection<ScriptEvaluator> evaluators) {
-		this(objectResolver, prismContext, functions, protector);
-		for (ScriptEvaluator evaluator: evaluators) {
-			registerEvaluator(evaluator.getLanguageUrl(), evaluator);
-		}
-	}
-	
+		
 	public ObjectResolver getObjectResolver() {
 		return objectResolver;
 	}
@@ -73,9 +61,23 @@ public class ScriptExpressionFactory {
 	public void setObjectResolver(ObjectResolver objectResolver) {
 		this.objectResolver = objectResolver;
 	}
+	
+	public void setEvaluators(Collection<ScriptEvaluator> evaluators) {
+		for (ScriptEvaluator evaluator: evaluators) {
+			registerEvaluator(evaluator.getLanguageUrl(), evaluator);
+		}
+	}
+
+	public Collection<FunctionLibrary> getFunctions() {
+		return functions;
+	}
+
+	public void setFunctions(Collection<FunctionLibrary> functions) {
+		this.functions = functions;
+	}
 
 	public Map<String, ScriptEvaluator> getEvaluators() {
-		return evaluators;
+		return evaluatorMap;
 	}
 
 	public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, String shortDesc) throws ExpressionSyntaxException {
@@ -87,14 +89,14 @@ public class ScriptExpressionFactory {
 	}
 	
 	public void registerEvaluator(String language, ScriptEvaluator evaluator) {
-		if (evaluators.containsKey(language)) {
+		if (evaluatorMap.containsKey(language)) {
 			throw new IllegalArgumentException("Evaluator for language "+language+" already registered");
 		}
-		evaluators.put(language,evaluator);
+		evaluatorMap.put(language,evaluator);
 	}
 	
 	private ScriptEvaluator getEvaluator(String language, String shortDesc) throws ExpressionSyntaxException {
-		ScriptEvaluator evaluator = evaluators.get(language);
+		ScriptEvaluator evaluator = evaluatorMap.get(language);
 		if (evaluator == null) {
 			throw new ExpressionSyntaxException("Unsupported language "+language+" used in script in "+shortDesc);
 		}
