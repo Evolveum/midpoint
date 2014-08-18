@@ -186,7 +186,7 @@
         <constructor-arg>
         	<ref bean="prismContext"/>
         </constructor-arg>
-        <constructor-arg>
+        <property name="evaluatorFactories">
         	<list>
         		<ref bean="scriptExpressionEvaluatorFactory"/>
         		<ref bean="generateExpressionEvaluatorFactory"/>
@@ -197,7 +197,7 @@
         		<ref bean="associationTargetSearchExpressionEvaluatorFactory"/>
         		<ref bean="associationFromLinkExpressionEvaluatorFactory"/>
         	</list>
-        </constructor-arg>
+        </property>
         <property name="defaultEvaluatorFactory">
             <ref bean="asisExpressionEvaluatorFactory"/>
         </property>

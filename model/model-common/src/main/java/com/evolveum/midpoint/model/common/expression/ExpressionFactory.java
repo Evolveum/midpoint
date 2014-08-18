@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
  */
 public class ExpressionFactory {
 	
-	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactories = new HashMap<QName, ExpressionEvaluatorFactory>();
+	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<QName, ExpressionEvaluatorFactory>();
 	private ExpressionEvaluatorFactory defaultEvaluatorFactory;
 	private Map<ExpressionIdentifier, Expression<?>> cache = new HashMap<ExpressionIdentifier, Expression<?>>();
 	private PrismContext prismContext;
@@ -47,22 +47,15 @@ public class ExpressionFactory {
 		this.objectResolver = objectResolver;
 		this.prismContext = prismContext;
 	}
+		
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
 	
-	/**
-	 * Factory method created especially to be used from the Spring context.
-	 */
-	public ExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext, 
-			Collection<ExpressionEvaluatorFactory> evaluatorFactories) {
-		super();
-		this.objectResolver = objectResolver;
-		this.prismContext = prismContext;
+	public void setEvaluatorFactories(Collection<ExpressionEvaluatorFactory> evaluatorFactories) {
 		for (ExpressionEvaluatorFactory evaluatorFactory: evaluatorFactories) {
 			addEvaluatorFactory(evaluatorFactory);
 		}
-	}
-	
-	public PrismContext getPrismContext() {
-		return prismContext;
 	}
 
 	public <V extends PrismValue> Expression<V> makeExpression(ExpressionType expressionType, 
@@ -86,11 +79,11 @@ public class ExpressionFactory {
 	}
 	
 	public <V extends PrismValue> ExpressionEvaluatorFactory getEvaluatorFactory(QName elementName) {
-		return evaluatorFactories.get(elementName);
+		return evaluatorFactoriesMap.get(elementName);
 	}
 	
 	public void addEvaluatorFactory(ExpressionEvaluatorFactory factory) {
-		evaluatorFactories.put(factory.getElementName(), factory);
+		evaluatorFactoriesMap.put(factory.getElementName(), factory);
 	}
 	
 	public ExpressionEvaluatorFactory getDefaultEvaluatorFactory() {
