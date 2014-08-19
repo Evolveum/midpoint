@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.capability.
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -350,6 +351,10 @@ public class CapabilityStep extends WizardStep {
                 jaxbCapability = createJAXBCapability(dto.getCapability(), capabilityFactory);
 
                 if(jaxbCapability != null){
+                    if(resource.getCapabilities().getConfigured() == null){
+                        resource.getCapabilities().setConfigured(new CapabilityCollectionType());
+                    }
+
                     resource.getCapabilities().getConfigured().getAny().add(jaxbCapability);
                 }
 
