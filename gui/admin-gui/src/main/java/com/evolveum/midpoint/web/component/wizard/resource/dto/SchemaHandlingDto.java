@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,10 +28,11 @@ import java.util.List;
 public class SchemaHandlingDto implements Serializable{
 
     public static final String F_OBJECT_TYPES = "objectTypeList";
-    public static final String F_SELECTED = "selectedObjectType";
+    public static final String F_SELECTED = "selected";
 
     private List<ResourceObjectTypeDefinitionTypeDto> objectTypeList = new ArrayList<>();
-    private ResourceObjectTypeDefinitionType selectedObjectType;
+    private ResourceObjectTypeDefinitionType selected;
+    private List<QName> objectClassList;
 
     public List<ResourceObjectTypeDefinitionTypeDto> getObjectTypeList() {
         return objectTypeList;
@@ -40,11 +42,19 @@ public class SchemaHandlingDto implements Serializable{
         this.objectTypeList = objectTypeList;
     }
 
-    public ResourceObjectTypeDefinitionType getSelectedObjectType() {
-        return selectedObjectType;
+    public ResourceObjectTypeDefinitionType getSelected() {
+        return selected;
     }
 
-    public void setSelectedObjectType(ResourceObjectTypeDefinitionType selectedObjectType) {
-        this.selectedObjectType = selectedObjectType;
+    public void setSelected(ResourceObjectTypeDefinitionType selected) {
+        this.selected = selected;
+    }
+
+    public List<QName> getObjectClassList() {
+        return objectClassList;
+    }
+
+    public void setObjectClassList(List<QName> objectClassList) {
+        this.objectClassList = objectClassList;
     }
 }

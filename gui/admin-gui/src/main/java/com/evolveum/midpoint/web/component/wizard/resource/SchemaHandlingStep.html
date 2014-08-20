@@ -53,45 +53,41 @@
 
         <!-- Second row - object type editor -->
         <div wicket:id="objectTypeConfig"  class="col-xs-7 col-sm-6 col-md-offset-1 col-md-3">
-            <h3>Default Account - DCOM Users (obce)</h3>
+            <h3><span wicket:id="editorName"></span></h3>
 
             <dl class="dl-horizontal">
                 <dt>
-                    <label>Kind</label>
+                    <label><wicket:message key="SchemaHandlingStep.label.kind"/></label>
                 </dt>
                 <dd>
-                    <select class="form-control input-sm">
-                        <option>Account</option>
-                        <option>Entitlement</option>
-                        <option>Generic</option>
-                    </select>
+                    <select wicket:id="editorKind" class="form-control input-sm"></select>
                 </dd>
             </dl>
 
             <dl class="dl-horizontal">
                 <dt>
-                    <label>Intent</label>
+                    <label><wicket:message key="SchemaHandlingStep.label.intent" /></label>
                 </dt>
                 <dd>
-                    <input type="text" class="form-control input-sm" value=""/>
+                    <input wicket:id="editorIntent" type="text" class="form-control input-sm"/>
                 </dd>
             </dl>
 
             <dl class="dl-horizontal">
                 <dt>
-                    <label>Display name</label>
+                    <label><wicket:message key="SchemaHandlingStep.label.displayName" /></label>
                 </dt>
                 <dd>
-                    <input type="text" class="form-control input-sm" value=""/>
+                    <input wicket:id="editorDisplayName" type="text" class="form-control input-sm"/>
                 </dd>
             </dl>
 
             <dl class="dl-horizontal">
                 <dt>
-                    <label>Description</label>
+                    <label><wicket:message key="SchemaHandlingStep.label.description" /></label>
                 </dt>
                 <dd>
-                    <textarea class="form-control input-sm" rows="2"></textarea>
+                    <textarea wicket:id="editorDescription" class="form-control input-sm" rows="2"></textarea>
                 </dd>
             </dl>
 
@@ -100,20 +96,20 @@
                 <div class="col-xs-6">
                     <dl class="dl-horizontal">
                         <dt>
-                            <label>Default</label>
+                            <label><wicket:message key="SchemaHandlingStep.label.default" /></label>
                         </dt>
                         <dd>
-                            <input type="checkbox" value="checked"/>
+                            <input wicket:id="editorDefault" type="checkbox" value="checked"/>
                         </dd>
                     </dl>
                 </div>
                 <div class="col-xs-6">
                     <dl class="dl-horizontal">
                         <dt>
-                            <label>Dependencies</label>
+                            <label><wicket:message key="SchemaHandlingStep.label.dependency" /></label>
                         </dt>
                         <dd>
-                            <a class="btn btn-sm btn-primary" title="Edit">
+                            <a wicket:id="editorDependencyButton" class="btn btn-sm btn-primary" title="Edit">
                                 <i class="fa fa-pencil-square-o"/>
                             </a>
                         </dd>
@@ -123,106 +119,130 @@
 
             <dl class="dl-horizontal">
                 <dt>
-                    <label>Object Class</label>
+                    <label><wicket:message key="SchemaHandlingStep.label.objectClass" /></label>
                 </dt>
                 <dd>
-                    <input type="text" class="form-control input-sm" value=""/>
+                    <input wicket:id="editorObjectClass" type="text" class="form-control input-sm"/>
                 </dd>
             </dl>
 
             <!-- Attributes -->
             <dl class="dl-horizontal">
                 <dt>
-                    <label>Attributes</label>
+                    <label><wicket:message key="SchemaHandlingStep.label.attributes" /></label>
                 </dt>
-                <dd class="cap-dl-multivalue">
-                    <div class="input-group">
-                        <input type="text" class="form-control input-sm" value="first"/>
-                        <span class="input-group-btn">
-                            <a class="btn btn-sm btn-primary" title="Edit">
-                                <i class="fa fa-pencil-square-o"/>
-                            </a>
-                            <a class="btn btn-sm btn-danger" title="Remove">
-                                <i class="fa fa-minus"/>
-                            </a>
-                            <a class="btn btn-sm btn-success" title="Add">
-                                <i class="fa fa-plus"/>
-                            </a>
-                        </span>
-
-                    </div>
-                </dd>
-                <dd class="cap-dl-multivalue">
-                    <div class="input-group">
-                        <input type="text" class="form-control input-sm" value="second"/>
-                        <span class="input-group-btn">
-                            <a class="btn btn-sm btn-primary" title="Edit">
-                                <i class="fa fa-pencil-square-o"/>
-                            </a>
-                            <a class="btn btn-sm btn-danger" title="Remove">
-                                <i class="fa fa-minus"/>
-                            </a>
-                            <a class="btn btn-sm btn-success" title="Add">
-                                <i class="fa fa-plus"/>
-                            </a>
-                        </span>
-
-                    </div>
-                </dd>
+                <div wicket:id="editorAttributes" />
+                <!--<dd class="cap-dl-multivalue">-->
+                    <!--<div class="input-group">-->
+                        <!--<div class="input-group">-->
+                            <!--<input type="text" class="form-control input-sm" value="first"/>-->
+<!---->
+                            <!--<span class="input-group-btn">-->
+                                <!--<a style="" class="btn btn-sm btn-primary" title="Edit">-->
+                                    <!--<i class="fa fa-pencil-square-o"/>-->
+                                <!--</a>-->
+                            <!--</span>-->
+                        <!--</div>-->
+<!---->
+                        <!--<div class="col-xs-2"/>-->
+<!---->
+                        <!--<div class="input-group-btn">-->
+                            <!--<a class="btn btn-sm btn-danger" title="Remove">-->
+                                <!--<i class="fa fa-minus"/>-->
+                            <!--</a>-->
+                            <!--<a class="btn btn-sm btn-success" title="Add">-->
+                                <!--<i class="fa fa-plus"/>-->
+                            <!--</a>-->
+                       <!--</div>-->
+                    <!--</div>-->
+                <!--</dd>-->
+                <!--<dd class="cap-dl-multivalue">-->
+                    <!--<div class="input-group">-->
+                        <!--<div class="input-group">-->
+                            <!--<input type="text" class="form-control input-sm" value="second"/>-->
+<!---->
+                            <!--<span class="input-group-btn">-->
+                                <!--<a class="btn btn-sm btn-primary" title="Edit">-->
+                                    <!--<i class="fa fa-pencil-square-o"/>-->
+                                <!--</a>-->
+                            <!--</span>-->
+                        <!--</div>-->
+<!---->
+                        <!--<div class="col-xs-2"/>-->
+<!---->
+                        <!--<div class="input-group-btn">-->
+                            <!--<a class="btn btn-sm btn-danger" title="Remove">-->
+                                <!--<i class="fa fa-minus"/>-->
+                            <!--</a>-->
+                            <!--<a class="btn btn-sm btn-success" title="Add">-->
+                                <!--<i class="fa fa-plus"/>-->
+                            <!--</a>-->
+                       <!--</div>-->
+                    <!--</div>-->
+                <!--</dd>-->
             </dl>
 
             <!--Associations -->
             <dl class="dl-horizontal">
                 <dt>
-                    <label>Associations</label>
+                    <label><wicket:message key="SchemaHandlingStep.label.associations" /></label>
                 </dt>
                 <dd class="cap-dl-multivalue">
                     <div class="input-group">
-                        <input type="text" class="form-control input-sm" value="first"/>
-                        <span class="input-group-btn">
-                            <a class="btn btn-sm btn-primary" title="Edit">
-                                <i class="fa fa-pencil-square-o"/>
-                            </a>
+                        <div class="input-group">
+                            <input type="text" class="form-control input-sm" value="first"/>
+
+                            <span class="input-group-btn">
+                                <a class="btn btn-sm btn-primary" title="Edit">
+                                    <i class="fa fa-pencil-square-o"/>
+                                </a>
+                            </span>
+                        </div>
+
+                        <div class="col-xs-2"/>
+
+                        <div class="input-group-btn">
                             <a class="btn btn-sm btn-danger" title="Remove">
                                 <i class="fa fa-minus"/>
                             </a>
                             <a class="btn btn-sm btn-success" title="Add">
                                 <i class="fa fa-plus"/>
                             </a>
-                        </span>
-
+                       </div>
                     </div>
                 </dd>
                 <dd class="cap-dl-multivalue">
                     <div class="input-group">
-                        <input type="text" class="form-control input-sm" value="second"/>
-                        <span class="input-group-btn">
-                            <a class="btn btn-sm btn-primary" title="Edit">
-                                <i class="fa fa-pencil-square-o"/>
-                            </a>
+                        <div class="input-group">
+                            <input type="text" class="form-control input-sm" value="second"/>
+
+                            <span class="input-group-btn">
+                                <a class="btn btn-sm btn-primary" title="Edit">
+                                    <i class="fa fa-pencil-square-o"/>
+                                </a>
+                            </span>
+                        </div>
+
+                        <div class="col-xs-2"/>
+
+                        <div class="input-group-btn">
                             <a class="btn btn-sm btn-danger" title="Remove">
                                 <i class="fa fa-minus"/>
                             </a>
                             <a class="btn btn-sm btn-success" title="Add">
                                 <i class="fa fa-plus"/>
                             </a>
-                        </span>
-
+                       </div>
                     </div>
                 </dd>
             </dl>
 
             <dl class="dl-horizontal">
                 <dt>
-                    <label>Assignment policy ref</label>
+                    <label><wicket:message key="SchemaHandlingStep.label.assignmentPolicyRef" /></label>
                 </dt>
                 <dd>
-                    <select class="form-control input-sm">
-                        <option>NONE</option>
-                        <option>POSITIVE</option>
-                        <option>FULL</option>
-                        <option>RELATIVE</option>
-                    </select>
+                    <select wicket:id="editorAssignmentPolicyRef" class="form-control input-sm"></select>
                 </dd>
             </dl>
 
@@ -231,10 +251,10 @@
                 <div class="col-xs-6">
                     <dl class="dl-horizontal">
                         <dt>
-                            <label>Iteration</label>
+                            <label><wicket:message key="SchemaHandlingStep.label.iteration" /></label>
                         </dt>
                         <dd>
-                            <a class="btn btn-sm btn-primary" title="Edit">
+                            <a wicket:id="editorIterationButton" class="btn btn-sm btn-primary" title="Edit">
                                 <i class="fa fa-pencil-square-o"/>
                             </a>
                         </dd>
@@ -244,10 +264,10 @@
                 <div class="col-xs-6">
                     <dl class="dl-horizontal">
                         <dt>
-                            <label>Protected</label>
+                            <label><wicket:message key="SchemaHandlingStep.label.protected" /></label>
                         </dt>
                         <dd>
-                            <a class="btn btn-sm btn-primary" title="Edit">
+                            <a wicket:id="editorProtectedButton" class="btn btn-sm btn-primary" title="Edit">
                                 <i class="fa fa-pencil-square-o"/>
                             </a>
                         </dd>
@@ -260,10 +280,10 @@
                 <div class="col-xs-6">
                     <dl class="dl-horizontal">
                         <dt>
-                            <label>Activation</label>
+                            <label><wicket:message key="SchemaHandlingStep.label.activation" /></label>
                         </dt>
                         <dd>
-                            <a class="btn btn-sm btn-primary" title="Edit">
+                            <a wicket:id="editorActivationButton" class="btn btn-sm btn-primary" title="Edit">
                                 <i class="fa fa-pencil-square-o"/>
                             </a>
                         </dd>
@@ -273,10 +293,10 @@
                 <div class="col-xs-6">
                     <dl class="dl-horizontal">
                         <dt>
-                            <label>Credentials</label>
+                            <label><wicket:message key="SchemaHandlingStep.label.credentials" /></label>
                         </dt>
                         <dd>
-                            <a class="btn btn-sm btn-primary" title="Edit">
+                            <a wicket:id="editorCredentialsButton" class="btn btn-sm btn-primary" title="Edit">
                                 <i class="fa fa-pencil-square-o"/>
                             </a>
                         </dd>
