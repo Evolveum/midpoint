@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -78,7 +79,7 @@ public class CapabilityActivationPanel  extends SimplePanel{
                 new PropertyModel<Boolean>(getModel(), "capability.status.ignoreAttribute"));
         add(statusIgnore);
 
-        CapabilityListRepeater statusEnableList = new CapabilityListRepeater(ID_STATUS_ENABLE_LIST,
+        MultiValueTextPanel statusEnableList = new MultiValueTextPanel(ID_STATUS_ENABLE_LIST,
                 new PropertyModel<List<String>>(getModel(), "capability.status.enableValue")){
 
             @Override
@@ -88,7 +89,7 @@ public class CapabilityActivationPanel  extends SimplePanel{
         };
         add(statusEnableList);
 
-        CapabilityListRepeater statusDisableList = new CapabilityListRepeater(ID_STATUS_DISABLE_LIST,
+        MultiValueTextPanel statusDisableList = new MultiValueTextPanel(ID_STATUS_DISABLE_LIST,
                 new PropertyModel<List<String>>(getModel(), "capability.status.disableValue")){
 
             @Override

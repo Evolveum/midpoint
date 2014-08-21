@@ -27,6 +27,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -57,30 +58,15 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
         initLayout(inputEnabled);
     }
 
-    private IModel<List<T>>  prepareModel(){
-        return new LoadableModel<List<T>>(false) {
-
-            @Override
-            protected List<T> load() {
-                if(getModel().getObject() == null){
-                    getModel().setObject(new ArrayList<>(Arrays.asList(createNewEmptyItem())));
-                } else if(getModel().getObject().isEmpty()){
-                    getModel().getObject().add(createNewEmptyItem());
-                }
-
-                return getModel().getObject();
-            }
-        };
-    }
-
     private void initLayout(final boolean inputEnabled){
 
-        ListView repeater = new ListView<T>(ID_REPEATER, prepareModel()){
+        ListView repeater = new ListView<T>(ID_REPEATER, getModel()){
 
             @Override
             protected void populateItem(final ListItem<T> item) {
                 TextField text = new TextField<>(ID_TEXT, createTextModel(item.getModel()));
                 text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {}
                 });
@@ -98,7 +84,16 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
                         editPerformed(target, item.getModelObject());
                     }
                 };
-                edit.add(new AttributeAppender("class", createEditButtonClassModel()));
+                edit.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        if(buttonsDisabled()){
+                            return " disabled";
+                        }
+                        return null;
+                    }
+                }));
                 item.add(edit);
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
@@ -133,6 +128,10 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
     }
 
     protected String getPlusClassModifier(ListItem<T> item){
+        if(buttonsDisabled()){
+            return CSS_DISABLED;
+        }
+
         int size = getModelObject().size();
         if (size <= 1) {
             return "";
@@ -205,9 +204,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
         //override me
     }
 
-    protected IModel<String> createEditButtonClassModel(){
-        return null;
-        //override me
+    protected boolean buttonsDisabled(){
+        return false;
     }
-
 }

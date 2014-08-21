@@ -91,6 +91,7 @@ public class SchemaHandlingStep extends WizardStep {
     private static final String ID_EDITOR_BUTTON_ACTIVATION = "editorActivationButton";
     private static final String ID_EDITOR_BUTTON_CREDENTIALS = "editorCredentialsButton";
     private static final String ID_EDITOR_ATTRIBUTES = "editorAttributes";
+    private static final String ID_EDITOR_ASSOCIATIONS = "editorAssociations";
 
     private static final Integer AUTO_COMPLETE_LIST_SIZE = 10;
 
@@ -122,6 +123,16 @@ public class SchemaHandlingStep extends WizardStep {
             ResourceObjectTypeDefinitionTypeDto obj;
             if(schemaHandling.getObjectType() != null){
                 for(ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()){
+
+                    // temporary fix - think about better solution
+                    if(objectType.getAttribute().isEmpty()){
+                        objectType.getAttribute().add(new ResourceAttributeDefinitionType());
+                    }
+
+                    if(objectType.getAssociation().isEmpty()){
+                        objectType.getAssociation().add(new ResourceObjectAssociationType());
+                    }
+
                     obj = new ResourceObjectTypeDefinitionTypeDto(objectType);
                     list.add(obj);
                 }
@@ -131,10 +142,13 @@ public class SchemaHandlingStep extends WizardStep {
         //TODO - delete this when this step is finished and tested
         ResourceObjectTypeDefinitionType sample = new ResourceObjectTypeDefinitionType();
         sample.setDisplayName("Test Object Class");
+        sample.getAttribute().add(new ResourceAttributeDefinitionType());
+        sample.getAssociation().add(new ResourceObjectAssociationType());
         ResourceObjectTypeDefinitionTypeDto sampleDto = new ResourceObjectTypeDefinitionTypeDto(sample);
         list.add(sampleDto);
         //TODO - delete
 
+        dto.setSelected(createPlaceholderObjectType());
         dto.setObjectClassList(loadResourceObjectClassList());
         dto.setObjectTypeList(list);
         return dto;
@@ -159,6 +173,25 @@ public class SchemaHandlingStep extends WizardStep {
         return list;
     }
 
+    private ResourceObjectTypeDefinitionType createPlaceholderObjectType(){
+        // temporary fix - think about better solution
+        ResourceObjectTypeDefinitionType placeholder = new ResourceObjectTypeDefinitionType();
+        placeholder.getAttribute().add(new ResourceAttributeDefinitionType());
+        placeholder.getAssociation().add(new ResourceObjectAssociationType());
+
+        return placeholder;
+    }
+
+    private boolean isAnySelected(){
+        for(ResourceObjectTypeDefinitionTypeDto dto: model.getObject().getObjectTypeList()){
+            if(dto.isSelected()){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void initLayout(){
         final ListDataProvider<ResourceObjectTypeDefinitionTypeDto> objectTypeProvider = new ListDataProvider<>(this,
                 new PropertyModel<List<ResourceObjectTypeDefinitionTypeDto>>(model, SchemaHandlingDto.F_OBJECT_TYPES));
@@ -175,7 +208,7 @@ public class SchemaHandlingStep extends WizardStep {
 
             @Override
             public boolean isEnabled() {
-                return model.getObject().getSelected() != null;
+                return isAnySelected();
             }
         });
         add(objectTypeEditor);
@@ -251,7 +284,7 @@ public class SchemaHandlingStep extends WizardStep {
 
             @Override
             protected String load() {
-                if(model.getObject().getSelected() == null){
+                if(!isAnySelected()){
                     return getString("SchemaHandlingStep.label.emptyDisplayName");
                 } else {
                     return model.getObject().getSelected().getDisplayName();
@@ -321,7 +354,6 @@ public class SchemaHandlingStep extends WizardStep {
         editorObjectClass.add(createObjectClassValidator());
         editor.add(editorObjectClass);
 
-        //TODO - these models does not behave correctly yet - repair it
         MultiValueTextEditPanel editorAttributes = new MultiValueTextEditPanel<ResourceAttributeDefinitionType>(ID_EDITOR_ATTRIBUTES,
                 new PropertyModel<List<ResourceAttributeDefinitionType>>(model, SchemaHandlingDto.F_SELECTED + ".attribute"), false){
 
@@ -347,21 +379,45 @@ public class SchemaHandlingStep extends WizardStep {
             }
 
             @Override
-            protected IModel<String> createEditButtonClassModel(){
+            protected boolean buttonsDisabled(){
+                return !isAnySelected();
+            }
+        };
+        editor.add(editorAttributes);
+
+        MultiValueTextEditPanel editorAssociations = new MultiValueTextEditPanel<ResourceObjectAssociationType>(ID_EDITOR_ASSOCIATIONS,
+                new PropertyModel<List<ResourceObjectAssociationType>>(model, SchemaHandlingDto.F_SELECTED + ".association"), false){
+
+            @Override
+            protected IModel<String> createTextModel(final IModel<ResourceObjectAssociationType> model) {
                 return new AbstractReadOnlyModel<String>() {
 
                     @Override
                     public String getObject() {
-                        if(model.getObject().getSelected() == null){
-                            return " disabled";
-                        }
-
-                        return null;
+                        //TODO - what should we display, if displayName is not defined?
+                        return model.getObject().getDisplayName();
                     }
                 };
             }
+
+            @Override
+            protected ResourceObjectAssociationType createNewEmptyItem(){
+                return new ResourceObjectAssociationType();
+            }
+
+            @Override
+            protected void editPerformed(AjaxRequestTarget target, ResourceObjectAssociationType object){
+                editAssociationPerformed(target, object);
+            }
+
+            @Override
+            protected boolean buttonsDisabled(){
+                return !isAnySelected();
+            }
         };
-        editor.add(editorAttributes);
+        editor.add(editorAssociations);
+
+
 
         DropDownChoice editorAssignmentPolicyRef = new DropDownChoice<>(ID_EDITOR_ASSIGNMENT_POLICY,
                 new PropertyModel<AssignmentPolicyEnforcementType>(model, SchemaHandlingDto.F_SELECTED + ".assignmentPolicyEnforcement"),
@@ -439,7 +495,7 @@ public class SchemaHandlingStep extends WizardStep {
 
             @Override
             public String getObject() {
-                if(model.getObject().getSelected() == null){
+                if(!isAnySelected()){
                     return " disabled";
                 }
 
@@ -494,6 +550,10 @@ public class SchemaHandlingStep extends WizardStep {
         //TODO - implemnent this
     }
 
+    private void editAssociationPerformed(AjaxRequestTarget target, ResourceObjectAssociationType object){
+        //TODO - implement this
+    }
+
     @Override
     public void applyState() {
         // TODO - implement
@@ -513,7 +573,7 @@ public class SchemaHandlingStep extends WizardStep {
         list.remove(objectType);
 
         if(objectType.isSelected()){
-            model.getObject().setSelected(null);
+            model.getObject().setSelected(createPlaceholderObjectType());
         }
 
         if(list.isEmpty()){
@@ -529,6 +589,8 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void addObjectTypePerformed(AjaxRequestTarget target){
         ResourceObjectTypeDefinitionType objectType = new ResourceObjectTypeDefinitionType();
+        objectType.getAttribute().add(new ResourceAttributeDefinitionType());
+        objectType.getAssociation().add(new ResourceObjectAssociationType());
         objectType.setDisplayName(getString("SchemaHandlingStep.label.newObjectType"));
         ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(objectType);
 
