@@ -157,7 +157,7 @@ public class MultiValueTextPanel<T extends Serializable> extends SimplePanel<Lis
     }
 
     protected StringResourceModel createEmptyItemPlaceholder(){
-        return createStringResource("capabilityListRepeater.label.text.placeholder");
+        return createStringResource("TextField.universal.placeholder");
     }
 
     protected void removeValuePerformed(AjaxRequestTarget target, ListItem<T> item){
