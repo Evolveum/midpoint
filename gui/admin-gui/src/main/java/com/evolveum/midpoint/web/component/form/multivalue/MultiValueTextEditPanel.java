@@ -51,16 +51,28 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
 
     private static final String CSS_DISABLED = " disabled";
 
-    public MultiValueTextEditPanel(String id, IModel<List<T>> model, boolean inputEnabled){
+    public MultiValueTextEditPanel(String id, IModel<List<T>> model, boolean inputEnabled,
+                                   boolean prepareModel){
         super(id, model);
         setOutputMarkupId(true);
 
-        initLayout(inputEnabled);
+        initLayout(inputEnabled, prepareModel);
     }
 
-    private void initLayout(final boolean inputEnabled){
+    private IModel<List<T>> prepareModel(boolean prepareModel){
+        if(prepareModel){
+            if(getModel().getObject() == null){
+                getModel().setObject(new ArrayList<>(Arrays.asList(createNewEmptyItem())));
+            } else if(getModel().getObject().isEmpty()){
+                getModel().getObject().add(createNewEmptyItem());
+            }
+        }
+        return getModel();
+    }
 
-        ListView repeater = new ListView<T>(ID_REPEATER, getModel()){
+    private void initLayout(final boolean inputEnabled, boolean prepareModel){
+
+        ListView repeater = new ListView<T>(ID_REPEATER, prepareModel(prepareModel)){
 
             @Override
             protected void populateItem(final ListItem<T> item) {
@@ -77,25 +89,6 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
                 }
                 item.add(text);
 
-                AjaxLink edit = new AjaxLink(ID_EDIT) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        editPerformed(target, item.getModelObject());
-                    }
-                };
-                edit.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
-
-                    @Override
-                    public String getObject() {
-                        if(buttonsDisabled()){
-                            return " disabled";
-                        }
-                        return null;
-                    }
-                }));
-                item.add(edit);
-
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
                 item.add(buttonGroup);
                 initButtons(buttonGroup, item);
@@ -105,6 +98,25 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {
+        AjaxLink edit = new AjaxLink(ID_EDIT) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                editPerformed(target, item.getModelObject());
+            }
+        };
+        edit.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                if(buttonsDisabled()){
+                    return " disabled";
+                }
+                return null;
+            }
+        }));
+        buttonGroup.add(edit);
+
         AjaxLink add = new AjaxLink(ID_ADD) {
 
             @Override
@@ -122,7 +134,6 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
                 removeValuePerformed(target, item);
             }
         };
-        remove.add(new AttributeModifier("style", "border-bottom-left-radius: 3px; border-top-left-radius: 3px;"));
         remove.add(new AttributeAppender("class", getMinusClassModifier()));
         buttonGroup.add(remove);
     }

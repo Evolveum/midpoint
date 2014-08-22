@@ -1451,7 +1451,7 @@ public abstract class ShadowCache {
 			if (objectClass == null) {
 				throw new SchemaException("No kind nor objectclass definied in "+shadow);
 			}
-			objectClassDefinition = refinedSchema.findRefinedDefinitionByObjectClassQName(null, objectClass);
+			objectClassDefinition = refinedSchema.findRefinedDefinitionByObjectClassQName(kind, objectClass);
 		}
 		
 		if (objectClassDefinition == null) {
