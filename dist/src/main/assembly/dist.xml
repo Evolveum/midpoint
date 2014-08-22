@@ -51,6 +51,18 @@
       	<exclude>**/*~</exclude>
       </excludes>
     </fileSet>
+    <fileSet>
+      <directory>target/schemadist</directory>
+      <outputDirectory>/schema</outputDirectory>
+      <excludes>
+      	<exclude>.project</exclude>
+      	<exclude>.classpath</exclude>
+      	<exclude>.settings/</exclude>
+      	<exclude>pom.xml</exclude>
+      	<exclude>*~</exclude>
+      	<exclude>**/*~</exclude>
+      </excludes>
+    </fileSet>
   </fileSets>
   <dependencySets>
     <dependencySet>

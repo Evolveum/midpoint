@@ -37,14 +37,18 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import com.sun.org.apache.xml.internal.utils.XMLChar;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -91,11 +95,17 @@ public class DOMUtil {
 	public static final QName XSD_APPINFO_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo",
 			NS_W3C_XML_SCHEMA_PREFIX);
     public static final QName XSD_DOCUMENTATION_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "documentation",
-            NS_W3C_XML_SCHEMA_PREFIX);;
+            NS_W3C_XML_SCHEMA_PREFIX);
+    public static final QName XSD_IMPORT_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "import",
+			NS_W3C_XML_SCHEMA_PREFIX);
 
 	public static final QName XSD_ATTR_TARGET_NAMESPACE = new QName(W3C_XML_SCHEMA_NS_URI, "targetNamespace",
 			NS_W3C_XML_SCHEMA_PREFIX);
-
+	public static final QName XSD_ATTR_NAMESPACE = new QName(W3C_XML_SCHEMA_NS_URI, "namespace",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_ATTR_SCHEMA_LOCATION = new QName(W3C_XML_SCHEMA_NS_URI, "schemaLocation",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	
     public static final QName XSD_DECIMAL = new QName(W3C_XML_SCHEMA_NS_URI, "decimal",
             NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI, "string",
@@ -130,6 +140,17 @@ public class DOMUtil {
 	public static final String NS_XML_ENC = "http://www.w3.org/2001/04/xmlenc#";
 	public static final String NS_XML_DSIG = "http://www.w3.org/2000/09/xmldsig#";
 
+	public static final String NS_WSDL = "http://schemas.xmlsoap.org/wsdl/";
+	public static final String NS_WSDL_SCHEMA_PREFIX = "wsdl";
+    public static final QName WSDL_IMPORT_ELEMENT = new QName(NS_WSDL, "import",
+    		NS_WSDL_SCHEMA_PREFIX);
+    public static final QName WSDL_TYPES_ELEMENT = new QName(NS_WSDL, "types",
+    		NS_WSDL_SCHEMA_PREFIX);
+	public static final QName WSDL_ATTR_NAMESPACE = new QName(NS_WSDL, "namespace",
+			NS_WSDL_SCHEMA_PREFIX);
+	public static final QName WSDL_ATTR_SCHEMA_LOCATION = new QName(NS_WSDL, "schemaLocation",
+			NS_WSDL_SCHEMA_PREFIX);
+	
 	private static final String RANDOM_ATTR_PREFIX_PREFIX = "qn";
 	private static final int RANDOM_ATTR_PREFIX_RND = 1000;
 	private static final int RANDOM_ATTR_PREFIX_MAX_ITERATIONS = 30;
@@ -138,6 +159,7 @@ public class DOMUtil {
 	private static Random rnd = new Random();
 	
 	private static final DocumentBuilder loader;
+	
 
 	static {
 		try {
@@ -151,6 +173,15 @@ public class DOMUtil {
 
 	public static String serializeDOMToString(org.w3c.dom.Node node) {
 		return printDom(node).toString();
+	}
+	
+	public static void serializeDOMToFile(org.w3c.dom.Node node, File file) throws TransformerFactoryConfigurationError, TransformerException {
+		
+		Transformer transformer = TransformerFactory.newInstance().newTransformer();
+		Result output = new StreamResult(file);
+		Source input = new DOMSource(node);
+
+		transformer.transform(input, output);
 	}
 
 	public static Document getDocument(Node node) {
@@ -1281,4 +1312,12 @@ public class DOMUtil {
         return sb.toString();
     }
 
+    public static String getAttribute(Element element, QName attrQname) {
+    	String attr = element.getAttributeNS(attrQname.getNamespaceURI(), attrQname.getLocalPart());
+		if (StringUtils.isEmpty(attr)) {
+			// also try without the namespace
+			attr = element.getAttribute(attrQname.getLocalPart());
+		}
+		return attr;
+    }
 }
