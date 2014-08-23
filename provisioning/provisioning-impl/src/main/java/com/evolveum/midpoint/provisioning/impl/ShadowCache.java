@@ -545,7 +545,7 @@ public abstract class ShadowCache {
 			
 			ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 			
-			LOGGER.trace("Deleting obeject {} from the resource {}.", shadow, resource);
+			LOGGER.trace("Deleting object {} from the resource {}.", shadow, resource);
 
 			if (shadow.asObjectable().getFailedOperationType() == null
 					|| (shadow.asObjectable().getFailedOperationType() != null 
@@ -760,7 +760,7 @@ public abstract class ShadowCache {
 		Validate.notNull(objectClassName, "Object class must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.trace("Searching objects iterative with obejct class {}, resource: {}.", objectClassName,
+		LOGGER.trace("Searching objects iterative with object class {}, resource: {}.", objectClassName,
 				resourceType);
 
 		searchObjectsIterativeInternal(objectClassName, resourceType, query, options, handler,
