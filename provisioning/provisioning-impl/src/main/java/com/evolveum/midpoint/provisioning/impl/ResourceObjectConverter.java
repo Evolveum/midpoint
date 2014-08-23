@@ -1166,7 +1166,7 @@ public class ResourceObjectConverter {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
 				}				
 			} else {
-				LOGGER.trace("Skipp converting item delta: {}. It's not account change, but it it shadow change.", itemDelta);	
+				LOGGER.trace("Skip converting item delta: {}. It's not account change, but it it shadow change.", itemDelta);	
 			}
 			
 		}
