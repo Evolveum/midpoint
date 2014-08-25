@@ -22,12 +22,12 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
  * @author mederly
  */
 public class TestConstants {
-    public static final String USERS_AND_ROLES_FILENAME = AbstractIntegrationTest.COMMON_DIR_NAME + "/users-and-roles.xml";
+    public static final String USERS_AND_ROLES_FILENAME = AbstractIntegrationTest.COMMON_DIR_PATH + "/users-and-roles.xml";
     public static final String ROLE_R1_OID = "00000001-d34d-b33f-f00d-000000000001";
     public static final String ROLE_R2_OID = "00000001-d34d-b33f-f00d-000000000002";
     public static final String ROLE_R3_OID = "00000001-d34d-b33f-f00d-000000000003";
     public static final String ROLE_R4_OID = "00000001-d34d-b33f-f00d-000000000004";
-    public static final String USER_BILL_FILENAME = AbstractIntegrationTest.COMMON_DIR_NAME + "/user-bill.xml";
+    public static final String USER_BILL_FILENAME = AbstractIntegrationTest.COMMON_DIR_PATH + "/user-bill.xml";
     public static final String USER_BILL_OID = "c0c010c0-d34d-b33f-f00d-11111111111a";
 
     public static final String R1BOSS_OID = "00000000-d34d-b33f-f00d-111111111111";
