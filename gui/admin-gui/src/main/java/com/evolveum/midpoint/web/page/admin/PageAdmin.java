@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
@@ -144,7 +145,7 @@ public class PageAdmin extends PageBase {
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class));
         //todo delete this [lazyman]
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceEdit.class));
-//        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.wizard"), PageResourceWizard.class));
+        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.wizard"), PageResourceWizard.class));
 
 
 //        items.add(new BottomMenuItem(createStringResource("pageAdminResources.detailsResource"), PageResource.class,
@@ -171,7 +172,7 @@ public class PageAdmin extends PageBase {
 
     private MenuBarItem createConfigurationItems() {
         MenuBarItem configuration = new MenuBarItem(createStringResource("PageAdmin.menu.top.configuration"), null);
-//        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.bulkActions"), PageBulkAction.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.bulkActions"), PageBulkAction.class));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.importObject"), PageImportObject.class));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjects"), PageDebugList.class));
         configuration.addMenuItem(new MenuItem(null));

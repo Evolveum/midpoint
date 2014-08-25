@@ -18,179 +18,220 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <!-- TODO - since there are 3 ExpressionType editor - add hide button to everyone -->
-    <h3>Iteration Editor - (name)</h3>
+    <h3><wicket:message key="ResourceIterationEditor.label" /></h3>
 
     <dl class="dl-horizontal">
         <dt>
-            <label>Max iteration</label>
+            <label><wicket:message key="ResourceIterationEditor.label.maxIteration" /></label>
         </dt>
         <dd>
-            <input type="text" class="form-control input-sm" value=""/>
+            <input wicket:id="maxIteration" type="text" class="form-control input-sm" value=""/>
         </dd>
     </dl>
 
     <!-- Token Expression - ExpressionType editor -->
-    <h4>Token expression</h4>
-    <dl class="dl-horizontal">
-        <dt>
-            <label>Description</label>
-        </dt>
-        <dd>
-            <textarea class="form-control input-sm" rows="2"></textarea>
-        </dd>
-    </dl>
-
-    <dl class="dl-horizontal">
-        <dt>
-            <label>Extension</label>
-        </dt>
-        <dd>
-            <a class="btn btn-sm btn-primary" title="Edit">
-                <i class="fa fa-pencil-square-o"/>
-            </a>
-            - ??
-        </dd>
-    </dl>
-
-    <!-- String Filter -->
-    <dl class="dl-horizontal">
-        <dt>
-            <label>String filter</label>
-        </dt>
-        <dd class="cap-dl-multivalue">
-            <div class="input-group">
-                <input type="text" class="form-control input-sm" value="first"/>
-                <span class="input-group-btn">
-                    <a class="btn btn-sm btn-primary" title="Edit">
-                        <i class="fa fa-pencil-square-o"/>
-                        <!-- TODO - this should trigger some editor - StringFilter pop-up -->
-                    </a>
-                    <a class="btn btn-sm btn-danger" title="Remove">
-                        <i class="fa fa-minus"/>
-                    </a>
-                    <a class="btn btn-sm btn-success" title="Add">
-                        <i class="fa fa-plus"/>
-                    </a>
-                </span>
-
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne"><wicket:message key="ResourceIterationEditor.label.tokenExpression" /></a>
+                </h4>
             </div>
-        </dd>
-        <dd class="cap-dl-multivalue">
-            <div class="input-group">
-                <input type="text" class="form-control input-sm" value="second"/>
-                <span class="input-group-btn">
-                    <a class="btn btn-sm btn-primary" title="Edit">
-                        <i class="fa fa-pencil-square-o"/>
-                        <!-- TODO - this should trigger some editor - StringFilter pop-up -->
-                    </a>
-                    <a class="btn btn-sm btn-danger" title="Remove">
-                        <i class="fa fa-minus"/>
-                    </a>
-                    <a class="btn btn-sm btn-success" title="Add">
-                        <i class="fa fa-plus"/>
-                    </a>
-                </span>
 
+            <div id="collapseOne" class="panel-collapse collapse in">
+                <div class="panel-body">
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.description" /></label>
+                        </dt>
+                        <dd>
+                            <textarea wicket:id="tokenDescription" class="form-control input-sm" rows="2"></textarea>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.extension" /></label>
+                        </dt>
+                        <dd>
+                            <a wicket:id="tokenExtensionButton" class="btn btn-sm btn-primary" title="Edit">
+                                <i class="fa fa-pencil-square-o"/>
+                            </a>
+                        </dd>
+                    </dl>
+
+                    <!-- String Filter -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.stringFilter" /></label>
+                        </dt>
+                        <div wicket:id="tokenStringFilterList" />
+                    </dl>
+
+                    <!-- Variable -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.variable" /></label>
+                        </dt>
+                        <div wicket:id="tokenVariableList" />
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.returnMultiplicity" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="tokenReturnMultiplicity" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <!-- Expression Evaluator -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.expressionEvaluator" /></label>
+                        </dt>
+                        <div wicket:id="tokenExpressionEvaluatorList" />
+                    </dl>
+
+                </div>
             </div>
-        </dd>
-    </dl>
+        </div>
 
-    <!-- Variable -->
-    <dl class="dl-horizontal">
-        <dt>
-            <label>Variable</label>
-        </dt>
-        <dd class="cap-dl-multivalue">
-            <div class="input-group">
-                <input type="text" class="form-control input-sm" value="first"/>
-                <span class="input-group-btn">
-                    <a class="btn btn-sm btn-primary" title="Edit">
-                        <i class="fa fa-pencil-square-o"/>
-                        <!-- TODO - this should trigger some editor - ExpressionVariableDefinitionType pop-up -->
-                    </a>
-                    <a class="btn btn-sm btn-danger" title="Remove">
-                        <i class="fa fa-minus"/>
-                    </a>
-                    <a class="btn btn-sm btn-success" title="Add">
-                        <i class="fa fa-plus"/>
-                    </a>
-                </span>
-
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo"><wicket:message key="ResourceIterationEditor.label.preIterationCondition" /></a>
+                </h4>
             </div>
-        </dd>
-        <dd class="cap-dl-multivalue">
-            <div class="input-group">
-                <input type="text" class="form-control input-sm" value="second"/>
-                <span class="input-group-btn">
-                    <a class="btn btn-sm btn-primary" title="Edit">
-                        <i class="fa fa-pencil-square-o"/>
-                        <!-- TODO - this should trigger some editor - ExpressionVariableDefinitionType pop-up -->
-                    </a>
-                    <a class="btn btn-sm btn-danger" title="Remove">
-                        <i class="fa fa-minus"/>
-                    </a>
-                    <a class="btn btn-sm btn-success" title="Add">
-                        <i class="fa fa-plus"/>
-                    </a>
-                </span>
 
+            <div id="collapseTwo" class="panel-collapse collapse">
+                <div class="panel-body">
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.description" /></label>
+                        </dt>
+                        <dd>
+                            <textarea wicket:id="preDescription" class="form-control input-sm" rows="2"></textarea>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.extension" /></label>
+                        </dt>
+                        <dd>
+                            <a wicket:id="preExtensionButton" class="btn btn-sm btn-primary" title="Edit">
+                                <i class="fa fa-pencil-square-o"/>
+                            </a>
+                        </dd>
+                    </dl>
+
+                    <!-- String Filter -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.stringFilter" /></label>
+                        </dt>
+                        <div wicket:id="preStringFilterList" />
+                    </dl>
+
+                    <!-- Variable -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.variable" /></label>
+                        </dt>
+                        <div wicket:id="preVariableList" />
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.returnMultiplicity" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="preReturnMultiplicity" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <!-- Expression Evaluator -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.expressionEvaluator" /></label>
+                        </dt>
+                        <div wicket:id="preExpressionEvaluatorList" />
+                    </dl>
+
+                </div>
             </div>
-        </dd>
-    </dl>
+        </div>
 
-    <dl class="dl-horizontal">
-        <dt>
-            <label>Return multiplicity</label>
-        </dt>
-        <dd>
-            <select class="form-control input-sm">
-                <option>Single</option>
-                <option>Multi</option>
-            </select>
-        </dd>
-    </dl>
-
-    <!-- Expression Evaluator -->
-    <dl class="dl-horizontal">
-        <dt>
-            <label>Expression evaluator</label>
-        </dt>
-        <dd class="cap-dl-multivalue">
-            <div class="input-group">
-                <input type="text" class="form-control input-sm" value="first"/>
-                <span class="input-group-btn">
-                    <a class="btn btn-sm btn-danger" title="Remove">
-                        <i class="fa fa-minus"/>
-                    </a>
-                    <a class="btn btn-sm btn-success" title="Add">
-                        <i class="fa fa-plus"/>
-                    </a>
-                </span>
-
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree"><wicket:message key="ResourceIterationEditor.label.postIterationCondition" /></a>
+                </h4>
             </div>
-        </dd>
-        <dd class="cap-dl-multivalue">
-            <div class="input-group">
-                <input type="text" class="form-control input-sm" value="second"/>
-                <span class="input-group-btn">
-                    <a class="btn btn-sm btn-danger" title="Remove">
-                        <i class="fa fa-minus"/>
-                    </a>
-                    <a class="btn btn-sm btn-success" title="Add">
-                        <i class="fa fa-plus"/>
-                    </a>
-                </span>
 
+            <div id="collapseThree" class="panel-collapse collapse">
+                <div class="panel-body">
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.description" /></label>
+                        </dt>
+                        <dd>
+                            <textarea wicket:id="postDescription" class="form-control input-sm" rows="2"></textarea>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.extension" /></label>
+                        </dt>
+                        <dd>
+                            <a wicket:id="postExtensionButton" class="btn btn-sm btn-primary" title="Edit">
+                                <i class="fa fa-pencil-square-o"/>
+                            </a>
+                        </dd>
+                    </dl>
+
+                    <!-- String Filter -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.stringFilter" /></label>
+                        </dt>
+                        <div wicket:id="postStringFilterList" />
+                    </dl>
+
+                    <!-- Variable -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.variable" /></label>
+                        </dt>
+                        <div wicket:id="postVariableList" />
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.returnMultiplicity" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="postReturnMultiplicity" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <!-- Expression Evaluator -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.expressionEvaluator" /></label>
+                        </dt>
+                        <div wicket:id="postExpressionEvaluatorList" />
+                    </dl>
+
+                </div>
             </div>
-        </dd>
-    </dl>
+        </div>
 
-    <h4>Pre-iteration condition</h4>
-    <h6>....Same as Token Expression</h6>
-
-    <h4>Post-iteration condition</h4>
-    <h6>....Same as Token Expression</h6>
-
+    </div>
 </wicket:panel>
 </html>

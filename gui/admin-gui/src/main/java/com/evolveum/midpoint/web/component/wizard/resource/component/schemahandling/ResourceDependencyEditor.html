@@ -18,54 +18,87 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <h3>Object Type Dependencies</h3>
+    <h3><wicket:message key="ResourceDependencyEditor.label" /></h3>
 
-    <!-- Dependencies -->
-    <dl class="dl-horizontal">
-        <dt>
-            <label>Dependency</label>
-        </dt>
-        <dd class="cap-dl-multivalue">
-            <div class="input-group">
-                <select class="form-control input-sm">
-                    <option>Strict</option>
-                    <option>Relaxed</option>
-                    <option>Lax</option>
-                </select>
-                <!-- TODO - find a way to insert small input here -->
-                <!--<input type="text" class="form-control input-xs" value="1"/>-->
-                <!--&nbsp; -->
-                <span class="input-group-btn">
-                    <a class="btn btn-sm btn-danger" title="Remove">
-                        <i class="fa fa-minus"/>
-                    </a>
-                    <a class="btn btn-sm btn-success" title="Add">
-                        <i class="fa fa-plus"/>
-                    </a>
-                </span>
+    <!-- List of resource dependencies -->
+    <div wicket:id="protectedContainer" class="panel-group" id="accordion">
+        <wicket:container wicket:id="repeater">
+            <div class="panel panel-default">
+
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a wicket:id="dependencyLink" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                            <span wicket:id="dependencyLinkName"></span>
+                        </a>
+                    </h4>
+                </div>
+
+                <div wicket:id="dependencyBodyContainer" id="collapseOne" class="panel-collapse collapse in">
+                    <div class="panel-body">
+
+                        <dl class="dl-horizontal">
+                            <dt>
+                                <label><wicket:message key="ResourceDependencyEditor.label.order" /></label>
+                            </dt>
+                            <dd>
+                                <input wicket:id="order" class="form-control input-sm" />
+                            </dd>
+                        </dl>
+
+                        <dl class="dl-horizontal">
+                            <dt>
+                                <label><wicket:message key="ResourceDependencyEditor.label.strictness" /></label>
+                            </dt>
+                            <dd>
+                                <select wicket:id="strictness" class="form-control input-sm"></select>
+                            </dd>
+                        </dl>
+
+                        <dl class="dl-horizontal">
+                            <dt>
+                                <label><wicket:message key="ResourceDependencyEditor.label.kind" /></label>
+                            </dt>
+                            <dd>
+                                <select wicket:id="kind" class="form-control input-sm"></select>
+                            </dd>
+                        </dl>
+
+                        <dl class="dl-horizontal">
+                            <dt>
+                                <label><wicket:message key="ResourceDependencyEditor.label.intent" /></label>
+                            </dt>
+                            <dd>
+                                <input wicket:id="intent" type="text" class="form-control input-sm" value=""/>
+                            </dd>
+                        </dl>
+
+                        <dl class="dl-horizontal">
+                            <dt>
+                                <label><wicket:message key="ResourceDependencyEditor.label.resourceRef" /></label>
+                            </dt>
+                            <dd class="cap-dl-multivalue">
+                                <div class="input-group">
+                                    <input wicket:id="resourceRefLabel" type="text" class="form-control input-sm" value="first"/>
+                                    <span class="input-group-btn">
+                                        <a wicket:id="resourceRefEditButton" class="btn btn-sm btn-primary" title="Edit">
+                                            <i class="fa fa-pencil-square-o"/>
+                                        </a>
+                                    </span>
+                                </div>
+                            </dd>
+                        </dl>
+
+                    </div>
+                </div>
             </div>
-        </dd>
-        <dd class="cap-dl-multivalue">
-            <div class="input-group">
-                <select class="form-control input-sm">
-                    <option>Strict</option>
-                    <option>Relaxed</option>
-                    <option>Lax</option>
-                </select>
-                <!-- TODO - find a way to insert small input here -->
-                <!--<input type="text" class="form-control input-sm" value="2"/>-->
-                <!--&nbsp;-->
-                <span class="input-group-btn">
-                    <a class="btn btn-sm btn-danger" title="Remove">
-                        <i class="fa fa-minus"/>
-                    </a>
-                    <a class="btn btn-sm btn-success" title="Add">
-                        <i class="fa fa-plus"/>
-                    </a>
-                </span>
-            </div>
-        </dd>
-    </dl>
+        </wicket:container>
+    </div>
+
+    <div class="main-button-bar">
+        <a wicket:id="addButton" class="btn btn-success">
+            <span><wicket:message key="ResourceDependencyEditor.label.button.add" /></span>
+        </a>
+    </div>
 
 </wicket:panel>
 </html>
