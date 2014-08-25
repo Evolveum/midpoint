@@ -43,6 +43,8 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean readablePassword = false;
     private boolean requireExplicitEnable = false;
     private boolean caseIgnoreId = false;
+    private boolean caseIgnoreValues = false;
+    private boolean tolerateDuplicateValues = true;
     private String uselessString;
     private GuardedString uselessGuardedString;
 
@@ -157,6 +159,29 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setCaseIgnoreId(boolean caseIgnoreId) {
 		this.caseIgnoreId = caseIgnoreId;
+	}
+
+	/**
+	 * If set to true then the attribute values will be considered case-insensitive
+	 */
+	@ConfigurationProperty(displayMessageKey = "UI_CASE_IGNORE_VALUES",
+    		helpMessageKey = "UI_CASE_IGNORE_VALUES")
+	public boolean getCaseIgnoreValues() {
+		return caseIgnoreValues;
+	}
+
+	public void setCaseIgnoreValues(boolean caseIgnoreValues) {
+		this.caseIgnoreValues = caseIgnoreValues;
+	}
+
+	@ConfigurationProperty(displayMessageKey = "UI_TOLERATE_DUPLICATE_VALUES",
+    		helpMessageKey = "UI_TOLERATE_DUPLICATE_VALUES")
+	public boolean getTolerateDuplicateValues() {
+		return tolerateDuplicateValues;
+	}
+
+	public void setTolerateDuplicateValues(boolean tolerateDuplicateValues) {
+		this.tolerateDuplicateValues = tolerateDuplicateValues;
 	}
 
 	/**

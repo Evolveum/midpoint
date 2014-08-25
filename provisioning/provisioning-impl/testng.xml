@@ -16,25 +16,28 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false" verbose="10" >
-	<test name="provisioning-ucf" preserve-order="true" parallel="false" verbose="10">
+	<listeners>
+		<listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
+	</listeners>
+	<test name="provisioning-ucf" parallel="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.provisioning.test.ucf.TestUcfDummy" />
 			<class name="com.evolveum.midpoint.provisioning.test.ucf.TestUcfOpenDj" />
 		</classes>
 	</test>
-	<test name="provisioning-service-opendj" preserve-order="true" parallel="false" verbose="10">
+	<test name="provisioning-service-opendj" parallel="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestConnectorDiscovery" />
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestOpenDJNegative" />
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestOpenDJ" />
 		</classes>
 	</test>
-	<test name="provisioning-service-DB" preserve-order="true" parallel="false" verbose="10">
+	<test name="provisioning-service-DB" parallel="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDBTable" />
 		</classes>
 	</test>
-	<test name="provisioning-service-dummy" preserve-order="true" parallel="false" verbose="10">
+	<test name="provisioning-service-dummy" parallel="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummy" />
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummyCaseIgnore" />
@@ -48,12 +51,12 @@
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummyUuidNonUniqueName" />
 		</classes>
 	</test>
-	<test name="provisioning-service-csv" preserve-order="true" parallel="false" verbose="10">
+	<test name="provisioning-service-csv" parallel="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestCsvFile" />
 		</classes>
 	</test>
-	<test name="provisioning-synchronization" preserve-order="true" parallel="false" verbose="10">
+	<test name="provisioning-synchronization" parallel="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestSynchronization" />
 		</classes>

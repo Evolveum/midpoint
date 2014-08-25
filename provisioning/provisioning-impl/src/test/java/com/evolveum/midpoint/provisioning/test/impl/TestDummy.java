@@ -48,6 +48,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
@@ -151,6 +152,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnecti
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestDummy extends AbstractDummyTest {
 
 	protected static final String BLACKBEARD_USERNAME = "BlackBeard";
@@ -168,7 +170,7 @@ public class TestDummy extends AbstractDummyTest {
 	protected String willIcfUid;
 	protected String morganIcfUid;
 	private String williamIcfUid;
-	private String piratesIcfUid;
+	protected String piratesIcfUid;
 	private String pillageIcfUid;
 	private String leChuckIcfUid;
 	private String blackbeardIcfUid;
@@ -3179,8 +3181,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test238DeletePrivPillage() throws Exception {
-		final String TEST_NAME = "test238DeletePrivPillage";
+	public void test298DeletePrivPillage() throws Exception {
+		final String TEST_NAME = "test298DeletePrivPillage";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -3220,8 +3222,8 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	@Test
-	public void test239DeleteGroupPirates() throws Exception {
-		final String TEST_NAME = "test239DeleteGroupPirates";
+	public void test299DeleteGroupPirates() throws Exception {
+		final String TEST_NAME = "test299DeleteGroupPirates";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()

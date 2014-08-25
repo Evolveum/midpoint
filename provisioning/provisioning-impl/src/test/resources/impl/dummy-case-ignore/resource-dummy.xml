@@ -32,6 +32,8 @@
 		<icfc:configurationProperties>
 			<icfi:instanceId></icfi:instanceId> <!-- Default instance -->
 			<icfi:caseIgnoreId>true</icfi:caseIgnoreId>
+			<icfi:caseIgnoreValues>true</icfi:caseIgnoreValues>
+			<icfi:caseIgnoreValues>true</icfi:caseIgnoreValues>
 			<icfi:uselessString>Shiver me timbers!</icfi:uselessString>
 			<icfi:uselessGuardedString>       <!-- Add some whitespace -->  
 				<clearValue>Dead men tell no tales</clearValue>
