@@ -64,6 +64,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -104,8 +105,10 @@ import static org.testng.AssertJUnit.assertNotNull;
  */
 public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContextTests {
 	
-	public static final String COMMON_DIR_NAME = "src/test/resources/common";
-	public static final File COMMON_DIR = new File(COMMON_DIR_NAME);
+	public static final String COMMON_DIR_NAME = "common";
+	@Deprecated
+	public static final String COMMON_DIR_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/" + COMMON_DIR_NAME;
+	public static final File COMMON_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, COMMON_DIR_NAME);
 	
 	protected static final String DEFAULT_INTENT = "default";
 	

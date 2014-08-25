@@ -169,5 +169,13 @@
             <artifactId>commons-cli</artifactId>
             <version>1.2</version>
         </dependency>
-	</dependencies>
+        <!-- testing -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.8.8</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
 </project>

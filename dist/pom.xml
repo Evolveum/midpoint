@@ -70,6 +70,41 @@
     <build>
         <plugins>
             <plugin>
+                <!-- Used to pull XSD files from the JAR -->
+                <groupId>com.evolveum.midpoint.tools</groupId>
+                <artifactId>schema-dist-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>schemadist-prism</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>schemadist</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.evolveum.midpoint.infra</groupId>
+                                    <artifactId>prism</artifactId>
+                                    <version>3.1-SNAPSHOT</version>
+                                    <type>jar</type>
+                                    <catalog>META-INF/catalog-runtime.xml</catalog>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.evolveum.midpoint.infra</groupId>
+                                    <artifactId>schema</artifactId>
+                                    <version>3.1-SNAPSHOT</version>
+                                    <type>jar</type>
+                                    <catalog>META-INF/jax-ws-catalog.xml</catalog>
+                                </artifactItem>
+                            </artifactItems>
+                            <includes>**/*.xsd,**/*.dtd,**/*.wsdl,META-INF/*</includes>
+                            <excludes>xml/ns/test/**,xml/ns/private/**,prism/**</excludes>
+                            <outputDirectory>${project.basedir}/target/schemadist</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
 		        <artifactId>maven-assembly-plugin</artifactId>
 		        <version>2.4</version>
 		        <configuration>

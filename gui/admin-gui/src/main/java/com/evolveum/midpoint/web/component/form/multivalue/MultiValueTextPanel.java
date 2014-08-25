@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
+package com.evolveum.midpoint.web.component.form.multivalue;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,8 +35,10 @@ import java.util.List;
 
 /**
  *  @author shood
+ *
+ *  TODO - move this to multivalue component package and rename it properly
  * */
-public class CapabilityListRepeater<T extends Serializable> extends SimplePanel<List<T>> {
+public class MultiValueTextPanel<T extends Serializable> extends SimplePanel<List<T>> {
 
     private static final String ID_REPEATER = "repeater";
     private static final String ID_TEXT = "input";
@@ -46,7 +48,7 @@ public class CapabilityListRepeater<T extends Serializable> extends SimplePanel<
 
     private static final String CSS_DISABLED = " disabled";
 
-    public CapabilityListRepeater(String id, IModel<List<T>> value){
+    public MultiValueTextPanel(String id, IModel<List<T>> value){
         super(id, value);
         setOutputMarkupId(true);
 
@@ -155,7 +157,7 @@ public class CapabilityListRepeater<T extends Serializable> extends SimplePanel<
     }
 
     protected StringResourceModel createEmptyItemPlaceholder(){
-        return createStringResource("capabilityListRepeater.label.text.placeholder");
+        return createStringResource("TextField.universal.placeholder");
     }
 
     protected void removeValuePerformed(AjaxRequestTarget target, ListItem<T> item){

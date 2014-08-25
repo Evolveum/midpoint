@@ -19,6 +19,7 @@ package com.evolveum.midpoint.testing.longtest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.xml.namespace.QName;
@@ -26,6 +27,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.io.IOUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -60,25 +63,42 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdap extends AbstractModelIntegrationTest {
 	
-	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
+	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap");
+	
+	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
-	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
+	protected static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 	
-	protected static final String ROLE_SUPERUSER_FILENAME = COMMON_DIR_NAME + "/role-superuser.xml";
+	protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 	
-	protected static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource-opendj.xml";
+	protected static final File ROLE_PIRATE_FILE = new File(TEST_DIR, "role-pirate.xml");
+	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
+	
+	protected static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj.xml");
     protected static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
 	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 	
+	protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
+	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
+	protected static final String USER_BARBOSSA_USERNAME = "barbossa";
+	protected static final String USER_BARBOSSA_FULL_NAME = "Hector Barbossa";
+	
+	protected static final File USER_GUYBRUSH_FILE = new File (COMMON_DIR, "user-guybrush.xml");
+	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
+	protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
+	protected static final String USER_GUYBRUSH_FULL_NAME = "Guybrush Threepwood";
+	
 	private static final String USER_LECHUCK_NAME = "lechuck";
 	private static final String ACCOUNT_LECHUCK_NAME = "lechuck";
 	private static final String ACCOUNT_CHARLES_NAME = "charles";
-	private static final int NUM_LDAP_ENTRIES = 1000;
+	private static final int NUM_LDAP_ENTRIES = 10;
+
+	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 	
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
@@ -100,25 +120,117 @@ public class TestLdap extends AbstractModelIntegrationTest {
 		
 		// System Configuration
 		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
+			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
 		
-		// Users
-		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
+		// administrator
+		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
 		login(userAdministrator);
 		
+		// Users
+		repoAddObjectFromFile(USER_BARBOSSA_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult);
+		
+		// Roles
+		repoAddObjectFromFile(ROLE_PIRATE_FILE, RoleType.class, initResult);
+		
 		// Resources
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID, initTask, initResult);
+		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		display("initial LDAP content", openDJController.dumpEntries());
 	}
-    
+	
+	/**
+	 * Barbossa is already member of LDAP group "pirates". The role adds this group as well.
+	 * This should go smoothly. No error expected.
+	 */
+	@Test
+    public void test200AssignRolePiratesToBarbossa() throws Exception {
+		final String TEST_NAME = "test200AssignRolePiratesToBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_BARBOSSA_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        String accountDn = assertOpenDjAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
+        openDJController.assertUniqueMember(LDAP_GROUP_PIRATES_DN, accountDn);
+	}
+	
+	/**
+	 * Just a first step for the following test
+	 */
+	@Test
+    public void test202AssignLdapAccountToGuybrush() throws Exception {
+		final String TEST_NAME = "test202AssignLdapAccountToGuybrush";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignAccount(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        String accountDn = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+	}
+
+	/**
+	 * Add guybrush to LDAP group before he gets the role. Make sure that the DN in the uniqueMember
+	 * attribute does not match (wrong case). This will check matching rule implementation in provisioning.
+	 */
+	@Test
+    public void test204AssignRolePiratesToGuybrush() throws Exception {
+		final String TEST_NAME = "test204AssignRolePiratesToGuybrush";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        openDJController.executeLdifChange(
+        		"dn: cn=Pirates,ou=groups,dc=example,dc=com\n" +
+        		"changetype: modify\n" +
+        		"add: uniqueMember\n" +
+        		"uniqueMember: uid=GuyBrush,ou=pEOPle,dc=EXAMPLE,dc=cOm"
+        	);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        String accountDn = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        openDJController.assertUniqueMember(LDAP_GROUP_PIRATES_DN, accountDn);
+	}
+
+	
 	@Test
     public void test400RenameLeChuckConflicting() throws Exception {
 		final String TEST_NAME = "test400RenameLeChuckConflicting";
@@ -195,7 +307,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
-        assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES + 6, userCount);
+        assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES + 8, userCount);
 	}
 	
 	private Entry createEntry(String uid, String name) throws IOException, LDIFException {

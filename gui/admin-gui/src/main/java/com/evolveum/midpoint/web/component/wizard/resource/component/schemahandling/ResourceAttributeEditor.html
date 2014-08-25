@@ -1,0 +1,145 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <h3><span wicket:id="label"></span></h3>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="ResourceAttributeEditor.label.reference" /></label>
+        </dt>
+        <dd>
+            <input wicket:id="reference" type="text" class="form-control input-sm" value=""/>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="ResourceAttributeEditor.label.displayName" /></label>
+        </dt>
+        <dd>
+            <input wicket:id="displayName" type="text" class="form-control input-sm" value=""/>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="ResourceAttributeEditor.label.description" /></label>
+        </dt>
+        <dd>
+            <textarea wicket:id="description" class="form-control input-sm" rows="2"></textarea>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="ResourceAttributeEditor.label.limitations" /></label>
+        </dt>
+        <dd>
+            <a wicket:id="buttonLimitations" class="btn btn-sm btn-primary" title="Edit">
+                <i class="fa fa-pencil-square-o"/>
+            </a>
+        </dd>
+    </dl>
+
+    <!-- Strong and tolerant -->
+    <div class="row">
+        <div class="col-xs-6">
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="ResourceAttributeEditor.label.exclusiveStrong" /></label>
+                </dt>
+                <dd>
+                    <input wicket:id="exclusiveStrong" type="checkbox" value="checked"/>
+                </dd>
+            </dl>
+        </div>
+
+        <div class="col-xs-6">
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="ResourceAttributeEditor.label.tolerant" /></label>
+                </dt>
+                <dd>
+                    <input wicket:id="tolerant" type="checkbox" value="checked"/>
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Tolerant Value Pattern -->
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="ResourceAttributeEditor.label.tolerantVP" /></label>
+        </dt>
+        <div wicket:id="tolerantValuePattern" />
+    </dl>
+
+    <!-- Intolerant Value Pattern -->
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="ResourceAttributeEditor.label.intolerantVP" /></label>
+        </dt>
+        <div wicket:id="intolerantValuePattern" />
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="ResourceAttributeEditor.label.fetchStrategy" /></label>
+        </dt>
+        <dd>
+            <select wicket:id="fetchStrategy" class="form-control input-sm"></select>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="ResourceAttributeEditor.label.matchingRule" /></label>
+        </dt>
+        <dd>
+            <input wicket:id="matchingRule" type="text" class="form-control input-sm" value=""/>
+        </dd>
+    </dl>
+
+    <!-- Outbound -->
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="ResourceAttributeEditor.label.outbound" /></label>
+        </dt>
+        <dd class="cap-dl-multivalue">
+            <div class="input-group">
+                <input wicket:id="outboundLabel" type="text" class="form-control input-sm"/>
+                <span class="input-group-btn">
+                    <a wicket:id="buttonOutbound" class="btn btn-sm btn-primary" title="Edit">
+                        <i class="fa fa-pencil-square-o"/>
+                    </a>
+                </span>
+            </div>
+        </dd>
+    </dl>
+
+    <!-- Inbound -->
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="ResourceAttributeEditor.label.inbound" /></label>
+        </dt>
+        <div wicket:id="inbound" />
+    </dl>
+
+</wicket:panel>
+</html>

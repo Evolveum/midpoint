@@ -193,9 +193,9 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
         }
 
         // brutal hack for MID-2001 (serializing and parsing eliminates the problem!)
-        String serialized = DOMUtil.printDom(response).toString();
-        LOGGER.trace("WEB SERVICE RESPONSE:\n{}", serialized);
-        response = DOMUtil.parseDocument(serialized);
+        //String serialized = DOMUtil.printDom(response).toString();
+        //LOGGER.trace("WEB SERVICE RESPONSE:\n{}", serialized);
+        //response = DOMUtil.parseDocument(serialized);
 
         return new DOMSource(response);
     }

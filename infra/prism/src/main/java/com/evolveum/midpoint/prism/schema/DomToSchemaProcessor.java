@@ -164,12 +164,7 @@ class DomToSchemaProcessor {
 	}
 
 	private void initSchema(Element xsdSchema) throws SchemaException {
-		String targetNamespace = xsdSchema.getAttributeNS(DOMUtil.XSD_ATTR_TARGET_NAMESPACE.getNamespaceURI(),
-				DOMUtil.XSD_ATTR_TARGET_NAMESPACE.getLocalPart());
-		if (StringUtils.isEmpty(targetNamespace)) {
-			// also try without the namespace
-			targetNamespace = xsdSchema.getAttribute(DOMUtil.XSD_ATTR_TARGET_NAMESPACE.getLocalPart());
-		}
+		String targetNamespace = DOMUtil.getAttribute(xsdSchema, DOMUtil.XSD_ATTR_TARGET_NAMESPACE);
 		if (StringUtils.isEmpty(targetNamespace)) {
 			throw new SchemaException("Schema does not have targetNamespace specification");
 		}

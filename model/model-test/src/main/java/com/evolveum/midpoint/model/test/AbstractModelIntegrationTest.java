@@ -2252,13 +2252,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertTrue("Unexpected values for attribute "+attributeName+" of dummy account "+username+": "+values, values == null || values.isEmpty());
 	}
     
-	protected void assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {
+	protected String assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {
 		SearchResultEntry entry = openDJController.searchByUid(uid);
 		assertNotNull("OpenDJ accoun with uid "+uid+" not found", entry);
 		openDJController.assertAttribute(entry, "cn", cn);
 		if (active != null) {
 			openDJController.assertActive(entry, active);
 		}
+		return entry.getDN().toString();
 	}
 	
 	protected void assertNoOpenDjAccount(String uid) throws DirectoryException {

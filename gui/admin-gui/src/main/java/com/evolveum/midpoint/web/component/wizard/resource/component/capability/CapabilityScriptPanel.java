@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
@@ -46,10 +47,10 @@ public class CapabilityScriptPanel extends SimplePanel {
         CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<Boolean>(getModel(), "capability.enabled"));
         add(enabled);
 
-        CapabilityListRepeater onConnector = new CapabilityListRepeater(ID_ON_CONNECTOR, prepareOnConnectorModel());
+        MultiValueTextPanel onConnector = new MultiValueTextPanel(ID_ON_CONNECTOR, prepareOnConnectorModel());
         add(onConnector);
 
-        CapabilityListRepeater onResource = new CapabilityListRepeater(ID_ON_RESOURCE, Model.of(prepareOnResourceModel()));
+        MultiValueTextPanel onResource = new MultiValueTextPanel(ID_ON_RESOURCE, Model.of(prepareOnResourceModel()));
         add(onResource);
     }
 

@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component;
+package com.evolveum.midpoint.web.component.form.multivalue;
 
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -45,41 +38,35 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- *  TODO - not finished, work in progress
- *  @author shood
- * */
-public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<List<T>>{
+ * todo not finished [lazyman]
+ *
+ * @author lazyman
+ */
+public class MultiValueTextFormGroup<T extends Serializable> extends SimplePanel<List<T>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MultiValueChoosePanel.class);
-
-    private static final String ID_LABEL = "label";
-    private static final String ID_REPEATER = "repeater";
-    private static final String ID_TEXT_WRAPPER = "textWrapper";
     private static final String ID_TEXT = "text";
+    private static final String ID_TEXT_WRAPPER = "textWrapper";
+    private static final String ID_LABEL = "label";
     private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_REPEATER = "repeater";
     private static final String ID_ADD = "add";
     private static final String ID_REMOVE = "remove";
     private static final String ID_BUTTON_GROUP = "buttonGroup";
-    private static final String ID_EDIT = "edit";
-
-    private static final String MODAL_ID_CHOOSE_PANEL = "showPopup";
 
     private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
-    public MultiValueChoosePanel(String id, IModel<List<T>> value, IModel<String> label, String labelSize,
-                                 String textSize, boolean required, Class<T> type){
+    public MultiValueTextFormGroup(String id, IModel<List<T>> value, IModel<String> label, String labelSize,
+                                   String textSize, boolean required) {
         super(id, value);
         setOutputMarkupId(true);
 
-        initLayout(label, labelSize, textSize, required, type);
+        initLayout(label, labelSize, textSize, required);
     }
 
     private void initLayout(final IModel<String> label, final String labelSize, final String textSize,
-                            final boolean required, Class<T> type){
-
+                            final boolean required) {
         Label l = new Label(ID_LABEL, label);
-
-        if(StringUtils.isNotEmpty(labelSize)){
+        if (StringUtils.isNotEmpty(labelSize)) {
             l.add(AttributeAppender.prepend("class", labelSize));
         }
         add(l);
@@ -87,32 +74,33 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
         ListView repeater = new ListView<T>(ID_REPEATER, getModel()) {
 
             @Override
-            protected void populateItem(final ListItem<T> listItem) {
+            protected void populateItem(final ListItem<T> item) {
                 WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
                 textWrapper.add(AttributeAppender.prepend("class", new AbstractReadOnlyModel<String>() {
 
                     @Override
                     public String getObject() {
                         StringBuilder sb = new StringBuilder();
-                        if(StringUtils.isNotEmpty(textSize)){
+                        if (StringUtils.isNotEmpty(textSize)) {
                             sb.append(textSize).append(' ');
                         }
-                        if(listItem.getIndex() > 0 && StringUtils.isNotEmpty(getOffsetClass())){
+                        if (item.getIndex() > 0 && StringUtils.isNotEmpty(getOffsetClass())) {
                             sb.append(getOffsetClass()).append(' ');
                             sb.append(CLASS_MULTI_VALUE);
                         }
+
                         return sb.toString();
                     }
                 }));
-                listItem.add(textWrapper);
+                item.add(textWrapper);
 
-                TextField text = new TextField<>(ID_TEXT, createTextModel(listItem.getModel()));
+                TextField text = new TextField(ID_TEXT, createTextModel(item.getModel()));
                 text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
                     @Override
-                    protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {}
+                    protected void onUpdate(AjaxRequestTarget target) {
+                    }
                 });
                 text.setRequired(required);
-                text.setEnabled(false);
                 text.add(AttributeAppender.replace("placeholder", label));
                 text.setLabel(label);
                 textWrapper.add(text);
@@ -125,51 +113,19 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
 
                     @Override
                     public String getObject() {
-                        if(listItem.getIndex() > 0 && StringUtils.isNotEmpty(labelSize)){
+                        if (item.getIndex() > 0 && StringUtils.isNotEmpty(labelSize)) {
                             return CLASS_MULTI_VALUE;
                         }
 
                         return null;
                     }
                 }));
+                item.add(buttonGroup);
 
-                AjaxLink edit = new AjaxLink(ID_EDIT) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        editValuePerformed(target);
-                    }
-                };
-                textWrapper.add(edit);
-
-                listItem.add(buttonGroup);
-
-                initButtons(buttonGroup, listItem);
+                initButtons(buttonGroup, item);
             }
         };
-
-        initDialog(type);
         add(repeater);
-    }
-
-    private void initDialog(Class<T> type){
-        ModalWindow dialog = new ChooseTypeDialog<T>(MODAL_ID_CHOOSE_PANEL, type){
-
-            @Override
-            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
-                choosePerformed(target, (T)object);
-            }
-
-            @Override
-            protected ObjectQuery getDataProviderQuery(){
-                return createChooseQuery();
-            }
-        };
-        add(dialog);
-    }
-
-    protected ObjectQuery createChooseQuery(){
-        return null;
     }
 
     /**
@@ -203,7 +159,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addValuePerformed(target);
+                addValuePerformed(target, item);
             }
         };
         add.add(new VisibleEnableBehaviour() {
@@ -226,7 +182,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
 
             @Override
             public boolean isVisible() {
-                return isRemoveButtonVisible();
+                return isRemoveButtonVisible(item);
             }
         });
         buttonGroup.add(remove);
@@ -244,23 +200,16 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
         return false;
     }
 
-    protected void editValuePerformed(AjaxRequestTarget target){
-        ModalWindow window = (ModalWindow) get(MODAL_ID_CHOOSE_PANEL);
-        ChooseTypeDialog dialog = (ChooseTypeDialog)window;
-        dialog.updateTablePerformed(target, createChooseQuery());
-        window.show(target);
-    }
-
-    protected boolean isRemoveButtonVisible() {
+    protected boolean isRemoveButtonVisible(ListItem<T> item) {
         int size = getModelObject().size();
-        if (size > 0) {
+        if (size > 1) {
             return true;
         }
 
         return false;
     }
 
-    protected void addValuePerformed(AjaxRequestTarget target) {
+    protected void addValuePerformed(AjaxRequestTarget target, ListItem<T> item) {
         List<T> objects = getModelObject();
         objects.add(createNewEmptyItem());
 
@@ -271,55 +220,15 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
         return null;
     }
 
-    /*
-     * TODO - this method contains check, if chosen object already is not in selected values array
-     *  This is a temporary solution until we well be able to create "already-chosen" query
-     *
-     */
-    protected void choosePerformed(AjaxRequestTarget target, T object){
-        ModalWindow window = (ModalWindow)get(MODAL_ID_CHOOSE_PANEL);
-        window.close(target);
-
-        if(isObjectUnique(object)){
-            replaceIfEmpty(object);
-        }
-
-        if(LOGGER.isTraceEnabled()){
-            LOGGER.trace("New object instance has been added to the model.");
-        }
-
-        target.add(this);
-    }
-
-    protected void replaceIfEmpty(Object object){
-        List<T> objects = getModelObject();
-        objects.add((T)object);
-    }
-
-    protected boolean isObjectUnique(Object object){
-
-        for(T o: getModelObject()){
-            if(o.equals(object)){
-                return false;
-            }
-        }
-        return true;
-    }
-
     protected void removeValuePerformed(AjaxRequestTarget target, ListItem<T> item) {
         List<T> objects = getModelObject();
         Iterator<T> iterator = objects.iterator();
         while (iterator.hasNext()) {
             T object = iterator.next();
-
             if (object.equals(item.getModelObject())) {
                 iterator.remove();
                 break;
             }
-        }
-
-        if(objects.size() == 0){
-            objects.add(createNewEmptyItem());
         }
 
         target.add(this);

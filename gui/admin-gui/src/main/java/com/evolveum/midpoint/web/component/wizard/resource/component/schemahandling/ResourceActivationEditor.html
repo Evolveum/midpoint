@@ -1,0 +1,181 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <h3><wicket:message key="ResourceActivationEditor.label" /></h3>
+
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne"><wicket:message key="ResourceActivationEditor.label.existence" /></a>
+                </h4>
+            </div>
+
+            <div id="collapseOne" class="panel-collapse collapse in">
+                <div class="panel-body">
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceActivationEditor.label.fetchStrategy" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="existenceFetchStrategy" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <!-- Outbound -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceActivationEditor.label.outbound" /></label>
+                        </dt>
+                        <div wicket:id="existenceOutbound" />
+                    </dl>
+
+                    <!-- Inbound -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceActivationEditor.label.inbound" /></label>
+                        </dt>
+                        <div wicket:id="existenceInbound" />
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo"><wicket:message key="ResourceActivationEditor.label.administrativeStatus" /></a>
+                </h4>
+            </div>
+
+            <div id="collapseTwo" class="panel-collapse collapse">
+                <div class="panel-body">
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceActivationEditor.label.fetchStrategy" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="admStatusFetchStrategy" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <!-- Outbound -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceActivationEditor.label.outbound" /></label>
+                        </dt>
+                        <div wicket:id="admStatusOutbound" />
+                    </dl>
+
+                    <!-- Inbound -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceActivationEditor.label.inbound" /></label>
+                        </dt>
+                        <div wicket:id="admStatusInbound" />
+                    </dl>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree"><wicket:message key="ResourceActivationEditor.label.validFrom" /></a>
+                </h4>
+            </div>
+
+            <div id="collapseThree" class="panel-collapse collapse">
+                <div class="panel-body">
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceActivationEditor.label.fetchStrategy" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="validFromFetchStrategy" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <!-- Outbound -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceActivationEditor.label.outbound" /></label>
+                        </dt>
+                        <div wicket:id="validFromOutbound" />
+                    </dl>
+
+                    <!-- Inbound -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceActivationEditor.label.inbound" /></label>
+                        </dt>
+                        <div wicket:id="validFromInbound" />
+                    </dl>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseFour"><wicket:message key="ResourceActivationEditor.label.validTo" /></a>
+                </h4>
+            </div>
+
+            <div id="collapseFour" class="panel-collapse collapse">
+                <div class="panel-body">
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceActivationEditor.label.fetchStrategy" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="validToFetchStrategy" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <!-- Outbound -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceActivationEditor.label.outbound" /></label>
+                        </dt>
+                        <div wicket:id="validToOutbound" />
+                    </dl>
+
+                    <!-- Inbound -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceActivationEditor.label.inbound" /></label>
+                        </dt>
+                        <div wicket:id="validToInbound" />
+                    </dl>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</wicket:panel>
+</html>
