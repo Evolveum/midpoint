@@ -41,6 +41,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigException;
@@ -567,10 +568,22 @@ public class OpenDJController extends AbstractResourceController {
 				objectClassValues.contains(expected));
 	}
 
-	public void assertUniqueMember(SearchResultEntry groupEntry, String accountDn) {
+	public void assertUniqueMember(SearchResultEntry groupEntry, String accountDn) throws DirectoryException {
 		Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
-		MidPointAsserts.assertContainsCaseIgnore("No member "+accountDn+" in group "+getDn(groupEntry),
+		assertContainsDn("No member "+accountDn+" in group "+getDn(groupEntry),
 				members, accountDn);
+	}
+	
+	public static void assertContainsDn(String message, Collection<String> actualValues, String expectedValue) throws DirectoryException {
+		AssertJUnit.assertNotNull(message+", expected "+expectedValue+", got null", actualValues);
+		DN expectedDn = DN.decode(expectedValue);
+		for (String actualValue: actualValues) {
+			DN actualDn = DN.decode(actualValue);
+			if (actualDn.compareTo(expectedDn)==0) {
+				return;
+			}
+		}
+		AssertJUnit.fail(message+", expected "+expectedValue+", got "+actualValues);
 	}
 	
 	public void assertUniqueMember(String groupDn, String accountDn) throws DirectoryException {
@@ -705,6 +718,20 @@ public class OpenDJController extends AbstractResourceController {
         	throw new RuntimeException("LDAP operation error: "+modifyOperation.getResultCode()+": "+modifyOperation.getErrorMessage());
         }
         return entry;
+	}
+
+	public String dumpEntries() throws DirectoryException {
+		InternalSearchOperation op = getInternalConnection().processSearch(
+				LDAP_SUFFIX, SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
+				100, false, "(objectclass=*)", getSearchAttributes());
+
+		StringBuilder sb = new StringBuilder();
+		for (SearchResultEntry searchEntry: op.getSearchEntries()) {
+			sb.append(searchEntry.toLDIFString());
+			sb.append("\n");
+		}
+		
+		return sb.toString();
 	}
 
 }

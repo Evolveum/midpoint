@@ -55,17 +55,17 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestGenericSynchronization.class);
 
-    private static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
+    private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
     private static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
-    private static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
+    private static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
     private static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
     private static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
-    private static final String ROLE_SUPERUSER_FILENAME = COMMON_DIR_NAME + "/role-superuser.xml";
+    private static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
     private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
-    private static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource-opendj-generic-sync.xml";
+    private static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj-generic-sync.xml");
     private static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000030";
     private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
@@ -116,16 +116,16 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         modelService.postInit(initResult);
 
         // System Configuration and administrator
-        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
-        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
-        repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
+        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
+        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
+        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
         login(userAdministrator);
         
         importObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, initResult);
 		setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);
 
         // Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID,
+        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID,
                 initTask, initResult);
         openDJController.setResource(resourceOpenDj);
 

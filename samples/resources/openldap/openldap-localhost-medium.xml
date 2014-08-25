@@ -265,6 +265,16 @@ It also contains inbound mappings and definition to enable synchronization.
 			<protected>
                 <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
             </protected>
+            
+            <association>
+				<ref>ri:group</ref>
+				<displayName>LDAP Group Membership</displayName>
+				<kind>entitlement</kind>
+				<intent>ldapGroup</intent>
+				<direction>objectToSubject</direction>
+				<associationAttribute>ri:member</associationAttribute>
+				<valueAttribute>icfs:name</valueAttribute>
+			</association>
 			
 			<activation>
                 <administrativeStatus>
@@ -295,6 +305,57 @@ It also contains inbound mappings and definition to enable synchronization.
             </credentials>
 
 		</objectType>
+		
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>ldapGroup</intent>
+			<displayName>LDAP Group</displayName>
+			<objectClass>ri:CustomgroupOfNamesObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$focus/name</path>
+					</source>
+					    <expression>
+					    	<script>
+							<code>
+								import javax.naming.ldap.Rdn
+								import javax.naming.ldap.LdapName
+								
+								dn = new LdapName('ou=groups,dc=example,dc=com')
+								dn.add(new Rdn('cn', name.toString()))
+								return dn.toString()
+							</code>
+						</script>
+					    </expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:member</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
+			<attribute>
+				<ref>ri:cn</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$focus/name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+					<source>
+						<path>description</path>
+					</source>
+				</outbound>
+			</attribute>
+		</objectType>
 	</schemaHandling>
 
 <!--
@@ -310,6 +371,11 @@ It also contains inbound mappings and definition to enable synchronization.
     	</configured>
     </capabilities>
 -->
+
+		<consistency>
+			<avoidDuplicateValues>true</avoidDuplicateValues>
+		</consistency>
+
         <!--
             Synchronization section describes the synchronization policy, timing,
             reactions and similar synchronization settings.
