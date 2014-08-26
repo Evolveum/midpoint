@@ -405,7 +405,7 @@
             <dependency>
                 <groupId>org.forgerock.openicf.connectors</groupId>
                 <artifactId>ldap-connector</artifactId>
-                <version>1.1.0.em2</version>
+                <version>1.1.1.0.em95</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.forgerock.openicf.framework</groupId>
