@@ -68,7 +68,7 @@ public class ResourceAttributeEditor extends SimplePanel{
                 if(attribute.getDisplayName() == null && attribute.getRef() == null){
                     return getString("ResourceAttributeEditor.label.new");
                 } else {
-                    return getString("ResourceAttributeEditor.label.edit", attribute.getDisplayName());
+                    return getString("ResourceAttributeEditor.label.edit", attribute.getRef().getLocalPart());
                 }
             }
         });

@@ -30,10 +30,11 @@
                         <a wicket:id="dependencyLink" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
                             <span wicket:id="dependencyLinkName"></span>
                         </a>
+                        <button wicket:id="deleteDependency" type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     </h4>
                 </div>
 
-                <div wicket:id="dependencyBodyContainer" id="collapseOne" class="panel-collapse collapse in">
+                <div wicket:id="dependencyBodyContainer" id="collapseOne" class="panel-collapse collapse">
                     <div class="panel-body">
 
                         <dl class="dl-horizontal">
@@ -77,14 +78,7 @@
                                 <label><wicket:message key="ResourceDependencyEditor.label.resourceRef" /></label>
                             </dt>
                             <dd class="cap-dl-multivalue">
-                                <div class="input-group">
-                                    <input wicket:id="resourceRefLabel" type="text" class="form-control input-sm" value="first"/>
-                                    <span class="input-group-btn">
-                                        <a wicket:id="resourceRefEditButton" class="btn btn-sm btn-primary" title="Edit">
-                                            <i class="fa fa-pencil-square-o"/>
-                                        </a>
-                                    </span>
-                                </div>
+                                <select wicket:id="resourceRef" class="form-control input-sm"></select>
                             </dd>
                         </dl>
 

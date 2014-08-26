@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectPatternType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -39,6 +40,10 @@ import java.util.List;
  * */
 public class ResourceProtectedEditor extends SimplePanel{
 
+    private static enum ChangeState{
+        SKIP, FIRST, LAST
+    }
+
     private static final String ID_CONTAINER = "protectedContainer";
     private static final String ID_REPEATER = "repeater";
     private static final String ID_ACCOUNT_LINK = "accountLink";
@@ -49,6 +54,9 @@ public class ResourceProtectedEditor extends SimplePanel{
     private static final String ID_FILTER_DESCRIPTION = "filterDescription";
     private static final String ID_FILTER_CLAUSE = "filterClause";
     private static final String ID_BUTTON_ADD = "addButton";
+    private static final String ID_BUTTON_DELETE = "deleteAccount";
+
+    private ChangeState changeState = ChangeState.FIRST;
 
     public ResourceProtectedEditor(String id, IModel<List<ResourceObjectPatternType>> model){
         super(id, model);
@@ -84,43 +92,73 @@ public class ResourceProtectedEditor extends SimplePanel{
 
                     @Override
                     public String getObject() {
-                        //TODO - what should be the label of this?
-                        return "Account#" + item.getIndex();
+                        StringBuilder sb = new StringBuilder();
+                        ResourceObjectPatternType account = item.getModelObject();
+                        sb.append("#").append(item.getIndex()).append(":");
+
+                        if(account.getUid() != null){
+                            sb.append(account.getUid()).append(":");
+                        }
+
+                        if(account.getName() != null){
+                            sb.append(account.getName());
+                        }
+
+                        return sb.toString();
                     }
                 });
                 linkCont.add(accountLabel);
 
+                AjaxLink delete = new AjaxLink(ID_BUTTON_DELETE) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteDependencyPerformed(target, item);
+                    }
+                };
+                item.add(delete);
+
                 WebMarkupContainer accountBody = new WebMarkupContainer(ID_ACCOUNT_BODY);
                 accountBody.setOutputMarkupId(true);
                 accountBody.setMarkupId(createCollapseItemId(item, false).getObject());
-                accountBody.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
 
-                    @Override
-                    public String getObject() {
-                        if(item.getIndex() == 0){
-                            return "panel-collapse collapse in";
-                        } else {
-                            return "panel-collapse collapse";
+                if(changeState != ChangeState.SKIP){
+                    accountBody.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
+
+                        @Override
+                        public String getObject() {
+                            if(changeState == ChangeState.FIRST && item.getIndex() == 0){
+                                return "panel-collapse collapse in";
+                            } else if(changeState == ChangeState.LAST && item.getIndex() == (getModelObject().size()-1)){
+                                return "panel-collapse collapse in";
+                            } else {
+                                return "panel-collapse collapse";
+                            }
                         }
-                    }
-                }));
+                    }));
+                }
+
                 item.add(accountBody);
 
                 //TODO - maybe add some validator and auto-complete functionality?
                 TextField name = new TextField<>(ID_NAME, new PropertyModel<String>(item.getModelObject(), "name"));
+                name.add(prepareAjaxOnComponentTagUpdateBehavior());
                 accountBody.add(name);
 
                 //TODO - maybe add some validator and auto-complete functionality?
                 TextField uid = new TextField<>(ID_UID, new PropertyModel<String>(item.getModelObject(), "uid"));
+                uid.add(prepareAjaxOnComponentTagUpdateBehavior());
                 accountBody.add(uid);
 
                 TextArea filterDescription = new TextArea<>(ID_FILTER_DESCRIPTION,
                         new PropertyModel<String>(item.getModelObject(), "filter.description"));
+                filterDescription.add(prepareAjaxOnComponentTagUpdateBehavior());
                 accountBody.add(filterDescription);
 
                 //TODO - what is this? How should we edit this?
                 TextField filterClause = new TextField<>(ID_FILTER_CLAUSE,
                         new PropertyModel<String>(item.getModelObject(), "filter.filterClauseXNode"));
+                filterClause.add(prepareAjaxOnComponentTagUpdateBehavior());
                 accountBody.add(filterClause);
             }
         };
@@ -135,6 +173,14 @@ public class ResourceProtectedEditor extends SimplePanel{
             }
         };
         add(add);
+    }
+
+    private AjaxFormComponentUpdatingBehavior prepareAjaxOnComponentTagUpdateBehavior(){
+        return new AjaxFormComponentUpdatingBehavior("onBlur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {}
+        };
     }
 
     private WebMarkupContainer getMainContainer(){
@@ -160,7 +206,15 @@ public class ResourceProtectedEditor extends SimplePanel{
     }
 
     private void addProtectedAccountPerformed(AjaxRequestTarget target){
-        getModel().getObject().add(new ResourceObjectPatternType());
+        ResourceObjectPatternType account = new ResourceObjectPatternType();
+        changeState = ChangeState.LAST;
+        getModel().getObject().add(account);
+        target.add(getMainContainer());
+    }
+
+    private void deleteDependencyPerformed(AjaxRequestTarget target, ListItem<ResourceObjectPatternType> item){
+        changeState = ChangeState.SKIP;
+        getModel().getObject().remove(item.getModelObject());
         target.add(getMainContainer());
     }
 }
