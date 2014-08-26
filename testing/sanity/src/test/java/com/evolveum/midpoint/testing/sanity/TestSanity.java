@@ -49,11 +49,11 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
 import com.evolveum.midpoint.prism.PrismContext;
-
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.opends.server.core.ModifyOperation;
@@ -78,6 +78,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
@@ -93,6 +94,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -1287,7 +1289,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResult result = new OperationResult(TestSanity.class.getName() + ".test016ProvisioningSearchAccountsIterative");
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceTypeOpenDjrepo, prismContext);
-        RefinedObjectClassDefinition refinedAccountDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        final RefinedObjectClassDefinition refinedAccountDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 
         QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
         ObjectQuery q = ObjectQueryUtil.createResourceAndAccountQuery(resourceTypeOpenDjrepo.getOid(), objectClass, prismContext);
@@ -1310,10 +1312,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 assertNotNull(shadow.getName());
                 assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "AccountObjectClass"), shadow.getObjectClass());
                 assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
-                String icfUid = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "uid"));
+                String icfUid = getAttributeValue(shadow, SchemaConstants.ICFS_UID);
                 assertNotNull("No ICF UID", icfUid);
-                String icfName = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "name"));
+                String icfName = getNormalizedAttributeValue(shadow, refinedAccountDefinition, SchemaConstants.ICFS_NAME);
                 assertNotNull("No ICF NAME", icfName);
+                
                 assertEquals("Wrong shadow name", shadow.getName().getOrig(), icfName);
                 assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "uid")));
                 assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "cn")));
@@ -4053,5 +4056,17 @@ public class TestSanity extends AbstractModelIntegrationTest {
 		ObjectChecker<ShadowType> checker = null;
 		IntegrationTestTools.checkAllShadows(resourceTypeOpenDjrepo, repositoryService, checker, prismContext);		
 	}	
+    
+    public static String getNormalizedAttributeValue(ShadowType repoShadow, RefinedObjectClassDefinition objClassDef, QName name) {
+		
+		String value = getAttributeValue(repoShadow, name);
+		
+		RefinedAttributeDefinition attrDef = objClassDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+		if (attrDef.getMatchingRuleQName() != null && attrDef.getMatchingRuleQName().equals(StringIgnoreCaseMatchingRule.NAME)){
+			return value.toLowerCase();
+		}
+		
+		return value;
+	}
 
 }

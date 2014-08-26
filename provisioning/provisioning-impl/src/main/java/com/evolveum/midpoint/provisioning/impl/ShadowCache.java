@@ -1312,7 +1312,7 @@ public abstract class ShadowCache {
 		ResourceAttribute newSecondaryIdentifier = newSecondaryIdentifiers.iterator().next();
 		Object newValue = newSecondaryIdentifier.getRealValue();
 		
-		if (!shadowManager.compareAttribute(refinedObjectClassDefinition, newSecondaryIdentifier, oldValue)){
+		if (!shadowManager.compareAttribute(refinedObjectClassDefinition, newSecondaryIdentifier, oldSecondaryIdentifier)){
 			Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
 			
 			
@@ -1524,6 +1524,7 @@ public abstract class ShadowCache {
 			PrismObject<ShadowType> repoShadow, ResourceType resource, RefinedObjectClassDefinition objectClassDefinition, 
 			OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, GenericConnectorException {
 
+		
 		PrismObject<ShadowType> resultShadow = repoShadow.clone();
 		boolean resultIsResourceShadowClone = false;
 		if (resultShadow == null) {
@@ -1627,7 +1628,7 @@ public abstract class ShadowCache {
 		assert resultName != null : "No name generated in "+resultShadow;
 		assert !StringUtils.isEmpty(resultName.getOrig()) : "No name (orig) in "+resultShadow;
 		assert !StringUtils.isEmpty(resultName.getNorm()) : "No name (norm) in "+resultShadow;
-
+		
 		return resultShadow;
 	}
 	
