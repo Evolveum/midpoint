@@ -258,15 +258,7 @@ It also contains inbound mappings and definition to enable synchronization.
 				</outbound>
 			</attribute>
 			
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-			
-			<protected>
-                <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
-            </protected>
-            
-            <association>
+			<association>
 				<ref>ri:group</ref>
 				<displayName>LDAP Group Membership</displayName>
 				<kind>entitlement</kind>
@@ -275,6 +267,16 @@ It also contains inbound mappings and definition to enable synchronization.
 				<associationAttribute>ri:member</associationAttribute>
 				<valueAttribute>icfs:name</valueAttribute>
 			</association>
+			
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+			
+			<protected>
+                <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+            </protected>
+            
+            
 			
 			<activation>
                 <administrativeStatus>
@@ -303,6 +305,8 @@ It also contains inbound mappings and definition to enable synchronization.
                     </inbound>
                 </password>
             </credentials>
+			
+			
 
 		</objectType>
 		
