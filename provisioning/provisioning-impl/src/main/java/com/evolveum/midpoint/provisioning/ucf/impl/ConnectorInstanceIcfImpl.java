@@ -2529,7 +2529,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} else if (expectedType.equals(GuardedByteArray.class)) {
 			// Guarded string is a special ICF beast
 			// TODO
-			return new GuardedByteArray(Base64.decodeBase64((String) pval.getValue()));
+//			return new GuardedByteArray(Base64.decodeBase64((ProtectedByteArrayType) pval.getValue()));
+			return new GuardedByteArray(((ProtectedByteArrayType) pval.getValue()).getClearBytes());
 		} else if (midPointRealValue instanceof PolyString) {
 			return ((PolyString)midPointRealValue).getOrig();
 		} else if (midPointRealValue instanceof PolyStringType) {
