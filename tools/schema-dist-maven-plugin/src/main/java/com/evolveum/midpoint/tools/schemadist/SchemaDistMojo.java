@@ -355,7 +355,7 @@ public class SchemaDistMojo extends AbstractMojo {
     			getLog().debug("workDirPath: "+workDirPath);
     			getLog().debug("resolvedRelativeToCatalogWorkdir: "+resolvedRelativeToCatalogWorkdir+",  fileRelativeToWorkdir: "+fileRelativeToWorkdir);
     			
-    			Path relativePath = fileRelativeToWorkdir.relativize(resolvedRelativeToCatalogWorkdir);
+    			Path relativePath = fileRelativeToWorkdir.getParent().relativize(resolvedRelativeToCatalogWorkdir);
     			getLog().debug("Rel: "+relativePath);
     			return relativePath.toString();
     		}
