@@ -85,7 +85,6 @@ public class ResourceActivationEditor extends SimplePanel{
 
     @Override
     protected void initLayout(){
-
         prepareActivationPanelBody(ResourceActivationDefinitionType.F_EXISTENCE.getLocalPart(), ID_EXISTENCE_FS,
                 ID_EXISTENCE_OUT, ID_EXISTENCE_IN);
 

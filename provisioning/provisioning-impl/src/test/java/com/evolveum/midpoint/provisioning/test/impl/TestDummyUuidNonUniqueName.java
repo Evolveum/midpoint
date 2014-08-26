@@ -98,16 +98,16 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	}
 	
 	@Test
-	public void test070AddAccountFettuciniAlfredo() throws Exception {
-		final String TEST_NAME = "test070AddAccountFettuciniAlfredo";
+	public void test770AddAccountFettuciniAlfredo() throws Exception {
+		final String TEST_NAME = "test770AddAccountFettuciniAlfredo";
 		TestUtil.displayTestTile(TEST_NAME);
 		addFettucini(TEST_NAME, ACCOUNT_FETTUCINI_ALFREDO_FILE, ACCOUNT_FETTUCINI_ALFREDO_OID, ACCOUNT_FETTUCINI_ALFREDO_FULLNAME);
 		searchFettucini(1);
 	}
 	
 	@Test
-	public void test072AddAccountFettuciniBill() throws Exception {
-		final String TEST_NAME = "test072AddAccountFettuciniBill";
+	public void test772AddAccountFettuciniBill() throws Exception {
+		final String TEST_NAME = "test772AddAccountFettuciniBill";
 		TestUtil.displayTestTile(TEST_NAME);
 		addFettucini(TEST_NAME, ACCOUNT_FETTUCINI_BILL_FILE, ACCOUNT_FETTUCINI_BILL_OID, ACCOUNT_FETTUCINI_BILL_FULLNAME);
 		searchFettucini(2);
@@ -117,8 +117,8 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	 * Add directly on resource. Therefore provisioning must create the shadow during search.
 	 */
 	@Test
-	public void test074AddAccountFettuciniCarlo() throws Exception {
-		final String TEST_NAME = "test074AddAccountFettuciniCarlo";
+	public void test774AddAccountFettuciniCarlo() throws Exception {
+		final String TEST_NAME = "test774AddAccountFettuciniCarlo";
 		TestUtil.displayTestTile(TEST_NAME);
 		dummyResourceCtl.addAccount(ACCOUNT_FETTUCINI_NAME, ACCOUNT_FETTUCINI_CARLO_FULLNAME);
 		searchFettucini(3);

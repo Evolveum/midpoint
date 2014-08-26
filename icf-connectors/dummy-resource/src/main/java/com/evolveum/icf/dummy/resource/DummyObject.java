@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -210,6 +212,11 @@ public abstract class DummyObject implements DebugDumpable {
 			for (Object currentValue: currentValues) {
 				if (currentValue.equals(valueToAdd)) {
 					throw new IllegalArgumentException("The value '"+valueToAdd+"' of attribute '"+attrName+"' conflicts with existing value: Attempt to add value that already exists");
+				}
+				if (resource.isCaseIgnoreValues() && (valueToAdd instanceof String)) {
+					if (StringUtils.equalsIgnoreCase((String)currentValue, (String)valueToAdd)) {
+						throw new IllegalArgumentException("The value '"+valueToAdd+"' of attribute '"+attrName+"' conflicts with existing value: Attempt to add value that already exists");
+					}
 				}
 			}
 		}
