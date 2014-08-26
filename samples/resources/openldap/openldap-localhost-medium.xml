@@ -257,7 +257,7 @@ It also contains inbound mappings and definition to enable synchronization.
 					</source>
 				</outbound>
 			</attribute>
-			
+						
 			<association>
 				<ref>ri:group</ref>
 				<displayName>LDAP Group Membership</displayName>
@@ -276,8 +276,6 @@ It also contains inbound mappings and definition to enable synchronization.
                 <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
             </protected>
             
-            
-			
 			<activation>
                 <administrativeStatus>
                     <outbound/>
@@ -305,8 +303,6 @@ It also contains inbound mappings and definition to enable synchronization.
                     </inbound>
                 </password>
             </credentials>
-			
-			
 
 		</objectType>
 		
