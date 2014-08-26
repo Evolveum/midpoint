@@ -23,7 +23,7 @@
 	<name>ICF org.identityconnectors.ldap.LdapConnector</name>
 	<framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
 	<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-	<connectorVersion>1.1.0.em2</connectorVersion>
+	<connectorVersion>1.1.1.0.em95</connectorVersion>
 	<connectorBundle>org.forgerock.openicf.connectors.ldap-connector</connectorBundle>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector</namespace>
 	<schema>
