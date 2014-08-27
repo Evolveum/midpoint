@@ -60,8 +60,13 @@
                 <clearValue>secret</clearValue>
             </icfcldap:credentials>
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+            
             <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
         </icfc:configurationProperties>
+         <icfc:resultsHandlerConfiguration>
+   <icfc:enableFilteredResultsHandler>true</icfc:enableFilteredResultsHandler>
+   <icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+  </icfc:resultsHandlerConfiguration>
 
         <!-- Generic ICF configuration -->
 
