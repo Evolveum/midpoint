@@ -110,14 +110,15 @@ public class ResourceIterationEditor extends SimplePanel{
         TextArea description = new TextArea<>(descriptionId, new PropertyModel<String>(getModel(), containerValue + ".description"));
         add(description);
 
-        AjaxLink extension = new AjaxLink(extensionId) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                extensionEditPerformed(target);
-            }
-        };
-        add(extension);
+//        TODO - uncomment to edit extension
+//        AjaxLink extension = new AjaxLink(extensionId) {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                extensionEditPerformed(target);
+//            }
+//        };
+//        add(extension);
 
         MultiValueTextEditPanel stringFilterList = new MultiValueTextEditPanel<StringFilterType>(stringFilterId,
                 new PropertyModel<List<StringFilterType>>(getModel(), containerValue + ".stringFilter"), false, true){

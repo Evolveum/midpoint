@@ -20,58 +20,218 @@
 
     <h3><span wicket:id="label" ></span></h3>
 
-    <dl class="dl-horizontal">
-        <dt>
-            <label><wicket:message key="ResourceAssociationEditor.label.kind" /></label>
-        </dt>
-        <dd>
-            <select wicket:id="kind" class="form-control input-sm"></select>
-        </dd>
-    </dl>
+    <div class="panel-group" id="accordion">
 
-    <!-- Intent -->
-    <dl class="dl-horizontal">
-        <dt>
-            <label><wicket:message key="ResourceAssociationEditor.label.intent" /></label>
-        </dt>
-        <div wicket:id="intent" />
-    </dl>
+        <!-- Association specific attributes -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#main">
+                        <wicket:message key="ResourceAssociationEditor.label.association"/>
+                    </a>
+                </h4>
+            </div>
 
-    <dl class="dl-horizontal">
-        <dt>
-            <label><wicket:message key="ResourceAssociationEditor.label.direction" /></label>
-        </dt>
-        <dd>
-            <select wicket:id="direction" class="form-control input-sm"></select>
-        </dd>
-    </dl>
+            <div id="main" class="panel-collapse collapse in">
+                <div class="panel-body">
 
-    <dl class="dl-horizontal">
-        <dt>
-            <label><wicket:message key="ResourceAssociationEditor.label.associationAttribute" /></label>
-        </dt>
-        <dd>
-            <input wicket:id="associationAttribute" type="text" class="form-control input-sm" value=""/>
-        </dd>
-    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.kind" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="kind" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
 
-    <dl class="dl-horizontal">
-        <dt>
-            <label><wicket:message key="ResourceAssociationEditor.label.valueAttribute" /></label>
-        </dt>
-        <dd>
-            <input wicket:id="valueAttribute" type="text" class="form-control input-sm" value=""/>
-        </dd>
-    </dl>
+                    <!-- Intent -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.intent" /></label>
+                        </dt>
+                        <div wicket:id="intent" />
+                    </dl>
 
-    <dl class="dl-horizontal">
-        <dt>
-            <label><wicket:message key="ResourceAssociationEditor.label.explicitRefIntegrity" /></label>
-        </dt>
-        <dd>
-            <input wicket:id="explicitRefIntegrity" type="checkbox" value="checked"/>
-        </dd>
-    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.direction" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="direction" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.associationAttribute" /></label>
+                        </dt>
+                        <dd>
+                            <input wicket:id="associationAttribute" type="text" class="form-control input-sm" value=""/>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.valueAttribute" /></label>
+                        </dt>
+                        <dd>
+                            <input wicket:id="valueAttribute" type="text" class="form-control input-sm" value=""/>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.explicitRefIntegrity" /></label>
+                        </dt>
+                        <dd>
+                            <input wicket:id="explicitRefIntegrity" type="checkbox" value="checked"/>
+                        </dd>
+                    </dl>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ResourceItem specific attributes -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#other">
+                        <wicket:message key="ResourceAssociationEditor.label.resourceItem"/>
+                    </a>
+                </h4>
+            </div>
+
+            <div id="other" class="panel-collapse collapse">
+                <div class="panel-body">
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.reference" /></label>
+                        </dt>
+                        <dd>
+                            <input wicket:id="reference" type="text" class="form-control input-sm" value=""/>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.displayName" /></label>
+                        </dt>
+                        <dd>
+                            <input wicket:id="displayName" type="text" class="form-control input-sm" value=""/>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.description" /></label>
+                        </dt>
+                        <dd>
+                            <textarea wicket:id="description" class="form-control input-sm" rows="2"></textarea>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.limitations" /></label>
+                        </dt>
+                        <dd>
+                            <a wicket:id="buttonLimitations" class="btn btn-sm btn-primary" title="Edit">
+                                <i class="fa fa-pencil-square-o"/>
+                            </a>
+                        </dd>
+                    </dl>
+
+                    <!-- Strong and tolerant -->
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="ResourceAssociationEditor.label.exclusiveStrong" /></label>
+                                </dt>
+                                <dd>
+                                    <input wicket:id="exclusiveStrong" type="checkbox" value="checked"/>
+                                </dd>
+                            </dl>
+                        </div>
+
+                        <div class="col-xs-6">
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="ResourceAssociationEditor.label.tolerant" /></label>
+                                </dt>
+                                <dd>
+                                    <input wicket:id="tolerant" type="checkbox" value="checked"/>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- Tolerant Value Pattern -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.tolerantVP" /></label>
+                        </dt>
+                        <div wicket:id="tolerantValuePattern" />
+                    </dl>
+
+                    <!-- Intolerant Value Pattern -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.intolerantVP" /></label>
+                        </dt>
+                        <div wicket:id="intolerantValuePattern" />
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.fetchStrategy" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="fetchStrategy" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.matchingRule" /></label>
+                        </dt>
+                        <dd>
+                            <input wicket:id="matchingRule" type="text" class="form-control input-sm" value=""/>
+                        </dd>
+                    </dl>
+
+                    <!-- Outbound -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.outbound" /></label>
+                        </dt>
+                        <dd class="cap-dl-multivalue">
+                            <div class="input-group">
+                                <input wicket:id="outboundLabel" type="text" class="form-control input-sm"/>
+                                <span class="input-group-btn">
+                                    <a wicket:id="buttonOutbound" class="btn btn-sm btn-primary" title="Edit">
+                                        <i class="fa fa-pencil-square-o"/>
+                                    </a>
+                                </span>
+                            </div>
+                        </dd>
+                    </dl>
+
+                    <!-- Inbound -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.inbound" /></label>
+                        </dt>
+                        <div wicket:id="inbound" />
+                    </dl>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
 
 </wicket:panel>
 </html>

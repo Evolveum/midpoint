@@ -365,7 +365,19 @@ public class SchemaHandlingStep extends WizardStep {
 
                     @Override
                     public String getObject() {
-                        return model.getObject().getDisplayName();
+                        StringBuilder sb = new StringBuilder();
+
+                        if(model.getObject().getRef() != null){
+                            sb.append(model.getObject().getRef().getLocalPart());
+                        } else {
+                            return null;
+                        }
+
+                        if(model.getObject().getDisplayName() != null){
+                            sb.append(" (").append(model.getObject().getDisplayName()).append(")");
+                        }
+
+                        return sb.toString();
                     }
                 };
             }
@@ -396,8 +408,19 @@ public class SchemaHandlingStep extends WizardStep {
 
                     @Override
                     public String getObject() {
-                        //TODO - what should we display, if displayName is not defined?
-                        return model.getObject().getDisplayName();
+                        StringBuilder sb = new StringBuilder();
+
+                        if(model.getObject().getRef() != null){
+                            sb.append(model.getObject().getRef().getLocalPart());
+                        } else {
+                            return null;
+                        }
+
+                        if(model.getObject().getDisplayName() != null){
+                            sb.append(" (").append(model.getObject().getDisplayName()).append(")");
+                        }
+
+                        return sb.toString();
                     }
                 };
             }

@@ -19,7 +19,7 @@
              oid="14e63399-8869-4787-9369-93f9d1311671">
    <c:name>ICF org.identityconnectors.ldap.LdapConnector</c:name>
    <c:namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector</c:namespace>
-   <c:connectorVersion>1.1.0.em2</c:connectorVersion>
+   <c:connectorVersion>1.1.1.0.em95</c:connectorVersion>
    <c:framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</c:framework>
    <c:connectorBundle>org.forgerock.openicf.connectors.ldap-connector</c:connectorBundle>
    <c:connectorType>org.identityconnectors.ldap.LdapConnector</c:connectorType>
