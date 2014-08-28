@@ -22,7 +22,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -33,18 +32,14 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -52,6 +47,8 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @Component
@@ -61,6 +58,8 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 	private ProvisioningService provisioningService;
 	@Autowired(required = true)
 	private PrismContext prismContext;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ObjectAlreadyExistHandler.class);
 
 	@Override
 	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
@@ -70,6 +69,8 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		if (!isDoDiscovery(shadow.getResource())){
 			throw new ObjectAlreadyExistsException();
 		}
+		
+		LOGGER.trace("Start to hanlde ObjectAlreadyExitsException.");
 		
 		OperationResult operationResult = parentResult
 				.createSubresult("Discovery for object already exists situation. Operation: " + op.name());
@@ -89,6 +90,8 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		if (!foundAccount.isEmpty() && foundAccount.size() == 1) {
 			resourceAccount = foundAccount.get(0);
 		}
+		
+		LOGGER.trace("Found conflicting resource account: {}", resourceAccount);
 
 		try{
 		if (resourceAccount != null) {
