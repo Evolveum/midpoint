@@ -212,21 +212,21 @@ public class ResourceDependencyEditor extends SimplePanel{
             public String getObject() {
                 StringBuilder sb = new StringBuilder();
                 ResourceObjectTypeDependencyType dep = item.getModelObject();
-                sb.append("#").append(item.getIndex()).append(":");
+                sb.append("#").append(item.getIndex()+1).append(" - ");
 
                 if(dep.getResourceRef() != null){
-                    sb.append(resourceMap.get(dep.getResourceRef().getOid()));
+                    sb.append(resourceMap.get(dep.getResourceRef().getOid())).append(":");
                 }
 
                 if(dep.getKind() != null){
-                    sb.append(dep.getKind()).append(":");
+                    sb.append(dep.getKind().toString()).append(":");
                 }
 
                 if(dep.getIntent() != null){
                     sb.append(dep.getIntent()).append(":");
                 }
 
-                sb.append(":").append(dep.getOrder()).append(":");
+                sb.append(dep.getOrder()).append(":");
                 if(dep.getStrictness() != null){
                     sb.append(dep.getStrictness().toString());
                 }

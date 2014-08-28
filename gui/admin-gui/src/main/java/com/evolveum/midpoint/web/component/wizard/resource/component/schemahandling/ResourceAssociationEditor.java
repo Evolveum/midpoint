@@ -19,10 +19,12 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.schemahand
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -58,6 +60,7 @@ public class ResourceAssociationEditor extends SimplePanel{
     private static final String ID_OUTBOUND_LABEL = "outboundLabel";
     private static final String ID_BUTTON_OUTBOUND = "buttonOutbound";
     private static final String ID_BUTTON_LIMITATIONS = "buttonLimitations";
+    private static final String ID_MODAL_LIMITATIONS = "limitationsEditor";
 
 
     public ResourceAssociationEditor(String id, IModel<ResourceObjectAssociationType> model){
@@ -195,10 +198,19 @@ public class ResourceAssociationEditor extends SimplePanel{
             }
         };
         add(inbound);
+
+        initModals();
+    }
+
+    private void initModals(){
+        ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
+                new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
+        add(limitationsEditor);
     }
 
     private void limitationsEditPerformed(AjaxRequestTarget target){
-        //TODO - implement (open ModalWindow here - limitations editor)
+        LimitationsEditorDialog window = (LimitationsEditorDialog)get(ID_MODAL_LIMITATIONS);
+        window.show(target);
     }
 
     private void outboundEditPerformed(AjaxRequestTarget target){

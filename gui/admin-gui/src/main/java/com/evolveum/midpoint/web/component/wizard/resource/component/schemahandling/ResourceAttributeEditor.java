@@ -18,12 +18,16 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.schemahand
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
+import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -52,6 +56,8 @@ public class ResourceAttributeEditor extends SimplePanel{
     private static final String ID_OUTBOUND_LABEL = "outboundLabel";
     private static final String ID_BUTTON_OUTBOUND = "buttonOutbound";
     private static final String ID_BUTTON_LIMITATIONS = "buttonLimitations";
+    private static final String ID_MODAL_LIMITATIONS = "limitationsEditor";
+    private static final String ID_MODAL_MAPPING = "mappingEditor";
 
     public ResourceAttributeEditor(String id, IModel<ResourceAttributeDefinitionType> model){
         super(id, model);
@@ -117,7 +123,6 @@ public class ResourceAttributeEditor extends SimplePanel{
         TextField matchingRule = new TextField<>(ID_MATCHING_RULE, new PropertyModel<String>(getModel(), "matchingRule.localPart"));
         add(matchingRule);
 
-        //TODO - what should we display as Mapping label?
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new PropertyModel<String>(getModel(), "outbound.name"));
         outboundLabel.setEnabled(false);
@@ -141,8 +146,13 @@ public class ResourceAttributeEditor extends SimplePanel{
 
                     @Override
                     public String getObject() {
-                        //TODO - what should we display as Mapping label?
-                        return model.getObject().getName();
+                        MappingType mapping = model.getObject();
+
+                        if(mapping != null){
+                            return mapping.getName();
+                        } else {
+                            return null;
+                        }
                     }
                 };
             }
@@ -158,17 +168,33 @@ public class ResourceAttributeEditor extends SimplePanel{
             }
         };
         add(inbound);
+
+        initModals();
+    }
+
+    private void initModals(){
+        ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
+                new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
+        add(limitationsEditor);
+
+        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null);
+        add(mappingEditor);
     }
 
     private void limitationsEditPerformed(AjaxRequestTarget target){
-        //TODO - implement (open ModalWindow here - limitations editor)
+        LimitationsEditorDialog window = (LimitationsEditorDialog)get(ID_MODAL_LIMITATIONS);
+        window.show(target);
     }
 
     private void outboundEditPerformed(AjaxRequestTarget target){
-        //TODO - implement (open ModalWindow here - MappingType editor)
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
+        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "outbound"));
+        window.show(target);
     }
 
     private void mappingEditPerformed(AjaxRequestTarget target, MappingType mapping){
-        //TODO - implement (open ModalWindow here - MappingType editor)
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
+        window.updateModel(target, mapping);
+        window.show(target);
     }
 }

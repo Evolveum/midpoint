@@ -94,7 +94,7 @@ public class ResourceProtectedEditor extends SimplePanel{
                     public String getObject() {
                         StringBuilder sb = new StringBuilder();
                         ResourceObjectPatternType account = item.getModelObject();
-                        sb.append("#").append(item.getIndex()).append(":");
+                        sb.append("#").append(item.getIndex()+1).append(" - ");
 
                         if(account.getUid() != null){
                             sb.append(account.getUid()).append(":");
