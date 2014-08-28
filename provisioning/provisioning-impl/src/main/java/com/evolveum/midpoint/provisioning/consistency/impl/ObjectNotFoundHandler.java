@@ -250,10 +250,14 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				subResult.muteError();
 			}
 			if (oid != null) {
-				PrismObject prismShadow = provisioningService.getObject(shadow.getClass(), oid, null, task, result);
+                PrismObject prismShadow;
+                try {
+				    prismShadow = provisioningService.getObject(shadow.getClass(), oid, null, task, result);
+                } finally {
+                    result.computeStatus();
+                }
 				shadow = (T) prismShadow.asObjectable();
 				parentResult.recordHandledError("Account was re-created by the discovery.");
-				result.computeStatus();
 				return shadow;
 			} else {
 				parentResult.recordHandledError("Account was deleted by the discovery and the invalid link was removed from the user.");

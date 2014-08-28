@@ -650,6 +650,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         for (OrgTableDto object : objects) {
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
             WebModelUtils.deleteObject(object.getType(), object.getOid(), subResult, page);
+            subResult.computeStatusIfUnknown();
         }
         result.computeStatusComposite();
 

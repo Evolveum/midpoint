@@ -288,7 +288,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 
 		if (synchronization == null){
 			LOGGER.warn(
-					"Resource does not support synchornization. Skipping evaluation correlation/confirmation for user {} and account {}",
+					"Resource does not support synchronization. Skipping evaluation correlation/confirmation for user {} and account {}",
 					userType, currentShadow);
 			return false;
 		}

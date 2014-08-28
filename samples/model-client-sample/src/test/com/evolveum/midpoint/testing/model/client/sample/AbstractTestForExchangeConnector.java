@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
@@ -56,19 +57,17 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.cxf.frontend.ClientProxy;
+import org.apache.cxf.transport.http.HTTPConduit;
+import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.wss4j.dom.WSConstants;
 import org.apache.wss4j.dom.handler.WSHandlerConstants;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -91,146 +90,73 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * An attempt to have an automated test for Exchange connector.
- *
- * To minimalize technical problems of communication with remote Windows machine
- * the commands to the connectors are sent via midPoint (Web Service) API.
- *
- * To run this test the following is required:
- * (1) A Windows machine (anywhere in the network), with the following set up and running:
- *     a) Microsoft Exchange
- *     b) Connector Server and Exchange connector
- * (2) A midPoint machine (anywhere in the network), with the following elements configured:
- *     a) ConnectorHost pointing to the Windows machine
- *     b) discovered Exchange connector
- *     c) adequately defined Exchange resource (TODO specify more exactly)
- *
- * To run this test, the following system properties have to be provided:
- *
- *  - resourceOid (e.g. "11111111-2222-1111-1111-000000000010")
- *     -> the OID of Exchange resource (see 2c above)
- *  - container (e.g. "OU=ConnectorTest,DC=xxxx,DC=yyyy,DC=com")
- *     -> in which container the testing would take place
- *        (must correspond to the container defined in the Exchange resource)
- *  - mailDomain (e.g. "xxxx.yyyy.com")
- *     -> used for testing mail addresses for user accounts created by the connector
- *        (must correspond to address policies specified on the Exchange server)
- *
- * Again, this is HIGHLY EXPERIMENTAL.
+ * Common functionality for connector-related tests.
  *
  * @author mederly
- *
  */
-public class TestExchangeConnector {
+public class AbstractTestForExchangeConnector {
 	
 	// Configuration
 	public static final String ADM_USERNAME = "administrator";
 	public static final String ADM_PASSWORD = "5ecr3t";
-	private static final String DEFAULT_ENDPOINT_URL = "http://localhost.:8080/midpoint/model/model-3";
+	public static final String DEFAULT_ENDPOINT_URL = "http://localhost.:8080/midpoint/model/model-3";
 	
 	// Object OIDs
 
     // Other
-    private static final String NS_RI = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
-    private static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+    public static final String NS_RI = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+    public static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 
-    private static final QName OC_ACCOUNT = new QName(NS_RI, "AccountObjectClass");
-    private static final QName OC_ACCEPTED_DOMAIN = new QName(NS_RI, "CustomAcceptedDomainObjectClass");
-    private static final QName OC_GLOBAL_ADDRESS_LIST = new QName(NS_RI, "CustomGlobalAddressListObjectClass");
-    private static final QName OC_ADDRESS_LIST = new QName(NS_RI, "CustomAddressListObjectClass");
-    private static final QName OC_OFFLINE_ADDRESS_BOOK = new QName(NS_RI, "CustomOfflineAddressBookObjectClass");
-    private static final QName OC_ADDRESS_BOOK_POLICY = new QName(NS_RI, "CustomAddressBookPolicyObjectClass");
-    private static final QName OC_DISTRIBUTION_GROUP = new QName(NS_RI, "CustomDistributionGroupObjectClass");
-    private static final QName OC_EMAIL_ADDRESS_POLICY = new QName(NS_RI, "CustomEmailAddressPolicyObjectClass");
+    public static final QName OC_ACCOUNT = new QName(NS_RI, "AccountObjectClass");
+    public static final QName OC_ACCEPTED_DOMAIN = new QName(NS_RI, "CustomAcceptedDomainObjectClass");
+    public static final QName OC_GLOBAL_ADDRESS_LIST = new QName(NS_RI, "CustomGlobalAddressListObjectClass");
+    public static final QName OC_ADDRESS_LIST = new QName(NS_RI, "CustomAddressListObjectClass");
+    public static final QName OC_OFFLINE_ADDRESS_BOOK = new QName(NS_RI, "CustomOfflineAddressBookObjectClass");
+    public static final QName OC_ADDRESS_BOOK_POLICY = new QName(NS_RI, "CustomAddressBookPolicyObjectClass");
+    public static final QName OC_DISTRIBUTION_GROUP = new QName(NS_RI, "CustomDistributionGroupObjectClass");
+    public static final QName OC_EMAIL_ADDRESS_POLICY = new QName(NS_RI, "CustomEmailAddressPolicyObjectClass");
 
-    private static final String NEWTON_GIVEN_NAME = "Isaac";
-    private static final String NEWTON_SN = "Newton";
-    private String newtonOid;
+    // objects created (to be cleaned up at the end)
+    protected List<String> acceptedDomains = new ArrayList<>();
+    protected List<String> globalAddressLists = new ArrayList<>();
+    protected List<String> addressLists = new ArrayList<>();
+    protected List<String> offlineAddressBooks = new ArrayList<>();
+    protected List<String> addressBookPolicies = new ArrayList<>();
+    protected List<String> distributionGroups = new ArrayList<>();
+    protected List<String> emailAddressPolicies = new ArrayList<>();
+    protected List<OrgType> orgs = new ArrayList<>();
 
-    private static final String LEIBNIZ_GIVEN_NAME = "Gottfried Wilhelm";
-    private static final String LEIBNIZ_SN = "Leibniz";
-    private String leibnizOid;
+    protected ModelPortType modelPort;
 
-    private static final String PASCAL_GIVEN_NAME = "Blaise";
-    private static final String PASCAL_SN = "Pascal";
-    private String pascalOid;
-
-    private List<String> acceptedDomains = new ArrayList<>();
-    private List<String> globalAddressLists = new ArrayList<>();
-    private List<String> addressLists = new ArrayList<>();
-    private List<String> offlineAddressBooks = new ArrayList<>();
-    private List<String> addressBookPolicies = new ArrayList<>();
-    private List<String> distributionGroups = new ArrayList<>();
-    private List<String> emailAddressPolicies = new ArrayList<>();
-
-    private String dn(String givenName, String sn) {
-        return "CN=" + givenName + " " + sn + "," + getContainer();
-    }
-
-    private String mail(String givenName, String sn) {
-        return sn.toLowerCase() + "@" + getMailDomain();
-    }
-
-    private String getContainer() {
-        return System.getProperty("container");
-    }
-    
-    private String getResourceOid() {
+//    private String dn(String givenName, String sn) {
+//        return "CN=" + givenName + " " + sn + "," + getContainer();
+//    }
+//
+//    private String mail(String givenName, String sn) {
+//        return sn.toLowerCase() + "@" + getMailDomain();
+//    }
+//
+//    private String getContainer() {
+//        return System.getProperty("container");
+//    }
+//
+    protected String getResourceOid() {
         return System.getProperty("resourceOid");
     }
-
-    private ModelPortType modelPort;
-
-    public String getMailDomain() {
-        return System.getProperty("mailDomain");
-    }
+//
+//    public String getMailDomain() {
+//        return System.getProperty("mailDomain");
+//    }
 
     @BeforeClass
 	public void initialize() throws Exception {
         modelPort = createModelPort(new String[0]);
     }
 
-//    @Test
-//    public void test000() throws InvalidNameException {
-//        System.out.println(distributionGroupOU());
-//        System.exit(0);
-//    }
-
-    @Test
-    public void test001GetResource() throws Exception {
-        System.out.println("Getting Exchange resource...");
-        ResourceType exchangeResource = getResource(getResourceOid());
-        if (exchangeResource == null) {
-            throw new IllegalStateException("Exchange resource was not found");
-        }
-        System.out.println("Got it; name = " + getOrig(exchangeResource.getName()));
-    }
 
     // =============== AcceptedDomain ===============
 
-    @Test
-    public void test010CreateAcceptedDomain() throws Exception {
-        createAndCheckAcceptedDomain("Scientists Domain", "scientists.com", "Authoritative");
-    }
-
-    @Test
-    public void test012ModifyAcceptedDomain() throws Exception {
-        ShadowType domain = getShadowByName(getResourceOid(), OC_ACCEPTED_DOMAIN, "Scientists Domain");
-        modifyShadow(domain.getOid(), "attributes/name", ModificationTypeType.REPLACE, "Scientists Domain Updated");
-        modifyShadow(domain.getOid(), "attributes/DomainType", ModificationTypeType.REPLACE, "InternalRelay");
-        checkAcceptedDomain("Scientists Domain Updated", "scientists.com", "InternalRelay");
-    }
-
-    @Test
-    public void test015CreateAndDeleteAcceptedDomain() throws Exception {
-        String oid = createAndCheckAcceptedDomain("Temporary domain", "temp.com", "Authoritative");
-        deleteShadow(getResourceOid(), oid, false);
-        acceptedDomains.remove(oid);
-        ShadowType tempDomain = getShadowByName(getResourceOid(), OC_ACCEPTED_DOMAIN, "Temporary domain");
-        AssertJUnit.assertNull("Temporary domain was not removed", tempDomain);
-    }
-
-    private String createAndCheckAcceptedDomain(String name, String domainName, String domainType) throws Exception {
+    protected String createAndCheckAcceptedDomain(String name, String domainName, String domainType) throws Exception {
         System.out.println("Creating accepted domain " + name);
         String oid = createAcceptedDomain(name, domainName, domainType);
         System.out.println("Done; OID = " + oid);
@@ -238,7 +164,7 @@ public class TestExchangeConnector {
         return checkAcceptedDomain(name, domainName, domainType).getOid();
     }
 
-    private String createAcceptedDomain(String name, String domainName, String domainType) throws FaultMessage {
+    protected String createAcceptedDomain(String name, String domainName, String domainType) throws FaultMessage {
 
         Document doc = ModelClientUtil.getDocumnent();
 
@@ -247,7 +173,7 @@ public class TestExchangeConnector {
         shadow.setResourceRef(createObjectReferenceType(ResourceType.class, getResourceOid()));
         shadow.setObjectClass(OC_ACCEPTED_DOMAIN);
         shadow.setKind(ShadowKindType.GENERIC);
-        shadow.setIntent("accepted-domain");
+        shadow.setIntent("custom-accepted-domain");
 
         ShadowAttributesType attributes = new ShadowAttributesType();
         attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_ICFS, "name"), name, doc));
@@ -259,7 +185,7 @@ public class TestExchangeConnector {
         return createShadow(shadow);
     }
 
-    private ShadowType checkAcceptedDomain(String name, String domainName, String domainType) throws Exception {
+    protected ShadowType checkAcceptedDomain(String name, String domainName, String domainType) throws Exception {
         System.out.println("Retrieving AcceptedDomain " + name);
         ShadowType shadowType = getShadowByName(getResourceOid(), OC_ACCEPTED_DOMAIN, name);
         AssertJUnit.assertNotNull("AcceptedDomain " + name + " was not found", shadowType);
@@ -275,29 +201,8 @@ public class TestExchangeConnector {
 
     // =============== GAL ===============
 
-    @Test
-    public void test020CreateGlobalAddressList() throws Exception {
-        createAndCheckGlobalAddressList("Scientists Global Address List", "Scientist");
-    }
 
-    @Test
-    public void test022ModifyGlobalAddressList() throws Exception {
-        ShadowType gal = getShadowByName(getResourceOid(), OC_GLOBAL_ADDRESS_LIST, "Scientists Global Address List");
-        modifyShadow(gal.getOid(), "attributes/name", ModificationTypeType.REPLACE, "Scientists Global Address List Updated");
-        modifyShadow(gal.getOid(), "attributes/RecipientFilter", ModificationTypeType.REPLACE, "CustomAttribute1 -eq 'Scientist'");
-        checkGlobalAddressList("Scientists Global Address List Updated", "CustomAttribute1 -eq 'Scientist'");
-    }
-
-    @Test
-    public void test025CreateAndDeleteGlobalAddressList() throws Exception {
-        String oid = createAndCheckGlobalAddressList("Temporary GAL", "TEMP");
-        deleteShadow(getResourceOid(), oid, false);
-        globalAddressLists.remove(oid);
-        ShadowType tempGal = getShadowByName(getResourceOid(), OC_GLOBAL_ADDRESS_LIST, "Temporary GAL");
-        AssertJUnit.assertNull("Temporary GAL was not removed", tempGal);
-    }
-
-    private String createAndCheckGlobalAddressList(String name, String valueToExpect) throws Exception {
+    protected String createAndCheckGlobalAddressList(String name, String valueToExpect) throws Exception {
         System.out.println("Creating GAL " + name);
         String oid = createGlobalAddressList(name, valueToExpect);
         System.out.println("Done; OID = " + oid);
@@ -305,11 +210,11 @@ public class TestExchangeConnector {
         return checkGlobalAddressList(name, galFilter(valueToExpect)).getOid();
     }
 
-    private String galFilter(String valueToExpect) {
+    protected String galFilter(String valueToExpect) {
         return "((Alias -ne $null) -and (CustomAttribute1 -eq '" + valueToExpect + "'))";
     }
 
-    private String createGlobalAddressList(String name, String valueToExpect) throws FaultMessage {
+    protected String createGlobalAddressList(String name, String valueToExpect) throws FaultMessage {
 
         Document doc = ModelClientUtil.getDocumnent();
 
@@ -328,7 +233,7 @@ public class TestExchangeConnector {
         return createShadow(shadow);
     }
 
-    private ShadowType checkGlobalAddressList(String name, String recipientFilter) throws Exception {
+    protected ShadowType checkGlobalAddressList(String name, String recipientFilter) throws Exception {
         System.out.println("Retrieving GAL " + name);
         ShadowType shadowType = getShadowByName(getResourceOid(), OC_GLOBAL_ADDRESS_LIST, name);
         AssertJUnit.assertNotNull("GAL " + name + " was not found", shadowType);
@@ -337,7 +242,9 @@ public class TestExchangeConnector {
         Map<String,Object> attrs = getAttributesAsMap(shadowType);
         assertAttributeExists(attrs, "uid");
         assertAttributeEquals(attrs, "name", name);
-        assertAttributeEquals(attrs, "RecipientFilter", recipientFilter);
+        if (recipientFilter != null) {
+            assertAttributeEquals(attrs, "RecipientFilter", recipientFilter);
+        }
         return shadowType;
     }
 
@@ -367,32 +274,7 @@ public class TestExchangeConnector {
         }
     }
 
-    @Test
-    public void test030CreateAddressLists() throws Exception {
-        createAndCheckAddressList("Scientists All Users", "Scientist", AddressListType.USERS);
-        createAndCheckAddressList("Scientists All Groups", "Scientist", AddressListType.GROUPS);
-        createAndCheckAddressList("Scientists All Contacts", "Scientist", AddressListType.CONTACTS);
-        createAndCheckAddressList("Scientists All Rooms", "Scientist", AddressListType.ROOMS);
-    }
-
-    @Test
-    public void test032ModifyAddressList() throws Exception {
-        ShadowType gal = getShadowByName(getResourceOid(), OC_ADDRESS_LIST, "Scientists All Users");
-        modifyShadow(gal.getOid(), "attributes/name", ModificationTypeType.REPLACE, "Scientists All Users Updated");
-        modifyShadow(gal.getOid(), "attributes/RecipientFilter", ModificationTypeType.REPLACE, "CustomAttribute1 -eq 'Scientist'");
-        checkAddressList("Scientists All Users Updated", "CustomAttribute1 -eq 'Scientist'");
-    }
-
-    @Test
-    public void test035CreateAndDeleteAddressList() throws Exception {
-        String oid = createAndCheckAddressList("Temporary Address List", "TEMP", AddressListType.USERS);
-        deleteShadow(getResourceOid(), oid, false);
-        addressLists.remove(oid);
-        ShadowType temp = getShadowByName(getResourceOid(), OC_ADDRESS_LIST, "Temporary Address List");
-        AssertJUnit.assertNull("Temporary AddressList was not removed", temp);
-    }
-
-    private String createAndCheckAddressList(String name, String valueToExpect, AddressListType type) throws Exception {
+    protected String createAndCheckAddressList(String name, String valueToExpect, AddressListType type) throws Exception {
         System.out.println("Creating AddressList " + name);
         String oid = createAddressList(name, valueToExpect, type);
         System.out.println("Done; OID = " + oid);
@@ -400,7 +282,7 @@ public class TestExchangeConnector {
         return checkAddressList(name, type.createFilter(valueToExpect)).getOid();
     }
 
-    private String createAddressList(String name, String valueToExpect, AddressListType type) throws FaultMessage {
+    protected String createAddressList(String name, String valueToExpect, AddressListType type) throws FaultMessage {
 
         Document doc = ModelClientUtil.getDocumnent();
 
@@ -419,7 +301,7 @@ public class TestExchangeConnector {
         return createShadow(shadow);
     }
 
-    private ShadowType checkAddressList(String name, String recipientFilter) throws Exception {
+    protected ShadowType checkAddressList(String name, String recipientFilter) throws Exception {
         System.out.println("Retrieving AddressList " + name);
         ShadowType shadowType = getShadowByName(getResourceOid(), OC_ADDRESS_LIST, name);
         AssertJUnit.assertNotNull("AddressList " + name + " was not found", shadowType);
@@ -434,36 +316,7 @@ public class TestExchangeConnector {
 
     // =============== OfflineAddressBook ===============
 
-    @Test
-    public void test040CreateOfflineAddressBook() throws Exception {
-        createAndCheckOfflineAddressBook("Scientists Offline Address Book", "Scientists Global Address List Updated", "Scientists");
-    }
-
-    @Test
-    public void test042ModifyOfflineAddressBook() throws Exception {
-        String tempGal = createGlobalAddressList("Scientists Global Address List - Temporary", "TEMP");
-        ShadowType shadow = getShadowByName(getResourceOid(), OC_OFFLINE_ADDRESS_BOOK, "Scientists Offline Address Book");
-        modifyShadow(shadow.getOid(), "attributes/name", ModificationTypeType.REPLACE, "Scientists Offline Address Book Updated");
-        modifyShadow(shadow.getOid(), "attributes/AddressLists", ModificationTypeType.REPLACE, "Scientists Global Address List - Temporary");
-        checkOfflineAddressBook("Scientists Offline Address Book Updated", "Scientists Global Address List - Temporary");
-
-        modifyShadow(shadow.getOid(), "attributes/AddressLists", ModificationTypeType.REPLACE, "Scientists Global Address List Updated");
-        checkOfflineAddressBook("Scientists Offline Address Book Updated", "Scientists Global Address List Updated");
-
-        deleteShadow(getResourceOid(), tempGal, false);
-        globalAddressLists.remove(tempGal);
-    }
-
-    @Test
-    public void test045CreateAndDeleteOfflineAddressBook() throws Exception {
-        String oid = createAndCheckOfflineAddressBook("Temporary OAB", "Scientists Global Address List Updated", "Scientists");
-        deleteShadow(getResourceOid(), oid, false);
-        offlineAddressBooks.remove(oid);
-        ShadowType temp = getShadowByName(getResourceOid(), OC_OFFLINE_ADDRESS_BOOK, "Temporary OAB");
-        AssertJUnit.assertNull("Temporary OAB was not removed", temp);
-    }
-
-    private String createAndCheckOfflineAddressBook(String name, String addressList, String tenantName) throws Exception {
+    protected String createAndCheckOfflineAddressBook(String name, String addressList, String tenantName) throws Exception {
         System.out.println("Creating OAB " + name);
         String oid = createOfflineAddressBook(name, addressList, tenantName);
         System.out.println("Done; OID = " + oid);
@@ -471,7 +324,7 @@ public class TestExchangeConnector {
         return checkOfflineAddressBook(name, addressList).getOid();
     }
 
-    private String createOfflineAddressBook(String name, String addressList, String tenantName) throws FaultMessage {
+    protected String createOfflineAddressBook(String name, String addressList, String tenantName) throws FaultMessage {
 
         Document doc = ModelClientUtil.getDocumnent();
 
@@ -491,7 +344,7 @@ public class TestExchangeConnector {
         return createShadow(shadow);
     }
 
-    private ShadowType checkOfflineAddressBook(String name, String addressList) throws Exception {
+    protected ShadowType checkOfflineAddressBook(String name, String addressList) throws Exception {
         System.out.println("Retrieving OAB " + name);
         ShadowType shadowType = getShadowByName(getResourceOid(), OC_OFFLINE_ADDRESS_BOOK, name);
         AssertJUnit.assertNotNull("OAB " + name + " was not found", shadowType);
@@ -508,47 +361,7 @@ public class TestExchangeConnector {
 
     // =============== AddressBookPolicy ===============
 
-    @Test
-    public void test050CreateAddressBookPolicy() throws Exception {
-        createAndCheckAddressBookPolicy("Scientists Address Book Policy",
-                Arrays.asList("\\Scientists All Users Updated",
-                        "\\Scientists All Groups",
-                        "\\Scientists All Contacts"),
-                "\\Scientists Global Address List Updated",
-                "\\Scientists Offline Address Book Updated",
-                "\\Scientists All Rooms");
-    }
-
-    @Test
-    public void test052ModifyAddressBookPolicy() throws Exception {
-        ShadowType shadow = getShadowByName(getResourceOid(), OC_ADDRESS_BOOK_POLICY, "Scientists Address Book Policy");
-        modifyShadow(shadow.getOid(), "attributes/name", ModificationTypeType.REPLACE, "Scientists Address Book Policy Updated");
-        // TODO enable this
-//        modifyShadow(shadow.getOid(), "attributes/AddressLists", ModificationTypeType.DELETE, "Scientists All Contacts");
-//        checkAddressBookPolicy("Scientists Address Book Policy Updated",
-//                new HashSet(Arrays.asList("Scientists All Users Updated", "Scientists All Groups")),
-//                "Scientists Global Address List Updated",
-//                "Scientists Offline Address Book Updated",
-//                "Scientists All Rooms");
-    }
-
-    @Test
-    public void test055CreateAndDeleteAddressBookPolicy() throws Exception {
-        String oid = createAndCheckAddressBookPolicy("Temporary Address Book Policy",
-                Arrays.asList("\\Scientists All Users Updated",
-                        "\\Scientists All Groups",
-                        "\\Scientists All Contacts"),
-                "\\Scientists Global Address List Updated",
-                "\\Scientists Offline Address Book Updated",
-                "\\Scientists All Rooms");
-
-        deleteShadow(getResourceOid(), oid, false);
-        addressBookPolicies.remove(oid);
-        ShadowType temp = getShadowByName(getResourceOid(), OC_ADDRESS_BOOK_POLICY, "Temporary Address Book Policy");
-        AssertJUnit.assertNull("Temporary Address Book Policy was not removed", temp);
-    }
-
-    private String createAndCheckAddressBookPolicy(String name, Collection<String> addressLists, String gal, String oab, String rooms) throws Exception {
+    protected String createAndCheckAddressBookPolicy(String name, Collection<String> addressLists, String gal, String oab, String rooms) throws Exception {
         System.out.println("Creating ABP " + name);
         String oid = createAddressBookPolicy(name, addressLists, gal, oab, rooms);
         System.out.println("Done; OID = " + oid);
@@ -556,7 +369,7 @@ public class TestExchangeConnector {
         return checkAddressBookPolicy(name, addressLists, gal, oab, rooms).getOid();
     }
 
-    private String createAddressBookPolicy(String name, Collection<String> addressLists, String gal, String oab, String rooms) throws FaultMessage {
+    protected String createAddressBookPolicy(String name, Collection<String> addressLists, String gal, String oab, String rooms) throws FaultMessage {
 
         Document doc = ModelClientUtil.getDocumnent();
 
@@ -580,7 +393,7 @@ public class TestExchangeConnector {
         return createShadow(shadow);
     }
 
-    private ShadowType checkAddressBookPolicy(String name, Collection<String> addressLists, String gal, String oab, String rooms) throws Exception {
+    protected ShadowType checkAddressBookPolicy(String name, Collection<String> addressLists, String gal, String oab, String rooms) throws Exception {
         System.out.println("Retrieving ABP " + name);
         ShadowType shadowType = getShadowByName(getResourceOid(), OC_ADDRESS_BOOK_POLICY, name);
         AssertJUnit.assertNotNull("ABP " + name + " was not found", shadowType);
@@ -598,96 +411,23 @@ public class TestExchangeConnector {
 
     // =============== DistributionGroup ===============
 
-    private String distributionGroupName(String name) {
+    protected String distributionGroupName(String name) {
         return "Mail-" + name + "@MailSecurity";
     }
 
-    private String distributionGroupPrimaryAddress(String name) {
+    protected String distributionGroupPrimaryAddress(String name) {
         return "Mail-" + name + "@MailSecurity";
     }
 
-    private Collection<String> distributionGroupMembers(String name) {
+    protected Collection<String> distributionGroupMembers(String name) {
         return Arrays.asList("Mail-" + name + "@AllUsers");
     }
 
-    private String distributionGroupDisplayName(String name) {
+    protected String distributionGroupDisplayName(String name) {
         return "Mail-" + name + "@MailSecurity";
     }
 
-    private String distributionGroupOU() throws InvalidNameException {
-        LdapName container = new LdapName(getContainer());
-        List<String> ous = new ArrayList<>();
-        List<String> dcs = new ArrayList<>();
-        String retval = "";
-        for (Rdn rdn : container.getRdns()) {
-            if (rdn.getType().equalsIgnoreCase("OU")) {
-                ous.add(rdn.getValue().toString());
-            } else if (rdn.getType().equalsIgnoreCase("DC")) {
-                dcs.add(rdn.getValue().toString());
-            }
-        }
-        for (int i = dcs.size()-1; i >= 0; i--) {
-            if (!retval.isEmpty()) {
-                retval += ".";
-            }
-            retval += dcs.get(i);
-        }
-        for (int i = 0; i < ous.size(); i++) {
-            retval += "/" + ous.get(i);
-        }
-        return retval;
-    }
-
-    @Test
-    public void test060CreateDistributionGroup() throws Exception {
-        String n = "Scientists";
-        createAndCheckDistributionGroup(distributionGroupName(n),
-                distributionGroupPrimaryAddress(n),
-                distributionGroupMembers(n),
-                distributionGroupOU(),
-                distributionGroupDisplayName(n),
-                "Scientist");
-    }
-
-
-    @Test
-    public void test062ModifyDistributionGroup() throws Exception {
-        String n = "Scientists";
-        String newName = distributionGroupName(n) + "-Updated";
-        String newAddress = distributionGroupPrimaryAddress(n) + "-Updated";
-        String newDisplayName = distributionGroupDisplayName(n) + " Updated";
-        String newCustomAttribute1 = "GreatScientist";
-        ShadowType shadow = getShadowByName(getResourceOid(), OC_DISTRIBUTION_GROUP, distributionGroupName(n));
-        modifyShadow(shadow.getOid(), "attributes/name", ModificationTypeType.REPLACE, newName);
-        modifyShadow(shadow.getOid(), "attributes/PrimarySmtpAddress", ModificationTypeType.REPLACE, newAddress);
-        modifyShadow(shadow.getOid(), "attributes/DisplayName", ModificationTypeType.REPLACE, newDisplayName);
-        modifyShadow(shadow.getOid(), "attributes/CustomAttribute1", ModificationTypeType.REPLACE, newCustomAttribute1);
-
-        checkDistributionGroup(newName,
-                newAddress,
-                distributionGroupMembers(n),
-                distributionGroupOU(),
-                newDisplayName,
-                newCustomAttribute1);
-    }
-
-    @Test
-    public void test065CreateAndDeleteDistributionGroup() throws Exception {
-        String n = "TEMP";
-        String oid = createAndCheckDistributionGroup(distributionGroupName(n),
-                distributionGroupPrimaryAddress(n),
-                distributionGroupMembers("Scientists"),
-                distributionGroupOU(),
-                distributionGroupDisplayName(n),
-                "TEMP");
-
-        deleteShadow(getResourceOid(), oid, false);
-        distributionGroups.remove(oid);
-        ShadowType temp = getShadowByName(getResourceOid(), OC_DISTRIBUTION_GROUP, distributionGroupName(n));
-        AssertJUnit.assertNull("Temporary DistributionGroup was not removed", temp);
-    }
-
-    private String createAndCheckDistributionGroup(String name, String primaryAddress, Collection<String> members, String ou, String displayName, String valueForFilter) throws Exception {
+    protected String createAndCheckDistributionGroup(String name, String primaryAddress, Collection<String> members, String ou, String displayName, String valueForFilter) throws Exception {
         System.out.println("Creating DG " + name);
         String oid = createDistributionGroup(name, primaryAddress, members, ou, displayName, valueForFilter);
         System.out.println("Done; OID = " + oid);
@@ -695,7 +435,7 @@ public class TestExchangeConnector {
         return checkDistributionGroup(name, primaryAddress, members, ou, displayName, valueForFilter).getOid();
     }
 
-    private String createDistributionGroup(String name, String primaryAddress, Collection<String> members, String ou, String displayName, String valueForFilter) throws FaultMessage {
+    protected String createDistributionGroup(String name, String primaryAddress, Collection<String> members, String ou, String displayName, String valueForFilter) throws FaultMessage {
 
         Document doc = ModelClientUtil.getDocumnent();
 
@@ -723,7 +463,7 @@ public class TestExchangeConnector {
         return createShadow(shadow);
     }
 
-    private ShadowType checkDistributionGroup(String name, String primaryAddress, Collection<String> members, String ou, String displayName, String valueForFilter) throws Exception {
+    protected ShadowType checkDistributionGroup(String name, String primaryAddress, Collection<String> members, String ou, String displayName, String valueForFilter) throws Exception {
         System.out.println("Retrieving DistributionGroup " + name);
         ShadowType shadowType = getShadowByName(getResourceOid(), OC_DISTRIBUTION_GROUP, name);
         AssertJUnit.assertNotNull("DistributionGroup " + name + " was not found", shadowType);
@@ -745,209 +485,128 @@ public class TestExchangeConnector {
 
     // =============== Users ===============
 
-    @Test
-    public void test110CreateNewton() throws Exception {
-        System.out.println("Creating account for Newton...");
-        newtonOid = createAccount(NEWTON_GIVEN_NAME, NEWTON_SN, "User");
-        System.out.println("Done; OID = " + newtonOid);
+    protected void cleanup() throws Exception {
+        deleteShadows(distributionGroups, true);
+        deleteShadows(emailAddressPolicies, true);
+        deleteShadows(addressBookPolicies, true);
+        deleteShadows(offlineAddressBooks, true);
+        deleteShadows(addressLists, true);
+        deleteShadows(globalAddressLists, true);
+        deleteShadows(acceptedDomains, true);
+        deleteObjects(OrgType.class, orgs, true);
     }
 
-    @Test
-    public void test112GetNewton() throws Exception {
-        ShadowType newton = checkAccount(NEWTON_GIVEN_NAME, NEWTON_SN);
-        Map<String,Object> attrs = getAttributesAsMap(newton);
-        assertAttributeEquals(attrs, "RecipientType", "User");
+    protected void deleteShadows(List<String> oids, boolean ignoreFailures) throws FaultMessage {
+        deleteObjectsByOids(ShadowType.class, oids, ignoreFailures);
     }
 
-    @Test
-    public void test120CreateLeibniz() throws Exception {
-        System.out.println("Creating account for Leibniz...");
-        leibnizOid = createAccount(LEIBNIZ_GIVEN_NAME, LEIBNIZ_SN, "UserMailbox");
-        System.out.println("Done; OID = " + leibnizOid);
+    protected void deleteShadow(String oid, boolean ignoreFailures) throws FaultMessage {
+        deleteObject(ShadowType.class, oid, ignoreFailures);
     }
 
-    @Test
-    public void test122GetLeibniz() throws Exception {
-        String mail = mail(LEIBNIZ_GIVEN_NAME, LEIBNIZ_SN);
-        ShadowType leibniz = checkAccount(LEIBNIZ_GIVEN_NAME, LEIBNIZ_SN);
-        Map<String,Object> attrs = getAttributesAsMap(leibniz);
-        assertAttributeEquals(attrs, "RecipientType", "UserMailbox");
-        assertAttributeExists(attrs, "homeMDB");
-        assertAttributeEquals(attrs, "PrimarySmtpAddress", mail);
-        assertAttributeEquals(attrs, "mail", mail);
-        assertAttributeEquals(attrs, "Alias", LEIBNIZ_SN.toLowerCase());
-        assertAttributeContains(attrs, "EmailAddresses", "SMTP:" + mail);               // FIXME
-        assertAttributeEquals(attrs, "EmailAddressPolicyEnabled", "true");
-        assertAttributeEquals(attrs, "msExchRecipientDisplayType", "1073741824");
-        assertAttributeEquals(attrs, "msExchRecipientTypeDetails", "1");
-        assertAttributeEquals(attrs, "displayName", LEIBNIZ_GIVEN_NAME + " " + LEIBNIZ_SN);
+    protected void deleteShadowRaw(String oid, boolean ignoreFailures) throws FaultMessage {
+        deleteObject(ShadowType.class, oid, ignoreFailures, createRaw());
     }
 
-    @Test
-    public void test130CreatePascal() throws Exception {
-        System.out.println("Creating account for Pascal...");
-        pascalOid = createAccount(PASCAL_GIVEN_NAME, PASCAL_SN, "UserMailbox");
-        System.out.println("Done; OID = " + pascalOid);
-
-        String mail = mail(PASCAL_GIVEN_NAME, PASCAL_SN);
-        ShadowType pascal = checkAccount(PASCAL_GIVEN_NAME, PASCAL_SN);
-        Map<String,Object> attrs = getAttributesAsMap(pascal);
-        assertAttributeEquals(attrs, "RecipientType", "UserMailbox");
-        assertAttributeExists(attrs, "homeMDB");
-        assertAttributeEquals(attrs, "PrimarySmtpAddress", mail);
-        assertAttributeEquals(attrs, "mail", mail);
-        assertAttributeEquals(attrs, "Alias", PASCAL_SN.toLowerCase());
-        assertAttributeContains(attrs, "EmailAddresses", "SMTP:" + mail);               // FIXME
-        assertAttributeEquals(attrs, "EmailAddressPolicyEnabled", "true");
-        assertAttributeEquals(attrs, "msExchRecipientDisplayType", "1073741824");
-        assertAttributeEquals(attrs, "msExchRecipientTypeDetails", "1");
-        assertAttributeEquals(attrs, "displayName", PASCAL_GIVEN_NAME + " " + PASCAL_SN);
+    protected ModelExecuteOptionsType createRaw() {
+        ModelExecuteOptionsType options = new ModelExecuteOptionsType();
+        options.setRaw(true);
+        return options;
     }
 
-    @Test
-    public void test132AddSecondaryAddressToPascal() throws Exception {
-        String mail1 = mail(PASCAL_GIVEN_NAME, PASCAL_SN);
-        String mail2 = "pascal@clermont-ferrand.fr";
-
-        System.out.println("Setting new secondary address to Pascal...");
-        modifyShadow(pascalOid, "attributes/EmailAddresses", ModificationTypeType.ADD, "smtp:" + mail2);
-        System.out.println("Done");
-
-        ShadowType pascal = checkAccount(PASCAL_GIVEN_NAME, PASCAL_SN);
-        Map<String,Object> attrs = getAttributesAsMap(pascal);
-        assertAttributeEquals(attrs, "PrimarySmtpAddress", mail1);
-        assertAttributeEquals(attrs, "mail", mail1);
-        assertAttributeEquals(attrs, "Alias", PASCAL_SN.toLowerCase());
-        assertAttributeContains(attrs, "EmailAddresses", new HashSet<>(Arrays.asList("SMTP:" + mail1, "smtp:" + mail2)));           // FIXME
-        assertAttributeEquals(attrs, "EmailAddressPolicyEnabled", "true");
-        assertAttributeEquals(attrs, "msExchRecipientDisplayType", "1073741824");
-        assertAttributeEquals(attrs, "msExchRecipientTypeDetails", "1");
-        assertAttributeEquals(attrs, "displayName", PASCAL_GIVEN_NAME + " " + PASCAL_SN);
-    }
-
-    @Test
-    public void test134SwapAddressesForPascal() throws Exception {
-        String mail1 = mail(PASCAL_GIVEN_NAME, PASCAL_SN);
-        String mail2 = "pascal@clermont-ferrand.fr";
-
-        System.out.println("Disabling email address policy for Pascal...");
-        modifyShadow(pascalOid, "attributes/EmailAddressPolicyEnabled", ModificationTypeType.REPLACE, false);
-        System.out.println("Done");
-        ShadowType pascal = checkAccount(PASCAL_GIVEN_NAME, PASCAL_SN);
-        Map<String,Object> attrs = getAttributesAsMap(pascal);
-        assertAttributeEquals(attrs, "EmailAddressPolicyEnabled", "false");
-
-        System.out.println("Setting new email addresses for Pascal...");
-        modifyShadow(pascalOid, "attributes/EmailAddresses", ModificationTypeType.REPLACE, new HashSet<>(Arrays.asList("smtp:" + mail1, "SMTP:" + mail2)));
-        System.out.println("Done");
-
-        pascal = checkAccount(PASCAL_GIVEN_NAME, PASCAL_SN);
-        attrs = getAttributesAsMap(pascal);
-        assertAttributeEquals(attrs, "PrimarySmtpAddress", mail2);
-        assertAttributeEquals(attrs, "mail", mail2);
-        assertAttributeEquals(attrs, "Alias", PASCAL_SN.toLowerCase());
-        assertAttributeEquals(attrs, "EmailAddresses", new HashSet<>(Arrays.asList("SMTP:"+mail2, "smtp:"+mail1)));
-        assertAttributeEquals(attrs, "msExchRecipientDisplayType", "1073741824");
-        assertAttributeEquals(attrs, "msExchRecipientTypeDetails", "1");
-        assertAttributeEquals(attrs, "displayName", PASCAL_GIVEN_NAME + " " + PASCAL_SN);
-    }
-
-    // non-existing objects
-    @Test
-    public void test200FetchingNonexistingPowerShellObject() throws Exception {
-        ShadowType domain = getShadowByName(getResourceOid(), OC_ACCEPTED_DOMAIN, "Non-existing domain");
-        AssertJUnit.assertNull("Non-existing domain was found somehow", domain);
-    }
-
-    @Test
-    public void test201FetchingNonexistingAccount() throws Exception {
-        ShadowType account = getShadowByName(getResourceOid(), OC_ACCOUNT, "Non-existing user account");
-        AssertJUnit.assertNull("Non-existing account was found somehow", account);
-    }
-
-    // TODO some tests for modifying non-existing objects
-
-    @Test
-    public void test900Cleanup() throws Exception {
-        deleteShadow(getResourceOid(), newtonOid, true);
-        deleteShadow(getResourceOid(), leibnizOid, true);
-        deleteShadow(getResourceOid(), pascalOid, true);
-        deleteShadows(getResourceOid(), distributionGroups, true);
-        deleteShadows(getResourceOid(), emailAddressPolicies, true);
-        deleteShadows(getResourceOid(), addressBookPolicies, true);
-        deleteShadows(getResourceOid(), offlineAddressBooks, true);
-        deleteShadows(getResourceOid(), addressLists, true);
-        deleteShadows(getResourceOid(), globalAddressLists, true);
-        deleteShadows(getResourceOid(), acceptedDomains, true);
-    }
-
-    private void deleteShadows(String resourceOid, List<String> oids, boolean ignoreFailures) throws FaultMessage {
+    protected void deleteObjectsByOids(Class objectClass, List<String> oids, boolean ignoreFailures) throws FaultMessage {
         for (String oid : oids) {
-            deleteShadow(resourceOid, oid, ignoreFailures);
+            deleteObject(objectClass, oid, ignoreFailures);
         }
     }
 
-    private void deleteShadow(String resourceOid, String shadowOid, boolean ignoreFailures) throws FaultMessage {
-        System.out.println("Deleting shadow " + shadowOid);
+    protected void deleteObjects(Class objectClass, List<? extends ObjectType> objects, boolean ignoreFailures) throws FaultMessage {
+        for (ObjectType objectType : objects) {
+            deleteObject(objectClass, objectType.getOid(), ignoreFailures);
+        }
+    }
+
+    protected void deleteObject(Class objectClass, String oid, boolean ignoreFailures) throws FaultMessage {
+        deleteObject(objectClass, oid, ignoreFailures, new ModelExecuteOptionsType());
+    }
+
+    protected void deleteObject(Class objectClass, String oid, boolean ignoreFailures, ModelExecuteOptionsType executeOptionsType) throws FaultMessage {
+        System.out.println("Deleting " + objectClass.getSimpleName() + " " + oid);
         ObjectDeltaType deltaType = new ObjectDeltaType();
-        deltaType.setObjectType(ModelClientUtil.getTypeQName(ShadowType.class));
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(objectClass));
         deltaType.setChangeType(ChangeTypeType.DELETE);
-        deltaType.setOid(shadowOid);
+        deltaType.setOid(oid);
 
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
 
-        ModelExecuteOptionsType executeOptionsType = new ModelExecuteOptionsType();
         if (!ignoreFailures) {
             modelPort.executeChanges(deltaListType, executeOptionsType);
         } else {
             try {
                 modelPort.executeChanges(deltaListType, executeOptionsType);
             } catch (Exception e) {
-                System.err.println("Cannot remove " + shadowOid + ": " + e.getMessage());
+                System.err.println("Cannot remove " + oid + ": " + e.getMessage());
             }
         }
     }
 
-    private void modifyShadow(String oid, String path, ModificationTypeType modType, Object value) throws Exception {
-        System.out.println("Modifying resource object " + oid + " (" + path + ")");
-        ItemDeltaType itemDelta = new ItemDeltaType();
-        itemDelta.setModificationType(modType);
-        itemDelta.setPath(createNonDefaultItemPathType(path));
-        if (!(value instanceof Collection)) {
-            itemDelta.getValue().add(value);
-        } else {
-            itemDelta.getValue().addAll((Collection) value);
-        }
+    protected void modifyShadow(String oid, String path, ModificationTypeType modType, Object value) throws Exception {
+        modifyObject(ShadowType.class, oid, path, modType, value);
+    }
+
+    protected void modifyObject(Class objectType, String oid, String path, ModificationTypeType modType, Object value) throws Exception {
+        modifyObject(objectType, oid, path, modType, value, null);
+    }
+
+    protected void modifyObject(Class objectType, String oid, String path, ModificationTypeType modType, Object value, ModelExecuteOptionsType optionsType) throws Exception {
+        System.out.println("Modifying " + objectType.getSimpleName() + " " + oid + " (path: " + path + ")");
 
         ObjectDeltaType deltaType = new ObjectDeltaType();
-        deltaType.setObjectType(ModelClientUtil.getTypeQName(ShadowType.class));
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(objectType));
         deltaType.setChangeType(ChangeTypeType.MODIFY);
         deltaType.setOid(oid);
-        deltaType.getItemDelta().add(itemDelta);
+
+        if (path != null) {
+            ItemDeltaType itemDelta = new ItemDeltaType();
+            itemDelta.setModificationType(modType);
+            itemDelta.setPath(createNonDefaultItemPathType(path));
+            if (!(value instanceof Collection)) {
+                itemDelta.getValue().add(value);
+            } else {
+                itemDelta.getValue().addAll((Collection) value);
+            }
+            deltaType.getItemDelta().add(itemDelta);
+        }
 
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
-        ObjectDeltaOperationListType odolist = modelPort.executeChanges(deltaListType, null);
-        assertExecuteChangesSuccess(odolist);
+        ObjectDeltaOperationListType odolist = modelPort.executeChanges(deltaListType, optionsType);
+        assertExecuteChangesSuccess(odolist, deltaType);
     }
 
-    private void assertExecuteChangesSuccess(ObjectDeltaOperationListType odolist) {
+    protected void assertExecuteChangesSuccess(ObjectDeltaOperationListType odolist, ObjectDeltaType deltaType) {
+        boolean found = false;
         for (ObjectDeltaOperationType odo : odolist.getDeltaOperation()) {
-            AssertJUnit.assertNotNull("Operation result is null", odo.getExecutionResult());
-            if (odo.getExecutionResult().getStatus() != OperationResultStatusType.SUCCESS) {
-                System.out.println("!!! Operation result is " + odo.getExecutionResult().getStatus() + ": " + odo.getExecutionResult());
-                AssertJUnit.assertEquals("Unexpected operation result status", OperationResultStatusType.SUCCESS, odo.getExecutionResult().getStatus());
+            if (deltaType == null || deltaType.getOid().equals(odo.getObjectDelta().getOid())) {
+                AssertJUnit.assertNotNull("Operation result is null", odo.getExecutionResult());
+                found = true;
+                if (odo.getExecutionResult().getStatus() != OperationResultStatusType.SUCCESS) {
+                    System.out.println("!!! Operation result is " + odo.getExecutionResult().getStatus());
+                    System.out.println("!!! Message: " + odo.getExecutionResult().getMessage());
+                    System.out.println("!!! Details:\n" + odo.getExecutionResult());
+                    AssertJUnit.assertEquals("Unexpected operation result status", OperationResultStatusType.SUCCESS, odo.getExecutionResult().getStatus());
+                }
             }
         }
+        AssertJUnit.assertTrue("ObjectDelta was not found in ObjectDeltaOperationList", found);
     }
 
-    private void assertAttributeExists(Map<String, Object> attrs, String name) {
+    protected void assertAttributeExists(Map<String, Object> attrs, String name) {
         AssertJUnit.assertTrue("Attribute " + name + " is missing", attrs.containsKey(name));
     }
 
-    private ShadowType checkAccount(String givenName, String sn) throws Exception {
-        String dn = dn(givenName, sn);
+    protected ShadowType checkAccount(String givenName, String sn, String dn, String container) throws Exception {
         System.out.println("Retrieving " + sn + " account...");
         ShadowType shadowType = getShadowByName(getResourceOid(), OC_ACCOUNT, dn);
         AssertJUnit.assertNotNull(sn + " was not found", shadowType);
@@ -961,17 +620,17 @@ public class TestExchangeConnector {
         assertAttributeEquals(attrs, "sn", sn);
         assertAttributeEquals(attrs, "passwordExpired", true);
         assertAttributeEquals(attrs, "PasswordNeverExpires", "false");
-        assertAttributeEquals(attrs, "ad_container", getContainer());
+        assertAttributeEquals(attrs, "ad_container", container);
         assertAttributeEquals(attrs, "objectClass", new HashSet(Arrays.asList("top", "person", "organizationalPerson", "user")));
         return shadowType;
 	}
 
-    private void assertAttributeEquals(Map<String, Object> attrs, String name, Object expectedValue) {
+    protected void assertAttributeEquals(Map<String, Object> attrs, String name, Object expectedValue) {
         Object realValue = attrs.get(name);
         AssertJUnit.assertEquals("Unexpected value of attribute " + name, expectedValue, realValue);
     }
 
-    private void assertAttributeContains(Map<String, Object> attrs, String name, Object expectedValue) {
+    protected void assertAttributeContains(Map<String, Object> attrs, String name, Object expectedValue) {
         if (expectedValue instanceof Collection) {
             for (Object singleValue : (Collection) expectedValue) {
                 assertAttributeContains(attrs, name, singleValue);
@@ -992,8 +651,7 @@ public class TestExchangeConnector {
         }
     }
 
-
-    private void dumpAttributes(ShadowType shadowType) {
+    protected void dumpAttributes(ShadowType shadowType) {
         ShadowAttributesType attributes = shadowType.getAttributes();
         System.out.println("Attributes for " + shadowType.getObjectClass().getLocalPart() + " " + getOrig(shadowType.getName()) + " {" + attributes.getAny().size() + " entries):");
         for (Object item : attributes.getAny()) {
@@ -1010,7 +668,7 @@ public class TestExchangeConnector {
         }
     }
 
-    private Map<String,Object> getAttributesAsMap(ShadowType shadowType) {
+    protected Map<String,Object> getAttributesAsMap(ShadowType shadowType) {
         Map<String,Object> rv = new HashMap<>();
 
         ShadowAttributesType attributes = shadowType.getAttributes();
@@ -1028,7 +686,7 @@ public class TestExchangeConnector {
         return rv;
     }
 
-    private void put(Map<String, Object> map, String name, Object value) {
+    protected void put(Map<String, Object> map, String name, Object value) {
         Object existing = map.get(name);
         if (existing == null) {
             map.put(name, value);
@@ -1043,7 +701,7 @@ public class TestExchangeConnector {
     }
 
     // TODO move to ModelClientUtil
-    private static String getOrig(PolyStringType polyStringType) {
+    public static String getOrig(PolyStringType polyStringType) {
         if (polyStringType == null) {
             return null;
         }
@@ -1066,14 +724,14 @@ public class TestExchangeConnector {
         return sb.toString();
     }
 
-    private static void dump(Collection<? extends ObjectType> objects) {
+    public static void dump(Collection<? extends ObjectType> objects) {
         System.out.println("Objects returned: " + objects.size());
         for (ObjectType objectType : objects) {
             System.out.println(" - " + getOrig(objectType.getName()) + ": " + objectType);
         }
     }
 
-    private SystemConfigurationType getConfiguration() throws FaultMessage {
+    protected SystemConfigurationType getConfiguration() throws FaultMessage {
 
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
@@ -1084,8 +742,8 @@ public class TestExchangeConnector {
 		
 		return (SystemConfigurationType) objectHolder.value;
 	}
-	
-	private Collection<ResourceType> listResources() throws SAXException, IOException, FaultMessage {
+
+    protected Collection<ResourceType> listResources() throws SAXException, IOException, FaultMessage {
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
         Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
@@ -1096,18 +754,25 @@ public class TestExchangeConnector {
 		return (Collection) objectList.getObject();
 	}
 
-    private ResourceType getResource(String oid) throws SAXException, IOException, FaultMessage {
+    protected ResourceType getResource(String oid) throws SAXException, IOException, FaultMessage {
+        return getObject(ResourceType.class, oid);
+    }
+
+    protected RoleType getRole(String oid) throws SAXException, IOException, FaultMessage {
+        return getObject(RoleType.class, oid);
+    }
+
+    protected <T extends ObjectType> T getObject(Class<T> clazz, String oid) throws SAXException, IOException, FaultMessage {
         Holder<ObjectType> objectHolder = new Holder<>();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 
-        modelPort.getObject(ModelClientUtil.getTypeQName(ResourceType.class), oid, options, objectHolder, resultHolder);
+        modelPort.getObject(ModelClientUtil.getTypeQName(clazz), oid, options, objectHolder, resultHolder);
 
-        return (ResourceType) objectHolder.value;
+        return (T) objectHolder.value;
     }
 
-
-    private Collection<UserType> listUsers() throws SAXException, IOException, FaultMessage {
+    protected Collection<UserType> listUsers() throws SAXException, IOException, FaultMessage {
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
         Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
@@ -1126,7 +791,7 @@ public class TestExchangeConnector {
         return (Collection) objectList.getObject();
     }
 
-    private Collection<TaskType> listTasks() throws SAXException, IOException, FaultMessage {
+    protected Collection<TaskType> listTasks() throws SAXException, IOException, FaultMessage {
         SelectorQualifiedGetOptionsType operationOptions = new SelectorQualifiedGetOptionsType();
 
         // Let's say we want to retrieve tasks' next scheduled time (because this may be a costly operation if
@@ -1153,7 +818,7 @@ public class TestExchangeConnector {
         return (Collection) objectList.getObject();
     }
 
-    private String createUserGuybrush(RoleType role) throws FaultMessage {
+    protected String createUserGuybrush(RoleType role) throws FaultMessage {
 		Document doc = ModelClientUtil.getDocumnent();
 		
 		UserType user = new UserType();
@@ -1175,8 +840,20 @@ public class TestExchangeConnector {
 		return createUser(user);
 	}
 
-    private String createAccount(String givenName, String sn, String recipientType) throws FaultMessage {
-        String name = dn(givenName, sn);
+    protected String createOrg(OrgType orgType) throws FaultMessage {
+        ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(OrgType.class));
+        deltaType.setChangeType(ChangeTypeType.ADD);
+        deltaType.setObjectToAdd(orgType);
+
+        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
+        deltaListType.getDelta().add(deltaType);
+        ObjectDeltaOperationListType operationListType = modelPort.executeChanges(deltaListType, null);
+        return ModelClientUtil.getOidFromDeltaOperationList(operationListType, deltaType);
+    }
+
+
+    protected String createAccount(String givenName, String sn, String name, String recipientType) throws FaultMessage {
         String samAccountName = sn.toLowerCase();
 
         Document doc = ModelClientUtil.getDocumnent();
@@ -1199,7 +876,7 @@ public class TestExchangeConnector {
         return createShadow(user);
     }
 
-    private ShadowType getShadowByName(String resourceOid, QName objectClass, String name) throws JAXBException, SAXException, IOException, FaultMessage {
+    protected ShadowType getShadowByName(String resourceOid, QName objectClass, String name) throws JAXBException, SAXException, IOException, FaultMessage {
         // WARNING: in a real case make sure that the username is properly escaped before putting it in XML
         SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
                 "                        <q:and xmlns:q='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>\n" +
@@ -1239,21 +916,20 @@ public class TestExchangeConnector {
     }
 
     // TODO move to Util
-    private static ObjectReferenceType createObjectReferenceType(Class<? extends ObjectType> typeClass, String oid) {
+    public static ObjectReferenceType createObjectReferenceType(Class<? extends ObjectType> typeClass, String oid) {
         ObjectReferenceType ort = new ObjectReferenceType();
         ort.setOid(oid);
         ort.setType(ModelClientUtil.getTypeQName(typeClass));
         return ort;
     }
 
-
-    private String createUserFromSystemResource(String resourcePath) throws FileNotFoundException, JAXBException, FaultMessage {
+    protected String createUserFromSystemResource(String resourcePath) throws FileNotFoundException, JAXBException, FaultMessage {
 		UserType user = unmarshallResource(resourcePath);
 		
 		return createUser(user);
 	}
-	
-	private static <T> T unmarshallFile(File file) throws JAXBException, FileNotFoundException {
+
+    protected static <T> T unmarshallFile(File file) throws JAXBException, FileNotFoundException {
 		JAXBContext jc = ModelClientUtil.instantiateJaxbContext();
 		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
 		 
@@ -1272,15 +948,15 @@ public class TestExchangeConnector {
 		}
 		return element.getValue();
 	}
-	
-	private static <T> T unmarshallResource(String path) throws JAXBException, FileNotFoundException {
+
+    protected static <T> T unmarshallResource(String path) throws JAXBException, FileNotFoundException {
 		JAXBContext jc = ModelClientUtil.instantiateJaxbContext();
 		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
 		 
 		InputStream is = null;
 		JAXBElement<T> element = null;
 		try {
-			is = TestExchangeConnector.class.getClassLoader().getResourceAsStream(path);
+			is = AbstractTestForExchangeConnector.class.getClassLoader().getResourceAsStream(path);
 			if (is == null) {
 				throw new FileNotFoundException("System resource "+path+" was not found");
 			}
@@ -1296,7 +972,7 @@ public class TestExchangeConnector {
 		return element.getValue();
 	}
 
-    private String createUser(UserType userType) throws FaultMessage {
+    protected String createUser(UserType userType) throws FaultMessage {
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
         deltaType.setChangeType(ChangeTypeType.ADD);
@@ -1305,19 +981,28 @@ public class TestExchangeConnector {
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
 		ObjectDeltaOperationListType operationListType = modelPort.executeChanges(deltaListType, null);
-		return ModelClientUtil.getOidFromDeltaOperationList(operationListType, deltaType);
+		String oid = ModelClientUtil.getOidFromDeltaOperationList(operationListType, deltaType);
+        return oid;
 	}
 
-    private String createShadow(ShadowType shadowType) throws FaultMessage {
+    protected String createShadow(ShadowType shadowType) throws FaultMessage {
+        return createShadow(shadowType, null);
+    }
+
+    protected String createShadow(ShadowType shadowType, ModelExecuteOptionsType options) throws FaultMessage {
+        return createObject(ShadowType.class, shadowType, options);
+    }
+    protected String createObject(Class clazz, ObjectType objectType, ModelExecuteOptionsType options) throws FaultMessage {
+
         ObjectDeltaType deltaType = new ObjectDeltaType();
-        deltaType.setObjectType(ModelClientUtil.getTypeQName(ShadowType.class));
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(clazz));
         deltaType.setChangeType(ChangeTypeType.ADD);
-        deltaType.setObjectToAdd(shadowType);
+        deltaType.setObjectToAdd(objectType);
 
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
-        ObjectDeltaOperationListType operationListType = modelPort.executeChanges(deltaListType, null);
-        assertExecuteChangesSuccess(operationListType);;
+        ObjectDeltaOperationListType operationListType = modelPort.executeChanges(deltaListType, options);
+        assertExecuteChangesSuccess(operationListType, null);
 //        Holder<OperationResultType> holder = new Holder<>();
 //        String oid = getOidFromDeltaOperationList(operationListType, deltaType, holder);
 //        AssertJUnit.assertNotNull("No operation result from create shadow operation", holder.value);
@@ -1363,7 +1048,7 @@ public class TestExchangeConnector {
         return null;
     }
 
-    private void changeUserPassword(String oid, String newPassword) throws FaultMessage {
+    protected void changeUserPassword(String oid, String newPassword) throws FaultMessage {
 		ItemDeltaType passwordDelta = new ItemDeltaType();
 		passwordDelta.setModificationType(ModificationTypeType.REPLACE);
 		passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
@@ -1380,7 +1065,7 @@ public class TestExchangeConnector {
         modelPort.executeChanges(deltaListType, null);
 	}
 
-    private void changeUserGivenName(String oid, String newValue) throws FaultMessage {
+    protected void changeUserGivenName(String oid, String newValue) throws FaultMessage {
         Document doc = ModelClientUtil.getDocumnent();
 
         ObjectDeltaType userDelta = new ObjectDeltaType();
@@ -1398,15 +1083,15 @@ public class TestExchangeConnector {
         modelPort.executeChanges(deltaList, null);
     }
 
-	private void assignRoles(String userOid, String... roleOids) throws FaultMessage {
-		modifyRoleAssignment(userOid, true, roleOids);
+    protected boolean assignRoles(Class clazz, String oid, String... roleOids) throws FaultMessage {
+		return modifyRoleAssignment(clazz, oid, true, roleOids);
 	}
-	
-	private void unAssignRoles(String userOid, String... roleOids) throws FaultMessage {
-		modifyRoleAssignment(userOid, false, roleOids);
+
+    protected void unassignRoles(Class clazz, String oid, String... roleOids) throws FaultMessage {
+		modifyRoleAssignment(clazz, oid, false, roleOids);
 	}
-	
-	private void modifyRoleAssignment(String userOid, boolean isAdd, String... roleOids) throws FaultMessage {
+
+    protected boolean modifyRoleAssignment(Class clazz, String oid, boolean isAdd, String... roleOids) throws FaultMessage {
 		ItemDeltaType assignmentDelta = new ItemDeltaType();
 		if (isAdd) {
 			assignmentDelta.setModificationType(ModificationTypeType.ADD);
@@ -1415,26 +1100,36 @@ public class TestExchangeConnector {
 		}
         assignmentDelta.setPath(ModelClientUtil.createItemPathType("assignment"));
 		for (String roleOid: roleOids) {
+            AssertJUnit.assertNotNull("role OID is null", roleOid);
 			assignmentDelta.getValue().add(createRoleAssignment(roleOid));
 		}
 
         ObjectDeltaType deltaType = new ObjectDeltaType();
-        deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(clazz));
         deltaType.setChangeType(ChangeTypeType.MODIFY);
-        deltaType.setOid(userOid);
+        deltaType.setOid(oid);
         deltaType.getItemDelta().add(assignmentDelta);
 
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
         ObjectDeltaOperationListType objectDeltaOperationList = modelPort.executeChanges(deltaListType, null);
+        Boolean success = null;
         for (ObjectDeltaOperationType objectDeltaOperation : objectDeltaOperationList.getDeltaOperation()) {
-            if (!OperationResultStatusType.SUCCESS.equals(objectDeltaOperation.getExecutionResult().getStatus())) {
-                System.out.println("*** Operation result = " + objectDeltaOperation.getExecutionResult().getStatus() + ": " + objectDeltaOperation.getExecutionResult().getMessage());
+            if (oid.equals(objectDeltaOperation.getObjectDelta().getOid())) {
+                if (!OperationResultStatusType.SUCCESS.equals(objectDeltaOperation.getExecutionResult().getStatus())) {
+                    System.out.println("*** Operation result = " + objectDeltaOperation.getExecutionResult().getStatus() + ": " + objectDeltaOperation.getExecutionResult().getMessage());
+                    success = false;
+                } else {
+                    if (success == null) {
+                        success = true;
+                    }
+                }
             }
         }
+        return Boolean.TRUE.equals(success);
 	}
 
-	private AssignmentType createRoleAssignment(String roleOid) {
+    protected AssignmentType createRoleAssignment(String roleOid) {
 		AssignmentType roleAssignment = new AssignmentType();
 		ObjectReferenceType roleRef = new ObjectReferenceType();
 		roleRef.setOid(roleOid);
@@ -1443,7 +1138,7 @@ public class TestExchangeConnector {
 		return roleAssignment;
 	}
 
-	private UserType searchUserByName(String username) throws SAXException, IOException, FaultMessage, JAXBException {
+    protected UserType searchUserByName(String username) throws SAXException, IOException, FaultMessage, JAXBException {
 		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
 				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
@@ -1469,8 +1164,8 @@ public class TestExchangeConnector {
 		}
 		throw new IllegalStateException("Expected to find a single user with username '"+username+"' but found "+objects.size()+" users instead");
 	}
-	
-	private RoleType searchRoleByName(String roleName) throws SAXException, IOException, FaultMessage, JAXBException {
+
+    protected RoleType searchRoleByName(String roleName) throws SAXException, IOException, FaultMessage, JAXBException {
 		// WARNING: in a real case make sure that the role name is properly escaped before putting it in XML
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
 				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
@@ -1497,7 +1192,7 @@ public class TestExchangeConnector {
 		throw new IllegalStateException("Expected to find a single role with name '"+roleName+"' but found "+objects.size()+" users instead");
 	}
 
-	private Collection<RoleType> listRequestableRoles() throws SAXException, IOException, FaultMessage, JAXBException {
+    protected Collection<RoleType> listRequestableRoles() throws SAXException, IOException, FaultMessage, JAXBException {
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
 				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
 				  "<path>c:requestable</path>" +
@@ -1516,7 +1211,7 @@ public class TestExchangeConnector {
 		return (Collection) objectList.getObject();
 	}
 
-	private void deleteUser(String oid) throws FaultMessage {
+    protected void deleteUser(String oid) throws FaultMessage {
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
         deltaType.setChangeType(ChangeTypeType.DELETE);
@@ -1530,7 +1225,7 @@ public class TestExchangeConnector {
         modelPort.executeChanges(deltaListType, executeOptionsType);
 	}
 
-    private void deleteTask(String oid) throws FaultMessage {
+    protected void deleteTask(String oid) throws FaultMessage {
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(TaskType.class));
         deltaType.setChangeType(ChangeTypeType.DELETE);
@@ -1561,9 +1256,15 @@ public class TestExchangeConnector {
 		BindingProvider bp = (BindingProvider)modelPort;
 		Map<String, Object> requestContext = bp.getRequestContext();
 		requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpointUrl);
-		
+
 		org.apache.cxf.endpoint.Client client = ClientProxy.getClient(modelPort);
-		org.apache.cxf.endpoint.Endpoint cxfEndpoint = client.getEndpoint();
+
+        HTTPConduit http = (HTTPConduit) client.getConduit();
+        HTTPClientPolicy httpClientPolicy = new HTTPClientPolicy();
+        httpClientPolicy.setReceiveTimeout(300000L);
+        http.setClient(httpClientPolicy);
+
+        org.apache.cxf.endpoint.Endpoint cxfEndpoint = client.getEndpoint();
 		
 		Map<String,Object> outProps = new HashMap<String,Object>();
 		
@@ -1587,5 +1288,8 @@ public class TestExchangeConnector {
         return itemPathType;
     }
 
+    protected String getDebugName(ObjectType objectType) {
+        return objectType.getClass().getSimpleName() + " " + getOrig(objectType.getName()) + " (" + objectType.getOid() + ")";
+    }
 
 }
