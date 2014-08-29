@@ -71,7 +71,8 @@ public class MappingEditorDialog extends ModalWindow{
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-8";
-    private static final String ID_INPUT_SIZE_DC = "col-xs-6";
+
+    private static final int CODE_ROW_COUNT = 4;
 
     private boolean initialized;
     private IModel<MappingTypeDto> model;
@@ -79,7 +80,7 @@ public class MappingEditorDialog extends ModalWindow{
     public MappingEditorDialog(String id, final IModel<MappingType> mapping){
         super(id);
 
-        model = new LoadableModel<MappingTypeDto>() {
+        model = new LoadableModel<MappingTypeDto>(false) {
 
             @Override
             protected MappingTypeDto load() {
@@ -145,11 +146,11 @@ public class MappingEditorDialog extends ModalWindow{
         form.add(description);
 
         CheckFormGroup authoritative = new CheckFormGroup(ID_AUTHORITATIVE, new PropertyModel<Boolean>(model, MappingTypeDto.F_MAPPING + ".authoritative"),
-                createStringResource("MappingEditorDialog.label.authoritative"), ID_LABEL_SIZE, ID_INPUT_SIZE_DC);
+                createStringResource("MappingEditorDialog.label.authoritative"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         form.add(authoritative);
 
         CheckFormGroup exclusive = new CheckFormGroup(ID_EXCLUSIVE, new PropertyModel<Boolean>(model, MappingTypeDto.F_MAPPING + ".exclusive"),
-                createStringResource("MappingEditorDialog.label.exclusive"), ID_LABEL_SIZE, ID_INPUT_SIZE_DC);
+                createStringResource("MappingEditorDialog.label.exclusive"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         form.add(exclusive);
 
         DropDownFormGroup strength = new DropDownFormGroup<>(ID_STRENGTH,
@@ -187,7 +188,7 @@ public class MappingEditorDialog extends ModalWindow{
 
         //TODO - add some enableDisable and visibility behavior based on status of expressionType component
         TextAreaFormGroup expression = new TextAreaFormGroup(ID_EXPRESSION, new PropertyModel<String>(model, MappingTypeDto.F_EXPRESSION),
-                createStringResource("MappingEditorDialog.label.expression"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                createStringResource("MappingEditorDialog.label.expression"), ID_LABEL_SIZE, ID_INPUT_SIZE, false, CODE_ROW_COUNT);
         form.add(expression);
 
         DropDownFormGroup conditionType = new DropDownFormGroup<>(ID_CONDITION_TYPE,
@@ -199,7 +200,7 @@ public class MappingEditorDialog extends ModalWindow{
 
         //TODO - add some enableDisable and visibility behavior based on status of conditionType component
         TextAreaFormGroup condition = new TextAreaFormGroup(ID_CONDITION, new PropertyModel<String>(model, MappingTypeDto.F_CONDITION),
-                createStringResource("MappingEditorDialog.label.condition"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                createStringResource("MappingEditorDialog.label.condition"), ID_LABEL_SIZE, ID_INPUT_SIZE, false, CODE_ROW_COUNT);
         form.add(condition);
 
         AjaxSubmitButton cancel = new AjaxSubmitButton(ID_BUTTON_CANCEL,

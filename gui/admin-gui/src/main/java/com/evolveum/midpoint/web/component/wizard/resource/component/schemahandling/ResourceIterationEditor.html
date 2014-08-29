@@ -17,6 +17,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+    <div wicket:id="variableEditor" />
 
     <h3><wicket:message key="ResourceIterationEditor.label" /></h3>
 
@@ -48,26 +49,6 @@
                         <dd>
                             <textarea wicket:id="tokenDescription" class="form-control input-sm" rows="2"></textarea>
                         </dd>
-                    </dl>
-
-                    <!-- Extension - we do not want to edit this now -->
-                    <!--<dl class="dl-horizontal">-->
-                        <!--<dt>-->
-                            <!--<label><wicket:message key="ResourceIterationEditor.label.extension" /></label>-->
-                        <!--</dt>-->
-                        <!--<dd>-->
-                            <!--<a wicket:id="tokenExtensionButton" class="btn btn-sm btn-primary" title="Edit">-->
-                                <!--<i class="fa fa-pencil-square-o"/>-->
-                            <!--</a>-->
-                        <!--</dd>-->
-                    <!--</dl>-->
-
-                    <!-- String Filter -->
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="ResourceIterationEditor.label.stringFilter" /></label>
-                        </dt>
-                        <div wicket:id="tokenStringFilterList" />
                     </dl>
 
                     <!-- Variable -->
@@ -117,25 +98,6 @@
                             <textarea wicket:id="preDescription" class="form-control input-sm" rows="2"></textarea>
                         </dd>
                     </dl>
-                    <!-- Extension - we do not want to edit this now -->
-                    <!--<dl class="dl-horizontal">-->
-                        <!--<dt>-->
-                            <!--<label><wicket:message key="ResourceIterationEditor.label.extension" /></label>-->
-                        <!--</dt>-->
-                        <!--<dd>-->
-                            <!--<a wicket:id="preExtensionButton" class="btn btn-sm btn-primary" title="Edit">-->
-                                <!--<i class="fa fa-pencil-square-o"/>-->
-                            <!--</a>-->
-                        <!--</dd>-->
-                    <!--</dl>-->
-
-                    <!-- String Filter -->
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="ResourceIterationEditor.label.stringFilter" /></label>
-                        </dt>
-                        <div wicket:id="preStringFilterList" />
-                    </dl>
 
                     <!-- Variable -->
                     <dl class="dl-horizontal">
@@ -183,26 +145,6 @@
                         <dd>
                             <textarea wicket:id="postDescription" class="form-control input-sm" rows="2"></textarea>
                         </dd>
-                    </dl>
-
-                    <!-- Extension - we do not want to edit this now -->
-                    <!--<dl class="dl-horizontal">-->
-                        <!--<dt>-->
-                            <!--<label><wicket:message key="ResourceIterationEditor.label.extension" /></label>-->
-                        <!--</dt>-->
-                        <!--<dd>-->
-                            <!--<a wicket:id="postExtensionButton" class="btn btn-sm btn-primary" title="Edit">-->
-                                <!--<i class="fa fa-pencil-square-o"/>-->
-                            <!--</a>-->
-                        <!--</dd>-->
-                    <!--</dl>-->
-
-                    <!-- String Filter -->
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="ResourceIterationEditor.label.stringFilter" /></label>
-                        </dt>
-                        <div wicket:id="postStringFilterList" />
                     </dl>
 
                     <!-- Variable -->

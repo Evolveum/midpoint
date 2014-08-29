@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPan
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
+import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -61,7 +62,7 @@ public class ResourceAssociationEditor extends SimplePanel{
     private static final String ID_BUTTON_OUTBOUND = "buttonOutbound";
     private static final String ID_BUTTON_LIMITATIONS = "buttonLimitations";
     private static final String ID_MODAL_LIMITATIONS = "limitationsEditor";
-
+    private static final String ID_MODAL_MAPPING = "mappingEditor";
 
     public ResourceAssociationEditor(String id, IModel<ResourceObjectAssociationType> model){
         super(id, model);
@@ -157,7 +158,6 @@ public class ResourceAssociationEditor extends SimplePanel{
         TextField matchingRule = new TextField<>(ID_MATCHING_RULE, new PropertyModel<String>(getModel(), "matchingRule.localPart"));
         add(matchingRule);
 
-        //TODO - what should we display as Mapping label?
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new PropertyModel<String>(getModel(), "outbound.name"));
         outboundLabel.setEnabled(false);
@@ -181,8 +181,13 @@ public class ResourceAssociationEditor extends SimplePanel{
 
                     @Override
                     public String getObject() {
-                        //TODO - what should we display as Mapping label?
-                        return model.getObject().getName();
+                        MappingType mapping = model.getObject();
+
+                        if(mapping != null){
+                            return mapping.getName();
+                        } else {
+                            return null;
+                        }
                     }
                 };
             }
@@ -206,6 +211,9 @@ public class ResourceAssociationEditor extends SimplePanel{
         ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
                 new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
         add(limitationsEditor);
+
+        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null);
+        add(mappingEditor);
     }
 
     private void limitationsEditPerformed(AjaxRequestTarget target){
@@ -214,10 +222,14 @@ public class ResourceAssociationEditor extends SimplePanel{
     }
 
     private void outboundEditPerformed(AjaxRequestTarget target){
-        //TODO - implement (open ModalWindow here - MappingType editor)
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
+        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "outbound"));
+        window.show(target);
     }
 
     private void mappingEditPerformed(AjaxRequestTarget target, MappingType mapping){
-        //TODO - implement (open ModalWindow here - MappingType editor)
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
+        window.updateModel(target, mapping);
+        window.show(target);
     }
 }
