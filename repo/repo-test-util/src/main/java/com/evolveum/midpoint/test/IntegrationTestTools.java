@@ -833,9 +833,22 @@ public class IntegrationTestTools {
 	}
 	
 	public static void assertGroupMember(DummyGroup group, String accountId) {
+		assertGroupMember(group, accountId, false);
+	}
+	
+	public static void assertGroupMember(DummyGroup group, String accountId, boolean caseIgnore) {
 		Collection<String> members = group.getMembers();
 		assertNotNull("No members in group "+group.getName()+", expected that "+accountId+" will be there", members);
-		assertTrue("Account "+accountId+" is not member of group "+group.getName()+", members: "+members, members.contains(accountId));
+		if (caseIgnore) {
+			for (String member: members) {
+				if (StringUtils.equalsIgnoreCase(accountId, member)) {
+					return;
+				}
+			}
+			AssertJUnit.fail("Account "+accountId+" is not member of group "+group.getName()+", members: "+members);
+		} else {
+			assertTrue("Account "+accountId+" is not member of group "+group.getName()+", members: "+members, members.contains(accountId));
+		}
 	}
 	
 	public static void assertNoGroupMember(DummyGroup group, String accountId) {

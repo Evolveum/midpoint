@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -248,7 +249,28 @@ public abstract class DummyObject implements DebugDumpable {
 		valuesToCheck.removeAll(values);
 		checkSchema(name, valuesToCheck, "remove");
 		
-		currentValues.removeAll(values);
+		Iterator<Object> iterator = currentValues.iterator();
+		while(iterator.hasNext()) {
+			Object currentValue = iterator.next();
+			boolean found = false;
+			for (Object value: values) {
+				if (resource.isCaseIgnoreValues() && currentValue instanceof String && value instanceof String) {
+					if (StringUtils.equalsIgnoreCase((String)currentValue, (String)value)) {
+						found = true;
+						break;
+					}
+				} else {
+					if (currentValue.equals(value)) {
+						found = true;
+						break;
+					}
+				}
+			}
+			if (found) {
+				iterator.remove();
+			}
+		}
+		
 		recordModify();
 	}
 

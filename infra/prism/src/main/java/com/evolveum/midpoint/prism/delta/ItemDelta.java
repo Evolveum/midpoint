@@ -715,6 +715,13 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
      * removes all values to delete that the property does not have, etc. 
      */
     public ItemDelta<V> narrow(PrismObject<? extends Objectable> object) {
+    	return narrow(object, null);
+    }
+	/**
+     * Filters out all delta values that are meaningless to apply. E.g. removes all values to add that the property already has,
+     * removes all values to delete that the property does not have, etc. 
+     */
+    public ItemDelta<V> narrow(PrismObject<? extends Objectable> object, Comparator<V> comparator) {
     	Item<V> currentItem = (Item<V>) object.findItem(getPath());
     	if (currentItem == null) {
     		if (valuesToDelete != null) {
@@ -731,7 +738,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
     			Iterator<V> iterator = clone.valuesToDelete.iterator();
     			while (iterator.hasNext()) {
     				V valueToDelete = iterator.next();
-    				if (!currentItem.contains(valueToDelete, true)) {
+    				if (!currentItem.contains(valueToDelete, true, comparator)) {
     					iterator.remove();
     				}
     			}
@@ -740,7 +747,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
     			Iterator<V> iterator = clone.valuesToAdd.iterator();
     			while (iterator.hasNext()) {
     				V valueToDelete = iterator.next();
-    				if (currentItem.contains(valueToDelete, true)) {
+    				if (currentItem.contains(valueToDelete, true, comparator)) {
     					iterator.remove();
     				}
     			}

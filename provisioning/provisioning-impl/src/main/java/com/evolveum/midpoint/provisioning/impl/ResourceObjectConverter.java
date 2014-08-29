@@ -39,6 +39,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
@@ -435,7 +437,7 @@ public class ResourceObjectConverter {
 			}
 	
 //			PrismObject<ShadowType> currentShadow = null;
-			if (avoidDuplicateValues(resource) || isRename(operations)) {
+			if (ResourceTypeUtil.isAvoidDuplicateValues(resource) || isRename(operations)) {
 				// We need to filter out the deltas that add duplicate values or remove values that are not there
 				shadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, null, parentResult);
 			}
@@ -482,7 +484,7 @@ public class ResourceObjectConverter {
 			
 			
 			
-			if (avoidDuplicateValues(resource)){
+			if (ResourceTypeUtil.isAvoidDuplicateValues(resource)){
 				
 				if (currentShadow == null){
 					currentShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, null, parentResult);
@@ -492,16 +494,18 @@ public class ResourceObjectConverter {
 				for (Operation origOperation: operations) {
 					if (origOperation instanceof PropertyModificationOperation) {
 						PropertyDelta<?> propertyDelta = ((PropertyModificationOperation)origOperation).getPropertyDelta();
-						PropertyDelta<?> filteredDelta = propertyDelta.narrow(currentShadow);
+						PropertyDelta<?> filteredDelta = narrowPropertyDelta(propertyDelta, currentShadow);
 						if (filteredDelta != null && !filteredDelta.isEmpty()) {
 							if (propertyDelta == filteredDelta) {
 								filteredOperations.add(origOperation);
+							} else if (filteredDelta == null && filteredDelta.isEmpty()) {
+									// nothing to do
 							} else {
 								PropertyModificationOperation newOp = new PropertyModificationOperation(filteredDelta);
 								filteredOperations.add(newOp);
 							}
 						}
-					}else if (origOperation instanceof ExecuteProvisioningScriptOperation){
+					} else if (origOperation instanceof ExecuteProvisioningScriptOperation){
 						filteredOperations.add(origOperation);					
 					}
 				}
@@ -561,6 +565,21 @@ public class ResourceObjectConverter {
 		return sideEffectChanges;
 	}
 	
+	private <T> PropertyDelta<T> narrowPropertyDelta(PropertyDelta<T> propertyDelta,
+			PrismObject<ShadowType> currentShadow) throws SchemaException {
+		MatchingRule<T> matchingRule = null;
+		ItemDefinition propertyDef = propertyDelta.getDefinition();
+		if (propertyDef instanceof RefinedAttributeDefinition) {
+			QName matchingRuleQName = ((RefinedAttributeDefinition)propertyDef).getMatchingRuleQName();
+			if (matchingRuleQName != null) {
+				matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, propertyDef.getTypeName());
+			}
+		}
+		LOGGER.trace("Narrowing attr def={}, matchingRule={}",propertyDef,matchingRule);
+		PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, matchingRule);
+		return filteredDelta;
+	}
+
 	private boolean isRename(Collection<Operation> modifications){
 		for (Operation op : modifications){
 			if (!(op instanceof PropertyModificationOperation)){
@@ -777,15 +796,6 @@ public class ResourceObjectConverter {
 
 		parentResult.recordSuccess();
 
-	}
-	private boolean avoidDuplicateValues(ResourceType resource) {
-		if (resource.getConsistency() == null) {
-			return false;
-		}
-		if (resource.getConsistency().isAvoidDuplicateValues() == null) {
-			return false;
-		}
-		return resource.getConsistency().isAvoidDuplicateValues();
 	}
 
 	@SuppressWarnings("rawtypes")
