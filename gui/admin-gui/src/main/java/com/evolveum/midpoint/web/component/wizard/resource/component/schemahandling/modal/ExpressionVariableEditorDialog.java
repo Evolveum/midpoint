@@ -16,14 +16,24 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ExpressionVariableDefinitionTypeDto;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionVariableDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -35,12 +45,19 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *  @author shood
  * */
 public class ExpressionVariableEditorDialog extends ModalWindow{
+
+    private static final Trace LOGGER = TraceManager.getTrace(ExpressionVariableEditorDialog.class);
+
+    private static final String DOT_CLASS = ExpressionVariableEditorDialog.class.getName() + ".";
+    private static final String OPERATION_LOAD_REPOSITORY_OBJECTS = DOT_CLASS + "loadRepositoryObjects";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_NAME = "name";
@@ -56,6 +73,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow{
 
     private boolean initialized;
     private IModel<ExpressionVariableDefinitionTypeDto> model;
+    private Map<String, String> objectMap = new HashMap<>();
 
     public ExpressionVariableEditorDialog(String id, final IModel<ExpressionVariableDefinitionType> variable){
         super(id);
@@ -138,7 +156,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow{
 
             @Override
             public Object getDisplayValue(ObjectReferenceType object) {
-                return createReferenceDisplayString();
+                return createReferenceDisplayString(object.getOid());
             }
 
             @Override
@@ -173,14 +191,46 @@ public class ExpressionVariableEditorDialog extends ModalWindow{
         form.add(save);
     }
 
-    //TODO - implement this - Reference to what kind of object do we need
-    private List<ObjectReferenceType> createObjectReferenceList(){
-        return new ArrayList<>();
+    private PageBase getPageBase(){
+        return (PageBase) getPage();
     }
 
-    //TODO -//-
-    private String createReferenceDisplayString(){
-        return null;
+    private List<ObjectReferenceType> createObjectReferenceList(){
+        objectMap.clear();
+        OperationResult result = new OperationResult(OPERATION_LOAD_REPOSITORY_OBJECTS);
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_REPOSITORY_OBJECTS);
+        List<PrismObject<ObjectType>> objects = null;
+        List<ObjectReferenceType> references = new ArrayList<>();
+
+        try{
+            objects = getPageBase().getModelService().searchObjects(ObjectType.class, new ObjectQuery(), null, task, result);
+            result.recomputeStatus();
+        } catch(Exception e){
+            result.recordFatalError("Couldn't load objects from repository.", e);
+            LoggingUtils.logException(LOGGER, "Couldn't load objects from repository", e);
+        }
+
+        // TODO - show error somehow
+        // if(!result.isSuccess()){
+        //    getPageBase().showResult(result);
+        // }
+
+        if(objects != null){
+            ObjectReferenceType ref;
+
+            for(PrismObject<ObjectType> obj: objects){
+                objectMap.put(obj.getOid(), WebMiscUtil.getName(obj));
+                ref = new ObjectReferenceType();
+                ref.setOid(obj.getOid());
+                references.add(ref);
+            }
+        }
+
+        return references;
+    }
+
+    private String createReferenceDisplayString(String oid){
+        return objectMap.get(oid);
     }
 
     private void cancelPerformed(AjaxRequestTarget target){

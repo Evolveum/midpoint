@@ -26,10 +26,12 @@ import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -72,7 +74,7 @@ public class MappingEditorDialog extends ModalWindow{
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-8";
 
-    private static final int CODE_ROW_COUNT = 4;
+    private static final int CODE_ROW_COUNT = 5;
 
     private boolean initialized;
     private IModel<MappingTypeDto> model;
@@ -180,27 +182,43 @@ public class MappingEditorDialog extends ModalWindow{
         form.add(target);
 
         DropDownFormGroup expressionType = new DropDownFormGroup<>(ID_EXPRESSION_TYPE,
-                new PropertyModel<MappingTypeDto.ExpressionEvaluatorType>(model, MappingTypeDto.F_EXPRESSION_TYPE),
-                WebMiscUtil.createReadonlyModelFromEnum(MappingTypeDto.ExpressionEvaluatorType.class),
-                new EnumChoiceRenderer<MappingTypeDto.ExpressionEvaluatorType>(this),
+                new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, MappingTypeDto.F_EXPRESSION_TYPE),
+                WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
+                new EnumChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType>(this),
                 createStringResource("MappingEditorDialog.label.expressionType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        expressionType.getInput().add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                model.getObject().updateExpression();
+                target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_EXPRESSION));
+            }
+        });
         form.add(expressionType);
 
-        //TODO - add some enableDisable and visibility behavior based on status of expressionType component
         TextAreaFormGroup expression = new TextAreaFormGroup(ID_EXPRESSION, new PropertyModel<String>(model, MappingTypeDto.F_EXPRESSION),
                 createStringResource("MappingEditorDialog.label.expression"), ID_LABEL_SIZE, ID_INPUT_SIZE, false, CODE_ROW_COUNT);
+        expression.setOutputMarkupId(true);
         form.add(expression);
 
         DropDownFormGroup conditionType = new DropDownFormGroup<>(ID_CONDITION_TYPE,
-                new PropertyModel<MappingTypeDto.ExpressionEvaluatorType>(model, MappingTypeDto.F_CONDITION_TYPE),
-                WebMiscUtil.createReadonlyModelFromEnum(MappingTypeDto.ExpressionEvaluatorType.class),
-                new EnumChoiceRenderer<MappingTypeDto.ExpressionEvaluatorType>(this),
+                new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, MappingTypeDto.F_CONDITION_TYPE),
+                WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
+                new EnumChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType>(this),
                 createStringResource("MappingEditorDialog.label.conditionType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        conditionType.getInput().add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                model.getObject().updateCondition();
+                target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_CONDITION));
+            }
+        });
         form.add(conditionType);
 
-        //TODO - add some enableDisable and visibility behavior based on status of conditionType component
         TextAreaFormGroup condition = new TextAreaFormGroup(ID_CONDITION, new PropertyModel<String>(model, MappingTypeDto.F_CONDITION),
                 createStringResource("MappingEditorDialog.label.condition"), ID_LABEL_SIZE, ID_INPUT_SIZE, false, CODE_ROW_COUNT);
+        condition.setOutputMarkupId(true);
         form.add(condition);
 
         AjaxSubmitButton cancel = new AjaxSubmitButton(ID_BUTTON_CANCEL,

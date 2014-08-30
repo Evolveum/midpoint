@@ -68,12 +68,23 @@
                         </dd>
                     </dl>
 
-                    <!-- Expression Evaluator -->
+                    <!-- Expression -->
                     <dl class="dl-horizontal">
                         <dt>
-                            <label><wicket:message key="ResourceIterationEditor.label.expressionEvaluator" /></label>
+                            <label><wicket:message key="ResourceIterationEditor.label.expressionType" /></label>
                         </dt>
-                        <div wicket:id="tokenExpressionEvaluatorList" />
+                        <dd>
+                            <select wicket:id="tokenExpressionType" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.expression" /></label>
+                        </dt>
+                        <dd>
+                            <textarea wicket:id="tokenExpression" class="form-control input-sm" rows="4"></textarea>
+                        </dd>
                     </dl>
 
                 </div>
@@ -116,12 +127,23 @@
                         </dd>
                     </dl>
 
-                    <!-- Expression Evaluator -->
+                    <!-- Expression -->
                     <dl class="dl-horizontal">
                         <dt>
-                            <label><wicket:message key="ResourceIterationEditor.label.expressionEvaluator" /></label>
+                            <label><wicket:message key="ResourceIterationEditor.label.expressionType" /></label>
                         </dt>
-                        <div wicket:id="preExpressionEvaluatorList" />
+                        <dd>
+                            <select wicket:id="preExpressionType" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.expression" /></label>
+                        </dt>
+                        <dd>
+                            <textarea wicket:id="preExpression" class="form-control input-sm" rows="4"></textarea>
+                        </dd>
                     </dl>
 
                 </div>
@@ -164,12 +186,23 @@
                         </dd>
                     </dl>
 
-                    <!-- Expression Evaluator -->
+                    <!-- Expression -->
                     <dl class="dl-horizontal">
                         <dt>
-                            <label><wicket:message key="ResourceIterationEditor.label.expressionEvaluator" /></label>
+                            <label><wicket:message key="ResourceIterationEditor.label.expressionType" /></label>
                         </dt>
-                        <div wicket:id="postExpressionEvaluatorList" />
+                        <dd>
+                            <select wicket:id="postExpressionType" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.expression" /></label>
+                        </dt>
+                        <dd>
+                            <textarea wicket:id="postExpression" class="form-control input-sm" rows="5"></textarea>
+                        </dd>
                     </dl>
 
                 </div>
