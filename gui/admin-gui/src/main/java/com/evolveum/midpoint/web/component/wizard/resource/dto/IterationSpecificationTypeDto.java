@@ -1,0 +1,266 @@
+/*
+ * Copyright (c) 2010-2014 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.evolveum.midpoint.web.component.wizard.resource.dto;
+
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import java.io.Serializable;
+import java.util.Map;
+
+/**
+ *  @author shood
+ * */
+public class IterationSpecificationTypeDto implements Serializable{
+
+    public static final String TOKEN_EXPRESSION_PREFIX = "token";
+    public static final String PRE_EXPRESSION_PREFIX = "pre";
+    public static final String POST_EXPRESSION_PREFIX = "post";
+
+    public static final String F_EXPRESSION_TYPE = "ExpressionType";
+    public static final String F_LANGUAGE = "Language";
+    public static final String F_POLICY_REF = "PolicyRef";
+    public static final String F_EXPRESSION = "Expression";
+    public static final String F_ITERATION = "iterationObject";
+
+    private ExpressionUtil.ExpressionEvaluatorType tokenExpressionType;
+    private ExpressionUtil.ExpressionEvaluatorType preExpressionType;
+    private ExpressionUtil.ExpressionEvaluatorType postExpressionType;
+    private ExpressionUtil.Language tokenLanguage;
+    private ExpressionUtil.Language preLanguage;
+    private ExpressionUtil.Language postLanguage;
+    private ObjectReferenceType tokenPolicyRef;
+    private ObjectReferenceType prePolicyRef;
+    private ObjectReferenceType postPolicyRef;
+    private String tokenExpression;
+    private String preExpression;
+    private String postExpression;
+    private IterationSpecificationType iterationObject;
+
+    public IterationSpecificationTypeDto(IterationSpecificationType iteration){
+        iterationObject = iteration;
+
+        //TODO - load languages, references and expressions
+    }
+
+    public void updateExpression(String prefix){
+        if(prefix.equals(TOKEN_EXPRESSION_PREFIX)){
+            tokenExpression = ExpressionUtil.getExpressionString(tokenExpressionType);
+        } else if(prefix.equals(PRE_EXPRESSION_PREFIX)){
+            preExpression = ExpressionUtil.getExpressionString(preExpressionType);
+        } else if(prefix.equals(POST_EXPRESSION_PREFIX)){
+            postExpression = ExpressionUtil.getExpressionString(postExpressionType);
+        }
+    }
+
+    public void updateExpressionLanguage(String prefix){
+        if(prefix.equals(TOKEN_EXPRESSION_PREFIX)){
+            tokenExpression = ExpressionUtil.getExpressionString(tokenExpressionType, tokenLanguage);
+        } else if(prefix.equals(PRE_EXPRESSION_PREFIX)){
+            preExpression = ExpressionUtil.getExpressionString(preExpressionType, preLanguage);
+        } else if(prefix.equals(POST_EXPRESSION_PREFIX)){
+            postExpression = ExpressionUtil.getExpressionString(postExpressionType, postLanguage);
+        }
+    }
+
+    public void updateExpressionPolicy(String prefix){
+        if(prefix.equals(TOKEN_EXPRESSION_PREFIX)){
+            tokenExpression = ExpressionUtil.getExpressionString(tokenExpressionType, tokenPolicyRef);
+        } else if(prefix.equals(PRE_EXPRESSION_PREFIX)){
+            preExpression = ExpressionUtil.getExpressionString(preExpressionType, prePolicyRef);
+        } else if(prefix.equals(POST_EXPRESSION_PREFIX)){
+            postExpression = ExpressionUtil.getExpressionString(postExpressionType, postPolicyRef);
+        }
+    }
+
+    public ExpressionUtil.Language getLanguage(String prefix){
+        if(prefix.equals(TOKEN_EXPRESSION_PREFIX)){
+            return tokenLanguage;
+        } else if(prefix.equals(PRE_EXPRESSION_PREFIX)){
+            return preLanguage;
+        } else if(prefix.equals(POST_EXPRESSION_PREFIX)){
+            return postLanguage;
+        }
+
+        return null;
+    }
+
+    public ExpressionUtil.ExpressionEvaluatorType getExpressionType(String prefix){
+        if(prefix.equals(TOKEN_EXPRESSION_PREFIX)){
+            return tokenExpressionType;
+        } else if(prefix.equals(PRE_EXPRESSION_PREFIX)){
+            return preExpressionType;
+        } else if(prefix.equals(POST_EXPRESSION_PREFIX)){
+            return postExpressionType;
+        }
+
+        return null;
+    }
+
+    public ExpressionUtil.ExpressionEvaluatorType getTokenExpressionType() {
+        return tokenExpressionType;
+    }
+
+    public void setTokenExpressionType(ExpressionUtil.ExpressionEvaluatorType tokenExpressionType) {
+        this.tokenExpressionType = tokenExpressionType;
+    }
+
+    public ExpressionUtil.ExpressionEvaluatorType getPreExpressionType() {
+        return preExpressionType;
+    }
+
+    public void setPreExpressionType(ExpressionUtil.ExpressionEvaluatorType preExpressionType) {
+        this.preExpressionType = preExpressionType;
+    }
+
+    public ExpressionUtil.ExpressionEvaluatorType getPostExpressionType() {
+        return postExpressionType;
+    }
+
+    public void setPostExpressionType(ExpressionUtil.ExpressionEvaluatorType postExpressionType) {
+        this.postExpressionType = postExpressionType;
+    }
+
+    public ExpressionUtil.Language getTokenLanguage() {
+        return tokenLanguage;
+    }
+
+    public void setTokenLanguage(ExpressionUtil.Language tokenLanguage) {
+        this.tokenLanguage = tokenLanguage;
+    }
+
+    public ExpressionUtil.Language getPreLanguage() {
+        return preLanguage;
+    }
+
+    public void setPreLanguage(ExpressionUtil.Language preLanguage) {
+        this.preLanguage = preLanguage;
+    }
+
+    public ExpressionUtil.Language getPostLanguage() {
+        return postLanguage;
+    }
+
+    public void setPostLanguage(ExpressionUtil.Language postLanguage) {
+        this.postLanguage = postLanguage;
+    }
+
+    public ObjectReferenceType getTokenPolicyRef() {
+        return tokenPolicyRef;
+    }
+
+    public void setTokenPolicyRef(ObjectReferenceType tokenPolicyRef) {
+        this.tokenPolicyRef = tokenPolicyRef;
+    }
+
+    public ObjectReferenceType getPrePolicyRef() {
+        return prePolicyRef;
+    }
+
+    public void setPrePolicyRef(ObjectReferenceType prePolicyRef) {
+        this.prePolicyRef = prePolicyRef;
+    }
+
+    public ObjectReferenceType getPostPolicyRef() {
+        return postPolicyRef;
+    }
+
+    public void setPostPolicyRef(ObjectReferenceType postPolicyRef) {
+        this.postPolicyRef = postPolicyRef;
+    }
+
+    public String getTokenExpression() {
+        return tokenExpression;
+    }
+
+    public void setTokenExpression(String tokenExpression) {
+        this.tokenExpression = tokenExpression;
+    }
+
+    public String getPreExpression() {
+        return preExpression;
+    }
+
+    public void setPreExpression(String preExpression) {
+        this.preExpression = preExpression;
+    }
+
+    public String getPostExpression() {
+        return postExpression;
+    }
+
+    public void setPostExpression(String postExpression) {
+        this.postExpression = postExpression;
+    }
+
+    public IterationSpecificationType getIterationObject() {
+        return iterationObject;
+    }
+
+    public void setIterationObject(IterationSpecificationType iterationObject) {
+        this.iterationObject = iterationObject;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        IterationSpecificationTypeDto that = (IterationSpecificationTypeDto) o;
+
+        if (iterationObject != null ? !iterationObject.equals(that.iterationObject) : that.iterationObject != null)
+            return false;
+        if (postExpression != null ? !postExpression.equals(that.postExpression) : that.postExpression != null)
+            return false;
+        if (postExpressionType != that.postExpressionType) return false;
+        if (postLanguage != that.postLanguage) return false;
+        if (postPolicyRef != null ? !postPolicyRef.equals(that.postPolicyRef) : that.postPolicyRef != null)
+            return false;
+        if (preExpression != null ? !preExpression.equals(that.preExpression) : that.preExpression != null)
+            return false;
+        if (preExpressionType != that.preExpressionType) return false;
+        if (preLanguage != that.preLanguage) return false;
+        if (prePolicyRef != null ? !prePolicyRef.equals(that.prePolicyRef) : that.prePolicyRef != null) return false;
+        if (tokenExpression != null ? !tokenExpression.equals(that.tokenExpression) : that.tokenExpression != null)
+            return false;
+        if (tokenExpressionType != that.tokenExpressionType) return false;
+        if (tokenLanguage != that.tokenLanguage) return false;
+        if (tokenPolicyRef != null ? !tokenPolicyRef.equals(that.tokenPolicyRef) : that.tokenPolicyRef != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = tokenExpressionType != null ? tokenExpressionType.hashCode() : 0;
+        result = 31 * result + (preExpressionType != null ? preExpressionType.hashCode() : 0);
+        result = 31 * result + (postExpressionType != null ? postExpressionType.hashCode() : 0);
+        result = 31 * result + (tokenLanguage != null ? tokenLanguage.hashCode() : 0);
+        result = 31 * result + (preLanguage != null ? preLanguage.hashCode() : 0);
+        result = 31 * result + (postLanguage != null ? postLanguage.hashCode() : 0);
+        result = 31 * result + (tokenPolicyRef != null ? tokenPolicyRef.hashCode() : 0);
+        result = 31 * result + (prePolicyRef != null ? prePolicyRef.hashCode() : 0);
+        result = 31 * result + (postPolicyRef != null ? postPolicyRef.hashCode() : 0);
+        result = 31 * result + (tokenExpression != null ? tokenExpression.hashCode() : 0);
+        result = 31 * result + (preExpression != null ? preExpression.hashCode() : 0);
+        result = 31 * result + (postExpression != null ? postExpression.hashCode() : 0);
+        result = 31 * result + (iterationObject != null ? iterationObject.hashCode() : 0);
+        return result;
+    }
+}
