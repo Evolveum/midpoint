@@ -545,7 +545,7 @@ public abstract class ShadowCache {
 			
 			ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 			
-			LOGGER.trace("Deleting obeject {} from the resource {}.", shadow, resource);
+			LOGGER.trace("Deleting object {} from the resource {}.", shadow, resource);
 
 			if (shadow.asObjectable().getFailedOperationType() == null
 					|| (shadow.asObjectable().getFailedOperationType() != null 
@@ -760,7 +760,7 @@ public abstract class ShadowCache {
 		Validate.notNull(objectClassName, "Object class must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.trace("Searching objects iterative with obejct class {}, resource: {}.", objectClassName,
+		LOGGER.trace("Searching objects iterative with object class {}, resource: {}.", objectClassName,
 				resourceType);
 
 		searchObjectsIterativeInternal(objectClassName, resourceType, query, options, handler,
@@ -1312,7 +1312,7 @@ public abstract class ShadowCache {
 		ResourceAttribute newSecondaryIdentifier = newSecondaryIdentifiers.iterator().next();
 		Object newValue = newSecondaryIdentifier.getRealValue();
 		
-		if (!shadowManager.compareAttribute(refinedObjectClassDefinition, newSecondaryIdentifier, oldValue)){
+		if (!shadowManager.compareAttribute(refinedObjectClassDefinition, newSecondaryIdentifier, oldSecondaryIdentifier)){
 			Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
 			
 			
@@ -1451,7 +1451,7 @@ public abstract class ShadowCache {
 			if (objectClass == null) {
 				throw new SchemaException("No kind nor objectclass definied in "+shadow);
 			}
-			objectClassDefinition = refinedSchema.findRefinedDefinitionByObjectClassQName(null, objectClass);
+			objectClassDefinition = refinedSchema.findRefinedDefinitionByObjectClassQName(kind, objectClass);
 		}
 		
 		if (objectClassDefinition == null) {
@@ -1524,6 +1524,7 @@ public abstract class ShadowCache {
 			PrismObject<ShadowType> repoShadow, ResourceType resource, RefinedObjectClassDefinition objectClassDefinition, 
 			OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, GenericConnectorException {
 
+		
 		PrismObject<ShadowType> resultShadow = repoShadow.clone();
 		boolean resultIsResourceShadowClone = false;
 		if (resultShadow == null) {
@@ -1627,7 +1628,7 @@ public abstract class ShadowCache {
 		assert resultName != null : "No name generated in "+resultShadow;
 		assert !StringUtils.isEmpty(resultName.getOrig()) : "No name (orig) in "+resultShadow;
 		assert !StringUtils.isEmpty(resultName.getNorm()) : "No name (norm) in "+resultShadow;
-
+		
 		return resultShadow;
 	}
 	

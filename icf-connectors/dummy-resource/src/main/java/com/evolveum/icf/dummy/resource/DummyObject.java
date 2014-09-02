@@ -23,9 +23,12 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -211,6 +214,11 @@ public abstract class DummyObject implements DebugDumpable {
 				if (currentValue.equals(valueToAdd)) {
 					throw new IllegalArgumentException("The value '"+valueToAdd+"' of attribute '"+attrName+"' conflicts with existing value: Attempt to add value that already exists");
 				}
+				if (resource.isCaseIgnoreValues() && (valueToAdd instanceof String)) {
+					if (StringUtils.equalsIgnoreCase((String)currentValue, (String)valueToAdd)) {
+						throw new IllegalArgumentException("The value '"+valueToAdd+"' of attribute '"+attrName+"' conflicts with existing value: Attempt to add value that already exists");
+					}
+				}
 			}
 		}
 		
@@ -241,7 +249,28 @@ public abstract class DummyObject implements DebugDumpable {
 		valuesToCheck.removeAll(values);
 		checkSchema(name, valuesToCheck, "remove");
 		
-		currentValues.removeAll(values);
+		Iterator<Object> iterator = currentValues.iterator();
+		while(iterator.hasNext()) {
+			Object currentValue = iterator.next();
+			boolean found = false;
+			for (Object value: values) {
+				if (resource.isCaseIgnoreValues() && currentValue instanceof String && value instanceof String) {
+					if (StringUtils.equalsIgnoreCase((String)currentValue, (String)value)) {
+						found = true;
+						break;
+					}
+				} else {
+					if (currentValue.equals(value)) {
+						found = true;
+						break;
+					}
+				}
+			}
+			if (found) {
+				iterator.remove();
+			}
+		}
+		
 		recordModify();
 	}
 

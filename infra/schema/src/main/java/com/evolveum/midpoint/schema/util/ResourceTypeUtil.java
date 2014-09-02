@@ -451,4 +451,13 @@ public class ResourceTypeUtil {
 		return (resource.getOperationalState() != null && AvailabilityStatusType.DOWN == resource.getOperationalState().getLastAvailabilityStatus());
 	}
 
+	public static boolean isAvoidDuplicateValues(ResourceType resource) {
+		if (resource.getConsistency() == null) {
+			return false;
+		}
+		if (resource.getConsistency().isAvoidDuplicateValues() == null) {
+			return false;
+		}
+		return resource.getConsistency().isAvoidDuplicateValues();
+	}
 }

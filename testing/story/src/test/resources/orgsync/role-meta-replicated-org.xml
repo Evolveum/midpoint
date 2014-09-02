@@ -34,4 +34,23 @@
     	</construction>
     </inducement>
     
+    <inducement>
+    	<focusMappings>
+		
+    		<mapping>
+			
+    			<source>
+    				<path>$immediateRole/name</path>
+    			</source>
+    			<target>
+    				<path>$user/organizationalUnit</path>
+    			</target>
+    		</mapping>
+     
+    	</focusMappings>
+		
+    	<order>2</order>
+    	<focusType>c:UserType</focusType>
+    </inducement>
+    
 </role>

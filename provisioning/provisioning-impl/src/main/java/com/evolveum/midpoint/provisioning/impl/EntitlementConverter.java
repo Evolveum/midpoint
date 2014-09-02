@@ -57,6 +57,7 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -168,7 +169,7 @@ class EntitlementConverter {
 	}
 	
 	private <S extends ShadowType,T> void postProcessEntitlementEntitlementToSubject(ConnectorInstance connector, 
-			ResourceType resourceType, PrismObject<S> resourceObject, 
+			ResourceType resourceType, final PrismObject<S> resourceObject, 
 			RefinedObjectClassDefinition objectClassDefinition, RefinedAssociationDefinition assocDefType,
 			final RefinedObjectClassDefinition entitlementDef,
 			ResourceAttributeContainer attributesContainer, final PrismContainer<ShadowAssociationType> associationContainer,
@@ -201,18 +202,6 @@ class EntitlementConverter {
 		
 		ObjectQuery query = createQuery(assocDefType, assocAttrDef, valueAttr);
 		
-//		MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(assocDefType.getResourceObjectAssociationType().getMatchingRule(), valueAttr.getDefinition().getTypeName());
-//		PrismPropertyValue normalized = valueAttr.getValue();
-//		if (matchingRule != null) {
-//			Object normalizedRealValue = matchingRule.normalize(valueAttr.getRealValue());
-//			normalized = new PrismPropertyValue(normalizedRealValue);
-//		}
-//		
-//		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, normalized);
-//		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-//		ObjectQuery query = new ObjectQuery();
-//		query.setFilter(filter);
-		
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementDef, resourceType);
 		
 		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
@@ -229,6 +218,10 @@ class EntitlementConverter {
 					
 					// Remember the full shadow in user data. This is used later as an optimization to create the shadow in repo 
 					identifiersContainer.setUserData(ResourceObjectConverter.FULL_SHADOW_KEY, entitlementShadow);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Processed entitlement-to-subject association for account {} and entitlement {}",
+								ShadowUtil.getHumanReadableName(resourceObject), ShadowUtil.getHumanReadableName(entitlementShadow));
+					}
 				} catch (SchemaException e) {
 					throw new TunnelException(e);
 				}
@@ -237,6 +230,10 @@ class EntitlementConverter {
 		};
 		
 		try {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Processed entitlement-to-subject association for account {}: query {}",
+						ShadowUtil.getHumanReadableName(resourceObject), query);
+			}
 			connector.search(entitlementDef, query, handler, attributesToReturn, parentResult);
 		} catch (TunnelException e) {
 			throw (SchemaException)e.getCause();

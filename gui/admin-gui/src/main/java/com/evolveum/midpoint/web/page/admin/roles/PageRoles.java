@@ -196,6 +196,12 @@ public class PageRoles extends PageAdminRoles {
         };
         columns.add(column);
 
+        column = new PropertyColumn(createStringResource("OrgType.displayName"), "value.displayName");
+        columns.add(column);
+
+        column = new PropertyColumn(createStringResource("OrgType.identifier"), "value.identifier");
+        columns.add(column);
+
         column = new PropertyColumn(createStringResource("ObjectType.description"), "value.description");
         columns.add(column);
 

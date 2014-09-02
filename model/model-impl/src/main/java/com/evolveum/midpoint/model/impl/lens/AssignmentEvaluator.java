@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -461,6 +462,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 		}
 		for (AssignmentType roleInducement : roleType.getInducement()) {
+			if (!isApplicable(roleInducement.getFocusType(), roleType)){
+				continue;
+			}
 			ItemDeltaItem<PrismContainerValue<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
 			roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleInducement));
 			roleInducementIdi.recompute();
@@ -514,7 +518,34 @@ public class AssignmentEvaluator<F extends FocusType> {
 			assignment.addAuthorization(authorization);
 		}
 		
-		return mode != PlusMinusZero.MINUS;
+		return mode != PlusMinusZero.MINUS;		
+	}
+
+
+	private boolean isApplicable(QName focusType, AbstractRoleType roleType) throws SchemaException {
+		if (focusType == null) {
+			return true;
+		}
+		
+		Class focusClass = prismContext.getSchemaRegistry().determineCompileTimeClass(focusType);
+		
+		if (focusClass == null){
+			throw new SchemaException("Could not determine class for " + focusType);
+		}
+		
+	
+		if (!focusClass.equals(lensContext.getFocusClass())) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Skipping evaluation of {} because it is applicable only for {} and not for {}",
+						new Object[] { roleType, focusClass, lensContext.getFocusClass()});
+			}
+			return false;
+		}
+		return true;
+	}
+	
+	private QName getTargetType(AssignmentPathSegment assignmentPathSegment){
+		return assignmentPathSegment.getTarget().asPrismObject().getDefinition().getName();
 	}
 	
 	public static String dumpAssignment(AssignmentType assignmentType) { 

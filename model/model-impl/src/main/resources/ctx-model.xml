@@ -101,23 +101,23 @@
     
     <bean id="scriptExpressionFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory"
           scope="singleton">
-          <constructor-arg ref="modelObjectResolver"/>
-          <constructor-arg name="prismContext" ref="prismContext"/>
-          <constructor-arg>
+        <constructor-arg ref="modelObjectResolver"/>
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <property name="functions">
         	<list>
         		<ref bean="basicFunctionLibrary"/>
         		<ref bean="logFunctionLibrary"/>
         		<ref bean="midpointFunctionLibrary"/>
         	</list>
-        </constructor-arg>
-        <constructor-arg name="protector" ref="protector"/>
-          <constructor-arg>
+        </property>
+        <property name="evaluators">
         	<list>
         		<ref bean="xpathScriptEvaluator"/>
         		<ref bean="javascriptScriptEvaluator"/>
         		<ref bean="groovyScriptEvaluator"/>
         	</list>
-        </constructor-arg>
+        </property>
     </bean>
 
     <bean id="scriptExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory"
@@ -186,7 +186,7 @@
         <constructor-arg>
         	<ref bean="prismContext"/>
         </constructor-arg>
-        <constructor-arg>
+        <property name="evaluatorFactories">
         	<list>
         		<ref bean="scriptExpressionEvaluatorFactory"/>
         		<ref bean="generateExpressionEvaluatorFactory"/>
@@ -197,7 +197,7 @@
         		<ref bean="associationTargetSearchExpressionEvaluatorFactory"/>
         		<ref bean="associationFromLinkExpressionEvaluatorFactory"/>
         	</list>
-        </constructor-arg>
+        </property>
         <property name="defaultEvaluatorFactory">
             <ref bean="asisExpressionEvaluatorFactory"/>
         </property>

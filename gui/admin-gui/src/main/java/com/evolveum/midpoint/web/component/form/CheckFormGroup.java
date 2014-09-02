@@ -56,4 +56,8 @@ public class CheckFormGroup extends SimplePanel<Boolean> {
         check.setLabel(label);
         checkWrapper.add(check);
     }
+
+    public CheckBox getCheck(){
+        return (CheckBox) get(ID_CHECK_WRAPPER + ":" + ID_CHECK);
+    }
 }

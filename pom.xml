@@ -44,7 +44,7 @@
         </repository>
         <snapshotRepository>
             <id>evolveum-nexus</id>
-            <name>Internal Releases</name>
+            <name>Internal Snapshots</name>
             <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
@@ -143,8 +143,13 @@
 	<repositories>
 		<repository>
 			<id>evolveum</id>
-			<name>Evolveum</name>
+			<name>Evolveum Public Releases</name>
 			<url>http://nexus.evolveum.com/nexus/content/groups/public</url>
+		</repository>
+		<repository>
+			<id>evolveum-snapshots</id>
+			<name>Evolveum Snapshots</name>
+			<url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
 		</repository>
 	</repositories>
 	<properties>

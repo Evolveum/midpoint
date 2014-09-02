@@ -396,6 +396,11 @@ public class PrismContext {
         return xnodeProcessor.parseAnyValue(xnode);
     }
 
+    // experimental!
+    public <T> JAXBElement<T> parseAnyValueAsJAXBElement(String dataString, String language) throws SchemaException {
+        XNode xnode = parseToXNode(dataString, language);
+        return xnodeProcessor.parseAnyValueAsJAXBElement(xnode);
+    }
     //endregion
 
     //region Parsing to XNode

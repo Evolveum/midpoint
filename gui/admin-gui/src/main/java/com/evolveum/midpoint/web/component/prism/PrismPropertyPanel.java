@@ -53,6 +53,7 @@ public class PrismPropertyPanel extends Panel {
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
     private static final String ID_HAS_PENDING_MODIFICATION = "hasPendingModification";
     private static final String ID_HELP = "help";
+    private static final String ID_LABEL_CONTAINER = "labelContainer";
 
     public PrismPropertyPanel(String id, final IModel<PropertyWrapper> model, Form form) {
         super(id);
@@ -76,8 +77,12 @@ public class PrismPropertyPanel extends Panel {
     }
 
     private void initLayout(final IModel<PropertyWrapper> model, final Form form) {
+        WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+        labelContainer.setOutputMarkupId(true);
+        add(labelContainer);
+
         final IModel<String> label = createDisplayName(model);
-        add(new Label("label", label));
+        labelContainer.add(new Label("label", label));
 
         final IModel<String> helpText = new LoadableModel<String>(false) {
 
@@ -96,7 +101,7 @@ public class PrismPropertyPanel extends Panel {
                 return StringUtils.isNotEmpty(helpText.getObject());
             }
         });
-        add(help);
+        labelContainer.add(help);
 
         WebMarkupContainer required = new WebMarkupContainer("required");
         required.add(new VisibleEnableBehaviour() {
@@ -115,7 +120,7 @@ public class PrismPropertyPanel extends Panel {
                 return def.isMandatory();
             }
         });
-        add(required);
+        labelContainer.add(required);
 
         WebMarkupContainer hasOutbound = new WebMarkupContainer("hasOutbound");
         hasOutbound.add(new VisibleEnableBehaviour() {
@@ -125,7 +130,7 @@ public class PrismPropertyPanel extends Panel {
                 return hasOutbound(model);
             }
         });
-        add(hasOutbound);
+        labelContainer.add(hasOutbound);
 
         WebMarkupContainer hasPendingModification = new WebMarkupContainer(ID_HAS_PENDING_MODIFICATION);
         hasPendingModification.add(new VisibleEnableBehaviour() {
@@ -135,14 +140,16 @@ public class PrismPropertyPanel extends Panel {
                 return hasPendingModification(model);
             }
         });
-        add(hasPendingModification);
+        labelContainer.add(hasPendingModification);
 
         ListView<ValueWrapper> values = new ListView<ValueWrapper>("values",
                 new PropertyModel<List<ValueWrapper>>(model, "values")) {
 
             @Override
             protected void populateItem(final ListItem<ValueWrapper> item) {
-                item.add(new PrismValuePanel("value", item.getModel(), label, form));
+                PrismValuePanel panel = new PrismValuePanel("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass());
+                panel.add(new AttributeModifier("class", getValueCssClass()));
+                item.add(panel);
                 item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
 
                 item.add(new VisibleEnableBehaviour() {
@@ -154,8 +161,21 @@ public class PrismPropertyPanel extends Panel {
                 });
             }
         };
+        values.add(new AttributeModifier("class", getValuesClass()));
         values.setReuseItems(true);
         add(values);
+    }
+
+    protected String getInputCssClass(){
+        return"col-xs-9";
+    }
+
+    protected String getValuesClass(){
+        return "col-md-6";
+    }
+
+    protected String getValueCssClass(){
+        return "row";
     }
 
     private String loadHelpText(IModel<PropertyWrapper> model) {

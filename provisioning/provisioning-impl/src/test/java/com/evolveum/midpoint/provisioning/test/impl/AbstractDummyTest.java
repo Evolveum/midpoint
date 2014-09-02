@@ -145,6 +145,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	protected static final String NOT_PRESENT_OID = "deaddead-dead-dead-dead-deaddeaddead";
 	
+	protected static final String OBJECTCLAS_GROUP_LOCAL_NAME = "GroupObjectClass";
 	protected static final String OBJECTCLAS_PRIVILEGE_LOCAL_NAME = "CustomprivilegeObjectClass";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractDummyTest.class);

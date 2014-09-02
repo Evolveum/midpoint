@@ -141,7 +141,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         resource = DummyResource.getInstance(instanceName);
         
         resource.setCaseIgnoreId(this.configuration.getCaseIgnoreId());
+        resource.setCaseIgnoreValues(this.configuration.getCaseIgnoreValues());
         resource.setEnforceUniqueName(this.configuration.isEnforceUniqueName());
+        resource.setTolerateDuplicateValues(this.configuration.getTolerateDuplicateValues());
         
         resource.setUselessString(this.configuration.getUselessString());
         GuardedString uselessGuardedString = this.configuration.getUselessGuardedString();

@@ -228,7 +228,18 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					// authority is applicable to this situation. now we can process the decision.
 					AuthorizationDecisionType decision = autz.getDecision();
 					if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
-						allowedItems.addAll(getItems(autz));
+						// if there is more than one role which specify
+						// different authz (e.g one role specify allow for whole
+						// objet, the other role specify allow only for some
+						// attributes. this ended with allow for whole object (MID-2018)
+						Collection<ItemPath> allowed = getItems(autz);
+						if (allow && allowedItems.isEmpty()){
+							LOGGER.trace("  ALLOW operation {} (but continue evaluation)", autz, operationUrl);
+						} else if (allow && allowed.isEmpty()){
+							allowedItems.clear();
+						} else {
+							allowedItems.addAll(allowed);
+						}
 						LOGGER.trace("  ALLOW operation {} (but continue evaluation)", autz, operationUrl);
 						allow = true;
 						// Do NOT break here. Other authorization statements may still deny the operation

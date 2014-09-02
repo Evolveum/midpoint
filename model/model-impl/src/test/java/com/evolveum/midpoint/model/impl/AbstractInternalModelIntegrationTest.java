@@ -86,73 +86,73 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrationTest {
 	
-	protected static final String CONNECTOR_DUMMY_FILENAME = COMMON_DIR_NAME + "/connector-dummy.xml";
+	protected static final String CONNECTOR_DUMMY_FILENAME = COMMON_DIR_PATH + "/connector-dummy.xml";
 	
-	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
+	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_PATH + "/system-configuration.xml";
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
 	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 	protected static final String USER_ADMINISTRATOR_NAME = "administrator";
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 	
-	protected static final String USER_JACK_FILENAME = COMMON_DIR_NAME + "/user-jack.xml";
+	protected static final String USER_JACK_FILENAME = COMMON_DIR_PATH + "/user-jack.xml";
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	protected static final String USER_JACK_USERNAME = "jack";
 	
-	protected static final String USER_BARBOSSA_FILENAME = COMMON_DIR_NAME + "/user-barbossa.xml";
+	protected static final String USER_BARBOSSA_FILENAME = COMMON_DIR_PATH + "/user-barbossa.xml";
 	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
 	
-	protected static final String USER_GUYBRUSH_FILENAME = COMMON_DIR_NAME + "/user-guybrush.xml";
+	protected static final String USER_GUYBRUSH_FILENAME = COMMON_DIR_PATH + "/user-guybrush.xml";
 	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
 	
-	static final String USER_ELAINE_FILENAME = COMMON_DIR_NAME + "/user-elaine.xml";
+	static final String USER_ELAINE_FILENAME = COMMON_DIR_PATH + "/user-elaine.xml";
 	protected static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-11111111111e";
 	protected static final String USER_ELAINE_USERNAME = "elaine";
 	
 	// Largo does not have a full name set, employeeType=PIRATE
-	protected static final String USER_LARGO_FILENAME = COMMON_DIR_NAME + "/user-largo.xml";
+	protected static final String USER_LARGO_FILENAME = COMMON_DIR_PATH + "/user-largo.xml";
 	protected static final String USER_LARGO_OID = "c0c010c0-d34d-b33f-f00d-111111111118";
 	
 	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 	
-	protected static final String ACCOUNT_HBARBOSSA_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-dummy.xml";
+	protected static final String ACCOUNT_HBARBOSSA_DUMMY_FILENAME = COMMON_DIR_PATH + "/account-hbarbossa-dummy.xml";
 	protected static final String ACCOUNT_HBARBOSSA_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
 	protected static final String ACCOUNT_HBARBOSSA_DUMMY_USERNAME = "hbarbossa";
 	
 	public static final File ACCOUNT_SHADOW_JACK_DUMMY_FILE = new File(COMMON_DIR, "account-shadow-jack-dummy.xml");
 	public static final String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
 	
-	public static final String ACCOUNT_HERMAN_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-herman-dummy.xml";
+	public static final String ACCOUNT_HERMAN_DUMMY_FILENAME = COMMON_DIR_PATH + "/account-herman-dummy.xml";
 	public static final String ACCOUNT_HERMAN_DUMMY_OID = "22220000-2200-0000-0000-444400004444";
 	public static final String ACCOUNT_HERMAN_DUMMY_USERNAME = "ht";
 	
 //	public static final String ACCOUNT_HERMAN_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-herman-opendj.xml";
 //	public static final String ACCOUNT_HERMAN_OPENDJ_OID = "22220000-2200-0000-0000-333300003333";
 	
-	public static final String ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-guybrush-dummy.xml";
+	public static final String ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR_PATH + "/account-shadow-guybrush-dummy.xml";
 	public static final String ACCOUNT_SHADOW_GUYBRUSH_OID = "22226666-2200-6666-6666-444400004444";
 	public static final String ACCOUNT_GUYBRUSH_DUMMY_USERNAME = "guybrush";
-	public static final String ACCOUNT_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-guybrush-dummy.xml";
+	public static final String ACCOUNT_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR_PATH + "/account-guybrush-dummy.xml";
 	
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-elaine-dummy.xml";
+	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME = COMMON_DIR_PATH + "/account-elaine-dummy.xml";
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_USERNAME = USER_ELAINE_USERNAME;
 	
 	public static final File ENTITLEMENT_SHADOW_PIRATE_DUMMY_FILE = new File(COMMON_DIR, "entitlement-shadow-pirate-dummy.xml");
 	public static final String ENTITLEMENT_PIRATE_DUMMY_NAME = "pirate";
 
-	public static final String ACCOUNT_SHADOW_CALYPSO_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-calypso-dummy.xml";
+	public static final String ACCOUNT_SHADOW_CALYPSO_DUMMY_FILENAME = COMMON_DIR_PATH + "/account-shadow-calypso-dummy.xml";
 	public static final String ACCOUNT_CALYPSO_DUMMY_USERNAME = "calypso";
 	
-	public static final String RESOURCE_DUMMY_FILENAME = COMMON_DIR_NAME + "/resource-dummy.xml";
+	public static final String RESOURCE_DUMMY_FILENAME = COMMON_DIR_PATH + "/resource-dummy.xml";
 	public static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 	public static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
 	
-	public static final String USER_TEMPLATE_FILENAME = COMMON_DIR_NAME + "/user-template.xml";
+	public static final String USER_TEMPLATE_FILENAME = COMMON_DIR_PATH + "/user-template.xml";
 	public static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";
 	
-	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR_NAME + "/password-policy-global.xml";
+	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR_PATH + "/password-policy-global.xml";
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
 	
 	protected static final String MOCK_CLOCKWORK_HOOK_URL = MidPointConstants.NS_MIDPOINT_TEST_PREFIX + "/mockClockworkHook";

@@ -18,20 +18,25 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.ObjectPolicyConfigurationEditor;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+
+import java.util.List;
 
 /**
  * @author lazyman
@@ -42,6 +47,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
     private static final String ID_GLOBAL_PASSWORD_POLICY_CHOOSER = "passwordPolicyChooser";
     private static final String ID_GLOBAL_USER_TEMPLATE_CHOOSER = "userTemplateChooser";
+    private static final String ID_OBJECT_POLICY_EDITOR = "objectPolicyEditor";
     private static final String ID_GLOBAL_AEP = "aepChooser";
     private static final String ID_CLEANUP_AUDIT_RECORDS = "auditRecordsCleanup";
     private static final String ID_CLEANUP_CLOSED_TASKS = "closedTasksCleanup";
@@ -70,15 +76,19 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
     @Override
     protected void initLayout(){
         passPolicyChoosePanel = new ChooseTypePanel(ID_GLOBAL_PASSWORD_POLICY_CHOOSER,
-                new PropertyModel<ObjectViewDto>(getModel(), "passPolicyDto"));
+                new PropertyModel<ObjectViewDto>(getModel(), SystemConfigurationDto.F_PASSWORD_POLICY));
         userTemplateChoosePanel = new ChooseTypePanel(ID_GLOBAL_USER_TEMPLATE_CHOOSER,
-                new PropertyModel<ObjectViewDto>(getModel(), "objectTemplateDto"));
+                new PropertyModel<ObjectViewDto>(getModel(), SystemConfigurationDto.F_OBJECT_TEMPLATE));
 
         add(passPolicyChoosePanel);
         add(userTemplateChoosePanel);
 
+        ObjectPolicyConfigurationEditor objectPolicyEditor = new ObjectPolicyConfigurationEditor(ID_OBJECT_POLICY_EDITOR,
+                new PropertyModel<List<ObjectPolicyConfigurationTypeDto>>(getModel(), SystemConfigurationDto.F_OBJECT_POLICY_LIST));
+        add(objectPolicyEditor);
+
         DropDownChoice<AEPlevel> aepLevel = new DropDownChoice<>(ID_GLOBAL_AEP,
-                new PropertyModel<AEPlevel>(getModel(), "aepLevel"),
+                new PropertyModel<AEPlevel>(getModel(), SystemConfigurationDto.F_AEP_LEVEL),
                 WebMiscUtil.createReadonlyModelFromEnum(AEPlevel.class),
                 new EnumChoiceRenderer<AEPlevel>(SystemConfigPanel.this));
         aepLevel.setOutputMarkupId(true);
@@ -87,8 +97,8 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         }
         add(aepLevel);
 
-        TextField<String> auditRecordsField = new TextField<>(ID_CLEANUP_AUDIT_RECORDS, new PropertyModel<String>(getModel(), "auditCleanupValue"));
-        TextField<String> closedTasksField = new TextField<>(ID_CLEANUP_CLOSED_TASKS, new PropertyModel<String>(getModel(), "taskCleanupValue"));
+        TextField<String> auditRecordsField = new TextField<>(ID_CLEANUP_AUDIT_RECORDS, new PropertyModel<String>(getModel(), SystemConfigurationDto.F_AUDIT_CLEANUP));
+        TextField<String> closedTasksField = new TextField<>(ID_CLEANUP_CLOSED_TASKS, new PropertyModel<String>(getModel(), SystemConfigurationDto.F_TASK_CLEANUP));
         add(auditRecordsField);
         add(closedTasksField);
 

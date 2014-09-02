@@ -345,7 +345,7 @@ public class GetOperationOptions implements Serializable, Cloneable {
 
 	@Override
 	public String toString() {
-		return "GetOperationOptions(resolve=" + resolve + ", noFetch=" + noFetch
+		return "GetOperationOptions(resolve=" + resolve + ", resolveNames=" + resolveNames + ",noFetch=" + noFetch
 				+ ", raw=" + raw + ", doNotDiscovery="+doNotDiscovery+", retrieve="+retrieve+", allowNotFound="+ allowNotFound +")";
 	}
 

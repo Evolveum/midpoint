@@ -52,5 +52,6 @@
         <module>xjc-plugin</module>
         <module>gui-i18n</module>
         <module>repo-ninja</module>
+        <module>schema-dist-maven-plugin</module>
     </modules>
 </project>

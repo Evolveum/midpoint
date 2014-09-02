@@ -53,6 +53,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -63,6 +64,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -103,8 +105,10 @@ import static org.testng.AssertJUnit.assertNotNull;
  */
 public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContextTests {
 	
-	public static final String COMMON_DIR_NAME = "src/test/resources/common";
-	public static final File COMMON_DIR = new File(COMMON_DIR_NAME);
+	public static final String COMMON_DIR_NAME = "common";
+	@Deprecated
+	public static final String COMMON_DIR_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/" + COMMON_DIR_NAME;
+	public static final File COMMON_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, COMMON_DIR_NAME);
 	
 	protected static final String DEFAULT_INTENT = "default";
 	
@@ -745,7 +749,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return shadow;
 	}
 	
-	protected PrismObject<ShadowType> findShadowByUsername(String username, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	protected PrismObject<ShadowType> findAccountShadowByUsername(String username, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(username, resource);
 		List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, null, result);
 		if (accounts.isEmpty()) {
@@ -753,6 +757,30 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		assert accounts.size() == 1 : "Too many accounts found for username "+username+" on "+resource+": "+accounts;
 		return accounts.iterator().next();
+	}
+	
+	protected PrismObject<ShadowType> findShadowByName(ShadowKindType kind, String intent, String name, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(kind,intent);
+        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
+		List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
+		if (shadows.isEmpty()) {
+			return null;
+		}
+		assert shadows.size() == 1 : "Too many shadows found for name "+name+" on "+resource+": "+shadows;
+		return shadows.iterator().next();
+	}
+	
+	protected PrismObject<ShadowType> findShadowByName(QName objectClass, String name, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(objectClass);
+        ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
+		List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
+		if (shadows.isEmpty()) {
+			return null;
+		}
+		assert shadows.size() == 1 : "Too many shadows found for name "+name+" on "+resource+": "+shadows;
+		return shadows.iterator().next();
 	}
 	
 	protected ObjectQuery createAccountShadowQuery(String identifier, PrismObject<ResourceType> resource) throws SchemaException {
@@ -773,13 +801,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected ObjectQuery createAccountShadowQuerySecondaryIdentifier(String identifier, PrismObject<ResourceType> resource) throws SchemaException {
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        return createShadowQuerySecondaryIdentifier(rAccount, identifier, resource);
+	}
+	
+	protected ObjectQuery createShadowQuerySecondaryIdentifier(ObjectClassComplexTypeDefinition rAccount, String identifier, PrismObject<ResourceType> resource) throws SchemaException {
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getSecondaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
         EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifier);
         EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
-        		rAccount.getObjectClassDefinition().getTypeName());
+        		rAccount.getTypeName());
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);
         AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
         return ObjectQuery.createObjectQuery(filter);

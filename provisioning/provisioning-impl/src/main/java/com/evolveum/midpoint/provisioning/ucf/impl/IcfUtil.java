@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.ConnectException;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
+import java.util.Collection;
 import java.util.Set;
 
 import javax.naming.NameAlreadyBoundException;
@@ -36,6 +37,7 @@ import javax.naming.directory.SchemaViolationException;
 
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.ConnectionBrokenException;
@@ -47,8 +49,16 @@ import org.identityconnectors.framework.common.exceptions.OperationTimeoutExcept
 import org.identityconnectors.framework.common.exceptions.PermissionDeniedException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
+import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
+import org.identityconnectors.framework.common.objects.filter.Filter;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -58,6 +68,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
 
 /**
@@ -348,8 +359,36 @@ class IcfUtil {
 		}
 		return sb.toString();
 	}
-
 	
+	public static Object dump(Filter filter) {
+		StringBuilder sb = new StringBuilder();
+		dump(filter, sb, 0);
+		return sb.toString();
+	}
+	
+	private static void dump(Filter filter, StringBuilder sb, int indent) {
+		DebugUtil.indentDebugDump(sb, indent);
+		if (filter == null) {
+			sb.append("null");
+			return;
+		}
+		sb.append(filter.toString());
+		if (filter instanceof AttributeFilter) {
+			sb.append("(");
+			Attribute attribute = ((AttributeFilter)filter).getAttribute();
+			sb.append(attribute.getName());
+			sb.append(": ");
+			sb.append(attribute.getValue());
+			sb.append(")");
+		}
+		if (filter instanceof CompositeFilter) {
+			for(Filter subfilter: ((CompositeFilter)filter).getFilters()) {
+				sb.append("\n");
+				dump(subfilter,sb,indent+1);
+			}
+		}
+	}
+
 	private static String createMessageFromAllExceptions(String prefix, Throwable ex) {
 		StringBuilder sb = new StringBuilder();
 		if (prefix != null) {
@@ -388,6 +427,15 @@ class IcfUtil {
 			sb.append(ex.getMessage());
 		}
 	}
-
+	
+	public static ResourceAttributeDefinition getUidDefinition(ResourceAttributeContainerDefinition def) {
+		return def.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+	}
+	
+	public static ResourceAttribute<String> createUidAttribute(Uid uid, ResourceAttributeDefinition uidDefinition) {
+		ResourceAttribute<String> uidRoa = uidDefinition.instantiate();
+		uidRoa.setValue(new PrismPropertyValue<String>(uid.getUidValue()));
+		return uidRoa;
+	}
 
 }

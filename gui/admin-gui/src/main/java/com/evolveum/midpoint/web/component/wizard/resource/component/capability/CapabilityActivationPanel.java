@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -30,7 +31,7 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class CapabilityActivationPanel  extends SimplePanel{
+public class CapabilityActivationPanel extends SimplePanel{
 
     private static final String ID_CHECK_VALID_FROM_ENABLED = "validFromEnabled";
     private static final String ID_CHECK_VALID_FROM_RETURNED = "validFromReturned";
@@ -42,7 +43,6 @@ public class CapabilityActivationPanel  extends SimplePanel{
     private static final String ID_STATUS_ENABLE_LIST = "statusEnableList";
     private static final String ID_STATUS_DISABLE_LIST = "statusDisableList";
     private static final String ID_SELECT_STATUS = "statusSelect";
-
 
     public CapabilityActivationPanel(String componentId, IModel<CapabilityDto> model){
         super(componentId, model);
@@ -78,7 +78,7 @@ public class CapabilityActivationPanel  extends SimplePanel{
                 new PropertyModel<Boolean>(getModel(), "capability.status.ignoreAttribute"));
         add(statusIgnore);
 
-        CapabilityListRepeater statusEnableList = new CapabilityListRepeater(ID_STATUS_ENABLE_LIST,
+        MultiValueTextPanel statusEnableList = new MultiValueTextPanel<String>(ID_STATUS_ENABLE_LIST,
                 new PropertyModel<List<String>>(getModel(), "capability.status.enableValue")){
 
             @Override
@@ -88,8 +88,8 @@ public class CapabilityActivationPanel  extends SimplePanel{
         };
         add(statusEnableList);
 
-        CapabilityListRepeater statusDisableList = new CapabilityListRepeater(ID_STATUS_DISABLE_LIST,
-                new PropertyModel<List<String>>(getModel(), "capability.status.enableValue")){
+        MultiValueTextPanel statusDisableList = new MultiValueTextPanel<String>(ID_STATUS_DISABLE_LIST,
+                new PropertyModel<List<String>>(getModel(), "capability.status.disableValue")){
 
             @Override
             protected StringResourceModel createEmptyItemPlaceholder(){

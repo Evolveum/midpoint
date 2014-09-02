@@ -193,7 +193,7 @@
 					<expression>
 						<script>
 							<code>
-								'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
+								'uid=' + name + iterationToken + ',ou=PeOpLe,dc=example,dc=com'
 							</code>
 						</script>
 					</expression>
@@ -277,6 +277,17 @@
 				<maxIterations>5</maxIterations>
 			</iteration>
 			
+			 <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
+            </association>
+			
 			<protected>
 				<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
 			</protected>
@@ -288,6 +299,58 @@
 				</administrativeStatus>
 			</activation>
 		</objectType>
+		
+		<objectType>
+        	<kind>entitlement</kind>
+            <intent>ldapGroup</intent>
+            <displayName>LDAP Group</displayName>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <attribute>
+				<ref>icfs:name</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$focus/name</path>
+					</source>
+					    <expression>
+					    	<script>
+							<code>
+								import javax.naming.ldap.Rdn
+								import javax.naming.ldap.LdapName
+								
+								dn = new LdapName('ou=groups,dc=example,dc=com')
+								dn.add(new Rdn('cn', name.toString()))
+								return dn.toString()
+							</code>
+						</script>
+					    </expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:uniqueMember</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
+			<attribute>
+				<ref>ri:cn</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$focus/name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+					<source>
+						<path>description</path>
+					</source>
+				</outbound>
+			</attribute>
+        </objectType>
+		
 	</schemaHandling>
 	
 	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
@@ -315,6 +378,10 @@
 	        </cap:activation>
 		</configured>
     </capabilities>
+    
+    <consistency>
+		<avoidDuplicateValues>true</avoidDuplicateValues>
+	</consistency>
 	
 	<synchronization>
 		<objectSynchronization>
