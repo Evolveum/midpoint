@@ -51,8 +51,8 @@
 	<org oid="c74a7d86-7798-11e2-964e-100000000110">
 		<name>F0110</name>
 		<description>Painting, drawing, carving, scratching whatever</description>
-		<parentOrgRef oid="c74a7d86-7798-11e2-964e-100000000100" type="c:OrgType"/>
-		<displayName>Painting Longue</displayName>
+		<parentOrgRef oid="c74a7d86-7798-11e2-964e-100000000100" type="c:OrgType"/>		
+		<displayName>Painting Lounge</displayName>
 		<identifier>0110</identifier>
 		<orgType>functional</orgType>
 	</org>
@@ -66,15 +66,15 @@
 		<orgType>functional</orgType>
 	</org>
 
-
 	<org oid="c74a7d86-7798-11e2-964e-100000000200">
 		<name>F0200</name>
 		<description>Everything that moves or otherwise.</description>
 		<parentOrgRef oid="c74a7d86-7798-11e2-964e-100000000000" type="c:OrgType"/>
-		<assignment>
+		<inducement>
 			<description>Access to engineering library</description>
 			<construction>
 		    		<resourceRef oid="12c78a70-76b7-11e2-9cb3-001e8c717e5b" type="c:ResourceType"/>
+					<kind>account</kind>
 				<attribute>
 		                    <ref>ri:ou</ref>
 		                    <outbound>
@@ -91,8 +91,8 @@
 		                    	</expression>
 		                    </outbound>
 		                </attribute>
-		    	</construction>
-		</assignment>
+		    </construction>
+		</inducement>
 		<displayName>Department of Machines</displayName>
 		<identifier>0200</identifier>
 		<orgType>functional</orgType>

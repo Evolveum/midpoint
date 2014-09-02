@@ -78,6 +78,9 @@
 				<attribute>
 					<ref>icfs:name</ref>
 					<displayName>Username</displayName>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
 					<outbound>
 						<strength>weak</strength>
 						<source>
@@ -99,6 +102,9 @@
 				<attribute>
 					<ref>ri:last_name</ref>
 					<displayName>Last name</displayName>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
 					<outbound>
 						<source>
 							<path>$user/familyName</path>
