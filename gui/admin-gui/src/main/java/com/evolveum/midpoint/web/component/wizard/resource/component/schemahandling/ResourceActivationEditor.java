@@ -18,12 +18,14 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.schemahand
 
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
@@ -49,6 +51,7 @@ public class ResourceActivationEditor extends SimplePanel{
     private static final String ID_VALID_TO_FS = "validToFetchStrategy";
     private static final String ID_VALID_TO_OUT = "validToOutbound";
     private static final String ID_VALID_TO_IN = "validToInbound";
+    private static final String ID_MODAL_MAPPING = "mappingEditor";
 
     public ResourceActivationEditor(String id, IModel<ResourceActivationDefinitionType> model){
         super(id, model);
@@ -96,6 +99,8 @@ public class ResourceActivationEditor extends SimplePanel{
 
         prepareActivationPanelBody(ResourceActivationDefinitionType.F_VALID_TO.getLocalPart(), ID_VALID_TO_FS,
                 ID_VALID_TO_OUT, ID_VALID_TO_IN);
+
+        initModals();
     }
 
     private void prepareActivationPanelBody(String containerValue, String fetchStrategyId, String outboundId, String inboundId){
@@ -114,7 +119,6 @@ public class ResourceActivationEditor extends SimplePanel{
 
                     @Override
                     public String getObject() {
-                        //TODO - what should we display as Mapping label?
                         return model.getObject().getName();
                     }
                 };
@@ -141,8 +145,13 @@ public class ResourceActivationEditor extends SimplePanel{
 
                     @Override
                     public String getObject() {
-                        //TODO - what should we display as Mapping label?
-                        return model.getObject().getName();
+                        MappingType mapping = model.getObject();
+
+                        if(mapping != null){
+                            return mapping.getName();
+                        } else {
+                            return null;
+                        }
                     }
                 };
             }
@@ -160,7 +169,14 @@ public class ResourceActivationEditor extends SimplePanel{
         add(inbound);
     }
 
+    private void initModals(){
+        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null);
+        add(mappingEditor);
+    }
+
     private void mappingEditPerformed(AjaxRequestTarget target, MappingType mapping){
-        //TODO - open ModalWindow here - some MappingType editor
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
+        window.updateModel(target, mapping);
+        window.show(target);
     }
 }

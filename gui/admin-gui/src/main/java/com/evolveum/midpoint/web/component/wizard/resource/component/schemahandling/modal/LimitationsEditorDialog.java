@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal;
 
+import com.evolveum.midpoint.web.component.form.CheckFormGroup;
+import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.PropertyLimitationsTypeDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
@@ -29,6 +31,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -66,6 +69,10 @@ public class LimitationsEditorDialog extends ModalWindow{
     private static final String ID_BUTTON_ADD = "addButton";
     private static final String ID_BUTTON_SAVE = "saveButton";
     private static final String ID_BUTTON_CANCEL = "cancelButton";
+    private static final String ID_MAIN_FORM = "mainForm";
+
+    private static final String ID_LABEL_SIZE = "col-md-4";
+    private static final String ID_INPUT_SIZE = "col-md-8";
 
     private ChangeState changeState = ChangeState.FIRST;
     private boolean initialized;
@@ -120,6 +127,10 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     public void initLayout(WebMarkupContainer content){
+        Form form = new Form(ID_MAIN_FORM);
+        form.setOutputMarkupId(true);
+        content.add(form);
+
         ListView repeater = new ListView<PropertyLimitationsTypeDto>(ID_REPEATER, model){
 
             @Override
@@ -165,12 +176,12 @@ public class LimitationsEditorDialog extends ModalWindow{
             }
         };
         repeater.setOutputMarkupId(true);
-        content.add(repeater);
+        form.add(repeater);
 
-        initButtons(content);
+        initButtons(form);
     }
 
-    private void initButtons(WebMarkupContainer content){
+    private void initButtons(Form form){
         AjaxLink add = new AjaxLink(ID_BUTTON_ADD) {
 
             @Override
@@ -178,7 +189,7 @@ public class LimitationsEditorDialog extends ModalWindow{
                 addLimitationsPerformed(target);
             }
         };
-        content.add(add);
+        form.add(add);
 
         AjaxLink cancel = new AjaxLink(ID_BUTTON_CANCEL) {
 
@@ -187,7 +198,7 @@ public class LimitationsEditorDialog extends ModalWindow{
                 cancelPerformed(target);
             }
         };
-        content.add(cancel);
+        form.add(cancel);
 
         AjaxLink save = new AjaxLink(ID_BUTTON_SAVE) {
 
@@ -196,45 +207,55 @@ public class LimitationsEditorDialog extends ModalWindow{
                 savePerformed(target);
             }
         };
-        content.add(save);
+        form.add(save);
     }
 
     private void initLimitationBody(WebMarkupContainer body, ListItem<PropertyLimitationsTypeDto> item){
-        CheckBox schema = new CheckBox(ID_LAYER_SCHEMA, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_SCHEMA));
-        schema.add(prepareAjaxOnComponentTagUpdateBehavior());
+        CheckFormGroup schema = new CheckFormGroup(ID_LAYER_SCHEMA, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_SCHEMA),
+                createStringResource("LimitationsEditorDialog.label.schema"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+        schema.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(schema);
 
-        CheckBox model = new CheckBox(ID_LAYER_MODEL, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_MODEL));
-        model.add(prepareAjaxOnComponentTagUpdateBehavior());
+        CheckFormGroup model = new CheckFormGroup(ID_LAYER_MODEL, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_MODEL),
+                createStringResource("LimitationsEditorDialog.label.model"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+        model.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(model);
 
-        CheckBox presentation = new CheckBox(ID_LAYER_PRESENTATION, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_PRESENTATION));
-        presentation.add(prepareAjaxOnComponentTagUpdateBehavior());
+        CheckFormGroup presentation = new CheckFormGroup(ID_LAYER_PRESENTATION, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_PRESENTATION),
+                createStringResource("LimitationsEditorDialog.label.presentation"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+        presentation.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(presentation);
 
-        CheckBox add = new CheckBox(ID_ACCESS_ADD, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.add"));
-        add.add(prepareAjaxOnComponentTagUpdateBehavior());
+        CheckFormGroup add = new CheckFormGroup(ID_ACCESS_ADD, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.add"),
+                createStringResource("LimitationsEditorDialog.label.add"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+        add.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(add);
 
-        CheckBox read = new CheckBox(ID_ACCESS_READ, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.read"));
-        read.add(prepareAjaxOnComponentTagUpdateBehavior());
+        CheckFormGroup read = new CheckFormGroup(ID_ACCESS_READ, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.read"),
+                createStringResource("LimitationsEditorDialog.label.read"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+        read.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(read);
 
-        CheckBox modify = new CheckBox(ID_ACCESS_MODIFY, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.modify"));
-        modify.add(prepareAjaxOnComponentTagUpdateBehavior());
+        CheckFormGroup modify = new CheckFormGroup(ID_ACCESS_MODIFY, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.modify"),
+                createStringResource("LimitationsEditorDialog.label.modify"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+        modify.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(modify);
 
-        TextField minOccurs = new TextField<>(ID_MIN_OCCURS, new PropertyModel<String>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".minOccurs"));
-        minOccurs.add(prepareAjaxOnComponentTagUpdateBehavior());
+        TextFormGroup minOccurs = new TextFormGroup(ID_MIN_OCCURS, new PropertyModel<String>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".minOccurs"),
+                createStringResource("LimitationsEditorDialog.label.minOccurs"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        minOccurs.getField().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(minOccurs);
 
-        TextField maxOccurs = new TextField<>(ID_MAX_OCCURS, new PropertyModel<String>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".maxOccurs"));
-        maxOccurs.add(prepareAjaxOnComponentTagUpdateBehavior());
+        TextFormGroup maxOccurs = new TextFormGroup(ID_MAX_OCCURS, new PropertyModel<String>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".maxOccurs"),
+                createStringResource("LimitationsEditorDialog.label.maxOccurs"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        maxOccurs.getField().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(maxOccurs);
 
-        CheckBox ignore = new CheckBox(ID_IGNORE, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".ignore"));
-        ignore.add(prepareAjaxOnComponentTagUpdateBehavior());
+        CheckFormGroup ignore = new CheckFormGroup(ID_IGNORE, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".ignore"),
+                createStringResource("LimitationsEditorDialog.label.ignore"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+        ignore.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(ignore);
+
     }
 
     private AjaxFormComponentUpdatingBehavior prepareAjaxOnComponentTagUpdateBehavior(){

@@ -344,7 +344,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     	}
     	return false;
     }
-    
+        
     public boolean containsRealValue(V value) {
     	for (V myValue: getValues()) {
     		if (myValue.equalsRealValue(value)) {

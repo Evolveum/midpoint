@@ -57,6 +57,7 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -200,18 +201,6 @@ class EntitlementConverter {
 		}
 		
 		ObjectQuery query = createQuery(assocDefType, assocAttrDef, valueAttr);
-		
-//		MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(assocDefType.getResourceObjectAssociationType().getMatchingRule(), valueAttr.getDefinition().getTypeName());
-//		PrismPropertyValue normalized = valueAttr.getValue();
-//		if (matchingRule != null) {
-//			Object normalizedRealValue = matchingRule.normalize(valueAttr.getRealValue());
-//			normalized = new PrismPropertyValue(normalizedRealValue);
-//		}
-//		
-//		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, normalized);
-//		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-//		ObjectQuery query = new ObjectQuery();
-//		query.setFilter(filter);
 		
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementDef, resourceType);
 		

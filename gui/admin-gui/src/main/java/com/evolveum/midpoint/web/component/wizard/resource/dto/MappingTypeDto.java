@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingSourceDeclarationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
@@ -27,14 +28,6 @@ import java.util.List;
  *  @author shood
  * */
 public class MappingTypeDto implements Serializable {
-
-    public static enum ExpressionEvaluatorType{
-        LITERAL,
-        AS_IS,
-        PATH,
-        SCRIPT,
-        GENERATE
-    }
 
     public static final String F_MAPPING = "mappingObject";
     public static final String F_EXPRESSION = "expression";
@@ -49,8 +42,8 @@ public class MappingTypeDto implements Serializable {
     private String condition;
     private String target;
     private List<String> source = new ArrayList<>();
-    private ExpressionEvaluatorType expressionType = null;
-    private ExpressionEvaluatorType conditionType = null;
+    private ExpressionUtil.ExpressionEvaluatorType expressionType = null;
+    private ExpressionUtil.ExpressionEvaluatorType conditionType = null;
 
     public MappingTypeDto(MappingType mapping){
 
@@ -89,6 +82,14 @@ public class MappingTypeDto implements Serializable {
     protected MappingType prepareDtoToSave(){
         //TODO - implement
         return new MappingType();
+    }
+
+    public void updateExpression(){
+        expression = ExpressionUtil.getExpressionString(expressionType);
+    }
+
+    public void updateCondition(){
+        condition = ExpressionUtil.getExpressionString(conditionType);
     }
 
     public MappingType getMappingObject() {
@@ -131,19 +132,19 @@ public class MappingTypeDto implements Serializable {
         this.source = source;
     }
 
-    public ExpressionEvaluatorType getExpressionType() {
+    public ExpressionUtil.ExpressionEvaluatorType getExpressionType() {
         return expressionType;
     }
 
-    public void setExpressionType(ExpressionEvaluatorType expressionType) {
+    public void setExpressionType(ExpressionUtil.ExpressionEvaluatorType expressionType) {
         this.expressionType = expressionType;
     }
 
-    public ExpressionEvaluatorType getConditionType() {
+    public ExpressionUtil.ExpressionEvaluatorType getConditionType() {
         return conditionType;
     }
 
-    public void setConditionType(ExpressionEvaluatorType conditionType) {
+    public void setConditionType(ExpressionUtil.ExpressionEvaluatorType conditionType) {
         this.conditionType = conditionType;
     }
 

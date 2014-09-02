@@ -16,36 +16,53 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceCredentialsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePasswordDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *  @author shood
  * */
 public class ResourceCredentialsEditor extends SimplePanel{
 
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceCredentialsEditor.class);
+
+    private static final String DOT_CLASS = ResourceCredentialsEditor.class.getName() + ".";
+    private static final String OPERATION_LOAD_PASSWORD_POLICIES = DOT_CLASS + "createPasswordPolicyList";
+
     private static final String ID_FETCH_STRATEGY = "fetchStrategy";
     private static final String ID_OUTBOUND_LABEL = "outboundLabel";
     private static final String ID_OUTBOUND_BUTTON = "outboundButton";
     private static final String ID_INBOUND = "inbound";
-    private static final String ID_PASS_POLICY_LABEL = "passPolicyRefLabel";
-    private static final String ID_PASS_POLICY_BUTTON = "passPolicyRefButton";
+    private static final String ID_PASS_POLICY = "passPolicy";
+    private static final String ID_MODAL_MAPPING = "mappingEditor";
+
+    private Map<String, String> passPolicyMap = new HashMap<>();
 
     public ResourceCredentialsEditor(String id, IModel<ResourceCredentialsDefinitionType> model){
         super(id, model);
@@ -74,7 +91,6 @@ public class ResourceCredentialsEditor extends SimplePanel{
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
         add(fetchStrategy);
 
-        //TODO - what should we display as Mapping label?
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new PropertyModel<String>(getModel(), "password.outbound.name"));
         outboundLabel.setEnabled(false);
@@ -98,8 +114,13 @@ public class ResourceCredentialsEditor extends SimplePanel{
 
                     @Override
                     public String getObject() {
-                        //TODO - what should we display as Mapping label?
-                        return model.getObject().getName();
+                        MappingType mapping = model.getObject();
+
+                        if(mapping != null){
+                            return mapping.getName();
+                        } else {
+                            return null;
+                        }
                     }
                 };
             }
@@ -116,43 +137,80 @@ public class ResourceCredentialsEditor extends SimplePanel{
         };
         add(inbound);
 
-        //TODO - load real name of PassPolicy from ObjectReference as model of passPolicyLabel
-        TextField passPolicyLabel = new TextField<>(ID_PASS_POLICY_LABEL, new AbstractReadOnlyModel<String>() {
+        DropDownChoice passwordPolicy = new DropDownChoice<>(ID_PASS_POLICY,
+                new PropertyModel<ObjectReferenceType>(getModel(), "password.passwordPolicyRef"),
+                new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
+
+                    @Override
+                    public List<ObjectReferenceType> getObject() {
+                        return createPasswordPolicyList();
+                    }
+                }, new IChoiceRenderer<ObjectReferenceType>() {
 
             @Override
-            public String getObject() {
-                ResourceCredentialsDefinitionType credentials = (ResourceCredentialsDefinitionType)getModelObject();
+            public Object getDisplayValue(ObjectReferenceType object) {
+                return passPolicyMap.get(object.getOid());
+            }
 
-                if(credentials != null && credentials.getPassword() != null
-                        && credentials.getPassword().getPasswordPolicyRef() != null){
-                    return credentials.getPassword().getPasswordPolicyRef().getOid();
-                } else {
-                    return null;
-                }
+            @Override
+            public String getIdValue(ObjectReferenceType object, int index) {
+                return Integer.toString(index);
             }
         });
-        passPolicyLabel.setEnabled(false);
-        add(passPolicyLabel);
+        add(passwordPolicy);
 
-        AjaxLink passPolicyButton = new AjaxLink(ID_PASS_POLICY_BUTTON) {
+        initModals();
+    }
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                passwordPolicyRefEditPerformed(target);
+    private void initModals(){
+        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null);
+        add(mappingEditor);
+    }
+
+    private List<ObjectReferenceType> createPasswordPolicyList(){
+        passPolicyMap.clear();
+        OperationResult result = new OperationResult(OPERATION_LOAD_PASSWORD_POLICIES);
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
+        List<PrismObject<ValuePolicyType>> policies = null;
+        List<ObjectReferenceType> references = new ArrayList<>();
+
+        try{
+            policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, new ObjectQuery(), null, task, result);
+            result.recomputeStatus();
+        } catch (Exception e){
+            result.recordFatalError("Couldn't load password policies.", e);
+            LoggingUtils.logException(LOGGER, "Couldn't load password policies", e);
+        }
+
+        // TODO - show error somehow
+        // if(!result.isSuccess()){
+        //    getPageBase().showResult(result);
+        // }
+
+        if(policies != null){
+            ObjectReferenceType ref;
+
+            for(PrismObject<ValuePolicyType> policy: policies){
+                passPolicyMap.put(policy.getOid(), WebMiscUtil.getName(policy));
+                ref = new ObjectReferenceType();
+                ref.setType(ValuePolicyType.COMPLEX_TYPE);
+                ref.setOid(policy.getOid());
+                references.add(ref);
             }
-        };
-        add(passPolicyButton);
+        }
+
+        return references;
     }
 
     private void outboundEditPerformed(AjaxRequestTarget target){
-        //TODO - implement this
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
+        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "password.outbound"));
+        window.show(target);
     }
 
     private void mappingEditPerformed(AjaxRequestTarget target, MappingType mapping){
-        //TODO - implement (open ModalWindow here - MappingType editor)
-    }
-
-    private void passwordPolicyRefEditPerformed(AjaxRequestTarget target){
-        //TODO - implement (open ModalWindow here - object chooser for PasswordPolicyType)
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
+        window.updateModel(target, mapping);
+        window.show(target);
     }
 }
