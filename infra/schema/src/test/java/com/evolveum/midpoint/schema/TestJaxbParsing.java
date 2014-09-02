@@ -45,6 +45,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -227,4 +228,23 @@ public class TestJaxbParsing {
                 new JAXBElement<Object>(new QName("http://www.example.com", "custom"), Object.class, delta));
         assertNotNull(xml);
     }
+
+    @Test
+    public void testParseAnyValue() throws SchemaException, SAXException, IOException, JAXBException {
+
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+        // WHEN
+
+        String data = "<asIs/>";
+
+
+        // THEN
+
+        Object o = prismContext.parseAnyValueAsJAXBElement(data, PrismContext.LANG_XML);
+        System.out.println("Parsed expression evaluator: " + o);
+        AssertJUnit.assertTrue("o is of wrong class (not JAXBElement): " + o.getClass(), o instanceof JAXBElement);
+    }
+
+
 }
