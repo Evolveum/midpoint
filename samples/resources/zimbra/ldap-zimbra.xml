@@ -265,14 +265,6 @@
 				</outbound>
 			</attribute>
 			
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-			
-			<protected>
-				<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
-			</protected>
-
 			<association>
 				<ref>ri:group</ref>
 				<displayName>LDAP Group Membership</displayName>
@@ -282,6 +274,14 @@
 				<associationAttribute>ri:member</associationAttribute>
 				<valueAttribute>icfs:name</valueAttribute>
 			</association>
+
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+			
+			<protected>
+				<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+			</protected>
 			
 			<activation>
 		                <administrativeStatus>
