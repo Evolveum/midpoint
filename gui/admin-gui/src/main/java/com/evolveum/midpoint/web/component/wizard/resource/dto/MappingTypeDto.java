@@ -16,10 +16,26 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
+import com.evolveum.midpoint.common.StaticExpressionUtil;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingSourceDeclarationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.w3c.dom.Element;
 
+import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +45,8 @@ import java.util.List;
  * */
 public class MappingTypeDto implements Serializable {
 
+    private static final Trace LOGGER = TraceManager.getTrace(MappingTypeDto.class);
+
     public static final String F_MAPPING = "mappingObject";
     public static final String F_EXPRESSION = "expression";
     public static final String F_CONDITION = "condition";
@@ -36,6 +54,10 @@ public class MappingTypeDto implements Serializable {
     public static final String F_SOURCE = "source";
     public static final String F_EXPRESSION_TYPE = "expressionType";
     public static final String F_CONDITION_TYPE = "conditionType";
+    public static final String F_EXPRESSION_LANG = "expressionLanguage";
+    public static final String F_CONDITION_LANG = "conditionLanguage";
+    public static final String F_EXPRESSION_POLICY_REF = "expressionPolicyRef";
+    public static final String F_CONDITION_POLICY_REF = "conditionPolicyRef";
 
     private MappingType mappingObject;
     private String expression;
@@ -44,8 +66,12 @@ public class MappingTypeDto implements Serializable {
     private List<String> source = new ArrayList<>();
     private ExpressionUtil.ExpressionEvaluatorType expressionType = null;
     private ExpressionUtil.ExpressionEvaluatorType conditionType = null;
+    private ExpressionUtil.Language expressionLanguage = ExpressionUtil.Language.GROOVY;
+    private ExpressionUtil.Language conditionLanguage = ExpressionUtil.Language.GROOVY;
+    private ObjectReferenceType expressionPolicyRef = null;
+    private ObjectReferenceType conditionPolicyRef = null;
 
-    public MappingTypeDto(MappingType mapping){
+    public MappingTypeDto(MappingType mapping, PrismContext prismContext){
 
         if(mapping == null){
             mappingObject = new MappingType();
@@ -76,12 +102,69 @@ public class MappingTypeDto implements Serializable {
             target = mappingObject.getTarget().getPath().getItemPath().toString();
         }
 
-        //TODO - get expressions and conditions from mapping
+
+        loadExpressions(prismContext);
     }
+
+    private void loadExpressions(PrismContext context){
+        if(mappingObject.getExpression() != null && mappingObject.getExpression().getExpressionEvaluator() != null
+                && !mappingObject.getExpression().getExpressionEvaluator().isEmpty()){
+
+            try {
+                if(mappingObject.getExpression().getExpressionEvaluator().size() == 1){
+                    expression = context.serializeAtomicValue(mappingObject.getExpression().getExpressionEvaluator().get(0), PrismContext.LANG_XML);
+                } else{
+                    StringBuilder sb = new StringBuilder();
+                    for(JAXBElement<?> element: mappingObject.getExpression().getExpressionEvaluator()){
+                        String subElement = context.serializeAtomicValue(element, PrismContext.LANG_XML);
+                        sb.append(subElement).append("\n");
+                    }
+                    expression = sb.toString();
+                }
+            } catch (SchemaException e) {
+                //TODO - how can we show this error to user?
+                LoggingUtils.logException(LOGGER, "Could not load expressions from mapping.", e);
+                expression = e.getMessage();
+            }
+        }
+    }
+
+    //TODO - use this to save values from String to JAXBElement<?>
+    public ExpressionType deserializeExpression(PrismContext prismContext) throws SchemaException {
+//        System.out.println("Serialized = " + expression);
+        ExpressionType expressionType = mappingObject.getExpression();
+        if (expressionType == null) {
+            expressionType = new ExpressionType();
+        }
+
+        JAXBElement<?> expressionEvaluator = prismContext.parseAnyValueAsJAXBElement(expression, PrismContext.LANG_XML);
+        expressionType.getExpressionEvaluator().clear();
+        expressionType.getExpressionEvaluator().add(expressionEvaluator);
+//        System.out.println("Parsed = " + expressionType);
+        return expressionType;
+    }
+
+
 
     protected MappingType prepareDtoToSave(){
         //TODO - implement
         return new MappingType();
+    }
+
+    public void updateExpressionGeneratePolicy(){
+        expression = ExpressionUtil.getExpressionString(expressionType, expressionPolicyRef);
+    }
+
+    public void updateConditionGeneratePolicy(){
+        condition = ExpressionUtil.getExpressionString(expressionType, conditionPolicyRef);
+    }
+
+    public void updateExpressionLanguage(){
+        expression = ExpressionUtil.getExpressionString(expressionType, expressionLanguage);
+    }
+
+    public void updateConditionLanguage(){
+        condition = ExpressionUtil.getExpressionString(conditionType, conditionLanguage);
     }
 
     public void updateExpression(){
@@ -148,16 +231,54 @@ public class MappingTypeDto implements Serializable {
         this.conditionType = conditionType;
     }
 
+    public ExpressionUtil.Language getExpressionLanguage() {
+        return expressionLanguage;
+    }
+
+    public void setExpressionLanguage(ExpressionUtil.Language expressionLanguage) {
+        this.expressionLanguage = expressionLanguage;
+    }
+
+    public ExpressionUtil.Language getConditionLanguage() {
+        return conditionLanguage;
+    }
+
+    public void setConditionLanguage(ExpressionUtil.Language conditionLanguage) {
+        this.conditionLanguage = conditionLanguage;
+    }
+
+    public ObjectReferenceType getExpressionPolicyRef() {
+        return expressionPolicyRef;
+    }
+
+    public void setExpressionPolicyRef(ObjectReferenceType expressionPolicyRef) {
+        this.expressionPolicyRef = expressionPolicyRef;
+    }
+
+    public ObjectReferenceType getConditionPolicyRef() {
+        return conditionPolicyRef;
+    }
+
+    public void setConditionPolicyRef(ObjectReferenceType conditionPolicyRef) {
+        this.conditionPolicyRef = conditionPolicyRef;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof MappingTypeDto)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
 
         MappingTypeDto that = (MappingTypeDto) o;
 
         if (condition != null ? !condition.equals(that.condition) : that.condition != null) return false;
+        if (conditionLanguage != that.conditionLanguage) return false;
+        if (conditionPolicyRef != null ? !conditionPolicyRef.equals(that.conditionPolicyRef) : that.conditionPolicyRef != null)
+            return false;
         if (conditionType != that.conditionType) return false;
         if (expression != null ? !expression.equals(that.expression) : that.expression != null) return false;
+        if (expressionLanguage != that.expressionLanguage) return false;
+        if (expressionPolicyRef != null ? !expressionPolicyRef.equals(that.expressionPolicyRef) : that.expressionPolicyRef != null)
+            return false;
         if (expressionType != that.expressionType) return false;
         if (mappingObject != null ? !mappingObject.equals(that.mappingObject) : that.mappingObject != null)
             return false;
@@ -176,6 +297,10 @@ public class MappingTypeDto implements Serializable {
         result = 31 * result + (source != null ? source.hashCode() : 0);
         result = 31 * result + (expressionType != null ? expressionType.hashCode() : 0);
         result = 31 * result + (conditionType != null ? conditionType.hashCode() : 0);
+        result = 31 * result + (expressionLanguage != null ? expressionLanguage.hashCode() : 0);
+        result = 31 * result + (conditionLanguage != null ? conditionLanguage.hashCode() : 0);
+        result = 31 * result + (expressionPolicyRef != null ? expressionPolicyRef.hashCode() : 0);
+        result = 31 * result + (conditionPolicyRef != null ? conditionPolicyRef.hashCode() : 0);
         return result;
     }
 }

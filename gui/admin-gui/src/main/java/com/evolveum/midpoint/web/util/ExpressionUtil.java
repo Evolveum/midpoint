@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 /**
  *  @author shood
  * */
@@ -63,6 +65,35 @@ public class ExpressionUtil {
                     "<generate>\n" +
                     "    <valuePolicyRef oid=\"Insert value policy oid\"/>\n" +
                     "</generate>";
+
+    public static String getExpressionString(ExpressionEvaluatorType type, ObjectReferenceType policy){
+        if(ExpressionEvaluatorType.GENERATE.equals(type) && policy != null){
+            StringBuilder sb = new StringBuilder();
+            sb.append("<generate>\n" +
+                    "    <valuePolicyRef oid=\"").append(policy.getOid()).append("\"/>\n" +
+                    "</generate>");
+
+            return sb.toString();
+        }
+
+        return EXPRESSION_GENERATE;
+    }
+
+    public static String getExpressionString(ExpressionEvaluatorType type, Language lang){
+        if(ExpressionEvaluatorType.SCRIPT.equals(type) && !Language.GROOVY.equals(lang)){
+            StringBuilder sb = new StringBuilder();
+            sb.append("<script>\n");
+            sb.append("    <language>").append(lang.getLanguage()).append("</language>\n");
+            sb.append("    <code>\n" +
+                    "        Insert your script here\n" +
+                    "    </code>\n" +
+                    "<script>");
+
+            return sb.toString();
+        }
+
+        return EXPRESSION_SCRIPT;
+    }
 
     public static String getExpressionString(ExpressionEvaluatorType type){
         if(type == null){

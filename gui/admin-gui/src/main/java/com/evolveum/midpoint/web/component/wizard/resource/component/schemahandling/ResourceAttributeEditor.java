@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
@@ -35,6 +36,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -120,7 +123,28 @@ public class ResourceAttributeEditor extends SimplePanel{
         add(fetchStrategy);
 
         //TODO - figure out what matchingRule is exactly and make this autoCompleteField with proper resource values + validator
-        TextField matchingRule = new TextField<>(ID_MATCHING_RULE, new PropertyModel<String>(getModel(), "matchingRule.localPart"));
+//        TextField matchingRule = new TextField<>(ID_MATCHING_RULE, new PropertyModel<String>(getModel(), "matchingRule.localPart"));
+//        add(matchingRule);
+        DropDownChoice matchingRule = new DropDownChoice<>(ID_MATCHING_RULE,
+                new PropertyModel<QName>(getModel(), "matchingRule"),
+                new AbstractReadOnlyModel<List<QName>>() {
+
+                    @Override
+                    public List<QName> getObject() {
+                        return getMatchingRuleList();
+                    }
+                }, new IChoiceRenderer<QName>() {
+
+            @Override
+            public Object getDisplayValue(QName object) {
+                return object.getLocalPart();
+            }
+
+            @Override
+            public String getIdValue(QName object, int index) {
+                return Integer.toString(index);
+            }
+        });
         add(matchingRule);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
@@ -179,6 +203,17 @@ public class ResourceAttributeEditor extends SimplePanel{
 
         ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null);
         add(mappingEditor);
+    }
+
+    private List<QName> getMatchingRuleList(){
+        List<QName> list = new ArrayList<>();
+
+        MatchingRuleRegistry registry = getPageBase().getMatchingRuleRegistry();
+        if(registry != null){
+            list.addAll(registry.matchingRules.keySet());
+        }
+
+        return list;
     }
 
     private void limitationsEditPerformed(AjaxRequestTarget target){
