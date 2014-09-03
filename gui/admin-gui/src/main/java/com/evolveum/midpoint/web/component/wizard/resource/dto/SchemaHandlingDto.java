@@ -29,9 +29,11 @@ public class SchemaHandlingDto implements Serializable{
 
     public static final String F_OBJECT_TYPES = "objectTypeList";
     public static final String F_SELECTED = "selected";
+    public static final String F_SELECTED_OBJECT_CLASS = "selectedObjectClass";
 
     private List<ResourceObjectTypeDefinitionTypeDto> objectTypeList = new ArrayList<>();
     private ResourceObjectTypeDefinitionType selected;
+    private String selectedObjectClass;
     private List<QName> objectClassList;
 
     public List<ResourceObjectTypeDefinitionTypeDto> getObjectTypeList() {
@@ -48,6 +50,12 @@ public class SchemaHandlingDto implements Serializable{
 
     public void setSelected(ResourceObjectTypeDefinitionType selected) {
         this.selected = selected;
+
+        if(selected == null){
+            selectedObjectClass = null;
+        } else if(selected != null && selected.getObjectClass() != null){
+            selectedObjectClass = selected.getObjectClass().getLocalPart();
+        }
     }
 
     public List<QName> getObjectClassList() {
@@ -56,5 +64,25 @@ public class SchemaHandlingDto implements Serializable{
 
     public void setObjectClassList(List<QName> objectClassList) {
         this.objectClassList = objectClassList;
+    }
+
+    public String getSelectedObjectClass() {
+        return selectedObjectClass;
+    }
+
+    public void setSelectedObjectClass(String selectedObjectClass) {
+        this.selectedObjectClass = selectedObjectClass;
+
+        if(selectedObjectClass == null && selected != null){
+            selected.setObjectClass(null);
+        }
+
+        if(selected != null){
+            for(QName q: objectClassList){
+                if(q.getLocalPart().equals(selectedObjectClass)){
+                    selected.setObjectClass(q);
+                }
+            }
+        }
     }
 }

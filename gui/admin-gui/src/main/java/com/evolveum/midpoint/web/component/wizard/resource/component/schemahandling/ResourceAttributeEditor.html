@@ -26,7 +26,17 @@
             <label><wicket:message key="ResourceAttributeEditor.label.reference" /></label>
         </dt>
         <dd>
-            <input wicket:id="reference" type="text" class="form-control input-sm" value=""/>
+            <select wicket:id="referenceSelect" class="form-control input-sm"></select>
+            <input wicket:id="referenceField" type="text" class="form-control input-sm" value=""/>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="ResourceAttributeEditor.label.allow" /></label>
+        </dt>
+        <dd>
+            <input wicket:id="allowRef" type="checkbox" value="checked"/>
         </dd>
     </dl>
 
@@ -115,7 +125,6 @@
         </dt>
         <dd>
             <select wicket:id="matchingRule" class="form-control input-sm"></select>
-            <!--<input wicket:id="matchingRule" type="text" class="form-control input-sm" value=""/>-->
         </dd>
     </dl>
 

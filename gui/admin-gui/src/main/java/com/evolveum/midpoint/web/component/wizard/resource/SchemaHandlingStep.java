@@ -40,7 +40,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -227,16 +229,16 @@ public class SchemaHandlingStep extends WizardStep {
             protected void populateItem(final Item<ResourceObjectTypeDefinitionTypeDto> item) {
                 final ResourceObjectTypeDefinitionTypeDto objectType = item.getModelObject();
 
-                AjaxLink link = new AjaxLink(ID_LINK_OBJECT_TYPE) {
+                AjaxSubmitLink link = new AjaxSubmitLink(ID_LINK_OBJECT_TYPE) {
 
                     @Override
-                    public void onClick(AjaxRequestTarget target) {
+                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         editObjectTypePerformed(target, objectType);
                     }
                 };
                 item.add(link);
 
-                Label label = new Label(ID_NAME_OBJECT_TYPE, new PropertyModel<>(objectType, "objectType.displayName"));
+                Label label = new Label(ID_NAME_OBJECT_TYPE, createObjectTypeDisplayModel(objectType));
                 label.setOutputMarkupId(true);
                 link.add(label);
 
@@ -278,7 +280,29 @@ public class SchemaHandlingStep extends WizardStep {
         add(add);
 
         initObjectTypeEditor(objectTypeEditor);
-        initModals();
+    }
+
+    private IModel<String> createObjectTypeDisplayModel(final ResourceObjectTypeDefinitionTypeDto objectType){
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                StringBuilder sb = new StringBuilder();
+
+                if(objectType != null && objectType.getObjectType() != null){
+                    ResourceObjectTypeDefinitionType object = objectType.getObjectType();
+                    sb.append(object.getDisplayName());
+
+                    if(object.getKind() != null || object.getIntent() != null){
+                        sb.append(" (").append(object.getKind());
+                        sb.append(", ").append(object.getIntent());
+                        sb.append(")");
+                    }
+                }
+
+                return sb.toString();
+            }
+        };
     }
 
     private void initObjectTypeEditor(WebMarkupContainer editor){
@@ -328,7 +352,7 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(editorDependency);
 
         AutoCompleteTextField<String> editorObjectClass = new AutoCompleteTextField<String>(ID_EDITOR_OBJECT_CLASS,
-                new PropertyModel<String>(model, SchemaHandlingDto.F_SELECTED + ".objectClass.localPart")) {
+                new PropertyModel<String>(model, SchemaHandlingDto.F_SELECTED_OBJECT_CLASS)) {
 
             @Override
             protected Iterator<String> getChoices(String input) {
@@ -353,6 +377,11 @@ public class SchemaHandlingStep extends WizardStep {
                 return choices.iterator();
             }
         };
+        editorObjectClass.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {}
+        });
         editorObjectClass.add(createObjectClassValidator());
         editor.add(editorObjectClass);
 
@@ -491,9 +520,6 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(editorCredentials);
     }
 
-    private void initModals(){
-        //TODO - init all modal windows here
-    }
 
     private IValidator<String> createObjectClassValidator(){
         return new IValidator<String>() {
@@ -596,17 +622,29 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private void editAttributePerformed(AjaxRequestTarget target, ResourceAttributeDefinitionType object){
-        WebMarkupContainer newContainer = new ResourceAttributeEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object));
-        getThirdRowContainer().replaceWith(newContainer);
+        if(model.getObject().getSelected() != null && model.getObject().getSelected().getObjectClass() != null){
+            WebMarkupContainer newContainer = new ResourceAttributeEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
+                    model.getObject().getSelected(), resourceModel.getObject());
+            getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+            target.add(getThirdRowContainer());
+        } else {
+            warn(getString("SchemaHandlingStep.message.selectObjectClassAttr"));
+            target.add(getPageBase().getFeedbackPanel());
+        }
     }
 
     private void editAssociationPerformed(AjaxRequestTarget target, ResourceObjectAssociationType object){
-        WebMarkupContainer newContainer = new ResourceAssociationEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object));
-        getThirdRowContainer().replaceWith(newContainer);
+        if(model.getObject().getSelected() != null && model.getObject().getSelected().getObjectClass() != null){
+            WebMarkupContainer newContainer = new ResourceAssociationEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
+                    model.getObject().getSelected(), resourceModel.getObject());
+            getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+            target.add(getThirdRowContainer());
+        } else {
+            warn(getString("SchemaHandlingStep.message.selectObjectClassAss"));
+            target.add(getPageBase().getFeedbackPanel());
+        }
     }
 
     @Override
