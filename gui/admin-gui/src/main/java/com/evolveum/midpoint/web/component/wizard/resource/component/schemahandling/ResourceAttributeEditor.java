@@ -15,18 +15,27 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
@@ -35,9 +44,11 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -45,8 +56,12 @@ import java.util.List;
  * */
 public class ResourceAttributeEditor extends SimplePanel{
 
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceAttributeEditor.class);
+
     private static final String ID_LABEL = "label";
-    private static final String ID_REFERENCE = "reference";
+    private static final String ID_REFERENCE_FIELD = "referenceField";
+    private static final String ID_REFERENCE_SELECT = "referenceSelect";
+    private static final String ID_REFERENCE_ALLOW = "allowRef";
     private static final String ID_DISPLAY_NAME = "displayName";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXCLUSIVE_STRONG = "exclusiveStrong";
@@ -62,8 +77,16 @@ public class ResourceAttributeEditor extends SimplePanel{
     private static final String ID_MODAL_LIMITATIONS = "limitationsEditor";
     private static final String ID_MODAL_MAPPING = "mappingEditor";
 
-    public ResourceAttributeEditor(String id, IModel<ResourceAttributeDefinitionType> model){
+    private PrismObject<ResourceType> resource;
+    private ResourceObjectTypeDefinitionType objectType;
+    private boolean nonSchemaRefValueAllowed = false;
+
+    public ResourceAttributeEditor(String id, IModel<ResourceAttributeDefinitionType> model, ResourceObjectTypeDefinitionType objectType,
+                                   PrismObject<ResourceType> resource){
         super(id, model);
+
+        this.resource = resource;
+        this.objectType = objectType;
     }
 
     @Override
@@ -83,9 +106,59 @@ public class ResourceAttributeEditor extends SimplePanel{
         });
         add(label);
 
-        //TODO - figure out what ref is exactly and make this autoCompleteField with proper resource values + validator
-        TextField ref = new TextField<>(ID_REFERENCE, new PropertyModel<String>(getModel(), "ref.localPart"));
-        add(ref);
+        TextField refField = new TextField<>(ID_REFERENCE_FIELD, new PropertyModel<String>(getModel(), "ref.localPart"));
+        refField.setOutputMarkupId(true);
+        refField.setOutputMarkupPlaceholderTag(true);
+        refField.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return nonSchemaRefValueAllowed;
+            }
+
+        });
+        add(refField);
+
+        DropDownChoice refSelect = new DropDownChoice<>(ID_REFERENCE_SELECT, new PropertyModel<QName>(getModel(), "ref"),
+                new AbstractReadOnlyModel<List<QName>>() {
+
+                    @Override
+                    public List<QName> getObject() {
+                        return loadObjectReferences();
+                    }
+                }, new IChoiceRenderer<QName>() {
+
+            @Override
+            public Object getDisplayValue(QName object) {
+                return prepareReferenceDisplayValue(object);
+            }
+
+            @Override
+            public String getIdValue(QName object, int index) {
+                return Integer.toString(index);
+            }
+        });
+        refSelect.setOutputMarkupId(true);
+        refSelect.setOutputMarkupPlaceholderTag(true);
+        refSelect.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return !nonSchemaRefValueAllowed;
+            }
+
+        });
+        add(refSelect);
+
+        CheckBox allowNonSchema = new CheckBox(ID_REFERENCE_ALLOW, new PropertyModel<Boolean>(this, "nonSchemaRefValueAllowed"));
+        allowNonSchema.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(get(ID_REFERENCE_FIELD), get(ID_REFERENCE_SELECT));
+            }
+        });
+        add(allowNonSchema);
 
         TextField displayName = new TextField<>(ID_DISPLAY_NAME, new PropertyModel<String>(getModel(), "displayName"));
         add(displayName);
@@ -122,9 +195,6 @@ public class ResourceAttributeEditor extends SimplePanel{
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
         add(fetchStrategy);
 
-        //TODO - figure out what matchingRule is exactly and make this autoCompleteField with proper resource values + validator
-//        TextField matchingRule = new TextField<>(ID_MATCHING_RULE, new PropertyModel<String>(getModel(), "matchingRule.localPart"));
-//        add(matchingRule);
         DropDownChoice matchingRule = new DropDownChoice<>(ID_MATCHING_RULE,
                 new PropertyModel<QName>(getModel(), "matchingRule"),
                 new AbstractReadOnlyModel<List<QName>>() {
@@ -214,6 +284,65 @@ public class ResourceAttributeEditor extends SimplePanel{
         }
 
         return list;
+    }
+
+    private List<QName> loadObjectReferences(){
+        List<QName> references = new ArrayList<>();
+
+        ResourceSchema schema = loadResourceSchema();
+        if (schema == null) {
+            return references;
+        }
+
+        for(ObjectClassComplexTypeDefinition def: schema.getObjectClassDefinitions()){
+            if(objectType != null && def.getTypeName().equals(objectType.getObjectClass())){
+                Iterator it = def.getAttributeDefinitions().iterator();
+
+                while(it.hasNext()){
+                    ResourceAttributeDefinition attributeDefinition = (ResourceAttributeDefinition)it.next();
+                    references.add(attributeDefinition.getName());
+                }
+            }
+        }
+
+        return references;
+    }
+
+    private ResourceSchema loadResourceSchema() {
+        if(resource != null){
+            Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
+            if (xsdSchema == null) {
+                return null;
+            }
+
+            try {
+                return ResourceSchema.parse(xsdSchema, resource.toString(), getPageBase().getPrismContext());
+            } catch (Exception e) {
+                LoggingUtils.logException(LOGGER, "Couldn't parse resource schema.", e);
+                getSession().error(getString("ResourceAttributeEditor.message.cantParseSchema") + " " + e.getMessage());
+
+                throw new RestartResponseException(PageResources.class);
+            }
+        }
+
+        return null;
+    }
+
+    private String prepareReferenceDisplayValue(QName object){
+        StringBuilder sb = new StringBuilder();
+
+        if(object != null){
+            sb.append(object.getLocalPart());
+
+            if(object.getNamespaceURI() != null){
+                sb.append(" (");
+                String[] ns = object.getNamespaceURI().split("/");
+                sb.append(ns[ns.length-1]);
+                sb.append(")");
+            }
+        }
+
+        return sb.toString();
     }
 
     private void limitationsEditPerformed(AjaxRequestTarget target){

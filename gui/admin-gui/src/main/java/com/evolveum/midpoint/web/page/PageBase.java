@@ -79,8 +79,8 @@ public abstract class PageBase extends PageTemplate {
     private ReportManager reportManager;
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Autowired(required = true)
+//    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
     private MatchingRuleRegistry matchingRuleRegistry;
 
 
