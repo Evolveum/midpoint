@@ -23,27 +23,19 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.ExpressionVariableEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.IterationSpecificationTypeDto;
-import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import javax.xml.bind.JAXBElement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -128,6 +120,7 @@ public class ResourceIterationEditor extends SimplePanel{
                 @Override
                 protected IterationSpecificationTypeDto load() {
                     return new IterationSpecificationTypeDto(getModel().getObject());
+//                    return new IterationSpecificationTypeDto(getModel().getObject(), getPageBase().getPrismContext());
                 }
             };
         }
@@ -207,6 +200,7 @@ public class ResourceIterationEditor extends SimplePanel{
                 new EnumChoiceRenderer<ExpressionReturnMultiplicityType>(this));
         add(returnMultiplicity);
 
+        /*
         DropDownChoice exprType = new DropDownChoice<>(expressionType,
                 new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, prefix + "ExpressionType"),
                 WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
@@ -300,6 +294,7 @@ public class ResourceIterationEditor extends SimplePanel{
         TextArea expr = new TextArea<>(expression, new PropertyModel<String>(model, prefix + "Expression"));
         expr.setOutputMarkupId(true);
         add(expr);
+        */
     }
 
     //TODO - optimize this - now we are loading this 3* when resource iteration is edited
@@ -339,7 +334,14 @@ public class ResourceIterationEditor extends SimplePanel{
     }
 
     private void initModals(){
-        ModalWindow variableEditor = new ExpressionVariableEditorDialog(ID_VARIABLE_EDITOR_MODAL, null);
+        ModalWindow variableEditor = new ExpressionVariableEditorDialog(ID_VARIABLE_EDITOR_MODAL, null){
+
+            @Override
+            public void updateComponents(AjaxRequestTarget target){
+                target.add(ResourceIterationEditor.this.get(ID_POST_VARIABLE_LIST), ResourceIterationEditor.this.get(ID_PRE_VARIABLE_LIST),
+                        ResourceIterationEditor.this.get(ID_TOKEN_VARIABLE_LIST));
+            }
+        };
         add(variableEditor);
     }
 

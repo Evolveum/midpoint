@@ -16,14 +16,17 @@
 
 package com.evolveum.midpoint.web.component.form.multivalue;
 
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -98,10 +101,10 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {
-        AjaxLink edit = new AjaxLink(ID_EDIT) {
+        AjaxSubmitLink edit = new AjaxSubmitLink(ID_EDIT) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 editPerformed(target, item.getModelObject());
             }
         };

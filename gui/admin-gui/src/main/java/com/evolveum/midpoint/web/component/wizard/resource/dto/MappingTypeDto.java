@@ -16,24 +16,14 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
-import com.evolveum.midpoint.common.StaticExpressionUtil;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingSourceDeclarationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import org.w3c.dom.Element;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
@@ -102,8 +92,8 @@ public class MappingTypeDto implements Serializable {
             target = mappingObject.getTarget().getPath().getItemPath().toString();
         }
 
-
         loadExpressions(prismContext);
+        loadConditions(prismContext);
     }
 
     private void loadExpressions(PrismContext context){
@@ -121,34 +111,102 @@ public class MappingTypeDto implements Serializable {
                     }
                     expression = sb.toString();
                 }
+
+                expressionType = ExpressionUtil.getExpressionType(expression);
+                if(expressionType != null && expressionType.equals(ExpressionUtil.ExpressionEvaluatorType.SCRIPT)){
+                    expressionLanguage = ExpressionUtil.getExpressionLanguage(expression);
+                }
             } catch (SchemaException e) {
                 //TODO - how can we show this error to user?
-                LoggingUtils.logException(LOGGER, "Could not load expressions from mapping.", e);
+                LoggingUtils.logException(LOGGER, "Could not load expressions from mapping.", e, e.getStackTrace());
                 expression = e.getMessage();
             }
         }
     }
 
-    //TODO - use this to save values from String to JAXBElement<?>
-    public ExpressionType deserializeExpression(PrismContext prismContext) throws SchemaException {
-//        System.out.println("Serialized = " + expression);
-        ExpressionType expressionType = mappingObject.getExpression();
-        if (expressionType == null) {
-            expressionType = new ExpressionType();
-        }
+    private void loadConditions(PrismContext context){
+        if(mappingObject.getCondition() != null && mappingObject.getCondition().getExpressionEvaluator() != null
+                && !mappingObject.getCondition().getExpressionEvaluator().isEmpty()){
 
-        JAXBElement<?> expressionEvaluator = prismContext.parseAnyValueAsJAXBElement(expression, PrismContext.LANG_XML);
-        expressionType.getExpressionEvaluator().clear();
-        expressionType.getExpressionEvaluator().add(expressionEvaluator);
-//        System.out.println("Parsed = " + expressionType);
-        return expressionType;
+            try {
+                if(mappingObject.getCondition().getExpressionEvaluator().size() == 1){
+                    condition = context.serializeAtomicValue(mappingObject.getCondition().getExpressionEvaluator().get(0), PrismContext.LANG_XML);
+                } else{
+                    StringBuilder sb = new StringBuilder();
+                    for(JAXBElement<?> element: mappingObject.getCondition().getExpressionEvaluator()){
+                        String subElement = context.serializeAtomicValue(element, PrismContext.LANG_XML);
+                        sb.append(subElement).append("\n");
+                    }
+                    condition = sb.toString();
+
+                }
+
+                conditionType = ExpressionUtil.getExpressionType(condition);
+                if(conditionType != null && conditionType.equals(ExpressionUtil.ExpressionEvaluatorType.SCRIPT)){
+                    conditionLanguage = ExpressionUtil.getExpressionLanguage(expression);
+                }
+            } catch (SchemaException e) {
+                //TODO - how can we show this error to user?
+                LoggingUtils.logException(LOGGER, "Could not load expressions from mapping.", e, e.getStackTrace());
+                condition = e.getMessage();
+            }
+        }
     }
 
+    private JAXBElement<?> deserializeExpression(PrismContext prismContext, String xmlCode) throws SchemaException{
+        return prismContext.parseAnyValueAsJAXBElement(xmlCode, PrismContext.LANG_XML);
+    }
 
+    public MappingType prepareDtoToSave(PrismContext prismContext) throws SchemaException{
 
-    protected MappingType prepareDtoToSave(){
-        //TODO - implement
-        return new MappingType();
+        if(mappingObject == null){
+            mappingObject = new MappingType();
+        }
+
+        if(target != null){
+            MappingTargetDeclarationType mappingTarget = new MappingTargetDeclarationType();
+            mappingTarget.setPath(new ItemPathType(target));
+            mappingObject.setTarget(mappingTarget);
+        }
+
+        List<String> existingSources = new ArrayList<>();
+        for(MappingSourceDeclarationType s: mappingObject.getSource()){
+            if(s.getPath() != null && s.getPath().getItemPath() != null){
+                existingSources.add(s.getPath().getItemPath().toString());
+            }
+        }
+
+        List<MappingSourceDeclarationType> mappingSourceList = new ArrayList<>();
+        for(String s: source){
+
+            if(s == null || existingSources.contains(s)){
+                continue;
+            }
+
+            MappingSourceDeclarationType mappingSource = new MappingSourceDeclarationType();
+            mappingSource.setPath(new ItemPathType(s));
+            mappingSourceList.add(mappingSource);
+        }
+
+        mappingObject.getSource().addAll(mappingSourceList);
+
+        if(expression != null){
+            if(mappingObject.getExpression() == null){
+                mappingObject.setExpression(new ExpressionType());
+            }
+
+            mappingObject.getExpression().getExpressionEvaluator().add(deserializeExpression(prismContext, expression));
+        }
+
+        if(condition != null){
+            if(mappingObject.getCondition() != null){
+                mappingObject.setCondition(new ExpressionType());
+            }
+
+            mappingObject.getCondition().getExpressionEvaluator().add(deserializeExpression(prismContext, condition));
+        }
+
+        return mappingObject;
     }
 
     public void updateExpressionGeneratePolicy(){

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
@@ -295,16 +296,18 @@ public class ResourceAssociationEditor extends SimplePanel{
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new PropertyModel<String>(getModel(), "outbound.name"));
+        outboundLabel.setOutputMarkupId(true);
         outboundLabel.setEnabled(false);
         add(outboundLabel);
 
-        AjaxLink outbound = new AjaxLink(ID_BUTTON_OUTBOUND) {
+        AjaxSubmitButton outbound = new AjaxSubmitButton(ID_BUTTON_OUTBOUND) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 outboundEditPerformed(target);
             }
         };
+        outbound.setOutputMarkupId(true);
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
@@ -337,6 +340,7 @@ public class ResourceAssociationEditor extends SimplePanel{
                 mappingEditPerformed(target, object);
             }
         };
+        inbound.setOutputMarkupId(true);
         add(inbound);
 
         initModals();
@@ -347,7 +351,15 @@ public class ResourceAssociationEditor extends SimplePanel{
                 new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
         add(limitationsEditor);
 
-        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null);
+        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null){
+
+            @Override
+            public void updateComponents(AjaxRequestTarget target){
+                target.add(ResourceAssociationEditor.this.get(ID_INBOUND), ResourceAssociationEditor.this.get(ID_OUTBOUND_LABEL),
+                        ResourceAssociationEditor.this.get(ID_BUTTON_OUTBOUND));
+            }
+
+        };
         add(mappingEditor);
     }
 

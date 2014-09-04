@@ -39,10 +39,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -73,11 +70,13 @@ public class ExpressionVariableEditorDialog extends ModalWindow{
 
     private boolean initialized;
     private IModel<ExpressionVariableDefinitionTypeDto> model;
+    private IModel<ExpressionVariableDefinitionType> inputModel;
     private Map<String, String> objectMap = new HashMap<>();
 
     public ExpressionVariableEditorDialog(String id, final IModel<ExpressionVariableDefinitionType> variable){
         super(id);
 
+        inputModel = variable;
         model = new LoadableModel<ExpressionVariableDefinitionTypeDto>(false) {
 
             @Override
@@ -106,6 +105,13 @@ public class ExpressionVariableEditorDialog extends ModalWindow{
 
     public void updateModel(AjaxRequestTarget target, ExpressionVariableDefinitionType variable){
         model.setObject(new ExpressionVariableDefinitionTypeDto(variable));
+
+        if(inputModel != null){
+            inputModel.setObject(variable);
+        } else {
+            inputModel = new Model<>(variable);
+        }
+
         target.add(getContent());
     }
 
@@ -238,7 +244,16 @@ public class ExpressionVariableEditorDialog extends ModalWindow{
     }
 
     private void savePerformed(AjaxRequestTarget target){
-        //TODO - implement this
+        if(model != null && model.getObject() != null){
+            model.getObject().prepareDtoToSave();
+            inputModel.setObject(model.getObject().getVariableObject());
+        }
+
+        updateComponents(target);
+        close(target);
     }
 
+    public void updateComponents(AjaxRequestTarget target){
+        //Override this if update of component(s) holding this modal window is needed
+    }
 }
