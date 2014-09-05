@@ -129,7 +129,7 @@ public class SchemaHandlingStep extends WizardStep {
             SchemaHandlingType schemaHandling = resourceModel.getObject().asObjectable().getSchemaHandling();
 
             ResourceObjectTypeDefinitionTypeDto obj;
-            if(schemaHandling.getObjectType() != null){
+            if(schemaHandling != null && schemaHandling.getObjectType() != null){
                 for(ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()){
 
                     // temporary fix - think about better solution
@@ -146,15 +146,6 @@ public class SchemaHandlingStep extends WizardStep {
                 }
             }
         }
-
-        //TODO - delete this when this step is finished and tested
-        ResourceObjectTypeDefinitionType sample = new ResourceObjectTypeDefinitionType();
-        sample.setDisplayName("Test Object Class");
-        sample.getAttribute().add(new ResourceAttributeDefinitionType());
-        sample.getAssociation().add(new ResourceObjectAssociationType());
-        ResourceObjectTypeDefinitionTypeDto sampleDto = new ResourceObjectTypeDefinitionTypeDto(sample);
-        list.add(sampleDto);
-        //TODO - delete
 
         dto.setSelected(createPlaceholderObjectType());
         dto.setObjectClassList(loadResourceObjectClassList());
@@ -271,6 +262,7 @@ public class SchemaHandlingStep extends WizardStep {
         tableBody.add(objectTypeDataView);
 
         NavigatorPanel navigator = new NavigatorPanel(ID_PAGING_OBJECT_TYPE, objectTypeDataView, true);
+        navigator.setOutputMarkupPlaceholderTag(true);
         navigator.setOutputMarkupId(true);
         add(navigator);
 

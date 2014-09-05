@@ -239,6 +239,15 @@ public class PageResources extends PageAdminResources {
 
                 }));
 
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.editResource"),
+                new ColumnMenuAction<ResourceDto>(){
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target){
+                        editResourcePerformed(getRowModel());
+                    }
+                }));
+
         return dto;
     }
 
@@ -654,6 +663,12 @@ public class PageResources extends PageAdminResources {
 
     private void deleteResourceSyncTokenPerformed(AjaxRequestTarget target, IModel<ResourceDto> model){
         deleteSyncTokenPerformed(target, model);
+    }
+
+    private void editResourcePerformed(IModel<ResourceDto> model){
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, model.getObject().getOid());
+        setResponsePage(new PageResourceWizard(parameters));
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target){
