@@ -16,10 +16,17 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -27,6 +34,8 @@ import java.util.Map;
  *  @author shood
  * */
 public class IterationSpecificationTypeDto implements Serializable{
+
+    private static final Trace LOGGER = TraceManager.getTrace(IterationSpecificationTypeDto.class);
 
     public static final String TOKEN_EXPRESSION_PREFIX = "token";
     public static final String PRE_EXPRESSION_PREFIX = "pre";
@@ -54,8 +63,53 @@ public class IterationSpecificationTypeDto implements Serializable{
 
     public IterationSpecificationTypeDto(IterationSpecificationType iteration){
         iterationObject = iteration;
+    }
 
-        //TODO - load languages, references and expressions
+    public IterationSpecificationTypeDto(IterationSpecificationType iteration, PrismContext prismContext){
+        iterationObject = iteration;
+
+        if(!iterationObject.getTokenExpression().getExpressionEvaluator().isEmpty()){
+            loadExpression(tokenExpression, tokenExpressionType, tokenLanguage, tokenPolicyRef,
+                    iterationObject.getTokenExpression(), prismContext);
+        }
+
+        if(!iterationObject.getPreIterationCondition().getExpressionEvaluator().isEmpty()){
+            loadExpression(preExpression, preExpressionType, preLanguage, prePolicyRef,
+                    iterationObject.getPreIterationCondition(), prismContext);
+        }
+
+        if(!iterationObject.getPostIterationCondition().getExpressionEvaluator().isEmpty()){
+            loadExpression(postExpression, postExpressionType, postLanguage, postPolicyRef,
+                    iterationObject.getPostIterationCondition(), prismContext);
+        }
+    }
+
+    private void loadExpression(String expression, ExpressionUtil.ExpressionEvaluatorType type, ExpressionUtil.Language language,
+                                ObjectReferenceType ref, ExpressionType expressionType, PrismContext prismContext){
+
+        try{
+            if(expressionType.getExpressionEvaluator().size() == 1){
+                expression = prismContext.serializeAtomicValue(expressionType.getExpressionEvaluator().get(0), PrismContext.LANG_XML);
+            } else {
+                StringBuilder sb = new StringBuilder();
+                for(JAXBElement<?> element: expressionType.getExpressionEvaluator()){
+                    String subElement = prismContext.serializeAtomicValue(element, PrismContext.LANG_XML);
+                    sb.append(subElement).append("\n");
+                }
+
+                expression = sb.toString();
+            }
+
+            type = ExpressionUtil.getExpressionType(expression);
+            if(type != null && type.equals(ExpressionUtil.ExpressionEvaluatorType.SCRIPT)){
+                language = ExpressionUtil.getExpressionLanguage(expression);
+            }
+
+        } catch (SchemaException e){
+            //TODO - how can we show this error to user?
+            LoggingUtils.logException(LOGGER, "Could not load expressions from mapping.", e, e.getStackTrace());
+            expression = e.getMessage();
+        }
     }
 
     public void updateExpression(String prefix){

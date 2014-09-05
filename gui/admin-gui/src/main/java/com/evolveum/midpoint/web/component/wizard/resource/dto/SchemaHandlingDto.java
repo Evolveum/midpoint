@@ -53,8 +53,10 @@ public class SchemaHandlingDto implements Serializable{
 
         if(selected == null){
             selectedObjectClass = null;
-        } else if(selected != null && selected.getObjectClass() != null){
+        } else if(selected.getObjectClass() != null){
             selectedObjectClass = selected.getObjectClass().getLocalPart();
+        } else if(selected.getObjectClass() == null){
+            selectedObjectClass = null;
         }
     }
 

@@ -166,11 +166,18 @@ public class ResourceActivationEditor extends SimplePanel{
                 mappingEditPerformed(target, object);
             }
         };
+        inbound.setOutputMarkupId(true);
         add(inbound);
     }
 
     private void initModals(){
-        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null);
+        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null){
+
+            @Override
+            public void updateComponents(AjaxRequestTarget target){
+                target.add(ResourceActivationEditor.this);
+            }
+        };
         add(mappingEditor);
     }
 

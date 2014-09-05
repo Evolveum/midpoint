@@ -21,7 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  *  @author shood
@@ -62,9 +61,22 @@ public class PropertyLimitationsTypeDto implements Serializable{
         }
     }
 
-    protected PropertyLimitationsType prepareDtoForSave(){
-        //TODO - implement
-        return new PropertyLimitationsType();
+    public PropertyLimitationsType prepareDtoForSave(){
+        if(limitationObject == null){
+            limitationObject = new PropertyLimitationsType();
+        }
+
+        if(schema){
+            limitationObject.getLayer().add(LayerType.SCHEMA);
+        }
+        if(model){
+            limitationObject.getLayer().add(LayerType.MODEL);
+        }
+        if(presentation){
+            limitationObject.getLayer().add(LayerType.PRESENTATION);
+        }
+
+        return limitationObject;
     }
 
     public PropertyLimitationsType getLimitationObject() {

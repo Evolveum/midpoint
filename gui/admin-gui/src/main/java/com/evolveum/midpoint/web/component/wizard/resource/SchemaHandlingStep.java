@@ -18,9 +18,12 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -35,12 +38,12 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceObjectTyp
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SchemaHandlingDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -71,6 +74,7 @@ public class SchemaHandlingStep extends WizardStep {
 
     private static final String DOT_CLASS = SchemaHandlingStep.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT_CLASS_LIST = DOT_CLASS + "loadObjectClassList";
+    private static final String OPERATION_SAVE_SCHEMA_HANDLING = DOT_CLASS + "saveSchemaHandling";
 
     private static final String ID_ROWS = "tableRows";
     private static final String ID_ROW_OBJECT_TYPE = "objectTypeRow";
@@ -341,10 +345,10 @@ public class SchemaHandlingStep extends WizardStep {
                 SchemaHandlingDto.F_SELECTED + "._default"));
         editor.add(editorDefault);
 
-        AjaxLink editorDependency = new AjaxLink(ID_EDITOR_BUTTON_DEPENDENCY) {
+        AjaxSubmitLink editorDependency = new AjaxSubmitLink(ID_EDITOR_BUTTON_DEPENDENCY) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 dependencyEditPerformed(target);
             }
         };
@@ -377,11 +381,6 @@ public class SchemaHandlingStep extends WizardStep {
                 return choices.iterator();
             }
         };
-        editorObjectClass.add(new AjaxFormComponentUpdatingBehavior("onchange") {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {}
-        });
         editorObjectClass.add(createObjectClassValidator());
         editor.add(editorObjectClass);
 
@@ -471,55 +470,52 @@ public class SchemaHandlingStep extends WizardStep {
         };
         editor.add(editorAssociations);
 
-
-
         DropDownChoice editorAssignmentPolicyRef = new DropDownChoice<>(ID_EDITOR_ASSIGNMENT_POLICY,
                 new PropertyModel<AssignmentPolicyEnforcementType>(model, SchemaHandlingDto.F_SELECTED + ".assignmentPolicyEnforcement"),
                 WebMiscUtil.createReadonlyModelFromEnum(AssignmentPolicyEnforcementType.class),
                 new EnumChoiceRenderer<AssignmentPolicyEnforcementType>(this));
         editor.add(editorAssignmentPolicyRef);
 
-        AjaxLink editorIteration = new AjaxLink(ID_EDITOR_BUTTON_ITERATION) {
+        AjaxSubmitLink editorIteration = new AjaxSubmitLink(ID_EDITOR_BUTTON_ITERATION) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 iterationEditPerformed(target);
             }
         };
         addDisabledClassModifier(editorIteration);
         editor.add(editorIteration);
 
-        AjaxLink editorProtected = new AjaxLink(ID_EDITOR_BUTTON_PROTECTED) {
+        AjaxSubmitLink editorProtected = new AjaxSubmitLink(ID_EDITOR_BUTTON_PROTECTED) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 protectedEditPerformed(target);
             }
         };
         addDisabledClassModifier(editorProtected);
         editor.add(editorProtected);
 
-        AjaxLink editorActivation = new AjaxLink(ID_EDITOR_BUTTON_ACTIVATION) {
+        AjaxSubmitLink editorActivation = new AjaxSubmitLink(ID_EDITOR_BUTTON_ACTIVATION) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 activationEditPerformed(target);
             }
         };
         addDisabledClassModifier(editorActivation);
         editor.add(editorActivation);
 
-        AjaxLink editorCredentials = new AjaxLink(ID_EDITOR_BUTTON_CREDENTIALS) {
+        AjaxSubmitLink editorCredentials = new AjaxSubmitLink(ID_EDITOR_BUTTON_CREDENTIALS) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 credentialsEditPerformed(target);
             }
         };
         addDisabledClassModifier(editorCredentials);
         editor.add(editorCredentials);
     }
-
 
     private IValidator<String> createObjectClassValidator(){
         return new IValidator<String>() {
@@ -630,7 +626,8 @@ public class SchemaHandlingStep extends WizardStep {
             target.add(getThirdRowContainer());
         } else {
             warn(getString("SchemaHandlingStep.message.selectObjectClassAttr"));
-            target.add(getPageBase().getFeedbackPanel());
+            getThirdRowContainer().replaceWith(new WebMarkupContainer(ID_THIRD_ROW_CONTAINER));
+            target.add(getPageBase().getFeedbackPanel(), getThirdRowContainer());
         }
     }
 
@@ -643,13 +640,46 @@ public class SchemaHandlingStep extends WizardStep {
             target.add(getThirdRowContainer());
         } else {
             warn(getString("SchemaHandlingStep.message.selectObjectClassAss"));
-            target.add(getPageBase().getFeedbackPanel());
+            getThirdRowContainer().replaceWith(new WebMarkupContainer(ID_THIRD_ROW_CONTAINER));
+            target.add(getPageBase().getFeedbackPanel(), getThirdRowContainer());
         }
     }
 
     @Override
     public void applyState() {
-        // TODO - implement
+        savePerformed();
+    }
+
+    private void savePerformed(){
+        PrismObject<ResourceType> oldResource;
+        PrismObject<ResourceType> newResource = resourceModel.getObject();
+        OperationResult result = new OperationResult(OPERATION_SAVE_SCHEMA_HANDLING);
+        ModelService modelService = getPageBase().getModelService();
+        ObjectDelta delta = null;
+
+        try{
+            oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, getPageBase());
+            if(oldResource != null){
+                delta = oldResource.diff(newResource);
+
+                if(LOGGER.isTraceEnabled()){
+                    LOGGER.trace(delta.debugDump());
+                }
+
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING), result);
+            }
+
+        } catch (Exception e){
+            LoggingUtils.logException(LOGGER, "Couldn't save schema handling", e);
+            result.recordFatalError(getString("SchemaHandlingStep.message.saveError", e));
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        if(WebMiscUtil.showResultInPage(result)){
+            getPageBase().showResult(result);
+        }
     }
 
     private void editObjectTypePerformed(AjaxRequestTarget target, ResourceObjectTypeDefinitionTypeDto objectType){
