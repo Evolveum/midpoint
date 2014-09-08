@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -504,23 +505,25 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		return modelObjectResolver.countObjects(ShadowType.class, query, result);
     }
 
-    public <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyName, T propertyValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Validate.notEmpty(propertyName, "Empty property name");
+    public <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyPathString, T propertyValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        Validate.notEmpty(propertyPathString, "Empty property path");
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".isUniquePropertyValue");
-        QName attributeQName = new QName(propertyName);
-        return isUniquePropertyValue(objectType, attributeQName, propertyValue, result);
+        ItemPath propertyPath = new XPathHolder(propertyPathString).toItemPath();
+        return isUniquePropertyValue(objectType, propertyPath, propertyValue, result);
     }
 
-    private <T> boolean isUniquePropertyValue(final ObjectType objectType, QName propertyName, T propertyValue, OperationResult result)
+    private <T> boolean isUniquePropertyValue(final ObjectType objectType, ItemPath propertyPath, T propertyValue, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException {
         Validate.notNull(objectType, "Null object");
-        Validate.notNull(propertyName, "Null property name");
+        Validate.notNull(propertyPath, "Null property path");
         Validate.notNull(propertyValue, "Null property value");
-        PrismProperty<?> property = objectType.asPrismObject().findProperty(propertyName);
+        PrismProperty<?> property = objectType.asPrismObject().findProperty(propertyPath);
         EqualFilter filter = EqualFilter.createEqual(property.getPath(), property.getDefinition(), propertyValue);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-        LOGGER.trace("Determining uniqueness of property {} using query:\n{}", propertyName, query.debugDump());
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Determining uniqueness of property {} using query:\n{}", propertyPath, query.debugDump());
+        }
 
         final Holder<Boolean> isUniqueHolder = new Holder<Boolean>(true);
         ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() {
