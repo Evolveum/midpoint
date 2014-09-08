@@ -30,9 +30,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -77,10 +75,12 @@ public class LimitationsEditorDialog extends ModalWindow{
     private ChangeState changeState = ChangeState.FIRST;
     private boolean initialized;
     private IModel<List<PropertyLimitationsTypeDto>> model;
+    private IModel<List<PropertyLimitationsType>> inputModel;
 
     public LimitationsEditorDialog(String id, final IModel<List<PropertyLimitationsType>> limitation){
         super(id);
 
+        inputModel = limitation;
         model = new LoadableModel<List<PropertyLimitationsTypeDto>>(false) {
 
             @Override
@@ -344,6 +344,14 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     protected void savePerformed(AjaxRequestTarget target){
-        //TODO - implement this
+        List<PropertyLimitationsTypeDto> list = model.getObject();
+        List<PropertyLimitationsType> outputList = new ArrayList<>();
+
+        for(PropertyLimitationsTypeDto dto: list){
+            outputList.add(dto.prepareDtoForSave());
+        }
+
+        inputModel.setObject(outputList);
+        close(target);
     }
 }

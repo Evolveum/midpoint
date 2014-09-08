@@ -190,6 +190,11 @@ public class ModelClientUtil {
      * PRELIMINARY IMPLEMENTATION. Currently the first returned ADD delta with the same object type as original delta is returned.
      */
     public static String getOidFromDeltaOperationList(ObjectDeltaOperationListType operationListType, ObjectDeltaType originalDelta) {
+        ObjectDeltaOperationType odo = findInDeltaOperationList(operationListType, originalDelta);
+        return odo != null ? ((ObjectType) odo.getObjectDelta().getObjectToAdd()).getOid() : null;
+    }
+
+    public static ObjectDeltaOperationType findInDeltaOperationList(ObjectDeltaOperationListType operationListType, ObjectDeltaType originalDelta) {
         Validate.notNull(operationListType);
         Validate.notNull(originalDelta);
         if (originalDelta.getChangeType() != ChangeTypeType.ADD) {
@@ -204,7 +209,7 @@ public class ModelClientUtil {
                     objectDeltaType.getObjectToAdd() != null) {
                 ObjectType objectAdded = (ObjectType) objectDeltaType.getObjectToAdd();
                 if (objectAdded.getClass().equals(originalDelta.getObjectToAdd().getClass())) {
-                    return objectAdded.getOid();
+                    return operationType;
                 }
             }
         }

@@ -37,6 +37,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
@@ -220,15 +221,17 @@ public class ResourceAttributeEditor extends SimplePanel{
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new PropertyModel<String>(getModel(), "outbound.name"));
         outboundLabel.setEnabled(false);
+        outboundLabel.setOutputMarkupId(true);
         add(outboundLabel);
 
-        AjaxLink outbound = new AjaxLink(ID_BUTTON_OUTBOUND) {
+        AjaxSubmitLink outbound = new AjaxSubmitLink(ID_BUTTON_OUTBOUND) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 outboundEditPerformed(target);
             }
         };
+        outbound.setOutputMarkupId(true);
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
@@ -261,6 +264,7 @@ public class ResourceAttributeEditor extends SimplePanel{
                 mappingEditPerformed(target, object);
             }
         };
+        inbound.setOutputMarkupId(true);
         add(inbound);
 
         initModals();
@@ -271,7 +275,14 @@ public class ResourceAttributeEditor extends SimplePanel{
                 new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
         add(limitationsEditor);
 
-        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null);
+        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null){
+
+            @Override
+            public void updateComponents(AjaxRequestTarget target) {
+                target.add(ResourceAttributeEditor.this.get(ID_INBOUND), ResourceAttributeEditor.this.get(ID_OUTBOUND_LABEL),
+                        ResourceAttributeEditor.this.get(ID_BUTTON_OUTBOUND));
+            }
+        };
         add(mappingEditor);
     }
 

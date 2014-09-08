@@ -16,15 +16,25 @@
 
 package com.evolveum.midpoint.testing.model.client.sample;
 
+import com.evolveum.midpoint.model.client.ModelClientUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
+import org.ietf.jgss.Oid;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
+import org.w3c.dom.Document;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -75,6 +85,10 @@ public class TestExchangeConnectorLow extends AbstractTestForExchangeConnector {
     private static final String PASCAL_GIVEN_NAME = "Blaise";
     private static final String PASCAL_SN = "Pascal";
     private String pascalOid;
+
+    private static final String HUYGENS_GIVEN_NAME = "Christiaan";
+    private static final String HUYGENS_SN = "Huygens";
+    private String huygensOid;
 
     private String dn(String givenName, String sn) {
         return "CN=" + givenName + " " + sn + "," + getContainer();
@@ -330,7 +344,7 @@ public class TestExchangeConnectorLow extends AbstractTestForExchangeConnector {
     @Test
     public void test110CreateNewton() throws Exception {
         System.out.println("Creating account for Newton...");
-        newtonOid = createAccount(NEWTON_GIVEN_NAME, NEWTON_SN, dn(NEWTON_GIVEN_NAME, NEWTON_SN), "User");
+        newtonOid = createAccount(NEWTON_GIVEN_NAME, NEWTON_SN, dn(NEWTON_GIVEN_NAME, NEWTON_SN), "User", null);
         System.out.println("Done; OID = " + newtonOid);
     }
 
@@ -344,7 +358,7 @@ public class TestExchangeConnectorLow extends AbstractTestForExchangeConnector {
     @Test
     public void test120CreateLeibniz() throws Exception {
         System.out.println("Creating account for Leibniz...");
-        leibnizOid = createAccount(LEIBNIZ_GIVEN_NAME, LEIBNIZ_SN, dn(LEIBNIZ_GIVEN_NAME, LEIBNIZ_SN), "UserMailbox");
+        leibnizOid = createAccount(LEIBNIZ_GIVEN_NAME, LEIBNIZ_SN, dn(LEIBNIZ_GIVEN_NAME, LEIBNIZ_SN), "UserMailbox", null);
         System.out.println("Done; OID = " + leibnizOid);
     }
 
@@ -368,7 +382,7 @@ public class TestExchangeConnectorLow extends AbstractTestForExchangeConnector {
     @Test
     public void test130CreatePascal() throws Exception {
         System.out.println("Creating account for Pascal...");
-        pascalOid = createAccount(PASCAL_GIVEN_NAME, PASCAL_SN, dn(PASCAL_GIVEN_NAME, PASCAL_SN), "UserMailbox");
+        pascalOid = createAccount(PASCAL_GIVEN_NAME, PASCAL_SN, dn(PASCAL_GIVEN_NAME, PASCAL_SN), "UserMailbox", null);
         System.out.println("Done; OID = " + pascalOid);
 
         String mail = mail(PASCAL_GIVEN_NAME, PASCAL_SN);
@@ -434,6 +448,44 @@ public class TestExchangeConnectorLow extends AbstractTestForExchangeConnector {
         assertAttributeEquals(attrs, "displayName", PASCAL_GIVEN_NAME + " " + PASCAL_SN);
     }
 
+    @Test
+    public void test140AssignConflictingAddress() throws Exception {
+        String mail = "pascal@clermont-ferrand.fr";
+
+        System.out.println("Disabling email address policy for Leibniz...");
+        modifyShadow(leibnizOid, "attributes/EmailAddressPolicyEnabled", ModificationTypeType.REPLACE, false);
+        System.out.println("Done");
+
+        System.out.println("Adding conflicting email addresses to Leibniz...");
+        ObjectDeltaOperationType result = modifyObject(ShadowType.class, leibnizOid, "attributes/EmailAddresses", ModificationTypeType.ADD, "smtp:" + mail, null, false);
+        System.out.println("Done; result = " + result.getExecutionResult().getStatus() + " / " + result.getExecutionResult().getMessage());
+
+        AssertJUnit.assertEquals("Unexpected operation status when adding conflicting address", OperationResultStatusType.FATAL_ERROR, result.getExecutionResult().getStatus());
+    }
+
+    @Test
+    public void test150CreateHuygensConflicting() throws Exception {
+        String mail = "pascal@clermont-ferrand.fr";
+
+        System.out.println("Creating account for Huygens...");
+        ObjectDeltaOperationType odo = createAccountOdo(HUYGENS_GIVEN_NAME, HUYGENS_SN, dn(HUYGENS_GIVEN_NAME, HUYGENS_SN), "UserMailbox", mail);
+        OperationResultType result = odo.getExecutionResult();
+        System.out.println("Done; status = " + result.getStatus() + ":" + result.getMessage());
+
+//        ShadowType huygens = checkAccount(HUYGENS_GIVEN_NAME, HUYGENS_SN, dn(HUYGENS_GIVEN_NAME, HUYGENS_SN), getContainer());
+//        Map<String,Object> attrs = getAttributesAsMap(pascal);
+//        assertAttributeEquals(attrs, "RecipientType", "UserMailbox");
+//        assertAttributeExists(attrs, "homeMDB");
+//        assertAttributeEquals(attrs, "PrimarySmtpAddress", mail);
+//        assertAttributeEquals(attrs, "mail", mail);
+//        assertAttributeEquals(attrs, "Alias", PASCAL_SN.toLowerCase());
+//        assertAttributeContains(attrs, "EmailAddresses", "SMTP:" + mail);               // FIXME
+//        assertAttributeEquals(attrs, "EmailAddressPolicyEnabled", "true");
+//        assertAttributeEquals(attrs, "msExchRecipientDisplayType", "1073741824");
+//        assertAttributeEquals(attrs, "msExchRecipientTypeDetails", "1");
+//        assertAttributeEquals(attrs, "displayName", PASCAL_GIVEN_NAME + " " + PASCAL_SN);
+    }
+
     // non-existing objects
     @Test
     public void test200FetchingNonexistingPowerShellObject() throws Exception {
@@ -447,14 +499,114 @@ public class TestExchangeConnectorLow extends AbstractTestForExchangeConnector {
         AssertJUnit.assertNull("Non-existing account was found somehow", account);
     }
 
-    // TODO some tests for modifying non-existing objects
+    @Test
+    public void test210ModifyingNonexistingPowerShellObject() throws Exception {
+
+        // create shadow with non-existing GUID
+        System.out.println("Creating shadow with non-existing GUID...");
+        Document doc = ModelClientUtil.getDocumnent();
+
+        String name = "Wrong GUID shadow";
+        ShadowType shadow = new ShadowType();
+        shadow.setName(ModelClientUtil.createPolyStringType(name, doc));
+        shadow.setResourceRef(createObjectReferenceType(ResourceType.class, getResourceOid()));
+        shadow.setObjectClass(OC_ACCEPTED_DOMAIN);
+        shadow.setKind(ShadowKindType.GENERIC);
+        shadow.setIntent("custom-accepted-domain");
+
+        ShadowAttributesType attributes = new ShadowAttributesType();
+        attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_ICFS, "name"), name, doc));
+        attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_ICFS, "uid"), "wrong-GUID", doc));
+        shadow.setAttributes(attributes);
+
+        String oid = createObject(ShadowType.class, shadow, createRaw());
+
+        System.out.println("Done, reading it back...");
+        ShadowType shadowReadAgain = getObjectNoFetch(ShadowType.class, oid);
+        dumpAttributes(shadowReadAgain);
+
+        System.out.println("Now launching modifyObject operation...");
+        //Class objectType, String oid, String path, ModificationTypeType modType, Object value, ModelExecuteOptionsType optionsType, boolean assertSuccess
+        ObjectDeltaOperationType odo = modifyObject(ShadowType.class, oid, "attributes/DomainType", ModificationTypeType.REPLACE, "InternalRelay", null, false);
+        OperationResultType r = odo.getExecutionResult();
+        System.out.println("Done: " + r.getStatus() + ":" + r.getMessage());
+
+        OperationResultType found = findOperationResult(r, new OperationResultMatcher() {
+            @Override
+            public boolean match(OperationResultType r) {
+                return r.getDetails() != null && r.getDetails().contains("UnknownUidException");
+            }
+        });
+        AssertJUnit.assertNotNull("UnknownUidException was not detected", found);
+        System.out.println("======================================================================================================");
+        System.out.println("Details: " + found.getDetails());
+    }
+
+    private OperationResultType findOperationResult(OperationResultType result, OperationResultMatcher matcher) {
+        if (matcher.match(result)) {
+            return result;
+        }
+        for (OperationResultType r : result.getPartialResults()) {
+            OperationResultType found = findOperationResult(r, matcher);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    @Test
+    public void test220ModifyingNonexistingAccount() throws Exception {
+
+        // create shadow with non-existing GUID
+        System.out.println("Creating shadow with non-existing GUID...");
+        Document doc = ModelClientUtil.getDocumnent();
+
+        String name = "Wrong GUID shadow";
+        ShadowType shadow = new ShadowType();
+        shadow.setName(ModelClientUtil.createPolyStringType(name, doc));
+        shadow.setResourceRef(createObjectReferenceType(ResourceType.class, getResourceOid()));
+        shadow.setObjectClass(OC_ACCOUNT);
+        shadow.setKind(ShadowKindType.ACCOUNT);
+
+        ShadowAttributesType attributes = new ShadowAttributesType();
+        attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_ICFS, "name"), name, doc));
+        attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_ICFS, "uid"), "CN=wrong-GUID," + getContainer(), doc));
+        shadow.setAttributes(attributes);
+
+        String oid = createObject(ShadowType.class, shadow, createRaw());
+
+        System.out.println("Done, reading it back...");
+        ShadowType shadowReadAgain = getObjectNoFetch(ShadowType.class, oid);
+        dumpAttributes(shadowReadAgain);
+
+        System.out.println("Now launching modifyObject operation...");
+        ObjectDeltaOperationType odo = modifyObject(ShadowType.class, oid, "attributes/sn", ModificationTypeType.REPLACE, "xxxxxx", null, false);
+        OperationResultType r = odo.getExecutionResult();
+        System.out.println("Done: " + r.getStatus() + ":" + r.getMessage());
+
+        OperationResultType found = findOperationResult(r, new OperationResultMatcher() {
+            @Override
+            public boolean match(OperationResultType r) {
+                return r.getDetails() != null && r.getDetails().contains("UnknownUidException");
+            }
+        });
+        AssertJUnit.assertNotNull("UnknownUidException was not detected", found);
+        System.out.println("======================================================================================================");
+        System.out.println("Details: " + found.getDetails());
+    }
+
 
     @Test
     public void test900Cleanup() throws Exception {
         deleteObject(ShadowType.class, newtonOid, true);
         deleteObject(ShadowType.class, leibnizOid, true);
         deleteObject(ShadowType.class, pascalOid, true);
+        deleteObject(ShadowType.class, huygensOid, true);
         cleanup();
     }
 
+    private interface OperationResultMatcher {
+        boolean match(OperationResultType operationResultType);
+    }
 }

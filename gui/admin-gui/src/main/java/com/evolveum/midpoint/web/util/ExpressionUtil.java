@@ -66,6 +66,12 @@ public class ExpressionUtil {
                     "    <valuePolicyRef oid=\"Insert value policy oid\"/>\n" +
                     "</generate>";
 
+    public static final String ELEMENT_SCRIPT = "</script>";
+    public static final String ELEMENT_GENERATE = "</generate>";
+    public static final String ELEMENT_PATH = "</path>";
+    public static final String ELEMENT_VALUE = "</value>";
+    public static final String ELEMENT_AS_IS = "<asIs/>";
+
     public static String getExpressionString(ExpressionEvaluatorType type, ObjectReferenceType policy){
         if(ExpressionEvaluatorType.GENERATE.equals(type) && policy != null){
             StringBuilder sb = new StringBuilder();
@@ -118,6 +124,36 @@ public class ExpressionUtil {
 
             default:
                 return "";
+        }
+    }
+
+    public static ExpressionEvaluatorType getExpressionType(String expression){
+        if(expression.contains(ELEMENT_AS_IS)){
+            return ExpressionEvaluatorType.AS_IS;
+        } else if(expression.contains(ELEMENT_GENERATE)){
+            return ExpressionEvaluatorType.GENERATE;
+        } else if(expression.contains(ELEMENT_PATH)){
+            return ExpressionEvaluatorType.PATH;
+        } else if(expression.contains(ELEMENT_SCRIPT)){
+            return ExpressionEvaluatorType.SCRIPT;
+        } else if(expression.contains(ELEMENT_VALUE)){
+            return ExpressionEvaluatorType.LITERAL;
+        }
+
+        return null;
+    }
+
+    public static Language getExpressionLanguage(String expression){
+        if(expression.contains("<language>")){
+            if(expression.contains(Language.XPATH.getLanguage())){
+                return Language.XPATH;
+            } else if(expression.contains(Language.JAVASCRIPT.getLanguage())) {
+                return Language.JAVASCRIPT;
+            } else {
+                return Language.GROOVY;
+            }
+        } else {
+            return Language.GROOVY;
         }
     }
 }

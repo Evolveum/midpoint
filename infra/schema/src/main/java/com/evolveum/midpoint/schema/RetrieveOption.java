@@ -21,6 +21,9 @@ public enum RetrieveOption {
 	EXCLUDE;
 
     public static RetrieveOption fromRetrieveOptionType(RetrieveOptionType retrieveOptionType) {
+        if (retrieveOptionType == null) {
+            return DEFAULT;
+        }
         switch(retrieveOptionType) {
             case DEFAULT: return DEFAULT;
             case INCLUDE: return INCLUDE;

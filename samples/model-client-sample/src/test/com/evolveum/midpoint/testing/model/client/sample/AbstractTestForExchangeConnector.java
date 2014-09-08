@@ -556,10 +556,10 @@ public class AbstractTestForExchangeConnector {
     }
 
     protected void modifyObject(Class objectType, String oid, String path, ModificationTypeType modType, Object value) throws Exception {
-        modifyObject(objectType, oid, path, modType, value, null);
+        modifyObject(objectType, oid, path, modType, value, null, true);
     }
 
-    protected void modifyObject(Class objectType, String oid, String path, ModificationTypeType modType, Object value, ModelExecuteOptionsType optionsType) throws Exception {
+    protected ObjectDeltaOperationType modifyObject(Class objectType, String oid, String path, ModificationTypeType modType, Object value, ModelExecuteOptionsType optionsType, boolean assertSuccess) throws Exception {
         System.out.println("Modifying " + objectType.getSimpleName() + " " + oid + " (path: " + path + ")");
 
         ObjectDeltaType deltaType = new ObjectDeltaType();
@@ -582,24 +582,27 @@ public class AbstractTestForExchangeConnector {
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
         ObjectDeltaOperationListType odolist = modelPort.executeChanges(deltaListType, optionsType);
-        assertExecuteChangesSuccess(odolist, deltaType);
+        return assertExecuteChangesSuccess(odolist, deltaType, assertSuccess);
     }
 
-    protected void assertExecuteChangesSuccess(ObjectDeltaOperationListType odolist, ObjectDeltaType deltaType) {
-        boolean found = false;
+    protected ObjectDeltaOperationType assertExecuteChangesSuccess(ObjectDeltaOperationListType odolist, ObjectDeltaType deltaType, boolean assertSuccess) {
+        ObjectDeltaOperationType found = null;
         for (ObjectDeltaOperationType odo : odolist.getDeltaOperation()) {
             if (deltaType == null || deltaType.getOid().equals(odo.getObjectDelta().getOid())) {
                 AssertJUnit.assertNotNull("Operation result is null", odo.getExecutionResult());
-                found = true;
+                found = odo;
                 if (odo.getExecutionResult().getStatus() != OperationResultStatusType.SUCCESS) {
                     System.out.println("!!! Operation result is " + odo.getExecutionResult().getStatus());
                     System.out.println("!!! Message: " + odo.getExecutionResult().getMessage());
                     System.out.println("!!! Details:\n" + odo.getExecutionResult());
-                    AssertJUnit.assertEquals("Unexpected operation result status", OperationResultStatusType.SUCCESS, odo.getExecutionResult().getStatus());
+                    if (assertSuccess) {
+                        AssertJUnit.assertEquals("Unexpected operation result status", OperationResultStatusType.SUCCESS, odo.getExecutionResult().getStatus());
+                    }
                 }
             }
         }
-        AssertJUnit.assertTrue("ObjectDelta was not found in ObjectDeltaOperationList", found);
+        AssertJUnit.assertNotNull("ObjectDelta was not found in ObjectDeltaOperationList", found);
+        return found;
     }
 
     protected void assertAttributeExists(Map<String, Object> attrs, String name) {
@@ -763,9 +766,22 @@ public class AbstractTestForExchangeConnector {
     }
 
     protected <T extends ObjectType> T getObject(Class<T> clazz, String oid) throws SAXException, IOException, FaultMessage {
+        return getObject(clazz, oid, new SelectorQualifiedGetOptionsType());
+    }
+
+    protected <T extends ObjectType> T getObjectNoFetch(Class<T> clazz, String oid) throws SAXException, IOException, FaultMessage {
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
+        SelectorQualifiedGetOptionType option = new SelectorQualifiedGetOptionType();
+        GetOperationOptionsType getOptions = new GetOperationOptionsType();
+        getOptions.setNoFetch(true);
+        option.setOptions(getOptions);
+        options.getOption().add(option);
+        return getObject(clazz, oid, options);
+    }
+
+    protected <T extends ObjectType> T getObject(Class<T> clazz, String oid, SelectorQualifiedGetOptionsType options) throws SAXException, IOException, FaultMessage {
         Holder<ObjectType> objectHolder = new Holder<>();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 
         modelPort.getObject(ModelClientUtil.getTypeQName(clazz), oid, options, objectHolder, resultHolder);
 
@@ -853,7 +869,26 @@ public class AbstractTestForExchangeConnector {
     }
 
 
-    protected String createAccount(String givenName, String sn, String name, String recipientType) throws FaultMessage {
+    protected String createAccount(String givenName, String sn, String name, String recipientType, String overrideMail) throws FaultMessage {
+        ShadowType user = prepareShadowType(givenName, sn, name, recipientType, overrideMail);
+        return createShadow(user);
+    }
+
+    protected ObjectDeltaOperationType createAccountOdo(String givenName, String sn, String name, String recipientType, String overrideMail) throws FaultMessage {
+        ShadowType shadowType = prepareShadowType(givenName, sn, name, recipientType, overrideMail);
+
+        ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(ShadowType.class));
+        deltaType.setChangeType(ChangeTypeType.ADD);
+        deltaType.setObjectToAdd(shadowType);
+
+        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
+        deltaListType.getDelta().add(deltaType);
+        ObjectDeltaOperationListType operationListType = modelPort.executeChanges(deltaListType, null);
+        return ModelClientUtil.findInDeltaOperationList(operationListType, deltaType);
+    }
+
+    private ShadowType prepareShadowType(String givenName, String sn, String name, String recipientType, String overrideMail) {
         String samAccountName = sn.toLowerCase();
 
         Document doc = ModelClientUtil.getDocumnent();
@@ -870,11 +905,14 @@ public class AbstractTestForExchangeConnector {
         attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_RI, "sn"), sn, doc));
         attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_RI, "RecipientType"), recipientType, doc));
         attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_RI, "sAMAccountName"), samAccountName, doc));
-
+        if (overrideMail != null) {
+            attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_RI, "EmailAddressPolicyEnabled"), "true", doc));
+            attributes.getAny().add(ModelClientUtil.createTextElement(new QName(NS_RI, "EmailAddresses"), overrideMail, doc));
+        }
         user.setAttributes(attributes);
-
-        return createShadow(user);
+        return user;
     }
+
 
     protected ShadowType getShadowByName(String resourceOid, QName objectClass, String name) throws JAXBException, SAXException, IOException, FaultMessage {
         // WARNING: in a real case make sure that the username is properly escaped before putting it in XML
@@ -1002,7 +1040,7 @@ public class AbstractTestForExchangeConnector {
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
         ObjectDeltaOperationListType operationListType = modelPort.executeChanges(deltaListType, options);
-        assertExecuteChangesSuccess(operationListType, null);
+        assertExecuteChangesSuccess(operationListType, null, true);
 //        Holder<OperationResultType> holder = new Holder<>();
 //        String oid = getOidFromDeltaOperationList(operationListType, deltaType, holder);
 //        AssertJUnit.assertNotNull("No operation result from create shadow operation", holder.value);

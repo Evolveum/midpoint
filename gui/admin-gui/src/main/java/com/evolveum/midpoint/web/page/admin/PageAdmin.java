@@ -145,7 +145,7 @@ public class PageAdmin extends PageBase {
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class));
         //todo delete this [lazyman]
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceEdit.class));
-//        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.wizard"), PageResourceWizard.class));
+        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.wizard"), PageResourceWizard.class));
 //
 
 //        items.add(new BottomMenuItem(createStringResource("pageAdminResources.detailsResource"), PageResource.class,

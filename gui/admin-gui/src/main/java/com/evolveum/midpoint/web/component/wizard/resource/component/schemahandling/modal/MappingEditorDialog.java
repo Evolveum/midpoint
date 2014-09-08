@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,17 +41,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -100,10 +95,12 @@ public class MappingEditorDialog extends ModalWindow{
     private boolean initialized;
     private IModel<MappingTypeDto> model;
     private Map<String, String> policyMap = new HashMap<>();
+    private IModel<MappingType> inputModel;
 
     public MappingEditorDialog(String id, final IModel<MappingType> mapping){
         super(id);
 
+        inputModel = mapping;
         model = new LoadableModel<MappingTypeDto>(false) {
 
             @Override
@@ -132,11 +129,19 @@ public class MappingEditorDialog extends ModalWindow{
 
     public void updateModel(AjaxRequestTarget target, IModel<MappingType> mapping){
         model.setObject(new MappingTypeDto(mapping.getObject(), getPageBase().getPrismContext()));
+        inputModel = mapping;
         target.add(getContent());
     }
 
     public void updateModel(AjaxRequestTarget target, MappingType mapping){
         model.setObject(new MappingTypeDto(mapping, getPageBase().getPrismContext()));
+
+        if(inputModel != null){
+            inputModel.setObject(mapping);
+        } else {
+            inputModel = new Model<>(mapping);
+        }
+
         target.add(getContent());
     }
 
@@ -480,12 +485,25 @@ public class MappingEditorDialog extends ModalWindow{
     }
 
     private void savePerformed(AjaxRequestTarget target){
+        try {
+            if(inputModel != null){
+                inputModel.setObject(model.getObject().prepareDtoToSave(getPageBase().getPrismContext()));
+            } else {
+                model.getObject().prepareDtoToSave(getPageBase().getPrismContext());
+                inputModel = new PropertyModel(model, MappingTypeDto.F_MAPPING);
+            }
 
-//        try {
-//            model.getObject().deserializeExpression(getPageBase().getPrismContext());
-//        } catch (SchemaException e) {
-//            e.printStackTrace();
-//        }
-        //TODO - implement
+        } catch (Exception e){
+            LoggingUtils.logException(LOGGER, "Couldn't save mapping.", e, e.getStackTrace());
+            error(getString("MappingEditorDialog.message.cantSave") + e);
+        }
+
+        updateComponents(target);
+        target.add(getPageBase().getFeedbackPanel());
+        close(target);
+    }
+
+    public void updateComponents(AjaxRequestTarget target){
+        //Override this if update of component(s) holding this modal window is needed
     }
 }
