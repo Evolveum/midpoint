@@ -68,7 +68,7 @@ public class Expression<V extends PrismValue> {
 	private static final Trace LOGGER = TraceManager.getTrace(Expression.class);
 
 	public Expression(ExpressionType expressionType, ItemDefinition outputDefinition, ObjectResolver objectResolver, PrismContext prismContext) {
-		Validate.notNull(outputDefinition, "null outputDefinition");
+		//Validate.notNull(outputDefinition, "null outputDefinition");
 		Validate.notNull(objectResolver, "null objectResolver");
 		Validate.notNull(prismContext, "null prismContext");
 		this.expressionType = expressionType;

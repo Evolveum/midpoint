@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
+import org.apache.commons.lang.Validate;
 
 /**
  * @author semancik
@@ -66,6 +67,8 @@ public class AssociationTargetSearchExpressionEvaluatorFactory implements Expres
 	@Override
 	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
 			ItemDefinition outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
+
+        Validate.notNull(outputDefinition, "output definition must be specified for associationTargetSearch expression evaluator");
 		
 		JAXBElement<?> evaluatorElement = null;
 		if (evaluatorElements != null) {

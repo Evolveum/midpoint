@@ -23,6 +23,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.StaticExpressionUtil;
@@ -67,6 +68,8 @@ public class LiteralExpressionEvaluatorFactory implements ExpressionEvaluatorFac
 	@Override
 	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ItemDefinition outputDefinition, 
 			String contextDescription, OperationResult result) throws SchemaException {
+
+        Validate.notNull(outputDefinition, "output definition must be specified for literal expression evaluator");
 		
 		Item<V> output = StaticExpressionUtil.parseValueElements(evaluatorElements, outputDefinition, contextDescription, prismContext);
 		

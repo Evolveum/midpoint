@@ -79,11 +79,15 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 		if (codeString == null) {
 			throw new ExpressionEvaluationException("No script code in " + contextDescription);
 		}
-		
-		QName xsdReturnType = outputDefinition.getTypeName();
-        Class<T> type = XsdTypeMapper.toJavaType(xsdReturnType);
+
+        Class<T> type = null;
+
+        if (outputDefinition != null) {
+		    QName xsdReturnType = outputDefinition.getTypeName();
+            type = XsdTypeMapper.toJavaType(xsdReturnType);         // may return null if unknown
+        }
         if (type == null) {
-        	type = (Class<T>) Element.class;
+        	type = (Class<T>) Element.class;                        // actually, if outputDefinition is null, the return value is of no interest for us
         }
 		
         QName returnType = determineRerturnType(type, expressionType, outputDefinition, suggestedReturnType);
