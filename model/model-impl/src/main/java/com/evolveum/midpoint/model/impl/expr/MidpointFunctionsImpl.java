@@ -503,15 +503,59 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		return modelObjectResolver.countObjects(ShadowType.class, query, result);
     }
-    
+
+    public <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyName, T propertyValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        Validate.notEmpty(propertyName, "Empty property name");
+        OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".isUniquePropertyValue");
+        QName attributeQName = new QName(propertyName);
+        return isUniquePropertyValue(objectType, attributeQName, propertyValue, result);
+    }
+
+    private <T> boolean isUniquePropertyValue(final ObjectType objectType, QName propertyName, T propertyValue, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
+        Validate.notNull(objectType, "Null object");
+        Validate.notNull(propertyName, "Null property name");
+        Validate.notNull(propertyValue, "Null property value");
+        PrismProperty<?> property = objectType.asPrismObject().findProperty(propertyName);
+        EqualFilter filter = EqualFilter.createEqual(property.getPath(), property.getDefinition(), propertyValue);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        LOGGER.trace("Determining uniqueness of property {} using query:\n{}", propertyName, query.debugDump());
+
+        final Holder<Boolean> isUniqueHolder = new Holder<Boolean>(true);
+        ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() {
+            @Override
+            public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult) {
+                if (objectType.getOid() == null) {
+                    // We have found a conflicting object
+                    isUniqueHolder.setValue(false);
+                    return false;
+                } else {
+                    if (objectType.getOid().equals(object.getOid())) {
+                        // We have found ourselves. No conflict (yet). Just go on.
+                        return true;
+                    } else {
+                        // We have found someone else. Conflict.
+                        isUniqueHolder.setValue(false);
+                        return false;
+                    }
+                }
+            }
+        };
+
+        modelObjectResolver.searchIterative((Class) objectType.getClass(), query, null, handler, result);
+
+        return isUniqueHolder.getValue();
+    }
+
     public <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	Validate.notEmpty(attributeName,"Empty attribute name");
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
     	QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
 		return isUniqueAccountValue(resourceType, shadowType, attributeQName, attributeValue, result);
     }
-    
-    private <T> boolean isUniqueAccountValue(ResourceType resourceType, final ShadowType shadowType, 
+
+    private <T> boolean isUniqueAccountValue(ResourceType resourceType, final ShadowType shadowType,
     		QName attributeName, T attributeValue, OperationResult result) 
     		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
     		SecurityViolationException {
