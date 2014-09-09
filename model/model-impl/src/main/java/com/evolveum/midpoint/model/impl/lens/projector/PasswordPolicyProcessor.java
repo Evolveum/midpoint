@@ -26,10 +26,13 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -117,6 +120,12 @@ public class PasswordPolicyProcessor {
 			if (user != null) {
 				password = user.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 			}
+			if (password == null){
+				if (wasExecuted(userDelta, focusContext)){
+					LOGGER.trace("Skipping processing password policies. User addition was already executed.");
+					return;
+				}
+			}
 		} else if (ChangeType.MODIFY == userDelta.getChangeType()) {
 			PropertyDelta<PasswordType> passwordValueDelta = null;
 			if (userDelta != null) {
@@ -138,6 +147,7 @@ public class PasswordPolicyProcessor {
 				}
 			}
 		}
+		
 		ValuePolicyType passwordPolicy = null;
 		if (focusContext.getOrgPasswordPolicy() == null){
 			passwordPolicy = determineValuePolicy(userDelta, focusContext.getObjectAny(), context, result);
@@ -148,6 +158,20 @@ public class PasswordPolicyProcessor {
 		
 		processPasswordPolicy(passwordPolicy, password, result);
 
+	}
+
+	private <F extends FocusType> boolean wasExecuted(ObjectDelta<UserType> userDelta, LensFocusContext<F> focusContext){
+		
+		for (LensObjectDeltaOperation<F> executedDeltaOperation : focusContext.getExecutedDeltas()){
+			ObjectDelta<F> executedDelta = executedDeltaOperation.getObjectDelta();
+			if (!executedDelta.isAdd()){
+				continue;
+			} else if (executedDelta.getObjectToAdd() != null && executedDelta.getObjectTypeClass().equals(UserType.class)){
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	//TODO: maybe some caching of orgs?????
