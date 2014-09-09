@@ -87,12 +87,17 @@ public class ActivitiEngine {
 
         pec = ((ProcessEngineConfigurationImpl) pec)
                 .setCustomSessionFactories(sessionFactories)            // ugly hack - in 5.13 they removed setCustomSessionFactories from ProcessEngineConfiguration abstract class
-                .setJdbcUrl(wfConfiguration.getJdbcUrl())
-                .setJdbcDriver(wfConfiguration.getJdbcDriver())
-                .setJdbcUsername(wfConfiguration.getJdbcUser())
-                .setJdbcPassword(wfConfiguration.getJdbcPassword())
                 .setJobExecutorActivate(false)
                 .setHistory(HistoryLevel.FULL.getKey());
+
+        if (wfConfiguration.getDataSource() != null) {
+            pec = pec.setDataSourceJndiName(wfConfiguration.getDataSource());
+        } else {
+            pec = pec.setJdbcUrl(wfConfiguration.getJdbcUrl())
+                    .setJdbcDriver(wfConfiguration.getJdbcDriver())
+                    .setJdbcUsername(wfConfiguration.getJdbcUser())
+                    .setJdbcPassword(wfConfiguration.getJdbcPassword());
+        }
 
         pec = pec.setJobExecutorActivate(true);
 
