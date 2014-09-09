@@ -56,6 +56,7 @@ public class TaskManagerConfiguration {
     private static final String JDBC_URL_CONFIG_ENTRY = "jdbcUrl";
     private static final String JDBC_USER_CONFIG_ENTRY = "jdbcUser";
     private static final String JDBC_PASSWORD_CONFIG_ENTRY = "jdbcPassword";
+    private static final String DATA_SOURCE_CONFIG_ENTRY = "dataSource";
     private static final String SQL_SCHEMA_FILE_CONFIG_ENTRY = "sqlSchemaFile";
     private static final String CREATE_QUARTZ_TABLES_CONFIG_ENTRY = "createQuartzTables";
     private static final String JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY = "jdbcDriverDelegateClass";
@@ -125,6 +126,7 @@ public class TaskManagerConfiguration {
     private String jdbcUrl;
     private String jdbcUser;
     private String jdbcPassword;
+    private String dataSource;
     private boolean createQuartzTables;
 
     private String hibernateDialect;
@@ -157,6 +159,7 @@ public class TaskManagerConfiguration {
             JDBC_URL_CONFIG_ENTRY,
             JDBC_USER_CONFIG_ENTRY,
             JDBC_PASSWORD_CONFIG_ENTRY,
+            DATA_SOURCE_CONFIG_ENTRY,
             SQL_SCHEMA_FILE_CONFIG_ENTRY,
             CREATE_QUARTZ_TABLES_CONFIG_ENTRY,
             JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY,
@@ -295,15 +298,26 @@ public class TaskManagerConfiguration {
 
         jdbcDriver = c.getString(JDBC_DRIVER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
 
-        jdbcUrl = c.getString(JDBC_URL_CONFIG_ENTRY, null);
-        if (jdbcUrl == null) {
+        String explicitJdbcUrl = c.getString(JDBC_URL_CONFIG_ENTRY, null);
+        if (explicitJdbcUrl == null) {
             if (sqlConfig.isEmbedded()) {
                 jdbcUrl = defaultJdbcUrlPrefix + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
             } else {
                 jdbcUrl = sqlConfig.getJdbcUrl();
             }
+        } else {
+            jdbcUrl = explicitJdbcUrl;
         }
-        LOGGER.info("Quartz database is at " + jdbcUrl);
+        dataSource = c.getString(DATA_SOURCE_CONFIG_ENTRY, null);
+        if (dataSource == null && explicitJdbcUrl == null && sqlConfig != null) {
+            dataSource = sqlConfig.getDataSource();             // we want to use quartz-specific JDBC if there is one (i.e. we do not want to inherit data source from repo in such a case)
+        }
+
+        if (dataSource != null) {
+            LOGGER.info("Quartz database is at {} (a data source)", dataSource);
+        } else {
+            LOGGER.info("Quartz database is at {} (a JDBC URL)", jdbcUrl);
+        }
 
         jdbcUser = c.getString(JDBC_USER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
         jdbcPassword = c.getString(JDBC_PASSWORD_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
@@ -345,10 +359,12 @@ public class TaskManagerConfiguration {
 
     void validateJdbcJobStoreInformation() throws TaskManagerConfigurationException {
 
-        notEmpty(jdbcDriver, "JDBC driver must be specified (either explicitly or in SQL repository configuration)");
-        notEmpty(jdbcUrl, "JDBC URL must be specified (either explicitly or in SQL repository configuration).");
-        notNull(jdbcUser, "JDBC user name must be specified (either explicitly or in SQL repository configuration).");
-        notNull(jdbcPassword, "JDBC password must be specified (either explicitly or in SQL repository configuration).");
+        if (StringUtils.isEmpty(dataSource)) {
+            notEmpty(jdbcDriver, "JDBC driver must be specified (either explicitly or via data source; in task manager or in SQL repository configuration)");
+            notEmpty(jdbcUrl, "JDBC URL must be specified (either explicitly or via data source; in task manager or in SQL repository configuration)");
+            notNull(jdbcUser, "JDBC user name must be specified (either explicitly or via data source; in task manager or in SQL repository configuration)");
+            notNull(jdbcPassword, "JDBC password must be specified (either explicitly or via data source; in task manager or in SQL repository configuration)");
+        }
         if (StringUtils.isEmpty(jdbcDriverDelegateClass)) {
             throw new TaskManagerConfigurationException("JDBC driver delegate class must be specified (either explicitly or "
                     + "through one of supported Hibernate dialects). It seems that the currently specified dialect ("
@@ -496,5 +512,9 @@ public class TaskManagerConfiguration {
 
     public void setCreateQuartzTables(boolean createQuartzTables) {
         this.createQuartzTables = createQuartzTables;
+    }
+
+    public String getDataSource() {
+        return dataSource;
     }
 }

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -503,15 +504,75 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		return modelObjectResolver.countObjects(ShadowType.class, query, result);
     }
-    
+
+    public <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyPathString, T propertyValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        Validate.notEmpty(propertyPathString, "Empty property path");
+        OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".isUniquePropertyValue");
+        ItemPath propertyPath = new XPathHolder(propertyPathString).toItemPath();
+        return isUniquePropertyValue(objectType, propertyPath, propertyValue, result);
+    }
+
+    private <T> boolean isUniquePropertyValue(final ObjectType objectType, ItemPath propertyPath, T propertyValue, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
+        List<? extends ObjectType> conflictingObjects = getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, false, result);
+        return conflictingObjects.isEmpty();
+    }
+
+    public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString, T propertyValue, boolean getAllConflicting) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        Validate.notEmpty(propertyPathString, "Empty property path");
+        OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".getObjectsInConflictOnPropertyValue");
+        ItemPath propertyPath = new XPathHolder(propertyPathString).toItemPath();
+        return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, getAllConflicting, result);
+    }
+
+    private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(final O objectType, ItemPath propertyPath, T propertyValue, final boolean getAllConflicting, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
+        Validate.notNull(objectType, "Null object");
+        Validate.notNull(propertyPath, "Null property path");
+        Validate.notNull(propertyValue, "Null property value");
+        PrismProperty<?> property = objectType.asPrismObject().findProperty(propertyPath);
+        EqualFilter filter = EqualFilter.createEqual(property.getPath(), property.getDefinition(), propertyValue);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Determining uniqueness of property {} using query:\n{}", propertyPath, query.debugDump());
+        }
+
+        final List<O> conflictingObjects = new ArrayList<>();
+        ResultHandler<O> handler = new ResultHandler<O>() {
+            @Override
+            public boolean handle(PrismObject<O> object, OperationResult parentResult) {
+                if (objectType.getOid() == null) {
+                    // We have found a conflicting object
+                    conflictingObjects.add(object.asObjectable());
+                    return getAllConflicting;
+                } else {
+                    if (objectType.getOid().equals(object.getOid())) {
+                        // We have found ourselves. No conflict (yet). Just go on.
+                        return true;
+                    } else {
+                        // We have found someone else. Conflict.
+                        conflictingObjects.add(object.asObjectable());
+                        return getAllConflicting;
+                    }
+                }
+            }
+        };
+
+        modelObjectResolver.searchIterative((Class) objectType.getClass(), query, null, handler, result);
+
+        return conflictingObjects;
+    }
+
     public <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	Validate.notEmpty(attributeName,"Empty attribute name");
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
     	QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
 		return isUniqueAccountValue(resourceType, shadowType, attributeQName, attributeValue, result);
     }
-    
-    private <T> boolean isUniqueAccountValue(ResourceType resourceType, final ShadowType shadowType, 
+
+    private <T> boolean isUniqueAccountValue(ResourceType resourceType, final ShadowType shadowType,
     		QName attributeName, T attributeValue, OperationResult result) 
     		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
     		SecurityViolationException {

@@ -445,23 +445,7 @@ public class PageOrgUnit extends PageAdminUsers {
 
             @Override
             protected void populateItem(ListItem<PropertyWrapper> item) {
-                PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form){
-
-                    @Override
-                    protected String getValuesClass(){
-                        return ID_INPUT_SIZE;
-                    }
-
-                    @Override
-                    protected String getValueCssClass(){
-                        return "";
-                    }
-
-                    @Override
-                    protected String getInputCssClass(){
-                        return "";
-                    }
-                };
+                PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form);
                 propertyPanel.get("labelContainer:label").add(new AttributeAppender("style", "font-weight:bold;"));
                 propertyPanel.get("labelContainer").add(new AttributeModifier("class", ID_LABEL_SIZE + " control-label"));
                 item.add(propertyPanel);

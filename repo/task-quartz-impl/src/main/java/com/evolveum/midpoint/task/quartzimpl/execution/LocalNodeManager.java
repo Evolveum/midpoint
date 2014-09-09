@@ -32,6 +32,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusT
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 import java.io.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -73,14 +76,19 @@ public class LocalNodeManager {
         if (configuration.isJdbcJobStore()) {
             quartzProperties.put("org.quartz.jobStore.class", "org.quartz.impl.jdbcjobstore.JobStoreTX");
             quartzProperties.put("org.quartz.jobStore.driverDelegateClass", configuration.getJdbcDriverDelegateClass());
-            quartzProperties.put("org.quartz.jobStore.dataSource", "myDS");
 
-            createQuartzDbSchema();
+            createQuartzDbSchema(configuration);
 
-            quartzProperties.put("org.quartz.dataSource.myDS.driver", configuration.getJdbcDriver());
-            quartzProperties.put("org.quartz.dataSource.myDS.URL", configuration.getJdbcUrl());
-            quartzProperties.put("org.quartz.dataSource.myDS.user", configuration.getJdbcUser());
-            quartzProperties.put("org.quartz.dataSource.myDS.password", configuration.getJdbcPassword());
+            String MY_DS = "myDS";
+            quartzProperties.put("org.quartz.jobStore.dataSource", MY_DS);
+            if (configuration.getDataSource() != null) {
+                quartzProperties.put("org.quartz.dataSource."+MY_DS+".jndiURL", configuration.getDataSource());
+            } else {
+                quartzProperties.put("org.quartz.dataSource."+MY_DS+".driver", configuration.getJdbcDriver());
+                quartzProperties.put("org.quartz.dataSource."+MY_DS+".URL", configuration.getJdbcUrl());
+                quartzProperties.put("org.quartz.dataSource."+MY_DS+".user", configuration.getJdbcUser());
+                quartzProperties.put("org.quartz.dataSource."+MY_DS+".password", configuration.getJdbcPassword());
+            }
 
             quartzProperties.put("org.quartz.jobStore.isClustered", configuration.isClustered() ? "true" : "false");
 
@@ -133,20 +141,11 @@ public class LocalNodeManager {
      * Creates Quartz database schema, if it does not exist.
      *
      * @throws TaskManagerInitializationException
+     * @param configuration
      */
-    private void createQuartzDbSchema() throws TaskManagerInitializationException {
-        TaskManagerConfiguration configuration = taskManager.getConfiguration();
-        try {
-            Class.forName(configuration.getJdbcDriver());
-        } catch (ClassNotFoundException e) {
-            throw new TaskManagerInitializationException("Could not locate database driver class " + configuration.getJdbcDriver(), e);
-        }
-        Connection connection = null;
-        try {
-            connection = DriverManager.getConnection(configuration.getJdbcUrl(), configuration.getJdbcUser(), configuration.getJdbcPassword());
-        } catch (SQLException e) {
-            throw new TaskManagerInitializationException("Cannot create JDBC connection to Quartz Job Store", e);
-        }
+    private void createQuartzDbSchema(TaskManagerConfiguration configuration) throws TaskManagerInitializationException {
+        Connection connection = getConnection(configuration);
+        LOGGER.debug("createQuartzDbSchema: trying JDBC connection {}", connection);
         try {
             if (!doQuartzTablesExist(connection)) {
 
@@ -178,13 +177,39 @@ public class LocalNodeManager {
         }
     }
 
+    private Connection getConnection(TaskManagerConfiguration configuration) throws TaskManagerInitializationException {
+        Connection connection = null;
+        try {
+            if (configuration.getDataSource() != null) {
+                DataSource dataSource;
+                try {
+                    InitialContext context = new InitialContext();
+                    dataSource = (DataSource) context.lookup(configuration.getDataSource());
+                } catch (NamingException e) {
+                    throw new TaskManagerInitializationException("Cannot find a data source '"+configuration.getDataSource()+"': " + e.getMessage(), e);
+                }
+                connection = dataSource.getConnection();
+            } else {
+                try {
+                    Class.forName(configuration.getJdbcDriver());
+                } catch (ClassNotFoundException e) {
+                    throw new TaskManagerInitializationException("Could not locate database driver class " + configuration.getJdbcDriver(), e);
+                }
+                connection = DriverManager.getConnection(configuration.getJdbcUrl(), configuration.getJdbcUser(), configuration.getJdbcPassword());
+            }
+        } catch (SQLException e) {
+            throw new TaskManagerInitializationException("Cannot create JDBC connection to Quartz Job Store", e);
+        }
+        return connection;
+    }
+
     private boolean doQuartzTablesExist(Connection connection) {
         try {
             connection.prepareStatement("SELECT count(*) FROM QRTZ_JOB_DETAILS").executeQuery().close();
-            LOGGER.trace("Quartz tables seem to exist (at least QRTZ_JOB_DETAILS does).");
+            LOGGER.debug("Quartz tables seem to exist (at least QRTZ_JOB_DETAILS does).");
             return true;
         } catch (SQLException ignored) {
-            LOGGER.trace("Quartz tables seem not to exist (at least QRTZ_JOB_DETAILS does not), we got an exception when trying to access it", ignored);
+            LOGGER.debug("Quartz tables seem not to exist (at least QRTZ_JOB_DETAILS does not), we got an exception when trying to access it", ignored);
             return false;
         }
     }

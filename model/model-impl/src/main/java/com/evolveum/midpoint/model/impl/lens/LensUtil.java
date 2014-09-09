@@ -971,6 +971,10 @@ public class LensUtil {
 		mapping.setNow(now);
 
 		ItemPath itemPath = mapping.getOutputPath();
+        if (itemPath == null) {
+            // no output element, i.e. this is a "validation mapping"
+            return mapping;
+        }
 		
 		PrismObject<F> focusNew = focusOdo.getNewObject();
 		if (focusNew != null) {

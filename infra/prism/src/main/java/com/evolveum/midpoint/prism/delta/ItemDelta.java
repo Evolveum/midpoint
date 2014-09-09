@@ -767,11 +767,11 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
     	if (definition.isSingleValue()) {
     		if (valuesToAdd != null && valuesToAdd.size() > 1) {
     			throw new SchemaException("Attempt to add "+valuesToAdd.size()+" values to a single-valued item "+getPath() +
-    					(contextDescription == null ? "" : " in "+contextDescription));
+    					(contextDescription == null ? "" : " in "+contextDescription) + "; values: "+valuesToAdd);
     		}
     		if (valuesToReplace != null && valuesToReplace.size() > 1) {
     			throw new SchemaException("Attempt to replace "+valuesToReplace.size()+" values to a single-valued item "+getPath() +
-    					(contextDescription == null ? "" : " in "+contextDescription));
+    					(contextDescription == null ? "" : " in "+contextDescription) + "; values: "+valuesToReplace);
     		}
     	}
     	if (definition.isMandatory()) {

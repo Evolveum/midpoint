@@ -75,6 +75,7 @@ It also contains inbound mappings and definition to enable synchronization.
 				 <icfcldap:credentials>
 	                    <clearValue>secret</clearValue>
 	                </icfcldap:credentials>
+	            <icfcldap:passwordHashAlgorithm>SSHA</icfcldap:passwordHashAlgorithm>
 				<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 				<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 				<icfcldap:useBlocks>true</icfcldap:useBlocks>

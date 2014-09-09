@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+import org.apache.commons.lang.Validate;
 
 /**
  * @author semancik
@@ -59,6 +60,8 @@ public class AsIsExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 	@Override
 	public <V extends PrismValue> AsIsExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
 			ItemDefinition outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
+
+        Validate.notNull(outputDefinition, "output definition must be specified for asIs expression evaluator");
 		
 		JAXBElement<?> evaluatorElement = null;
 		if (evaluatorElements != null) {

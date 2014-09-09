@@ -60,13 +60,14 @@ public class WfConfiguration implements BeanFactoryAware {
     public static final String KEY_JDBC_URL = "jdbcUrl";
     public static final String KEY_JDBC_USERNAME = "jdbcUsername";
     public static final String KEY_JDBC_PASSWORD = "jdbcPassword";
+    public static final String KEY_DATA_SOURCE = "dataSource";
     public static final String KEY_ACTIVITI_SCHEMA_UPDATE = "activitiSchemaUpdate";
     public static final String KEY_PROCESS_CHECK_INTERVAL = "processCheckInterval";
     public static final String KEY_AUTO_DEPLOYMENT_FROM = "autoDeploymentFrom";
     public static final String KEY_ALLOW_APPROVE_OTHERS_ITEMS = "allowApproveOthersItems";
 
     public static final List<String> KNOWN_KEYS = Arrays.asList("midpoint.home", KEY_ENABLED, KEY_JDBC_DRIVER, KEY_JDBC_URL,
-            KEY_JDBC_USERNAME, KEY_JDBC_PASSWORD, KEY_ACTIVITI_SCHEMA_UPDATE, KEY_PROCESS_CHECK_INTERVAL,
+            KEY_JDBC_USERNAME, KEY_JDBC_PASSWORD, KEY_DATA_SOURCE, KEY_ACTIVITI_SCHEMA_UPDATE, KEY_PROCESS_CHECK_INTERVAL,
             KEY_AUTO_DEPLOYMENT_FROM, KEY_ALLOW_APPROVE_OTHERS_ITEMS, CHANGE_PROCESSORS_SECTION);
 
     @Autowired(required = true)
@@ -89,6 +90,8 @@ public class WfConfiguration implements BeanFactoryAware {
     private String jdbcUrl;
     private String jdbcUser;
     private String jdbcPassword;
+
+    private String dataSource;
 
     private boolean allowApproveOthersItems;
 
@@ -134,15 +137,27 @@ public class WfConfiguration implements BeanFactoryAware {
             LoggingUtils.logException(LOGGER, "Cannot determine default JDBC URL for embedded database", e);
         }
 
-        jdbcUrl = c.getString(KEY_JDBC_URL, null);
-        if (jdbcUrl == null) {
+        String explicitJdbcUrl = c.getString(KEY_JDBC_URL, null);
+        if (explicitJdbcUrl == null) {
             if (sqlConfig.isEmbedded()) {
                 jdbcUrl = defaultJdbcUrlPrefix + "-activiti;DB_CLOSE_ON_EXIT=FALSE";
             } else {
                 jdbcUrl = sqlConfig.getJdbcUrl();
             }
+        } else {
+            jdbcUrl = explicitJdbcUrl;
         }
-        LOGGER.info("Activiti database is at " + jdbcUrl);
+
+        dataSource = c.getString(KEY_DATA_SOURCE, null);
+        if (dataSource == null && explicitJdbcUrl == null) {
+            dataSource = sqlConfig.getDataSource();             // we want to use wf-specific JDBC if there is one (i.e. we do not want to inherit data source from repo in such a case)
+        }
+
+        if (dataSource != null) {
+            LOGGER.info("Activiti database is at " + dataSource + " (a data source)");
+        } else {
+            LOGGER.info("Activiti database is at " + jdbcUrl + " (a JDBC URL)");
+        }
 
         activitiSchemaUpdate = c.getBoolean(KEY_ACTIVITI_SCHEMA_UPDATE, true);
         jdbcDriver = c.getString(KEY_JDBC_DRIVER, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
@@ -190,10 +205,14 @@ public class WfConfiguration implements BeanFactoryAware {
 
     void validate() {
 
-        notEmpty(jdbcDriver, "JDBC driver must be specified (either explicitly or in SQL repository configuration)");
-        notEmpty(jdbcUrl, "JDBC URL must be specified (either explicitly or in SQL repository configuration).");
-        notNull(jdbcUser, "JDBC user name must be specified (either explicitly or in SQL repository configuration).");
-        notNull(jdbcPassword, "JDBC password must be specified (either explicitly or in SQL repository configuration).");
+        if (dataSource != null) {
+            notEmpty(dataSource, "Data source (if specified) must not be an empty string");
+        } else {
+            notEmpty(jdbcDriver, "JDBC driver or a data source must be specified (either explicitly or in SQL repository configuration)");
+            notEmpty(jdbcUrl, "JDBC URL or a data source must be specified (either explicitly or in SQL repository configuration).");
+            notNull(jdbcUser, "JDBC user name or a data source must be specified (either explicitly or in SQL repository configuration).");
+            notNull(jdbcPassword, "JDBC password or a data source must be specified (either explicitly or in SQL repository configuration).");
+        }
     }
 
     private void notEmpty(String value, String message) {
@@ -230,6 +249,10 @@ public class WfConfiguration implements BeanFactoryAware {
 
     public String getJdbcUser() {
         return jdbcUser;
+    }
+
+    public String getDataSource() {
+        return dataSource;
     }
 
     public int getProcessCheckInterval() {
