@@ -17,6 +17,271 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    synchronization
+    <div class="row capability">
+
+        <!-- First row - ObjectSynchronizationType list -->
+        <!--TODO - edit xs/sm/md class column sizes-->
+        <div class="col-xs-5 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-offset-1 col-lg-2">
+            <h3><wicket:message key="SynchronizationStep.label.syncObjectHeader" /></h3>
+
+            <table class="table table-striped table-condensed" style="margin-bottom: 10px">
+                <tbody wicket:id="tableRows">
+                <tr wicket:id="objectSyncRow">
+                    <td class="capability-item">
+                        <a wicket:id="objectSyncLink">
+                            <span wicket:id="objectSyncName" />
+                        </a>
+                    </td>
+                    <td>
+                        <a wicket:id="objectSyncDelete" class="btn btn-danger btn-sm">
+                            <i class="fa fa-fw fa-minus" />
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div wicket:id="objectSyncPaging" />
+
+            <div class="main-button-bar" style="margin-top: -25px;">
+                <a wicket:id="objectSyncAddButton" class="btn btn-success">
+                    <span><wicket:message key="SynchronizationStep.button.add" /></span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Second row - ObjectSynchronizationType editor -->
+        <div wicket:id="objectSyncConfig"  class="col-xs-7 col-sm-6 col-md-4">
+            <h3><span wicket:id="editorLabel" /></h3>
+
+            <dl class="dl-horizontal">
+                <dt>
+                    <label>Name</label>
+                </dt>
+                <dd>
+                    <input wicket:id="editorName" type="text" class="form-control input-sm"/>
+                </dd>
+            </dl>
+
+            <dl class="dl-horizontal">
+                <dt>
+                    <label>Description</label>
+                </dt>
+                <dd>
+                    <textarea wicket:id="editorDescription" class="form-control input-sm" rows="2"></textarea>
+                </dd>
+            </dl>
+
+            <dl class="dl-horizontal">
+                <dt>
+                    <label>Kind</label>
+                </dt>
+                <dd>
+                    <select wicket:id="editorKind" class="form-control input-sm"></select>
+                </dd>
+            </dl>
+
+            <dl class="dl-horizontal">
+                <dt>
+                    <label>Intent</label>
+                </dt>
+                <dd>
+                    <input wicket:id="editorIntent" type="text" class="form-control input-sm"/>
+                </dd>
+            </dl>
+
+            <!-- Object class list -->
+            <dl class="dl-horizontal">
+                <dt>
+                    <label>Object class</label>
+                </dt>
+                <dd>
+                    <div class="input-group">
+                        <input type="text" class="form-control input-sm" value="first"/>
+
+                        <div class="input-group-btn">
+                            <a class="btn btn-sm btn-danger" title="Remove">
+                                <i class="fa fa-minus"/>
+                            </a>
+                            <a class="btn btn-sm btn-success" title="Add">
+                                <i class="fa fa-plus"/>
+                            </a>
+                        </div>
+                    </div>
+                </dd>
+            </dl>
+
+            <dl class="dl-horizontal">
+                <dt>
+                    <label>Focus</label>
+                </dt>
+                <dd>
+                    <input wicket:id="editorFocus" type="text" value="checked" class="form-control input-sm"/>
+                    <!--<select wicket:id="editorFocus" class="form-control input-sm"></select>-->
+                </dd>
+            </dl>
+
+            <dl class="dl-horizontal">
+                <dt>
+                    <label>Enabled</label>
+                </dt>
+                <dd>
+                    <input wicket:id="editorEnabled" type="checkbox" value="checked"/>
+                </dd>
+            </dl>
+
+            <!-- Condition and Confirmation -->
+            <div class="row">
+                <div class="col-xs-6">
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label>Condition</label>
+                        </dt>
+                        <dd>
+                            <a wicket:id="editorConditionButton" class="btn btn-sm btn-primary" title="Edit">
+                                <i class="fa fa-pencil-square-o"/>
+                            </a>
+                        </dd>
+                    </dl>
+                </div>
+
+                <div class="col-xs-6">
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label>Confirmation</label>
+                        </dt>
+                        <dd>
+                            <a wicket:id="editorConfirmationButton" class="btn btn-sm btn-primary" title="Edit">
+                                <i class="fa fa-pencil-square-o"/>
+                            </a>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <dl class="dl-horizontal">
+                <dt>
+                    <label>Object Template</label>
+                </dt>
+                <dd>
+                    <!--<select wicket:id="editorObjectTemplate" class="form-control input-sm"></select>-->
+                    <select class="form-control input-sm"></select>
+                </dd>
+            </dl>
+
+            <!-- Reconcile and Opportunistic -->
+            <div class="row">
+                <div class="col-xs-6">
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label>Reconcile</label>
+                        </dt>
+                        <dd>
+                            <input wicket:id="editorReconcile" type="checkbox" value="checked"/>
+                        </dd>
+                    </dl>
+                </div>
+
+                <div class="col-xs-6">
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label>Opportunistic</label>
+                        </dt>
+                        <dd>
+                            <input wicket:id="editorOpportunistic" type="checkbox" value="checked"/>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Correlation -->
+            <dl class="dl-horizontal">
+                <dt>
+                    <label>Correlation</label>
+                </dt>
+                <dd>
+                    <div class="input-group">
+                        <input type="text" class="form-control input-sm" value="first"/>
+
+                        <div class="input-group-btn">
+                            <a class="btn btn-sm btn-primary" title="Edit">
+                                <i class="fa fa-pencil-square-o"/>
+                            </a>
+                            <a class="btn btn-sm btn-danger" title="Remove">
+                                <i class="fa fa-minus"/>
+                            </a>
+                            <a class="btn btn-sm btn-success" title="Add">
+                                <i class="fa fa-plus"/>
+                            </a>
+                        </div>
+                    </div>
+                </dd>
+                <dd>
+                    <div class="input-group">
+                        <input type="text" class="form-control input-sm" value="first"/>
+
+                        <div class="input-group-btn">
+                            <a class="btn btn-sm btn-primary" title="Edit">
+                                <i class="fa fa-pencil-square-o"/>
+                            </a>
+                            <a class="btn btn-sm btn-danger" title="Remove">
+                                <i class="fa fa-minus"/>
+                            </a>
+                            <a class="btn btn-sm btn-success" title="Add">
+                                <i class="fa fa-plus"/>
+                            </a>
+                        </div>
+                    </div>
+                </dd>
+            </dl>
+
+            <!-- Reaction -->
+            <dl class="dl-horizontal">
+                <dt>
+                    <label>Reaction</label>
+                </dt>
+                <dd>
+                    <div class="input-group">
+                        <input type="text" class="form-control input-sm" value="first"/>
+
+                        <div class="input-group-btn">
+                            <a class="btn btn-sm btn-primary" title="Edit">
+                                <i class="fa fa-pencil-square-o"/>
+                            </a>
+                            <a class="btn btn-sm btn-danger" title="Remove">
+                                <i class="fa fa-minus"/>
+                            </a>
+                            <a class="btn btn-sm btn-success" title="Add">
+                                <i class="fa fa-plus"/>
+                            </a>
+                        </div>
+                    </div>
+                </dd>
+                <dd>
+                    <div class="input-group">
+                        <input type="text" class="form-control input-sm" value="first"/>
+
+                        <div class="input-group-btn">
+                            <a class="btn btn-sm btn-primary" title="Edit">
+                                <i class="fa fa-pencil-square-o"/>
+                            </a>
+                            <a class="btn btn-sm btn-danger" title="Remove">
+                                <i class="fa fa-minus"/>
+                            </a>
+                            <a class="btn btn-sm btn-success" title="Add">
+                                <i class="fa fa-plus"/>
+                            </a>
+                        </div>
+                    </div>
+                </dd>
+            </dl>
+        </div>
+
+        <!-- Third row - container for more specific editors -->
+        <div wicket:id="thirdRowContainer" class="col-xs-7 col-sm-6 col-md-4" >
+            <h3>Third Row Editor</h3>
+        </div>
+
+    </div>
 </wicket:panel>
 </html>
