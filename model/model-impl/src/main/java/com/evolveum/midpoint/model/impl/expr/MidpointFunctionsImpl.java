@@ -515,6 +515,20 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private <T> boolean isUniquePropertyValue(final ObjectType objectType, ItemPath propertyPath, T propertyValue, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException {
+        List<? extends ObjectType> conflictingObjects = getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, false, result);
+        return conflictingObjects.isEmpty();
+    }
+
+    public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString, T propertyValue, boolean getAllConflicting) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        Validate.notEmpty(propertyPathString, "Empty property path");
+        OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".getObjectsInConflictOnPropertyValue");
+        ItemPath propertyPath = new XPathHolder(propertyPathString).toItemPath();
+        return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, getAllConflicting, result);
+    }
+
+    private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(final O objectType, ItemPath propertyPath, T propertyValue, final boolean getAllConflicting, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
         Validate.notNull(objectType, "Null object");
         Validate.notNull(propertyPath, "Null property path");
         Validate.notNull(propertyValue, "Null property value");
@@ -525,22 +539,22 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             LOGGER.trace("Determining uniqueness of property {} using query:\n{}", propertyPath, query.debugDump());
         }
 
-        final Holder<Boolean> isUniqueHolder = new Holder<Boolean>(true);
-        ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() {
+        final List<O> conflictingObjects = new ArrayList<>();
+        ResultHandler<O> handler = new ResultHandler<O>() {
             @Override
-            public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult) {
+            public boolean handle(PrismObject<O> object, OperationResult parentResult) {
                 if (objectType.getOid() == null) {
                     // We have found a conflicting object
-                    isUniqueHolder.setValue(false);
-                    return false;
+                    conflictingObjects.add(object.asObjectable());
+                    return getAllConflicting;
                 } else {
                     if (objectType.getOid().equals(object.getOid())) {
                         // We have found ourselves. No conflict (yet). Just go on.
                         return true;
                     } else {
                         // We have found someone else. Conflict.
-                        isUniqueHolder.setValue(false);
-                        return false;
+                        conflictingObjects.add(object.asObjectable());
+                        return getAllConflicting;
                     }
                 }
             }
@@ -548,7 +562,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
         modelObjectResolver.searchIterative((Class) objectType.getClass(), query, null, handler, result);
 
-        return isUniqueHolder.getValue();
+        return conflictingObjects;
     }
 
     public <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
