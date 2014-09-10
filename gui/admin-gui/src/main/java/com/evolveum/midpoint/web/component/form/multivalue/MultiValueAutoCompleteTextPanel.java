@@ -23,41 +23,43 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.util.string.Strings;
+import org.apache.wicket.validation.IValidator;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  *  @author shood
  * */
-public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel<List<T>> {
+public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends SimplePanel<List<T>>{
 
     private static final String ID_REPEATER = "repeater";
     private static final String ID_TEXT = "input";
     private static final String ID_BUTTON_GROUP = "buttonGroup";
     private static final String ID_ADD = "add";
     private static final String ID_REMOVE = "delete";
-    private static final String ID_EDIT = "edit";
 
     private static final String CSS_DISABLED = " disabled";
+    private static final Integer AUTO_COMPLETE_LIST_SIZE = 10;
 
-    public MultiValueTextEditPanel(String id, IModel<List<T>> model, boolean inputEnabled,
-                                   boolean prepareModel){
+    public MultiValueAutoCompleteTextPanel(String id, IModel<List<T>> model, boolean inputEnabled, boolean prepareModel,
+                                           boolean updateOnChange){
         super(id, model);
+
         setOutputMarkupId(true);
 
-        initLayout(inputEnabled, prepareModel);
+        initLayout(inputEnabled, prepareModel, updateOnChange);
     }
 
     private IModel<List<T>> prepareModel(boolean prepareModel){
@@ -71,24 +73,52 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
         return getModel();
     }
 
-    private void initLayout(final boolean inputEnabled, boolean prepareModel){
+    protected T createNewEmptyItem(){
+        return (T)"";
+    }
+
+    private void initLayout(final boolean inputEnabled, boolean prepareModel, final boolean updateOnChange){
 
         ListView repeater = new ListView<T>(ID_REPEATER, prepareModel(prepareModel)){
 
             @Override
             protected void populateItem(final ListItem<T> item) {
-                TextField text = new TextField<>(ID_TEXT, createTextModel(item.getModel()));
-                text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+
+                AutoCompleteTextField<String> autoCompleteEditor = new AutoCompleteTextField<String>(ID_TEXT,
+                        createTextModel(item.getModel())) {
 
                     @Override
-                    protected void onUpdate(AjaxRequestTarget target) {}
-                });
-                text.add(AttributeAppender.replace("placeholder", createEmptyItemPlaceholder()));
+                    protected Iterator<String> getChoices(String input) {
+                        if(Strings.isEmpty(input)){
+                            List<String> emptyList = Collections.emptyList();
+                            return emptyList.iterator();
+                        }
 
+                        List<T> list = createObjectList();
+                        List<String> choices = new ArrayList<>(AUTO_COMPLETE_LIST_SIZE);
+
+                        for(T object: list){
+                            if(createAutoCompleteObjectLabel(object).toLowerCase().startsWith(input.toLowerCase())){
+                                choices.add(createAutoCompleteObjectLabel(object));
+
+                                if(choices.size() == AUTO_COMPLETE_LIST_SIZE){
+                                    break;
+                                }
+                            }
+                        }
+
+                        return choices.iterator();
+                    }
+                };
+                autoCompleteEditor.add(createAutoCompleteValidator());
+                item.add(autoCompleteEditor);
+
+                autoCompleteEditor.add(AttributeAppender.replace("placeholder", createEmptyItemPlaceholder()));
+//
                 if(!inputEnabled){
-                    text.add(new AttributeModifier("disabled","disabled"));
+                    autoCompleteEditor.add(new AttributeModifier("disabled","disabled"));
                 }
-                item.add(text);
+                item.add(autoCompleteEditor);
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
                 item.add(buttonGroup);
@@ -99,25 +129,6 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {
-        AjaxSubmitLink edit = new AjaxSubmitLink(ID_EDIT) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                editPerformed(target, item.getModelObject());
-            }
-        };
-        edit.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                if(buttonsDisabled()){
-                    return " disabled";
-                }
-                return null;
-            }
-        }));
-        buttonGroup.add(edit);
-
         AjaxLink add = new AjaxLink(ID_ADD) {
 
             @Override
@@ -164,10 +175,9 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
         return CSS_DISABLED;
     }
 
-    protected T createNewEmptyItem(){
-        return (T)"";
-    }
-
+    /**
+     *  Creates a StringResourceModel containing a placeholder for editor textField when no value is present
+     * */
     protected StringResourceModel createEmptyItemPlaceholder(){
         return createStringResource("TextField.universal.placeholder");
     }
@@ -179,6 +189,9 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
         target.add(this);
     }
 
+    /**
+     *  Creates IModel<String> - a value for label in main text field of editor
+     * */
     protected IModel<String> createTextModel(final IModel<T> model) {
         return new IModel<String>() {
             @Override
@@ -212,11 +225,33 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
         target.add(this);
     }
 
-    protected void editPerformed(AjaxRequestTarget target, T object){
-        //override me
-    }
-
+    /**
+     *  Provide a function to determine if buttons of editor are disabled/enabled
+     * */
     protected boolean buttonsDisabled(){
         return false;
+    }
+
+    /**
+     *  Provides an IValidator<String> for auto-complete edit field
+     * */
+    protected IValidator<String> createAutoCompleteValidator(){
+        return null;
+    }
+
+    /**
+     *  Create a List<T> of objects that are shown in autoComplete drop-down list
+     * */
+    protected List<T> createObjectList(){
+        return new ArrayList<>();
+    }
+
+    /**
+     *  Creates label for item in autoComplete drop-down list. CAREFUL, this
+     *  method is also used to create String that is used as compare value with
+     *  users input to generate values for auto-complete drop-down
+     * */
+    protected String createAutoCompleteObjectLabel(T object){
+        return object.toString();
     }
 }
