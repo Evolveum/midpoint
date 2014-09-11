@@ -265,7 +265,7 @@ public class SchemaHandlingStep extends WizardStep {
 
                 if(objectType != null && objectType.getObjectType() != null){
                     ResourceObjectTypeDefinitionType object = objectType.getObjectType();
-                    sb.append(object.getDisplayName());
+                    sb.append(object.getDisplayName() != null ? object.getDisplayName() : "- ");
 
                     if(object.getKind() != null || object.getIntent() != null){
                         sb.append(" (");
@@ -353,7 +353,13 @@ public class SchemaHandlingStep extends WizardStep {
                 return choices.iterator();
             }
         };
-        editorObjectClass.add(createObjectClassValidator());
+        editorObjectClass.add(createObjectClassValidator(new LoadableModel<List<QName>>(false) {
+
+            @Override
+            protected List<QName> load() {
+                return model.getObject().getObjectClassList();
+            }
+        }));
         editor.add(editorObjectClass);
 
         MultiValueTextEditPanel editorAttributes = new MultiValueTextEditPanel<ResourceAttributeDefinitionType>(ID_EDITOR_ATTRIBUTES,
@@ -487,26 +493,6 @@ public class SchemaHandlingStep extends WizardStep {
         };
         addDisabledClassModifier(editorCredentials);
         editor.add(editorCredentials);
-    }
-
-    private IValidator<String> createObjectClassValidator(){
-        return new IValidator<String>() {
-
-            @Override
-            public void validate(IValidatable<String> validatable) {
-                String value = validatable.getValue();
-                List<QName> list = model.getObject().getObjectClassList();
-                List<String> stringList = new ArrayList<>();
-
-                for(QName q: list){
-                    stringList.add(q.getLocalPart());
-                }
-
-                if(!stringList.contains(value)){
-                    error(createStringResource("SchemaHandlingStep.message.validationError", value).getString());
-                }
-            }
-        };
     }
 
     private void addDisabledClassModifier(Component component){

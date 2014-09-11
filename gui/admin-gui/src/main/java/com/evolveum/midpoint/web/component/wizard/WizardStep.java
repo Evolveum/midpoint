@@ -31,6 +31,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -119,5 +121,25 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
         }
 
         return list;
+    }
+
+    protected IValidator<String> createObjectClassValidator(final IModel<List<QName>> model){
+        return new IValidator<String>() {
+
+            @Override
+            public void validate(IValidatable<String> validatable) {
+                String value = validatable.getValue();
+                List<QName> list = model.getObject();
+                List<String> stringList = new ArrayList<>();
+
+                for(QName q: list){
+                    stringList.add(q.getLocalPart());
+                }
+
+                if(!stringList.contains(value)){
+                    error(createStringResource("SchemaHandlingStep.message.validationError", value).getString());
+                }
+            }
+        };
     }
 }

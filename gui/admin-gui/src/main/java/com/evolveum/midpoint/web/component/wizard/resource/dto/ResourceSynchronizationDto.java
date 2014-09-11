@@ -21,7 +21,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizatio
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *  @author shood
@@ -35,6 +37,7 @@ public class ResourceSynchronizationDto implements Serializable{
     private List<ObjectSynchronizationTypeDto> objectSyncList = new ArrayList<>();
     private ObjectSynchronizationType selected;
     private List<QName> objectClassList;
+    private Map<String, String> objectTemplateMap = new HashMap<>();
 
     public List<ObjectSynchronizationTypeDto> getObjectSyncList() {
         return objectSyncList;
@@ -60,6 +63,14 @@ public class ResourceSynchronizationDto implements Serializable{
         this.objectClassList = objectClassList;
     }
 
+    public Map<String, String> getObjectTemplateMap() {
+        return objectTemplateMap;
+    }
+
+    public void setObjectTemplateMap(Map<String, String> objectTemplateMap) {
+        this.objectTemplateMap = objectTemplateMap;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -71,6 +82,8 @@ public class ResourceSynchronizationDto implements Serializable{
             return false;
         if (objectSyncList != null ? !objectSyncList.equals(that.objectSyncList) : that.objectSyncList != null)
             return false;
+        if (objectTemplateMap != null ? !objectTemplateMap.equals(that.objectTemplateMap) : that.objectTemplateMap != null)
+            return false;
         if (selected != null ? !selected.equals(that.selected) : that.selected != null) return false;
 
         return true;
@@ -81,6 +94,7 @@ public class ResourceSynchronizationDto implements Serializable{
         int result = objectSyncList != null ? objectSyncList.hashCode() : 0;
         result = 31 * result + (selected != null ? selected.hashCode() : 0);
         result = 31 * result + (objectClassList != null ? objectClassList.hashCode() : 0);
+        result = 31 * result + (objectTemplateMap != null ? objectTemplateMap.hashCode() : 0);
         return result;
     }
 }
