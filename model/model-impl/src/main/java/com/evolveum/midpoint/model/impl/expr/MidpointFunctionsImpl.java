@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -515,25 +516,30 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private <T> boolean isUniquePropertyValue(final ObjectType objectType, ItemPath propertyPath, T propertyValue, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException {
-        List<? extends ObjectType> conflictingObjects = getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, false, result);
+        List<? extends ObjectType> conflictingObjects = getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, DefaultMatchingRule.NAME, false, result);
         return conflictingObjects.isEmpty();
     }
 
     public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString, T propertyValue, boolean getAllConflicting) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return getObjectsInConflictOnPropertyValue(objectType, propertyPathString, propertyValue, DefaultMatchingRule.NAME.getLocalPart(), getAllConflicting);
+    }
+
+    public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString, T propertyValue, String matchingRuleName, boolean getAllConflicting) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         Validate.notEmpty(propertyPathString, "Empty property path");
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".getObjectsInConflictOnPropertyValue");
         ItemPath propertyPath = new XPathHolder(propertyPathString).toItemPath();
-        return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, getAllConflicting, result);
+        QName matchingRuleQName = new QName(matchingRuleName);      // no namespace for now
+        return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, matchingRuleQName, getAllConflicting, result);
     }
 
-    private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(final O objectType, ItemPath propertyPath, T propertyValue, final boolean getAllConflicting, OperationResult result)
+    private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(final O objectType, ItemPath propertyPath, T propertyValue, QName matchingRule, final boolean getAllConflicting, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException {
         Validate.notNull(objectType, "Null object");
         Validate.notNull(propertyPath, "Null property path");
         Validate.notNull(propertyValue, "Null property value");
-        PrismProperty<?> property = objectType.asPrismObject().findProperty(propertyPath);
-        EqualFilter filter = EqualFilter.createEqual(property.getPath(), property.getDefinition(), propertyValue);
+        PrismPropertyDefinition<?> propertyDefinition = objectType.asPrismObject().getDefinition().findPropertyDefinition(propertyPath);
+        EqualFilter filter = EqualFilter.createEqual(propertyPath, propertyDefinition, matchingRule, propertyValue);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Determining uniqueness of property {} using query:\n{}", propertyPath, query.debugDump());

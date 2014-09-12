@@ -17,12 +17,9 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -124,7 +121,7 @@ public class SchemaHandlingStep extends WizardStep {
         SchemaHandlingDto dto = new SchemaHandlingDto();
         List<ResourceObjectTypeDefinitionTypeDto> list = new ArrayList<>();
 
-        if(resourceModel.getObject() != null && resourceModel.getObject() != null
+        if(resourceModel != null && resourceModel.getObject() != null
                 && resourceModel.getObject().asObjectable() != null){
             SchemaHandlingType schemaHandling = resourceModel.getObject().asObjectable().getSchemaHandling();
 
@@ -148,28 +145,9 @@ public class SchemaHandlingStep extends WizardStep {
         }
 
         dto.setSelected(createPlaceholderObjectType());
-        dto.setObjectClassList(loadResourceObjectClassList());
+        dto.setObjectClassList(loadResourceObjectClassList(resourceModel, LOGGER, getString("SchemaHandlingStep.message.errorLoadingObjectTypeList")));
         dto.setObjectTypeList(list);
         return dto;
-    }
-
-    private List<QName> loadResourceObjectClassList(){
-        List<QName> list = new ArrayList<>();
-
-        try {
-            ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resourceModel.getObject(), getPageBase().getPrismContext());
-            schema.getObjectClassDefinitions();
-
-            for(Definition def: schema.getDefinitions()){
-                list.add(def.getTypeName());
-            }
-
-        } catch (Exception e){
-            LoggingUtils.logException(LOGGER, "Couldn't load object class list from resource.", e);
-            error(getString("SchemaHandlingStep.message.errorLoadingObjectTypeList") + " " + e.getMessage());
-        }
-
-        return list;
     }
 
     private ResourceObjectTypeDefinitionType createPlaceholderObjectType(){
@@ -246,10 +224,10 @@ public class SchemaHandlingStep extends WizardStep {
                 };
                 item.add(delete);
 
-                item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<Object>() {
+                item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
 
                     @Override
-                    public Object getObject() {
+                    public String getObject() {
                         if(item.getModelObject().isSelected()){
                             return "success";
                         }
@@ -287,11 +265,13 @@ public class SchemaHandlingStep extends WizardStep {
 
                 if(objectType != null && objectType.getObjectType() != null){
                     ResourceObjectTypeDefinitionType object = objectType.getObjectType();
-                    sb.append(object.getDisplayName());
+                    sb.append(object.getDisplayName() != null ? object.getDisplayName() : "- ");
 
                     if(object.getKind() != null || object.getIntent() != null){
-                        sb.append(" (").append(object.getKind());
-                        sb.append(", ").append(object.getIntent());
+                        sb.append(" (");
+                        sb.append(object.getKind() != null ? object.getKind() : " - ");
+                        sb.append(", ");
+                        sb.append(object.getIntent() != null ? object.getIntent() : "- ");
                         sb.append(")");
                     }
                 }
@@ -373,7 +353,13 @@ public class SchemaHandlingStep extends WizardStep {
                 return choices.iterator();
             }
         };
-        editorObjectClass.add(createObjectClassValidator());
+        editorObjectClass.add(createObjectClassValidator(new LoadableModel<List<QName>>(false) {
+
+            @Override
+            protected List<QName> load() {
+                return model.getObject().getObjectClassList();
+            }
+        }));
         editor.add(editorObjectClass);
 
         MultiValueTextEditPanel editorAttributes = new MultiValueTextEditPanel<ResourceAttributeDefinitionType>(ID_EDITOR_ATTRIBUTES,
@@ -507,26 +493,6 @@ public class SchemaHandlingStep extends WizardStep {
         };
         addDisabledClassModifier(editorCredentials);
         editor.add(editorCredentials);
-    }
-
-    private IValidator<String> createObjectClassValidator(){
-        return new IValidator<String>() {
-
-            @Override
-            public void validate(IValidatable<String> validatable) {
-                String value = validatable.getValue();
-                List<QName> list = model.getObject().getObjectClassList();
-                List<String> stringList = new ArrayList<>();
-
-                for(QName q: list){
-                    stringList.add(q.getLocalPart());
-                }
-
-                if(!stringList.contains(value)){
-                    error(createStringResource("SchemaHandlingStep.message.validationError", value).getString());
-                }
-            }
-        };
     }
 
     private void addDisabledClassModifier(Component component){
