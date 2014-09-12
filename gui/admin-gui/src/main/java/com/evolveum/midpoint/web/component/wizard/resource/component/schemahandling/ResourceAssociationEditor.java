@@ -56,7 +56,7 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class ResourceAssociationEditor extends SimplePanel{
+public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssociationType>{
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceAssociationEditor.class);
 
@@ -104,7 +104,7 @@ public class ResourceAssociationEditor extends SimplePanel{
 
             @Override
             public String getObject() {
-                ResourceObjectAssociationType association = (ResourceObjectAssociationType)getModelObject();
+                ResourceObjectAssociationType association = getModelObject();
 
                 if(association.getDisplayName() == null && association.getRef() == null){
                     return getString("ResourceAssociationEditor.label.new");
@@ -267,10 +267,6 @@ public class ResourceAssociationEditor extends SimplePanel{
                 WebMiscUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
         add(fetchStrategy);
-
-//        TODO - figure out what matchingRule is exactly and make this autoCompleteField with proper resource values + validator
-//        TextField matchingRule = new TextField<>(ID_MATCHING_RULE, new PropertyModel<String>(getModel(), "matchingRule.localPart"));
-//        add(matchingRule);
 
         DropDownChoice matchingRule = new DropDownChoice<>(ID_MATCHING_RULE,
                 new PropertyModel<QName>(getModel(), "matchingRule"),

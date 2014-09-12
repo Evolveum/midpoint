@@ -5315,7 +5315,7 @@
 	            The actions change the default midpoint behaviour.
 	            If there is no action for a particular situation,there will be no special
 	            reaction and the default activity takes place.
-	            Sevaral action may be defined for a specific reaction. All of them will be
+	            Several actions may be defined for a specific reaction. All of them will be
 	            executed however the ordering is not guaranteed.
 	        </xsd:documentation>
 	    </xsd:annotation>

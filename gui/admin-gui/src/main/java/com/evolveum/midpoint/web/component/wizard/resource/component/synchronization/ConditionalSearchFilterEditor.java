@@ -23,7 +23,7 @@ import org.apache.wicket.model.IModel;
 /**
  *  @author shood
  * */
-public class ConditionalSearchFilterEditor extends SimplePanel{
+public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearchFilterType>{
 
     public ConditionalSearchFilterEditor(String id, IModel<ConditionalSearchFilterType> model){
         super(id, model);

@@ -22,7 +22,7 @@ import org.apache.wicket.model.IModel;
 /**
  *  @author shood
  * */
-public class SynchronizationExpressionEditor extends SimplePanel{
+public class SynchronizationExpressionEditor extends SimplePanel<ExpressionType>{
 
     public SynchronizationExpressionEditor(String id, IModel<ExpressionType> model){
         super(id, model);

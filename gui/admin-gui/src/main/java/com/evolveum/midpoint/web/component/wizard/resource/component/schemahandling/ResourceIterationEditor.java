@@ -44,7 +44,7 @@ import java.util.Map;
 /**
  *  @author shood
  * */
-public class ResourceIterationEditor extends SimplePanel{
+public class ResourceIterationEditor extends SimplePanel<IterationSpecificationType>{
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceIterationEditor.class);
 

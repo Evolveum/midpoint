@@ -55,8 +55,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.Strings;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -70,7 +68,6 @@ public class SchemaHandlingStep extends WizardStep {
     private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlingStep.class);
 
     private static final String DOT_CLASS = SchemaHandlingStep.class.getName() + ".";
-    private static final String OPERATION_LOAD_OBJECT_CLASS_LIST = DOT_CLASS + "loadObjectClassList";
     private static final String OPERATION_SAVE_SCHEMA_HANDLING = DOT_CLASS + "saveSchemaHandling";
 
     private static final String ID_ROWS = "tableRows";
@@ -613,7 +610,7 @@ public class SchemaHandlingStep extends WizardStep {
         PrismObject<ResourceType> newResource = resourceModel.getObject();
         OperationResult result = new OperationResult(OPERATION_SAVE_SCHEMA_HANDLING);
         ModelService modelService = getPageBase().getModelService();
-        ObjectDelta delta = null;
+        ObjectDelta delta;
 
         try{
             oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, getPageBase());

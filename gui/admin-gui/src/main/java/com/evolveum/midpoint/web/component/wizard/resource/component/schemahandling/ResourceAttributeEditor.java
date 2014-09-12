@@ -55,7 +55,7 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class ResourceAttributeEditor extends SimplePanel{
+public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefinitionType>{
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceAttributeEditor.class);
 
@@ -96,7 +96,7 @@ public class ResourceAttributeEditor extends SimplePanel{
 
             @Override
             public String getObject() {
-                ResourceAttributeDefinitionType attribute = (ResourceAttributeDefinitionType)getModelObject();
+                ResourceAttributeDefinitionType attribute = getModelObject();
 
                 if(attribute.getDisplayName() == null && attribute.getRef() == null){
                     return getString("ResourceAttributeEditor.label.new");

@@ -215,8 +215,8 @@ public class MappingEditorDialog extends ModalWindow{
                 createStringResource("MappingEditorDialog.label.expressionType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override
-            protected DropDownChoice createDropDown(String id, IModel<List<ExpressionUtil.ExpressionEvaluatorType>> choices, IChoiceRenderer renderer,
-                                                    boolean required) {
+            protected DropDownChoice createDropDown(String id, IModel<List<ExpressionUtil.ExpressionEvaluatorType>> choices,
+                                                    IChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType> renderer, boolean required) {
                 return new DropDownChoice<>(id, getModel(), choices, renderer);
             }
         };
@@ -282,8 +282,8 @@ public class MappingEditorDialog extends ModalWindow{
         }, createStringResource("MappingEditorDialog.label.passPolicyRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override
-            protected DropDownChoice createDropDown(String id, IModel<List<ObjectReferenceType>> choices, IChoiceRenderer renderer,
-                                                    boolean required) {
+            protected DropDownChoice createDropDown(String id, IModel<List<ObjectReferenceType>> choices,
+                                                    IChoiceRenderer<ObjectReferenceType> renderer, boolean required) {
                 return new DropDownChoice<>(id, getModel(), choices, renderer);
             }
         };
@@ -321,11 +321,12 @@ public class MappingEditorDialog extends ModalWindow{
                 createStringResource("MappingEditorDialog.label.conditionType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override
-            protected DropDownChoice createDropDown(String id, IModel<List<ExpressionUtil.ExpressionEvaluatorType>> choices, IChoiceRenderer renderer,
+            protected DropDownChoice createDropDown(String id, IModel<List<ExpressionUtil.ExpressionEvaluatorType>> choices,
+                                                    IChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType> renderer,
                                                     boolean required) {
                 return new DropDownChoice<>(id, getModel(), choices, renderer);
             }
-        };;
+        };
         conditionType.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
 
             @Override
@@ -388,7 +389,8 @@ public class MappingEditorDialog extends ModalWindow{
                 }, createStringResource("MappingEditorDialog.label.passPolicyRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override
-            protected DropDownChoice createDropDown(String id, IModel<List<ObjectReferenceType>> choices, IChoiceRenderer renderer,
+            protected DropDownChoice createDropDown(String id, IModel<List<ObjectReferenceType>> choices,
+                                                    IChoiceRenderer<ObjectReferenceType> renderer,
                                                     boolean required) {
                 return new DropDownChoice<>(id, getModel(), choices, renderer);
             }
@@ -490,7 +492,7 @@ public class MappingEditorDialog extends ModalWindow{
                 inputModel.setObject(model.getObject().prepareDtoToSave(getPageBase().getPrismContext()));
             } else {
                 model.getObject().prepareDtoToSave(getPageBase().getPrismContext());
-                inputModel = new PropertyModel(model, MappingTypeDto.F_MAPPING);
+                inputModel = new PropertyModel<>(model, MappingTypeDto.F_MAPPING);
             }
 
         } catch (Exception e){
