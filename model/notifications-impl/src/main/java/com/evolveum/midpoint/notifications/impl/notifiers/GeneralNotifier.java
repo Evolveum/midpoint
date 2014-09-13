@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import com.evolveum.midpoint.model.api.OperationStatus;
+import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
@@ -46,16 +46,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
-import static com.evolveum.midpoint.model.api.OperationStatus.EventType.NOTIFICATIONS;
-import static com.evolveum.midpoint.model.api.OperationStatus.StateType.ENTERING;
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.NOTIFICATIONS;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
 /**
  * @author mederly
@@ -126,8 +123,8 @@ public class GeneralNotifier extends BaseHandler {
                     ExpressionVariables variables = getDefaultVariables(event, result);
 
                     if (event instanceof ModelEvent) {
-                        ((ModelEvent) event).getModelContext().notifyStatusListeners(
-                                new OperationStatus(NOTIFICATIONS, ENTERING));
+                        ((ModelEvent) event).getModelContext().reportProgress(
+                                new ProgressInformation(NOTIFICATIONS, ENTERING));
                     }
 
                     try {
@@ -166,8 +163,8 @@ public class GeneralNotifier extends BaseHandler {
                         }
                     } finally {
                         if (event instanceof ModelEvent) {
-                            ((ModelEvent) event).getModelContext().notifyStatusListeners(
-                                    new OperationStatus(NOTIFICATIONS, result));
+                            ((ModelEvent) event).getModelContext().reportProgress(
+                                    new ProgressInformation(NOTIFICATIONS, result));
                         }
                     }
                 }

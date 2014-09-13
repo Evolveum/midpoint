@@ -24,60 +24,68 @@ import java.io.Serializable;
 
 /**
  * Describes a state of the operation. Although theoretically everything relevant should be in the model context,
- * as a convenience for clients interpreting this structure we offer explicit denotation of specific events (see EventType).
+ * as a convenience for clients interpreting this structure we offer explicit denotation of specific events (see ActivityType).
  *
  * HIGHLY EXPERIMENTAL. Probably should be refactored (e.g. by providing strong typing via class hierarchy).
  *
  * @author mederly
  */
-public class OperationStatus implements Serializable, DebugDumpable {
+public class ProgressInformation implements Serializable, DebugDumpable {
 
-    public enum EventType {
+    /**
+     * There are some basic kinds of activities relevant for progress reporting.
+     *
+     * These are activities that could take a considerably long time (because of communicating
+     * with external systems, except focus operation, which is important from the users' point
+     * of view).
+     */
+    public enum ActivityType {
         NOTIFICATIONS,
         WORKFLOWS,
         RESOURCE_OBJECT_OPERATION,
         FOCUS_OPERATION
     }
 
+    /**
+     * We usually report on entering and exiting a particular activity.
+     */
     public enum StateType {
         ENTERING, EXITING;
     }
 
-    private EventType eventType;
+    private ActivityType activityType;
     private StateType stateType;
     private ResourceShadowDiscriminator resourceShadowDiscriminator;              // if relevant
     private OperationResult operationResult;                                      // if relevant (mostly on "_EXITING" events)
+    private String message;                                                       // A custom message for cases not covered by the progress info (should be only rarely used).
 
-    public OperationStatus() {
-    }
-
-    public OperationStatus(EventType eventType, StateType stateType) {
-        this.eventType = eventType;
+    public ProgressInformation(ActivityType activityType, StateType stateType) {
+        this.activityType = activityType;
         this.stateType = stateType;
     }
 
-    public OperationStatus(EventType eventType, OperationResult operationResult) {
-        this.eventType = eventType;
+    public ProgressInformation(ActivityType activityType, OperationResult operationResult) {
+        this.activityType = activityType;
         this.stateType = StateType.EXITING;
         this.operationResult = operationResult;
     }
 
-    public OperationStatus(EventType eventType, ResourceShadowDiscriminator resourceShadowDiscriminator, StateType stateType) {
-        this(eventType, stateType);
+    public ProgressInformation(ActivityType activityType, ResourceShadowDiscriminator resourceShadowDiscriminator, StateType stateType) {
+        this(activityType, stateType);
         this.resourceShadowDiscriminator = resourceShadowDiscriminator;
     }
 
-    public OperationStatus(EventType eventType, ResourceShadowDiscriminator resourceShadowDiscriminator, OperationResult operationResult) {
-        this(eventType, operationResult);
+    public ProgressInformation(ActivityType activityType, ResourceShadowDiscriminator resourceShadowDiscriminator, OperationResult operationResult) {
+        this(activityType, operationResult);
         this.resourceShadowDiscriminator = resourceShadowDiscriminator;
     }
 
-    public EventType getEventType() {
-        return eventType;
+    public ActivityType getActivityType() {
+        return activityType;
     }
 
-    public void setEventType(EventType eventType) {
-        this.eventType = eventType;
+    public void setActivityType(ActivityType activityType) {
+        this.activityType = activityType;
     }
 
     public StateType getStateType() {
@@ -104,6 +112,14 @@ public class OperationStatus implements Serializable, DebugDumpable {
         this.resourceShadowDiscriminator = resourceShadowDiscriminator;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
     @Override
     public String debugDump() {
         return debugDump(0);
@@ -115,11 +131,18 @@ public class OperationStatus implements Serializable, DebugDumpable {
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(OperationStatus.class.getSimpleName()).append(" ");
-        sb.append("type=").append(eventType);
+        sb.append(ProgressInformation.class.getSimpleName()).append(" ");
+        sb.append("activityType=").append(activityType);
         sb.append(", state=").append(stateType);
         if (resourceShadowDiscriminator != null) {
             sb.append(", resourceShadowDiscriminator=").append(resourceShadowDiscriminator.toHumanReadableString());
+        }
+        if (message != null) {
+            sb.append("\n");
+            for (int i = 0; i < indent; i++) {
+                sb.append(INDENT_STRING);
+            }
+            sb.append("message=").append(message);
         }
         if (operationResult != null) {
             sb.append("\n");

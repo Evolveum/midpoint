@@ -16,14 +16,13 @@
 
 package com.evolveum.midpoint.wf.impl;
 
-import com.evolveum.midpoint.model.api.OperationStatus;
+import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -39,8 +38,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
-import static com.evolveum.midpoint.model.api.OperationStatus.EventType.WORKFLOWS;
-import static com.evolveum.midpoint.model.api.OperationStatus.StateType.ENTERING;
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.WORKFLOWS;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
 /**
  * Provides an interface between the model and the workflow engine:
@@ -128,7 +127,7 @@ public class WfHook implements ChangeHook {
 
         try {
 
-            context.notifyStatusListeners(new OperationStatus(WORKFLOWS, ENTERING));
+            context.reportProgress(new ProgressInformation(WORKFLOWS, ENTERING));
 
             for (ChangeProcessor changeProcessor : wfConfiguration.getChangeProcessors()) {
                 if (LOGGER.isTraceEnabled()) {
@@ -154,7 +153,7 @@ public class WfHook implements ChangeHook {
                 }
             }
         } finally {
-            context.notifyStatusListeners(new OperationStatus(WORKFLOWS, result));
+            context.reportProgress(new ProgressInformation(WORKFLOWS, result));
         }
 
         LOGGER.trace("No change processor caught this request, returning the FOREGROUND flag.");

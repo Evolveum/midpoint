@@ -26,7 +26,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.OperationStatusListener;
+import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
@@ -426,7 +426,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	 */
 	@Override
 	public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-			Task task, Collection<OperationStatusListener> statusListeners, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			Task task, Collection<ProgressListener> statusListeners, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
 
@@ -521,7 +521,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			} else {				
 				
 				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
-                context.setOperationStatusListeners(statusListeners);
+                context.setProgressListeners(statusListeners);
 				// Note: Request authorization happens inside clockwork
 				clockwork.run(context, task, result);
 

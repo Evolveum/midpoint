@@ -16,16 +16,13 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.OperationStatus;
-import com.evolveum.midpoint.model.api.OperationStatusListener;
+import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -40,89 +37,86 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.status.StatusDto;
+import com.evolveum.midpoint.web.component.status.ProgressDto;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.hssf.record.formula.functions.T;
-import org.apache.wicket.Page;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.evolveum.midpoint.model.api.OperationStatus.EventType.FOCUS_OPERATION;
-import static com.evolveum.midpoint.model.api.OperationStatus.EventType.RESOURCE_OBJECT_OPERATION;
-import static com.evolveum.midpoint.model.api.OperationStatus.EventType.WORKFLOWS;
-import static com.evolveum.midpoint.model.api.OperationStatus.StateType;
-import static com.evolveum.midpoint.model.api.OperationStatus.StateType.ENTERING;
-import static com.evolveum.midpoint.web.component.status.StatusDto.StatusItem;
-import static com.evolveum.midpoint.web.page.PageBase.createStringResourceStatic;
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.FOCUS_OPERATION;
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
+
+import com.evolveum.midpoint.web.component.status.ProgressReportActivityDto;
 
 /**
 * @author mederly
 */
-public class DefaultGuiStatusListener implements OperationStatusListener {
+public class DefaultGuiProgressListener implements ProgressListener {
 
-    private static final Trace LOGGER = TraceManager.getTrace(DefaultGuiStatusListener.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DefaultGuiProgressListener.class);
 
-    private StatusDto statusDto;
+    private ProgressDto progressDto;
     private PageBase parentPage;
 
-    public DefaultGuiStatusListener(PageBase parentPage, StatusDto statusDto) {
+    public DefaultGuiProgressListener(PageBase parentPage, ProgressDto progressDto) {
         this.parentPage = parentPage;
-        this.statusDto = statusDto;
+        this.progressDto = progressDto;
     }
 
     @Override
-    public void onStateUpdate(ModelContext modelContext, OperationStatus operationStatus, String message) {
+    public void onProgressAchieved(ModelContext modelContext, ProgressInformation progressInformation) {
 
-        LOGGER.info("onStateUpdate: {}; operationStatus = {}\n, modelContext = \n{}", new Object[]{message, operationStatus.debugDump(), modelContext.debugDump(2)});
-
-        if (statusDto == null) {
-            LOGGER.error("No statusDto, exiting");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("onProgressAchieved: {}\n, modelContext = \n{}", new Object[]{progressInformation.debugDump(), modelContext.debugDump(2)});
         }
 
-        if (StringUtils.isNotEmpty(message)) {
-            statusDto.log(message);
+        if (progressDto == null) {
+            LOGGER.error("No progressDto, exiting");      // should not occur
         }
 
-        List<StatusItem> statusItems = statusDto.getStatusItems();
+        if (StringUtils.isNotEmpty(progressInformation.getMessage())) {
+            progressDto.log(progressInformation.getMessage());
+        }
 
-        if (operationStatus != null) {
+        List<ProgressReportActivityDto> progressReportActivities = progressDto.getProgressReportActivities();
 
-            StatusItem si = findRelevantStatusItem(statusItems, operationStatus);
+        if (progressInformation != null) {
+
+            ProgressReportActivityDto si = findRelevantStatusItem(progressReportActivities, progressInformation);
 
             if (si == null) {
-                statusDto.add(createStatusItem(operationStatus));
+                progressDto.add(createStatusItem(progressInformation));
             } else {
-                updateStatusItemState(si, operationStatus);
+                updateStatusItemState(si, progressInformation);
             }
         }
 
-        addExpectedStatusItems(statusItems, modelContext);
+        addExpectedStatusItems(progressReportActivities, modelContext);
     }
 
-    private void addExpectedStatusItems(List<StatusItem> statusItems, ModelContext modelContext) {
+    private void addExpectedStatusItems(List<ProgressReportActivityDto> progressReportActivities, ModelContext modelContext) {
         if (modelContext.getFocusContext() != null) {
             ModelElementContext fc = modelContext.getFocusContext();
             if (isNotEmpty(fc.getPrimaryDelta()) || isNotEmpty(fc.getSecondaryDelta())) {
-                OperationStatus modelStatus = new OperationStatus(FOCUS_OPERATION, (StateType) null);
-                if (findRelevantStatusItem(statusItems, modelStatus) == null) {
-                    statusItems.add(createStatusItem(modelStatus));
+                ProgressInformation modelStatus = new ProgressInformation(FOCUS_OPERATION, (StateType) null);
+                if (findRelevantStatusItem(progressReportActivities, modelStatus) == null) {
+                    progressReportActivities.add(createStatusItem(modelStatus));
                 }
             }
         }
         if (modelContext.getProjectionContexts() != null) {
             Collection<ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
             for (ModelProjectionContext mpc : projectionContexts) {
-                OperationStatus projectionStatus = new OperationStatus(RESOURCE_OBJECT_OPERATION, mpc.getResourceShadowDiscriminator(), (StateType) null);
-                if (findRelevantStatusItem(statusItems, projectionStatus) == null) {
-                    statusItems.add(createStatusItem(projectionStatus));
+                ProgressInformation projectionStatus = new ProgressInformation(RESOURCE_OBJECT_OPERATION, mpc.getResourceShadowDiscriminator(), (StateType) null);
+                if (findRelevantStatusItem(progressReportActivities, projectionStatus) == null) {
+                    progressReportActivities.add(createStatusItem(projectionStatus));
                 }
             }
         }
@@ -132,42 +126,42 @@ public class DefaultGuiStatusListener implements OperationStatusListener {
         return delta != null && !delta.isEmpty();
     }
 
-    private StatusItem findRelevantStatusItem(List<StatusItem> statusItems, OperationStatus operationStatus) {
-        for (StatusItem si : statusItems) {
-            if (si.correspondsTo(operationStatus)) {
+    private ProgressReportActivityDto findRelevantStatusItem(List<ProgressReportActivityDto> progressReportActivities, ProgressInformation progressInformation) {
+        for (ProgressReportActivityDto si : progressReportActivities) {
+            if (si.correspondsTo(progressInformation)) {
                 return si;
             }
         }
         return null;
     }
 
-    private void updateStatusItemState(StatusItem si, OperationStatus operationStatus) {
-        si.setEventType(operationStatus.getEventType());
-        si.setResourceShadowDiscriminator(operationStatus.getResourceShadowDiscriminator());
-        if (operationStatus.getResourceShadowDiscriminator() != null) {
-            si.setResourceName(getResourceName(operationStatus.getResourceShadowDiscriminator().getResourceOid()));
+    private void updateStatusItemState(ProgressReportActivityDto si, ProgressInformation progressInformation) {
+        si.setActivityType(progressInformation.getActivityType());
+        si.setResourceShadowDiscriminator(progressInformation.getResourceShadowDiscriminator());
+        if (progressInformation.getResourceShadowDiscriminator() != null) {
+            si.setResourceName(getResourceName(progressInformation.getResourceShadowDiscriminator().getResourceOid()));
         }
-        if (operationStatus.getStateType() == null) {
-            si.setState(null);
-        } else if (operationStatus.getStateType() == ENTERING) {
-            si.setState(OperationResultStatusType.IN_PROGRESS);
+        if (progressInformation.getStateType() == null) {
+            si.setStatus(null);
+        } else if (progressInformation.getStateType() == ENTERING) {
+            si.setStatus(OperationResultStatusType.IN_PROGRESS);
         } else {
-            OperationResult result = operationStatus.getOperationResult();
+            OperationResult result = progressInformation.getOperationResult();
             if (result != null) {
                 OperationResultStatus status = result.getStatus();
                 if (status == OperationResultStatus.UNKNOWN) {
                     status = result.getComputeStatus();
                 }
-                si.setState(status.createStatusType());
+                si.setStatus(status.createStatusType());
             } else {
-                si.setState(OperationResultStatusType.UNKNOWN);
+                si.setStatus(OperationResultStatusType.UNKNOWN);
             }
         }
     }
 
-    private StatusItem createStatusItem(OperationStatus operationStatus) {
-        StatusItem si = new StatusItem();
-        updateStatusItemState(si, operationStatus);
+    private ProgressReportActivityDto createStatusItem(ProgressInformation progressInformation) {
+        ProgressReportActivityDto si = new ProgressReportActivityDto();
+        updateStatusItemState(si, progressInformation);
         return si;
     }
 

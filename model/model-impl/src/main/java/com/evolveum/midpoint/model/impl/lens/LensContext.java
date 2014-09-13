@@ -17,14 +17,13 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.OperationStatus;
-import com.evolveum.midpoint.model.api.OperationStatusListener;
+import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -122,7 +121,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     /**
      * User feedback.
      */
-    transient private Collection<OperationStatusListener> operationStatusListeners;
+    transient private Collection<ProgressListener> progressListeners;
 
     public LensContext(Class<F> focusClass, PrismContext prismContext, ProvisioningService provisioningService) {
 		Validate.notNull(prismContext, "No prismContext");
@@ -901,37 +900,22 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return globalPasswordPolicy;
 	}
 
-    public void setOperationStatusListeners(Collection<OperationStatusListener> operationStatusListeners) {
-        this.operationStatusListeners = operationStatusListeners;
+    public void setProgressListeners(Collection<ProgressListener> progressListeners) {
+        this.progressListeners = progressListeners;
     }
 
-    public Collection<OperationStatusListener> getOperationStatusListeners() {
-        return operationStatusListeners;
-    }
-
-    @Override
-    public void notifyStatusListeners() {
-        notifyStatusListeners(null, null);
+    public Collection<ProgressListener> getProgressListeners() {
+        return progressListeners;
     }
 
     @Override
-    public void notifyStatusListeners(String message) {
-        notifyStatusListeners(null, message);
-    }
-
-    @Override
-    public void notifyStatusListeners(OperationStatus status) {
-        notifyStatusListeners(status, null);
-    }
-
-    @Override
-    public void notifyStatusListeners(OperationStatus status, String message) {
-        if (operationStatusListeners == null) {
+    public void reportProgress(ProgressInformation progress) {
+        if (progressListeners == null) {
             return;
         }
 
-        for (OperationStatusListener listener : operationStatusListeners) {
-            listener.onStateUpdate(this, status, message);
+        for (ProgressListener listener : progressListeners) {
+            listener.onProgressAchieved(this, progress);
         }
     }
 }

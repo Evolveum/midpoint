@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.OperationStatusListener;
+import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -52,8 +52,8 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.status.StatusDto;
-import com.evolveum.midpoint.web.component.status.StatusPanel;
+import com.evolveum.midpoint.web.component.status.ProgressDto;
+import com.evolveum.midpoint.web.component.status.ProgressPanel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
@@ -182,7 +182,7 @@ public class PageUser extends PageAdminUsers {
         }
     };
 
-    private StatusPanel statusIndicator;
+    private ProgressPanel progressPanel;
     private ObjectDelta delta;
     private OperationResult asyncOperationResult;
 
@@ -312,8 +312,8 @@ public class PageUser extends PageAdminUsers {
         mainForm.setMultiPart(true);
         add(mainForm);
 
-        statusIndicator = new StatusPanel("statusIndicator", new Model<>(new StatusDto()));
-        statusIndicator.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(400)) {         // TODO change this
+        progressPanel = new ProgressPanel("progressPanel", new Model<>(new ProgressDto()));
+        progressPanel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(400)) {         // TODO change this
             @Override
             protected void onPostProcessTarget(AjaxRequestTarget target) {
                 super.onPostProcessTarget(target);
@@ -323,9 +323,9 @@ public class PageUser extends PageAdminUsers {
                 }
             }
         });
-        statusIndicator.setOutputMarkupId(true);
-        statusIndicator.hide();
-        mainForm.add(statusIndicator);
+        progressPanel.setOutputMarkupId(true);
+        progressPanel.hide();
+        mainForm.add(progressPanel);
 
         initSummaryInfo(mainForm);
 
@@ -895,7 +895,7 @@ public class PageUser extends PageAdminUsers {
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 asyncOperationResult = null;
-                statusIndicator.getModelObject().clear();
+                progressPanel.getModelObject().clear();
                 savePerformed(target);
             }
 
@@ -1394,8 +1394,8 @@ public class PageUser extends PageAdminUsers {
         final SecurityEnforcer enforcer = getSecurityEnforcer();
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        statusIndicator.show();
-        final OperationStatusListener listener = new DefaultGuiStatusListener(this, statusIndicator.getModelObject());
+        progressPanel.show();
+        final ProgressListener listener = new DefaultGuiProgressListener(this, progressPanel.getModelObject());
 
         Runnable execution = new Runnable() {
             @Override
@@ -1403,8 +1403,8 @@ public class PageUser extends PageAdminUsers {
                 try {
                     enforcer.setupPreAuthenticatedSecurityContext(authentication);
                     modelService.executeChanges(deltas, options, task, Collections.singleton(listener), result);
-                    if (statusIndicator.getModelObject().allSuccess()) {
-                        statusIndicator.getModelObject().log("Closing the screen in 5 seconds...");
+                    if (progressPanel.getModelObject().allSuccess()) {
+                        progressPanel.getModelObject().log("Closing the screen in 5 seconds...");
                         try {
                             Thread.sleep(5000);
                         } catch (InterruptedException e) {
@@ -1431,7 +1431,7 @@ public class PageUser extends PageAdminUsers {
         result.recomputeStatus();
 
         boolean userAdded = delta != null && delta.isAdd() && StringUtils.isNotEmpty(delta.getOid());
-        if (statusIndicator.getModelObject().allSuccess() && (userAdded || !result.isFatalError())) {           // TODO
+        if (progressPanel.getModelObject().allSuccess() && (userAdded || !result.isFatalError())) {           // TODO
             showResultInSession(result);
             // todo refactor this...what is this for? why it's using some
             // "shadow" param from result???

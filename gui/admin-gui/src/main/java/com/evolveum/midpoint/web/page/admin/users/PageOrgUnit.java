@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.OperationStatusListener;
+import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -53,8 +53,8 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextFormGroup;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.component.status.StatusDto;
-import com.evolveum.midpoint.web.component.status.StatusPanel;
+import com.evolveum.midpoint.web.component.status.ProgressDto;
+import com.evolveum.midpoint.web.component.status.ProgressPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
@@ -142,7 +142,7 @@ public class PageOrgUnit extends PageAdminUsers {
     private IModel<ContainerWrapper> extensionModel;
     private ObjectWrapper orgWrapper;
 
-    private StatusPanel statusIndicator;
+    private ProgressPanel progressPanel;
     private ObjectDelta delta;
     private OperationResult asyncOperationResult;
 
@@ -270,8 +270,8 @@ public class PageOrgUnit extends PageAdminUsers {
         add(form);
 
         // todo deduplicate
-        statusIndicator = new StatusPanel("statusIndicator", new Model<>(new StatusDto()));
-        statusIndicator.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(400)) {         // TODO change this
+        progressPanel = new ProgressPanel("progressPanel", new Model<>(new ProgressDto()));
+        progressPanel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(400)) {         // TODO change this
             @Override
             protected void onPostProcessTarget(AjaxRequestTarget target) {
                 super.onPostProcessTarget(target);
@@ -281,9 +281,9 @@ public class PageOrgUnit extends PageAdminUsers {
                 }
             }
         });
-        statusIndicator.setOutputMarkupId(true);
-        statusIndicator.hide();
-        form.add(statusIndicator);
+        progressPanel.setOutputMarkupId(true);
+        progressPanel.hide();
+        form.add(progressPanel);
 
 
         TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel(orgModel, OrgType.F_NAME),
@@ -514,7 +514,7 @@ public class PageOrgUnit extends PageAdminUsers {
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 asyncOperationResult = null;
-                statusIndicator.getModelObject().clear();
+                progressPanel.getModelObject().clear();
                 savePerformed(target);
             }
 
@@ -713,8 +713,8 @@ public class PageOrgUnit extends PageAdminUsers {
         final SecurityEnforcer enforcer = getSecurityEnforcer();
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        statusIndicator.show();
-        final OperationStatusListener listener = new DefaultGuiStatusListener(this, statusIndicator.getModelObject());
+        progressPanel.show();
+        final ProgressListener listener = new DefaultGuiProgressListener(this, progressPanel.getModelObject());
 
         Runnable execution = new Runnable() {
             @Override
@@ -722,8 +722,8 @@ public class PageOrgUnit extends PageAdminUsers {
                 try {
                     enforcer.setupPreAuthenticatedSecurityContext(authentication);
                     modelService.executeChanges(deltas, options, task, Collections.singleton(listener), result);
-                    if (statusIndicator.getModelObject().allSuccess()) {
-                        statusIndicator.getModelObject().log("Done, closing in 5 seconds...");          // TODO remove in production
+                    if (progressPanel.getModelObject().allSuccess()) {
+                        progressPanel.getModelObject().log("Done, closing in 5 seconds...");          // TODO remove in production
                         try {
                             Thread.sleep(5000);
                         } catch (InterruptedException e) {
@@ -736,7 +736,7 @@ public class PageOrgUnit extends PageAdminUsers {
                     if (!result.isFatalError()) {       // just to be sure
                         result.recordFatalError(e.getMessage(), e);
                     }
-                    //statusIndicator.getModelObject().log("Error: " + e.getMessage());
+                    //progressPanel.getModelObject().log("Error: " + e.getMessage());
                 }
                 asyncOperationResult = result;
             }
@@ -749,7 +749,7 @@ public class PageOrgUnit extends PageAdminUsers {
 
     private void finishAsyncProcessing(AjaxRequestTarget target, OperationResult result) {
         result.recomputeStatus();
-        if (statusIndicator.getModelObject().allSuccess() && WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (progressPanel.getModelObject().allSuccess() && WebMiscUtil.isSuccessOrHandledError(result)) {
             showResultInSession(result);
             setResponsePage(PageOrgTree.class);
         } else {

@@ -17,17 +17,14 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
-import static com.evolveum.midpoint.model.api.OperationStatus.EventType.FOCUS_OPERATION;
-import static com.evolveum.midpoint.model.api.OperationStatus.EventType.RESOURCE_OBJECT_OPERATION;
-import static com.evolveum.midpoint.model.api.OperationStatus.StateType.ENTERING;
-
-import ch.qos.logback.core.pattern.parser.ScanException;
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.FOCUS_OPERATION;
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.OperationStatus;
+import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
@@ -58,7 +55,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -85,13 +81,10 @@ import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBElement;
@@ -162,7 +155,7 @@ public class ChangeExecutor {
 	
 	        	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_FOCUS+"."+focusContext.getObjectTypeClass().getSimpleName());
 	        	try {
-	        		syncContext.notifyStatusListeners(new OperationStatus(FOCUS_OPERATION, ENTERING));
+	        		syncContext.reportProgress(new ProgressInformation(FOCUS_OPERATION, ENTERING));
 		            executeDelta(focusDelta, focusContext, syncContext, null, null, task, subResult);
 	                subResult.computeStatus();
 	                
@@ -195,7 +188,7 @@ public class ChangeExecutor {
 	        		recordFatalError(subResult, result, null, e);
 	    			throw e;
 	    		} finally {
-                    syncContext.notifyStatusListeners(new OperationStatus(FOCUS_OPERATION, subResult));
+                    syncContext.reportProgress(new ProgressInformation(FOCUS_OPERATION, subResult));
                 }
 	        } else {
 	            LOGGER.trace("Skipping focus change execute, because user delta is null");
@@ -215,7 +208,7 @@ public class ChangeExecutor {
 			}
 			try {
 
-                syncContext.notifyStatusListeners(new OperationStatus(RESOURCE_OBJECT_OPERATION, accCtx.getResourceShadowDiscriminator(), ENTERING));
+                syncContext.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION, accCtx.getResourceShadowDiscriminator(), ENTERING));
 
 				executeReconciliationScript(accCtx, syncContext, BeforeAfterType.BEFORE, task, subResult);
 				
@@ -309,8 +302,8 @@ public class ChangeExecutor {
 				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} finally {
-                syncContext.notifyStatusListeners(
-                        new OperationStatus(RESOURCE_OBJECT_OPERATION,
+                syncContext.reportProgress(
+                        new ProgressInformation(RESOURCE_OBJECT_OPERATION,
                                 accCtx.getResourceShadowDiscriminator(), subResult));
             }
 		}
