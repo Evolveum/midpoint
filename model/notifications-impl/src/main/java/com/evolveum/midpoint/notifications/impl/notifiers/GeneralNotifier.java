@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.model.api.OperationStatus;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
@@ -119,48 +120,50 @@ public class GeneralNotifier extends BaseHandler {
 
                     ExpressionVariables variables = getDefaultVariables(event, result);
 
-                    int sent = 0;
-
-                    for (String transportName : generalNotifierType.getTransport()) {
-
-                        variables.addVariableDefinition(SchemaConstants.C_TRANSPORT_NAME, transportName);
-                        Transport transport = notificationManager.getTransport(transportName);
-
-                        List<String> recipientsAddresses = getRecipientsAddresses(event, generalNotifierType, variables,
-                                getDefaultRecipient(event, generalNotifierType, result), transportName, transport, task, result);
-
-                        if (!recipientsAddresses.isEmpty()) {
-
-                            String body = getBodyFromExpression(event, generalNotifierType, variables, task, result);
-                            String subject = getSubjectFromExpression(event, generalNotifierType, variables, task, result);
-
-                            if (body == null) {
-                                body = getBody(event, generalNotifierType, transportName, result);
-                            }
-                            if (subject == null) {
-                                subject = generalNotifierType.getSubjectPrefix() != null ? generalNotifierType.getSubjectPrefix() : "";
-                                subject += getSubject(event, generalNotifierType, transportName, result);
-                            }
-
-                            Message message = new Message();
-                            message.setBody(body != null ? body : "");
-                            //message.setContentType("text/plain");           // todo make more flexible
-                            message.setSubject(subject != null ? subject : "");
-                            message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
-
-                            getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
-                            // FIXME hack
-                            if (event instanceof ModelEvent) {
-                                ((ModelEvent) event).getModelContext().notifyStatusListeners("Sending notification via " + transportName);
-                            }
-                            transport.send(message, transportName, task, result);
-                            sent++;
-                        } else {
-                            getLogger().info("No recipients addresses for transport " + transportName + ", message corresponding to event " + event.getId() + " will not be send.");
-                        }
+                    if (event instanceof ModelEvent) {
+                        ((ModelEvent) event).getModelContext().notifyStatusListeners(
+                                new OperationStatus(OperationStatus.EventType.NOTIFICATIONS));
                     }
-                    if (sent > 0 && event instanceof ModelEvent) {
-                        ((ModelEvent) event).getModelContext().notifyStatusListeners(sent + " notification(s) sent.");
+
+                    try {
+                        for (String transportName : generalNotifierType.getTransport()) {
+
+                            variables.addVariableDefinition(SchemaConstants.C_TRANSPORT_NAME, transportName);
+                            Transport transport = notificationManager.getTransport(transportName);
+
+                            List<String> recipientsAddresses = getRecipientsAddresses(event, generalNotifierType, variables,
+                                    getDefaultRecipient(event, generalNotifierType, result), transportName, transport, task, result);
+
+                            if (!recipientsAddresses.isEmpty()) {
+
+                                String body = getBodyFromExpression(event, generalNotifierType, variables, task, result);
+                                String subject = getSubjectFromExpression(event, generalNotifierType, variables, task, result);
+
+                                if (body == null) {
+                                    body = getBody(event, generalNotifierType, transportName, result);
+                                }
+                                if (subject == null) {
+                                    subject = generalNotifierType.getSubjectPrefix() != null ? generalNotifierType.getSubjectPrefix() : "";
+                                    subject += getSubject(event, generalNotifierType, transportName, result);
+                                }
+
+                                Message message = new Message();
+                                message.setBody(body != null ? body : "");
+                                //message.setContentType("text/plain");           // todo make more flexible
+                                message.setSubject(subject != null ? subject : "");
+                                message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
+
+                                getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
+                                transport.send(message, transportName, task, result);
+                            } else {
+                                getLogger().info("No recipients addresses for transport " + transportName + ", message corresponding to event " + event.getId() + " will not be send.");
+                            }
+                        }
+                    } finally {
+                        if (event instanceof ModelEvent) {
+                            ((ModelEvent) event).getModelContext().notifyStatusListeners(
+                                    new OperationStatus(OperationStatus.EventType.NOTIFICATIONS, result));
+                        }
                     }
                 }
             }

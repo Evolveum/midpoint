@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.OperationStatus;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
@@ -157,7 +158,7 @@ public class ChangeExecutor {
 	
 	        	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_FOCUS+"."+focusContext.getObjectTypeClass().getSimpleName());
 	        	try {
-	        		
+	        		syncContext.notifyStatusListeners(new OperationStatus(OperationStatus.EventType.FOCUS_OPERATION));
 		            executeDelta(focusDelta, focusContext, syncContext, null, null, task, subResult);
 	                subResult.computeStatus();
 	                
@@ -190,15 +191,12 @@ public class ChangeExecutor {
 	        		recordFatalError(subResult, result, null, e);
 	    			throw e;
 	    		} finally {
-                    syncContext.notifyStatusListeners();
+                    syncContext.notifyStatusListeners(new OperationStatus(OperationStatus.EventType.FOCUS_OPERATION, subResult));
                 }
 	        } else {
 	            LOGGER.trace("Skipping focus change execute, because user delta is null");
-                syncContext.notifyStatusListeners();
 	        }
-    	} else {
-            syncContext.notifyStatusListeners();
-        }
+    	}
 
     	// PROJECTIONS
     	
@@ -212,7 +210,9 @@ public class ChangeExecutor {
 				subResult.addParam("resource", accCtx.getResource().getName());
 			}
 			try {
-				
+
+                syncContext.notifyStatusListeners(new OperationStatus(OperationStatus.EventType.RESOURCE_OBJECT_OPERATION, accCtx.getResourceShadowDiscriminator()));
+
 				executeReconciliationScript(accCtx, syncContext, BeforeAfterType.BEFORE, task, subResult);
 				
 				ObjectDelta<ShadowType> accDelta = accCtx.getExecutableDelta();
@@ -305,7 +305,9 @@ public class ChangeExecutor {
 				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} finally {
-                syncContext.notifyStatusListeners("Projection " + accCtx.getHumanReadableName() + " done");     // text is temporary here
+                syncContext.notifyStatusListeners(
+                        new OperationStatus(OperationStatus.EventType.RESOURCE_OBJECT_OPERATION,
+                                accCtx.getResourceShadowDiscriminator(), subResult));
             }
 		}
         

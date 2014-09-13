@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.Collection;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.OperationStatus;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -43,4 +44,8 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     void notifyStatusListeners();
 
     void notifyStatusListeners(String message);
+
+    void notifyStatusListeners(OperationStatus status);
+
+    void notifyStatusListeners(OperationStatus status, String message);
 }

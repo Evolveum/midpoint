@@ -21,9 +21,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.OperationStatusListener;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -31,7 +28,6 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -56,7 +52,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.status.Status;
+import com.evolveum.midpoint.web.component.status.StatusDto;
 import com.evolveum.midpoint.web.component.status.StatusPanel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
@@ -171,6 +167,7 @@ public class PageUser extends PageAdminUsers {
     private static final String ID_SUMMARY_PHOTO = "summaryPhoto";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
+
     private LoadableModel<ObjectWrapper> userModel;
     private LoadableModel<List<UserAccountDto>> accountsModel;
     private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
@@ -186,6 +183,8 @@ public class PageUser extends PageAdminUsers {
     };
 
     private StatusPanel statusIndicator;
+    private ObjectDelta delta;
+    private OperationResult asyncOperationResult;
 
     public PageUser() {
         this(null);
@@ -247,8 +246,6 @@ public class PageUser extends PageAdminUsers {
             }
         };
     }
-
-
 
     private ObjectWrapper loadUserWrapper(PrismObject<UserType> userToEdit) {
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
@@ -315,8 +312,8 @@ public class PageUser extends PageAdminUsers {
         mainForm.setMultiPart(true);
         add(mainForm);
 
-        statusIndicator = new StatusPanel("statusIndicator", new Model<>(new Status()));
-        statusIndicator.add(new AjaxSelfUpdatingTimerBehavior(Duration.seconds(1)) {
+        statusIndicator = new StatusPanel("statusIndicator", new Model<>(new StatusDto()));
+        statusIndicator.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(400)) {         // TODO change this
             @Override
             protected void onPostProcessTarget(AjaxRequestTarget target) {
                 super.onPostProcessTarget(target);
@@ -899,7 +896,6 @@ public class PageUser extends PageAdminUsers {
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 asyncOperationResult = null;
                 statusIndicator.getModelObject().clear();
-                statusIndicator.getModelObject().log("Preparing the operation to be executed.");        // todo i18n
                 savePerformed(target);
             }
 
@@ -1283,8 +1279,6 @@ public class PageUser extends PageAdminUsers {
         handleAssignmentDeltas(userDelta, def);
     }
 
-    private ObjectDelta delta;
-
     private void savePerformed(AjaxRequestTarget target) {
         LOGGER.debug("Save user.");
         OperationResult result = new OperationResult(OPERATION_SAVE);
@@ -1395,15 +1389,13 @@ public class PageUser extends PageAdminUsers {
         }
     }
 
-    private OperationResult asyncOperationResult;
-
     private void asyncExecuteChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target) {
         final ModelService modelService = getModelService();
         final SecurityEnforcer enforcer = getSecurityEnforcer();
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         statusIndicator.show();
-        final OperationStatusListener listener = new UserStatusListener();
+        final OperationStatusListener listener = new DefaultGuiStatusListener(this, statusIndicator.getModelObject());
 
         Runnable execution = new Runnable() {
             @Override
@@ -1411,18 +1403,21 @@ public class PageUser extends PageAdminUsers {
                 try {
                     enforcer.setupPreAuthenticatedSecurityContext(authentication);
                     modelService.executeChanges(deltas, options, task, Collections.singleton(listener), result);
+                    if (statusIndicator.getModelObject().allSuccess()) {
+                        statusIndicator.getModelObject().log("Closing the screen in 5 seconds...");
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                        }
+                    }
                 } catch (CommunicationException|ObjectAlreadyExistsException|ExpressionEvaluationException|
                         PolicyViolationException|SchemaException|SecurityViolationException|
                         ConfigurationException|ObjectNotFoundException e) {
                     LoggingUtils.logException(LOGGER, "Error executing changes", e);
-                    statusIndicator.getModelObject().log("Error: " + e.getMessage());
+                    if (!result.isFatalError()) {       // just to be sure
+                        result.recordFatalError(e.getMessage(), e);
+                    }
                 }
-                statusIndicator.getModelObject().log("Done, waiting a while...");
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                }
-
                 asyncOperationResult = result;
             }
         };
@@ -1436,7 +1431,7 @@ public class PageUser extends PageAdminUsers {
         result.recomputeStatus();
 
         boolean userAdded = delta != null && delta.isAdd() && StringUtils.isNotEmpty(delta.getOid());
-        if (userAdded || !result.isFatalError()) {
+        if (statusIndicator.getModelObject().allSuccess() && (userAdded || !result.isFatalError())) {           // TODO
             showResultInSession(result);
             // todo refactor this...what is this for? why it's using some
             // "shadow" param from result???
@@ -1560,9 +1555,9 @@ public class PageUser extends PageAdminUsers {
         return forceDeleteDelta;
     }
 
-    private Object object;
-
     public Object findParam(String param, String oid, OperationResult result) {
+
+        Object object = null;
 
         for (OperationResult subResult : result.getSubresults()) {
             if (subResult != null && subResult.getParams() != null) {
@@ -1850,116 +1845,4 @@ public class PageUser extends PageAdminUsers {
         return this;
     }
 
-    private class UserStatusListener implements OperationStatusListener {
-        @Override
-        public void onStateUpdate(ModelContext modelContext, String message) {
-
-            LOGGER.info("onStateUpdate: {}; modelContext = \n{}", message, modelContext.debugDump(2));
-
-            Status status = statusIndicator.getModelObject();
-            if (StringUtils.isNotEmpty(message)) {
-                status.log(message);
-            }
-
-            List<Status.StatusItem> statusItems = status.getStatusItems();
-            statusItems.clear();
-
-            if (modelContext == null) {
-                return;
-            }
-
-            ModelElementContext fc = modelContext.getFocusContext();
-            if (fc != null &&
-                    (notEmpty(fc.getPrimaryDelta()) || notEmpty(fc.getSecondaryDelta()))) {
-                Status.StatusItem si = new Status.StatusItem("Focus object in repository");
-                try {
-                    ObjectDelta expected = summarize(fc.getPrimaryDelta(), fc.getSecondaryDelta());
-                    String state = getState(expected, fc.getExecutedDeltas(), "focus");
-                    si.setState(state);
-                } catch (SchemaException e) {
-                    si.setState("? " + e.getMessage());
-                }
-                status.add(si);
-            }
-
-            Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
-            if (projectionContexts != null) {
-                for (ModelProjectionContext pc : projectionContexts) {
-                    if (!notEmpty(pc.getPrimaryDelta()) && !notEmpty(pc.getSecondaryDelta())) {
-                        continue;
-                    }
-                    Status.StatusItem si = new Status.StatusItem(pc.getResourceShadowDiscriminator().toHumanReadableString());
-                    try {
-                        ObjectDelta expected = summarize(pc.getPrimaryDelta(), pc.getSecondaryDelta());
-                        String state = getState(expected, pc.getExecutedDeltas(), pc.getResourceShadowDiscriminator().toString());
-                        si.setState(state);
-                    } catch (SchemaException e) {
-                        si.setState("? " + e.getMessage());
-                    }
-                    status.add(si);
-                }
-            }
-        }
-
-        // a bit of hack...
-        private ObjectDelta summarize(ObjectDelta delta1, ObjectDelta delta2) throws SchemaException {
-            if (delta1 == null) {
-                return delta2;
-            } else if (delta2 == null) {
-                return delta1;
-            } else {
-                return ObjectDelta.summarize(delta1, delta2);
-            }
-        }
-
-        private String getState(ObjectDelta expected, Collection<? extends ObjectDeltaOperation> executedObjectDeltaOperations, String description) throws SchemaException {
-
-            List<ObjectDelta> executedObjectDeltas = new ArrayList<>();
-            if (executedObjectDeltaOperations != null) {
-                for (ObjectDeltaOperation odo : executedObjectDeltaOperations) {
-                    executedObjectDeltas.add(odo.getObjectDelta());
-                }
-            }
-            ObjectDelta actual = ObjectDelta.summarize((List) executedObjectDeltas);
-
-            LOGGER.info("getState for " + description);
-            LOGGER.info("expected = {}", expected.debugDump());
-            LOGGER.info("actual = {}", actual != null ? actual.debugDump() : "(null)");
-
-            String state;
-            if (expected.equals(actual)) {
-                state = "FULL";
-            } else if (actual == null || actual.isEmpty()) {
-                state = "NONE";
-            } else {
-                state = "PART";
-            }
-            Boolean success = null;
-            if (executedObjectDeltaOperations != null) {
-                for (ObjectDeltaOperation objectDeltaOperation : executedObjectDeltaOperations) {
-                    OperationResult or = objectDeltaOperation.getExecutionResult();
-                    if (or.isSuccess() || or.isHandledError()) {
-                        if (success == null) {
-                            success = true;
-                        }
-                    } else if (or.isError()) {
-                        success = false;
-                    }
-                }
-            }
-            if (success == null) {
-                ;
-            } else if (success) {
-                state += " / OK";
-            } else {
-                state += " / ERROR";
-            }
-            LOGGER.info("Conclusion = {}", state);
-            return state;
-        }
-
-        private boolean notEmpty(ObjectDelta delta) {
-            return delta != null && !delta.isEmpty();
-        }
-    }
 }

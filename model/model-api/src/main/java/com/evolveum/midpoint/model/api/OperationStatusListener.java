@@ -23,5 +23,6 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
  */
 public interface OperationStatusListener {
 
-    void onStateUpdate(ModelContext modelContext, String message);
+    void onStateUpdate(ModelContext modelContext, OperationStatus status, String message);
+
 }

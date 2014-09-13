@@ -16,6 +16,10 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.OperationStatusListener;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -27,8 +31,15 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,6 +53,8 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextFormGroup;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.status.StatusDto;
+import com.evolveum.midpoint.web.component.status.StatusPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
@@ -55,6 +68,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
@@ -64,10 +78,14 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.time.Duration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -123,6 +141,10 @@ public class PageOrgUnit extends PageAdminUsers {
     private IModel<List<PrismPropertyValue>> orgMailDomainModel;
     private IModel<ContainerWrapper> extensionModel;
     private ObjectWrapper orgWrapper;
+
+    private StatusPanel statusIndicator;
+    private ObjectDelta delta;
+    private OperationResult asyncOperationResult;
 
     public PageOrgUnit() {
         this(null);
@@ -246,6 +268,23 @@ public class PageOrgUnit extends PageAdminUsers {
     private void initLayout() {
         final Form form = new Form(ID_FORM);
         add(form);
+
+        // todo deduplicate
+        statusIndicator = new StatusPanel("statusIndicator", new Model<>(new StatusDto()));
+        statusIndicator.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(400)) {         // TODO change this
+            @Override
+            protected void onPostProcessTarget(AjaxRequestTarget target) {
+                super.onPostProcessTarget(target);
+                if (asyncOperationResult != null) {         // async operation has been finished!
+                    finishAsyncProcessing(target, asyncOperationResult);
+                    asyncOperationResult = null;
+                }
+            }
+        });
+        statusIndicator.setOutputMarkupId(true);
+        statusIndicator.hide();
+        form.add(statusIndicator);
+
 
         TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel(orgModel, OrgType.F_NAME),
                 createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
@@ -474,6 +513,8 @@ public class PageOrgUnit extends PageAdminUsers {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                asyncOperationResult = null;
+                statusIndicator.getModelObject().clear();
                 savePerformed(target);
             }
 
@@ -596,7 +637,7 @@ public class PageOrgUnit extends PageAdminUsers {
 
         try {
             reviveModels();
-            ObjectDelta delta = null;
+            delta = null;
 
             if (!isEditing()) {
                 newOrgUnit = buildUnitFromModel(null);
@@ -645,12 +686,16 @@ public class PageOrgUnit extends PageAdminUsers {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Saving changes for org. unit: {}", delta.debugDump());
                 }
-                getModelService().executeChanges(deltas, null, createSimpleTask(SAVE_UNIT), result);
+
+                asyncExecuteChanges(deltas, null, createSimpleTask(SAVE_UNIT), result, target);
 
                 //save extension when adding new Org. - improve later
                 if(!isEditing() && extensionDelta != null){
                     ObjectDelta extDelta = delta.getObjectToAdd().diff(extensionDelta.getObjectToAdd());
-                    getModelService().executeChanges(WebMiscUtil.createDeltaCollection(extDelta), null, createSimpleTask(SAVE_UNIT), result);
+                    if (!extDelta.isEmpty()) {
+                        throw new UnsupportedOperationException("Extension delta save is not supported yet [pmed]");
+                    }
+                    //getModelService().executeChanges(WebMiscUtil.createDeltaCollection(extDelta), null, createSimpleTask(SAVE_UNIT), result);
                 }
             }
         } catch (Exception ex) {
@@ -660,7 +705,51 @@ public class PageOrgUnit extends PageAdminUsers {
             result.computeStatusIfUnknown();
         }
 
-        if (WebMiscUtil.isSuccessOrHandledError(result)) {
+    }
+
+    // TODO deduplicate with PageUser
+    private void asyncExecuteChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target) {
+        final ModelService modelService = getModelService();
+        final SecurityEnforcer enforcer = getSecurityEnforcer();
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        statusIndicator.show();
+        final OperationStatusListener listener = new DefaultGuiStatusListener(this, statusIndicator.getModelObject());
+
+        Runnable execution = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    enforcer.setupPreAuthenticatedSecurityContext(authentication);
+                    modelService.executeChanges(deltas, options, task, Collections.singleton(listener), result);
+                    if (statusIndicator.getModelObject().allSuccess()) {
+                        statusIndicator.getModelObject().log("Done, closing in 5 seconds...");          // TODO remove in production
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                } catch (CommunicationException |ObjectAlreadyExistsException |ExpressionEvaluationException |
+                        PolicyViolationException |SchemaException|SecurityViolationException |
+                        ConfigurationException |ObjectNotFoundException e) {
+                    LoggingUtils.logException(LOGGER, "Error executing changes", e);
+                    if (!result.isFatalError()) {       // just to be sure
+                        result.recordFatalError(e.getMessage(), e);
+                    }
+                    //statusIndicator.getModelObject().log("Error: " + e.getMessage());
+                }
+                asyncOperationResult = result;
+            }
+        };
+        final Thread thread = new Thread(execution);
+        thread.start();
+
+        result.recordInProgress();
+    }
+
+    private void finishAsyncProcessing(AjaxRequestTarget target, OperationResult result) {
+        result.recomputeStatus();
+        if (statusIndicator.getModelObject().allSuccess() && WebMiscUtil.isSuccessOrHandledError(result)) {
             showResultInSession(result);
             setResponsePage(PageOrgTree.class);
         } else {

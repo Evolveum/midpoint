@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.wf.impl;
 
+import com.evolveum.midpoint.model.api.OperationStatus;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -121,28 +123,35 @@ public class WfHook implements ChangeHook {
 
     HookOperationMode processModelInvocation(ModelContext context, Task taskFromModel, OperationResult result) {
 
-        for (ChangeProcessor changeProcessor : wfConfiguration.getChangeProcessors()) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Trying change processor: " + changeProcessor.getClass().getName());
-            }
-            if (!changeProcessor.isEnabled()) {
-                LOGGER.trace("It is disabled, continuing with next one.");
-                continue;
-            }
-            try {
-                HookOperationMode hookOperationMode = changeProcessor.processModelInvocation(context, taskFromModel, result);
-                if (hookOperationMode != null) {
-                    return hookOperationMode;
+        try {
+
+            context.notifyStatusListeners(new OperationStatus(OperationStatus.EventType.WORKFLOWS));
+
+            for (ChangeProcessor changeProcessor : wfConfiguration.getChangeProcessors()) {
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Trying change processor: " + changeProcessor.getClass().getName());
                 }
-            } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Schema exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
-                result.recordFatalError("Schema exception while running change processor " + changeProcessor.getClass(), e);
-                return HookOperationMode.ERROR;
-            } catch (RuntimeException e) {
-                LoggingUtils.logException(LOGGER, "Runtime exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
-                result.recordFatalError("Runtime exception while running change processor " + changeProcessor.getClass(), e);
-                return HookOperationMode.ERROR;
+                if (!changeProcessor.isEnabled()) {
+                    LOGGER.trace("It is disabled, continuing with next one.");
+                    continue;
+                }
+                try {
+                    HookOperationMode hookOperationMode = changeProcessor.processModelInvocation(context, taskFromModel, result);
+                    if (hookOperationMode != null) {
+                        return hookOperationMode;
+                    }
+                } catch (SchemaException e) {
+                    LoggingUtils.logException(LOGGER, "Schema exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
+                    result.recordFatalError("Schema exception while running change processor " + changeProcessor.getClass(), e);
+                    return HookOperationMode.ERROR;
+                } catch (RuntimeException e) {
+                    LoggingUtils.logException(LOGGER, "Runtime exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
+                    result.recordFatalError("Runtime exception while running change processor " + changeProcessor.getClass(), e);
+                    return HookOperationMode.ERROR;
+                }
             }
+        } finally {
+            context.notifyStatusListeners(new OperationStatus(OperationStatus.EventType.WORKFLOWS, result));
         }
 
         LOGGER.trace("No change processor caught this request, returning the FOREGROUND flag.");

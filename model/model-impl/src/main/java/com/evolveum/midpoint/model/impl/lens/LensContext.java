@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.OperationStatus;
 import com.evolveum.midpoint.model.api.OperationStatusListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -910,17 +911,27 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
     @Override
     public void notifyStatusListeners() {
-        notifyStatusListeners(null);
+        notifyStatusListeners(null, null);
     }
 
     @Override
     public void notifyStatusListeners(String message) {
+        notifyStatusListeners(null, message);
+    }
+
+    @Override
+    public void notifyStatusListeners(OperationStatus status) {
+        notifyStatusListeners(status, null);
+    }
+
+    @Override
+    public void notifyStatusListeners(OperationStatus status, String message) {
         if (operationStatusListeners == null) {
             return;
         }
 
         for (OperationStatusListener listener : operationStatusListeners) {
-            listener.onStateUpdate(this, message);
+            listener.onStateUpdate(this, status, message);
         }
     }
 }
