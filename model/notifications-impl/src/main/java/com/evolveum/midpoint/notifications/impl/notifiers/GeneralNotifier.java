@@ -54,6 +54,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static com.evolveum.midpoint.model.api.OperationStatus.EventType.NOTIFICATIONS;
+import static com.evolveum.midpoint.model.api.OperationStatus.StateType.ENTERING;
+
 /**
  * @author mederly
  */
@@ -96,7 +99,9 @@ public class GeneralNotifier extends BaseHandler {
 
     @Override
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
-    		Task task, OperationResult result) throws SchemaException {
+    		Task task, OperationResult parentResult) throws SchemaException {
+
+        OperationResult result = parentResult.createSubresult(GeneralNotifier.class.getName() + ".processEvent");
 
         logStart(getLogger(), event, eventHandlerType);
 
@@ -122,7 +127,7 @@ public class GeneralNotifier extends BaseHandler {
 
                     if (event instanceof ModelEvent) {
                         ((ModelEvent) event).getModelContext().notifyStatusListeners(
-                                new OperationStatus(OperationStatus.EventType.NOTIFICATIONS));
+                                new OperationStatus(NOTIFICATIONS, ENTERING));
                     }
 
                     try {
@@ -162,13 +167,14 @@ public class GeneralNotifier extends BaseHandler {
                     } finally {
                         if (event instanceof ModelEvent) {
                             ((ModelEvent) event).getModelContext().notifyStatusListeners(
-                                    new OperationStatus(OperationStatus.EventType.NOTIFICATIONS, result));
+                                    new OperationStatus(NOTIFICATIONS, result));
                         }
                     }
                 }
             }
         }
         logEnd(getLogger(), event, eventHandlerType, applies);
+        result.computeStatusIfUnknown();
         return true;            // not-applicable notifiers do not stop processing of other notifiers
     }
 

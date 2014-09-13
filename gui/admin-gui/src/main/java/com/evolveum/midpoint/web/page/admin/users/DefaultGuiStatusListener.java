@@ -21,8 +21,10 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.OperationStatus;
 import com.evolveum.midpoint.model.api.OperationStatusListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -40,6 +42,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.status.StatusDto;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.record.formula.functions.T;
@@ -51,10 +55,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.evolveum.midpoint.model.api.OperationStatus.EventType.FOCUS_OPERATION;
 import static com.evolveum.midpoint.model.api.OperationStatus.EventType.RESOURCE_OBJECT_OPERATION;
 import static com.evolveum.midpoint.model.api.OperationStatus.EventType.WORKFLOWS;
+import static com.evolveum.midpoint.model.api.OperationStatus.StateType;
 import static com.evolveum.midpoint.model.api.OperationStatus.StateType.ENTERING;
 import static com.evolveum.midpoint.web.component.status.StatusDto.StatusItem;
+import static com.evolveum.midpoint.web.page.PageBase.createStringResourceStatic;
 
 /**
 * @author mederly
@@ -74,7 +81,7 @@ public class DefaultGuiStatusListener implements OperationStatusListener {
     @Override
     public void onStateUpdate(ModelContext modelContext, OperationStatus operationStatus, String message) {
 
-        //LOGGER.info("onStateUpdate: {}; modelContext = \n{}", message, modelContext.debugDump(2));
+        LOGGER.info("onStateUpdate: {}; operationStatus = {}\n, modelContext = \n{}", new Object[]{message, operationStatus.debugDump(), modelContext.debugDump(2)});
 
         if (statusDto == null) {
             LOGGER.error("No statusDto, exiting");
@@ -91,18 +98,6 @@ public class DefaultGuiStatusListener implements OperationStatusListener {
             StatusItem si = findRelevantStatusItem(statusItems, operationStatus);
 
             if (si == null) {
-                // special treatment - removing all old success 'workflow' events if adding another one
-                // because of model-impl/workflows-impl architecture there may be many 'WORKFLOWS'-type items
-                if (operationStatus.getEventType() == WORKFLOWS && operationStatus.getStateType() == ENTERING) {
-                    Iterator<StatusItem> it = statusItems.iterator();
-                    while (it.hasNext()) {
-                        StatusItem existingSi = it.next();
-                        if (existingSi.getOperationStatus().getEventType() == WORKFLOWS && existingSi.isSuccess()) {
-                            it.remove();
-                        }
-                    }
-                }
-
                 statusDto.add(createStatusItem(operationStatus));
             } else {
                 updateStatusItemState(si, operationStatus);
@@ -113,16 +108,28 @@ public class DefaultGuiStatusListener implements OperationStatusListener {
     }
 
     private void addExpectedStatusItems(List<StatusItem> statusItems, ModelContext modelContext) {
-        if (modelContext.getProjectionContexts() == null) {
-            return;
-        }
-
-        Collection<ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
-        for (ModelProjectionContext mpc : projectionContexts) {
-            if (findRelevantStatusItem(statusItems, mpc.getResourceShadowDiscriminator()) == null) {
-                statusItems.add(createAwaitingStatusItem(mpc.getResourceShadowDiscriminator()));
+        if (modelContext.getFocusContext() != null) {
+            ModelElementContext fc = modelContext.getFocusContext();
+            if (isNotEmpty(fc.getPrimaryDelta()) || isNotEmpty(fc.getSecondaryDelta())) {
+                OperationStatus modelStatus = new OperationStatus(FOCUS_OPERATION, (StateType) null);
+                if (findRelevantStatusItem(statusItems, modelStatus) == null) {
+                    statusItems.add(createStatusItem(modelStatus));
+                }
             }
         }
+        if (modelContext.getProjectionContexts() != null) {
+            Collection<ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
+            for (ModelProjectionContext mpc : projectionContexts) {
+                OperationStatus projectionStatus = new OperationStatus(RESOURCE_OBJECT_OPERATION, mpc.getResourceShadowDiscriminator(), (StateType) null);
+                if (findRelevantStatusItem(statusItems, projectionStatus) == null) {
+                    statusItems.add(createStatusItem(projectionStatus));
+                }
+            }
+        }
+    }
+
+    private boolean isNotEmpty(ObjectDelta delta) {
+        return delta != null && !delta.isEmpty();
     }
 
     private StatusItem findRelevantStatusItem(List<StatusItem> statusItems, OperationStatus operationStatus) {
@@ -134,52 +141,33 @@ public class DefaultGuiStatusListener implements OperationStatusListener {
         return null;
     }
 
-    private StatusItem findRelevantStatusItem(List<StatusItem> statusItems, ResourceShadowDiscriminator discriminator) {
-        for (StatusItem si : statusItems) {
-            if (si.correspondsTo(discriminator)) {
-                return si;
-            }
-        }
-        return null;
-    }
-
     private void updateStatusItemState(StatusItem si, OperationStatus operationStatus) {
-        si.setAwaitingRsd(null);
-        si.setOperationStatus(operationStatus);
-        if (operationStatus.getStateType() == ENTERING) {
-            si.setState("WORKING");
+        si.setEventType(operationStatus.getEventType());
+        si.setResourceShadowDiscriminator(operationStatus.getResourceShadowDiscriminator());
+        if (operationStatus.getResourceShadowDiscriminator() != null) {
+            si.setResourceName(getResourceName(operationStatus.getResourceShadowDiscriminator().getResourceOid()));
+        }
+        if (operationStatus.getStateType() == null) {
+            si.setState(null);
+        } else if (operationStatus.getStateType() == ENTERING) {
+            si.setState(OperationResultStatusType.IN_PROGRESS);
         } else {
             OperationResult result = operationStatus.getOperationResult();
-            OperationResultStatus status = result.getStatus();
-            if (status == OperationResultStatus.UNKNOWN) {
-                status = result.getComputeStatus();
+            if (result != null) {
+                OperationResultStatus status = result.getStatus();
+                if (status == OperationResultStatus.UNKNOWN) {
+                    status = result.getComputeStatus();
+                }
+                si.setState(status.createStatusType());
+            } else {
+                si.setState(OperationResultStatusType.UNKNOWN);
             }
-            si.setState(status.toString());
-            si.setSuccess(status == OperationResultStatus.SUCCESS || status == OperationResultStatus.HANDLED_ERROR);
         }
     }
 
     private StatusItem createStatusItem(OperationStatus operationStatus) {
-        StatusItem si = new StatusItem(operationStatus);
-        String description = operationStatus.getEventType().toString();
-        if (operationStatus.getEventType() == RESOURCE_OBJECT_OPERATION && operationStatus.getResourceShadowDiscriminator() != null) {
-            description = getResourceObjectDescription(operationStatus.getResourceShadowDiscriminator());
-        }
-        si.setDescription(description);
+        StatusItem si = new StatusItem();
         updateStatusItemState(si, operationStatus);
-        return si;
-    }
-
-    private String getResourceObjectDescription(ResourceShadowDiscriminator d) {
-        return d.getKind() + " (" + d.getIntent() + ") on " + getResourceName(d.getResourceOid());
-    }
-
-    private StatusItem createAwaitingStatusItem(ResourceShadowDiscriminator discriminator) {
-        StatusItem si = new StatusItem(null);
-        String description = getResourceObjectDescription(discriminator);
-        si.setDescription(description);
-        si.setState("(expected)");
-        si.setAwaitingRsd(discriminator);
         return si;
     }
 

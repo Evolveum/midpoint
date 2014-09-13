@@ -16,9 +16,18 @@
 
 package com.evolveum.midpoint.web.component.status;
 
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -26,6 +35,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.List;
+
+import static com.evolveum.midpoint.model.api.OperationStatus.EventType.RESOURCE_OBJECT_OPERATION;
+import static com.evolveum.midpoint.web.component.status.StatusDto.StatusItem;
+import static com.evolveum.midpoint.web.page.PageBase.createStringResourceStatic;
 
 /**
  * @author mederly
@@ -51,21 +64,67 @@ public class StatusPanel extends SimplePanel<StatusDto> {
     }
 
     protected void initLayout() {
-        contentsPanel  = new WebMarkupContainer(ID_CONTENTS_PANEL);
+        contentsPanel = new WebMarkupContainer(ID_CONTENTS_PANEL);
         contentsPanel.setOutputMarkupId(true);
         add(contentsPanel);
 
-        ListView statusItemsListView = new ListView(ID_STATUS_ITEM, new AbstractReadOnlyModel<List>() {
+        ListView statusItemsListView = new ListView<StatusItem>(ID_STATUS_ITEM, new AbstractReadOnlyModel<List<StatusItem>>() {
             @Override
-            public List getObject() {
+            public List<StatusItem> getObject() {
                 StatusDto statusDto = StatusPanel.this.getModelObject();
                 return statusDto.getStatusItems();
             }
         }) {
-            protected void populateItem(ListItem item) {
-                item.add(new Label(ID_STATUS_ITEM_DESCRIPTION, new PropertyModel<String>(item.getModelObject(), "description")));
-                item.add(new Label(ID_STATUS_ITEM_STATE, new PropertyModel<String>(item.getModelObject(), "state")));
+            protected void populateItem(final ListItem<StatusItem> item) {
+                item.add(new Label(ID_STATUS_ITEM_DESCRIPTION, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        StatusItem si = item.getModelObject();
+                        if (si.getEventType() == RESOURCE_OBJECT_OPERATION && si.getResourceShadowDiscriminator() != null) {
+                            ResourceShadowDiscriminator rsd = si.getResourceShadowDiscriminator();
+                            return createStringResource(rsd.getKind()).getString()
+                                    + " (" + rsd.getIntent() + ") on " + si.getResourceName();             // TODO correct i18n
+                        } else {
+                            return createStringResource(si.getEventType()).getString();
+                        }
+                    }
+                }));
+                item.add(createImageLabel(ID_STATUS_ITEM_STATE,
+                        new AbstractReadOnlyModel<String>() {
+
+                            @Override
+                            public String getObject() {
+                                OperationResultStatusType statusType = item.getModelObject().getState();
+                                if (statusType == null) {
+                                    return null;
+                                } else {
+                                    return OperationResultStatusIcon.parseOperationalResultStatus(statusType).getIcon();
+                                }
+                            }
+                        },
+                        new AbstractReadOnlyModel<String>() {
+
+                            @Override
+                            public String getObject() {
+                                OperationResultStatusType statusType = item.getModelObject().getState();
+                                if (statusType == null) {
+                                    return null;
+                                } else {
+                                    return statusType.toString();
+                                }
+                            }
+                        }
+
+                ));
             }
+            private Label createImageLabel(String id, IModel<String> cssClass, IModel<String> title) {
+                Label label = new Label(id);
+                label.add(AttributeModifier.replace("class", cssClass));
+                label.add(AttributeModifier.replace("title", title));
+
+                return label;
+            }
+
         };
         contentsPanel.add(statusItemsListView);
 

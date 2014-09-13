@@ -19,12 +19,15 @@ package com.evolveum.midpoint.web.component.status;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.OperationStatus;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.model.api.OperationStatus.EventType;
 import static com.evolveum.midpoint.model.api.OperationStatus.EventType.RESOURCE_OBJECT_OPERATION;
+import static com.evolveum.midpoint.web.page.PageBase.createStringResourceStatic;
 
 /**
  * @author mederly
@@ -33,98 +36,60 @@ public class StatusDto implements Serializable {
 
     public static class StatusItem implements Serializable {
 
-        private OperationStatus operationStatus;            // to be able to check correspondence
-        private ResourceShadowDiscriminator awaitingRsd;    // TODO fixme
-        private String description;
-        private String state;
-        private boolean isSuccess;
+        private EventType eventType;
+        private ResourceShadowDiscriminator resourceShadowDiscriminator;        // if applicable w.r.t. eventType
+        private String resourceName;
+        private OperationResultStatusType state;
 
-        public StatusItem(OperationStatus operationStatus) {
-            this.operationStatus = operationStatus;
+        public EventType getEventType() {
+            return eventType;
         }
 
-        public OperationStatus getOperationStatus() {
-            return operationStatus;
+        public void setEventType(EventType eventType) {
+            this.eventType = eventType;
         }
 
-        public void setOperationStatus(OperationStatus operationStatus) {
-            this.operationStatus = operationStatus;
+        public ResourceShadowDiscriminator getResourceShadowDiscriminator() {
+            return resourceShadowDiscriminator;
         }
 
-        public StatusItem(OperationStatus operationStatus, String description) {
-            this.operationStatus = operationStatus;
-            this.description = description;
+        public void setResourceShadowDiscriminator(ResourceShadowDiscriminator resourceShadowDiscriminator) {
+            this.resourceShadowDiscriminator = resourceShadowDiscriminator;
         }
 
-        public String getDescription() {
-            return description;
+        public void setResourceName(String resourceName) {
+            this.resourceName = resourceName;
         }
 
-        public void setDescription(String description) {
-            this.description = description;
+        public String getResourceName() {
+            return resourceName;
         }
 
-        public String getState() {
+        public OperationResultStatusType getState() {
             return state;
         }
 
-        public void setState(String state) {
+        public void setState(OperationResultStatusType state) {
             this.state = state;
-        }
-
-        public boolean isSuccess() {
-            return isSuccess;
-        }
-
-        public void setSuccess(boolean isSuccess) {
-            this.isSuccess = isSuccess;
-        }
-
-        public ResourceShadowDiscriminator getAwaitingRsd() {
-            return awaitingRsd;
-        }
-
-        public void setAwaitingRsd(ResourceShadowDiscriminator awaitingRsd) {
-            this.awaitingRsd = awaitingRsd;
         }
 
         public boolean correspondsTo(OperationStatus newStatus) {
             if (newStatus == null) {
-                return false;           // should not occur too often
+                return false;           // should not occur anyway
             }
-
-            if (operationStatus == null) {          // "awaiting" entry
-                if (newStatus.getEventType() != RESOURCE_OBJECT_OPERATION || newStatus.getResourceShadowDiscriminator() == null) {
-                    return false;
-                }
-                if (!newStatus.getResourceShadowDiscriminator().equals(awaitingRsd)) {
-                    return false;
-                }
-                return true;
-            }
-
-            if (operationStatus.getEventType() != newStatus.getEventType()) {
+            if (eventType != newStatus.getEventType()) {
                 return false;
             }
-            if (operationStatus.getEventType() == RESOURCE_OBJECT_OPERATION
-                    && (operationStatus.getResourceShadowDiscriminator() == null ||
-                        !operationStatus.getResourceShadowDiscriminator().equals(newStatus.getResourceShadowDiscriminator()))) {
+            if (eventType == RESOURCE_OBJECT_OPERATION
+                    && (resourceShadowDiscriminator == null ||
+                        !resourceShadowDiscriminator.equals(newStatus.getResourceShadowDiscriminator()))) {
                 return false;
             }
             return true;
         }
 
-        public boolean correspondsTo(ResourceShadowDiscriminator discriminator) {
-            if (discriminator == null) {
-                return false;
-            }
-            if (awaitingRsd != null && awaitingRsd.equals(discriminator)) {
-                return true;
-            }
-            if (operationStatus != null && operationStatus.getEventType() == RESOURCE_OBJECT_OPERATION && discriminator.equals(operationStatus.getResourceShadowDiscriminator())) {
-                return true;
-            }
-            return false;
+        public boolean isSuccess() {
+            return state == null || state == OperationResultStatusType.SUCCESS;
         }
     }
 

@@ -17,8 +17,8 @@
 package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DebugDumpable;
 
 import java.io.Serializable;
 
@@ -30,7 +30,7 @@ import java.io.Serializable;
  *
  * @author mederly
  */
-public class OperationStatus implements Serializable {
+public class OperationStatus implements Serializable, DebugDumpable {
 
     public enum EventType {
         NOTIFICATIONS,
@@ -51,9 +51,9 @@ public class OperationStatus implements Serializable {
     public OperationStatus() {
     }
 
-    public OperationStatus(EventType eventType) {
+    public OperationStatus(EventType eventType, StateType stateType) {
         this.eventType = eventType;
-        this.stateType = StateType.ENTERING;
+        this.stateType = stateType;
     }
 
     public OperationStatus(EventType eventType, OperationResult operationResult) {
@@ -62,8 +62,8 @@ public class OperationStatus implements Serializable {
         this.operationResult = operationResult;
     }
 
-    public OperationStatus(EventType eventType, ResourceShadowDiscriminator resourceShadowDiscriminator) {
-        this(eventType);
+    public OperationStatus(EventType eventType, ResourceShadowDiscriminator resourceShadowDiscriminator, StateType stateType) {
+        this(eventType, stateType);
         this.resourceShadowDiscriminator = resourceShadowDiscriminator;
     }
 
@@ -103,4 +103,29 @@ public class OperationStatus implements Serializable {
     public void setResourceShadowDiscriminator(ResourceShadowDiscriminator resourceShadowDiscriminator) {
         this.resourceShadowDiscriminator = resourceShadowDiscriminator;
     }
+
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < indent; i++) {
+            sb.append(INDENT_STRING);
+        }
+        sb.append(OperationStatus.class.getSimpleName()).append(" ");
+        sb.append("type=").append(eventType);
+        sb.append(", state=").append(stateType);
+        if (resourceShadowDiscriminator != null) {
+            sb.append(", resourceShadowDiscriminator=").append(resourceShadowDiscriminator.toHumanReadableString());
+        }
+        if (operationResult != null) {
+            sb.append("\n");
+            sb.append(operationResult.debugDump(indent));
+        }
+        return sb.toString();
+    }
+
 }

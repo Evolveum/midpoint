@@ -39,6 +39,9 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
+import static com.evolveum.midpoint.model.api.OperationStatus.EventType.WORKFLOWS;
+import static com.evolveum.midpoint.model.api.OperationStatus.StateType.ENTERING;
+
 /**
  * Provides an interface between the model and the workflow engine:
  * catches hook calls and delegates them to change processors.
@@ -125,7 +128,7 @@ public class WfHook implements ChangeHook {
 
         try {
 
-            context.notifyStatusListeners(new OperationStatus(OperationStatus.EventType.WORKFLOWS));
+            context.notifyStatusListeners(new OperationStatus(WORKFLOWS, ENTERING));
 
             for (ChangeProcessor changeProcessor : wfConfiguration.getChangeProcessors()) {
                 if (LOGGER.isTraceEnabled()) {
@@ -151,7 +154,7 @@ public class WfHook implements ChangeHook {
                 }
             }
         } finally {
-            context.notifyStatusListeners(new OperationStatus(OperationStatus.EventType.WORKFLOWS, result));
+            context.notifyStatusListeners(new OperationStatus(WORKFLOWS, result));
         }
 
         LOGGER.trace("No change processor caught this request, returning the FOREGROUND flag.");

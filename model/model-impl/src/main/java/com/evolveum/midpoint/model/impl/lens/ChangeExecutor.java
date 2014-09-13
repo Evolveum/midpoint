@@ -17,6 +17,10 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
+import static com.evolveum.midpoint.model.api.OperationStatus.EventType.FOCUS_OPERATION;
+import static com.evolveum.midpoint.model.api.OperationStatus.EventType.RESOURCE_OBJECT_OPERATION;
+import static com.evolveum.midpoint.model.api.OperationStatus.StateType.ENTERING;
+
 import ch.qos.logback.core.pattern.parser.ScanException;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -158,7 +162,7 @@ public class ChangeExecutor {
 	
 	        	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_FOCUS+"."+focusContext.getObjectTypeClass().getSimpleName());
 	        	try {
-	        		syncContext.notifyStatusListeners(new OperationStatus(OperationStatus.EventType.FOCUS_OPERATION));
+	        		syncContext.notifyStatusListeners(new OperationStatus(FOCUS_OPERATION, ENTERING));
 		            executeDelta(focusDelta, focusContext, syncContext, null, null, task, subResult);
 	                subResult.computeStatus();
 	                
@@ -191,7 +195,7 @@ public class ChangeExecutor {
 	        		recordFatalError(subResult, result, null, e);
 	    			throw e;
 	    		} finally {
-                    syncContext.notifyStatusListeners(new OperationStatus(OperationStatus.EventType.FOCUS_OPERATION, subResult));
+                    syncContext.notifyStatusListeners(new OperationStatus(FOCUS_OPERATION, subResult));
                 }
 	        } else {
 	            LOGGER.trace("Skipping focus change execute, because user delta is null");
@@ -211,7 +215,7 @@ public class ChangeExecutor {
 			}
 			try {
 
-                syncContext.notifyStatusListeners(new OperationStatus(OperationStatus.EventType.RESOURCE_OBJECT_OPERATION, accCtx.getResourceShadowDiscriminator()));
+                syncContext.notifyStatusListeners(new OperationStatus(RESOURCE_OBJECT_OPERATION, accCtx.getResourceShadowDiscriminator(), ENTERING));
 
 				executeReconciliationScript(accCtx, syncContext, BeforeAfterType.BEFORE, task, subResult);
 				
@@ -306,7 +310,7 @@ public class ChangeExecutor {
 				continue;
 			} finally {
                 syncContext.notifyStatusListeners(
-                        new OperationStatus(OperationStatus.EventType.RESOURCE_OBJECT_OPERATION,
+                        new OperationStatus(RESOURCE_OBJECT_OPERATION,
                                 accCtx.getResourceShadowDiscriminator(), subResult));
             }
 		}
