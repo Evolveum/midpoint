@@ -26,6 +26,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.OperationStatusListener;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
@@ -411,13 +412,21 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 		}
 	}
-	
+
+    @Override
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
+                                                                                 Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            PolicyViolationException, SecurityViolationException {
+        return executeChanges(deltas, options, task, null, parentResult);
+    }
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.ModelService#executeChanges(java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
 	public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			Task task, Collection<OperationStatusListener> statusListeners, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
 
@@ -512,6 +521,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			} else {				
 				
 				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
+                context.setOperationStatusListeners(statusListeners);
 				// Note: Request authorization happens inside clockwork
 				clockwork.run(context, task, result);
 

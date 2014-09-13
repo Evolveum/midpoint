@@ -39,4 +39,8 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 	public ModelProjectionContext findProjectionContext(ResourceShadowDiscriminator rat);
 
     Class<F> getFocusClass();
+
+    void notifyStatusListeners();
+
+    void notifyStatusListeners(String message);
 }

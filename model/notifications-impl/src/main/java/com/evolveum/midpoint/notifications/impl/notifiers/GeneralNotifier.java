@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.impl.NotificationsUtil;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
@@ -118,6 +119,8 @@ public class GeneralNotifier extends BaseHandler {
 
                     ExpressionVariables variables = getDefaultVariables(event, result);
 
+                    int sent = 0;
+
                     for (String transportName : generalNotifierType.getTransport()) {
 
                         variables.addVariableDefinition(SchemaConstants.C_TRANSPORT_NAME, transportName);
@@ -146,10 +149,18 @@ public class GeneralNotifier extends BaseHandler {
                             message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
 
                             getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
+                            // FIXME hack
+                            if (event instanceof ModelEvent) {
+                                ((ModelEvent) event).getModelContext().notifyStatusListeners("Sending notification via " + transportName);
+                            }
                             transport.send(message, transportName, task, result);
+                            sent++;
                         } else {
                             getLogger().info("No recipients addresses for transport " + transportName + ", message corresponding to event " + event.getId() + " will not be send.");
                         }
+                    }
+                    if (sent > 0 && event instanceof ModelEvent) {
+                        ((ModelEvent) event).getModelContext().notifyStatusListeners(sent + " notification(s) sent.");
                     }
                 }
             }

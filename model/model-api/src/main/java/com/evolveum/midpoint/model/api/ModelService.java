@@ -227,8 +227,12 @@ public interface ModelService {
     Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
-	
-	/**
+
+    Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, Collection<OperationStatusListener> listeners, OperationResult parentResult)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+
+    /**
 	 * Recomputes focal object with the specified OID. The operation considers all the applicable policies and
 	 * mapping and tries to re-apply them as necessary.
 	 * 

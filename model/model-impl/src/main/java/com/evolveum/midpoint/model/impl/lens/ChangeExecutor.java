@@ -159,7 +159,6 @@ public class ChangeExecutor {
 	        	try {
 	        		
 		            executeDelta(focusDelta, focusContext, syncContext, null, null, task, subResult);
-		
 	                subResult.computeStatus();
 	                
 	        	} catch (SchemaException e) {
@@ -190,11 +189,16 @@ public class ChangeExecutor {
 	    		} catch (RuntimeException e) {
 	        		recordFatalError(subResult, result, null, e);
 	    			throw e;
-	    		}  
+	    		} finally {
+                    syncContext.notifyStatusListeners();
+                }
 	        } else {
 	            LOGGER.trace("Skipping focus change execute, because user delta is null");
+                syncContext.notifyStatusListeners();
 	        }
-    	}
+    	} else {
+            syncContext.notifyStatusListeners();
+        }
 
     	// PROJECTIONS
     	
@@ -300,7 +304,9 @@ public class ChangeExecutor {
 			} catch (RuntimeException e) {
 				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
-			}
+			} finally {
+                syncContext.notifyStatusListeners("Projection " + accCtx.getHumanReadableName() + " done");     // text is temporary here
+            }
 		}
         
         // Result computation here needs to be slightly different

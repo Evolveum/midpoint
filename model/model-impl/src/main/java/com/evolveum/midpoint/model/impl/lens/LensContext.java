@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.OperationStatusListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.*;
@@ -116,8 +117,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * Used mostly in unit tests.
 	 */
 	transient private LensDebugListener debugListener;
-	
-	public LensContext(Class<F> focusClass, PrismContext prismContext, ProvisioningService provisioningService) {
+
+    /**
+     * User feedback.
+     */
+    transient private Collection<OperationStatusListener> operationStatusListeners;
+
+    public LensContext(Class<F> focusClass, PrismContext prismContext, ProvisioningService provisioningService) {
 		Validate.notNull(prismContext, "No prismContext");
 		
         this.prismContext = prismContext;
@@ -894,4 +900,27 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return globalPasswordPolicy;
 	}
 
+    public void setOperationStatusListeners(Collection<OperationStatusListener> operationStatusListeners) {
+        this.operationStatusListeners = operationStatusListeners;
+    }
+
+    public Collection<OperationStatusListener> getOperationStatusListeners() {
+        return operationStatusListeners;
+    }
+
+    @Override
+    public void notifyStatusListeners() {
+        notifyStatusListeners(null);
+    }
+
+    @Override
+    public void notifyStatusListeners(String message) {
+        if (operationStatusListeners == null) {
+            return;
+        }
+
+        for (OperationStatusListener listener : operationStatusListeners) {
+            listener.onStateUpdate(this, message);
+        }
+    }
 }
