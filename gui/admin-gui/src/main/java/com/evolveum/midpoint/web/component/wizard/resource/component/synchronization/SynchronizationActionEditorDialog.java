@@ -133,7 +133,10 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
             @Override
             protected DropDownChoice createDropDown(String id, IModel<List<SynchronizationActionTypeDto.HandlerUriActions>> choices,
                                                     IChoiceRenderer<SynchronizationActionTypeDto.HandlerUriActions> renderer, boolean required){
-                return new DropDownChoice<>(id, getModel(), choices, renderer);
+                DropDownChoice choice = new DropDownChoice<>(id, getModel(), choices, renderer);
+                choice.setNullValid(true);
+
+                return choice;
             }
         };
         form.add(handlerUri);
@@ -144,7 +147,10 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
 
             @Override
             protected DropDownChoice createDropDown(String id, IModel<List<BeforeAfterType>> choices, IChoiceRenderer<BeforeAfterType> renderer, boolean required){
-                return new DropDownChoice<>(id, getModel(), choices, renderer);
+                DropDownChoice choice = new DropDownChoice<>(id, getModel(), choices, renderer);
+                choice.setNullValid(true);
+
+                return choice;
             }
         };
         form.add(order);

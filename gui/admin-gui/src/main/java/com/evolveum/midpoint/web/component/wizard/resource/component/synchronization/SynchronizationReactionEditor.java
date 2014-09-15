@@ -23,8 +23,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueDropDownPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -97,10 +97,47 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
                 new PropertyModel<SynchronizationSituationType>(getModel(), "situation"),
                 WebMiscUtil.createReadonlyModelFromEnum(SynchronizationSituationType.class),
                 new EnumChoiceRenderer<SynchronizationSituationType>(this));
+        situation.setNullValid(true);
         add(situation);
 
-        MultiValueTextPanel channel = new MultiValueTextPanel<>(ID_CHANNEL,
-                new PropertyModel<List<String>>(getModel(), "channel"));
+        MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
+                new PropertyModel<List<String>>(getModel(), "channel"), true, true){
+
+            @Override
+            protected String createNewEmptyItem() {
+                return "";
+            }
+
+            @Override
+            protected IModel<List<String>> createChoiceList() {
+                return new AbstractReadOnlyModel<List<String>>() {
+
+                    @Override
+                    public List<String> getObject() {
+                        return WebMiscUtil.getChannelList();
+                    }
+                };
+            }
+
+            @Override
+            protected IChoiceRenderer<String> createRenderer() {
+                return new IChoiceRenderer<String>() {
+
+                    @Override
+                    public Object getDisplayValue(String object) {
+                        String[] fields = object.split("#");
+                        String label = fields[1];
+
+                        return getString("Channel." + label);
+                    }
+
+                    @Override
+                    public String getIdValue(String object, int index) {
+                        return Integer.toString(index);
+                    }
+                };
+            }
+        };
         add(channel);
 
         CheckBox synchronize = new CheckBox(ID_SYNCHRONIZE, new PropertyModel<Boolean>(getModel(), "synchronize"));
@@ -129,6 +166,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
                 return Integer.toString(index);
             }
         });
+        objectTemplateRef.setNullValid(true);
         add(objectTemplateRef);
 
         MultiValueTextEditPanel action = new MultiValueTextEditPanel<SynchronizationActionType>(ID_ACTION,

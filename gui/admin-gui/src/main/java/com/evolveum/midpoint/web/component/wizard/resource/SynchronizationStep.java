@@ -295,7 +295,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorIntent);
 
         MultiValueAutoCompleteTextPanel<QName> editorObjectClass = new MultiValueAutoCompleteTextPanel<QName>(ID_EDITOR_OBJECT_CLASS,
-                new PropertyModel<List<QName>>(model, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true, false, true){
+                new PropertyModel<List<QName>>(model, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true, false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<QName> model) {

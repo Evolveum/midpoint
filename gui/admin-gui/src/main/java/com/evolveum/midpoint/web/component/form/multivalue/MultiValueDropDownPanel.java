@@ -23,12 +23,14 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.Strings;
-import org.apache.wicket.validation.IValidator;
 
 import java.io.Serializable;
 import java.util.*;
@@ -36,23 +38,21 @@ import java.util.*;
 /**
  *  @author shood
  * */
-public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends SimplePanel<List<T>>{
+public class MultiValueDropDownPanel<T extends Serializable> extends SimplePanel<List<T>>{
 
     private static final String ID_REPEATER = "repeater";
-    private static final String ID_TEXT = "input";
+    private static final String ID_INPUT = "input";
     private static final String ID_BUTTON_GROUP = "buttonGroup";
     private static final String ID_ADD = "add";
     private static final String ID_REMOVE = "delete";
 
     private static final String CSS_DISABLED = " disabled";
-    private static final Integer AUTO_COMPLETE_LIST_SIZE = 10;
 
-    public MultiValueAutoCompleteTextPanel(String id, IModel<List<T>> model, boolean inputEnabled, boolean prepareModel){
+    public MultiValueDropDownPanel(String id, IModel<List<T>> model, boolean prepareModel, boolean nullValid){
         super(id, model);
-
         setOutputMarkupId(true);
 
-        initLayout(inputEnabled, prepareModel);
+        initLayout(prepareModel, nullValid);
     }
 
     private IModel<List<T>> prepareModel(boolean prepareModel){
@@ -70,48 +70,16 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Sim
         return null;
     }
 
-    private void initLayout(final boolean inputEnabled, boolean prepareModel){
-
+    private void initLayout(final boolean prepareModel, final boolean nullValid){
         ListView repeater = new ListView<T>(ID_REPEATER, prepareModel(prepareModel)){
 
             @Override
             protected void populateItem(final ListItem<T> item) {
 
-                AutoCompleteTextField<String> autoCompleteEditor = new AutoCompleteTextField<String>(ID_TEXT,
-                        createTextModel(item.getModel())) {
-
-                    @Override
-                    protected Iterator<String> getChoices(String input) {
-                        if(Strings.isEmpty(input)){
-                            List<String> emptyList = Collections.emptyList();
-                            return emptyList.iterator();
-                        }
-
-                        List<T> list = createObjectList();
-                        List<String> choices = new ArrayList<>(AUTO_COMPLETE_LIST_SIZE);
-
-                        for(T object: list){
-                            if(createAutoCompleteObjectLabel(object).toLowerCase().startsWith(input.toLowerCase())){
-                                choices.add(createAutoCompleteObjectLabel(object));
-
-                                if(choices.size() == AUTO_COMPLETE_LIST_SIZE){
-                                    break;
-                                }
-                            }
-                        }
-
-                        return choices.iterator();
-                    }
-                };
-                autoCompleteEditor.add(createAutoCompleteValidator());
-                item.add(autoCompleteEditor);
-
-                autoCompleteEditor.add(AttributeAppender.replace("placeholder", createEmptyItemPlaceholder()));
-
-                if(!inputEnabled){
-                    autoCompleteEditor.add(new AttributeModifier("disabled","disabled"));
-                }
-                item.add(autoCompleteEditor);
+                DropDownChoice choice = new DropDownChoice<>(ID_INPUT, createDropDownItemModel(item.getModel()),
+                        createChoiceList(), createRenderer());
+                choice.setNullValid(nullValid);
+                item.add(choice);
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
                 item.add(buttonGroup);
@@ -119,6 +87,25 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Sim
             }
         };
         add(repeater);
+    }
+
+    protected IModel<T> createDropDownItemModel(final IModel<T> model) {
+        return new IModel<T>() {
+            @Override
+            public T getObject() {
+                T obj = model.getObject();
+                return obj != null ? obj : null;
+            }
+
+            @Override
+            public void setObject(T object) {
+                model.setObject(object);
+            }
+
+            @Override
+            public void detach() {
+            }
+        };
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {
@@ -168,40 +155,11 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Sim
         return CSS_DISABLED;
     }
 
-    /**
-     *  Creates a StringResourceModel containing a placeholder for editor textField when no value is present
-     * */
-    protected StringResourceModel createEmptyItemPlaceholder(){
-        return createStringResource("TextField.universal.placeholder");
-    }
-
     protected void addValuePerformed(AjaxRequestTarget target){
         List<T> objects = getModelObject();
         objects.add(createNewEmptyItem());
 
         target.add(this);
-    }
-
-    /**
-     *  Creates IModel<String> - a value for label in main text field of editor
-     * */
-    protected IModel<String> createTextModel(final IModel<T> model) {
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                T obj = model.getObject();
-                return obj != null ? obj.toString() : null;
-            }
-
-            @Override
-            public void setObject(String object) {
-                model.setObject((T) object);
-            }
-
-            @Override
-            public void detach() {
-            }
-        };
     }
 
     protected void removeValuePerformed(AjaxRequestTarget target, ListItem<T> item){
@@ -226,25 +184,33 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Sim
     }
 
     /**
-     *  Provides an IValidator<String> for auto-complete edit field
+     *  Provides list of choices for drop-down component
      * */
-    protected IValidator<String> createAutoCompleteValidator(){
-        return null;
+    protected IModel<List<T>> createChoiceList(){
+        return new AbstractReadOnlyModel<List<T>>() {
+
+            @Override
+            public List<T> getObject() {
+                return new ArrayList<>();
+            }
+        };
     }
 
     /**
-     *  Create a List<T> of objects that are shown in autoComplete drop-down list
+     *  Provides an instance of IChoiceRenderer needed to render choices in drop-down component
      * */
-    protected List<T> createObjectList(){
-        return new ArrayList<>();
-    }
+    protected IChoiceRenderer<T> createRenderer(){
+        return new IChoiceRenderer<T>() {
 
-    /**
-     *  Creates label for item in autoComplete drop-down list. CAREFUL, this
-     *  method is also used to create String that is used as compare value with
-     *  users input to generate values for auto-complete drop-down
-     * */
-    protected String createAutoCompleteObjectLabel(T object){
-        return object.toString();
+            @Override
+            public Object getDisplayValue(T object) {
+                return object.toString();
+            }
+
+            @Override
+            public String getIdValue(T object, int index) {
+                return Integer.toString(index);
+            }
+        };
     }
 }

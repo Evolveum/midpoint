@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueDropDownPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -189,14 +190,86 @@ public class MappingEditorDialog extends ModalWindow{
                 ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(strength);
 
-        //TODO - shouldn't this list be also AutoCompleteTextField from some static list with channels?
-        MultiValueTextPanel channel = new MultiValueTextPanel<>(ID_CHANNEL,
-                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"));
+        MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
+                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"), true, true){
+
+            @Override
+            protected String createNewEmptyItem() {
+                return "";
+            }
+
+            @Override
+            protected IModel<List<String>> createChoiceList() {
+                return new AbstractReadOnlyModel<List<String>>() {
+
+                    @Override
+                    public List<String> getObject() {
+                        return WebMiscUtil.getChannelList();
+                    }
+                };
+            }
+
+            @Override
+            protected IChoiceRenderer<String> createRenderer() {
+                return new IChoiceRenderer<String>() {
+
+                    @Override
+                    public Object getDisplayValue(String object) {
+                        String[] fields = object.split("#");
+                        String label = fields[1];
+
+
+                        return getString("Channel." + label);
+                    }
+
+                    @Override
+                    public String getIdValue(String object, int index) {
+                        return Integer.toString(index);
+                    }
+                };
+            }
+        };
         form.add(channel);
 
-        //TODO - shouldn't this list be also AutoCompleteTextField from some static list with channels?
-        MultiValueTextPanel exceptChannel = new MultiValueTextPanel<>(ID_EXCEPT_CHANNEL,
-                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".exceptChannel"));
+        MultiValueDropDownPanel exceptChannel = new MultiValueDropDownPanel<String>(ID_EXCEPT_CHANNEL,
+                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING +  ".exceptChannel"), true, true){
+
+            @Override
+            protected String createNewEmptyItem() {
+                return "";
+            }
+
+            @Override
+            protected IModel<List<String>> createChoiceList() {
+                return new AbstractReadOnlyModel<List<String>>() {
+
+                    @Override
+                    public List<String> getObject() {
+                        return WebMiscUtil.getChannelList();
+                    }
+                };
+            }
+
+            @Override
+            protected IChoiceRenderer<String> createRenderer() {
+                return new IChoiceRenderer<String>() {
+
+                    @Override
+                    public Object getDisplayValue(String object) {
+                        String[] fields = object.split("#");
+                        String label = fields[1];
+
+
+                        return getString("Channel." + label);
+                    }
+
+                    @Override
+                    public String getIdValue(String object, int index) {
+                        return Integer.toString(index);
+                    }
+                };
+            }
+        };
         form.add(exceptChannel);
 
         //TODO - create some nice ItemPathType editor in near future
