@@ -42,6 +42,7 @@ public class ProgressInformation implements Serializable, DebugDumpable {
     public enum ActivityType {
         NOTIFICATIONS,
         WORKFLOWS,
+        PROJECTOR,
         RESOURCE_OBJECT_OPERATION,
         FOCUS_OPERATION
     }

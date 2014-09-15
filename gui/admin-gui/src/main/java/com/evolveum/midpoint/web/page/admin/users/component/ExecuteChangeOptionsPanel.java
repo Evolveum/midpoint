@@ -32,6 +32,7 @@ public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsD
     private static final String ID_RECONCILE = "reconcile";
     private static final String ID_RECONCILE_LABEL = "reconcileLabel";
     private static final String ID_EXECUTE_AFTER_ALL_APPROVALS = "executeAfterAllApprovals";
+    private static final String ID_KEEP_DISPLAYING_RESULTS = "keepDisplayingResults";
 
     private boolean showReconcile;
 
@@ -64,5 +65,9 @@ public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsD
         CheckBox executeAfterAllApprovals = new CheckBox(ID_EXECUTE_AFTER_ALL_APPROVALS,
                 new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS));
         add(executeAfterAllApprovals);
+
+        CheckBox keepDisplayingResults = new CheckBox(ID_KEEP_DISPLAYING_RESULTS,
+                new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_KEEP_DISPLAYING_RESULTS));
+        add(keepDisplayingResults);
     }
 }

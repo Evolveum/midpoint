@@ -89,10 +89,12 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -185,6 +187,9 @@ public class PageUser extends PageAdminUsers {
     private ProgressPanel progressPanel;
     private ObjectDelta delta;
     private OperationResult asyncOperationResult;
+    private DefaultGuiProgressListener progressListener;
+    private AjaxSubmitButton saveButton;
+    private AjaxSubmitButton abortButton;
 
     public PageUser() {
         this(null);
@@ -313,16 +318,6 @@ public class PageUser extends PageAdminUsers {
         add(mainForm);
 
         progressPanel = new ProgressPanel("progressPanel", new Model<>(new ProgressDto()));
-        progressPanel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(400)) {         // TODO change this
-            @Override
-            protected void onPostProcessTarget(AjaxRequestTarget target) {
-                super.onPostProcessTarget(target);
-                if (asyncOperationResult != null) {         // async operation has been finished!
-                    finishAsyncProcessing(target, asyncOperationResult);
-                    asyncOperationResult = null;
-                }
-            }
-        });
         progressPanel.setOutputMarkupId(true);
         progressPanel.hide();
         mainForm.add(progressPanel);
@@ -359,6 +354,32 @@ public class PageUser extends PageAdminUsers {
         initResourceModal();
         initAssignableModal();
         initConfirmationDialogs();
+    }
+
+    private Behavior refreshingBehavior = null;
+
+    private void startRefreshingProgressPanel(AjaxRequestTarget target) {
+        if (refreshingBehavior == null) {
+            refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(400)) {         // TODO change this
+                @Override
+                protected void onPostProcessTarget(AjaxRequestTarget target) {
+                    super.onPostProcessTarget(target);
+                    if (asyncOperationResult != null) {         // async operation has been finished!
+                        finishAsyncProcessing(target, asyncOperationResult);
+                        asyncOperationResult = null;
+                    }
+                }
+            };
+            progressPanel.add(refreshingBehavior);
+            target.add(progressPanel);
+        }
+    }
+
+    // does not work for some reason (NPE in wicket)
+    private void stopRefreshingProgressPanel() {
+        if (refreshingBehavior != null) {
+            progressPanel.remove(refreshingBehavior);
+        }
     }
 
     private String getLabelFromPolyString(PolyStringType poly){
@@ -889,7 +910,7 @@ public class PageUser extends PageAdminUsers {
 
 
     private void initButtons(final Form mainForm) {
-        AjaxSubmitButton save = new AjaxSubmitButton("save",
+        saveButton = new AjaxSubmitButton("save",
                 createStringResource("pageUser.button.save")) {
 
             @Override
@@ -904,7 +925,34 @@ public class PageUser extends PageAdminUsers {
                 target.add(getFeedbackPanel());
             }
         };
-        mainForm.add(save);
+        saveButton.setOutputMarkupId(true);
+        saveButton.setOutputMarkupPlaceholderTag(true);
+        mainForm.add(saveButton);
+
+        abortButton = new AjaxSubmitButton("abort",
+                createStringResource("pageUser.button.abort")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                if (progressListener == null) {
+                    System.out.println("No progressListener (abortButton.onSubmit)");
+                    return;         // should not occur
+                }
+                progressListener.setAbortRequested(true);
+                progressPanel.getModelObject().log("Abort requested, please wait...");
+                abortButton.setVisible(false);
+                target.add(abortButton);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        abortButton.setOutputMarkupId(true);
+        abortButton.setOutputMarkupPlaceholderTag(true);
+        abortButton.setVisible(false);
+        mainForm.add(abortButton);
 
         AjaxButton back = new AjaxButton("back", createStringResource("pageUser.button.back")) {
 
@@ -1394,25 +1442,26 @@ public class PageUser extends PageAdminUsers {
         final SecurityEnforcer enforcer = getSecurityEnforcer();
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
+        startRefreshingProgressPanel(target);
         progressPanel.show();
-        final ProgressListener listener = new DefaultGuiProgressListener(this, progressPanel.getModelObject());
+        progressListener = new DefaultGuiProgressListener(this, progressPanel.getModelObject());
 
         Runnable execution = new Runnable() {
             @Override
             public void run() {
                 try {
                     enforcer.setupPreAuthenticatedSecurityContext(authentication);
-                    modelService.executeChanges(deltas, options, task, Collections.singleton(listener), result);
-                    if (progressPanel.getModelObject().allSuccess()) {
-                        progressPanel.getModelObject().log("Closing the screen in 5 seconds...");
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException e) {
-                        }
-                    }
+                    modelService.executeChanges(deltas, options, task, Collections.singleton((ProgressListener) progressListener), result);
+//                    if (progressPanel.getModelObject().allSuccess()) {
+//                        progressPanel.getModelObject().log("Closing the screen in 5 seconds...");
+//                        try {
+//                            Thread.sleep(5000);
+//                        } catch (InterruptedException e) {
+//                        }
+//                    }
                 } catch (CommunicationException|ObjectAlreadyExistsException|ExpressionEvaluationException|
                         PolicyViolationException|SchemaException|SecurityViolationException|
-                        ConfigurationException|ObjectNotFoundException e) {
+                        ConfigurationException|ObjectNotFoundException|RuntimeException e) {
                     LoggingUtils.logException(LOGGER, "Error executing changes", e);
                     if (!result.isFatalError()) {       // just to be sure
                         result.recordFatalError(e.getMessage(), e);
@@ -1422,16 +1471,26 @@ public class PageUser extends PageAdminUsers {
             }
         };
         final Thread thread = new Thread(execution);
+
+        abortButton.setVisible(true);
+        saveButton.setVisible(false);
+        //saveButton.setEnabled(false);         doesn't work as expected
         thread.start();
 
         result.recordInProgress();
+        target.add(abortButton, saveButton);
     }
 
     private void finishAsyncProcessing(AjaxRequestTarget target, OperationResult result) {
         result.recomputeStatus();
 
+        //stopRefreshingProgressPanel();
+        saveButton.setVisible(true);            // enable re-saving after fixing (potential) error
+        abortButton.setVisible(false);
+        target.add(abortButton, saveButton);
+
         boolean userAdded = delta != null && delta.isAdd() && StringUtils.isNotEmpty(delta.getOid());
-        if (progressPanel.getModelObject().allSuccess() && (userAdded || !result.isFatalError())) {           // TODO
+        if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressPanel.getModelObject().allSuccess() && (userAdded || !result.isFatalError())) {           // TODO
             showResultInSession(result);
             // todo refactor this...what is this for? why it's using some
             // "shadow" param from result???
@@ -1844,5 +1903,4 @@ public class PageUser extends PageAdminUsers {
         taskTable.modelChanged();
         return this;
     }
-
 }

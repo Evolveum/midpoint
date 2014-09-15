@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.PROJECTOR;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,6 +26,7 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.ProgressInformation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -111,7 +114,7 @@ public class Projector {
 		if (context.getDebugListener() != null) {
 			context.getDebugListener().beforeProjection(context);
 		}
-		
+
 		// Read the time at the beginning so all processors have the same notion of "now"
 		// this provides nicer unified timestamp that can be used in equality checks in tests and also for
 		// troubleshooting
@@ -131,8 +134,10 @@ public class Projector {
 		// in the following code.
 		
 		try {
-		
-			contextLoader.load(context, activityDescription, result);
+
+            context.reportProgress(new ProgressInformation(PROJECTOR, ENTERING));
+
+            contextLoader.load(context, activityDescription, result);
 			// Set the "fresh" mark now so following consistency check will be stricter
 			context.setFresh(true);
 			if (consistencyChecks) context.checkConsistence();
@@ -284,7 +289,8 @@ public class Projector {
 			if (context.getDebugListener() != null) {
 				context.getDebugListener().afterProjection(context);
 			}
-		}
+            context.reportProgress(new ProgressInformation(PROJECTOR, result));
+        }
 		
 	}
 

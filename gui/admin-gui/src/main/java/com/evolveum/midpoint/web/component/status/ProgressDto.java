@@ -20,8 +20,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.web.page.PageBase.createStringResourceStatic;
-
 /**
  * @author mederly
  */

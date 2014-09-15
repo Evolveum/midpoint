@@ -559,6 +559,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	public void checkConsistence() {
+
+        // HACK test for abort (should be placed elsewhere, however...)
+        if (isAbortRequested()) {
+            throw new RuntimeException("Aborting on user request");             // TODO TODO TODO
+        }
 		if (focusContext != null) {
 			focusContext.checkConsistence();
 		}
@@ -917,5 +922,17 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         for (ProgressListener listener : progressListeners) {
             listener.onProgressAchieved(this, progress);
         }
+    }
+
+    public boolean isAbortRequested() {
+        if (progressListeners == null) {
+            return false;
+        }
+        for (ProgressListener progressListener : progressListeners) {
+            if (progressListener.isAbortRequested()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

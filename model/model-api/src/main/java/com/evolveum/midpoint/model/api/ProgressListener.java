@@ -39,4 +39,5 @@ public interface ProgressListener {
      */
     void onProgressAchieved(ModelContext modelContext, ProgressInformation progressInformation);
 
+    boolean isAbortRequested();
 }

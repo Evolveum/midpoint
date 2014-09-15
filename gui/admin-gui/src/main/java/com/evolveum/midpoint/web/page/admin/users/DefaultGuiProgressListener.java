@@ -43,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -58,12 +59,14 @@ import com.evolveum.midpoint.web.component.status.ProgressReportActivityDto;
 /**
 * @author mederly
 */
-public class DefaultGuiProgressListener implements ProgressListener {
+public class DefaultGuiProgressListener implements ProgressListener, Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(DefaultGuiProgressListener.class);
 
     private ProgressDto progressDto;
     private PageBase parentPage;
+
+    private boolean abortRequested;
 
     public DefaultGuiProgressListener(PageBase parentPage, ProgressDto progressDto) {
         this.parentPage = parentPage;
@@ -99,6 +102,15 @@ public class DefaultGuiProgressListener implements ProgressListener {
         }
 
         addExpectedStatusItems(progressReportActivities, modelContext);
+    }
+
+    @Override
+    public boolean isAbortRequested() {
+        return abortRequested;
+    }
+
+    public void setAbortRequested(boolean value) {
+        this.abortRequested = value;
     }
 
     private void addExpectedStatusItems(List<ProgressReportActivityDto> progressReportActivities, ModelContext modelContext) {
