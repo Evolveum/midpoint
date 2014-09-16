@@ -49,7 +49,6 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationReactionEditor.class);
 
-
     private static final String DOT_CLASS = SynchronizationReactionEditor.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT_TEMPLATES = DOT_CLASS + "createObjectTemplateList";
 

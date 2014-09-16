@@ -96,7 +96,7 @@ public class ResourceIterationEditor extends SimplePanel<IterationSpecificationT
             model.setObject(new IterationSpecificationType());
         }
 
-        final IterationSpecificationType iteration = model.getObject();
+        IterationSpecificationType iteration = model.getObject();
 
         if(iteration.getTokenExpression() == null){
             iteration.setTokenExpression(new ExpressionType());

@@ -277,6 +277,7 @@ public class MappingEditorDialog extends ModalWindow{
                 new PropertyModel<List<String>>(model, MappingTypeDto.F_SOURCE));
         form.add(source);
 
+        //TODO - create some nice ItemPathType editor in near future
         TextFormGroup target = new TextFormGroup(ID_TARGET, new PropertyModel<String>(model, MappingTypeDto.F_TARGET),
                 createStringResource("MappingEditorDialog.label.target"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(target);
@@ -316,10 +317,8 @@ public class MappingEditorDialog extends ModalWindow{
 
             @Override
             public boolean isVisible() {
-                if(ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getExpressionType())){
-                    return true;
-                }
-                return false;
+                return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getExpressionType());
+
             }
         });
         form.add(expressionLanguage);
@@ -366,10 +365,7 @@ public class MappingEditorDialog extends ModalWindow{
 
             @Override
             public boolean isVisible() {
-                if (ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getExpressionType())) {
-                    return true;
-                }
-                return false;
+                return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getExpressionType());
             }
         });
         expressionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
@@ -423,10 +419,7 @@ public class MappingEditorDialog extends ModalWindow{
 
             @Override
             public boolean isVisible() {
-                if(ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getConditionType())){
-                    return true;
-                }
-                return false;
+                return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getConditionType());
             }
         });
         conditionLanguage.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
@@ -474,10 +467,7 @@ public class MappingEditorDialog extends ModalWindow{
 
             @Override
             public boolean isVisible() {
-                if (ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getConditionType())) {
-                    return true;
-                }
-                return false;
+                return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getConditionType());
             }
         });
         conditionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {

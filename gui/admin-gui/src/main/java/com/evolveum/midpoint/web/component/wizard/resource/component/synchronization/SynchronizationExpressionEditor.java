@@ -15,8 +15,11 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.synchronization;
 
+import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -24,7 +27,40 @@ import org.apache.wicket.model.IModel;
  * */
 public class SynchronizationExpressionEditor extends SimplePanel<ExpressionType>{
 
+    private static final String ID_LABEL = "label";
+    private static final String ID_EXPRESSION_EDITOR = "expressionPanel";
+
     public SynchronizationExpressionEditor(String id, IModel<ExpressionType> model){
         super(id, model);
+    }
+
+    @Override
+    public IModel<ExpressionType> getModel(){
+        IModel<ExpressionType> model = super.getModel();
+
+        if(model.getObject() == null){
+            model.setObject(new ExpressionType());
+        }
+
+        return model;
+    }
+
+    @Override
+    protected void initLayout(){
+        Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return getString(getLabel());
+            }
+        });
+        add(label);
+
+        ExpressionEditorPanel expressionEditor = new ExpressionEditorPanel(ID_EXPRESSION_EDITOR, getModel());
+        add(expressionEditor);
+    }
+
+    public String getLabel(){
+        return null;
     }
 }
