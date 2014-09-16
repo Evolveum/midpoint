@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.status;
+package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 import java.io.Serializable;
+import java.util.List;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
 
@@ -33,6 +36,9 @@ public class ProgressReportActivityDto implements Serializable {
     private ResourceShadowDiscriminator resourceShadowDiscriminator;        // if applicable w.r.t. activityType
     private String resourceName;                                            // pre-resolved resource name, if applicable
     private OperationResultStatusType status;
+    // additional information on resource-related operation
+    private String resourceObjectName;
+    private List<ResourceOperationResult> resourceOperationResultList;
 
     public ProgressInformation.ActivityType getActivityType() {
         return activityType;
@@ -66,6 +72,22 @@ public class ProgressReportActivityDto implements Serializable {
         this.status = status;
     }
 
+    public String getResourceObjectName() {
+        return resourceObjectName;
+    }
+
+    public void setResourceObjectName(String resourceObjectName) {
+        this.resourceObjectName = resourceObjectName;
+    }
+
+    public List<ResourceOperationResult> getResourceOperationResultList() {
+        return resourceOperationResultList;
+    }
+
+    public void setResourceOperationResultList(List<ResourceOperationResult> resourceOperationResultList) {
+        this.resourceOperationResultList = resourceOperationResultList;
+    }
+
     public boolean correspondsTo(ProgressInformation newStatus) {
         if (newStatus == null) {
             return false;           // should not occur anyway
@@ -83,5 +105,31 @@ public class ProgressReportActivityDto implements Serializable {
 
     public boolean isSuccess() {
         return status == null || status == OperationResultStatusType.SUCCESS;
+    }
+
+    public static class ResourceOperationResult {
+        private ChangeType changeType;
+        private OperationResultStatus resultStatus;
+
+        public ResourceOperationResult(ChangeType changeType, OperationResultStatus resultStatus) {
+            this.changeType = changeType;
+            this.resultStatus = resultStatus;
+        }
+
+        public ChangeType getChangeType() {
+            return changeType;
+        }
+
+        public void setChangeType(ChangeType changeType) {
+            this.changeType = changeType;
+        }
+
+        public OperationResultStatus getResultStatus() {
+            return resultStatus;
+        }
+
+        public void setResultStatus(OperationResultStatus resultStatus) {
+            this.resultStatus = resultStatus;
+        }
     }
 }

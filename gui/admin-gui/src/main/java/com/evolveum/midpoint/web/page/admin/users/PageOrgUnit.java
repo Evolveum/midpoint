@@ -53,12 +53,15 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextFormGroup;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.component.status.ProgressDto;
-import com.evolveum.midpoint.web.component.status.ProgressPanel;
+import com.evolveum.midpoint.web.component.progress.ProgressPanel;
+import com.evolveum.midpoint.web.component.progress.ProgressReporter;
+import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -68,7 +71,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
@@ -78,7 +80,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
 import org.apache.wicket.util.string.StringValue;
-import org.apache.wicket.util.time.Duration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -98,7 +99,7 @@ import java.util.List;
         @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#orgUnit",
                 label = "PageOrgUnit.auth.orgUnit.label",
                 description = "PageOrgUnit.auth.orgUnit.description")})
-public class PageOrgUnit extends PageAdminUsers {
+public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwarePage {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);
     private static final String DOT_CLASS = PageOrgUnit.class.getName() + ".";
@@ -127,6 +128,7 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_ORG_TYPE = "orgType";
     private static final String ID_BACK = "back";
     private static final String ID_SAVE = "save";
+    private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 
     private static final String ID_ASSIGNMENTS_TABLE = "assignmentsPanel";
     private static final String ID_INDUCEMENTS_TABLE = "inducementsPanel";
@@ -142,9 +144,17 @@ public class PageOrgUnit extends PageAdminUsers {
     private IModel<ContainerWrapper> extensionModel;
     private ObjectWrapper orgWrapper;
 
-    private ProgressPanel progressPanel;
+    private ProgressReporter progressReporter;
     private ObjectDelta delta;
-    private OperationResult asyncOperationResult;
+
+    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
+            = new LoadableModel<ExecuteChangeOptionsDto>(false) {
+
+        @Override
+        protected ExecuteChangeOptionsDto load() {
+            return new ExecuteChangeOptionsDto();
+        }
+    };
 
     public PageOrgUnit() {
         this(null);
@@ -269,22 +279,7 @@ public class PageOrgUnit extends PageAdminUsers {
         final Form form = new Form(ID_FORM);
         add(form);
 
-        // todo deduplicate
-        progressPanel = new ProgressPanel("progressPanel", new Model<>(new ProgressDto()));
-        progressPanel.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(400)) {         // TODO change this
-            @Override
-            protected void onPostProcessTarget(AjaxRequestTarget target) {
-                super.onPostProcessTarget(target);
-                if (asyncOperationResult != null) {         // async operation has been finished!
-                    finishAsyncProcessing(target, asyncOperationResult);
-                    asyncOperationResult = null;
-                }
-            }
-        });
-        progressPanel.setOutputMarkupId(true);
-        progressPanel.hide();
-        form.add(progressPanel);
-
+        progressReporter = ProgressReporter.create(this, form, "progressPanel");
 
         TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel(orgModel, OrgType.F_NAME),
                 createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
@@ -513,8 +508,7 @@ public class PageOrgUnit extends PageAdminUsers {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                asyncOperationResult = null;
-                progressPanel.getModelObject().clear();
+                progressReporter.onSaveSubmit();
                 savePerformed(target);
             }
 
@@ -524,7 +518,24 @@ public class PageOrgUnit extends PageAdminUsers {
                 target.add(getFeedbackPanel());
             }
         };
+        progressReporter.registerSaveButton(save);
         form.add(save);
+
+        AjaxSubmitButton abortButton = new AjaxSubmitButton("abort",
+                createStringResource("PageBase.button.abort")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                progressReporter.onAbortSubmit(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        progressReporter.registerAbortButton(abortButton);
+        form.add(abortButton);
 
         AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageBase.button.back")) {
 
@@ -534,6 +545,8 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         };
         form.add(back);
+
+        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, false));
     }
 
     private boolean isEditing() {
@@ -687,7 +700,7 @@ public class PageOrgUnit extends PageAdminUsers {
                     LOGGER.trace("Saving changes for org. unit: {}", delta.debugDump());
                 }
 
-                asyncExecuteChanges(deltas, null, createSimpleTask(SAVE_UNIT), result, target);
+                progressReporter.executeChanges(deltas, null, createSimpleTask(SAVE_UNIT), result, target);
 
                 //save extension when adding new Org. - improve later
                 if(!isEditing() && extensionDelta != null){
@@ -707,49 +720,8 @@ public class PageOrgUnit extends PageAdminUsers {
 
     }
 
-    // TODO deduplicate with PageUser
-    private void asyncExecuteChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target) {
-        final ModelService modelService = getModelService();
-        final SecurityEnforcer enforcer = getSecurityEnforcer();
-        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        progressPanel.show();
-        final ProgressListener listener = new DefaultGuiProgressListener(this, progressPanel.getModelObject());
-
-        Runnable execution = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    enforcer.setupPreAuthenticatedSecurityContext(authentication);
-                    modelService.executeChanges(deltas, options, task, Collections.singleton(listener), result);
-                    if (progressPanel.getModelObject().allSuccess()) {
-                        progressPanel.getModelObject().log("Done, closing in 5 seconds...");          // TODO remove in production
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                } catch (CommunicationException |ObjectAlreadyExistsException |ExpressionEvaluationException |
-                        PolicyViolationException |SchemaException|SecurityViolationException |
-                        ConfigurationException |ObjectNotFoundException e) {
-                    LoggingUtils.logException(LOGGER, "Error executing changes", e);
-                    if (!result.isFatalError()) {       // just to be sure
-                        result.recordFatalError(e.getMessage(), e);
-                    }
-                    //progressPanel.getModelObject().log("Error: " + e.getMessage());
-                }
-                asyncOperationResult = result;
-            }
-        };
-        final Thread thread = new Thread(execution);
-        thread.start();
-
-        result.recordInProgress();
-    }
-
-    private void finishAsyncProcessing(AjaxRequestTarget target, OperationResult result) {
-        result.recomputeStatus();
-        if (progressPanel.getModelObject().allSuccess() && WebMiscUtil.isSuccessOrHandledError(result)) {
+    public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
+        if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressReporter.isAllSuccess() && WebMiscUtil.isSuccessOrHandledError(result)) {
             showResultInSession(result);
             setResponsePage(PageOrgTree.class);
         } else {

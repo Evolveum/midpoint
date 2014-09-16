@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.status;
+package com.evolveum.midpoint.web.component.progress;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -48,8 +48,8 @@ public class ProgressDto implements Serializable {
         logItems.add(message);
     }
 
-    public void add(ProgressReportActivityDto si) {
-        progressReportActivities.add(si);
+    public void add(ProgressReportActivityDto item) {
+        progressReportActivities.add(item);
     }
 
     public void clear() {

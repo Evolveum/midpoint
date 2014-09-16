@@ -110,7 +110,9 @@ public class Projector {
             Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-		
+
+        context.checkAbortRequested();
+
 		if (context.getDebugListener() != null) {
 			context.getDebugListener().beforeProjection(context);
 		}
@@ -150,7 +152,9 @@ public class Projector {
 	        LOGGER.trace("WAVE: Starting the waves.");
 	        context.setProjectionWave(0);
 	        while (context.getProjectionWave() < maxWaves) {
-	    
+
+                context.checkAbortRequested();
+
 	        	LOGGER.trace("WAVE {} (maxWaves={}, executionWave={})", new Object[]{
 	        			context.getProjectionWave(), maxWaves, context.getExecutionWave()});
 	        	
@@ -186,6 +190,8 @@ public class Projector {
 		
 		        // Focus-related processing is over. Now we will process projections in a loop.
 		        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+
+                    context.checkAbortRequested();
 
 		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
 		        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {

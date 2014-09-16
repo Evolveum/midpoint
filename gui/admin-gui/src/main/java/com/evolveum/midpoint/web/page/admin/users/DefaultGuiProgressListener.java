@@ -25,9 +25,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -37,13 +40,17 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.status.ProgressDto;
+import com.evolveum.midpoint.web.component.progress.ProgressDto;
+import com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto;
+import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -53,8 +60,8 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.F
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
-
-import com.evolveum.midpoint.web.component.status.ProgressReportActivityDto;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXITING;
+import static com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto.ResourceOperationResult;
 
 /**
 * @author mederly
@@ -64,11 +71,11 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
     private static final Trace LOGGER = TraceManager.getTrace(DefaultGuiProgressListener.class);
 
     private ProgressDto progressDto;
-    private PageBase parentPage;
+    private ProgressReportingAwarePage parentPage;
 
     private boolean abortRequested;
 
-    public DefaultGuiProgressListener(PageBase parentPage, ProgressDto progressDto) {
+    public DefaultGuiProgressListener(ProgressReportingAwarePage parentPage, ProgressDto progressDto) {
         this.parentPage = parentPage;
         this.progressDto = progressDto;
     }
@@ -82,6 +89,7 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
 
         if (progressDto == null) {
             LOGGER.error("No progressDto, exiting");      // should not occur
+            return;
         }
 
         if (StringUtils.isNotEmpty(progressInformation.getMessage())) {
@@ -95,9 +103,9 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
             ProgressReportActivityDto si = findRelevantStatusItem(progressReportActivities, progressInformation);
 
             if (si == null) {
-                progressDto.add(createStatusItem(progressInformation));
+                progressDto.add(createStatusItem(progressInformation, modelContext));
             } else {
-                updateStatusItemState(si, progressInformation);
+                updateStatusItemState(si, progressInformation, modelContext);
             }
         }
 
@@ -119,7 +127,7 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
             if (isNotEmpty(fc.getPrimaryDelta()) || isNotEmpty(fc.getSecondaryDelta())) {
                 ProgressInformation modelStatus = new ProgressInformation(FOCUS_OPERATION, (StateType) null);
                 if (findRelevantStatusItem(progressReportActivities, modelStatus) == null) {
-                    progressReportActivities.add(createStatusItem(modelStatus));
+                    progressReportActivities.add(createStatusItem(modelStatus, modelContext));
                 }
             }
         }
@@ -128,7 +136,7 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
             for (ModelProjectionContext mpc : projectionContexts) {
                 ProgressInformation projectionStatus = new ProgressInformation(RESOURCE_OBJECT_OPERATION, mpc.getResourceShadowDiscriminator(), (StateType) null);
                 if (findRelevantStatusItem(progressReportActivities, projectionStatus) == null) {
-                    progressReportActivities.add(createStatusItem(projectionStatus));
+                    progressReportActivities.add(createStatusItem(projectionStatus, modelContext));
                 }
             }
         }
@@ -147,7 +155,7 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
         return null;
     }
 
-    private void updateStatusItemState(ProgressReportActivityDto si, ProgressInformation progressInformation) {
+    private void updateStatusItemState(ProgressReportActivityDto si, ProgressInformation progressInformation, ModelContext modelContext) {
         si.setActivityType(progressInformation.getActivityType());
         si.setResourceShadowDiscriminator(progressInformation.getResourceShadowDiscriminator());
         if (progressInformation.getResourceShadowDiscriminator() != null) {
@@ -169,11 +177,56 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
                 si.setStatus(OperationResultStatusType.UNKNOWN);
             }
         }
+
+        // information about modifications on a resource
+        if (progressInformation.getActivityType() == RESOURCE_OBJECT_OPERATION &&
+                progressInformation.getStateType() == EXITING && progressInformation.getResourceShadowDiscriminator() != null) {
+            ModelProjectionContext mpc = modelContext.findProjectionContext(progressInformation.getResourceShadowDiscriminator());
+            if (mpc != null) {      // it shouldn't be null!
+
+                // operations performed (TODO aggregate them somehow?)
+                List<ResourceOperationResult> resourceOperationResultList = new ArrayList<>();
+                List<? extends ObjectDeltaOperation> executedDeltas = mpc.getExecutedDeltas();
+                for (ObjectDeltaOperation executedDelta : executedDeltas) {
+                    ObjectDelta delta = executedDelta.getObjectDelta();
+                    if (delta != null) {
+                        OperationResult r = executedDelta.getExecutionResult();
+                        OperationResultStatus status = r.getStatus();
+                        if (status == OperationResultStatus.UNKNOWN) {
+                            status = r.getComputeStatus();
+                        }
+                        resourceOperationResultList.add(new ResourceOperationResult(delta.getChangeType(), status));
+                    }
+                }
+                si.setResourceOperationResultList(resourceOperationResultList);
+
+                // object name
+                PrismObject<ShadowType> object = mpc.getObjectNew();
+                if (object == null) {
+                    object = mpc.getObjectOld();
+                }
+                String name = null;
+                if (object != null) {
+                    if (object.asObjectable().getName() != null) {
+                        name = PolyString.getOrig(object.asObjectable().getName());
+                    } else {
+                        // determine from attributes
+                        ResourceAttribute nameAttribute = ShadowUtil.getNamingAttribute(object);
+                        if (nameAttribute != null) {
+                            name = String.valueOf(nameAttribute.getAnyRealValue());
+                        }
+                    }
+                }
+                if (name != null) {
+                    si.setResourceObjectName(name);
+                }
+            }
+        }
     }
 
-    private ProgressReportActivityDto createStatusItem(ProgressInformation progressInformation) {
+    private ProgressReportActivityDto createStatusItem(ProgressInformation progressInformation, ModelContext modelContext) {
         ProgressReportActivityDto si = new ProgressReportActivityDto();
-        updateStatusItemState(si, progressInformation);
+        updateStatusItemState(si, progressInformation, modelContext);
         return si;
     }
 

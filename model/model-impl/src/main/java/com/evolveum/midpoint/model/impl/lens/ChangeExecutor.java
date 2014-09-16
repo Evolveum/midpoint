@@ -144,6 +144,8 @@ public class ChangeExecutor {
     	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE);
     	
     	// FOCUS
+
+        syncContext.checkAbortRequested();
     	
     	LensFocusContext<O> focusContext = syncContext.getFocusContext();
     	if (focusContext != null) {
@@ -196,6 +198,8 @@ public class ChangeExecutor {
     	}
 
     	// PROJECTIONS
+
+        syncContext.checkAbortRequested();
     	
         for (LensProjectionContext accCtx : syncContext.getProjectionContexts()) {
         	if (accCtx.getWave() != syncContext.getExecutionWave()) {
@@ -207,6 +211,8 @@ public class ChangeExecutor {
 				subResult.addParam("resource", accCtx.getResource().getName());
 			}
 			try {
+
+                syncContext.checkAbortRequested();
 
                 syncContext.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION, accCtx.getResourceShadowDiscriminator(), ENTERING));
 

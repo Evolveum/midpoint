@@ -558,12 +558,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 	}
 
-	public void checkConsistence() {
-
-        // HACK test for abort (should be placed elsewhere, however...)
+    public void checkAbortRequested() {
         if (isAbortRequested()) {
-            throw new RuntimeException("Aborting on user request");             // TODO TODO TODO
+            throw new RuntimeException("Aborted on user request");             // TODO more meaningful exception + message
         }
+    }
+
+	public void checkConsistence() {
+        checkAbortRequested();
 		if (focusContext != null) {
 			focusContext.checkConsistence();
 		}

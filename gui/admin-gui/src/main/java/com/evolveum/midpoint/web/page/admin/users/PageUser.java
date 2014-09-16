@@ -18,29 +18,38 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.ProgressListener;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -49,22 +58,27 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.status.ProgressDto;
-import com.evolveum.midpoint.web.component.status.ProgressPanel;
-import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
+import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
+import com.evolveum.midpoint.web.component.prism.SimpleErrorPanel;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.progress.ProgressReporter;
+import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -72,6 +86,8 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignablePopupContent;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ResourcesPopup;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
@@ -80,40 +96,55 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.apache.wicket.request.resource.ContextRelativeResource;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
-import org.apache.wicket.util.time.Duration;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.xml.namespace.QName;
-
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -125,7 +156,7 @@ import java.util.*;
         @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#user",
                 label = "PageUser.auth.user.label",
                 description = "PageUser.auth.user.description")})
-public class PageUser extends PageAdminUsers {
+public class PageUser extends PageAdminUsers implements ProgressReportingAwarePage {
 
     public static final String PARAM_RETURN_PAGE = "returnPage";
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
@@ -184,12 +215,8 @@ public class PageUser extends PageAdminUsers {
         }
     };
 
-    private ProgressPanel progressPanel;
-    private ObjectDelta delta;
-    private OperationResult asyncOperationResult;
-    private DefaultGuiProgressListener progressListener;
-    private AjaxSubmitButton saveButton;
-    private AjaxSubmitButton abortButton;
+    private ProgressReporter progressReporter;
+    private ObjectDelta delta;                      // used to determine whether to leave this page or stay on it (after operation finishing)
 
     public PageUser() {
         this(null);
@@ -317,10 +344,7 @@ public class PageUser extends PageAdminUsers {
         mainForm.setMultiPart(true);
         add(mainForm);
 
-        progressPanel = new ProgressPanel("progressPanel", new Model<>(new ProgressDto()));
-        progressPanel.setOutputMarkupId(true);
-        progressPanel.hide();
-        mainForm.add(progressPanel);
+        progressReporter = ProgressReporter.create(this, mainForm, "progressPanel");
 
         initSummaryInfo(mainForm);
 
@@ -354,32 +378,6 @@ public class PageUser extends PageAdminUsers {
         initResourceModal();
         initAssignableModal();
         initConfirmationDialogs();
-    }
-
-    private Behavior refreshingBehavior = null;
-
-    private void startRefreshingProgressPanel(AjaxRequestTarget target) {
-        if (refreshingBehavior == null) {
-            refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(400)) {         // TODO change this
-                @Override
-                protected void onPostProcessTarget(AjaxRequestTarget target) {
-                    super.onPostProcessTarget(target);
-                    if (asyncOperationResult != null) {         // async operation has been finished!
-                        finishAsyncProcessing(target, asyncOperationResult);
-                        asyncOperationResult = null;
-                    }
-                }
-            };
-            progressPanel.add(refreshingBehavior);
-            target.add(progressPanel);
-        }
-    }
-
-    // does not work for some reason (NPE in wicket)
-    private void stopRefreshingProgressPanel() {
-        if (refreshingBehavior != null) {
-            progressPanel.remove(refreshingBehavior);
-        }
     }
 
     private String getLabelFromPolyString(PolyStringType poly){
@@ -853,6 +851,7 @@ public class PageUser extends PageAdminUsers {
                 target.add(assignments);
             }
         };
+        assignmentCheckAll.setOutputMarkupId(true);
         assignments.add(assignmentCheckAll);
     }
 
@@ -910,13 +909,12 @@ public class PageUser extends PageAdminUsers {
 
 
     private void initButtons(final Form mainForm) {
-        saveButton = new AjaxSubmitButton("save",
+        AjaxSubmitButton saveButton = new AjaxSubmitButton("save",
                 createStringResource("pageUser.button.save")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                asyncOperationResult = null;
-                progressPanel.getModelObject().clear();
+                progressReporter.onSaveSubmit();
                 savePerformed(target);
             }
 
@@ -925,23 +923,15 @@ public class PageUser extends PageAdminUsers {
                 target.add(getFeedbackPanel());
             }
         };
-        saveButton.setOutputMarkupId(true);
-        saveButton.setOutputMarkupPlaceholderTag(true);
+        progressReporter.registerSaveButton(saveButton);
         mainForm.add(saveButton);
 
-        abortButton = new AjaxSubmitButton("abort",
+        AjaxSubmitButton abortButton = new AjaxSubmitButton("abort",
                 createStringResource("pageUser.button.abort")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                if (progressListener == null) {
-                    System.out.println("No progressListener (abortButton.onSubmit)");
-                    return;         // should not occur
-                }
-                progressListener.setAbortRequested(true);
-                progressPanel.getModelObject().log("Abort requested, please wait...");
-                abortButton.setVisible(false);
-                target.add(abortButton);
+                progressReporter.onAbortSubmit(target);
             }
 
             @Override
@@ -949,9 +939,7 @@ public class PageUser extends PageAdminUsers {
                 target.add(getFeedbackPanel());
             }
         };
-        abortButton.setOutputMarkupId(true);
-        abortButton.setOutputMarkupPlaceholderTag(true);
-        abortButton.setVisible(false);
+        progressReporter.registerAbortButton(abortButton);
         mainForm.add(abortButton);
 
         AjaxButton back = new AjaxButton("back", createStringResource("pageUser.button.back")) {
@@ -1372,7 +1360,7 @@ public class PageUser extends PageAdminUsers {
                     }
 
                     if (!delta.isEmpty()) {
-                        asyncExecuteChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result, target);
+                        progressReporter.executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result, target);
                     } else {
                         result.recordSuccess();
                     }
@@ -1408,9 +1396,9 @@ public class PageUser extends PageAdminUsers {
                         ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class,
                                 userWrapper.getObject().getOid(), getPrismContext());
                         deltas.add(emptyDelta);
-                        asyncExecuteChanges(deltas, options, task, result, target);
+                        progressReporter.executeChanges(deltas, options, task, result, target);
                     } else if (!deltas.isEmpty()) {
-                        asyncExecuteChanges(deltas, options, task, result, target);
+                        progressReporter.executeChanges(deltas, options, task, result, target);
                     } else {
                         result.recordSuccess();
                     }
@@ -1437,60 +1425,11 @@ public class PageUser extends PageAdminUsers {
         }
     }
 
-    private void asyncExecuteChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target) {
-        final ModelService modelService = getModelService();
-        final SecurityEnforcer enforcer = getSecurityEnforcer();
-        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        startRefreshingProgressPanel(target);
-        progressPanel.show();
-        progressListener = new DefaultGuiProgressListener(this, progressPanel.getModelObject());
-
-        Runnable execution = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    enforcer.setupPreAuthenticatedSecurityContext(authentication);
-                    modelService.executeChanges(deltas, options, task, Collections.singleton((ProgressListener) progressListener), result);
-//                    if (progressPanel.getModelObject().allSuccess()) {
-//                        progressPanel.getModelObject().log("Closing the screen in 5 seconds...");
-//                        try {
-//                            Thread.sleep(5000);
-//                        } catch (InterruptedException e) {
-//                        }
-//                    }
-                } catch (CommunicationException|ObjectAlreadyExistsException|ExpressionEvaluationException|
-                        PolicyViolationException|SchemaException|SecurityViolationException|
-                        ConfigurationException|ObjectNotFoundException|RuntimeException e) {
-                    LoggingUtils.logException(LOGGER, "Error executing changes", e);
-                    if (!result.isFatalError()) {       // just to be sure
-                        result.recordFatalError(e.getMessage(), e);
-                    }
-                }
-                asyncOperationResult = result;
-            }
-        };
-        final Thread thread = new Thread(execution);
-
-        abortButton.setVisible(true);
-        saveButton.setVisible(false);
-        //saveButton.setEnabled(false);         doesn't work as expected
-        thread.start();
-
-        result.recordInProgress();
-        target.add(abortButton, saveButton);
-    }
-
-    private void finishAsyncProcessing(AjaxRequestTarget target, OperationResult result) {
-        result.recomputeStatus();
-
-        //stopRefreshingProgressPanel();
-        saveButton.setVisible(true);            // enable re-saving after fixing (potential) error
-        abortButton.setVisible(false);
-        target.add(abortButton, saveButton);
+    @Override
+    public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
 
         boolean userAdded = delta != null && delta.isAdd() && StringUtils.isNotEmpty(delta.getOid());
-        if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressPanel.getModelObject().allSuccess() && (userAdded || !result.isFatalError())) {           // TODO
+        if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressReporter.isAllSuccess() && (userAdded || !result.isFatalError())) {           // TODO
             showResultInSession(result);
             // todo refactor this...what is this for? why it's using some
             // "shadow" param from result???
@@ -1516,6 +1455,13 @@ public class PageUser extends PageAdminUsers {
         } else {
             showResult(result);
             target.add(getFeedbackPanel());
+
+            // if we only stayed on the page because of displaying results, hide the Save button
+            // (the content of the page might not be consistent with reality, e.g. concerning the accounts part...
+            // this page was not created with the repeated save possibility in mind)
+            if (userAdded || !result.isFatalError()) {
+                progressReporter.hideSaveButton(target);
+            }
         }
     }
 
