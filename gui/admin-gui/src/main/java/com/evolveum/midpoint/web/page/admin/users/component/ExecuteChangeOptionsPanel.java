@@ -42,7 +42,13 @@ public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsD
     public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model, boolean showReconcile) {
         super(id, model);
         this.showReconcile = showReconcile;
-        this.showKeepDisplayingResults = getWebApplicationConfiguration().isProgressReportingEnabled();
+        showKeepDisplayingResults = getWebApplicationConfiguration().isProgressReportingEnabled();
+    }
+
+    public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model, boolean showReconcile, boolean showKeepDisplayingResults) {
+        super(id, model);
+        this.showReconcile = showReconcile;
+        this.showKeepDisplayingResults = showKeepDisplayingResults;
     }
 
     @Override

@@ -546,7 +546,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
         };
         form.add(back);
 
-        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, false));
+        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
     }
 
     private boolean isEditing() {
@@ -704,7 +704,10 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
                     LOGGER.trace("Saving changes for org. unit: {}", delta.debugDump());
                 }
 
-                progressReporter.executeChanges(deltas, null, createSimpleTask(SAVE_UNIT), result, target);
+                ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
+                ModelExecuteOptions options = executeOptions.createOptions();
+
+                progressReporter.executeChanges(deltas, options, createSimpleTask(SAVE_UNIT), result, target);
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't save org. unit", ex);
@@ -713,6 +716,9 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
             result.computeStatusIfUnknown();
         }
 
+        if (!result.isInProgress()) {
+            finishProcessing(target, result);
+        }
     }
 
     public void finishProcessing(AjaxRequestTarget target, OperationResult result) {

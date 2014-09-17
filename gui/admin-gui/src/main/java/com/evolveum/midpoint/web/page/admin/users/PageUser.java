@@ -1420,8 +1420,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         result.recomputeStatus();
 
         if (!result.isInProgress()) {
-            showResult(result);
-            target.add(getFeedbackPanel());
+            finishProcessing(target, result);
         }
     }
 
