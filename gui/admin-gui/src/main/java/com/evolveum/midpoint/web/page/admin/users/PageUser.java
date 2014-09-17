@@ -18,11 +18,29 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
@@ -40,20 +58,27 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
+import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
+import com.evolveum.midpoint.web.component.prism.SimpleErrorPanel;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.progress.ProgressReporter;
+import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -61,6 +86,8 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignablePopupContent;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ResourcesPopup;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
@@ -69,9 +96,25 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -86,7 +129,10 @@ import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.apache.wicket.request.resource.ContextRelativeResource;
@@ -94,9 +140,11 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
-
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -108,7 +156,7 @@ import java.util.*;
         @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#user",
                 label = "PageUser.auth.user.label",
                 description = "PageUser.auth.user.description")})
-public class PageUser extends PageAdminUsers {
+public class PageUser extends PageAdminUsers implements ProgressReportingAwarePage {
 
     public static final String PARAM_RETURN_PAGE = "returnPage";
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
@@ -152,6 +200,7 @@ public class PageUser extends PageAdminUsers {
     private static final String ID_SUMMARY_PHOTO = "summaryPhoto";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
+
     private LoadableModel<ObjectWrapper> userModel;
     private LoadableModel<List<UserAccountDto>> accountsModel;
     private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
@@ -165,6 +214,9 @@ public class PageUser extends PageAdminUsers {
             return new ExecuteChangeOptionsDto();
         }
     };
+
+    private ProgressReporter progressReporter;
+    private ObjectDelta delta;                      // used to determine whether to leave this page or stay on it (after operation finishing)
 
     public PageUser() {
         this(null);
@@ -227,8 +279,6 @@ public class PageUser extends PageAdminUsers {
         };
     }
 
-
-
     private ObjectWrapper loadUserWrapper(PrismObject<UserType> userToEdit) {
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         PrismObject<UserType> user = null;
@@ -289,10 +339,12 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
+        final Form mainForm = new Form(ID_MAIN_FORM);
         mainForm.setMaxSize(MidPointApplication.USER_PHOTO_MAX_FILE_SIZE);
         mainForm.setMultiPart(true);
         add(mainForm);
+
+        progressReporter = ProgressReporter.create(this, mainForm, "progressPanel");
 
         initSummaryInfo(mainForm);
 
@@ -799,6 +851,7 @@ public class PageUser extends PageAdminUsers {
                 target.add(assignments);
             }
         };
+        assignmentCheckAll.setOutputMarkupId(true);
         assignments.add(assignmentCheckAll);
     }
 
@@ -855,12 +908,13 @@ public class PageUser extends PageAdminUsers {
     }
 
 
-    private void initButtons(Form mainForm) {
-        AjaxSubmitButton save = new AjaxSubmitButton("save",
+    private void initButtons(final Form mainForm) {
+        AjaxSubmitButton saveButton = new AjaxSubmitButton("save",
                 createStringResource("pageUser.button.save")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                progressReporter.onSaveSubmit();
                 savePerformed(target);
             }
 
@@ -869,7 +923,24 @@ public class PageUser extends PageAdminUsers {
                 target.add(getFeedbackPanel());
             }
         };
-        mainForm.add(save);
+        progressReporter.registerSaveButton(saveButton);
+        mainForm.add(saveButton);
+
+        AjaxSubmitButton abortButton = new AjaxSubmitButton("abort",
+                createStringResource("pageUser.button.abort")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                progressReporter.onAbortSubmit(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        progressReporter.registerAbortButton(abortButton);
+        mainForm.add(abortButton);
 
         AjaxButton back = new AjaxButton("back", createStringResource("pageUser.button.back")) {
 
@@ -1246,7 +1317,6 @@ public class PageUser extends PageAdminUsers {
 
     private void savePerformed(AjaxRequestTarget target) {
         LOGGER.debug("Save user.");
-
         OperationResult result = new OperationResult(OPERATION_SAVE);
         ObjectWrapper userWrapper = userModel.getObject();
         // todo: improve, delta variable is quickfix for MID-1006
@@ -1254,7 +1324,7 @@ public class PageUser extends PageAdminUsers {
         // during user add in gui,
         // and we're not taking care about account/assignment create errors
         // (error message is still displayed)
-        ObjectDelta delta;
+        delta = null;
 
         Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
         ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
@@ -1290,7 +1360,7 @@ public class PageUser extends PageAdminUsers {
                     }
 
                     if (!delta.isEmpty()) {
-                        getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result);
+                        progressReporter.executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result, target);
                     } else {
                         result.recordSuccess();
                     }
@@ -1326,9 +1396,9 @@ public class PageUser extends PageAdminUsers {
                         ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class,
                                 userWrapper.getObject().getOid(), getPrismContext());
                         deltas.add(emptyDelta);
-                        getModelService().executeChanges(deltas, options, task, result);
+                        progressReporter.executeChanges(deltas, options, task, result, target);
                     } else if (!deltas.isEmpty()) {
-                        getModelService().executeChanges(deltas, options, task, result);
+                        progressReporter.executeChanges(deltas, options, task, result, target);
                     } else {
                         result.recordSuccess();
                     }
@@ -1348,23 +1418,22 @@ public class PageUser extends PageAdminUsers {
         }
 
         result.recomputeStatus();
-        // } catch (Exception ex) {
-        // if (!executeForceDelete(userWrapper, task, options, result)) {
-        // result.recordFatalError(getString("pageUser.message.cantCreateUser"),
-        // ex);
-        // LoggingUtils.logException(LOGGER,
-        // getString("pageUser.message.cantCreateUser"), ex);
-        // } else{
-        // result.recomputeStatus();
-        // }
-        // }
+
+        if (!result.isInProgress()) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        }
+    }
+
+    @Override
+    public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
 
         boolean userAdded = delta != null && delta.isAdd() && StringUtils.isNotEmpty(delta.getOid());
-        if (userAdded || !result.isFatalError()) {
+        if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressReporter.isAllSuccess() && (userAdded || !result.isFatalError())) {           // TODO
             showResultInSession(result);
             // todo refactor this...what is this for? why it's using some
             // "shadow" param from result???
-            PrismObject<UserType> user = userWrapper.getObject();
+            PrismObject<UserType> user = userModel.getObject().getObject();
             UserType userType = user.asObjectable();
             for (ObjectReferenceType ref : userType.getLinkRef()) {
                 Object o = findParam("shadow", ref.getOid(), result);
@@ -1386,9 +1455,16 @@ public class PageUser extends PageAdminUsers {
         } else {
             showResult(result);
             target.add(getFeedbackPanel());
-        }
 
+            // if we only stayed on the page because of displaying results, hide the Save button
+            // (the content of the page might not be consistent with reality, e.g. concerning the accounts part...
+            // this page was not created with the repeated save possibility in mind)
+            if (userAdded || !result.isFatalError()) {
+                progressReporter.hideSaveButton(target);
+            }
+        }
     }
+
 
     private void reviveModels() throws SchemaException {
         WebMiscUtil.revive(userModel, getPrismContext());
@@ -1484,9 +1560,9 @@ public class PageUser extends PageAdminUsers {
         return forceDeleteDelta;
     }
 
-    private Object object;
-
     public Object findParam(String param, String oid, OperationResult result) {
+
+        Object object = null;
 
         for (OperationResult subResult : result.getSubresults()) {
             if (subResult != null && subResult.getParams() != null) {

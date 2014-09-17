@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
@@ -32,12 +33,16 @@ public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsD
     private static final String ID_RECONCILE = "reconcile";
     private static final String ID_RECONCILE_LABEL = "reconcileLabel";
     private static final String ID_EXECUTE_AFTER_ALL_APPROVALS = "executeAfterAllApprovals";
+    private static final String ID_KEEP_DISPLAYING_RESULTS = "keepDisplayingResults";
+    private static final String ID_KEEP_DISPLAYING_RESULTS_LABEL = "keepDisplayingResultsLabel";
 
     private boolean showReconcile;
+    private boolean showKeepDisplayingResults;
 
     public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model, boolean showReconcile) {
         super(id, model);
         this.showReconcile = showReconcile;
+        this.showKeepDisplayingResults = getWebApplicationConfiguration().isProgressReportingEnabled();
     }
 
     @Override
@@ -64,5 +69,20 @@ public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsD
         CheckBox executeAfterAllApprovals = new CheckBox(ID_EXECUTE_AFTER_ALL_APPROVALS,
                 new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS));
         add(executeAfterAllApprovals);
+
+        WebMarkupContainer keepDisplayingResultsLabel = new WebMarkupContainer(ID_KEEP_DISPLAYING_RESULTS_LABEL);
+        keepDisplayingResultsLabel.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return showKeepDisplayingResults;
+            }
+
+        });
+        add(keepDisplayingResultsLabel);
+
+        CheckBox keepDisplayingResults = new CheckBox(ID_KEEP_DISPLAYING_RESULTS,
+                new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_KEEP_DISPLAYING_RESULTS));
+        keepDisplayingResultsLabel.add(keepDisplayingResults);
     }
 }

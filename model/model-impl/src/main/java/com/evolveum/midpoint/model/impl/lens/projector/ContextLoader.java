@@ -92,7 +92,9 @@ public class ContextLoader {
 			OperationResult result) 
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
 			SecurityViolationException {
-		
+
+        context.checkAbortRequested();
+
 		context.recompute();
 		
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
@@ -140,6 +142,7 @@ public class ContextLoader {
     	if (consistencyChecks) context.checkConsistence();
 		
     	for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+            context.checkAbortRequested();
     		finishLoadOfProjectionContext(context, projectionContext, result);
 		}
         

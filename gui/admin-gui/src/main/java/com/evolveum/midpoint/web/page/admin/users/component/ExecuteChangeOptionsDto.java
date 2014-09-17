@@ -28,10 +28,12 @@ public class ExecuteChangeOptionsDto implements Serializable {
     public static final String F_FORCE = "force";
     public static final String F_RECONCILE = "reconcile";
     public static final String F_EXECUTE_AFTER_ALL_APPROVALS = "executeAfterAllApprovals";
+    public static final String F_KEEP_DISPLAYING_RESULTS = "keepDisplayingResults";
 
     private boolean force;
     private boolean reconcile;
     private boolean executeAfterAllApprovals = true;
+    private boolean keepDisplayingResults;
 
     public boolean isForce() {
         return force;
@@ -57,6 +59,14 @@ public class ExecuteChangeOptionsDto implements Serializable {
         this.executeAfterAllApprovals = executeAfterAllApprovals;
     }
 
+    public boolean isKeepDisplayingResults() {
+        return keepDisplayingResults;
+    }
+
+    public void setKeepDisplayingResults(boolean keepDisplayingResults) {
+        this.keepDisplayingResults = keepDisplayingResults;
+    }
+
     public ModelExecuteOptions createOptions() {
         ModelExecuteOptions options = new ModelExecuteOptions();
         options.setForce(isForce());
@@ -71,6 +81,7 @@ public class ExecuteChangeOptionsDto implements Serializable {
         StringBuilder builder = new StringBuilder();
         builder.append("Options{force=").append(isForce());
         builder.append(",reconcile=").append(isReconcile());
+        builder.append(",keepDisplayingResults=").append(isKeepDisplayingResults());
         builder.append('}');
 
         return builder.toString();

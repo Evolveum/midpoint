@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.security;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 
@@ -26,13 +28,24 @@ import java.io.Serializable;
  */
 public class WebApplicationConfiguration implements Serializable {
 
+    private static final Trace LOGGER = TraceManager.getTrace(WebApplicationConfiguration.class);
+
     private static final String MIDPOINT_HOME = "midpoint.home"; //todo move somewhere
     private String importFolder;
     private String exportFolder;
+    private int progressRefreshInterval;            // how often to refresh 'progress table' (in milliseconds; 0 means this feature is disabled)
+    private boolean abortEnabled;                   // should the "Abort" for async operations be enabled? (requires progress reporting to be enabled)
 
     public WebApplicationConfiguration(Configuration config) {
         importFolder = config.getString("importFolder");
         exportFolder = config.getString("exportFolder");
+        progressRefreshInterval = config.getInt("progressRefreshInterval", 400);
+        abortEnabled = config.getBoolean("abortEnabled", true);
+
+        if (abortEnabled && !isProgressReportingEnabled()) {
+            LOGGER.warn("Abort functionality requires progress reporting to be enabled - set progressRefreshInterval in '"+MidPointApplication.WEB_APP_CONFIGURATION+"' section to a non-zero value");
+            abortEnabled = false;
+        }
         String midpointHome = System.getProperty(MIDPOINT_HOME);
 
         if (importFolder == null) {
@@ -58,5 +71,17 @@ public class WebApplicationConfiguration implements Serializable {
     
     public String getExportFolder() {
         return exportFolder;
+    }
+
+    public int getProgressRefreshInterval() {
+        return progressRefreshInterval;
+    }
+
+    public boolean isProgressReportingEnabled() {
+        return progressRefreshInterval > 0;
+    }
+
+    public boolean isAbortEnabled() {
+        return abortEnabled;
     }
 }
