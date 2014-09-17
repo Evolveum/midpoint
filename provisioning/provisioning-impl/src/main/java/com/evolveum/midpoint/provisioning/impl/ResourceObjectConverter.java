@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -99,6 +100,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisionin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIdentifiersType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
@@ -416,12 +418,12 @@ public class ResourceObjectConverter {
          *
          *  We decide based on setting of explicitReferentialIntegrity in association definition.
          */
-        PrismObject<ShadowType> shadowBefore = shadow.clone();
+       
 
 		collectAttributeAndEntitlementChanges(itemDeltas, operations, resource, shadow, objectClassDefinition, parentResult);
 		
 		Collection<PropertyModificationOperation> sideEffectChanges = null;
-				
+		PrismObject<ShadowType> shadowBefore = shadow.clone();
 		if (operations.isEmpty()){
 			// We have to check BEFORE we add script operations, otherwise the check would be pointless
 			LOGGER.trace("No modifications for connector object specified. Skipping processing of modifyShadow.");
@@ -440,7 +442,9 @@ public class ResourceObjectConverter {
 			if (ResourceTypeUtil.isAvoidDuplicateValues(resource) || isRename(operations)) {
 				// We need to filter out the deltas that add duplicate values or remove values that are not there
 				shadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, null, parentResult);
+				shadowBefore = shadow.clone();
 			}
+
 			
 			// Execute primary ICF operation on this shadow
 			sideEffectChanges = executeModify(connector, resource, shadow, objectClassDefinition, identifiers, operations, parentResult);
@@ -591,51 +595,21 @@ public class ResourceObjectConverter {
 			}
 		}
 		return false;
-//		return ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class) != null;
 	}
 	
-//	private Collection<PropertyModificationOperation> distillRenameDeltas(Collection<Operation> modifications, 
-//	PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
-//		
-//		PropertyModificationOperation nameDelta =null;
-//		
-//		for (Operation op : modifications){
-//			
-//			if (!(op instanceof PropertyModificationOperation)){
-//				continue;
-//			}
-//			
-//			if (((PropertyModificationOperation)op).getPropertyDelta().getPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
-//				nameDelta = (PropertyModificationOperation) op;
-//			}
-//		}
-//		
-//		PropertyDelta<String> namePropertyDelta = nameDelta.getPropertyDelta();
-//		
-//		PrismProperty<String> name = namePropertyDelta.getPropertyNew();
-//		String newName = name.getRealValue();
-//		
-//		Collection<PropertyModificationOperation> deltas = new ArrayList<PropertyModificationOperation>();
-//		
-//		// $shadow/attributes/icfs:name
-////		String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getElementName()));
-//		PropertyDelta<String> cloneNameDelta = namePropertyDelta.clone();
-//		cloneNameDelta.clearValuesToReplace();
-//		cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(newName));
-//		PropertyModificationOperation operation = new PropertyModificationOperation(cloneNameDelta);
-//		deltas.add(operation);
-//		
-//		// $shadow/name
-//		if (!newName.equals(shadow.asObjectable().getName().getOrig())){
-//			
-//			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
-//					ProvisioningUtil.determineShadowName(shadow));
-//			operation = new PropertyModificationOperation(shadowNameDelta);
-//			deltas.add(operation);
-//		}
-//	
-//		return deltas;
-//}
+	private boolean isRename(ItemDelta itemDelta){
+		
+		if (!(itemDelta instanceof PropertyDelta)){
+			return false;
+		}
+		
+		if (itemDelta.getPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
+			return true;
+		}
+		return false;
+	}
+	
+
 	private Collection<PropertyModificationOperation> distillRenameDeltas(Collection<? extends ItemDelta> modifications, 
 			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
 				
@@ -694,8 +668,25 @@ public class ResourceObjectConverter {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)itemDelta;				
 				entitlementConverter.collectEntitlementsAsObjectOperation(roMap, containerDelta, objectClassDefinition,
                         shadowBefore, shadowAfter, rSchema, resource);
+			} else if (isRename(itemDelta)){
+			
+				ContainerDelta<ShadowAssociationType> associationDelta = ContainerDelta.createDelta(ShadowType.F_ASSOCIATION, shadowBefore.getDefinition());
+				PrismContainer<ShadowAssociationType> association = shadowBefore.findContainer(ShadowType.F_ASSOCIATION);
+				if (association == null || association.isEmpty()){
+					LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change.");
+					continue;
+				}
+				
+				associationDelta.addValuesToDelete(association.getClonedValues());	
+				associationDelta.addValuesToAdd(association.getClonedValues());
+				entitlementConverter.collectEntitlementsAsObjectOperation(roMap, associationDelta, objectClassDefinition, shadowBefore, shadowAfter, rSchema, resource);
+				
+//				shadowAfter.findOrCreateContainer(ShadowType.F_ASSOCIATION).addAll((Collection) association.getClonedValues());
+//				entitlementConverter.processEntitlementsAdd(resource, shadowAfter, objectClassDefinition);
 			}
 		}
+		
+		
 		
 		executeEntitlements(connector, resource, roMap, parentResult);
 		
