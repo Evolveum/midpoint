@@ -236,15 +236,18 @@ public class TestJaxbParsing {
 
         // WHEN
 
-        String data = "<asIs/>";
-
+        String dataAsIs = "<asIs/>";
+        String dataValue = "<c:value xmlns:c='" + SchemaConstants.NS_C + "'>12345</c:value>";
 
         // THEN
 
-        Object o = prismContext.parseAnyValueAsJAXBElement(data, PrismContext.LANG_XML);
-        System.out.println("Parsed expression evaluator: " + o);
-        AssertJUnit.assertTrue("o is of wrong class (not JAXBElement): " + o.getClass(), o instanceof JAXBElement);
-    }
+        Object oAsIs = prismContext.parseAnyValueAsJAXBElement(dataAsIs, PrismContext.LANG_XML);
+        System.out.println("Parsed expression evaluator: "  + dataAsIs + " as " + oAsIs);
+        AssertJUnit.assertTrue("result is of wrong class (not JAXBElement): " + oAsIs.getClass(), oAsIs instanceof JAXBElement);
 
+        Object oValue = prismContext.parseAnyValueAsJAXBElement(dataValue, PrismContext.LANG_XML);
+        System.out.println("Parsed expression evaluator: " + dataValue + " as " + oValue);
+        AssertJUnit.assertTrue("result is of wrong class (not JAXBElement): " + oValue.getClass(), oValue instanceof JAXBElement);
+    }
 
 }
