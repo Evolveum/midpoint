@@ -13151,7 +13151,6 @@
 				</attribute>
 				<attribute>
 					<ref>ri:uid</ref>
-					<matchingRule>mr:stringIgnoreCase</matchingRule>
 					<displayName>Login Name</displayName>
 					<limitations>
 						<access>
@@ -13159,6 +13158,7 @@
 						  <add>true</add>
 						</access>
 					</limitations>
+					<matchingRule>mr:stringIgnoreCase</matchingRule>
 					<outbound>
 						<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
 							 as a side-effect as it is a naming attribute. -->
