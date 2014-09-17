@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -167,10 +168,10 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
         };
         form.add(cancel);
 
-        AjaxLink save = new AjaxLink(ID_BUTTON_SAVE) {
+        AjaxSubmitLink save = new AjaxSubmitLink(ID_BUTTON_SAVE) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 savePerformed(target);
             }
         };

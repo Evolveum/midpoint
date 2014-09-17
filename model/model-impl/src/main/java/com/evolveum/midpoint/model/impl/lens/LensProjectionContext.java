@@ -221,6 +221,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.doReconciliation = doReconciliation;
     }
 
+    @Override
     public ResourceShadowDiscriminator getResourceShadowDiscriminator() {
         return resourceShadowDiscriminator;
     }

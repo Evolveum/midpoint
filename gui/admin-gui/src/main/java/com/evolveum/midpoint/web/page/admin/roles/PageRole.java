@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
@@ -34,7 +35,11 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.progress.ProgressReporter;
+import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.*;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -70,7 +75,7 @@ import java.util.List;
         @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#role",
                 label = "PageRole.auth.role.label",
                 description = "PageRole.auth.role.description")})
-public class PageRole extends PageAdminRoles{
+public class PageRole extends PageAdminRoles implements ProgressReportingAwarePage {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRole.class);
 
@@ -83,6 +88,7 @@ public class PageRole extends PageAdminRoles{
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_BUTTON_BACK = "backButton";
     private static final String ID_BUTTON_SAVE = "saveButton";
+    private static final String ID_BUTTON_ABORT = "abortButton";
     private static final String ID_NAME = "name";
     private static final String ID_DISPLAY_NAME = "displayName";
     private static final String ID_DESCRIPTION = "description";
@@ -95,6 +101,7 @@ public class PageRole extends PageAdminRoles{
     private static final String ID_EXTENSION = "extension";
     private static final String ID_EXTENSION_LABEL = "extensionLabel";
     private static final String ID_EXTENSION_PROPERTY = "property";
+    private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 
     private static final String ID_INDUCEMENTS = "inducementsPanel";
     private static final String ID_ASSIGNMENTS = "assignmentsPanel";
@@ -105,6 +112,18 @@ public class PageRole extends PageAdminRoles{
     private IModel<PrismObject<RoleType>> model;
     private IModel<ContainerWrapper> extensionModel;
     private ObjectWrapper roleWrapper;
+
+    private ProgressReporter progressReporter;
+    private ObjectDelta delta;
+
+    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
+            = new LoadableModel<ExecuteChangeOptionsDto>(false) {
+
+        @Override
+        protected ExecuteChangeOptionsDto load() {
+            return new ExecuteChangeOptionsDto();
+        }
+    };
 
     public PageRole(){
 
@@ -253,6 +272,8 @@ public class PageRole extends PageAdminRoles{
         final Form form = new Form(ID_MAIN_FORM);
         add(form);
 
+        progressReporter = ProgressReporter.create(this, form, "progressPanel");
+
         TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel(model, RoleType.F_NAME),
                 createStringResource("PageRoleEditor.label.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         form.add(name);
@@ -373,6 +394,7 @@ public class PageRole extends PageAdminRoles{
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+                progressReporter.onSaveSubmit();
                 savePerformed(target);
             }
 
@@ -382,7 +404,24 @@ public class PageRole extends PageAdminRoles{
                 target.add(getFeedbackPanel());
             }
         };
+        progressReporter.registerSaveButton(save);
         form.add(save);
+
+        AjaxSubmitButton abortButton = new AjaxSubmitButton(ID_BUTTON_ABORT,
+                createStringResource("PageBase.button.abort")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                progressReporter.onAbortSubmit(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        progressReporter.registerAbortButton(abortButton);
+        form.add(abortButton);
 
         AjaxSubmitButton back = new AjaxSubmitButton(ID_BUTTON_BACK, createStringResource("PageBase.button.back")) {
 
@@ -392,6 +431,8 @@ public class PageRole extends PageAdminRoles{
             }
         };
         form.add(back);
+
+        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
     }
 
     private void savePerformed(AjaxRequestTarget target){
@@ -403,7 +444,7 @@ public class PageRole extends PageAdminRoles{
 
             PrismObject<RoleType> newRole = model.getObject();
 
-            ObjectDelta delta = null;
+            delta = null;
             if (!isEditing()) {
                 delta = saveExtension(result);
 
@@ -446,8 +487,11 @@ public class PageRole extends PageAdminRoles{
                     }
                 }
 
+                ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
+                ModelExecuteOptions options = executeOptions.createOptions();
+
                 Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
-                modelService.executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_ROLE), result);
+                progressReporter.executeChanges(deltas, options, createSimpleTask(OPERATION_SAVE_ROLE), result, target);
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't save role", ex);
@@ -456,7 +500,13 @@ public class PageRole extends PageAdminRoles{
             result.computeStatusIfUnknown();
         }
 
-        if (WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!result.isInProgress()) {
+            finishProcessing(target, result);
+        }
+    }
+
+    public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
+        if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressReporter.isAllSuccess() && WebMiscUtil.isSuccessOrHandledError(result)) {
             showResultInSession(result);
             setResponsePage(PageRoles.class);
         } else {

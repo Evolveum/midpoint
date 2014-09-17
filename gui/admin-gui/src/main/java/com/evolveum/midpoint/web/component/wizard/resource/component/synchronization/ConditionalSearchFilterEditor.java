@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -54,7 +55,7 @@ public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearch
 
     private void loadExpression(){
         if(expression == null){
-            expression = new LoadableModel<ExpressionType>() {
+            expression = new LoadableModel<ExpressionType>(false) {
 
                 @Override
                 protected ExpressionType load() {
@@ -68,7 +69,6 @@ public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearch
         }
     }
 
-
     @Override
     protected void initLayout(){
         loadExpression();
@@ -76,7 +76,21 @@ public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearch
         TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), "description"));
         add(description);
 
-        ExpressionEditorPanel expressionEditor = new ExpressionEditorPanel(ID_EXPRESSION_PANEL, expression);
+        ExpressionEditorPanel expressionEditor = new ExpressionEditorPanel(ID_EXPRESSION_PANEL, expression){
+
+            @Override
+            public void performExpressionHook(AjaxRequestTarget target){
+
+                ExpressionType expression = null;
+                if(getExpressionModel().getObject() != null && getExpressionModel().getObject().getExpressionObject() != null){
+                    expression = getExpressionModel().getObject().getExpressionObject();
+                }
+
+                if(expression != null){
+                    ConditionalSearchFilterEditor.this.getModel().getObject().setCondition(expression);
+                }
+            }
+        };
         add(expressionEditor);
     }
 }

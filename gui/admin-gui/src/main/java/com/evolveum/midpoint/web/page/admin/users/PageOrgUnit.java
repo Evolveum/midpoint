@@ -16,6 +16,10 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.ProgressListener;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -27,8 +31,15 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,10 +53,15 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextFormGroup;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.progress.ProgressPanel;
+import com.evolveum.midpoint.web.component.progress.ProgressReporter;
+import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -64,10 +80,13 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
 import org.apache.wicket.util.string.StringValue;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -80,7 +99,7 @@ import java.util.List;
         @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#orgUnit",
                 label = "PageOrgUnit.auth.orgUnit.label",
                 description = "PageOrgUnit.auth.orgUnit.description")})
-public class PageOrgUnit extends PageAdminUsers {
+public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwarePage {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);
     private static final String DOT_CLASS = PageOrgUnit.class.getName() + ".";
@@ -109,6 +128,7 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_ORG_TYPE = "orgType";
     private static final String ID_BACK = "back";
     private static final String ID_SAVE = "save";
+    private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 
     private static final String ID_ASSIGNMENTS_TABLE = "assignmentsPanel";
     private static final String ID_INDUCEMENTS_TABLE = "inducementsPanel";
@@ -123,6 +143,18 @@ public class PageOrgUnit extends PageAdminUsers {
     private IModel<List<PrismPropertyValue>> orgMailDomainModel;
     private IModel<ContainerWrapper> extensionModel;
     private ObjectWrapper orgWrapper;
+
+    private ProgressReporter progressReporter;
+    private ObjectDelta delta;
+
+    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
+            = new LoadableModel<ExecuteChangeOptionsDto>(false) {
+
+        @Override
+        protected ExecuteChangeOptionsDto load() {
+            return new ExecuteChangeOptionsDto();
+        }
+    };
 
     public PageOrgUnit() {
         this(null);
@@ -246,6 +278,8 @@ public class PageOrgUnit extends PageAdminUsers {
     private void initLayout() {
         final Form form = new Form(ID_FORM);
         add(form);
+
+        progressReporter = ProgressReporter.create(this, form, "progressPanel");
 
         TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel(orgModel, OrgType.F_NAME),
                 createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
@@ -474,6 +508,7 @@ public class PageOrgUnit extends PageAdminUsers {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                progressReporter.onSaveSubmit();
                 savePerformed(target);
             }
 
@@ -483,7 +518,24 @@ public class PageOrgUnit extends PageAdminUsers {
                 target.add(getFeedbackPanel());
             }
         };
+        progressReporter.registerSaveButton(save);
         form.add(save);
+
+        AjaxSubmitButton abortButton = new AjaxSubmitButton("abort",
+                createStringResource("PageBase.button.abort")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                progressReporter.onAbortSubmit(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        progressReporter.registerAbortButton(abortButton);
+        form.add(abortButton);
 
         AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageBase.button.back")) {
 
@@ -493,6 +545,8 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         };
         form.add(back);
+
+        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
     }
 
     private boolean isEditing() {
@@ -596,7 +650,7 @@ public class PageOrgUnit extends PageAdminUsers {
 
         try {
             reviveModels();
-            ObjectDelta delta = null;
+            delta = null;
 
             if (!isEditing()) {
                 newOrgUnit = buildUnitFromModel(null);
@@ -649,7 +703,11 @@ public class PageOrgUnit extends PageAdminUsers {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Saving changes for org. unit: {}", delta.debugDump());
                 }
-                getModelService().executeChanges(deltas, null, createSimpleTask(SAVE_UNIT), result);
+
+                ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
+                ModelExecuteOptions options = executeOptions.createOptions();
+
+                progressReporter.executeChanges(deltas, options, createSimpleTask(SAVE_UNIT), result, target);
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't save org. unit", ex);
@@ -658,7 +716,13 @@ public class PageOrgUnit extends PageAdminUsers {
             result.computeStatusIfUnknown();
         }
 
-        if (WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!result.isInProgress()) {
+            finishProcessing(target, result);
+        }
+    }
+
+    public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
+        if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressReporter.isAllSuccess() && WebMiscUtil.isSuccessOrHandledError(result)) {
             showResultInSession(result);
             setResponsePage(PageOrgTree.class);
         } else {

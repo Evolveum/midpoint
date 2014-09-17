@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -34,8 +35,10 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
 	public ObjectDelta<ShadowType> getSyncDelta();
 	
 	public void setSyncDelta(ObjectDelta<ShadowType> syncDelta);
-	
-	/**
+
+    ResourceShadowDiscriminator getResourceShadowDiscriminator();
+
+    /**
 	 * Decision regarding the account. It describes the overall situation of the account e.g. whether account
 	 * is added, is to be deleted, unliked, etc.
 	 * 
