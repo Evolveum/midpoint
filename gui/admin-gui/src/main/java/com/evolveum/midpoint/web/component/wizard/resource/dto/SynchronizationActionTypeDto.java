@@ -78,7 +78,9 @@ public class SynchronizationActionTypeDto implements Serializable{
             actionObject = new SynchronizationActionType();
         }
 
-        actionObject.setHandlerUri(handlerUri.action);
+        if(handlerUri != null){
+            actionObject.setHandlerUri(handlerUri.action);
+        }
 
         return actionObject;
     }

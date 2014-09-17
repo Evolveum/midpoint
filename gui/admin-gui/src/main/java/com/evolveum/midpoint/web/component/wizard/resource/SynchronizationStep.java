@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -35,8 +37,10 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.synchroniza
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.SynchronizationReactionEditor;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectSynchronizationTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceSynchronizationDto;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
@@ -58,6 +62,7 @@ import org.apache.wicket.validation.IValidator;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -69,7 +74,6 @@ public class SynchronizationStep extends WizardStep {
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationStep.class);
 
     private static final String DOT_CLASS = SynchronizationStep.class.getName() + ".";
-    private static final String OPERATION_LOAD_OBJECT_CLASS_LIST = DOT_CLASS + "loadObjectClassList";
     private static final String OPERATION_SAVE_SYNC = DOT_CLASS + "saveResourceSynchronization";
     private static final String OPERATION_LOAD_OBJECT_TEMPLATE_LIST = "loadObjectTemplateList";
 
@@ -98,8 +102,6 @@ public class SynchronizationStep extends WizardStep {
     private static final String ID_EDITOR_OBJECT_CLASS = "editorObjectClass";
     private static final String ID_EDITOR_EDITOR_CORRELATION = "editorCorrelation";
     private static final String ID_EDITOR_REACTION = "editorReaction";
-
-    private static final Integer AUTO_COMPLETE_LIST_SIZE = 10;
 
     private IModel<PrismObject<ResourceType>> resourceModel;
     private IModel<ResourceSynchronizationDto> model;
@@ -396,7 +398,7 @@ public class SynchronizationStep extends WizardStep {
                 new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
 
                     @Override
-                    public List getObject() {
+                    public List<ObjectReferenceType> getObject() {
                         return createObjectTemplateList();
                     }
                 }, new IChoiceRenderer<ObjectReferenceType>() {
@@ -421,7 +423,6 @@ public class SynchronizationStep extends WizardStep {
                 ResourceSynchronizationDto.F_SELECTED + ".opportunistic"));
         editor.add(editorOpportunistic);
 
-        //TODO - what should be displayed as label for correlation?
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
                 new PropertyModel<List<ConditionalSearchFilterType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".correlation"), false, false){
 
@@ -432,6 +433,15 @@ public class SynchronizationStep extends WizardStep {
                     @Override
                     public String getObject() {
                         StringBuilder sb = new StringBuilder();
+
+                        ConditionalSearchFilterType searchFilter = model.getObject();
+                        if(searchFilter != null && searchFilter.getDescription() != null){
+                            sb.append(searchFilter.getDescription());
+                        }
+
+                        if(sb.toString().isEmpty()){
+                            sb.append(getString("SynchronizationStep.label.notSpecified"));
+                        }
 
                         return sb.toString();
                     }
@@ -472,7 +482,7 @@ public class SynchronizationStep extends WizardStep {
                             sb.append(reaction.getName() != null ? reaction.getName() : "- ");
 
                             if(reaction.getSituation() != null){
-                                sb.append("(");
+                                sb.append(" (");
                                 sb.append(reaction.getSituation());
                                 sb.append(")");
                             }
@@ -627,7 +637,7 @@ public class SynchronizationStep extends WizardStep {
         };
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void confirmationEditPerformed(AjaxRequestTarget target){
@@ -641,7 +651,7 @@ public class SynchronizationStep extends WizardStep {
         };
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void correlationEditPerformed(AjaxRequestTarget target, ConditionalSearchFilterType condition){
@@ -649,7 +659,7 @@ public class SynchronizationStep extends WizardStep {
                 new Model<>(condition));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void reactionEditPerformed(AjaxRequestTarget target, SynchronizationReactionType reaction){
@@ -657,7 +667,7 @@ public class SynchronizationStep extends WizardStep {
                 new Model<>(reaction));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     @Override
@@ -666,9 +676,37 @@ public class SynchronizationStep extends WizardStep {
     }
 
     private void savePerformed(){
-        //TODO - implement me
-    }
+        PrismObject<ResourceType> oldResource;
+        PrismObject<ResourceType> newResource = resourceModel.getObject();
+        OperationResult result = new OperationResult(OPERATION_SAVE_SYNC);
+        ModelService modelService = getPageBase().getModelService();
+        ObjectDelta delta;
 
+        try{
+            oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, getPageBase());
+            if(oldResource != null){
+                delta = oldResource.diff(newResource);
+
+                if(LOGGER.isTraceEnabled()){
+                    LOGGER.trace(delta.debugDump());
+                }
+
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SYNC), result);
+            }
+
+        } catch (Exception e){
+            LoggingUtils.logException(LOGGER, "Couldn't save resource synchronization.", e);
+            result.recordFatalError(getString("SchemaHandlingStep.message.saveError", e));
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        if(result.isSuccess()){
+            setResponsePage(PageResources.class);
+            getPageBase().showResultInSession(result);
+        }
+    }
 
     private void editSyncObjectPerformed(AjaxRequestTarget target, ObjectSynchronizationTypeDto syncObject){
         resetSelected();

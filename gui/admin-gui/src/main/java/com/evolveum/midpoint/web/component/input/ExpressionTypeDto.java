@@ -96,6 +96,12 @@ public class ExpressionTypeDto implements Serializable{
         }
 
         if(expression != null && StringUtils.isNotEmpty(expression)){
+            expression = ExpressionUtil.addNamespaces(expression, type);
+
+            if(LOGGER.isTraceEnabled()){
+                LOGGER.trace("Expression to serialize: " + expression);
+            }
+
             JAXBElement<?> newElement = context.parseAnyValueAsJAXBElement(expression, PrismContext.LANG_XML);
             expressionObject.getExpressionEvaluator().add(newElement);
         } else {

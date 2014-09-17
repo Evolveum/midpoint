@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -72,6 +71,10 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
 
     public ExpressionEditorPanel(String id, IModel<ExpressionType> model){
         super(id, model);
+    }
+
+    public IModel<ExpressionTypeDto> getExpressionModel(){
+        return model;
     }
 
     private void loadModel(){
@@ -188,7 +191,6 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
             }
         };
         add(update);
-
     }
 
     private List<ObjectReferenceType> createPasswordPolicyList(){
@@ -236,7 +238,15 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
             error(getString("ExpressionEditorPanel.message.cantSerialize", e));
         }
 
+        performExpressionHook(target);
         target.add(getPageBase().getFeedbackPanel());
+    }
+
+    /**
+     *  Override this in component with ExpressionEditorPanel to provide additional functionality when expression is updated
+     * */
+    public void performExpressionHook(AjaxRequestTarget target){
+
     }
 
 }

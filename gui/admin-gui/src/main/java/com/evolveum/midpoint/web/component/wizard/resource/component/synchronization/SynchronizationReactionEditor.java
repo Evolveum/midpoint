@@ -254,7 +254,6 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
         SynchronizationActionEditorDialog window = (SynchronizationActionEditorDialog) get(ID_ACTION_MODAL);
         window.updateModel(target, action);
         window.show(target);
-
     }
 
 }

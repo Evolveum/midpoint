@@ -51,12 +51,21 @@ public class ExpressionUtil {
         }
     }
 
+    public static final String SCRIPT_START_NS = "<c:script xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">";
+    public static final String SCRIPT_END_NS = "</c:script>";
+    public static final String CODE_START_NS = "<c:code>";
+    public static final String CODE_END_NS = "</c:code>";
+    public static final String VALUE_START_NS = "<c:value xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">";
+    public static final String VALUE_END_NS = "</c:value>";
+    public static final String PATH_START_NS = "<c:path xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">";
+    public static final String PATH_END_NS = "</c:path>";
+
     public static final String EXPRESSION_SCRIPT =
                     "<script>\n" +
                     "    <code>\n" +
                     "        Insert your script here\n" +
                     "    </code>\n" +
-                    "<script>";
+                    "</script>";
 
     public static final String EXPRESSION_LITERAL = "<value>Insert value(s) here</value>";
     public static final String EXPRESSION_AS_IS = "<asIs/>";
@@ -155,5 +164,24 @@ public class ExpressionUtil {
         } else {
             return Language.GROOVY;
         }
+    }
+
+    public static String addNamespaces(String expression, ExpressionEvaluatorType type){
+        String newExpression = expression;
+
+        if(ExpressionEvaluatorType.PATH.equals(type)){
+            newExpression = newExpression.replaceAll("<path>", PATH_START_NS);
+            newExpression = newExpression.replaceAll("</path>", PATH_END_NS);
+        } else if(ExpressionEvaluatorType.LITERAL.equals(type)){
+            newExpression = newExpression.replaceAll("<value>", VALUE_START_NS);
+            newExpression = newExpression.replaceAll("</value>", VALUE_END_NS);
+        } else if(ExpressionEvaluatorType.SCRIPT.equals(type)){
+            newExpression = newExpression.replaceAll("<code>", CODE_START_NS);
+            newExpression = newExpression.replaceAll("</code>", CODE_END_NS);
+            newExpression = newExpression.replaceAll("<script>", SCRIPT_START_NS);
+            newExpression = newExpression.replaceAll("</script>", SCRIPT_END_NS);
+        }
+
+        return newExpression;
     }
 }

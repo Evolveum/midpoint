@@ -2,6 +2,8 @@ package com.evolveum.midpoint.web.component.wizard;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.wizard.resource.SynchronizationStep;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import org.apache.wicket.extensions.wizard.IWizard;
 import org.apache.wicket.extensions.wizard.IWizardModel;
 import org.apache.wicket.extensions.wizard.IWizardModelListener;
@@ -9,7 +11,6 @@ import org.apache.wicket.extensions.wizard.IWizardStep;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -60,7 +61,7 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
     }
 
     private List<WizardStepDto> loadSteps() {
-        List<WizardStepDto> steps = new ArrayList<WizardStepDto>();
+        List<WizardStepDto> steps = new ArrayList<>();
 
         IWizardModel model = getWizardModel();
         Iterator<IWizardStep> iterator = model.stepIterator();
@@ -114,9 +115,18 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
 
     @Override
     public void onCancel() {
+        setResponsePage(PageResources.class);
+        warn(getString("Wizard.message.cancel"));
     }
 
     @Override
     public void onFinish() {
+        if(getModel() != null && getModel().getObject() != null){
+            IWizardStep activeStep = getModel().getObject().getActiveStep();
+
+            if(activeStep != null && activeStep instanceof SynchronizationStep){
+                activeStep.applyState();
+            }
+        }
     }
 }
