@@ -2576,6 +2576,7 @@
             <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
 
 			<xsd:element name="order" type="xsd:int" minOccurs="0"/>
+			<xsd:element name="focusType" type="xsd:QName" minOccurs="0"/>
 			
 			<xsd:element name="tenantRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
@@ -5314,7 +5315,7 @@
 	            The actions change the default midpoint behaviour.
 	            If there is no action for a particular situation,there will be no special
 	            reaction and the default activity takes place.
-	            Sevaral action may be defined for a specific reaction. All of them will be
+	            Several actions may be defined for a specific reaction. All of them will be
 	            executed however the ordering is not guaranteed.
 	        </xsd:documentation>
 	    </xsd:annotation>
@@ -7265,7 +7266,7 @@
 								"universally" during all operations with specified object types - unless the templates are overriden
 								in other definitions (e.g. in resource).
 								
-								DEPRECATED. Use defaultFocusPolicy instead.
+								DEPRECATED. Use defaultObjectPolicyConfiguration instead.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:container/>

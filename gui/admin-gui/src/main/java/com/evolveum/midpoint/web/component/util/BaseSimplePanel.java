@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.util;
 
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -94,4 +96,10 @@ public class BaseSimplePanel<T> extends Panel {
     protected void initLayout() {
 
     }
+
+    public WebApplicationConfiguration getWebApplicationConfiguration() {
+        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        return application.getWebApplicationConfiguration();
+    }
+
 }

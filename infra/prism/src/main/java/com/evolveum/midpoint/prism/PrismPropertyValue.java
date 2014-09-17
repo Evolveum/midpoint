@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism;
 
 
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -358,10 +359,10 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		if (other == null || !(other instanceof PrismPropertyValue)) {
 			return false;
 		}
-		return equalsComplex((PrismPropertyValue<?>)other, ignoreMetadata, isLiteral);
+		return equalsComplex((PrismPropertyValue<?>)other, ignoreMetadata, isLiteral, null);
 	}
 
-	public boolean equalsComplex(PrismPropertyValue<?> other, boolean ignoreMetadata, boolean isLiteral) {
+	public boolean equalsComplex(PrismPropertyValue<?> other, boolean ignoreMetadata, boolean isLiteral, MatchingRule<T> matchingRule) {
 		if (!super.equalsComplex(other, ignoreMetadata, isLiteral)) {
 			return false;
 		}
@@ -395,23 +396,28 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         	return false;
         }
 
-		if (thisRealValue instanceof Element &&
-				otherRealValue instanceof Element) {
-			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
-		}
-		
-		if (thisRealValue instanceof SchemaDefinitionType &&
-				otherRealValue instanceof SchemaDefinitionType) {
-			SchemaDefinitionType thisSchema = (SchemaDefinitionType) thisRealValue;
-			return thisSchema.equals(otherRealValue, isLiteral);
-//			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
-		}
-
-        if (thisRealValue instanceof byte[] && otherRealValue instanceof byte[]) {
-            return Arrays.equals((byte[]) thisRealValue, (byte[]) otherRealValue);
+        if (matchingRule != null) {
+        	return matchingRule.match(thisRealValue, otherRealValue);
+        } else {
+        
+			if (thisRealValue instanceof Element &&
+					otherRealValue instanceof Element) {
+				return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
+			}
+			
+			if (thisRealValue instanceof SchemaDefinitionType &&
+					otherRealValue instanceof SchemaDefinitionType) {
+				SchemaDefinitionType thisSchema = (SchemaDefinitionType) thisRealValue;
+				return thisSchema.equals(otherRealValue, isLiteral);
+	//			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
+			}
+	
+	        if (thisRealValue instanceof byte[] && otherRealValue instanceof byte[]) {
+	            return Arrays.equals((byte[]) thisRealValue, (byte[]) otherRealValue);
+	        }
+	
+			return thisRealValue.equals(otherRealValue);
         }
-
-		return thisRealValue.equals(otherRealValue);
 	}
 
 	private boolean equalsRawElements(PrismPropertyValue<T> other) {
@@ -486,7 +492,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		if (getClass() != obj.getClass())
 			return false;
 		PrismPropertyValue other = (PrismPropertyValue) obj;
-		return equalsComplex(other, false, false);
+		return equalsComplex(other, false, false, null);
 	}
 
     @Override

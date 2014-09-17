@@ -330,7 +330,9 @@ public class DomParser implements Parser {
             return (T) DOMUtil.getQNameValue(element);
         } else if (XmlTypeConverter.canConvert(typeName)) {
 			return (T) XmlTypeConverter.toJavaValue(element, typeName);
-		} else {
+		} else if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {
+            return (T) element.getTextContent();                // if parsing primitive as xsd:anyType, we can safely parse it as string
+        } else {
 			throw new SchemaException("Cannot convert element '"+element+"' to "+typeName);
 		}
 	}

@@ -20,6 +20,7 @@ import java.util.Collection;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
@@ -67,6 +68,8 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 	@Override
 	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
 			ItemDefinition outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
+
+        Validate.notNull(outputDefinition, "output definition must be specified for path expression evaluator");
 		
 		if (evaluatorElements.size() > 1) {
 			throw new SchemaException("More than one evaluator specified in "+contextDescription);

@@ -46,7 +46,7 @@ public class PrismContainerPanel extends Panel {
         super(id);
         this.showHeader = showHeader;
 
-        add(new AttributeAppender("class", new Model<String>("attributeComponent"), " "));
+        add(new AttributeAppender("class", new Model<>("attributeComponent"), " "));
         add(new VisibleEnableBehaviour() {
 
             @Override

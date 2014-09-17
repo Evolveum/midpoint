@@ -118,6 +118,7 @@ public class PageDebugView extends PageAdminConfiguration {
             MidPointApplication application = PageDebugView.this.getMidpointApplication();
 
             GetOperationOptions rootOptions = GetOperationOptions.createRaw();
+
             rootOptions.setResolveNames(true);
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
             // FIXME: ObjectType.class will not work well here. We need more specific type.

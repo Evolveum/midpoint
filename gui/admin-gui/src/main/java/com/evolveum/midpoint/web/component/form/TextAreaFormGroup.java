@@ -36,18 +36,25 @@ public class TextAreaFormGroup extends SimplePanel<String> {
     private static final String ID_TEXT_WRAPPER = "textWrapper";
     private static final String ID_LABEL = "label";
 
+    private static final int DEFAULT_NUMBER_OF_ROWS = 2;
+
     public TextAreaFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize) {
         this(id, value, label, labelSize, textSize, false);
     }
 
     public TextAreaFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize,
                              boolean required) {
-        super(id, value);
-
-        initLayout(label, labelSize, textSize, required);
+        this(id, value, label, labelSize, textSize, required, DEFAULT_NUMBER_OF_ROWS);
     }
 
-    private void initLayout(IModel<String> label, String labelSize, String textSize, boolean required) {
+    public TextAreaFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize,
+                             boolean required, int rowNumber){
+        super(id, value);
+
+        initLayout(label, labelSize, textSize, required, rowNumber);
+    }
+
+    private void initLayout(IModel<String> label, String labelSize, String textSize, boolean required, int rowNumber) {
         Label l = new Label(ID_LABEL, label);
         if (StringUtils.isNotEmpty(labelSize)) {
             l.add(AttributeAppender.prepend("class", labelSize));
@@ -61,6 +68,7 @@ public class TextAreaFormGroup extends SimplePanel<String> {
         add(textWrapper);
 
         TextArea text = new TextArea(ID_TEXT, getModel());
+        text.add(new AttributeModifier("rows", rowNumber));
         text.setOutputMarkupId(true);
         text.setRequired(required);
         text.setLabel(label);

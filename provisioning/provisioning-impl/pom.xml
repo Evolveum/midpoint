@@ -75,11 +75,11 @@
 			<artifactId>scannotation</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.connid</groupId>
+			<groupId>net.tirasa.connid</groupId>
 			<artifactId>connector-framework</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.connid</groupId>
+			<groupId>net.tirasa.connid</groupId>
 			<artifactId>connector-framework-internal</artifactId>
 		</dependency>
 		<dependency>

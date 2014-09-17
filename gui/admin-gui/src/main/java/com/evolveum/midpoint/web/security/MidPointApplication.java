@@ -77,7 +77,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
      */
     public static final Bytes USER_PHOTO_MAX_FILE_SIZE = Bytes.kilobytes(192);
 
-    private static final String WEB_APP_CONFIGURATION = "midpoint.webApplication";
+    public static final String WEB_APP_CONFIGURATION = "midpoint.webApplication";
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
 

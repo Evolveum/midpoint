@@ -98,7 +98,8 @@ public abstract class AbstractScriptTest {
     	Protector protector = new AESProtector();
         Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
         functions.add(ExpressionUtil.createBasicFunctionLibrary(prismContext, protector));
-		scriptExpressionfactory = new ScriptExpressionFactory(resolver, prismContext, functions, protector);
+		scriptExpressionfactory = new ScriptExpressionFactory(resolver, prismContext, protector);
+		scriptExpressionfactory.setFunctions(functions);
         evaluator = createEvaluator(prismContext, protector);
         String languageUrl = evaluator.getLanguageUrl();
         System.out.println("Expression test for "+evaluator.getLanguageName()+": registering "+evaluator+" with URL "+languageUrl);

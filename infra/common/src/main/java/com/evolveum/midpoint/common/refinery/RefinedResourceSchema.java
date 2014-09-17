@@ -177,7 +177,7 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 			return getDefaultRefinedDefinition(kind);
 		}
 		for (RefinedObjectClassDefinition acctDef: getRefinedDefinitions(kind)) {
-			if (acctDef.getObjectClassDefinition().getTypeName().equals(objectClass)) {
+			if (QNameUtil.match(acctDef.getObjectClassDefinition().getTypeName(), objectClass)) {
 				return acctDef;
 			}
 		}

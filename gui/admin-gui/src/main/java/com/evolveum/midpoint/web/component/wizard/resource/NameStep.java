@@ -160,7 +160,7 @@ public class NameStep extends WizardStep {
 
             @Override
             protected DropDownChoice createDropDown(String id, IModel<List<PrismObject<ConnectorType>>> choices,
-                                                    IChoiceRenderer renderer, boolean required) {
+                                                    IChoiceRenderer<PrismObject<ConnectorType>> renderer, boolean required) {
                 DropDownChoice choice = super.createDropDown(id, choices, renderer, required);
                 choice.setOutputMarkupId(true);
                 choice.add(new AjaxFormComponentUpdatingBehavior("onchange") {
@@ -345,7 +345,7 @@ public class NameStep extends WizardStep {
 
             @Override
             protected DropDownChoice createDropDown(String id, IModel<List<PrismObject<ConnectorType>>> choices,
-                                                    IChoiceRenderer renderer, boolean required) {
+                                                    IChoiceRenderer<PrismObject<ConnectorType>> renderer, boolean required) {
                 DropDownChoice choice = super.createDropDown(id, choices, renderer, required);
                 choice.setOutputMarkupId(true);
                 choice.add(new AjaxFormComponentUpdatingBehavior("onchange") {
@@ -384,7 +384,7 @@ public class NameStep extends WizardStep {
 
             @Override
             protected DropDownChoice createDropDown(String id, IModel<List<PrismObject<ConnectorHostType>>> choices,
-                                                    IChoiceRenderer renderer, boolean required) {
+                                                    IChoiceRenderer<PrismObject<ConnectorHostType>> renderer, boolean required) {
                 DropDownChoice choice = super.createDropDown(id, choices, renderer, required);
                 choice.add(new AjaxFormComponentUpdatingBehavior("onchange") {
 

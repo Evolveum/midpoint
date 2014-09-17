@@ -257,21 +257,23 @@ public class ConsolidationProcessor {
         	LOGGER.trace("Skipping processing mappings for attribute {} because it is ignored", itemName);
         	return null;
         }
-        
-        PropertyLimitations limitations = attributeDefinition.getLimitations(LayerType.MODEL);
-        if (limitations != null) {
-        	PropertyAccessType access = limitations.getAccess();
-        	if (access != null) {
-        		if (projCtx.isAdd() && (access.isAdd() == null || !access.isAdd())) {
-        			LOGGER.trace("Skipping processing mappings for attribute {} because it is non-createable", itemName);
-                	return null;
-        		}
-        		if (projCtx.isModify() && (access.isModify() == null || !access.isModify())) {
-        			LOGGER.trace("Skipping processing mappings for attribute {} because it is non-updateable", itemName);
-                	return null;
-        		}
-        	}
-        }
+
+        // when this code is enabled, attempts to modify unmodifiable attributes
+        // seemingly succeed (without actually modifying anything)
+//        PropertyLimitations limitations = attributeDefinition.getLimitations(LayerType.MODEL);
+//        if (limitations != null) {
+//        	PropertyAccessType access = limitations.getAccess();
+//        	if (access != null) {
+//        		if (projCtx.isAdd() && (access.isAdd() == null || !access.isAdd())) {
+//        			LOGGER.trace("Skipping processing mappings for attribute {} because it is non-createable", itemName);
+//                	return null;
+//        		}
+//        		if (projCtx.isModify() && (access.isModify() == null || !access.isModify())) {
+//        			LOGGER.trace("Skipping processing mappings for attribute {} because it is non-updateable", itemName);
+//                	return null;
+//        		}
+//        	}
+//        }
        
         ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry); 
        

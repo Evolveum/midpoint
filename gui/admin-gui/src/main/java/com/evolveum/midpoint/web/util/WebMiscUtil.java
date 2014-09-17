@@ -94,6 +94,29 @@ public final class WebMiscUtil {
     private static final Trace LOGGER = TraceManager.getTrace(WebMiscUtil.class);
     private static DatatypeFactory df = null;
 
+    public static enum Channel{
+        LIVE_SYNC("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync"),
+        RECONCILIATION("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation"),
+        DISCOVERY("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery"),
+        IMPORT("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import"),
+        USER("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#user"),
+        WEB_SERVICE("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#webService");
+
+        private String channel;
+
+        Channel(String channel){
+            this.channel = channel;
+        }
+
+        public String getChannel() {
+            return channel;
+        }
+
+        public void setChannel(String channel) {
+            this.channel = channel;
+        }
+    }
+
     static {
         try {
             df = DatatypeFactory.newInstance();
@@ -617,5 +640,15 @@ public final class WebMiscUtil {
                 throw new SystemException("Couldn't revive " + objectType + " because of schema exception", e);
             }
         }
+    }
+
+    public static List<String> getChannelList(){
+        List<String> channels = new ArrayList<>();
+
+        for(Channel channel: Channel.values()){
+            channels.add(channel.getChannel());
+        }
+
+        return channels;
     }
 }

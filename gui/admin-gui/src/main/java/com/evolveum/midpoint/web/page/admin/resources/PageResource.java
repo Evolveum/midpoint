@@ -85,7 +85,27 @@ public class PageResource extends PageAdminResources {
     private static final String DOT_CLASS = PageResource.class.getName() + ".";
     private static final String OPERATION_IMPORT_FROM_RESOURCE = DOT_CLASS + "importFromResource";
     private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
-    private static final String ID_BUTTON_DELETE_TOKEN = "deleteSyncToken";
+
+    private static final String ID_FORM_MAIN = "mainForm";
+    private static final String ID_RESOURCE_OID = "resourceOid";
+    private static final String ID_RESOURCE_NAME = "resourceName";
+    private static final String ID_RESOURCE_TYPE = "resourceType";
+    private static final String ID_RESOURCE_VERSION = "resourceVersion";
+    private static final String ID_RESOURCE_PROGRESS = "resourceProgress";
+    private static final String ID_CONNECTORS = "connectors";
+    private static final String ID_OVERALL_STATUS = "overallStatus";
+    private static final String ID_CONF_VALIDATION = "confValidation";
+    private static final String ID_CON_INITIALIZATION = "conInitialization";
+    private static final String ID_CON_CONNECTION = "conConnection";
+    private static final String ID_CON_SCHEMA = "conSchema";
+    private static final String ID_LIST_CAPABILITIES = "listCapabilities";
+    private static final String ID_CAPABILITIES = "capabilities";
+    private static final String ID_TABLE_OBJECT_TYPE = "objectTypesTable";
+    private static final String ID_BUTTON_BACK = "back";
+    private static final String ID_BUTTON_EDIT = "editResource";
+    private static final String ID_BUTTON_TEST = "test";
+    private static final String ID_BUTTON_IMPORT_ACCOUNTS = "importAccounts";
+    private static final String ID_BUTTON_DELETE_SYNC_TOKEN = "deleteSyncToken";
 
     private IModel<ResourceDto> model;
 
@@ -115,13 +135,13 @@ public class PageResource extends PageAdminResources {
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new Form(ID_FORM_MAIN);
         add(mainForm);
 
         SortableDataProvider<ResourceObjectTypeDto, String> provider = new ListDataProvider<>(this,
                 new PropertyModel<List<ResourceObjectTypeDto>>(model, "objectTypes"));
         provider.setSort("displayName", SortOrder.ASCENDING);
-        TablePanel objectTypes = new TablePanel<>("objectTypesTable", provider,
+        TablePanel objectTypes = new TablePanel<>(ID_TABLE_OBJECT_TYPE, provider,
                 initObjectTypesColumns(), UserProfileStorage.TableId.PAGE_RESOURCE_PANEL);
         objectTypes.setShowPaging(true);
         objectTypes.setOutputMarkupId(true);
@@ -135,11 +155,11 @@ public class PageResource extends PageAdminResources {
     }
 
     private void initResourceColumns(Form mainForm) {
-        mainForm.add(new Label("resourceOid", new PropertyModel<>(model, "oid")));
-        mainForm.add(new Label("resourceName", new PropertyModel<>(model, "name")));
-        mainForm.add(new Label("resourceType", new PropertyModel<>(model, "type")));
-        mainForm.add(new Label("resourceVersion", new PropertyModel<>(model, "version")));
-        mainForm.add(new Label("resourceProgress", new PropertyModel<>(model, "progress")));
+        mainForm.add(new Label(ID_RESOURCE_OID, new PropertyModel<>(model, "oid")));
+        mainForm.add(new Label(ID_RESOURCE_NAME, new PropertyModel<>(model, "name")));
+        mainForm.add(new Label(ID_RESOURCE_TYPE, new PropertyModel<>(model, "type")));
+        mainForm.add(new Label(ID_RESOURCE_VERSION, new PropertyModel<>(model, "version")));
+        mainForm.add(new Label(ID_RESOURCE_PROGRESS, new PropertyModel<>(model, "progress")));
     }
 
     private IModel<String> createTestConnectionStateTooltip(final String expression) {
@@ -167,11 +187,11 @@ public class PageResource extends PageAdminResources {
     }
 
     private void initConnectorDetails(Form mainForm) {
-        WebMarkupContainer container = new WebMarkupContainer("connectors");
+        WebMarkupContainer container = new WebMarkupContainer(ID_CONNECTORS);
         container.setOutputMarkupId(true);
         mainForm.add(container);
 
-        container.add(createImageLabel("overallStatus", createTestConnectionStateTooltip("state.overall"),
+        container.add(createImageLabel(ID_OVERALL_STATUS, createTestConnectionStateTooltip("state.overall"),
                 new AbstractReadOnlyModel<String>() {
 
                     @Override
@@ -180,7 +200,7 @@ public class PageResource extends PageAdminResources {
                     }
                 }
         ));
-        container.add(createImageLabel("confValidation", createTestConnectionStateTooltip("state.confValidation"),
+        container.add(createImageLabel(ID_CONF_VALIDATION, createTestConnectionStateTooltip("state.confValidation"),
                 new AbstractReadOnlyModel<String>() {
 
                     @Override
@@ -189,7 +209,7 @@ public class PageResource extends PageAdminResources {
                     }
                 }
         ));
-        container.add(createImageLabel("conInitialization", createTestConnectionStateTooltip("state.conInitialization"),
+        container.add(createImageLabel(ID_CON_INITIALIZATION, createTestConnectionStateTooltip("state.conInitialization"),
                 new AbstractReadOnlyModel<String>() {
 
                     @Override
@@ -198,7 +218,7 @@ public class PageResource extends PageAdminResources {
                     }
                 }
         ));
-        container.add(createImageLabel("conConnection", createTestConnectionStateTooltip("state.conConnection"),
+        container.add(createImageLabel(ID_CON_CONNECTION, createTestConnectionStateTooltip("state.conConnection"),
                 new AbstractReadOnlyModel<String>() {
 
                     @Override
@@ -208,7 +228,7 @@ public class PageResource extends PageAdminResources {
                 }
         ));
 
-        container.add(createImageLabel("conSchema", createTestConnectionStateTooltip("state.conSchema"),
+        container.add(createImageLabel(ID_CON_SCHEMA, createTestConnectionStateTooltip("state.conSchema"),
                 new AbstractReadOnlyModel<String>() {
 
                     @Override
@@ -221,7 +241,7 @@ public class PageResource extends PageAdminResources {
 
     private List<String> initCapabilities(ResourceType resource) {
         OperationResult result = new OperationResult("Load resource capabilities");
-        List<String> capabilitiesName = new ArrayList<String>();
+        List<String> capabilitiesName = new ArrayList<>();
         try {
             List<Object> capabilitiesList = ResourceTypeUtil.getEffectiveCapabilities(resource);
 
@@ -232,7 +252,7 @@ public class PageResource extends PageAdminResources {
             }
         } catch (Exception ex) {
             result.recordFatalError("Couldn't load resource capabilities for resource'"
-                    + new PropertyModel<Object>(model, "name") + ".", ex);
+                    + new PropertyModel<>(model, "name") + ".", ex);
 
         }
         return capabilitiesName;
@@ -280,11 +300,11 @@ public class PageResource extends PageAdminResources {
     }
 
     private void createCapabilitiesList(Form mainForm) {
-        ListView<String> listCapabilities = new ListView<String>("listCapabilities", createCapabilitiesModel(model)) {
+        ListView<String> listCapabilities = new ListView<String>(ID_LIST_CAPABILITIES, createCapabilitiesModel(model)) {
 
             @Override
             protected void populateItem(ListItem<String> item) {
-                item.add(new Label("capabilities", item.getModel()));
+                item.add(new Label(ID_CAPABILITIES, item.getModel()));
 
             }
         };
@@ -303,7 +323,7 @@ public class PageResource extends PageAdminResources {
     }
 
     private void initButtons(Form mainForm) {
-        AjaxButton back = new AjaxButton("back", createStringResource("pageResource.button.back")) {
+        AjaxButton back = new AjaxButton(ID_BUTTON_BACK, createStringResource("pageResource.button.back")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -312,7 +332,7 @@ public class PageResource extends PageAdminResources {
         };
         mainForm.add(back);
 
-        AjaxButton test = new AjaxButton("test", createStringResource("pageResource.button.test")) {
+        AjaxButton test = new AjaxButton(ID_BUTTON_TEST, createStringResource("pageResource.button.test")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -321,7 +341,7 @@ public class PageResource extends PageAdminResources {
         };
         mainForm.add(test);
 
-        AjaxButton importAccounts = new AjaxButton("importAccounts",
+        AjaxButton importAccounts = new AjaxButton(ID_BUTTON_IMPORT_ACCOUNTS,
                 createStringResource("pageResource.button.importAccounts")) {
 
             @Override
@@ -331,18 +351,18 @@ public class PageResource extends PageAdminResources {
         };
         mainForm.add(importAccounts);
 
-        AjaxButton link = new AjaxButton("editResource", createStringResource("pageResource.editResource")) {
+        AjaxButton link = new AjaxButton(ID_BUTTON_EDIT, createStringResource("pageResource.editResource")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, model.getObject().getOid());
-                setResponsePage(PageResourceEdit.class, parameters);
+                setResponsePage(new PageResourceWizard(parameters));
             }
         };
         mainForm.add(link);
 
-        AjaxButton deleteToken = new AjaxButton(ID_BUTTON_DELETE_TOKEN, createStringResource("pageResource.deleteSyncToken")) {
+        AjaxButton deleteToken = new AjaxButton(ID_BUTTON_DELETE_SYNC_TOKEN, createStringResource("pageResource.deleteSyncToken")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 deleteSyncTokenPerformed(target, model);
@@ -385,7 +405,7 @@ public class PageResource extends PageAdminResources {
             result.recomputeStatus();
         }
 
-        WebMarkupContainer connectors = (WebMarkupContainer) get("mainForm:connectors");
+        WebMarkupContainer connectors = (WebMarkupContainer) get(ID_FORM_MAIN + ":" + ID_CONNECTORS);
         target.add(connectors);
 
         if (!result.isSuccess()) {

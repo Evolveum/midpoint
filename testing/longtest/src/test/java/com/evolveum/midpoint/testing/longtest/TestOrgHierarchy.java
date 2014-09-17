@@ -40,14 +40,14 @@ public class TestOrgHierarchy extends AbstractModelIntegrationTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestOrgHierarchy.class);
 
-    private static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
+    private static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_PATH + "/system-configuration.xml";
     private static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
-    private static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
+    private static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_PATH + "/user-administrator.xml";
     private static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
     private static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
-    private static final String ROLE_SUPERUSER_FILENAME = COMMON_DIR_NAME + "/role-superuser.xml";
+    private static final String ROLE_SUPERUSER_FILENAME = COMMON_DIR_PATH + "/role-superuser.xml";
     private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
     //222 org. units, 2160 users

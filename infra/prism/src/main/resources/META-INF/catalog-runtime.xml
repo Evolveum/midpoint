@@ -53,4 +53,6 @@
 
     <public publicId="http://www.w3.org/2000/09/xmldsig#" uri="../xml/ns/standard/xmldsig-core-schema.xsd" />
     <system systemId="http://www.w3.org/2000/09/xmldsig#" uri="../xml/ns/standard/xmldsig-core-schema.xsd" />
+    <public publicId="http://www.w3.org/2000/09/xmldsig" uri="../xml/ns/standard/xmldsig-core-schema.xsd" />
+    <system systemId="http://www.w3.org/2000/09/xmldsig" uri="../xml/ns/standard/xmldsig-core-schema.xsd" />
 </catalog>

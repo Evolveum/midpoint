@@ -24,8 +24,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.apache.commons.lang.StringUtils;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import java.util.Date;
 
@@ -68,6 +70,13 @@ public class ValueDisplayUtil {
         } else if (value instanceof ResourceAttributeDefinitionType) {
             ResourceAttributeDefinitionType radt = (ResourceAttributeDefinitionType) value;
             return "(a value or a more complex mapping for the '" + radt.getRef().getLocalPart() + "' attribute)";
+        } else if (value instanceof QName) {
+            QName qname = (QName) value;
+            if (StringUtils.isNotEmpty(qname.getNamespaceURI())) {
+                return qname.getLocalPart() + " (in " + qname.getNamespaceURI() + ")";
+            } else {
+                return qname.getLocalPart();
+            }
         } else {
             return "(a value of type " + value.getClass().getName() + ")";  // todo i18n
         }

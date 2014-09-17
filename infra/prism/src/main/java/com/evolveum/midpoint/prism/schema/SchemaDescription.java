@@ -235,12 +235,7 @@ public class SchemaDescription implements DebugDumpable {
 	private void fetchBasicInfoFromSchema() throws SchemaException {
 		Element rootElement = getDomElement();
 		if (DOMUtil.XSD_SCHEMA_ELEMENT.equals(DOMUtil.getQName(rootElement))) {
-			String targetNamespace = rootElement.getAttributeNS(DOMUtil.XSD_ATTR_TARGET_NAMESPACE.getNamespaceURI(), 
-					DOMUtil.XSD_ATTR_TARGET_NAMESPACE.getLocalPart());
-			if (StringUtils.isEmpty(targetNamespace)) {
-				// also try without the namespace
-				targetNamespace = rootElement.getAttribute(DOMUtil.XSD_ATTR_TARGET_NAMESPACE.getLocalPart());
-			}
+			String targetNamespace = DOMUtil.getAttribute(rootElement,DOMUtil.XSD_ATTR_TARGET_NAMESPACE);
 			if (targetNamespace != null) {
 				this.namespace = targetNamespace;
 			} else {

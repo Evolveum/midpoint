@@ -257,7 +257,6 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         relation.setEnabled(false);
         body.add(relation);
 
-        //TODO - add VisibleEnableBehaviour so we can only edit tenantRef in RoleAssignments
         WebMarkupContainer tenantRefContainer = new WebMarkupContainer(ID_CONTAINER_TENANT_REF);
         ChooseTypePanel tenantRef = new ChooseTypePanel(ID_TENANT_CHOOSER,
                 new PropertyModel<ObjectViewDto>(getModel(), AssignmentEditorDto.F_TENANT_REF)){

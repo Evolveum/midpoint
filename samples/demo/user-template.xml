@@ -22,7 +22,7 @@
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Default User Template</name>
     <mapping>
-		<strength>weak</strength>
+		<strength>strong</strength>
 		<source>
 			<path>$user/givenName</path>
 		</source>
@@ -40,17 +40,17 @@
 	</mapping>
        
     <mapping>
-	<description>A hack to avoid feedback to HR feed - deleteing accounts because they are not assigned</description>
+	<description>A hack to avoid feedback to HR feed - deleting accounts because they are not assigned</description>
     	<source>
     		<path>employeeType</path>
     	</source>
     	<expression>
             <value>
-				<assignment>
+				<!--<assignment>-->
 					<construction>
 						<resourceRef oid="8844dcca-775d-11e2-a0ac-001e8c717e5b" type="c:ResourceType"/>
 					</construction>
-				</assignment>
+				<!--</assignment>-->
             </value>    	
     	</expression>
     	<target>
@@ -69,9 +69,9 @@
     	</source>
     	<expression>
             <value>
-            	<assignment>
+            	<!--<assignment>-->
 					<targetRef oid="abf3884a-7778-11e2-abb7-001e8c717e5b" type="c:RoleType"/>
-				</assignment>
+				<!--</assignment>-->
             </value>    	
     	</expression>
     	<target>
@@ -90,9 +90,9 @@
     	</source>
     	<expression>
             <value>
-            	<assignment>
+            	<!--<assignment>-->
 					<targetRef oid="8d62985c-7797-11e2-94a6-001e8c717e5b" type="c:RoleType"/>
-				</assignment>
+				<!--</assignment>-->
             </value>    	
     	</expression>
     	<target>
@@ -108,10 +108,10 @@
     <mapping>
 	<strength>weak</strength>
     	<expression>
-            <value>true</value>    	
+            <value>ENABLED</value>    	
     	</expression>
     	<target>
-    		<path>activation/enabled</path>
+    		<path>activation/administrativeStatus</path>
     	</target>
     </mapping>
     

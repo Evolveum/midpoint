@@ -1269,7 +1269,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 			getShadowCache(Mode.STANDARD).searchObjectsIterative(objectClass,
 				resource.asObjectable(), query, options, shadowHandler, result);
-			result.recordSuccess();
+			result.computeStatus();
 		} catch (ConfigurationException e) {
 			recordFatalError(LOGGER, result, null, e);
 			throw e;

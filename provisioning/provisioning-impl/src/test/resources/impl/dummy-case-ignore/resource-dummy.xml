@@ -32,6 +32,8 @@
 		<icfc:configurationProperties>
 			<icfi:instanceId></icfi:instanceId> <!-- Default instance -->
 			<icfi:caseIgnoreId>true</icfi:caseIgnoreId>
+			<icfi:caseIgnoreValues>true</icfi:caseIgnoreValues>
+			<icfi:tolerateDuplicateValues>false</icfi:tolerateDuplicateValues>
 			<icfi:uselessString>Shiver me timbers!</icfi:uselessString>
 			<icfi:uselessGuardedString>       <!-- Add some whitespace -->  
 				<clearValue>Dead men tell no tales</clearValue>
@@ -138,6 +140,10 @@
         	<intent>group</intent>
         	<default>true</default>
         	<objectClass>ri:GroupObjectClass</objectClass>
+			<attribute>
+				<ref>ri:members</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
         </objectType>
         <objectType>
         	<kind>entitlement</kind>

@@ -123,21 +123,21 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
-	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
+	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_PATH + "/user-administrator.xml";
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 	
-	protected static final File USER_JACK_FILE = new File(COMMON_DIR_NAME, "user-jack.xml");
+	protected static final File USER_JACK_FILE = new File(COMMON_DIR_PATH, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	protected static final String USER_JACK_USERNAME = "jack";
 		
-	protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR_NAME, "role-superuser.xml");
+	protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR_PATH, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 		
-	protected static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR_NAME, "task-trigger-scanner.xml");
+	protected static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR_PATH, "task-trigger-scanner.xml");
 	protected static final String TASK_TRIGGER_SCANNER_OID = "00000000-0000-0000-0000-000000000007";
 	
-	protected static final File TASK_VALIDITY_SCANNER_FILE = new File(COMMON_DIR_NAME, "task-validity-scanner.xml");
+	protected static final File TASK_VALIDITY_SCANNER_FILE = new File(COMMON_DIR_PATH, "task-validity-scanner.xml");
 	protected static final String TASK_VALIDITY_SCANNER_OID = "00000000-0000-0000-0000-000000000006";
 
 	protected MatchingRule<String> caseIgnoreMatchingRule;

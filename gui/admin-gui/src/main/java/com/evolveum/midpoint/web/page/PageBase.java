@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.Validate;
@@ -45,6 +47,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -77,6 +80,10 @@ public abstract class PageBase extends PageTemplate {
     private ReportManager reportManager;
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
+//    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private MatchingRuleRegistry matchingRuleRegistry;
+
 
     public PageBase(PageParameters parameters) {
         super(parameters);
@@ -93,6 +100,11 @@ public abstract class PageBase extends PageTemplate {
 
     public MidPointApplication getMidpointApplication() {
         return (MidPointApplication) getApplication();
+    }
+
+    public WebApplicationConfiguration getWebApplicationConfiguration() {
+        MidPointApplication application = getMidpointApplication();
+        return application.getWebApplicationConfiguration();
     }
 
     public PrismContext getPrismContext() {
@@ -137,6 +149,10 @@ public abstract class PageBase extends PageTemplate {
 
     protected ModelDiagnosticService getModelDiagnosticService() {
         return modelDiagnosticService;
+    }
+
+    public MatchingRuleRegistry getMatchingRuleRegistry() {
+        return matchingRuleRegistry;
     }
 
     public static StringResourceModel createStringResourceStatic(Component component, String resourceKey, Object... objects) {

@@ -16,13 +16,27 @@
 
 package com.evolveum.midpoint.web.component.wizard;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.wizard.IWizard;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -88,5 +102,44 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
 
     protected String createComponentPath(String... components) {
         return StringUtils.join(components, ":");
+    }
+
+    protected List<QName> loadResourceObjectClassList(IModel<PrismObject<ResourceType>> model, Trace LOGGER, String message){
+        List<QName> list = new ArrayList<>();
+
+        try {
+            ResourceSchema schema = RefinedResourceSchema.getResourceSchema(model.getObject(), getPageBase().getPrismContext());
+            schema.getObjectClassDefinitions();
+
+            for(Definition def: schema.getDefinitions()){
+                list.add(def.getTypeName());
+            }
+
+        } catch (Exception e){
+            LoggingUtils.logException(LOGGER, message, e);
+            error(message + " " + e.getMessage());
+        }
+
+        return list;
+    }
+
+    protected IValidator<String> createObjectClassValidator(final IModel<List<QName>> model){
+        return new IValidator<String>() {
+
+            @Override
+            public void validate(IValidatable<String> validatable) {
+                String value = validatable.getValue();
+                List<QName> list = model.getObject();
+                List<String> stringList = new ArrayList<>();
+
+                for(QName q: list){
+                    stringList.add(q.getLocalPart());
+                }
+
+                if(!stringList.contains(value)){
+                    error(createStringResource("SchemaHandlingStep.message.validationError", value).getString());
+                }
+            }
+        };
     }
 }

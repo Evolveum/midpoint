@@ -291,9 +291,9 @@ public class PageAccounts extends PageAdminConfiguration {
         basicSearch.setOutputMarkupId(true);
         searchForm.add(basicSearch);
 
-        DropDownChoice kind = new DropDownChoice(ID_SEARCH_KIND,
+        DropDownChoice kind = new DropDownChoice<>(ID_SEARCH_KIND,
                 new PropertyModel<ShadowKindType>(searchModel, AccountDetailsSearchDto.F_KIND),
-                WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer(this));
+                WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>(this));
         kind.add(new OnChangeAjaxBehavior() {
 
             @Override
@@ -305,7 +305,7 @@ public class PageAccounts extends PageAdminConfiguration {
         kind.setNullValid(true);
         searchForm.add(kind);
 
-        DropDownChoice intent = new DropDownChoice(ID_SEARCH_INTENT,
+        DropDownChoice intent = new DropDownChoice<>(ID_SEARCH_INTENT,
                 new PropertyModel<String>(searchModel, AccountDetailsSearchDto.F_INTENT),
                 createIntentChoices(), new IChoiceRenderer<String>() {
 

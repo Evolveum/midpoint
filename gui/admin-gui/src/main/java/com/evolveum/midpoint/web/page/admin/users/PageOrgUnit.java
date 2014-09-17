@@ -16,7 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.ProgressListener;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -26,8 +31,15 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -35,29 +47,46 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.MultiValueChoosePanel;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTableDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.*;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextFormGroup;
+import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.progress.ProgressPanel;
+import com.evolveum.midpoint.web.component.progress.ProgressReporter;
+import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
 import org.apache.wicket.util.string.StringValue;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -70,13 +99,14 @@ import java.util.List;
         @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#orgUnit",
                 label = "PageOrgUnit.auth.orgUnit.label",
                 description = "PageOrgUnit.auth.orgUnit.description")})
-public class PageOrgUnit extends PageAdminUsers {
+public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwarePage {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);
     private static final String DOT_CLASS = PageOrgUnit.class.getName() + ".";
     private static final String LOAD_UNIT = DOT_CLASS + "loadOrgUnit";
     private static final String SAVE_UNIT = DOT_CLASS + "saveOrgUnit";
     private static final String LOAD_PARENT_UNITS = DOT_CLASS + "loadParentOrgUnits";
+    private static final String OPERATION_LOAD_EXTENSION_WRAPPER = "loadExtensionWrapper";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-6";
@@ -98,15 +128,33 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_ORG_TYPE = "orgType";
     private static final String ID_BACK = "back";
     private static final String ID_SAVE = "save";
+    private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 
     private static final String ID_ASSIGNMENTS_TABLE = "assignmentsPanel";
     private static final String ID_INDUCEMENTS_TABLE = "inducementsPanel";
+    private static final String ID_EXTENSION_LABEL = "extensionLabel";
+    private static final String ID_EXTENSION = "extension";
+    private static final String ID_EXTENSION_PROPERTY = "property";
 
     //private ContainerStatus status;
     private IModel<PrismObject<OrgType>> orgModel;
     private IModel<List<OrgType>> parentOrgUnitsModel;
     private IModel<List<PrismPropertyValue>> orgTypeModel;
     private IModel<List<PrismPropertyValue>> orgMailDomainModel;
+    private IModel<ContainerWrapper> extensionModel;
+    private ObjectWrapper orgWrapper;
+
+    private ProgressReporter progressReporter;
+    private ObjectDelta delta;
+
+    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
+            = new LoadableModel<ExecuteChangeOptionsDto>(false) {
+
+        @Override
+        protected ExecuteChangeOptionsDto load() {
+            return new ExecuteChangeOptionsDto();
+        }
+    };
 
     public PageOrgUnit() {
         this(null);
@@ -166,6 +214,14 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         };
 
+        extensionModel = new LoadableModel<ContainerWrapper>() {
+
+            @Override
+            protected ContainerWrapper load() {
+                return loadExtensionWrapper();
+            }
+        };
+
         //status = isEditing() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 
         initLayout();
@@ -187,9 +243,43 @@ public class PageOrgUnit extends PageAdminUsers {
         };
     }
 
+    private ContainerWrapper loadExtensionWrapper(){
+        OperationResult result = new OperationResult(OPERATION_LOAD_EXTENSION_WRAPPER);
+        ContainerStatus status = isEditing() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+        ObjectWrapper wrapper = null;
+        ContainerWrapper extensionWrapper = null;
+        PrismObject<OrgType> org = orgModel.getObject();
+
+        try{
+            wrapper = ObjectWrapperUtil.createObjectWrapper("PageOrgUnit.extension", null, org, status, this);
+        } catch (Exception e){
+            result.recordFatalError("Couldn't create wrapper for Org. unit.", e);
+            LoggingUtils.logException(LOGGER, "Couldn't create wrapper for Org. unit", e);
+            wrapper = new ObjectWrapper("PageOrgUnit.extension", null, org, null, status, this);
+        }
+
+        if(wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())){
+            showResultInSession(wrapper.getResult());
+        }
+
+        wrapper.setShowEmpty(true);
+        orgWrapper = wrapper;
+
+        List<ContainerWrapper> list = wrapper.getContainers();
+        for(ContainerWrapper cont: list){
+            if("extension".equals(cont.getItem().getDefinition().getName().getLocalPart())){
+                extensionWrapper = cont;
+            }
+        }
+
+        return extensionWrapper;
+    }
+
     private void initLayout() {
-        Form form = new Form(ID_FORM);
+        final Form form = new Form(ID_FORM);
         add(form);
+
+        progressReporter = ProgressReporter.create(this, form, "progressPanel");
 
         TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel(orgModel, OrgType.F_NAME),
                 createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
@@ -369,7 +459,48 @@ public class PageOrgUnit extends PageAdminUsers {
         };
         form.add(inducements);
 
+        Label extensionLabel = new Label(ID_EXTENSION_LABEL, createStringResource("PageOrgUnit.extension"));
+        extensionLabel.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                if(extensionModel == null || extensionModel.getObject() == null
+                        || extensionModel.getObject().getProperties().isEmpty()){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        });
+        form.add(extensionLabel);
+
+        ListView<PropertyWrapper> extensionProperties = new ListView<PropertyWrapper>(ID_EXTENSION,
+                new PropertyModel(extensionModel, "properties")) {
+
+            @Override
+            protected void populateItem(ListItem<PropertyWrapper> item) {
+                PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form);
+                propertyPanel.get("labelContainer:label").add(new AttributeAppender("style", "font-weight:bold;"));
+                propertyPanel.get("labelContainer").add(new AttributeModifier("class", ID_LABEL_SIZE + " control-label"));
+                item.add(propertyPanel);
+                item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
+            }
+        };
+        extensionProperties.setReuseItems(true);
+        form.add(extensionProperties);
+
         initButtons(form);
+    }
+
+    private IModel<String> createStyleClassModel(final IModel<PropertyWrapper> wrapper) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                PropertyWrapper property = wrapper.getObject();
+                return property.isVisible() ? "visible" : null;
+            }
+        };
     }
 
     private void initButtons(Form form) {
@@ -377,6 +508,7 @@ public class PageOrgUnit extends PageAdminUsers {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                progressReporter.onSaveSubmit();
                 savePerformed(target);
             }
 
@@ -386,7 +518,24 @@ public class PageOrgUnit extends PageAdminUsers {
                 target.add(getFeedbackPanel());
             }
         };
+        progressReporter.registerSaveButton(save);
         form.add(save);
+
+        AjaxSubmitButton abortButton = new AjaxSubmitButton("abort",
+                createStringResource("PageBase.button.abort")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                progressReporter.onAbortSubmit(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        progressReporter.registerAbortButton(abortButton);
+        form.add(abortButton);
 
         AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageBase.button.back")) {
 
@@ -396,6 +545,8 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         };
         form.add(back);
+
+        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
     }
 
     private boolean isEditing() {
@@ -495,11 +646,14 @@ public class PageOrgUnit extends PageAdminUsers {
     //todo improve later [erik]
     private void savePerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(SAVE_UNIT);
+        PrismObject<OrgType> newOrgUnit;
+
         try {
             reviveModels();
-            ObjectDelta delta = null;
+            delta = null;
+
             if (!isEditing()) {
-                PrismObject<OrgType> newOrgUnit = buildUnitFromModel(null);
+                newOrgUnit = buildUnitFromModel(null);
 
                 //handle assignments
                 PrismObjectDefinition orgDef = newOrgUnit.getDefinition();
@@ -515,7 +669,7 @@ public class PageOrgUnit extends PageAdminUsers {
                 delta = ObjectDelta.createAddDelta(newOrgUnit);
             } else {
                 PrismObject<OrgType> oldOrgUnit = WebModelUtils.loadObject(OrgType.class, orgModel.getObject().asObjectable().getOid(), result, this);
-                PrismObject<OrgType> newOrgUnit = buildUnitFromModel(oldOrgUnit.asObjectable().getParentOrgRef());
+                newOrgUnit = buildUnitFromModel(oldOrgUnit.asObjectable().getParentOrgRef());
 
                 delta = oldOrgUnit.diff(newOrgUnit);
 
@@ -532,11 +686,29 @@ public class PageOrgUnit extends PageAdminUsers {
                 inducementPanel.handleAssignmentDeltas(delta, inducementDef, OrgType.F_INDUCEMENT);
             }
 
-            Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Saving changes for org. unit: {}", delta.debugDump());
+            //TODO - improve this mess with extensionDeltas
+            ObjectDelta extensionDelta = saveExtension(result);
+            ObjectDelta extDelta = null;
+
+            if(!isEditing() && extensionDelta != null){
+                extDelta = delta.getObjectToAdd().diff(extensionDelta.getObjectToAdd());
             }
-            getModelService().executeChanges(deltas, null, createSimpleTask(SAVE_UNIT), result);
+
+            if(delta != null){
+                if(extDelta != null){
+                    delta = ObjectDelta.summarize(delta, extDelta);
+                }
+
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Saving changes for org. unit: {}", delta.debugDump());
+                }
+
+                ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
+                ModelExecuteOptions options = executeOptions.createOptions();
+
+                progressReporter.executeChanges(deltas, options, createSimpleTask(SAVE_UNIT), result, target);
+            }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't save org. unit", ex);
             result.recordFatalError("Couldn't save org. unit.", ex);
@@ -544,13 +716,44 @@ public class PageOrgUnit extends PageAdminUsers {
             result.computeStatusIfUnknown();
         }
 
-        if (WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!result.isInProgress()) {
+            finishProcessing(target, result);
+        }
+    }
+
+    public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
+        if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressReporter.isAllSuccess() && WebMiscUtil.isSuccessOrHandledError(result)) {
             showResultInSession(result);
             setResponsePage(PageOrgTree.class);
         } else {
             showResult(result);
             target.add(getFeedbackPanel());
         }
+    }
+
+    private ObjectDelta saveExtension(OperationResult result){
+        ObjectDelta delta = null;
+
+        try{
+            WebMiscUtil.revive(orgModel, getPrismContext());
+            WebMiscUtil.revive(extensionModel, getPrismContext());
+
+            delta = orgWrapper.getObjectDelta();
+            if(orgWrapper.getOldDelta() != null){
+                delta = ObjectDelta.summarize(orgWrapper.getOldDelta(), delta);
+            }
+
+            if(LOGGER.isTraceEnabled()){
+                LOGGER.trace("Org delta computed from extension:\n{}", new Object[]{delta.debugDump(3)});
+            }
+        } catch (Exception e){
+            result.recordFatalError(getString("PageOrgUnit.message.cantCreateExtensionDelta"), e);
+            LoggingUtils.logException(LOGGER, "Can't create delta for org. unit extension.", e);
+            showResult(result);
+
+        }
+
+        return delta;
     }
 
     private PrismObject<OrgType> loadOrgUnit(PrismObject<OrgType> unitToEdit) {

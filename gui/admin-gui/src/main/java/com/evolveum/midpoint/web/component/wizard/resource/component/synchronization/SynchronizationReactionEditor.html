@@ -1,0 +1,101 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="actionModal" />
+
+    <h3><span wicket:id="label" /></h3>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SynchronizationReactionEditor.label.name" /></label>
+        </dt>
+        <dd>
+            <input wicket:id="name" type="text" class="form-control input-sm" value=""/>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SynchronizationReactionEditor.label.description" /></label>
+        </dt>
+        <dd>
+            <textarea wicket:id="description" class="form-control input-sm" rows="2"></textarea>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SynchronizationReactionEditor.label.situation" /></label>
+        </dt>
+        <dd>
+            <select wicket:id="situation" class="form-control input-sm"></select>
+        </dd>
+    </dl>
+
+    <!-- Channel(s) -->
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SynchronizationReactionEditor.label.channel" /></label>
+        </dt>
+        <div wicket:id="channel" />
+    </dl>
+
+    <!-- Synchronize and Reconcile-->
+    <div class="row">
+        <div class="col-xs-6">
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="SynchronizationReactionEditor.label.synchronize" /></label>
+                </dt>
+                <dd>
+                    <input wicket:id="synchronize" type="checkbox" value="checked"/>
+                </dd>
+            </dl>
+        </div>
+
+        <div class="col-xs-6">
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="SynchronizationReactionEditor.label.reconcile" /></label>
+                </dt>
+                <dd>
+                    <input wicket:id="reconcile" type="checkbox" value="checked"/>
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SynchronizationReactionEditor.label.objectTemplateRef" /></label>
+        </dt>
+        <dd>
+            <select wicket:id="objectTemplateRef" class="form-control input-sm"></select>
+        </dd>
+    </dl>
+
+    <!-- Action(s) -->
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SynchronizationReactionEditor.label.action" /></label>
+        </dt>
+        <div wicket:id="action" />
+    </dl>
+
+</wicket:panel>
+</html>

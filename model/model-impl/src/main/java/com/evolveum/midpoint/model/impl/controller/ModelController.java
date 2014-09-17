@@ -26,6 +26,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
@@ -343,6 +344,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
         rootOptionsNoResolve.setResolveNames(false);
         rootOptionsNoResolve.setResolve(false);
         rootOptionsNoResolve.setRaw(true);
+        //rootOptionsNoResolve.setAllowNotFound(true);           // does not work reliably yet
 
         object.accept(new Visitor() {
             @Override
@@ -356,8 +358,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
                             // TODO use some minimalistic get options (e.g. retrieve name only)
                             refObject = objectResolver.resolve(refVal, "", rootOptionsNoResolve, task, result);
                         } catch (ObjectNotFoundException e) {
-                            // can be safely ignored
-                            result.recordHandledError(e.getMessage());
+                            // actually, this won't occur if AllowNotFound is set to true above (however, for now, it is not)
+                            result.muteError();
+                            result.muteLastSubresultError();
                         }
                     }
                     String name;
@@ -409,13 +412,21 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 		}
 	}
-	
+
+    @Override
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
+                                                                                 Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            PolicyViolationException, SecurityViolationException {
+        return executeChanges(deltas, options, task, null, parentResult);
+    }
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.ModelService#executeChanges(java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
 	public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			Task task, Collection<ProgressListener> statusListeners, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
 
@@ -510,6 +521,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			} else {				
 				
 				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
+                context.setProgressListeners(statusListeners);
 				// Note: Request authorization happens inside clockwork
 				clockwork.run(context, task, result);
 
@@ -1002,8 +1014,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                         hook.invoke(object, options, task, result);
                     }
                 }
-                // TODO enable when necessary
-                //resolveNames(object, options, task, result);
+                resolveNames(object, options, task, result);
             }
 
 		} finally {
@@ -1055,8 +1066,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                             hook.invoke(object, options, task, result);     // TODO result or parentResult??? [med]
                         }
                     }
-                    // TODO enable when necessary
-                    //resolveNames(object, options, task, parentResult);
+                    resolveNames(object, options, task, parentResult);
                     postProcessObject(object, rootOptions, parentResult);
                 } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
                         | CommunicationException | ConfigurationException ex) {

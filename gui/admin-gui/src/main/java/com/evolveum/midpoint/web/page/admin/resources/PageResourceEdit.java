@@ -60,6 +60,8 @@ import java.util.List;
 
 /**
  * @author lazyman
+ *
+ * TODO - delete this page when ResourceWizard is fully functional and tested
  */
 @PageDescriptor(url = "/admin/resource/edit", encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
@@ -68,6 +70,7 @@ import java.util.List;
         @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#resourceEdit",
                 label = "PageResourceEdit.auth.resourceEdit.label",
                 description = "PageResourceEdit.auth.resourceEdit.description")})
+@Deprecated
 public class PageResourceEdit extends PageAdminResources {
 
     private static final String DOT_CLASS = PageResourceEdit.class.getName() + ".";

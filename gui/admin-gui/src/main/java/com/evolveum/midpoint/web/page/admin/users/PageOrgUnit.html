@@ -46,6 +46,13 @@
                 <div class="form-group" wicket:id="administrativeStatus"/>
                 <div class="form-group" wicket:id="validFrom"/>
                 <div class="form-group" wicket:id="validTo"/>
+
+                <!--Extension-->
+                <h3 wicket:id="extensionLabel" style="margin-left: 20px;"></h3>
+                <div class="form-group" wicket:id="extension">
+                    <div wicket:id="property"/>
+                </div>
+
             </div>
             <div class="col-md-6">
                 <div wicket:id="inducementsPanel" />
@@ -65,12 +72,17 @@
             </div>
         </div>
 
+        <div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" />
+
+        <div wicket:id="progressPanel">[Progress panel here]</div>
+
         <div class="main-button-bar">
             <span class="button-group">
                 <a class="btn btn-default" wicket:id="back"/>
             </span>
 
             <a class="btn btn-primary" wicket:id="save"/>
+            <a class="btn btn-danger" wicket:id="abort"/>
         </div>
     </form>
 </wicket:extend>

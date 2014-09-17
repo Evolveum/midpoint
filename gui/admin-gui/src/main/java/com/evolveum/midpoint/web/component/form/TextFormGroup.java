@@ -72,4 +72,8 @@ public class TextFormGroup extends SimplePanel<String> {
 
         return text;
     }
+
+    public TextField getField(){
+        return (TextField) get(ID_TEXT_WRAPPER + ":" + ID_TEXT);
+    }
 }

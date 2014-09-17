@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorExpressionEvaluatorType;
+import org.apache.commons.lang.Validate;
 
 /**
  * @author semancik
@@ -69,6 +70,8 @@ public class AssociationFromLinkExpressionEvaluatorFactory implements Expression
 	@Override
 	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
 			ItemDefinition outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
+
+        Validate.notNull(outputDefinition, "output definition must be specified for associationFromLink expression evaluator");
 		
 		JAXBElement<?> evaluatorElement = null;
 		if (evaluatorElements != null) {

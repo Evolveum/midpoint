@@ -23,6 +23,8 @@ import org.apache.wicket.model.IModel;
 
 public class TextPanel<T> extends InputPanel {
 
+    private static final String ID_INPUT = "input";
+
     public TextPanel(String id, IModel<T> model) {
         this(id, model, String.class);
     }
@@ -30,13 +32,13 @@ public class TextPanel<T> extends InputPanel {
     public TextPanel(String id, IModel<T> model, Class clazz) {
         super(id);
 
-        final TextField<T> text = new TextField<T>("input", model);
+        final TextField<T> text = new TextField<>(ID_INPUT, model);
         text.setType(clazz);
         add(text);
     }
 
     @Override
     public FormComponent getBaseFormComponent() {
-        return (FormComponent) get("input");
+        return (FormComponent) get(ID_INPUT);
     }
 }

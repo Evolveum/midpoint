@@ -314,6 +314,9 @@ public class ObjectTemplateProcessor {
 			LensUtil.evaluateMapping(mapping, context, task, result);
 			
 			ItemPath itemPath = mapping.getOutputPath();
+            if (itemPath == null) {
+                continue;
+            }
 			DeltaSetTriple<ItemValueWithOrigin<V>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
 			if (outputTriple == null) {
 				continue;

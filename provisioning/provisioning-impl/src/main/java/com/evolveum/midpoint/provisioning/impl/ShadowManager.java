@@ -557,6 +557,8 @@ public class ShadowManager {
 
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 
+		normalizeAttributes(shadow, objectClassDefinition);
+		
 		PrismObject<ShadowType> repoShadow = shadow.clone();
 		ResourceAttributeContainer repoAttributesContainer = ShadowUtil
 				.getAttributesContainer(repoShadow);
@@ -606,9 +608,7 @@ public class ShadowManager {
 		if (repoShadowType.isProtectedObject() != null){
 			repoShadowType.setProtectedObject(null);
 		}
-		
-		normalizeAttributes(repoShadow, objectClassDefinition);
-
+	
 		return repoShadow;
 	}
 
@@ -624,7 +624,7 @@ public class ShadowManager {
         }
     }
 
-    private void normalizeAttributes(PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+    public void normalizeAttributes(PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
 		for (ResourceAttribute<?> attribute: ShadowUtil.getAttributes(shadow)) {
 			RefinedAttributeDefinition rAttrDef = objectClassDefinition.findAttributeDefinition(attribute.getElementName());
 			normalizeAttribute(attribute, rAttrDef);			
@@ -710,6 +710,16 @@ public class ShadowManager {
 		RefinedAttributeDefinition refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getElementName());
 		Collection<T> valuesA = getNormalizedAttributeValues(attributeA, refinedAttributeDefinition);
 		return MiscUtil.unorderedCollectionEquals(valuesA, Arrays.asList(valuesB));
+	}
+	
+	public <T> boolean compareAttribute(RefinedObjectClassDefinition refinedObjectClassDefinition,
+			ResourceAttribute<T> attributeA, ResourceAttribute<T> attributeB) throws SchemaException {
+		RefinedAttributeDefinition refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getElementName());
+		Collection<T> valuesA = getNormalizedAttributeValues(attributeA, refinedAttributeDefinition);
+		
+		refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getElementName());
+		Collection<T> valuesB = getNormalizedAttributeValues(attributeB, refinedAttributeDefinition);
+		return MiscUtil.unorderedCollectionEquals(valuesA, valuesB);
 	}
 
 	

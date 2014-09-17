@@ -1,0 +1,190 @@
+/*
+ * Copyright (c) 2010-2014 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.evolveum.midpoint.web.component.input;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.apache.commons.lang.StringUtils;
+
+import javax.xml.bind.JAXBElement;
+import java.io.Serializable;
+
+/**
+ *  @author shood
+ * */
+public class ExpressionTypeDto implements Serializable{
+
+    private static final Trace LOGGER = TraceManager.getTrace(ExpressionTypeDto.class);
+
+    public static final String F_TYPE = "type";
+    public static final String F_LANGUAGE = "language";
+    public static final String F_POLICY_REF = "policyRef";
+    public static final String F_EXPRESSION = "expression";
+    public static final String F_EXPRESSION_OBJECT = "expressionObject";
+
+    private ExpressionUtil.ExpressionEvaluatorType type;
+    private ExpressionUtil.Language language;
+    private ObjectReferenceType policyRef;
+    private String expression;
+    private ExpressionType expressionObject;
+
+    public ExpressionTypeDto(ExpressionType expression, PrismContext prismContext){
+
+        if(expression != null){
+            expressionObject = expression;
+        } else {
+            expressionObject = new ExpressionType();
+        }
+
+        if(!expressionObject.getExpressionEvaluator().isEmpty()){
+            loadExpression(prismContext);
+        }
+    }
+
+    private void loadExpression(PrismContext context){
+        try{
+            if(expressionObject.getExpressionEvaluator().size() == 1){
+                expression = context.serializeAtomicValue(expressionObject.getExpressionEvaluator().get(0), PrismContext.LANG_XML);
+            } else {
+                StringBuilder sb = new StringBuilder();
+
+                for(JAXBElement<?> element: expressionObject.getExpressionEvaluator()){
+                    String subElement = context.serializeAtomicValue(element, PrismContext.LANG_XML);
+                    sb.append(subElement).append("\n");
+                }
+
+                expression = sb.toString();
+            }
+
+            type = ExpressionUtil.getExpressionType(expression);
+            if(type != null && type.equals(ExpressionUtil.ExpressionEvaluatorType.SCRIPT)){
+                language = ExpressionUtil.getExpressionLanguage(expression);
+            }
+
+            //TODO - add algorithm to determine objectReferenceType from String expression
+        } catch (SchemaException e){
+            //TODO - how can we show this error to user?
+            LoggingUtils.logException(LOGGER, "Could not load expressions from ExpressionType.", e, e.getStackTrace());
+            expression = e.getMessage();
+        }
+    }
+
+    public void updateExpression(PrismContext context) throws SchemaException, IllegalArgumentException{
+
+        if(expressionObject == null){
+            expressionObject = new ExpressionType();
+        }
+
+        if(expression != null && StringUtils.isNotEmpty(expression)){
+            expression = ExpressionUtil.addNamespaces(expression, type);
+
+            if(LOGGER.isTraceEnabled()){
+                LOGGER.trace("Expression to serialize: " + expression);
+            }
+
+            JAXBElement<?> newElement = context.parseAnyValueAsJAXBElement(expression, PrismContext.LANG_XML);
+            expressionObject.getExpressionEvaluator().add(newElement);
+        } else {
+            expressionObject.getExpressionEvaluator().clear();
+        }
+    }
+
+    public void updateExpressionType(){
+        expression = ExpressionUtil.getExpressionString(type);
+    }
+
+    public void updateExpressionLanguage(){
+        expression = ExpressionUtil.getExpressionString(type, language);
+    }
+
+    public void updateExpressionValuePolicyRef(){
+        expression = ExpressionUtil.getExpressionString(type, policyRef);
+    }
+
+    public ExpressionUtil.ExpressionEvaluatorType getType() {
+        return type;
+    }
+
+    public void setType(ExpressionUtil.ExpressionEvaluatorType type) {
+        this.type = type;
+    }
+
+    public ExpressionUtil.Language getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(ExpressionUtil.Language language) {
+        this.language = language;
+    }
+
+    public ObjectReferenceType getPolicyRef() {
+        return policyRef;
+    }
+
+    public void setPolicyRef(ObjectReferenceType policyRef) {
+        this.policyRef = policyRef;
+    }
+
+    public String getExpression() {
+        return expression;
+    }
+
+    public void setExpression(String expression) {
+        this.expression = expression;
+    }
+
+    public ExpressionType getExpressionObject() {
+        return expressionObject;
+    }
+
+    public void setExpressionObject(ExpressionType expressionObject) {
+        this.expressionObject = expressionObject;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ExpressionTypeDto)) return false;
+
+        ExpressionTypeDto that = (ExpressionTypeDto) o;
+
+        if (expression != null ? !expression.equals(that.expression) : that.expression != null) return false;
+        if (expressionObject != null ? !expressionObject.equals(that.expressionObject) : that.expressionObject != null)
+            return false;
+        if (language != that.language) return false;
+        if (policyRef != null ? !policyRef.equals(that.policyRef) : that.policyRef != null) return false;
+        if (type != that.type) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = type != null ? type.hashCode() : 0;
+        result = 31 * result + (language != null ? language.hashCode() : 0);
+        result = 31 * result + (policyRef != null ? policyRef.hashCode() : 0);
+        result = 31 * result + (expression != null ? expression.hashCode() : 0);
+        result = 31 * result + (expressionObject != null ? expressionObject.hashCode() : 0);
+        return result;
+    }
+}

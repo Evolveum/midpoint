@@ -480,6 +480,9 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
      * This delta is assumed to be chronologically earlier, delta in the parameter is assumed to come chronologicaly later.
      */
     public void merge(ObjectDelta<T> deltaToMerge) throws SchemaException {
+        if (deltaToMerge == null) {
+            return;
+        }
         if (changeType == ChangeType.ADD) {
             if (deltaToMerge.changeType == ChangeType.ADD) {
                 // Maybe we can, be we do not want. This is usually an error anyway.

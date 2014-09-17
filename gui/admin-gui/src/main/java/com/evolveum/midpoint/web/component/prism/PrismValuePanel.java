@@ -16,50 +16,46 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xjc.AnyArrayList;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.RoleApprovalFormType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
+import com.sun.org.apache.xerces.internal.dom.TextImpl;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.form.upload.FileUpload;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.*;
-import org.apache.wicket.request.resource.PackageResourceReference;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,18 +65,26 @@ import java.util.List;
 public class PrismValuePanel extends Panel {
 
     private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_VALUE_CONTAINER = "valueContainer";
 
     private IModel<ValueWrapper> model;
 
-    public PrismValuePanel(String id, IModel<ValueWrapper> model, IModel<String> label, Form form) {
+    public PrismValuePanel(String id, IModel<ValueWrapper> model, IModel<String> label, Form form,
+                           String valueCssClass, String inputCssClass){
         super(id);
         Validate.notNull(model, "Property value model must not be null.");
         this.model = model;
 
-        initLayout(label, form);
+        initLayout(label, form, valueCssClass, inputCssClass);
     }
 
-    private void initLayout(IModel<String> label, Form form) {
+    private void initLayout(IModel<String> label, Form form, String valueCssClass, String inputCssClass) {
+        //container
+        WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
+        valueContainer.setOutputMarkupId(true);
+        valueContainer.add(new AttributeModifier("class", valueCssClass));
+        add(valueContainer);
+
         //feedback
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
@@ -88,8 +92,9 @@ public class PrismValuePanel extends Panel {
 
         //input
         InputPanel input = createInputComponent("input", label, form);
+        input.add(new AttributeModifier("class", inputCssClass));
         initAccessBehaviour(input);
-        add(input);
+        valueContainer.add(input);
 
         feedback.setFilter(new ComponentFeedbackMessageFilter(input.getBaseFormComponent()));
 
@@ -108,7 +113,7 @@ public class PrismValuePanel extends Panel {
                 return isAddButtonVisible();
             }
         });
-        add(addButton);
+        valueContainer.add(addButton);
 
         AjaxLink removeButton = new AjaxLink("removeButton") {
 
@@ -124,7 +129,7 @@ public class PrismValuePanel extends Panel {
                 return isRemoveButtonVisible();
             }
         });
-        add(removeButton);
+        valueContainer.add(removeButton);
     }
 
     private IModel<String> createHelpModel() {
@@ -333,11 +338,24 @@ public class PrismValuePanel extends Panel {
     }
 
     private InputPanel createTypedInputComponent(String id) {
-        PrismProperty property = model.getObject().getProperty().getItem();
+        final PrismProperty property = model.getObject().getProperty().getItem();
         PrismPropertyDefinition definition = property.getDefinition();
         QName valueType = definition.getTypeName();
 
         final String baseExpression = "value.value"; //pointing to prism property real value
+
+        ContainerWrapper containerWrapper = model.getObject().getProperty().getContainer();
+        if(containerWrapper != null && containerWrapper.getPath() != null){
+            if(ShadowType.F_ASSOCIATION.getLocalPart().equals(containerWrapper.getPath().toString())){
+                return new TextDetailsPanel(id, new PropertyModel<String>(model, baseExpression)){
+
+                    @Override
+                    public String createAssociationTooltip(){
+                        return createAssociationTooltipText(property);
+                    }
+                };
+            }
+        }
 
         //fixing MID-1230, will be improved with some kind of annotation or something like that
         //now it works only in description
@@ -407,6 +425,30 @@ public class PrismValuePanel extends Panel {
         }
 
         return panel;
+    }
+
+    //TODO - try to get rid of <br> attributes when creating new lines in association attibutes pop-up
+    private String createAssociationTooltipText(PrismProperty property){
+        StringBuilder sb = new StringBuilder();
+        sb.append(getString("prismValuePanel.message.association.attributes")).append("<br>");
+
+        if(property.getParent() != null && property.getParent().getParent() != null){
+            PrismObject<ShadowType> shadowPrism = (PrismObject<ShadowType>)property.getParent().getParent();
+            ShadowType shadow = shadowPrism.asObjectable();
+
+            if(shadow.getActivation() != null){
+                ShadowAttributesType attributes = shadow.getAttributes();
+                AnyArrayList attrs = (AnyArrayList)attributes.getAny();
+
+                for(Object o: attrs){
+                    ElementNSImpl element = (ElementNSImpl)o;
+                    sb.append(element.getLocalName() + ": ");
+                    sb.append(((TextImpl)element.getFirstChild()).getData() + "<br>");
+                }
+            }
+        }
+
+        return sb.toString();
     }
 
     private void addValue(AjaxRequestTarget target) {

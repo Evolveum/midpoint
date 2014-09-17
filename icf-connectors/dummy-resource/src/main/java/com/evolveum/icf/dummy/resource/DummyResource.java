@@ -80,6 +80,7 @@ public class DummyResource implements DebugDumpable {
 	private boolean enforceUniqueName = true;
 	private boolean enforceSchema = true;
 	private boolean caseIgnoreId = false;
+	private boolean caseIgnoreValues = false;
 	
 	private BreakMode schemaBreakMode = BreakMode.NONE;
 	private BreakMode getBreakMode = BreakMode.NONE;
@@ -238,6 +239,14 @@ public class DummyResource implements DebugDumpable {
 
 	public void setCaseIgnoreId(boolean caseIgnoreId) {
 		this.caseIgnoreId = caseIgnoreId;
+	}
+
+	public boolean isCaseIgnoreValues() {
+		return caseIgnoreValues;
+	}
+
+	public void setCaseIgnoreValues(boolean caseIgnoreValues) {
+		this.caseIgnoreValues = caseIgnoreValues;
 	}
 
 	public DummyObjectClass getAccountObjectClass() throws ConnectException, FileNotFoundException {

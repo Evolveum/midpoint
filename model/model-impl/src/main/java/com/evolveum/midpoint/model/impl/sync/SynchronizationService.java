@@ -317,6 +317,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	}
 		
 	private <F extends FocusType> Class<F> determineFocusClass(ObjectSynchronizationType synchronizationPolicy, ResourceType resource) throws ConfigurationException {
+        if (synchronizationPolicy == null) {
+            throw new IllegalStateException("synchronizationPolicy is null");
+        }
 		QName focusTypeQName = synchronizationPolicy.getFocusType();
 		if (focusTypeQName == null) {
 			return (Class<F>) UserType.class;
@@ -509,7 +512,13 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	public <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> shadow, PrismObject<F> focus, 
 			ResourceType resourceType, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result) throws ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
 		ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType, shadow, configuration, task, result);
-		Class<F> focusClass = determineFocusClass(synchronizationPolicy, resourceType);
+        Class<F> focusClass;
+        // TODO is this correct? The problem is that synchronizationPolicy can be null...
+        if (synchronizationPolicy != null) {
+		    focusClass = determineFocusClass(synchronizationPolicy, resourceType);
+        } else {
+            focusClass = (Class) focus.asObjectable().getClass();
+        }
 		return correlationConfirmationEvaluator.matchUserCorrelationRule(focusClass, shadow, focus, synchronizationPolicy, resourceType, 
 				configuration==null?null:configuration.asObjectable(), task, result);
 	}
