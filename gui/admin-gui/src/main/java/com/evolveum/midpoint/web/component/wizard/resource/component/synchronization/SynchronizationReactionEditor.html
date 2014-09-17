@@ -16,6 +16,86 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <h3>Synchronization Reaction Editor</h3>
+    <div wicket:id="actionModal" />
+
+    <h3><span wicket:id="label" /></h3>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SynchronizationReactionEditor.label.name" /></label>
+        </dt>
+        <dd>
+            <input wicket:id="name" type="text" class="form-control input-sm" value=""/>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SynchronizationReactionEditor.label.description" /></label>
+        </dt>
+        <dd>
+            <textarea wicket:id="description" class="form-control input-sm" rows="2"></textarea>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SynchronizationReactionEditor.label.situation" /></label>
+        </dt>
+        <dd>
+            <select wicket:id="situation" class="form-control input-sm"></select>
+        </dd>
+    </dl>
+
+    <!-- Channel(s) -->
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SynchronizationReactionEditor.label.channel" /></label>
+        </dt>
+        <div wicket:id="channel" />
+    </dl>
+
+    <!-- Synchronize and Reconcile-->
+    <div class="row">
+        <div class="col-xs-6">
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="SynchronizationReactionEditor.label.synchronize" /></label>
+                </dt>
+                <dd>
+                    <input wicket:id="synchronize" type="checkbox" value="checked"/>
+                </dd>
+            </dl>
+        </div>
+
+        <div class="col-xs-6">
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="SynchronizationReactionEditor.label.reconcile" /></label>
+                </dt>
+                <dd>
+                    <input wicket:id="reconcile" type="checkbox" value="checked"/>
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SynchronizationReactionEditor.label.objectTemplateRef" /></label>
+        </dt>
+        <dd>
+            <select wicket:id="objectTemplateRef" class="form-control input-sm"></select>
+        </dd>
+    </dl>
+
+    <!-- Action(s) -->
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SynchronizationReactionEditor.label.action" /></label>
+        </dt>
+        <div wicket:id="action" />
+    </dl>
+
 </wicket:panel>
 </html>

@@ -38,7 +38,7 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class ResourceProtectedEditor extends SimplePanel{
+public class ResourceProtectedEditor extends SimplePanel<List<ResourceObjectPatternType>>{
 
     private static enum ChangeState{
         SKIP, FIRST, LAST

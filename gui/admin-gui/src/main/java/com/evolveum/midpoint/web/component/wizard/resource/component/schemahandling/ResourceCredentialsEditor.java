@@ -45,7 +45,7 @@ import java.util.Map;
 /**
  *  @author shood
  * */
-public class ResourceCredentialsEditor extends SimplePanel{
+public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDefinitionType>{
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceCredentialsEditor.class);
 

@@ -1,0 +1,18 @@
+<objectTemplate>
+      <type>UserType</type>
+      <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                         oid="10000000-0000-0000-0000-000000000222"
+                         type="tns:ObjectTemplateType"/>
+   </objectTemplate>
+   <objectTemplate>
+      <type>OrgType</type>
+      <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                         oid="10000000-0000-0000-0000-000000000231"
+                         type="tns:ObjectTemplateType"/>
+   </objectTemplate>
+   <objectTemplate>
+      <type>RoleType</type>
+      <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                         oid="10000000-0000-0000-0000-000000000241"
+                         type="tns:ObjectTemplateType"/>
+   </objectTemplate>

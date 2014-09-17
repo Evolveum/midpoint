@@ -19,23 +19,17 @@ package com.evolveum.midpoint.web.component.form.multivalue;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.validation.IValidator;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.*;
 
@@ -53,13 +47,12 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Sim
     private static final String CSS_DISABLED = " disabled";
     private static final Integer AUTO_COMPLETE_LIST_SIZE = 10;
 
-    public MultiValueAutoCompleteTextPanel(String id, IModel<List<T>> model, boolean inputEnabled, boolean prepareModel,
-                                           boolean updateOnChange){
+    public MultiValueAutoCompleteTextPanel(String id, IModel<List<T>> model, boolean inputEnabled, boolean prepareModel){
         super(id, model);
 
         setOutputMarkupId(true);
 
-        initLayout(inputEnabled, prepareModel, updateOnChange);
+        initLayout(inputEnabled, prepareModel);
     }
 
     private IModel<List<T>> prepareModel(boolean prepareModel){
@@ -74,10 +67,10 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Sim
     }
 
     protected T createNewEmptyItem(){
-        return (T)"";
+        return null;
     }
 
-    private void initLayout(final boolean inputEnabled, boolean prepareModel, final boolean updateOnChange){
+    private void initLayout(final boolean inputEnabled, boolean prepareModel){
 
         ListView repeater = new ListView<T>(ID_REPEATER, prepareModel(prepareModel)){
 
@@ -114,7 +107,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Sim
                 item.add(autoCompleteEditor);
 
                 autoCompleteEditor.add(AttributeAppender.replace("placeholder", createEmptyItemPlaceholder()));
-//
+
                 if(!inputEnabled){
                     autoCompleteEditor.add(new AttributeModifier("disabled","disabled"));
                 }

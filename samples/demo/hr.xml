@@ -69,6 +69,9 @@
                 <attribute>
                     <ref>icfs:name</ref>
                     <displayName>Employee#</displayName>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>					
                     <inbound>
                         <target>
                         	<path>$user/employeeNumber</path>
@@ -79,7 +82,7 @@
                 <attribute>
                     <ref>ri:firstname</ref>
                     <displayName>First Name</displayName>
-                    <description>Definition of Firstname attribute handling.</description>
+                    <description>Definition of Firstname attribute handling.</description>					
                     <inbound>
                         <target>
                             <path>$user/givenName</path>
@@ -89,7 +92,7 @@
 
                 <attribute>
                     <ref>ri:lastname</ref>
-                    <displayName>Last name</displayName>
+                    <displayName>Last name</displayName>					
                     <inbound>
                         <target>
                             <path>$user/familyName</path>
@@ -99,18 +102,18 @@
 
                 <attribute>
                     <ref>ri:artname</ref>
-                    <displayName>Artisitc name</displayName>
+                    <displayName>Artistic name</displayName>					
                     <inbound>
                         <target>
                             <path>$user/extension/ext:artisticName</path>
                         </target>
-                    </inbound>
+                    </inbound>					
 		    <inbound>
 			<strength>weak</strength>
                         <target>
                             <path>$user/nickName</path>
                         </target>
-                    </inbound>
+                    </inbound>					
 		    <inbound>
 			<strength>weak</strength>
 			<expression>
@@ -132,6 +135,11 @@
                             <path>$user/employeeType</path>
                         </target>
                     </inbound>
+					<!--<outbound>
+						<source>
+							<path>$user/employeeType</path>
+						</source>
+                    </outbound>-->
                 </attribute>
 
 		<credentials>

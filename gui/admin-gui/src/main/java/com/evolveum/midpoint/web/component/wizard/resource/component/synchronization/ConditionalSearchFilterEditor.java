@@ -16,16 +16,67 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.synchronization;
 
+import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  *  @author shood
+ *
+ *  TODO - If needed in the future, think about implementing an editor for MapXNode type (see ConditionalSearchFilterType)
  * */
-public class ConditionalSearchFilterEditor extends SimplePanel{
+public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearchFilterType>{
+
+    private static final String ID_DESCRIPTION = "description";
+    private static final String ID_EXPRESSION_PANEL = "expressionPanel";
+
+    private IModel<ExpressionType> expression;
 
     public ConditionalSearchFilterEditor(String id, IModel<ConditionalSearchFilterType> model){
         super(id, model);
+    }
+
+    @Override
+    public IModel<ConditionalSearchFilterType> getModel(){
+        IModel<ConditionalSearchFilterType> model = super.getModel();
+
+        if(model.getObject() == null){
+            model.setObject(new ConditionalSearchFilterType());
+        }
+
+        return model;
+    }
+
+    private void loadExpression(){
+        if(expression == null){
+            expression = new LoadableModel<ExpressionType>() {
+
+                @Override
+                protected ExpressionType load() {
+                    if(getModel() != null && getModel().getObject() != null){
+                        return getModel().getObject().getCondition();
+                    } else {
+                        return new ExpressionType();
+                    }
+                }
+            };
+        }
+    }
+
+
+    @Override
+    protected void initLayout(){
+        loadExpression();
+
+        TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), "description"));
+        add(description);
+
+        ExpressionEditorPanel expressionEditor = new ExpressionEditorPanel(ID_EXPRESSION_PANEL, expression);
+        add(expressionEditor);
     }
 }

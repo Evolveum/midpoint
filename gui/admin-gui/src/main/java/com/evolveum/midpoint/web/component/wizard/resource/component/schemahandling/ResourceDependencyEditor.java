@@ -50,7 +50,7 @@ import java.util.Map;
 /**
  *  @author shood
  * */
-public class ResourceDependencyEditor extends SimplePanel{
+public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTypeDependencyType>>{
 
     private static enum ChangeState{
         SKIP, FIRST, LAST
@@ -60,7 +60,6 @@ public class ResourceDependencyEditor extends SimplePanel{
 
     private static final String DOT_CLASS = ResourceDependencyEditor.class.getName() + ".";
     private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "createResourceList";
-    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
     private static final String ID_CONTAINER = "protectedContainer";
     private static final String ID_REPEATER = "repeater";

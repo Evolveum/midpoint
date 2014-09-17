@@ -37,7 +37,7 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class ResourceActivationEditor extends SimplePanel{
+public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefinitionType>{
 
     private static final String ID_EXISTENCE_FS = "existenceFetchStrategy";
     private static final String ID_EXISTENCE_OUT = "existenceOutbound";

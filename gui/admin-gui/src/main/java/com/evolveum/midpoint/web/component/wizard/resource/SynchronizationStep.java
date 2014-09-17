@@ -295,7 +295,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorIntent);
 
         MultiValueAutoCompleteTextPanel<QName> editorObjectClass = new MultiValueAutoCompleteTextPanel<QName>(ID_EDITOR_OBJECT_CLASS,
-                new PropertyModel<List<QName>>(model, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true, false, true){
+                new PropertyModel<List<QName>>(model, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true, false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<QName> model) {
@@ -618,7 +618,13 @@ public class SynchronizationStep extends WizardStep {
 
     private void conditionEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new SynchronizationExpressionEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<ExpressionType>(model, ResourceSynchronizationDto.F_SELECTED + ".condition"));
+                new PropertyModel<ExpressionType>(model, ResourceSynchronizationDto.F_SELECTED + ".condition")){
+
+            @Override
+            public String getLabel(){
+                return "SynchronizationExpressionEditor.label.condition";
+            }
+        };
         getThirdRowContainer().replaceWith(newContainer);
 
         target.add(getThirdRowContainer());
@@ -626,7 +632,13 @@ public class SynchronizationStep extends WizardStep {
 
     private void confirmationEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new SynchronizationExpressionEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<ExpressionType>(model, ResourceSynchronizationDto.F_SELECTED + ".confirmation"));
+                new PropertyModel<ExpressionType>(model, ResourceSynchronizationDto.F_SELECTED + ".confirmation")){
+
+            @Override
+            public String getLabel(){
+                return "SynchronizationExpressionEditor.label.confirmation";
+            }
+        };
         getThirdRowContainer().replaceWith(newContainer);
 
         target.add(getThirdRowContainer());

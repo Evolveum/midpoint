@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueDropDownPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -189,14 +190,86 @@ public class MappingEditorDialog extends ModalWindow{
                 ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(strength);
 
-        //TODO - shouldn't this list be also AutoCompleteTextField from some static list with channels?
-        MultiValueTextPanel channel = new MultiValueTextPanel<>(ID_CHANNEL,
-                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"));
+        MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
+                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"), true, true){
+
+            @Override
+            protected String createNewEmptyItem() {
+                return "";
+            }
+
+            @Override
+            protected IModel<List<String>> createChoiceList() {
+                return new AbstractReadOnlyModel<List<String>>() {
+
+                    @Override
+                    public List<String> getObject() {
+                        return WebMiscUtil.getChannelList();
+                    }
+                };
+            }
+
+            @Override
+            protected IChoiceRenderer<String> createRenderer() {
+                return new IChoiceRenderer<String>() {
+
+                    @Override
+                    public Object getDisplayValue(String object) {
+                        String[] fields = object.split("#");
+                        String label = fields[1];
+
+
+                        return getString("Channel." + label);
+                    }
+
+                    @Override
+                    public String getIdValue(String object, int index) {
+                        return Integer.toString(index);
+                    }
+                };
+            }
+        };
         form.add(channel);
 
-        //TODO - shouldn't this list be also AutoCompleteTextField from some static list with channels?
-        MultiValueTextPanel exceptChannel = new MultiValueTextPanel<>(ID_EXCEPT_CHANNEL,
-                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".exceptChannel"));
+        MultiValueDropDownPanel exceptChannel = new MultiValueDropDownPanel<String>(ID_EXCEPT_CHANNEL,
+                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING +  ".exceptChannel"), true, true){
+
+            @Override
+            protected String createNewEmptyItem() {
+                return "";
+            }
+
+            @Override
+            protected IModel<List<String>> createChoiceList() {
+                return new AbstractReadOnlyModel<List<String>>() {
+
+                    @Override
+                    public List<String> getObject() {
+                        return WebMiscUtil.getChannelList();
+                    }
+                };
+            }
+
+            @Override
+            protected IChoiceRenderer<String> createRenderer() {
+                return new IChoiceRenderer<String>() {
+
+                    @Override
+                    public Object getDisplayValue(String object) {
+                        String[] fields = object.split("#");
+                        String label = fields[1];
+
+
+                        return getString("Channel." + label);
+                    }
+
+                    @Override
+                    public String getIdValue(String object, int index) {
+                        return Integer.toString(index);
+                    }
+                };
+            }
+        };
         form.add(exceptChannel);
 
         //TODO - create some nice ItemPathType editor in near future
@@ -204,6 +277,7 @@ public class MappingEditorDialog extends ModalWindow{
                 new PropertyModel<List<String>>(model, MappingTypeDto.F_SOURCE));
         form.add(source);
 
+        //TODO - create some nice ItemPathType editor in near future
         TextFormGroup target = new TextFormGroup(ID_TARGET, new PropertyModel<String>(model, MappingTypeDto.F_TARGET),
                 createStringResource("MappingEditorDialog.label.target"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(target);
@@ -215,8 +289,8 @@ public class MappingEditorDialog extends ModalWindow{
                 createStringResource("MappingEditorDialog.label.expressionType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override
-            protected DropDownChoice createDropDown(String id, IModel<List<ExpressionUtil.ExpressionEvaluatorType>> choices, IChoiceRenderer renderer,
-                                                    boolean required) {
+            protected DropDownChoice createDropDown(String id, IModel<List<ExpressionUtil.ExpressionEvaluatorType>> choices,
+                                                    IChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType> renderer, boolean required) {
                 return new DropDownChoice<>(id, getModel(), choices, renderer);
             }
         };
@@ -243,10 +317,8 @@ public class MappingEditorDialog extends ModalWindow{
 
             @Override
             public boolean isVisible() {
-                if(ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getExpressionType())){
-                    return true;
-                }
-                return false;
+                return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getExpressionType());
+
             }
         });
         form.add(expressionLanguage);
@@ -282,8 +354,8 @@ public class MappingEditorDialog extends ModalWindow{
         }, createStringResource("MappingEditorDialog.label.passPolicyRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override
-            protected DropDownChoice createDropDown(String id, IModel<List<ObjectReferenceType>> choices, IChoiceRenderer renderer,
-                                                    boolean required) {
+            protected DropDownChoice createDropDown(String id, IModel<List<ObjectReferenceType>> choices,
+                                                    IChoiceRenderer<ObjectReferenceType> renderer, boolean required) {
                 return new DropDownChoice<>(id, getModel(), choices, renderer);
             }
         };
@@ -293,10 +365,7 @@ public class MappingEditorDialog extends ModalWindow{
 
             @Override
             public boolean isVisible() {
-                if (ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getExpressionType())) {
-                    return true;
-                }
-                return false;
+                return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getExpressionType());
             }
         });
         expressionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
@@ -321,11 +390,12 @@ public class MappingEditorDialog extends ModalWindow{
                 createStringResource("MappingEditorDialog.label.conditionType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override
-            protected DropDownChoice createDropDown(String id, IModel<List<ExpressionUtil.ExpressionEvaluatorType>> choices, IChoiceRenderer renderer,
+            protected DropDownChoice createDropDown(String id, IModel<List<ExpressionUtil.ExpressionEvaluatorType>> choices,
+                                                    IChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType> renderer,
                                                     boolean required) {
                 return new DropDownChoice<>(id, getModel(), choices, renderer);
             }
-        };;
+        };
         conditionType.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
 
             @Override
@@ -349,10 +419,7 @@ public class MappingEditorDialog extends ModalWindow{
 
             @Override
             public boolean isVisible() {
-                if(ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getConditionType())){
-                    return true;
-                }
-                return false;
+                return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getConditionType());
             }
         });
         conditionLanguage.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
@@ -388,7 +455,8 @@ public class MappingEditorDialog extends ModalWindow{
                 }, createStringResource("MappingEditorDialog.label.passPolicyRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override
-            protected DropDownChoice createDropDown(String id, IModel<List<ObjectReferenceType>> choices, IChoiceRenderer renderer,
+            protected DropDownChoice createDropDown(String id, IModel<List<ObjectReferenceType>> choices,
+                                                    IChoiceRenderer<ObjectReferenceType> renderer,
                                                     boolean required) {
                 return new DropDownChoice<>(id, getModel(), choices, renderer);
             }
@@ -399,10 +467,7 @@ public class MappingEditorDialog extends ModalWindow{
 
             @Override
             public boolean isVisible() {
-                if (ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getConditionType())) {
-                    return true;
-                }
-                return false;
+                return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getConditionType());
             }
         });
         conditionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
@@ -490,7 +555,7 @@ public class MappingEditorDialog extends ModalWindow{
                 inputModel.setObject(model.getObject().prepareDtoToSave(getPageBase().getPrismContext()));
             } else {
                 model.getObject().prepareDtoToSave(getPageBase().getPrismContext());
-                inputModel = new PropertyModel(model, MappingTypeDto.F_MAPPING);
+                inputModel = new PropertyModel<>(model, MappingTypeDto.F_MAPPING);
             }
 
         } catch (Exception e){
