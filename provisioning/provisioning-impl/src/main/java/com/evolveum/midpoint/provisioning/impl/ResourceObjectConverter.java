@@ -464,6 +464,7 @@ public class ResourceObjectConverter {
         
         if (isRename(operations)){
 			Collection<PropertyModificationOperation> renameOperations = distillRenameDeltas(itemDeltas, shadowAfter, objectClassDefinition);
+			LOGGER.trace("Determinig rename operation {}", renameOperations);
 			sideEffectChanges.addAll(renameOperations);
 		}
 

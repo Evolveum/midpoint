@@ -444,26 +444,21 @@ public abstract class ShadowCache {
 			return shadow.getOid();
 		}
 
-		afterModifyOnResource(shadow, modifications, parentResult);
-
-//		Collection<PropertyDelta<?>> renameDeltas = distillRenameDeltas(modifications, shadow, objectClassDefinition, task, parentResult);
-
 		Collection<PropertyDelta<PrismPropertyValue>> sideEffectDelta = convertToPropertyDelta(sideEffectChanges);
-//		shadowManager.
-//		if (renameDeltas != null) {
-//			((Collection) sideEffectDelta).addAll(renameDeltas);
-//		}
 		if (!sideEffectDelta.isEmpty()) {
-			try {
+//			try {
 				shadowManager.normalizeDeltas(sideEffectDelta, objectClassDefinition);
-				repositoryService.modifyObject(shadow.getCompileTimeClass(), oid, sideEffectDelta, parentResult);
+				modifications.addAll((Collection) sideEffectDelta);
+//				repositoryService.modifyObject(shadow.getCompileTimeClass(), oid, sideEffectDelta, parentResult);
 				
-			} catch (ObjectAlreadyExistsException ex) {
-				parentResult.recordFatalError("Side effect changes could not be applied", ex);
-				LOGGER.error("Side effect changes could not be applied. " + ex.getMessage(), ex);
-				throw new SystemException("Side effect changes could not be applied. " + ex.getMessage(), ex);
-			}
+//			} catch (ObjectAlreadyExistsException ex) {
+//				parentResult.recordFatalError("Side effect changes could not be applied", ex);
+//				LOGGER.error("Side effect changes could not be applied. " + ex.getMessage(), ex);
+//				throw new SystemException("Side effect changes could not be applied. " + ex.getMessage(), ex);
+//			}
 		}
+		
+		afterModifyOnResource(shadow, modifications, parentResult);
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.getCompileTimeClass(), prismContext);
 		ResourceOperationDescription operationDescription = createSuccessOperationDescription(shadow,
@@ -473,36 +468,6 @@ public abstract class ShadowCache {
 		return oid;
 	}
 
-//	private Collection<PropertyDelta<?>> distillRenameDeltas(Collection<? extends ItemDelta> modifications, 
-//			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-//		PropertyDelta<String> nameDelta = (PropertyDelta<String>) ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
-//		if (nameDelta == null){
-//			return null;
-//		}
-//
-//		PrismProperty<String> name = nameDelta.getPropertyNew();
-//		String newName = name.getRealValue();
-//		
-//		Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>();
-//		
-//		// $shadow/attributes/icfs:name
-//		String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getElementName()));
-//		PropertyDelta<String> cloneNameDelta = nameDelta.clone();
-//		cloneNameDelta.clearValuesToReplace();
-//		cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(normalizedNewName));
-//		deltas.add(cloneNameDelta);
-//		
-//		// $shadow/name
-//		if (!newName.equals(shadow.asObjectable().getName().getOrig())){
-//			
-//			PrismObject<ShadowType> fullShadow = getShadow(shadow.getOid(), shadow, null, task, parentResult);
-//			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
-//					ProvisioningUtil.determineShadowName(fullShadow));
-//			deltas.add(shadowNameDelta);
-//		}
-//		
-//		return deltas;
-//	}
 
 	private Collection<PropertyDelta<PrismPropertyValue>> convertToPropertyDelta(
 			Collection<PropertyModificationOperation> sideEffectChanges) {
