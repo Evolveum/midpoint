@@ -16,7 +16,11 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false">
-    <test name="Story" preserve-order="true" parallel="false" verbose="10" enabled="true">
+<listeners>
+		<listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
+	</listeners>
+	
+    <test name="Story" parallel="false" verbose="10" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.testing.story.TestTrafo"/>
             <class name="com.evolveum.midpoint.testing.story.TestOrgSync"/>
