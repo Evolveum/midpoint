@@ -31,7 +31,8 @@ import java.io.Serializable;
 @Entity
 @Table(name = "m_org_closure")
 @org.hibernate.annotations.Table(appliesTo = "m_org_closure",
-        indexes = {@Index(name = "iDescendant", columnNames = {"descendant_oid"})})
+        indexes = {@Index(name = "iDescendant", columnNames = {"descendant_oid"}),
+                   @Index(name = "iDescendantAncestor", columnNames = {"descendant_oid", "ancestor_oid"})})
 public class ROrgClosure implements Serializable {
 
     private RObject ancestor;
@@ -40,21 +41,25 @@ public class ROrgClosure implements Serializable {
     private RObject descendant;
     private String descendantOid;
 
+    private int val;
+
     public ROrgClosure() {
     }
 
-    public ROrgClosure(String ancestorOid, String descendantOid) {
+    public ROrgClosure(String ancestorOid, String descendantOid, int val) {
         if (ancestorOid != null) {
             this.ancestorOid = ancestorOid;
         }
         if (descendantOid != null) {
             this.descendantOid = descendantOid;
         }
+        this.val = val;
     }
 
-    public ROrgClosure(RObject ancestor, RObject descendant) {
+    public ROrgClosure(RObject ancestor, RObject descendant, int val) {
         this.ancestor = ancestor;
         this.descendant = descendant;
+        this.val = val;
     }
 
     @MapsId("ancestorOid")
@@ -107,6 +112,16 @@ public class ROrgClosure implements Serializable {
 
     public void setDescendantOid(String descendantOid) {
         this.descendantOid = descendantOid;
+    }
+
+    @Id
+    @Column(name = "val")
+    public int getVal() {
+        return val;
+    }
+
+    public void setVal(int val) {
+        this.val = val;
     }
 
     @Override

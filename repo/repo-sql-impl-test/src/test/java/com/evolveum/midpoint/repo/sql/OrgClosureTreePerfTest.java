@@ -37,6 +37,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Query;
+import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -53,9 +55,9 @@ import java.util.List;
  */
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class OrgClosureTest extends BaseSQLRepoTest {
+public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(OrgClosureTest.class);
+    private static final Trace LOGGER = TraceManager.getTrace(OrgClosureTreePerfTest.class);
 
     private static final File TEST_DIR = new File("src/test/resources/orgstruct");
     private static final String ORG_STRUCT_OBJECTS = TEST_DIR + "/org-monkey-island.xml";
@@ -68,15 +70,73 @@ public class OrgClosureTest extends BaseSQLRepoTest {
     //1191 OU, 10943 U  =>  428585 queries ~ 6min, h2
     private static final int[] TREE_LEVELS = {1, 5, 3, 3, 5, 4};
     private static final int[] TREE_LEVELS_USERS = {3, 4, 5, 6, 7, 10};
-    // closure table has 80927 entries
+
+    /*
+        H2
+
+        Loaded 1191 orgs and 10943 users in 199693 ms
+        OrgClosure table has 80927 rows
+        Avg time for an arbitrary link removal: 399.3 ms
+        Avg time for an arbitrary link re-addition: 2728.85 ms
+        Avg time for an arbitrary node removal: 3076.8 ms
+        Avg time for an arbitrary node re-addition: 3672.65 ms
+        Removed in 164146 ms
+
+        PostgreSQL
+
+        Loaded 1191 orgs and 10943 users in 239635 ms
+        OrgClosure table has 80927 rows
+        Avg time for an arbitrary link removal: 57.25 ms
+        Avg time for an arbitrary link re-addition: 106.6 ms
+        Avg time for an arbitrary node removal: 271.25 ms
+        Avg time for an arbitrary node re-addition: 308.9 ms
+        Removed in 333095 ms
+     */
 
 //    private static final int[] TREE_LEVELS = {1, 2, 3, 4, 5};
 //    private static final int[] TREE_LEVELS_USERS = {1, 2, 3, 4, 5};
 
+    /*
+        H2
+
+        Loaded 153 orgs and 719 users in 16676 ms
+        OrgClosure table has 4885 rows
+        Avg time for an arbitrary link removal: 47.75 ms
+        Avg time for an arbitrary link re-addition: 50.35 ms
+        Avg time for an arbitrary node removal: 144.6 ms
+        Avg time for an arbitrary node re-addition: 87.45 ms
+        Removed in 15238 ms
+
+        PostgreSQL
+
+        Loaded 153 orgs and 719 users in 16852 ms
+        OrgClosure table has 4885 rows
+        Avg time for an arbitrary link removal: 32.15 ms
+        Avg time for an arbitrary link re-addition: 46.35 ms
+        Avg time for an arbitrary node removal: 95.65 ms
+        Avg time for an arbitrary node re-addition: 77.3 ms
+        Removed in 25519 ms
+
+     */
+
     //9 OU, 23 U        =>  773 queries ~ 50s, h2
 //    private static final int[] TREE_LEVELS = {1, 2, 3};
 //    private static final int[] TREE_LEVELS_USERS = {1, 2, 3};
-    // closure table has
+
+    /*
+        H2
+
+        Loaded 9 orgs and 23 users in 1171ms
+        OrgClosure table has 109 rows
+        Avg time for an arbitrary link removal: 56.8 ms
+        Avg time for an arbitrary link re-addition: 59.6 ms
+        Avg time for an arbitrary node removal: 75.3 ms
+        Avg time for an arbitrary node re-addition: 49.1 ms
+        Removed in 872ms
+
+        PostgreSQL
+
+     */
 
     private int count = 0;
 
@@ -85,17 +145,24 @@ public class OrgClosureTest extends BaseSQLRepoTest {
     private List<OrgType> allOrgCreated = new ArrayList<>();
 
     @Test(enabled = true)
-    public void loadOrgStructure() throws Exception {
-        OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
-
-        final int NODE_ROUNDS = 0;
-        final int LINK_ROUNDS = 20;
+    public void test100LoadOrgStructure() throws Exception {
+        OperationResult opResult = new OperationResult("===[ loadOrgStruct ]===");
 
         LOGGER.info("Start.");
 
         long start = System.currentTimeMillis();
         loadOrgStructure(null, TREE_LEVELS, TREE_LEVELS_USERS, "", opResult);
-        System.out.println("Loaded " + allOrgCreated.size() + " orgs and " + (count-allOrgCreated.size()) + " users in " + (System.currentTimeMillis() - start) + "ms");
+        System.out.println("Loaded " + allOrgCreated.size() + " orgs and " + (count - allOrgCreated.size()) + " users in " + (System.currentTimeMillis() - start) + " ms");
+        Session session = repositoryService.getSessionFactory().openSession();
+        Query q = session.createSQLQuery("select count(*) from m_org_closure");
+        System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
+    }
+
+    @Test(enabled = true)
+    public void test200AddRemoveLinks() throws Exception {
+        OperationResult opResult = new OperationResult("===[ addRemoveLinks ]===");
+
+        final int LINK_ROUNDS = 20;
 
         // parentRef link removal + addition
         long totalTimeLinkRemovals = 0, totalTimeLinkAdditions = 0;
@@ -103,7 +170,7 @@ public class OrgClosureTest extends BaseSQLRepoTest {
 
             // removal
             System.out.println("Removing parent from org #" + round);
-            int index = 1 + (int) Math.floor(Math.random() * (allOrgCreated.size()-1));          // assuming node 0 is the root
+            int index = 1 + (int) Math.floor(Math.random() * (allOrgCreated.size() - 1));          // assuming node 0 is the root
             OrgType org = allOrgCreated.get(index);
 
             // check if it's a root (by chance)
@@ -112,28 +179,33 @@ public class OrgClosureTest extends BaseSQLRepoTest {
                 continue;
             }
 
-            start = System.currentTimeMillis();
+            long start = System.currentTimeMillis();
             removeOrgParent(org, opResult);
             long timeRemoval = System.currentTimeMillis() - start;
-            System.out.println(" ... done in " + timeRemoval + "ms");
+            System.out.println(" ... done in " + timeRemoval + " ms");
 
             // addition
             System.out.println("Re-adding parent for org #" + round);
             start = System.currentTimeMillis();
             addOrgParent(org, opResult);
             long timeAddition = System.currentTimeMillis() - start;
-            System.out.println(" ... done in " + timeAddition + "ms");
+            System.out.println(" ... done in " + timeAddition + " ms");
 
             totalTimeLinkRemovals += timeRemoval;
             totalTimeLinkAdditions += timeAddition;
         }
 
         if (LINK_ROUNDS > 0) {
-            System.out.println("Avg time for a link removal: " + ((double) totalTimeLinkRemovals/LINK_ROUNDS) + " ms");
-            System.out.println("Avg time for a link addition: " + ((double) totalTimeLinkAdditions/LINK_ROUNDS) + " ms");
+            System.out.println("Avg time for an arbitrary link removal: " + ((double) totalTimeLinkRemovals / LINK_ROUNDS) + " ms");
+            System.out.println("Avg time for an arbitrary link re-addition: " + ((double) totalTimeLinkAdditions / LINK_ROUNDS) + " ms");
         }
+    }
 
+    @Test(enabled = true)
+    public void test300AddRemoveNodes() throws Exception {
+        OperationResult opResult = new OperationResult("===[ addRemoveNodes ]===");
 
+        final int NODE_ROUNDS = 20;
 
         // OrgType node removal + addition
         long totalTimeNodeRemovals = 0, totalTimeNodeAdditions = 0;
@@ -143,10 +215,10 @@ public class OrgClosureTest extends BaseSQLRepoTest {
             System.out.println("Removing org #" + round);
             int index = (int) Math.floor(Math.random() * allOrgCreated.size());
             OrgType org = allOrgCreated.get(index);
-            start = System.currentTimeMillis();
+            long start = System.currentTimeMillis();
             removeOrg(org.getOid(), opResult);
             long timeRemoval = System.currentTimeMillis() - start;
-            System.out.println(" ... done in " + timeRemoval + "ms");
+            System.out.println(" ... done in " + timeRemoval + " ms");
 
             // addition
             System.out.println("Re-adding org #" + round);
@@ -160,13 +232,21 @@ public class OrgClosureTest extends BaseSQLRepoTest {
         }
 
         if (NODE_ROUNDS > 0) {
-            System.out.println("Avg time for a node removal: " + ((double) totalTimeNodeRemovals/NODE_ROUNDS) + " ms");
-            System.out.println("Avg time for a node addition: " + ((double) totalTimeNodeAdditions/NODE_ROUNDS) + " ms");
+            System.out.println("Avg time for an arbitrary node removal: " + ((double) totalTimeNodeRemovals / NODE_ROUNDS) + " ms");
+            System.out.println("Avg time for an arbitrary node re-addition: " + ((double) totalTimeNodeAdditions / NODE_ROUNDS) + " ms");
         }
+    }
 
-        start = System.currentTimeMillis();
+    @Test(enabled = true)
+    public void test400UnloadOrgStructure() throws Exception {
+        OperationResult opResult = new OperationResult("===[ unloadOrgStruct ]===");
+        long start = System.currentTimeMillis();
         removeOrgStructure(opResult);
-        System.out.println("Removed in " + (System.currentTimeMillis() - start) + "ms");
+        System.out.println("Removed in " + (System.currentTimeMillis() - start) + " ms");
+
+        Session session = repositoryService.getSessionFactory().openSession();
+        Query q = session.createSQLQuery("select count(*) from m_org_closure");
+        System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
 
         LOGGER.info("Finish.");
     }
