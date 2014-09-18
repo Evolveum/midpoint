@@ -556,8 +556,6 @@ public class ShadowManager {
 			throws SchemaException {
 
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-
-		normalizeAttributes(shadow, objectClassDefinition);
 		
 		PrismObject<ShadowType> repoShadow = shadow.clone();
 		ResourceAttributeContainer repoAttributesContainer = ShadowUtil
@@ -608,6 +606,8 @@ public class ShadowManager {
 		if (repoShadowType.isProtectedObject() != null){
 			repoShadowType.setProtectedObject(null);
 		}
+		
+		normalizeAttributes(repoShadow, objectClassDefinition);
 	
 		return repoShadow;
 	}
