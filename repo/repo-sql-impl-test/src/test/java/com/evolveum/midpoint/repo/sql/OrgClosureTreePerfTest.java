@@ -25,30 +25,37 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.jgrapht.alg.TransitiveClosure;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.SimpleDirectedGraph;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author lazyman
@@ -68,8 +75,8 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
 //    private static final int[] TREE_LEVELS_USERS = {5, 10, 4, 20, 20, 15};
 
     //1191 OU, 10943 U  =>  428585 queries ~ 6min, h2
-    private static final int[] TREE_LEVELS = {1, 5, 3, 3, 5, 4};
-    private static final int[] TREE_LEVELS_USERS = {3, 4, 5, 6, 7, 10};
+//    private static final int[] TREE_LEVELS = {1, 5, 3, 3, 5, 4};
+//    private static final int[] TREE_LEVELS_USERS = {3, 4, 5, 6, 7, 10};
 
     /*
         H2
@@ -93,8 +100,8 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
         Removed in 333095 ms
      */
 
-//    private static final int[] TREE_LEVELS = {1, 2, 3, 4, 5};
-//    private static final int[] TREE_LEVELS_USERS = {1, 2, 3, 4, 5};
+    private static final int[] TREE_LEVELS = {1, 2, 3, 4, 5};
+    private static final int[] TREE_LEVELS_USERS = {1, 2, 3, 4, 5};
 
     /*
         H2
@@ -144,6 +151,8 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
 
     private List<OrgType> allOrgCreated = new ArrayList<>();
 
+    private SimpleDirectedGraph<String, DefaultEdge> orgGraph = new SimpleDirectedGraph<>(DefaultEdge.class);
+
     @Test(enabled = true)
     public void test100LoadOrgStructure() throws Exception {
         OperationResult opResult = new OperationResult("===[ loadOrgStruct ]===");
@@ -156,6 +165,64 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
         Session session = repositoryService.getSessionFactory().openSession();
         Query q = session.createSQLQuery("select count(*) from m_org_closure");
         System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
+        session.close();
+    }
+
+    @Test(enabled = true)
+    public void test110CheckClosure() throws Exception {
+        checkClosure();
+    }
+
+    private void checkClosure() {
+        OperationResult opResult = new OperationResult("===[ test110CheckClosure ]===");
+        Session session = repositoryService.getSessionFactory().openSession();
+        SimpleDirectedGraph<String,DefaultEdge> tc = (SimpleDirectedGraph) orgGraph.clone();
+        TransitiveClosure.INSTANCE.closeSimpleDirectedGraph(tc);
+        for (String subroot : tc.vertexSet()) {
+            LOGGER.info("Checking descendants of {}", subroot);
+            Set<String> expectedChildren = new HashSet<>();
+            for (DefaultEdge edge : tc.incomingEdgesOf(subroot)) {
+                expectedChildren.add(tc.getEdgeSource(edge));
+            }
+            expectedChildren.add(subroot);
+            LOGGER.trace("Expected children: {}", expectedChildren);
+            Set<String> actualChildren = getActualChildrenOf(subroot, session);
+            LOGGER.trace("Actual children: {}", actualChildren);
+
+            Set<String> expectedMinusActual = new HashSet<>(expectedChildren);
+            expectedMinusActual.removeAll(actualChildren);
+            if (!expectedMinusActual.isEmpty()) {
+                System.out.println("Expected-Actual = " + expectedMinusActual);
+            }
+            Set<String> actualMinusExpected = new HashSet<>(actualChildren);
+            actualMinusExpected.removeAll(expectedChildren);
+            if (!actualMinusExpected.isEmpty()) {
+                System.out.println("Actual-Expected = " + actualMinusExpected);
+            }
+            assertEquals("Incorrect children for " + subroot, expectedChildren, actualChildren);
+        }
+        session.close();
+    }
+
+    private Set<String> getActualChildrenOf(String ancestor, Session session) {
+        List<ROrgClosure> descendantRecords = getOrgClosureByAncestor(ancestor, session);
+        Set<String> rv = new HashSet<String>();
+        for (ROrgClosure c : descendantRecords) {
+            rv.add(c.getDescendantOid());
+        }
+        return rv;
+    }
+
+    private List<ROrgClosure> getOrgClosureByDescendant(String descendantOid, Session session) {
+        Query query = session.createQuery("from ROrgClosure where descendantOid=:oid");
+        query.setString("oid", descendantOid);
+        return query.list();
+    }
+
+    private List<ROrgClosure> getOrgClosureByAncestor(String ancestorOid, Session session) {
+        Query query = session.createQuery("from ROrgClosure where ancestorOid=:oid");
+        query.setString("oid", ancestorOid);
+        return query.list();
     }
 
     @Test(enabled = true)
@@ -184,12 +251,16 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
             long timeRemoval = System.currentTimeMillis() - start;
             System.out.println(" ... done in " + timeRemoval + " ms");
 
+            checkClosure();
+
             // addition
             System.out.println("Re-adding parent for org #" + round);
             start = System.currentTimeMillis();
             addOrgParent(org, opResult);
             long timeAddition = System.currentTimeMillis() - start;
             System.out.println(" ... done in " + timeAddition + " ms");
+
+            checkClosure();
 
             totalTimeLinkRemovals += timeRemoval;
             totalTimeLinkAdditions += timeAddition;
@@ -220,12 +291,16 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
             long timeRemoval = System.currentTimeMillis() - start;
             System.out.println(" ... done in " + timeRemoval + " ms");
 
+            //checkClosure();
+
             // addition
             System.out.println("Re-adding org #" + round);
             start = System.currentTimeMillis();
             addOrg(org, opResult);
             long timeAddition = System.currentTimeMillis() - start;
             System.out.println(" ... done in " + timeAddition + "ms");
+
+            //checkClosure();
 
             totalTimeNodeRemovals += timeRemoval;
             totalTimeNodeAdditions += timeAddition;
@@ -257,6 +332,7 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
         ItemDelta removeParent = ReferenceDelta.createModificationDelete(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
         modifications.add(removeParent);
         repositoryService.modifyObject(OrgType.class, org.getOid(), modifications, opResult);
+        orgGraph.removeEdge(org.getOid(), existingValue.getOid());
     }
 
     private void addOrgParent(OrgType org, OperationResult opResult) throws Exception {
@@ -265,14 +341,17 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
         ItemDelta readdParent = ReferenceDelta.createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
         modifications.add(readdParent);
         repositoryService.modifyObject(OrgType.class, org.getOid(), modifications, opResult);
+        orgGraph.addEdge(org.getOid(), existingValue.getOid());
     }
 
     private void removeOrg(String oid, OperationResult opResult) throws Exception {
         repositoryService.deleteObject(OrgType.class, oid, opResult);
+        orgGraph.removeVertex(oid);
     }
 
     private void addOrg(OrgType org, OperationResult opResult) throws Exception {
         repositoryService.addObject(org.asPrismObject(), null, opResult);
+        registerObject(org);
     }
 
     private void loadOrgStructure(String parentOid, int[] TREE_SIZE, int[] USER_SIZE, String oidPrefix,
@@ -282,24 +361,35 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
         }
 
         for (int i = 0; i < TREE_SIZE[0]; i++) {
-            String newOidPrefix = (TREE_SIZE[0] - i) + "a" + oidPrefix;
-            PrismObject<OrgType> org = createOrg(parentOid, i, newOidPrefix);
+            String newOidPrefix = i + oidPrefix;
+            PrismObject<OrgType> org = createOrg(parentOid, newOidPrefix);
             LOGGER.info("Creating {}, total {}", org, count);
             String oid = repositoryService.addObject(org, null, result);
+            org.setOid(oid);
             if (parentOid == null) {
                 rootOids.add(oid);
             }
             allOrgCreated.add(org.asObjectable());
+            registerObject(org.asObjectable());
             count++;
 
             for (int u = 0; u < USER_SIZE[0]; u++) {
-                PrismObject<UserType> user = createUser(oid, i, u, newOidPrefix);
-                repositoryService.addObject(user, null, result);
+                PrismObject<UserType> user = createUser(oid, u + ":" + newOidPrefix);
+                String uoid = repositoryService.addObject(user, null, result);
+                user.setOid(uoid);
+                registerObject(user.asObjectable());
                 count++;
             }
 
             loadOrgStructure(oid, ArrayUtils.remove(TREE_SIZE, 0), ArrayUtils.remove(USER_SIZE, 0),
-                    newOidPrefix + i, result);
+                    newOidPrefix, result);
+        }
+    }
+
+    private void registerObject(ObjectType objectType) {
+        orgGraph.addVertex(objectType.getOid());
+        for (ObjectReferenceType ort : objectType.getParentOrgRef()) {
+            orgGraph.addEdge(objectType.getOid(), ort.getOid());
         }
     }
 
@@ -334,14 +424,14 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
     }
 
 
-    private PrismObject<UserType> createUser(String parentOid, int i, int u, String oidPrefix)
+    private PrismObject<UserType> createUser(String parentOid, String oidPrefix)
             throws Exception {
         UserType user = new UserType();
-        user.setOid("1" + createOid(u, oidPrefix + i));
-        user.setName(createPolyString("u" + oidPrefix + i + u));
-        user.setFullName(createPolyString("fu" + oidPrefix + i + u));
-        user.setFamilyName(createPolyString("fa" + oidPrefix + i + u));
-        user.setGivenName(createPolyString("gi" + oidPrefix + i + u));
+        user.setOid("u" + createOid(oidPrefix));
+        user.setName(createPolyString("u" + oidPrefix));
+        user.setFullName(createPolyString("fu" + oidPrefix));
+        user.setFamilyName(createPolyString("fa" + oidPrefix));
+        user.setGivenName(createPolyString("gi" + oidPrefix));
         if (parentOid != null) {
             ObjectReferenceType ref = new ObjectReferenceType();
             ref.setOid(parentOid);
@@ -352,9 +442,9 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
         PrismObject<UserType> object = user.asPrismObject();
         prismContext.adopt(user);
 
-        addExtensionProperty(object, "shipName", "Ship " + i + "-" + u);
-        addExtensionProperty(object, "weapon", "weapon " + i + "-" + u);
-        addExtensionProperty(object, "loot", i + u);
+        addExtensionProperty(object, "shipName", "Ship " + oidPrefix);
+        addExtensionProperty(object, "weapon", "weapon " + oidPrefix);
+        //addExtensionProperty(object, "loot", oidPrefix);
         addExtensionProperty(object, "funeralDate", XMLGregorianCalendarType.asXMLGregorianCalendar(new Date()));
 
         return object;
@@ -366,12 +456,12 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
         p.setRealValue(value);
     }
 
-    private PrismObject<OrgType> createOrg(String parentOid, int i, String oidPrefix)
+    private PrismObject<OrgType> createOrg(String parentOid, String oidPrefix)
             throws Exception {
         OrgType org = new OrgType();
-        org.setOid("2" + createOid(i, oidPrefix));
-        org.setDisplayName(createPolyString("o" + oidPrefix + i));
-        org.setName(createPolyString("o" + oidPrefix + i));
+        org.setOid("o" + createOid(oidPrefix));
+        org.setDisplayName(createPolyString("o" + oidPrefix));
+        org.setName(createPolyString("o" + oidPrefix));
         if (parentOid != null) {
             ObjectReferenceType ref = new ObjectReferenceType();
             ref.setOid(parentOid);
@@ -383,8 +473,8 @@ public class OrgClosureTreePerfTest extends BaseSQLRepoTest {
         return org.asPrismContainer();
     }
 
-    private String createOid(int i, String oidPrefix) {
-        String oid = StringUtils.rightPad(oidPrefix + Integer.toString(i), 31, 'a');
+    private String createOid(String oidPrefix) {
+        String oid = StringUtils.rightPad(oidPrefix, 31, '.');
 
         StringBuilder sb = new StringBuilder();
         sb.append(oid.substring(0, 7));
