@@ -19,6 +19,8 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.xml.namespace.QName;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -112,7 +114,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 
 		Collection<ItemDelta> shadowChanges = new ArrayList<ItemDelta>();
 		for (ItemDelta itemDelta : objectChange) {
-			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath())
+			if ((new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath()) && !isUidOrName(itemDelta.getPath()))
 					|| SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
 				continue;
 			} else {
@@ -120,6 +122,11 @@ public class ShadowCacheProvisioner extends ShadowCache{
 			}
 		}
 		return shadowChanges;
+	}
+	
+	private boolean isUidOrName(ItemPath path){
+		QName name = path.lastNamed().getName();
+		return name.equals(SchemaConstants.ICFS_NAME) || name.equals(SchemaConstants.ICFS_UID);
 	}
 
 	@Override
