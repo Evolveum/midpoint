@@ -136,6 +136,7 @@ public class DOMUtil {
 	public static final QName XSD_ANYURI = new QName(W3C_XML_SCHEMA_NS_URI, "anyURI", NS_W3C_XML_SCHEMA_PREFIX);
 
 	public static final QName XSD_ANY = new QName(W3C_XML_SCHEMA_NS_URI, "any", NS_W3C_XML_SCHEMA_PREFIX);
+    public static final QName XSD_ANYTYPE = new QName(W3C_XML_SCHEMA_NS_URI, "anyType", NS_W3C_XML_SCHEMA_PREFIX);
 
 	public static final String NS_XML_ENC = "http://www.w3.org/2001/04/xmlenc#";
 	public static final String NS_XML_DSIG = "http://www.w3.org/2000/09/xmldsig#";
