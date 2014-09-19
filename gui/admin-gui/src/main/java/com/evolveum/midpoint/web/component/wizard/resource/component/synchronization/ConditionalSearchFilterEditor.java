@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.synchronization;
 
 import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
+import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
@@ -28,13 +29,12 @@ import org.apache.wicket.model.PropertyModel;
 
 /**
  *  @author shood
- *
- *  TODO - If needed in the future, think about implementing an editor for MapXNode type (see ConditionalSearchFilterType)
  * */
 public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearchFilterType>{
 
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXPRESSION_PANEL = "expressionPanel";
+    private static final String ID_FILTER_CLAUSE_PANEL = "filterClausePanel";
 
     private IModel<ExpressionType> expression;
 
@@ -92,5 +92,8 @@ public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearch
             }
         };
         add(expressionEditor);
+
+        SearchFilterPanel filterClauseEditor = new SearchFilterPanel<>(ID_FILTER_CLAUSE_PANEL, getModel());
+        add(filterClauseEditor);
     }
 }
