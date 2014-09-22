@@ -54,6 +54,8 @@ public class OrgClosureManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgClosureManager.class);
 
+    private static boolean DUMP_TABLES = false;
+
     private SqlRepositoryConfiguration repoConfiguration;
 
     public OrgClosureManager(SqlRepositoryConfiguration repoConfiguration) {
@@ -158,7 +160,7 @@ public class OrgClosureManager {
         boolean maybeNonLeaf = isTypeNonLeaf(type);
 
         if (maybeNonLeaf) {
-            List<String> livingChildren = retainExistingOids(getChildren(oid, session), session);
+            List<String> livingChildren = getChildren(oid, session);        // no need to check existence of these oids, as owner is a FK pointing to RObject in RParentRef
             for (String child : livingChildren) {
                 addEdge(child, oid, maybeNonLeaf, session);
             }
@@ -210,7 +212,7 @@ public class OrgClosureManager {
     // expects that all parents are really existing
     private void addEdges(String oid, Collection<String> parents, boolean maybeNonLeaf, Session session) {
 
-        if (!maybeNonLeaf) {
+        if (!maybeNonLeaf && parents.size() <= 1) {
             // very simple case: we only add a few entries to the closure table
             if (!parents.isEmpty()) {
                 long start = System.currentTimeMillis();
@@ -239,6 +241,7 @@ public class OrgClosureManager {
     // "tail" is child, "head" is parent
     private void addEdge(String tail, String head, boolean maybeNonLeaf, Session session) {
 
+        long start = System.currentTimeMillis();
         LOGGER.trace("===================== ADD EDGE: {} -> {} ================", tail, head);
 
         String deltaTempTableName = "m_org_closure_delta_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
@@ -260,7 +263,7 @@ public class OrgClosureManager {
         int countUpdate = updateInClosureQuery.executeUpdate();
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Updated {} records to closure table ({} ms)", countUpdate, System.currentTimeMillis()-startUpdate);
 
-//        dumpOrgClosureTypeTable(session, "m_org_closure");
+        if (DUMP_TABLES) dumpOrgClosureTypeTable(session, "m_org_closure");
 
         long startAdd = System.currentTimeMillis();
         String addQuery =
@@ -275,12 +278,12 @@ public class OrgClosureManager {
         count = addToClosureQuery.executeUpdate();
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to closure table ({} ms)", count, System.currentTimeMillis()-startAdd);
 
-//        dumpOrgClosureTypeTable(session, "m_org_closure");
+        if (DUMP_TABLES) dumpOrgClosureTypeTable(session, "m_org_closure");
 
         session.flush();
         session.clear();
 
-        LOGGER.trace("--------------------- DONE ADD EDGE: {} -> {} ----------------", tail, head);
+        LOGGER.trace("--------------------- DONE ADD EDGE: {} -> {} ({} ms) ----------------", new Object[]{tail, head, System.currentTimeMillis()-start});
     }
 
     private void computeDeltaTable(String tail, String head, Session session, String deltaTempTableName) {
@@ -293,7 +296,11 @@ public class OrgClosureManager {
         Query query1 = session.createSQLQuery(
                 (postgresql ?
                     "create temporary " :
-                    "create cached local temporary ") + "table " + deltaTempTableName + " as " +
+                    "create cached local temporary ") + "table " + deltaTempTableName +
+
+                        (postgresql ? " on commit drop " : "") +
+
+                        " as " +
                         "select t1.descendant_oid as descendant_oid, t2.ancestor_oid as ancestor_oid, " +
                                "sum(t1.val*t2.val) as val " +
                         "from m_org_closure t1, m_org_closure t2 " +
@@ -306,8 +313,8 @@ public class OrgClosureManager {
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to temporary delta table {} ({} ms).",
                 new Object[] {count, deltaTempTableName, System.currentTimeMillis()-start});
 
-        //dumpOrgClosureTypeTable(session, "m_org_closure");
-        //dumpOrgClosureTypeTable(session, deltaTempTableName);
+        if (DUMP_TABLES) dumpOrgClosureTypeTable(session, "m_org_closure");
+        if (DUMP_TABLES) dumpOrgClosureTypeTable(session, deltaTempTableName);
     }
 
     private void dumpOrgClosureTypeTable(Session session, String tableName) {
@@ -321,6 +328,9 @@ public class OrgClosureManager {
 
     // "tail" is child, "head" is parent
     private void removeEdge(String tail, String head, Session session) {
+
+        long start = System.currentTimeMillis();
+        LOGGER.trace("===================== REMOVE EDGE: {} -> {} ================", tail, head);
 
         String deltaTempTableName = "m_org_closure_delta_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
         computeDeltaTable(tail, head, session, deltaTempTableName);
@@ -337,6 +347,7 @@ public class OrgClosureManager {
                                    "(select (descendant_oid, ancestor_oid, val) from " + deltaTempTableName + ")");
         count = deleteFromClosureQuery.executeUpdate();
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} records from closure table.", count);
+        if (DUMP_TABLES) dumpOrgClosureTypeTable(session, "m_org_closure");
 
         Query updateInClosureQuery = session.createSQLQuery(
                 postgresql ?
@@ -350,142 +361,12 @@ public class OrgClosureManager {
                                           "where td.descendant_oid=m_org_closure.descendant_oid and td.ancestor_oid=m_org_closure.ancestor_oid) " +
                         "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from "+deltaTempTableName+")");
         count = updateInClosureQuery.executeUpdate();
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Updated {} records to closure table.", count);
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Updated {} records in closure table.", count);
+        if (DUMP_TABLES) dumpOrgClosureTypeTable(session, "m_org_closure");
         session.flush();
         session.clear();
-    }
 
-//    private void removeEdge(String oid, String parent, Session session) {
-//
-//        String suspectsTableName = "m_org_closure_suspects_temp_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
-//        String trustyTableName = "m_org_closure_trusty_temp_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
-//        String tcNewTableName = "m_org_closure_tc_new_temp_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
-//        /*
-//         *  Table SUSPECT contains a (x, y) pair iff there is a path from x to y (in original graph) that goes through oid->parent edge
-//         */
-//        long start = System.currentTimeMillis();
-//        Query suspectsQuery = session.createSQLQuery(
-//// version when (X,X) is not in closure
-////                "create local temporary table " + suspectsTableName + " as select * from (" +
-////                        "select M_ORG_CLOSURE_1.descendant_oid as descendant, M_ORG_CLOSURE_2.ancestor_oid as ancestor " +
-////                        "from M_ORG_CLOSURE as M_ORG_CLOSURE_1, M_ORG_CLOSURE as M_ORG_CLOSURE_2 " +
-////                        "where M_ORG_CLOSURE_1.ancestor_oid = :oid and M_ORG_CLOSURE_2.descendant_oid = :parent " +
-////                    "union " +
-////                        "select M_ORG_CLOSURE.descendant_oid as descendant, :parent as ancestor " +
-////                        "from M_ORG_CLOSURE " +
-////                        "where M_ORG_CLOSURE.ancestor_oid = :oid " +
-////                    "union " +
-////                        "select :oid as descendant, M_ORG_CLOSURE.ancestor_oid as ancestor " +
-////                        "from M_ORG_CLOSURE " +
-////                        "where M_ORG_CLOSURE.descendant_oid = :parent " +
-////                    "union " +
-////                        "select :oid as descendant, :parent as ancestor " +
-////                        "from M_ORG_CLOSURE " +
-////                        "where M_ORG_CLOSURE.descendant_oid = :oid and M_ORG_CLOSURE.ancestor_oid = :parent" +
-////                        ")");
-//
-//                // version when (X,X) are in closure
-//                "create cached local temporary table " + suspectsTableName + " as select * from (" +
-//                        "select M_ORG_CLOSURE_1.descendant_oid as descendant, M_ORG_CLOSURE_2.ancestor_oid as ancestor " +
-//                        "from M_ORG_CLOSURE as M_ORG_CLOSURE_1, M_ORG_CLOSURE as M_ORG_CLOSURE_2 " +
-//                        "where M_ORG_CLOSURE_1.ancestor_oid = :oid and M_ORG_CLOSURE_2.descendant_oid = :parent " +
-//                        ")");
-//
-//        suspectsQuery.setString("oid", oid);
-//        suspectsQuery.setString("parent", parent);
-//        int count = suspectsQuery.executeUpdate();
-//        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to temporary table {} in {}ms.", new Object[]{count, suspectsTableName, System.currentTimeMillis()-start});
-//
-//        start = System.currentTimeMillis();
-//        Query suspectsIdxQuery = session.createSQLQuery("create index " + suspectsTableName + "_idx on " + suspectsTableName + " (descendant, ancestor)");
-//        suspectsIdxQuery.executeUpdate();
-//        if (LOGGER.isTraceEnabled()) LOGGER.trace("Created index on temporary table {} in {}ms.", suspectsTableName, System.currentTimeMillis()-start);
-//
-//        /*
-//         *  Table TRUSTY contains paths that are surely unaffected by the deletion of oid->parent edge.
-//         */
-//        start = System.currentTimeMillis();
-//        Query trustyQuery = session.createSQLQuery(
-//                "create cached local temporary table " + trustyTableName + " as select * from (" +
-//                        "select M_ORG_CLOSURE.descendant_oid as descendant, M_ORG_CLOSURE.ancestor_oid as ancestor " +
-//                        "from M_ORG_CLOSURE " +
-//                        "where not exists (select descendant, ancestor from " + suspectsTableName + " as SUSPECT " +
-//                        "                  where SUSPECT.descendant = M_ORG_CLOSURE.descendant_oid " +
-//                                                 "and SUSPECT.ancestor = M_ORG_CLOSURE.ancestor_oid) " +
-//                     "union " +
-//                        "select owner_oid as descendant, targetOid as ancestor " +
-//                        "from m_reference " +
-//                        "where m_reference.owner_oid <> :oid and m_reference.targetOid <> :parent and reference_type=0)");
-//        trustyQuery.setString("oid", oid);
-//        trustyQuery.setString("parent", parent);
-//        count = trustyQuery.executeUpdate();
-//        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to temporary table {} in {}ms.", new Object[]{count, trustyTableName, System.currentTimeMillis()-start});
-//
-//        start = System.currentTimeMillis();
-//        Query trustyIdx1Query = session.createSQLQuery("create index " + trustyTableName + "_idx1 on " + trustyTableName + " (descendant, ancestor)");
-//        trustyIdx1Query.executeUpdate();
-//        Query trustyIdx2Query = session.createSQLQuery("create index " + trustyTableName + "_idx2 on " + trustyTableName + " (descendant)");
-//        trustyIdx2Query.executeUpdate();
-//        Query trustyIdx3Query = session.createSQLQuery("create index " + trustyTableName + "_idx3 on " + trustyTableName + " (ancestor)");
-//        trustyIdx3Query.executeUpdate();
-//        if (LOGGER.isTraceEnabled()) LOGGER.trace("Created indices on temporary table {} in {}ms.", trustyTableName, System.currentTimeMillis()-start);
-//
-//        /*
-//         *  New closure will contain
-//         *   (1) all TRUSTY paths
-//         *   (2) all paths constructed by concatenating 2 consecutive TRUSTY paths
-//         *   (3) all paths constructed by concatenating 3 consecutive TRUSTY paths
-//         */
-//        start = System.currentTimeMillis();
-//        Query tcNewQuery = session.createSQLQuery(
-//                "create cached local temporary table " + tcNewTableName + " as select * from (" +
-//                        "select * from " + trustyTableName + " " +
-//                    "union " +
-//                        "select T1.descendant, T2.ancestor " +
-//                        "from " + trustyTableName + " T1, " + trustyTableName + " T2 " +
-//                        "where T1.ancestor = T2.descendant " +
-//                    "union " +
-//                        "select T1.descendant, T3.ancestor " +
-//                        "from " + trustyTableName + " T1, " + trustyTableName + " T2, " + trustyTableName + " T3 " +
-//                        "where T1.ancestor = T2.descendant and T2.ancestor = T3.descendant)");
-//        count = tcNewQuery.executeUpdate();
-//        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to temporary table {} in {}ms.", new Object[]{count, tcNewTableName, System.currentTimeMillis()-start});
-//
-//        start = System.currentTimeMillis();
-//        Query tcNewIdxQuery = session.createSQLQuery("create index " + tcNewTableName + "_idx on " + tcNewTableName+ " (descendant, ancestor)");
-//        tcNewIdxQuery.executeUpdate();
-//        if (LOGGER.isTraceEnabled()) LOGGER.trace("Created index on temporary table {} in {}ms.", tcNewTableName, System.currentTimeMillis()-start);
-//
-//        /*
-//         *  Now remove all edges from TC that should not be there.
-//         */
-//        start = System.currentTimeMillis();
-//        Query purgeQuery = session.createSQLQuery(
-//                "delete from M_ORG_CLOSURE " +
-//                "where not exists (select * from " + tcNewTableName + " as T " +
-//                                  "where T.descendant = M_ORG_CLOSURE.descendant_oid and T.ancestor = M_ORG_CLOSURE.ancestor_oid)");
-//        count = purgeQuery.executeUpdate();
-//        if (LOGGER.isTraceEnabled()) LOGGER.trace("Removed {} records from closure table in {}ms.", new Object[]{count, System.currentTimeMillis()-start});
-//    }
-
-    private void bulkSave(List objects, Session session) {
-        if (objects == null || objects.isEmpty()) {
-            return;
-        }
-
-        LOGGER.trace("Bulk saving {} objects {}", objects.size(), objects.get(0).getClass().getSimpleName());
-
-        for (int i = 0; i < objects.size(); i++) {
-            LOGGER.trace("{}", objects.get(i));     //todo delete
-
-            session.save(objects.get(i));
-            if (i > 0 && i % RUtil.JDBC_BATCH_SIZE == 0) {
-                session.flush();
-                session.clear();
-            }
-        }
-        session.flush();
-        session.clear();
+        LOGGER.trace("--------------------- DONE REMOVE EDGE: {} -> {} ({} ms) ----------------", new Object[]{tail, head, System.currentTimeMillis()-start});
     }
 
     private List<ReferenceDelta> filterParentRefDeltas(Collection<? extends ItemDelta> modifications) {
