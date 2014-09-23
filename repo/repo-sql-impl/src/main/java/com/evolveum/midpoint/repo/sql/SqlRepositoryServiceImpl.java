@@ -95,7 +95,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         super(repositoryFactory);
     }
 
-    private OrgClosureManager getClosureManager() {
+    // public because of testing
+    public OrgClosureManager getClosureManager() {
         if (closureManager == null) {
             closureManager = new OrgClosureManager(getConfiguration());
         }

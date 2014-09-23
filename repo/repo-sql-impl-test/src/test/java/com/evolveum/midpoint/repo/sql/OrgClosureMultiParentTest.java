@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.hibernate.Query;
@@ -29,6 +30,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.util.List;
+
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author lazyman
@@ -43,7 +46,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
     private static final String ORG_STRUCT_OBJECTS = TEST_DIR + "/org-monkey-island.xml";
     private static final String ORG_SIMPLE_TEST = TEST_DIR + "/org-simple-test.xml";
 
-    private static final boolean CHECK_CLOSURE = true;
+    private static final boolean CHECK_CLOSURE = false;
 
 //    private static final int[] ORG_CHILDREN_IN_LEVEL = {1, 5, 5, 20, 20, 4};
 //    private static final int[] USER_CHILDREN_IN_LEVEL = {5, 10, 4, 20, 20, 15};
@@ -58,9 +61,15 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
     private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 5, 3, 3, 5, 4,  0};
     private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 3, 4, 5, 6, 7, 10};
     private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 2, 2, 2,  2};
-    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15,15,15,15, 0 };
-    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15,15,15,15, 0 };
-    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20,20,20, 20};
+//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15,15,15,15, 0 };
+//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15,15,15,15, 0 };
+//    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20,20,20, 20};
+//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 2, 0 ,0 ,0 ,0 , 0 };
+//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 0, 0, 0 ,0 ,0 ,0 , 0 };
+//    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 0 ,0 ,0 ,0 ,0 , 0 };
+    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 10, 2 ,2 ,2 ,2 , 0 };
+    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 0, 0, 0 ,0 ,0 ,0 , 0 };
+    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 5 ,5 ,5 ,5 ,5 , 5 };
 
 //    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 3, 4, 5, 0};
 //    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 1, 2, 3, 4, 5};
@@ -76,7 +85,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
 //    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15    };
 //    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20 };
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test100LoadOrgStructure() throws Exception {
         OperationResult opResult = new OperationResult("===[ test100LoadOrgStructure ]===");
 
@@ -91,9 +100,95 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
     }
 
     @Test(enabled = true)
-    public void test110CheckClosure() throws Exception {
+    public void test110ScanOrgStructure() throws Exception {
+        OperationResult opResult = new OperationResult("===[ test110ScanOrgStructure ]===");
+
+        openSessionIfNeeded();
+
+        long start = System.currentTimeMillis();
+        scanOrgStructure(opResult);
+        System.out.println("Found " + allOrgCreated.size() + " orgs and " + (count - allOrgCreated.size()) + " users in " + (System.currentTimeMillis() - start) + " ms");
+        Query q = session.createSQLQuery("select count(*) from m_org_closure");
+        System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
+    }
+
+    @Test(enabled = false)
+    public void test150CheckClosure() throws Exception {
         OperationResult opResult = new OperationResult("===[ test110CheckClosure ]===");
         if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
+    }
+
+//    @Test(enabled = true)
+//    public void test150PrepareOrgStructure() throws Exception {
+//        OperationResult opResult = new OperationResult("===[ test150PrepareOrgStructure ]===");
+//
+//        scanOrgStructure(opResult);
+//        openSessionIfNeeded();
+//        Query q = session.createSQLQuery("select count(*) from m_org_closure");
+//        System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
+//    }
+
+    private static final String TEST_19x_CHILD_OID = "o2000...-....-....-....-............";
+    private static final String TEST_19x_PARENT_OID = "o000....-....-....-....-............";
+//    private static final String TEST_19x_CHILD_OID = "o40.....-....-....-....-............";
+//    private static final String TEST_19x_PARENT_OID = "o0......-....-....-....-............";
+
+    @Test(enabled = false)
+    public void test180RemoveAddCycle() throws Exception {
+        for (int i = 0; i < 30; i++) {
+            test195RemoveLink();
+            test190AddLink();
+        }
+    }
+
+    @Test(enabled = false)
+    public void test190AddLink() throws Exception {
+        OperationResult opResult = new OperationResult("===[ test190AddLink ]===");
+
+        //checkClosure(orgGraph.vertexSet());
+
+        ObjectType child = repositoryService.getObject(ObjectType.class, TEST_19x_CHILD_OID, null, opResult).asObjectable();
+        ObjectReferenceType parentOrgRef = new ObjectReferenceType();
+        parentOrgRef.setOid(TEST_19x_PARENT_OID);
+        parentOrgRef.setType(OrgType.COMPLEX_TYPE);
+        System.out.println("Adding link " + TEST_19x_CHILD_OID + " -> " + TEST_19x_PARENT_OID);
+        long start = System.currentTimeMillis();
+        if (child instanceof OrgType) {
+            addOrgParent((OrgType) child, parentOrgRef, opResult);
+        } else {
+            addUserParent((UserType) child, parentOrgRef, opResult);
+        }
+        long timeAddition = System.currentTimeMillis() - start;
+        System.out.println(" ... done in " + timeAddition + " ms" + getNetDurationMessage());
+
+        //checkClosure(orgGraph.vertexSet());
+    }
+
+    @Test(enabled = false)
+    public void test195RemoveLink() throws Exception {
+        OperationResult opResult = new OperationResult("===[ test195RemoveLink ]===");
+
+        //checkClosure(orgGraph.vertexSet());
+
+        System.out.println("Removing link " + TEST_19x_CHILD_OID + " -> " + TEST_19x_PARENT_OID);
+        ObjectType child = repositoryService.getObject(ObjectType.class, TEST_19x_CHILD_OID, null, opResult).asObjectable();
+        ObjectReferenceType parentOrgRef = null;
+        for (ObjectReferenceType ort : child.getParentOrgRef()) {
+            if (TEST_19x_PARENT_OID.equals(ort.getOid())) {
+                parentOrgRef = ort;
+            }
+        }
+        assertNotNull(TEST_19x_PARENT_OID + " is not a parent of " + TEST_19x_CHILD_OID, parentOrgRef);
+        long start = System.currentTimeMillis();
+        removeObjectParent(child, parentOrgRef, opResult);
+        long timeAddition = System.currentTimeMillis() - start;
+        System.out.println(" ... done in " + timeAddition + " ms" + getNetDurationMessage());
+
+        //checkClosure(orgGraph.vertexSet());
+    }
+
+    protected String getNetDurationMessage() {
+        return " (closure update: " + getNetDuration() + " ms)";
     }
 
     @Test(enabled = true)
@@ -127,10 +222,11 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
 
                 System.out.println("Removing parent from org #" + totalRounds + "(" + level + "/" + round + "): " + org.getOid() + ", parent: " + parentOrgRef.getOid());
                 long start = System.currentTimeMillis();
-                removeOrgParent(org, parentOrgRef, opResult);
+                removeObjectParent(org, parentOrgRef, opResult);
                 long timeRemoval = System.currentTimeMillis() - start;
-                System.out.println(" ... done in " + timeRemoval + " ms");
-                stat.record(level, false, timeRemoval);
+                System.out.println(" ... done in " + timeRemoval + " ms " + getNetDurationMessage());
+                stat.record(level, false, getNetDuration());
+                totalTimeLinkRemovals += getNetDuration();
 
                 if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
 
@@ -139,13 +235,12 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 start = System.currentTimeMillis();
                 addOrgParent(org, parentOrgRef, opResult);
                 long timeAddition = System.currentTimeMillis() - start;
-                System.out.println(" ... done in " + timeAddition + " ms");
-                stat.record(level, true, timeAddition);
+                System.out.println(" ... done in " + timeAddition + " ms " + getNetDurationMessage());
+                stat.record(level, true, getNetDuration());
 
                 if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
 
-                totalTimeLinkRemovals += timeRemoval;
-                totalTimeLinkAdditions += timeAddition;
+                totalTimeLinkAdditions += getNetDuration();
                 totalRounds++;
             }
         }
@@ -159,7 +254,11 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
         }
     }
 
-    @Test(enabled = true)
+    private long getNetDuration() {
+        return repositoryService.getClosureManager().getLastOperationDuration();
+    }
+
+    @Test(enabled = false)
     public void test300AddRemoveOrgs() throws Exception {
         OperationResult opResult = new OperationResult("===[ test300AddRemoveOrgs ]===");
 
@@ -184,8 +283,9 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 long start = System.currentTimeMillis();
                 removeOrg(org.getOid(), opResult);
                 long timeRemoval = System.currentTimeMillis() - start;
-                System.out.println(" ... done in " + timeRemoval + " ms");
-                stat.record(level, false, timeRemoval);
+                System.out.println(" ... done in " + timeRemoval + " ms" + getNetDurationMessage());
+                stat.record(level, false, getNetDuration());
+                totalTimeNodeRemovals += getNetDuration();
 
                 if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
 
@@ -194,13 +294,12 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 start = System.currentTimeMillis();
                 reAddOrg(org, opResult);
                 long timeAddition = System.currentTimeMillis() - start;
-                System.out.println(" ... done in " + timeAddition + "ms");
-                stat.record(level, true, timeAddition);
+                System.out.println(" ... done in " + timeAddition + "ms" + getNetDurationMessage());
+                stat.record(level, true, getNetDuration());
 
                 if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
 
-                totalTimeNodeRemovals += timeRemoval;
-                totalTimeNodeAdditions += timeAddition;
+                totalTimeNodeAdditions += getNetDuration();
                 totalRounds++;
             }
         }
@@ -238,8 +337,9 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 long start = System.currentTimeMillis();
                 removeUser(user.getOid(), opResult);
                 long timeRemoval = System.currentTimeMillis() - start;
-                System.out.println(" ... done in " + timeRemoval + " ms");
-                stat.record(level, false, timeRemoval);
+                System.out.println(" ... done in " + timeRemoval + " ms" + getNetDurationMessage());
+                stat.record(level, false, getNetDuration());
+                totalTimeNodeRemovals += getNetDuration();
 
                 if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
 
@@ -248,13 +348,12 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 start = System.currentTimeMillis();
                 reAddUser(user, opResult);
                 long timeAddition = System.currentTimeMillis() - start;
-                System.out.println(" ... done in " + timeAddition + "ms");
-                stat.record(level, true, timeAddition);
+                System.out.println(" ... done in " + timeAddition + "ms" + getNetDurationMessage());
+                stat.record(level, true, getNetDuration());
 
                 if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
 
-                totalTimeNodeRemovals += timeRemoval;
-                totalTimeNodeAdditions += timeAddition;
+                totalTimeNodeAdditions += getNetDuration();
                 totalRounds++;
             }
         }
@@ -268,7 +367,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test400UnloadOrgStructure() throws Exception {
         OperationResult opResult = new OperationResult("===[ unloadOrgStruct ]===");
         long start = System.currentTimeMillis();

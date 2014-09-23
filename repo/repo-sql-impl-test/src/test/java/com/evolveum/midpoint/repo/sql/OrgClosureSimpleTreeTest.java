@@ -102,7 +102,7 @@ public class OrgClosureSimpleTreeTest extends AbstractOrgClosureTest {
             System.out.println("Removing parent from org #" + round + ": " + org.getOid());
             long start = System.currentTimeMillis();
             ObjectReferenceType parentOrgRef = org.getParentOrgRef().get(0);
-            removeOrgParent(org, parentOrgRef, opResult);
+            removeObjectParent(org, parentOrgRef, opResult);
             long timeRemoval = System.currentTimeMillis() - start;
             System.out.println(" ... done in " + timeRemoval + " ms");
 

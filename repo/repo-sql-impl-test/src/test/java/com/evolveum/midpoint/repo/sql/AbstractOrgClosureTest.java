@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -135,15 +136,16 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
         return query.list();
     }
 
-    protected void removeOrgParent(OrgType org, ObjectReferenceType parentOrgRef, OperationResult opResult) throws Exception {
+    protected void removeObjectParent(ObjectType object, ObjectReferenceType parentOrgRef, OperationResult opResult) throws Exception {
         List<ItemDelta> modifications = new ArrayList<>();
         PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
-        ItemDelta removeParent = ReferenceDelta.createModificationDelete(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
+        ItemDelta removeParent = ReferenceDelta.createModificationDelete(object.getClass(), OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
         modifications.add(removeParent);
-        repositoryService.modifyObject(OrgType.class, org.getOid(), modifications, opResult);
-        orgGraph.removeEdge(org.getOid(), existingValue.getOid());
+        repositoryService.modifyObject(object.getClass(), object.getOid(), modifications, opResult);
+        orgGraph.removeEdge(object.getOid(), existingValue.getOid());
     }
 
+    // TODO generalzie to addObjectParent
     protected void addOrgParent(OrgType org, ObjectReferenceType parentOrgRef, OperationResult opResult) throws Exception {
         List<ItemDelta> modifications = new ArrayList<>();
         PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
@@ -151,6 +153,15 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
         modifications.add(readdParent);
         repositoryService.modifyObject(OrgType.class, org.getOid(), modifications, opResult);
         orgGraph.addEdge(org.getOid(), existingValue.getOid());
+    }
+
+    protected void addUserParent(UserType user, ObjectReferenceType parentOrgRef, OperationResult opResult) throws Exception {
+        List<ItemDelta> modifications = new ArrayList<>();
+        PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
+        ItemDelta readdParent = ReferenceDelta.createModificationAdd(UserType.class, UserType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
+        modifications.add(readdParent);
+        repositoryService.modifyObject(UserType.class, user.getOid(), modifications, opResult);
+        orgGraph.addEdge(user.getOid(), existingValue.getOid());
     }
 
     protected void removeOrg(String oid, OperationResult opResult) throws Exception {
@@ -180,13 +191,7 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
             return;
         }
 
-        List<String> orgsAtThisLevel;
-        if (orgsByLevels.size() == level) {
-            orgsAtThisLevel = new ArrayList<>();
-            orgsByLevels.add(orgsAtThisLevel);
-        } else {
-            orgsAtThisLevel = orgsByLevels.get(level);
-        }
+        List<String> orgsAtThisLevel = getOrgsAtThisLevelSafe(level);
 
         for (int i = 0; i < orgChildrenInLevel[level]; i++) {
             String newOidPrefix = getOidCharFor(i) + oidPrefix;
@@ -208,10 +213,7 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
         if (parentOid != null) {
 
-            while (usersByLevels.size() <= level) {
-                usersByLevels.add(new ArrayList<String>());
-            }
-            List<String> usersAtThisLevel = usersByLevels.get(level);
+            List<String> usersAtThisLevel = getUsersAtThisLevelSafe(level);
 
             for (int u = 0; u < userChildrenInLevel[level]; u++) {
                 int numberOfParents = parentsInLevel==null ? 1 : parentsInLevel[level];
@@ -227,8 +229,119 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     }
 
+    protected List<String> getUsersAtThisLevelSafe(int level) {
+        while (usersByLevels.size() <= level) {
+            usersByLevels.add(new ArrayList<String>());
+        }
+        return usersByLevels.get(level);
+    }
+
+    protected List<String> getOrgsAtThisLevelSafe(int level) {
+        while (orgsByLevels.size() <= level) {
+            orgsByLevels.add(new ArrayList<String>());
+        }
+        return orgsByLevels.get(level);
+    }
+
+
+//    // todo better name
+//    protected void prepareOrgStructureOids(int level, String parentOid, int[] orgChildrenInLevel, int[] userChildrenInLevel, int[] parentsInLevel, String oidPrefix,
+//                                    OperationResult result) throws Exception {
+//        if (level == orgChildrenInLevel.length) {
+//            return;
+//        }
+//
+//        List<String> orgsAtThisLevel = getOrgsAtThisLevelSafe(level);
+//        for (int i = 0; i < orgChildrenInLevel[level]; i++) {
+//            String newOidPrefix = getOidCharFor(i) + oidPrefix;
+//            int numberOfParents = parentsInLevel==null ? (parentOid != null ? 1 : 0) : parentsInLevel[level];
+//            PrismObject<OrgType> org = createOrg(generateParentsForLevel(parentOid, level, numberOfParents), newOidPrefix);
+//            LOGGER.info("'Creating' {}, total {}; parents = {}", new Object[]{org, count, getParentsOids(org)});
+//            String oid = org.getOid();
+//            if (parentOid == null) {
+//                rootOids.add(oid);
+//            }
+//            allOrgCreated.add(org.asObjectable());
+//            registerObject(org.asObjectable(), false);
+//            orgsAtThisLevel.add(oid);
+//            count++;
+//
+//            prepareOrgStructureOids(level + 1, oid, orgChildrenInLevel, userChildrenInLevel, parentsInLevel, newOidPrefix, result);
+//        }
+//
+//        if (parentOid != null) {
+//
+//            List<String> usersAtThisLevel = getUsersAtThisLevelSafe(level);
+//
+//            for (int u = 0; u < userChildrenInLevel[level]; u++) {
+//                int numberOfParents = parentsInLevel==null ? 1 : parentsInLevel[level];
+//                PrismObject<UserType> user = createUser(generateParentsForLevel(parentOid, level, numberOfParents), getOidCharFor(u) + ":" + oidPrefix);
+//                LOGGER.info("'Creating' {}, total {}; parents = {}", new Object[]{user, count, getParentsOids(user)});
+//                String uoid = user.getOid();
+//                registerObject(user.asObjectable(), false);
+//                usersAtThisLevel.add(uoid);
+//                count++;
+//            }
+//        }
+//
+//    }
+
+    protected void scanOrgStructure(OperationResult opResult) throws SchemaException, ObjectNotFoundException {
+
+        // determine rootOids
+        for (int i = 0; ; i++) {
+            String oid = "o" + createOid(""+getOidCharFor(i));
+            try {
+                System.out.println("Trying to find " + oid + " as a root");
+                OrgType org = repositoryService.getObject(OrgType.class, oid, null, opResult).asObjectable();
+                rootOids.add(org.getOid());
+                allOrgCreated.add(org);
+                registerOrgToLevels(0, org.getOid());
+                registerObject(org, false);
+                count++;
+            } catch (ObjectNotFoundException e) {
+                break;
+            }
+        }
+
+        for (String rootOid : rootOids) {
+            scanChildren(0, rootOid, opResult);
+        }
+    }
+
+    protected void registerOrgToLevels(int level, String oid) {
+        getOrgsAtThisLevelSafe(level).add(oid);
+    }
+
+    protected void registerUserToLevels(int level, String oid) {
+        getUsersAtThisLevelSafe(level).add(oid);
+    }
+
+    protected void scanChildren(int level, String parentOid, OperationResult opResult) throws SchemaException, ObjectNotFoundException {
+        List<String> children = getChildren(parentOid);
+        for (String childOid : children) {
+            if (alreadyKnown(childOid)) {
+                continue;
+            }
+            count++;
+            System.out.println("#" + count + ": parent level = " + level + ", childOid = " + childOid);
+            ObjectType objectType = repositoryService.getObject(ObjectType.class, childOid, null, opResult).asObjectable();
+            registerObject(objectType, false);          // children will be registered to graph later
+            if (objectType instanceof OrgType) {
+                allOrgCreated.add((OrgType) objectType);
+                registerOrgToLevels(level+1, objectType.getOid());
+                scanChildren(level + 1, objectType.getOid(), opResult);
+            } else if (objectType instanceof UserType) {
+                registerUserToLevels(level+1, objectType.getOid());
+            } else {
+                throw new IllegalStateException("Object with unexpected type: " + objectType);
+            }
+        }
+    }
+
+
     private static String SPECIAL="!@#$%^&*()";
-    private char getOidCharFor(int i) {
+    protected char getOidCharFor(int i) {
         if (i < 10) {
             return (char) ('0'+i);
         } else if (i < 36) {
@@ -270,17 +383,30 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected void registerObject(ObjectType objectType, boolean registerChildrenLinks) {
         String oid = objectType.getOid();
-        orgGraph.addVertex(oid);
+        registerVertexIfNeeded(oid);
         for (ObjectReferenceType ort : objectType.getParentOrgRef()) {
-            orgGraph.addEdge(oid, ort.getOid());
+            registerVertexIfNeeded(ort.getOid());
+            try {
+                orgGraph.addEdge(oid, ort.getOid());
+            } catch (RuntimeException e) {
+                System.err.println("Couldn't add edge " + oid + " -> " + ort.getOid() + " into the graph");
+                throw e;
+            }
         }
 
         if (registerChildrenLinks) {
             // let's check for existing children
             List<String> children = getChildren(oid);
             for (String child : children) {
+                registerVertexIfNeeded(child);
                 orgGraph.addEdge(child, oid);
             }
+        }
+    }
+
+    private void registerVertexIfNeeded(String child) {
+        if (!orgGraph.containsVertex(child)) {
+            orgGraph.addVertex(child);
         }
     }
 
@@ -395,5 +521,18 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
         PolyStringType poly = new PolyStringType();
         poly.setOrig(orig);
         return poly;
+    }
+
+    protected boolean alreadyKnown(String oid) {
+        return knownIn(orgsByLevels, oid) || knownIn(usersByLevels, oid);
+    }
+
+    private boolean knownIn(List<List<String>> byLevels, String oid) {
+        for (List<String> oneLevel : byLevels) {
+            if (oneLevel.contains(oid)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
