@@ -44,6 +44,7 @@ DETERMINISTIC
     DELETE FROM m_report_output;
     DELETE FROM m_org_org_type;
     DELETE FROM m_org;
+    DELETE FROM m_org_closure;
     DELETE FROM m_role;
     DELETE FROM m_abstract_role;
     DELETE FROM m_system_configuration;

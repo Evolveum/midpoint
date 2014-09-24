@@ -59,6 +59,36 @@ public class OrgClosureManager {
 
     private SqlRepositoryConfiguration repoConfiguration;
 
+    public static class Edge {
+        private String descendant;              // i.e. child, or technically, edge tail
+        private String ancestor;                // i.e. parent, or technically, edge head
+        private Edge(String descendant, String ancestor) {
+            this.descendant = descendant;
+            this.ancestor = ancestor;
+        }
+        public String getDescendant() {
+            return descendant;
+        }
+        public void setDescendant(String descendant) {
+            this.descendant = descendant;
+        }
+        public String getAncestor() {
+            return ancestor;
+        }
+        public void setAncestor(String ancestor) {
+            this.ancestor = ancestor;
+        }
+        public String getTail() {
+            return descendant;
+        }
+        public String getHead() {
+            return ancestor;
+        }
+        public String toString() {
+            return descendant + "->" + ancestor;
+        }
+    }
+
     public OrgClosureManager(SqlRepositoryConfiguration repoConfiguration) {
         this.repoConfiguration = repoConfiguration;
     }
@@ -109,98 +139,133 @@ public class OrgClosureManager {
         List<String> livingChildren = null;
         if (maybeNonLeaf) {
             livingChildren = getChildren(oid, session);        // no need to check existence of these oids, as owner is a FK pointing to RObject in RParentRef
-            for (String child : livingChildren) {
-                addEdge(child, oid, session);
-            }
+            addChildrenEdges(oid, livingChildren, session);
         }
 
-        addEdges(oid, retainExistingOids(parents, session), maybeNonLeaf, livingChildren, session);
-    }
-
-    // expects that all parents are really existing
-    // livingChildrenIfKnown - either null (if unknown or not important) or a real list => used to select quick path
-    private void addEdges(String oid, Collection<String> parents, boolean maybeNonLeaf, List<String> livingChildrenIfKnown, Session session) {
-
-        if (parents.size() <= 1 &&
-                (!maybeNonLeaf || (livingChildrenIfKnown != null && livingChildrenIfKnown.isEmpty()))) {
-            // very simple case: we only add a few entries to the closure table
-            if (!parents.isEmpty()) {
-                long start = System.currentTimeMillis();
-                Query addToClosureQuery = session.createSQLQuery(
-                        "insert into "+closureTableName+" (descendant_oid, ancestor_oid, val) " +
-                                "select :oid as descendant_oid, CL.ancestor_oid as ancestor_oid, 1 as val " +
-                                "from "+closureTableName+" CL " +
-                                "where CL.descendant_oid IN (:parents)");
-                addToClosureQuery.setString("oid", oid);
-                addToClosureQuery.setParameterList("parents", parents);
-                int count = addToClosureQuery.executeUpdate();
-                if (LOGGER.isTraceEnabled())
-                    LOGGER.trace("addEdges simplified: Added {} records to closure table ({} ms).", count,
-                            System.currentTimeMillis() - start);
+        if (parents.size() <= 1 && (livingChildren == null || livingChildren.isEmpty())) {
+            String parent;
+            if (parents.isEmpty()) {
+                parent = null;
+            } else {
+                parent = parents.iterator().next();
             }
-            session.flush();
-            session.clear();
+            addEdgeSimple(oid, parent, session);
         } else {
-            // general case
-            for (String parent : parents) {
-                addEdge(oid, parent, session);
-            }
+            addParentEdges(oid, retainExistingOids(parents, session), session);
         }
     }
 
-    // "tail" is child, "head" is parent
-    private void addEdge(String tail, String head, Session session) {
+    private void addChildrenEdges(String oid, List<String> livingChildren, Session session) {
+        List<Edge> edges = childrenToEdges(oid, livingChildren);
+        addIndependentEdges(edges, session);
+    }
+
+    private void removeChildrenEdges(String oid, List<String> livingChildren, Session session) {
+        List<Edge> edges = childrenToEdges(oid, livingChildren);
+        removeIndependentEdges(edges, session);
+    }
+
+    private List<Edge> childrenToEdges(String oid, List<String> livingChildren) {
+        List<Edge> edges = new ArrayList<>();
+        for (String child : livingChildren) {
+            edges.add(new Edge(child, oid));
+        }
+        return edges;
+    }
+
+    private void addParentEdges(String oid, List<String> parents, Session session) {
+        List<Edge> edges = parentsToEdges(oid, parents);
+        addIndependentEdges(edges, session);
+    }
+
+    private void removeParentEdges(String oid, Collection<String> parents, Session session) {
+        List<Edge> edges = parentsToEdges(oid, parents);
+        removeIndependentEdges(edges, session);
+    }
+
+    private List<Edge> parentsToEdges(String oid, Collection<String> parents) {
+        List<Edge> edges = new ArrayList<>();
+        for (String parent : parents) {
+            edges.add(new Edge(oid, parent));
+        }
+        return edges;
+    }
+
+    private void addEdgeSimple(String oid, String parent, Session session) {
+        if (parent != null) {
+            long start = System.currentTimeMillis();
+            Query addToClosureQuery = session.createSQLQuery(
+                    "insert into "+closureTableName+" (descendant_oid, ancestor_oid, val) " +
+                            "select :oid as descendant_oid, CL.ancestor_oid as ancestor_oid, 1 as val " +
+                            "from "+closureTableName+" CL " +
+                            "where CL.descendant_oid = :parent");
+            addToClosureQuery.setString("oid", oid);
+            addToClosureQuery.setParameter("parent", parent);
+            int count = addToClosureQuery.executeUpdate();
+            if (LOGGER.isTraceEnabled())
+                LOGGER.trace("addEdges simplified: Added {} records to closure table ({} ms).", count,
+                        System.currentTimeMillis() - start);
+        }
+        session.flush();
+        session.clear();
+    }
+
+    private void addIndependentEdges(List<Edge> edges, Session session) {
 
         long start = System.currentTimeMillis();
-        LOGGER.trace("===================== ADD EDGE: {} -> {} ================", tail, head);
+        LOGGER.trace("===================== ADD INDEPENDENT EDGES: {} ================", edges);
 
-        String deltaTempTableName = computeDeltaTable(tail, head, session);
-        int count;
+        if (!edges.isEmpty()) {
+            String deltaTempTableName = computeDeltaTable(edges, session);
+            int count;
 
-        long startUpdate = System.currentTimeMillis();
-        String updateInClosureQueryText;
-        if (repoConfiguration.isUsingH2()) {
-            updateInClosureQueryText = "update "+closureTableName+" " +
-                    "set val = val + (select val from " + deltaTempTableName + " td " +
-                    "where td.descendant_oid="+closureTableName+".descendant_oid and td.ancestor_oid="+closureTableName+".ancestor_oid) " +
-                    "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
-        } else if (repoConfiguration.isUsingPostgreSQL()) {
-            updateInClosureQueryText = "update "+closureTableName+" " +
-                    "set val = val + (select val from " + deltaTempTableName + " td " +
-                    "where td.descendant_oid="+closureTableName+".descendant_oid and td.ancestor_oid="+closureTableName+".ancestor_oid) " +
-                    "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
-        } else {
-            throw new UnsupportedOperationException("implement other databases");
-        }
-        Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
-        int countUpdate = updateInClosureQuery.executeUpdate();
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Updated {} records to closure table ({} ms)", countUpdate, System.currentTimeMillis()-startUpdate);
-
-        if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
-
-        long startAdd = System.currentTimeMillis();
-        String addQuery =
-                "insert into "+closureTableName+" (descendant_oid, ancestor_oid, val) " +
-                        "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta ";
-        if (countUpdate > 0) {
+            long startUpdate = System.currentTimeMillis();
+            String updateInClosureQueryText;
             if (repoConfiguration.isUsingH2()) {
-                addQuery += " where (descendant_oid, ancestor_oid) not in (select (descendant_oid, ancestor_oid) from "+closureTableName+")";
+                updateInClosureQueryText = "update " + closureTableName + " " +
+                        "set val = val + (select val from " + deltaTempTableName + " td " +
+                        "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
+                        "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
             } else if (repoConfiguration.isUsingPostgreSQL()) {
-                addQuery += " where not exists (select 1 from "+closureTableName+" cl where cl.descendant_oid=delta.descendant_oid and cl.ancestor_oid=delta.ancestor_oid)";
+                updateInClosureQueryText = "update " + closureTableName + " " +
+                        "set val = val + (select val from " + deltaTempTableName + " td " +
+                        "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
+                        "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
             } else {
                 throw new UnsupportedOperationException("implement other databases");
             }
-        }
-        Query addToClosureQuery = session.createSQLQuery(addQuery);
-        count = addToClosureQuery.executeUpdate();
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to closure table ({} ms)", count, System.currentTimeMillis()-startAdd);
+            Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
+            int countUpdate = updateInClosureQuery.executeUpdate();
+            if (LOGGER.isTraceEnabled())
+                LOGGER.trace("Updated {} records to closure table ({} ms)", countUpdate, System.currentTimeMillis() - startUpdate);
 
-        if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
+            if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
+
+            long startAdd = System.currentTimeMillis();
+            String addQuery =
+                    "insert into " + closureTableName + " (descendant_oid, ancestor_oid, val) " +
+                            "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta ";
+            if (countUpdate > 0) {
+                if (repoConfiguration.isUsingH2()) {
+                    addQuery += " where (descendant_oid, ancestor_oid) not in (select (descendant_oid, ancestor_oid) from " + closureTableName + ")";
+                } else if (repoConfiguration.isUsingPostgreSQL()) {
+                    addQuery += " where not exists (select 1 from " + closureTableName + " cl where cl.descendant_oid=delta.descendant_oid and cl.ancestor_oid=delta.ancestor_oid)";
+                } else {
+                    throw new UnsupportedOperationException("implement other databases");
+                }
+            }
+            Query addToClosureQuery = session.createSQLQuery(addQuery);
+            count = addToClosureQuery.executeUpdate();
+            if (LOGGER.isTraceEnabled())
+                LOGGER.trace("Added {} records to closure table ({} ms)", count, System.currentTimeMillis() - startAdd);
+
+            if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
+        }
 
         session.flush();
         session.clear();
 
-        LOGGER.trace("--------------------- DONE ADD EDGE: {} -> {} ({} ms) ----------------", new Object[]{tail, head, System.currentTimeMillis()-start});
+        LOGGER.trace("--------------------- DONE ADD EDGES: {} ({} ms) ----------------", edges, System.currentTimeMillis()-start);
     }
 
     //endregion
@@ -221,14 +286,12 @@ public class OrgClosureManager {
         }
 
         // delete all edges "<child> -> OID" from the closure
-        for (String childOid : children) {
-            removeEdge(childOid, oid, session);
-        }
+        removeChildrenEdges(oid, children, session);
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'child' links.", children.size());
 
         // delete all edges "OID -> <parent>" from the closure
         List<String> parents = getParents(oid, session);
-        removeEdges(oid, new HashSet<>(parents), maybeNonLeaf, session);
+        removeParentEdges(oid, parents, session);               // todo check for parents' existence?
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'parent' links.", parents.size());
 
         // delete (OID, OID) record
@@ -248,56 +311,53 @@ public class OrgClosureManager {
         if (LOGGER.isTraceEnabled()) LOGGER.trace("DeleteLeaf: Removed {} records from closure table.", count);
     }
 
-    private void removeEdges(String oid, Set<String> parents, boolean maybeNonLeaf, Session session) {
-        for (String parent : parents) {
-            removeEdge(oid, parent, session);
-        }
-    }
-
-    // "tail" is child, "head" is parent
-    private void removeEdge(String tail, String head, Session session) {
+    private void removeIndependentEdges(List<Edge> edges, Session session) {
 
         long start = System.currentTimeMillis();
-        LOGGER.trace("===================== REMOVE EDGE: {} -> {} ================", tail, head);
+        LOGGER.trace("===================== REMOVE INDEPENDENT EDGES: {} ================", edges);
 
-        String deltaTempTableName = computeDeltaTable(tail, head, session);
-        int count;
+        if (!edges.isEmpty()) {
+            String deltaTempTableName = computeDeltaTable(edges, session);
+            int count;
 
-        String deleteFromClosureQueryText, updateInClosureQueryText;
-        if (repoConfiguration.isUsingH2()) {
-            deleteFromClosureQueryText = "delete from "+closureTableName+" " +
-                    "where (descendant_oid, ancestor_oid, val) in " +
-                    "(select (descendant_oid, ancestor_oid, val) from " + deltaTempTableName + ")";
-            updateInClosureQueryText = "update "+closureTableName+" " +
-                    "set val = val - (select val from " + deltaTempTableName + " td " +
-                    "where td.descendant_oid="+closureTableName+".descendant_oid and td.ancestor_oid="+closureTableName+".ancestor_oid) " +
-                    "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from "+deltaTempTableName+")";
-        } else if (repoConfiguration.isUsingPostgreSQL()) {
-            deleteFromClosureQueryText = "delete from "+closureTableName+" " +
-                    "where (descendant_oid, ancestor_oid, val) in " +
-                    "(select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ")";
-            updateInClosureQueryText = "update "+closureTableName+" " +
-                    "set val = val - (select val from " + deltaTempTableName + " td " +
-                    "where td.descendant_oid="+closureTableName+".descendant_oid and td.ancestor_oid="+closureTableName+".ancestor_oid) " +
-                    "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from "+deltaTempTableName+")";
-        } else {
-            throw new UnsupportedOperationException("implement other databases");
+            String deleteFromClosureQueryText, updateInClosureQueryText;
+            if (repoConfiguration.isUsingH2()) {
+                deleteFromClosureQueryText = "delete from " + closureTableName + " " +
+                        "where (descendant_oid, ancestor_oid, val) in " +
+                        "(select (descendant_oid, ancestor_oid, val) from " + deltaTempTableName + ")";
+                updateInClosureQueryText = "update " + closureTableName + " " +
+                        "set val = val - (select val from " + deltaTempTableName + " td " +
+                        "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
+                        "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
+            } else if (repoConfiguration.isUsingPostgreSQL()) {
+                deleteFromClosureQueryText = "delete from " + closureTableName + " " +
+                        "where (descendant_oid, ancestor_oid, val) in " +
+                        "(select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ")";
+                updateInClosureQueryText = "update " + closureTableName + " " +
+                        "set val = val - (select val from " + deltaTempTableName + " td " +
+                        "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
+                        "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
+            } else {
+                throw new UnsupportedOperationException("implement other databases");
+            }
+            long startDelete = System.currentTimeMillis();
+            Query deleteFromClosureQuery = session.createSQLQuery(deleteFromClosureQueryText);
+            count = deleteFromClosureQuery.executeUpdate();
+            if (LOGGER.isTraceEnabled())
+                LOGGER.trace("Deleted {} records from closure table in {} ms", count, System.currentTimeMillis() - startDelete);
+            if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
+
+            long startUpdate = System.currentTimeMillis();
+            Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
+            count = updateInClosureQuery.executeUpdate();
+            if (LOGGER.isTraceEnabled())
+                LOGGER.trace("Updated {} records in closure table in {} ms", count, System.currentTimeMillis() - startUpdate);
+            if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
         }
-        long startDelete = System.currentTimeMillis();
-        Query deleteFromClosureQuery = session.createSQLQuery(deleteFromClosureQueryText);
-        count = deleteFromClosureQuery.executeUpdate();
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} records from closure table in {} ms", count, System.currentTimeMillis()-startDelete);
-        if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
-
-        long startUpdate = System.currentTimeMillis();
-        Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
-        count = updateInClosureQuery.executeUpdate();
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Updated {} records in closure table in {} ms", count, System.currentTimeMillis()-startUpdate);
-        if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
         session.flush();
         session.clear();
 
-        LOGGER.trace("--------------------- DONE REMOVE EDGE: {} -> {} ({} ms) ----------------", new Object[]{tail, head, System.currentTimeMillis()-start});
+        LOGGER.trace("--------------------- DONE REMOVE EDGES: {} ({} ms) ----------------", edges, System.currentTimeMillis()-start);
     }
     //endregion
 
@@ -316,8 +376,8 @@ public class OrgClosureManager {
 
         parentsToDelete.removeAll(parentsToAdd);            // if something is deleted and the re-added we can skip this operation
 
-        removeEdges(oid, parentsToDelete, maybeNonLeaf, session);
-        addEdges(oid, retainExistingOids(parentsToAdd, session), maybeNonLeaf, null, session);
+        removeParentEdges(oid, parentsToDelete, session);
+        addParentEdges(oid, retainExistingOids(parentsToAdd, session), session);
     }
 
     //endregion
@@ -353,7 +413,11 @@ public class OrgClosureManager {
     //endregion
 
     // returns table name
-    private String computeDeltaTable(String tail, String head, Session session) {
+    private String computeDeltaTable(List<Edge> edges, Session session) {
+
+        if (edges.isEmpty()) {
+            throw new IllegalArgumentException("No edges to add/remove");
+        }
 
         String deltaTempTableName = "m_org_closure_delta_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
 
@@ -372,16 +436,26 @@ public class OrgClosureManager {
         } else {
             throw new UnsupportedOperationException("define other databases");
         }
+        // t1.ancestor_oid = :tail and t2.descendant_oid = :head
+        StringBuilder whereClause = new StringBuilder();
+        boolean first = true;
+        for (Edge edge : edges) {
+            if (first) {
+                first = false;
+            } else {
+                whereClause.append(" or ");
+            }
+            whereClause.append("(t1.ancestor_oid = '").append(edge.getTail()).append("'");
+            whereClause.append("and t2.descendant_oid = '").append(edge.getHead()).append("')");
+        }
         Query query1 = session.createSQLQuery(
                         createTablePrefix +
                         " as " +
                         "select t1.descendant_oid as descendant_oid, t2.ancestor_oid as ancestor_oid, " +
                                "sum(t1.val*t2.val) as val " +
                         "from "+closureTableName+" t1, "+closureTableName+" t2 " +
-                        "where t1.ancestor_oid = :tail and t2.descendant_oid = :head " +
+                        "where " + whereClause.toString() + " " +
                         "group by t1.descendant_oid, t2.ancestor_oid");
-        query1.setString("tail", tail);
-        query1.setString("head", head);
         int count = query1.executeUpdate();
 
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to temporary delta table {} ({} ms).",

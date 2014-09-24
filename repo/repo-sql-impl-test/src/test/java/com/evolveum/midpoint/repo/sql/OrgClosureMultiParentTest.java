@@ -46,7 +46,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
     private static final String ORG_STRUCT_OBJECTS = TEST_DIR + "/org-monkey-island.xml";
     private static final String ORG_SIMPLE_TEST = TEST_DIR + "/org-simple-test.xml";
 
-    private static final boolean CHECK_CLOSURE = false;
+    private static final boolean CHECK_CLOSURE = true;
 
 //    private static final int[] ORG_CHILDREN_IN_LEVEL = {1, 5, 5, 20, 20, 4};
 //    private static final int[] USER_CHILDREN_IN_LEVEL = {5, 10, 4, 20, 20, 15};
@@ -58,25 +58,27 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
 //    private static final int[] USER_CHILDREN_IN_LEVEL = {0,  0,  0, 0, 20 };
 //    private static final int[] PARENTS_IN_LEVEL       = {0,  1,  2, 2,  3 };
 
-    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 5, 3, 3, 5, 4,  0};
-    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 3, 4, 5, 6, 7, 10};
-    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 2, 2, 2,  2};
+    // UK!
+//    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 5, 3, 3, 5, 4,  0};
+//    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 3, 4, 5, 6, 7, 10};
+//    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 2, 2, 2,  2};
+//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 10, 2 ,2 ,2 ,2 , 0 };
+//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 0, 0, 0 ,0 ,0 ,0 , 0 };
+//    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 5 ,5 ,5 ,5 ,5 , 5 };
+
 //    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15,15,15,15, 0 };
 //    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15,15,15,15, 0 };
 //    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20,20,20, 20};
 //    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 2, 0 ,0 ,0 ,0 , 0 };
 //    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 0, 0, 0 ,0 ,0 ,0 , 0 };
 //    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 0 ,0 ,0 ,0 ,0 , 0 };
-    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 10, 2 ,2 ,2 ,2 , 0 };
-    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 0, 0, 0 ,0 ,0 ,0 , 0 };
-    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 5 ,5 ,5 ,5 ,5 , 5 };
 
-//    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 3, 4, 5, 0};
-//    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 1, 2, 3, 4, 5};
-//    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 3, 3, 3};
-//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15,15,15,0 };
-//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15,15,15,0 };
-//    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20,20,20};
+    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 3, 4, 5, 0};
+    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 1, 2, 3, 4, 5};
+    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 3, 3, 3};
+    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15,15,15,0 };
+    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15,15,15,0 };
+    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20,20,20};
 
 //    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 3, 0  };
 //    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 1, 2, 3  };
@@ -85,7 +87,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
 //    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15    };
 //    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20 };
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test100LoadOrgStructure() throws Exception {
         OperationResult opResult = new OperationResult("===[ test100LoadOrgStructure ]===");
 
@@ -99,7 +101,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
         System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test110ScanOrgStructure() throws Exception {
         OperationResult opResult = new OperationResult("===[ test110ScanOrgStructure ]===");
 
@@ -112,26 +114,14 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
         System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test150CheckClosure() throws Exception {
         OperationResult opResult = new OperationResult("===[ test110CheckClosure ]===");
         if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
     }
 
-//    @Test(enabled = true)
-//    public void test150PrepareOrgStructure() throws Exception {
-//        OperationResult opResult = new OperationResult("===[ test150PrepareOrgStructure ]===");
-//
-//        scanOrgStructure(opResult);
-//        openSessionIfNeeded();
-//        Query q = session.createSQLQuery("select count(*) from m_org_closure");
-//        System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
-//    }
-
     private static final String TEST_19x_CHILD_OID = "o2000...-....-....-....-............";
     private static final String TEST_19x_PARENT_OID = "o000....-....-....-....-............";
-//    private static final String TEST_19x_CHILD_OID = "o40.....-....-....-....-............";
-//    private static final String TEST_19x_PARENT_OID = "o0......-....-....-....-............";
 
     @Test(enabled = false)
     public void test180RemoveAddCycle() throws Exception {
@@ -191,7 +181,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
         return " (closure update: " + getNetDuration() + " ms)";
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test200AddRemoveLinks() throws Exception {
         OperationResult opResult = new OperationResult("===[ addRemoveLinks ]===");
 
@@ -254,10 +244,6 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
         }
     }
 
-    private long getNetDuration() {
-        return repositoryService.getClosureManager().getLastOperationDuration();
-    }
-
     @Test(enabled = false)
     public void test300AddRemoveOrgs() throws Exception {
         OperationResult opResult = new OperationResult("===[ test300AddRemoveOrgs ]===");
@@ -290,7 +276,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
 
                 // addition
-                System.out.println("Re-adding org #" + round);
+                System.out.println("Re-adding org #" + totalRounds);
                 start = System.currentTimeMillis();
                 reAddOrg(org, opResult);
                 long timeAddition = System.currentTimeMillis() - start;
@@ -313,7 +299,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
         }
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test310AddRemoveUsers() throws Exception {
         OperationResult opResult = new OperationResult("===[ test310AddRemoveUsers ]===");
 
@@ -344,7 +330,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
 
                 // addition
-                System.out.println("Re-adding user #" + round);
+                System.out.println("Re-adding user #" + totalRounds);
                 start = System.currentTimeMillis();
                 reAddUser(user, opResult);
                 long timeAddition = System.currentTimeMillis() - start;
@@ -372,6 +358,20 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
         OperationResult opResult = new OperationResult("===[ unloadOrgStruct ]===");
         long start = System.currentTimeMillis();
         removeOrgStructure(opResult);
+        System.out.println("Removed in " + (System.currentTimeMillis() - start) + " ms");
+
+        openSessionIfNeeded();
+        Query q = session.createSQLQuery("select count(*) from m_org_closure");
+        System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
+
+        LOGGER.info("Finish.");
+    }
+
+    @Test(enabled = true)
+    public void test410RandomUnloadOrgStructure() throws Exception {
+        OperationResult opResult = new OperationResult("===[ test410RandomUnloadOrgStructure ]===");
+        long start = System.currentTimeMillis();
+        randomRemoveOrgStructure(opResult);
         System.out.println("Removed in " + (System.currentTimeMillis() - start) + " ms");
 
         openSessionIfNeeded();

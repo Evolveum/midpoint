@@ -16,6 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import cern.colt.matrix.DoubleMatrix2D;
+import cern.colt.matrix.impl.SparseDoubleMatrix2D;
+import cern.colt.matrix.linalg.Algebra;
+import cern.jet.math.Functions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -54,6 +58,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 
 /**
  * @author lazyman
@@ -72,6 +77,8 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected List<OrgType> allOrgCreated = new ArrayList<>();
 
+    protected List<UserType> allUsersCreated = new ArrayList<>();
+
     protected List<List<String>> orgsByLevels = new ArrayList<>();
 
     protected List<List<String>> usersByLevels = new ArrayList<>();
@@ -79,6 +86,8 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
     protected SimpleDirectedGraph<String, DefaultEdge> orgGraph = new SimpleDirectedGraph<>(DefaultEdge.class);
 
     protected Session session;            // used exclusively for read-only operations
+
+    private int maxLevel = 0;
 
     protected void openSessionIfNeeded() {
         if (session == null || !session.isConnected()) {
@@ -113,6 +122,75 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
             }
             assertEquals("Incorrect children for " + subroot, expectedChildren, actualChildren);
         }
+
+        checkClosureTable(session);
+    }
+
+    /**
+     * Recomputes closure table from scratch (using matrix multiplication) and compares it with M_ORG_CLOSURE.
+     */
+    protected void checkClosureTable(Session session) {
+        // we compute the closure table "by hand" as 1 + A + A^2 + A^3 + ... + A^n where n is the greatest expected path length
+        int vertices = orgGraph.vertexSet().size();
+
+        long start = System.currentTimeMillis();
+
+        // used to give indices to vertices
+        List<String> vertexList = new ArrayList<>(orgGraph.vertexSet());
+        DoubleMatrix2D a = new SparseDoubleMatrix2D(vertices, vertices);
+//        for (int i = 0; i < vertices; i++) {
+//            a.setQuick(i, i, 1.0);
+//        }
+        for (DefaultEdge edge : orgGraph.edgeSet()) {
+            a.set(vertexList.indexOf(orgGraph.getEdgeSource(edge)),
+                  vertexList.indexOf(orgGraph.getEdgeTarget(edge)),
+                  1.0);
+        }
+
+        DoubleMatrix2D result = new SparseDoubleMatrix2D(vertices, vertices);
+        for (int i = 0; i < vertices; i++) {
+            result.setQuick(i, i, 1.0);
+        }
+
+        DoubleMatrix2D power = result.copy();
+        Algebra alg = new Algebra();
+        for (int level = 1; level <= maxLevel; level++) {
+            power = alg.mult(power, a);
+            result.assign(power, Functions.plus);
+//            System.out.println("a=" + a);
+//            System.out.println("a^"+level+"="+power);
+        }
+        LOGGER.info("TC matrix computed in {} ms", System.currentTimeMillis() - start);
+
+        Query q = session.createSQLQuery("select descendant_oid, ancestor_oid, val from m_org_closure");
+        List<Object[]> list = q.list();
+        LOGGER.info("OrgClosure has {} rows", list.size());
+
+        DoubleMatrix2D closureInDatabase = new SparseDoubleMatrix2D(vertices, vertices);
+        for (Object[] item : list) {
+            closureInDatabase.set(vertexList.indexOf(item[0]),
+                    vertexList.indexOf(item[1]),
+                    (Integer) item[2]);
+        }
+
+        double zSumResultBefore = result.zSum();
+        double zSumClosureInDb = closureInDatabase.zSum();
+        result.assign(closureInDatabase, Functions.minus);
+        double zSumResultAfter = result.zSum();
+        LOGGER.info("Summary of items in closure computed: {}, in DB-stored closure: {}, delta: {}", new Object[]{zSumResultBefore, zSumClosureInDb, zSumResultAfter});
+
+        boolean problem = false;
+        for (int i = 0; i < vertices; i++) {
+            for (int j = 0; j < vertices; j++) {
+                double delta = result.get(i, j);
+                if (Math.round(delta) != 0) {
+                    System.err.println("delta("+vertexList.get(i)+","+vertexList.get(j)+") = " + delta);
+                    LOGGER.error("delta("+vertexList.get(i)+","+vertexList.get(j)+") = " + delta);
+                    problem = true;
+                }
+            }
+        }
+        assertFalse("Difference found", problem);
     }
 
     protected Set<String> getActualChildrenOf(String ancestor) {
@@ -191,6 +269,10 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
             return;
         }
 
+        if (level > maxLevel) {
+            maxLevel = level;
+        }
+
         List<String> orgsAtThisLevel = getOrgsAtThisLevelSafe(level);
 
         for (int i = 0; i < orgChildrenInLevel[level]; i++) {
@@ -221,6 +303,7 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 LOGGER.info("Creating {}, total {}; parents = {}", new Object[]{user, count, getParentsOids(user)});
                 String uoid = repositoryService.addObject(user, null, result);
                 user.setOid(uoid);
+                allUsersCreated.add(user.asObjectable());
                 registerObject(user.asObjectable(), false);
                 usersAtThisLevel.add(uoid);
                 count++;
@@ -318,6 +401,11 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected void scanChildren(int level, String parentOid, OperationResult opResult) throws SchemaException, ObjectNotFoundException {
+
+        if (level > maxLevel) {
+            maxLevel = level;
+        }
+
         List<String> children = getChildren(parentOid);
         for (String childOid : children) {
             if (alreadyKnown(childOid)) {
@@ -332,7 +420,8 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 registerOrgToLevels(level+1, objectType.getOid());
                 scanChildren(level + 1, objectType.getOid(), opResult);
             } else if (objectType instanceof UserType) {
-                registerUserToLevels(level+1, objectType.getOid());
+                allUsersCreated.add((UserType) objectType);
+                registerUserToLevels(level + 1, objectType.getOid());
             } else {
                 throw new IllegalStateException("Object with unexpected type: " + objectType);
             }
@@ -404,9 +493,9 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
         }
     }
 
-    private void registerVertexIfNeeded(String child) {
-        if (!orgGraph.containsVertex(child)) {
-            orgGraph.addVertex(child);
+    private void registerVertexIfNeeded(String oid) {
+        if (!orgGraph.containsVertex(oid)) {
+            orgGraph.addVertex(oid);
         }
     }
 
@@ -432,7 +521,11 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
         for (PrismObject<OrgType> subOrg : subOrgs) {
             removeOrgStructure(subOrg.getOid(), result);
         }
-        repositoryService.deleteObject(OrgType.class, nodeOid, result);
+        try {
+            repositoryService.deleteObject(OrgType.class, nodeOid, result);
+        } catch (Exception e) {
+            System.err.println("error while deleting " + nodeOid + ": " + e.getMessage());
+        }
         LOGGER.trace("Org " + nodeOid + " was removed");
     }
 
@@ -442,9 +535,38 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
         query.setFilter(filter);
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
         for (PrismObject<UserType> user : users) {
-            repositoryService.deleteObject(UserType.class, user.getOid(), result);
-            LOGGER.trace("User " + user.getOid() + " was removed");
+            try {
+                repositoryService.deleteObject(UserType.class, user.getOid(), result);
+                LOGGER.trace("User " + user.getOid() + " was removed");
+            } catch (Exception e) {
+                System.err.println("error while deleting " + user.getOid() + ": " + e.getMessage());
+            }
         }
+    }
+
+    protected void randomRemoveOrgStructure(OperationResult result) throws Exception {
+        openSessionIfNeeded();
+
+        int count = 0;
+        long totalTime = 0;
+        List<String> vertices = new ArrayList<>(orgGraph.vertexSet());
+        while (!vertices.isEmpty()) {
+            int i = (int) Math.floor(vertices.size()*Math.random());
+            String oid = vertices.get(i);
+            Class<? extends ObjectType> clazz = oid.startsWith("o") ? OrgType.class : UserType.class;       // hack!
+            try {
+                repositoryService.deleteObject(clazz, oid, result);
+                count++;
+                totalTime += getNetDuration();
+                System.out.println("#"+count + ": " + oid + " deleted in " + getNetDuration() + " ms (net), remaining: " + (vertices.size()-1));
+            } catch (Exception e) {
+                System.err.println("Error deleting " + oid + ": " + e.getMessage());
+            }
+            orgGraph.removeVertex(oid);
+            vertices.remove(oid);
+            checkClosureTable(session);
+        }
+        System.out.println(count + " objects deleted in avg time " + ((float) totalTime/count) + " ms (net)");
     }
 
     protected PrismObject<UserType> createUser(List<String> parentOids, String oidPrefix)
@@ -534,5 +656,17 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
             }
         }
         return false;
+    }
+
+    public int getMaxLevel() {
+        return maxLevel;
+    }
+
+    public void setMaxLevel(int maxLevel) {
+        this.maxLevel = maxLevel;
+    }
+
+    protected long getNetDuration() {
+        return repositoryService.getClosureManager().getLastOperationDuration();
     }
 }
