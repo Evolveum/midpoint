@@ -48,7 +48,7 @@ import java.util.List;
  *  TODO - not finished, work in progress
  *  @author shood
  * */
-public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<List<T>>{
+public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<List<T>>{
 
     private static final Trace LOGGER = TraceManager.getTrace(MultiValueChoosePanel.class);
 
@@ -153,7 +153,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
     }
 
     private void initDialog(Class<T> type){
-        ModalWindow dialog = new ChooseTypeDialog<T>(MODAL_ID_CHOOSE_PANEL, type){
+        ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_CHOOSE_PANEL, type){
 
             @Override
             protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
@@ -173,7 +173,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
     }
 
     /**
-     * @return css class for offseting other values (not first, left to the first there is a label)
+     * @return css class for off-setting other values (not first, left to the first there is a label)
      */
     protected String getOffsetClass() {
         return "col-md-offset-4";
@@ -188,9 +188,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
             }
 
             @Override
-            public void setObject(String object) {
-                model.setObject((T) object);
-            }
+            public void setObject(String object) {}
 
             @Override
             public void detach() {
