@@ -651,4 +651,18 @@ public final class WebMiscUtil {
 
         return channels;
     }
+
+    public static List<QName> getMatchingRuleList(){
+        List<QName> list = new ArrayList<>();
+
+        String NS_MATCHING_RULE = "http://prism.evolveum.com/xml/ns/public/matching-rule-3";
+
+        list.add(new QName(NS_MATCHING_RULE, "default", "mr"));
+        list.add(new QName(NS_MATCHING_RULE, "stringIgnoreCase", "mr"));
+        list.add(new QName(NS_MATCHING_RULE, "polyStringStrict", "mr"));
+        list.add(new QName(NS_MATCHING_RULE, "polyStringOrig", "mr"));
+        list.add(new QName(NS_MATCHING_RULE, "polyStringNorm", "mr"));
+
+        return list;
+    }
 }

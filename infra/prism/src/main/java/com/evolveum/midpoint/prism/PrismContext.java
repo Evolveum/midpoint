@@ -409,7 +409,7 @@ public class PrismContext {
         return parser.parse(dataString);
     }
 
-    private XNode parseToXNode(String dataString, String language) throws SchemaException {
+    public XNode parseToXNode(String dataString, String language) throws SchemaException {
         Parser parser = getParserNotNull(language);
         return parser.parse(dataString);
     }
@@ -431,6 +431,11 @@ public class PrismContext {
 
     private XNode parseToXNode(Element domElement) throws SchemaException {
         return parserDom.parse(domElement);
+    }
+
+    public String serializeXNodeToString(RootXNode xroot, String language) throws SchemaException {
+        Parser parser = getParserNotNull(language);
+        return parser.serializeToString(xroot);
     }
 
     private Parser findParser(File file) throws IOException{

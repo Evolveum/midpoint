@@ -80,10 +80,6 @@ public abstract class PageBase extends PageTemplate {
     private ReportManager reportManager;
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
-//    @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Autowired
-    private MatchingRuleRegistry matchingRuleRegistry;
-
 
     public PageBase(PageParameters parameters) {
         super(parameters);
@@ -149,10 +145,6 @@ public abstract class PageBase extends PageTemplate {
 
     protected ModelDiagnosticService getModelDiagnosticService() {
         return modelDiagnosticService;
-    }
-
-    public MatchingRuleRegistry getMatchingRuleRegistry() {
-        return matchingRuleRegistry;
     }
 
     public static StringResourceModel createStringResourceStatic(Component component, String resourceKey, Object... objects) {
