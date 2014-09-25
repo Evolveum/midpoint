@@ -172,15 +172,17 @@ public class IcfConvertor {
 			
 			if (icfAttr.getName().equals(OperationalAttributes.LOCK_OUT_NAME)) {
 				Boolean lockOut = getSingleValue(icfAttr, Boolean.class);
-				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
-				LockoutStatusType lockoutStatusType;
-				if (lockOut) {
-					lockoutStatusType = LockoutStatusType.LOCKED;
-				} else {
-					lockoutStatusType = LockoutStatusType.NORMAL;
+				if (lockOut != null){
+					ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
+					LockoutStatusType lockoutStatusType;
+					if (lockOut) {
+						lockoutStatusType = LockoutStatusType.LOCKED;
+					} else {
+						lockoutStatusType = LockoutStatusType.NORMAL;
+					}
+					activationType.setLockoutStatus(lockoutStatusType);
+					LOGGER.trace("Converted activation lockoutStatus: {}", lockoutStatusType);
 				}
-				activationType.setLockoutStatus(lockoutStatusType);
-				LOGGER.trace("Converted activation lockoutStatus: {}", lockoutStatusType);
 				continue;
 			}
 
@@ -287,7 +289,8 @@ public class IcfConvertor {
 						+ " but got " + val.getClass().getName());
 			}
 		} else {
-			throw new SchemaException("Empty value for " + icfAttr.getName());
+			return null;
+//			throw new SchemaException("Empty value for " + icfAttr.getName());
 		}
 
 	}
