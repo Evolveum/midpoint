@@ -63,7 +63,7 @@ import static org.testng.AssertJUnit.assertFalse;
 /**
  * @author lazyman
  */
-public class AbstractOrgClosureTest extends BaseSQLRepoTest {
+public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractOrgClosureTest.class);
 
@@ -96,7 +96,17 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected void checkClosure(Set<String> oidsToCheck) {
-        openSessionIfNeeded();
+        if (isCheckClosureMatrix()) {
+            openSessionIfNeeded();
+            checkClosureMatrix(session);
+        }
+        if (isCheckChildrenSets()) {
+            openSessionIfNeeded();
+            checkChildrenSets(oidsToCheck);
+        }
+    }
+
+    private void checkChildrenSets(Set<String> oidsToCheck) {
         SimpleDirectedGraph<String,DefaultEdge> tc = (SimpleDirectedGraph) orgGraph.clone();
         TransitiveClosure.INSTANCE.closeSimpleDirectedGraph(tc);
         for (String subroot : oidsToCheck) {
@@ -122,14 +132,12 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
             }
             assertEquals("Incorrect children for " + subroot, expectedChildren, actualChildren);
         }
-
-        checkClosureTable(session);
     }
 
     /**
      * Recomputes closure table from scratch (using matrix multiplication) and compares it with M_ORG_CLOSURE.
      */
-    protected void checkClosureTable(Session session) {
+    protected void checkClosureMatrix(Session session) {
         // we compute the closure table "by hand" as 1 + A + A^2 + A^3 + ... + A^n where n is the greatest expected path length
         int vertices = orgGraph.vertexSet().size();
 
@@ -558,13 +566,13 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 repositoryService.deleteObject(clazz, oid, result);
                 count++;
                 totalTime += getNetDuration();
-                System.out.println("#"+count + ": " + oid + " deleted in " + getNetDuration() + " ms (net), remaining: " + (vertices.size()-1));
+                System.out.println("#" + count + ": " + oid + " deleted in " + getNetDuration() + " ms (net), remaining: " + (vertices.size() - 1));
             } catch (Exception e) {
                 System.err.println("Error deleting " + oid + ": " + e.getMessage());
             }
             orgGraph.removeVertex(oid);
             vertices.remove(oid);
-            checkClosureTable(session);
+            checkClosureMatrix(session);
         }
         System.out.println(count + " objects deleted in avg time " + ((float) totalTime/count) + " ms (net)");
     }
@@ -669,4 +677,8 @@ public class AbstractOrgClosureTest extends BaseSQLRepoTest {
     protected long getNetDuration() {
         return repositoryService.getClosureManager().getLastOperationDuration();
     }
+
+    public abstract boolean isCheckChildrenSets();
+
+    public abstract boolean isCheckClosureMatrix();
 }

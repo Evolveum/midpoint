@@ -77,7 +77,7 @@ public class OrgClosureSimpleTreeTest extends AbstractOrgClosureTest {
     @Test(enabled = true)
     public void test110CheckClosure() throws Exception {
         OperationResult opResult = new OperationResult("===[ test110CheckClosure ]===");
-        if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
+        checkClosure(orgGraph.vertexSet());
     }
 
     @Test(enabled = true)
@@ -106,7 +106,7 @@ public class OrgClosureSimpleTreeTest extends AbstractOrgClosureTest {
             long timeRemoval = System.currentTimeMillis() - start;
             System.out.println(" ... done in " + timeRemoval + " ms");
 
-            if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
+            checkClosure(orgGraph.vertexSet());
 
             // addition
             System.out.println("Re-adding parent for org #" + round);
@@ -115,7 +115,7 @@ public class OrgClosureSimpleTreeTest extends AbstractOrgClosureTest {
             long timeAddition = System.currentTimeMillis() - start;
             System.out.println(" ... done in " + timeAddition + " ms");
 
-            if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
+            checkClosure(orgGraph.vertexSet());
 
             totalTimeLinkRemovals += timeRemoval;
             totalTimeLinkAdditions += timeAddition;
@@ -146,7 +146,7 @@ public class OrgClosureSimpleTreeTest extends AbstractOrgClosureTest {
             long timeRemoval = System.currentTimeMillis() - start;
             System.out.println(" ... done in " + timeRemoval + " ms");
 
-            if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
+            checkClosure(orgGraph.vertexSet());
 
             // addition
             System.out.println("Re-adding org #" + round);
@@ -155,7 +155,7 @@ public class OrgClosureSimpleTreeTest extends AbstractOrgClosureTest {
             long timeAddition = System.currentTimeMillis() - start;
             System.out.println(" ... done in " + timeAddition + "ms");
 
-            if (CHECK_CLOSURE) checkClosure(orgGraph.vertexSet());
+            checkClosure(orgGraph.vertexSet());
 
             totalTimeNodeRemovals += timeRemoval;
             totalTimeNodeAdditions += timeAddition;
@@ -182,4 +182,13 @@ public class OrgClosureSimpleTreeTest extends AbstractOrgClosureTest {
         LOGGER.info("Finish.");
     }
 
+    @Override
+    public boolean isCheckChildrenSets() {
+        return true;
+    }
+
+    @Override
+    public boolean isCheckClosureMatrix() {
+        return true;
+    }
 }
