@@ -3425,6 +3425,14 @@
    							</xsd:documentation>
    						</xsd:annotation>
    					</xsd:element>
+   					<xsd:element name="forceLoad" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+   						<xsd:annotation>
+   							<xsd:documentation>
+   								Specifies if the shadow on which we depends has to be load. By default we do
+   								not force to load full dependent shadow.
+   							</xsd:documentation>
+   						</xsd:annotation>
+   					</xsd:element>
    				</xsd:sequence>
    			</xsd:extension>
    		</xsd:complexContent>

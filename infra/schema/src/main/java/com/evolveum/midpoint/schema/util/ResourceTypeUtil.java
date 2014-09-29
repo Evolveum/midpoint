@@ -447,6 +447,15 @@ public class ResourceTypeUtil {
 		}
 	}
 	
+	public static boolean isForceLoadDependentShadow(ResourceObjectTypeDependencyType dependency){
+		Boolean force = dependency.isForceLoad();
+		if (force == null){
+			return false;
+		}
+		
+		return force;
+	}
+	
 	public static boolean isDown(ResourceType resource){
 		return (resource.getOperationalState() != null && AvailabilityStatusType.DOWN == resource.getOperationalState().getLastAvailabilityStatus());
 	}

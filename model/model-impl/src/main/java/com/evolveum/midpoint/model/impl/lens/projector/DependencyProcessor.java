@@ -38,6 +38,7 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -64,6 +65,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class DependencyProcessor {
 		
 	private static final Trace LOGGER = TraceManager.getTrace(DependencyProcessor.class);
+	
+	@Autowired
+    private ProvisioningService provisioningService;
 	
 	public <F extends ObjectType> void resetWaves(LensContext<F> context) throws PolicyViolationException {
 	}
@@ -333,7 +337,7 @@ public class DependencyProcessor {
 	 * and stuff like that. 
 	 */
 	public <F extends ObjectType> boolean checkDependencies(LensContext<F> context, 
-    		LensProjectionContext projContext) throws PolicyViolationException {
+    		LensProjectionContext projContext, OperationResult result) throws PolicyViolationException {
 		if (projContext.isDelete()) {
 			// It is OK if we depend on something that is not there if we are being removed ... for now
 			return true;
@@ -402,6 +406,15 @@ public class DependencyProcessor {
 						|| strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 					if (wasProvisioned(dependencyAccountContext, context.getExecutionWave())) {
 						// everything OK
+						if (ResourceTypeUtil.isForceLoadDependentShadow(dependency) && !dependencyAccountContext.isFullShadow()){
+							try {
+								LensUtil.loadFullAccount(context, dependencyAccountContext, provisioningService, result);
+							} catch (ObjectNotFoundException | CommunicationException | SchemaException
+									| ConfigurationException | SecurityViolationException e) {
+								// this is not fatal error. we can continue without full account..the incosinstencies will be treaten later, by reconciliation
+								LOGGER.warn("Could not load dependent shadow, continue with the shadow loaded before.");
+							}
+						}
 					} else {
 						// We do not want to throw exception here. That will stop entire projection.
 						// Let's just mark the projection as broken and skip it.
@@ -425,10 +438,10 @@ public class DependencyProcessor {
 	 * Finally checks for all the dependencies. Some dependencies cannot be checked during wave computations as
 	 * we might not have all activation decisions yet. 
 	 */
-	public <F extends ObjectType> void checkDependenciesFinal(LensContext<F> context) throws PolicyViolationException {
+	public <F extends ObjectType> void checkDependenciesFinal(LensContext<F> context, OperationResult result) throws PolicyViolationException {
 		
 		for (LensProjectionContext accountContext: context.getProjectionContexts()) {
-			checkDependencies(context, accountContext);
+			checkDependencies(context, accountContext, result);
 		}
 		
 		for (LensProjectionContext accountContext: context.getProjectionContexts()) {
