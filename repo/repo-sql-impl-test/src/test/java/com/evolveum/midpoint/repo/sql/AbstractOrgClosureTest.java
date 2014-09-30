@@ -555,6 +555,8 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     protected void randomRemoveOrgStructure(OperationResult result) throws Exception {
         openSessionIfNeeded();
 
+        int CHECK_EACH = 15;
+
         int count = 0;
         long totalTime = 0;
         List<String> vertices = new ArrayList<>(orgGraph.vertexSet());
@@ -572,7 +574,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             }
             orgGraph.removeVertex(oid);
             vertices.remove(oid);
-            checkClosureMatrix(session);
+            if (count%CHECK_EACH == 0) {
+                checkClosure(orgGraph.vertexSet());
+            }
         }
         System.out.println(count + " objects deleted in avg time " + ((float) totalTime/count) + " ms (net)");
     }

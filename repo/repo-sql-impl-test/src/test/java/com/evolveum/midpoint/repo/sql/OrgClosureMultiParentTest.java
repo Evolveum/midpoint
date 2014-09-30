@@ -65,8 +65,8 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
 //    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 0, 0, 0 ,0 ,0 ,0 , 0 };
 //    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 5 ,5 ,5 ,5 ,5 , 5 };
 
-    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15,15,15,15, 0 };
-    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15,15,15,15, 0 };
+    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 10, 15,15,15,15, 0 };
+    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 5, 10, 15,15,15,15, 0 };
     private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20,20,20, 20};
 //    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 2, 0 ,0 ,0 ,0 , 0 };
 //    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 0, 0, 0 ,0 ,0 ,0 , 0 };
@@ -91,8 +91,9 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
     private static final String TEST_19x_CHILD_OID = "o2000...-....-....-....-............";
     private static final String TEST_19x_PARENT_OID = "o000....-....-....-....-............";
 
-    private static final boolean CHECK_CHILDREN_SETS = true;
-    private static final boolean CHECK_CLOSURE_MATRIX = false;
+    private static boolean CHECK_CHILDREN_SETS = false;
+    private static boolean CHECK_CLOSURE_MATRIX = false;
+    private long closureSize;
 
     @Test(enabled = false) public void test100LoadOrgStructure() throws Exception { _test100LoadOrgStructure(); }
     @Test(enabled = true) public void test110ScanOrgStructure() throws Exception { _test110ScanOrgStructure() ; }
@@ -104,7 +105,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
     @Test(enabled = true) public void test300AddRemoveOrgs() throws Exception { _test300AddRemoveOrgs(); }
     @Test(enabled = true) public void test310AddRemoveUsers() throws Exception { _test310AddRemoveUsers(); }
     @Test(enabled = false) public void test400UnloadOrgStructure() throws Exception { _test400UnloadOrgStructure(); }
-    @Test(enabled = true) public void test410RandomUnloadOrgStructure() throws Exception { _test410RandomUnloadOrgStructure(); }
+    @Test(enabled = false) public void test410RandomUnloadOrgStructure() throws Exception { _test410RandomUnloadOrgStructure(); }
 
     @Override
     public boolean isCheckChildrenSets() {
@@ -127,6 +128,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
         openSessionIfNeeded();
         Query q = session.createSQLQuery("select count(*) from m_org_closure");
         System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
+        closureSize = Long.parseLong(q.list().get(0).toString());
     }
 
     private void _test110ScanOrgStructure() throws Exception {
@@ -139,11 +141,18 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
         System.out.println("Found " + allOrgCreated.size() + " orgs and " + (count - allOrgCreated.size()) + " users in " + (System.currentTimeMillis() - start) + " ms");
         Query q = session.createSQLQuery("select count(*) from m_org_closure");
         System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
+        closureSize = Long.parseLong(q.list().get(0).toString());
     }
 
     private void _test150CheckClosure() throws Exception {
         OperationResult opResult = new OperationResult("===[ test110CheckClosure ]===");
-        checkClosure(orgGraph.vertexSet());
+        boolean v = CHECK_CHILDREN_SETS;
+        CHECK_CHILDREN_SETS = true;
+        try {
+            checkClosure(orgGraph.vertexSet());
+        } finally {
+            CHECK_CHILDREN_SETS = v;
+        }
     }
 
     private void _test180RemoveAddCycle() throws Exception {
@@ -235,7 +244,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 removeObjectParent(org, parentOrgRef, opResult);
                 long timeRemoval = System.currentTimeMillis() - start;
                 System.out.println(" ... done in " + timeRemoval + " ms " + getNetDurationMessage());
-                stat.record(level, false, getNetDuration());
+                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks", level, false, getNetDuration());
                 totalTimeLinkRemovals += getNetDuration();
 
                 checkClosure(orgGraph.vertexSet());
@@ -246,7 +255,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 addOrgParent(org, parentOrgRef, opResult);
                 long timeAddition = System.currentTimeMillis() - start;
                 System.out.println(" ... done in " + timeAddition + " ms " + getNetDurationMessage());
-                stat.record(level, true, getNetDuration());
+                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks", level, true, getNetDuration());
 
                 checkClosure(orgGraph.vertexSet());
 
@@ -260,7 +269,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
             System.out.println("Avg time for an arbitrary link re-addition: " + ((double) totalTimeLinkAdditions / totalRounds) + " ms");
             LOGGER.info("===================================================");
             LOGGER.info("Statistics for org link removal/addition:");
-            stat.dump(LOGGER);
+            stat.dump(LOGGER, repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks");
         }
     }
 
@@ -289,7 +298,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 removeOrg(org.getOid(), opResult);
                 long timeRemoval = System.currentTimeMillis() - start;
                 System.out.println(" ... done in " + timeRemoval + " ms" + getNetDurationMessage());
-                stat.record(level, false, getNetDuration());
+                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs", level, false, getNetDuration());
                 totalTimeNodeRemovals += getNetDuration();
 
                 checkClosure(orgGraph.vertexSet());
@@ -300,7 +309,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 reAddOrg(org, opResult);
                 long timeAddition = System.currentTimeMillis() - start;
                 System.out.println(" ... done in " + timeAddition + "ms" + getNetDurationMessage());
-                stat.record(level, true, getNetDuration());
+                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs", level, true, getNetDuration());
 
                 checkClosure(orgGraph.vertexSet());
 
@@ -314,7 +323,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
             System.out.println("Avg time for an arbitrary node re-addition: " + ((double) totalTimeNodeAdditions / totalRounds) + " ms");
             LOGGER.info("===================================================");
             LOGGER.info("Statistics for org node removal/addition:");
-            stat.dump(LOGGER);
+            stat.dump(LOGGER, repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs");
         }
     }
 
@@ -342,7 +351,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 removeUser(user.getOid(), opResult);
                 long timeRemoval = System.currentTimeMillis() - start;
                 System.out.println(" ... done in " + timeRemoval + " ms" + getNetDurationMessage());
-                stat.record(level, false, getNetDuration());
+                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveUsers", level, false, getNetDuration());
                 totalTimeNodeRemovals += getNetDuration();
 
                 checkClosure(orgGraph.vertexSet());
@@ -353,7 +362,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
                 reAddUser(user, opResult);
                 long timeAddition = System.currentTimeMillis() - start;
                 System.out.println(" ... done in " + timeAddition + "ms" + getNetDurationMessage());
-                stat.record(level, true, getNetDuration());
+                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveUsers", level, true, getNetDuration());
 
                 checkClosure(orgGraph.vertexSet());
 
@@ -367,7 +376,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
             System.out.println("Avg time for an arbitrary user re-addition: " + ((double) totalTimeNodeAdditions / totalRounds) + " ms");
             LOGGER.info("===================================================");
             LOGGER.info("Statistics for user node removal/addition:");
-            stat.dump(LOGGER);
+            stat.dump(LOGGER, repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveUsers");
         }
     }
 
