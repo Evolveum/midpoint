@@ -45,7 +45,7 @@
         </xsd:annotation>
     </xsd:import>
 
-    <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="http://www.w3.org/2001/04/xmlenc#">
+    <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="http://www.w3.org/2001/04/xmlenc">
         <xsd:annotation>
             <xsd:documentation>
                 The XML Encryption schema. Used for "protected" data types (property encryption).
