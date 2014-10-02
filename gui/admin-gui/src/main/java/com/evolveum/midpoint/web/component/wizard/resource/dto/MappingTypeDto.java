@@ -49,6 +49,8 @@ public class MappingTypeDto implements Serializable {
     public static final String F_EXPRESSION_POLICY_REF = "expressionPolicyRef";
     public static final String F_CONDITION_POLICY_REF = "conditionPolicyRef";
 
+    private static MappingStrengthType DEFAULT_MAPPING_STRENGTH = MappingStrengthType.NORMAL;
+
     private MappingType mappingObject;
     private String expression;
     private String condition;
@@ -90,6 +92,10 @@ public class MappingTypeDto implements Serializable {
         if(mappingObject.getTarget() != null && mappingObject.getTarget().getPath() != null
                 && mappingObject.getTarget().getPath().getItemPath() != null){
             target = mappingObject.getTarget().getPath().getItemPath().toString();
+        }
+
+        if(mappingObject.getStrength() == null){
+            mappingObject.setStrength(DEFAULT_MAPPING_STRENGTH);
         }
 
         loadExpressions(prismContext);

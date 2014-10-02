@@ -107,7 +107,7 @@ public class ProgressReportActivityDto implements Serializable {
         return status == null || status == OperationResultStatusType.SUCCESS;
     }
 
-    public static class ResourceOperationResult {
+    public static class ResourceOperationResult implements Serializable {
         private ChangeType changeType;
         private OperationResultStatus resultStatus;
 

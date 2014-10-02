@@ -158,7 +158,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
 		Item item = getObjectItem(object);
 		Item filterItem = getFilterItem();		
 		return item.match(filterItem);

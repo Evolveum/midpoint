@@ -929,7 +929,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 					ShadowType.class, abombaOid, null, parentResult)
 					.asObjectable();
 			assertShadowName(abombaShadow,
-					"uid=abomba,ou=people,dc=example,dc=com");
+					"uid=abomba,OU=people,DC=example,DC=com");
 			
 //			assertAttribute(abombaShadow, SchemaConstants.ICFS_NAME, "uid=abomba,OU=people,DC=example,DC=com");
 
@@ -944,7 +944,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 					ShadowType.class, abomOid, null, parentResult)
 					.asObjectable();
 			assertShadowName(abomShadow,
-					"uid=abomba1,ou=people,dc=example,dc=com");
+					"uid=abomba1,OU=people,DC=example,DC=com");
 
 			ReferenceDelta abombaDeleteAccDelta = ReferenceDelta
 					.createModificationDelete(ShadowType.class,
@@ -991,7 +991,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 					ShadowType.class, abombaOid2, null, result)
 					.asObjectable();
 			assertShadowName(abombaShadow2,
-					"uid=abomba,ou=people,dc=example,dc=com");
+					"uid=abomba,OU=people,DC=example,DC=com");
 
 			
 			result.computeStatus();

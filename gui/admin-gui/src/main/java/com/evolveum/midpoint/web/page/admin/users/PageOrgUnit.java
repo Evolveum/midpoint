@@ -17,11 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.ProgressListener;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -31,15 +27,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -53,7 +42,6 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextFormGroup;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -80,13 +68,9 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
 import org.apache.wicket.util.string.StringValue;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -246,7 +230,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
     private ContainerWrapper loadExtensionWrapper(){
         OperationResult result = new OperationResult(OPERATION_LOAD_EXTENSION_WRAPPER);
         ContainerStatus status = isEditing() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-        ObjectWrapper wrapper = null;
+        ObjectWrapper wrapper;
         ContainerWrapper extensionWrapper = null;
         PrismObject<OrgType> org = orgModel.getObject();
 
@@ -328,37 +312,37 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
         form.add(validTo);
 
         //todo not finished [lazyman]
-        MultiValueTextFormGroup orgType = new MultiValueTextFormGroup(ID_ORG_TYPE, orgTypeModel,
+        MultiValueTextFormGroup orgType = new MultiValueTextFormGroup<PrismPropertyValue>(ID_ORG_TYPE, orgTypeModel,
                 createStringResource("OrgType.orgType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
 
             @Override
             protected IModel<String> createTextModel(IModel model) {
-                return new PropertyModel(model, "value");
+                return new PropertyModel<>(model, "value");
             }
 
             @Override
-            protected Serializable createNewEmptyItem() {
-                return new PrismPropertyValue(null, OriginType.USER_ACTION, null);
+            protected PrismPropertyValue createNewEmptyItem() {
+                return new PrismPropertyValue<OriginType>(null, OriginType.USER_ACTION, null);
             }
         };
         form.add(orgType);
 
-        MultiValueTextFormGroup mailDomain = new MultiValueTextFormGroup(ID_MAIL_DOMAIN, orgMailDomainModel,
+        MultiValueTextFormGroup mailDomain = new MultiValueTextFormGroup<PrismPropertyValue>(ID_MAIL_DOMAIN, orgMailDomainModel,
                 createStringResource("OrgType.mailDomain"), ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
 
             @Override
             protected IModel<String> createTextModel(IModel model) {
-                return new PropertyModel(model, "value");
+                return new PropertyModel<>(model, "value");
             }
 
             @Override
-            protected Serializable createNewEmptyItem() {
-                return new PrismPropertyValue(null, OriginType.USER_ACTION, null);
+            protected PrismPropertyValue createNewEmptyItem() {
+                return new PrismPropertyValue<OriginType>(null, OriginType.USER_ACTION, null);
             }
         };
         form.add(mailDomain);
 
-        MultiValueChoosePanel parentOrgType = new MultiValueChoosePanel(ID_PARENT_ORG_UNITS, parentOrgUnitsModel,
+        MultiValueChoosePanel parentOrgType = new MultiValueChoosePanel<OrgType>(ID_PARENT_ORG_UNITS, parentOrgUnitsModel,
                 createStringResource("ObjectType.parentOrgRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false, OrgType.class) {
 
             @Override
@@ -375,32 +359,32 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
             }
 
             @Override
-            protected Serializable createNewEmptyItem() {
+            protected OrgType createNewEmptyItem() {
                 return new OrgType();
             }
 
             @Override
             protected ObjectQuery createChooseQuery(){
-                ArrayList<String> oids = new ArrayList<String>();
+                ArrayList<String> oidList = new ArrayList<>();
                 ObjectQuery query = new ObjectQuery();
 
                 for(OrgType org: parentOrgUnitsModel.getObject()){
                     if(org != null){
                         if(org.getOid() != null && !org.getOid().isEmpty()){
-                            oids.add(org.getOid());
+                            oidList.add(org.getOid());
                         }
                     }
                 }
 
                 if(isEditing()){
-                    oids.add(orgModel.getObject().asObjectable().getOid());
+                    oidList.add(orgModel.getObject().asObjectable().getOid());
                 }
 
-                if(oids.isEmpty()){
+                if(oidList.isEmpty()){
                     return null;
                 }
 
-                ObjectFilter oidFilter = InOidFilter.createInOid(oids);
+                ObjectFilter oidFilter = InOidFilter.createInOid(oidList);
                 query.setFilter(NotFilter.createNot(oidFilter));
                 //query.setFilter(oidFilter);
 

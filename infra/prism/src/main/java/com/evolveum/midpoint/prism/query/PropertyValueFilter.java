@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFilter implements Itemable {
@@ -171,8 +172,11 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		
 	}
 	
-	public Item getFilterItem(){
+	public Item getFilterItem() throws SchemaException{
 
+		if (getDefinition() == null){
+			throw new SchemaException("Could not find definition for item " + getPath());
+		}
 		Item filterItem = getDefinition().instantiate();
 		if (getValues() != null && !getValues().isEmpty()) {
 			try {
@@ -208,7 +212,7 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry){
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
 //		if (getObjectItem(object) == null && getValues() == null) {
 //			return true;
 //		}

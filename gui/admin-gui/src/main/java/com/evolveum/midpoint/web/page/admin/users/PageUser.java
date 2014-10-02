@@ -63,6 +63,7 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -124,7 +125,6 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -339,7 +339,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     }
 
     private void initLayout() {
-        final Form mainForm = new Form(ID_MAIN_FORM);
+        final Form mainForm = new Form(ID_MAIN_FORM, true);
         mainForm.setMaxSize(MidPointApplication.USER_PHOTO_MAX_FILE_SIZE);
         mainForm.setMultiPart(true);
         add(mainForm);
@@ -913,13 +913,13 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                 createStringResource("pageUser.button.save")) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
                 progressReporter.onSaveSubmit();
                 savePerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
                 target.add(getFeedbackPanel());
             }
         };
@@ -930,12 +930,12 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                 createStringResource("pageUser.button.abort")) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
                 progressReporter.onAbortSubmit(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
                 target.add(getFeedbackPanel());
             }
         };

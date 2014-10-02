@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -67,6 +66,7 @@ import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import java.util.*;
 
@@ -249,11 +249,11 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     }
 
     private void initBodyLayout(WebMarkupContainer body) {
-        TextArea description = new TextArea(ID_DESCRIPTION,
-                new PropertyModel(getModel(), AssignmentEditorDto.F_DESCRIPTION));
+        TextArea description = new TextArea<>(ID_DESCRIPTION,
+                new PropertyModel<String>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
         body.add(description);
 
-        TextField relation = new TextField(ID_RELATION, new PropertyModel(getModel(), AssignmentEditorDto.F_RELATION));
+        TextField relation = new TextField<>(ID_RELATION, new PropertyModel<String>(getModel(), AssignmentEditorDto.F_RELATION));
         relation.setEnabled(false);
         body.add(relation);
 
@@ -270,6 +270,16 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 query.setFilter(filter);
 
                 return query;
+            }
+
+            @Override
+            protected boolean isSearchEnabled() {
+                return true;
+            }
+
+            @Override
+            protected QName getSearchProperty() {
+                return OrgType.F_NAME;
             }
         };
         tenantRefContainer.add(tenantRef);

@@ -119,6 +119,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                 new PropertyModel<ShadowKindType>(getModel(), "kind"),
                 WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                 new EnumChoiceRenderer<ShadowKindType>(this));
+        kind.setNullValid(true);
         add(kind);
 
         MultiValueTextPanel intent = new MultiValueTextPanel<>(ID_INTENT,
@@ -129,6 +130,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                 new PropertyModel<ResourceObjectAssociationDirectionType>(getModel(), "direction"),
                 WebMiscUtil.createReadonlyModelFromEnum(ResourceObjectAssociationDirectionType.class),
                 new EnumChoiceRenderer<ResourceObjectAssociationDirectionType>(this));
+        direction.setNullValid(true);
         add(direction);
 
         DropDownChoice associationAttribute = new DropDownChoice<>(ID_ASSOCIATION_ATTRIBUTE,
@@ -151,6 +153,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                 return Integer.toString(index);
             }
         });
+        associationAttribute.setNullValid(true);
         add(associationAttribute);
 
         DropDownChoice valueAttribute = new DropDownChoice<>(ID_VALUE_ATTRIBUTE,
@@ -173,6 +176,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                 return Integer.toString(index);
             }
         });
+        valueAttribute.setNullValid(true);
         add(valueAttribute);
 
         CheckBox explicitRefIntegrity = new CheckBox(ID_EXPLICIT_REF_INTEGRITY,
@@ -266,6 +270,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), "fetchStrategy"),
                 WebMiscUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
+        fetchStrategy.setNullValid(true);
         add(fetchStrategy);
 
         DropDownChoice matchingRule = new DropDownChoice<>(ID_MATCHING_RULE,
@@ -274,7 +279,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
                     @Override
                     public List<QName> getObject() {
-                        return getMatchingRuleList();
+                        return WebMiscUtil.getMatchingRuleList();
                     }
                 }, new IChoiceRenderer<QName>() {
 
@@ -288,6 +293,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                 return Integer.toString(index);
             }
         });
+        matchingRule.setNullValid(true);
         add(matchingRule);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
@@ -425,17 +431,6 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
         }
 
         return sb.toString();
-    }
-
-    private List<QName> getMatchingRuleList(){
-        List<QName> list = new ArrayList<>();
-
-        MatchingRuleRegistry registry = getPageBase().getMatchingRuleRegistry();
-        if(registry != null){
-            list.addAll(registry.matchingRules.keySet());
-        }
-
-        return list;
     }
 
     private void limitationsEditPerformed(AjaxRequestTarget target){

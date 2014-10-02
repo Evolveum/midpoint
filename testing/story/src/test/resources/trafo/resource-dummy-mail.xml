@@ -266,6 +266,7 @@ log.info('XXXXX got here, input = {}', input)
 		    </limitations>
                     <matchingRule>mr:stringIgnoreCase</matchingRule>
                     <outbound>
+                        <strength>weak</strength>           <!-- to be applied only on object creation -->
                         <source>
                         	<path>$user/givenName</path>
                         </source>

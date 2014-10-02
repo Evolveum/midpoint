@@ -47,5 +47,10 @@ public final class PropertyModificationOperation extends Operation {
 		sb.append(propertyDelta.debugDump(indent+1));
 		return sb.toString();
 	}
+	
+	@Override
+	public String toString() {
+		return propertyDelta.toString();
+	}
 
 }

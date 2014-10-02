@@ -42,7 +42,7 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable, Reviv
 		
 	public abstract ObjectFilter clone();
 	
-	public abstract <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry);
+	public abstract <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
 	
 	protected void cloneValues(ObjectFilter clone) {
 	}

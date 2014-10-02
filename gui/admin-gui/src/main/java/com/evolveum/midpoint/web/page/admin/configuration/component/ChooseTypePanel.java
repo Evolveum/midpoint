@@ -32,6 +32,8 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import javax.xml.namespace.QName;
+
 /**
  *  @author shood
  * */
@@ -89,7 +91,7 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     }
 
     private void initDialog(){
-        ModalWindow dialog = new ChooseTypeDialog<T>(MODAL_ID_SHOW_CHOOSE_OPTIONS, getModel().getObject().getType()){
+        ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_SHOW_CHOOSE_OPTIONS, getModel().getObject().getType()){
 
             @Override
             protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
@@ -100,9 +102,27 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
             protected ObjectQuery getDataProviderQuery(){
                 return getChooseQuery();
             }
+
+            @Override
+            public boolean isSearchEnabled() {
+                return ChooseTypePanel.this.isSearchEnabled();
+            }
+
+            @Override
+            public QName getSearchProperty() {
+                return ChooseTypePanel.this.getSearchProperty();
+            }
         };
 
         add(dialog);
+    }
+
+    protected  boolean isSearchEnabled(){
+        return false;
+    }
+
+    protected QName getSearchProperty(){
+        return null;
     }
 
     protected ObjectQuery getChooseQuery(){

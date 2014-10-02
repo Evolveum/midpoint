@@ -91,18 +91,6 @@
             </testResource>
         </testResources>
     </build>
-    <repositories>
-        <repository> 
-                <id>wicket-tree</id> 
-                <name>Wicket-tree Repository</name> 
-                <url>http://wicket-tree.googlecode.com/svn/repo</url> 
-        </repository>
-        <repository> 
-                <id>wicket-dnd</id> 
-                <name>Wicket-dnd Repository</name> 
-                <url>http://wicket-dnd.googlecode.com/svn/repo</url> 
-        </repository>
-    </repositories>
     <dependencies>
         <!-- WRO4J-->
         <dependency>

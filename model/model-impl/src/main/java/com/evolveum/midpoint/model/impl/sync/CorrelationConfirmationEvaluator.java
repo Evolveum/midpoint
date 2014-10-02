@@ -233,7 +233,7 @@ public class CorrelationConfirmationEvaluator {
 
 
 private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusType, PrismObject<ShadowType> currentShadow, 
-		PrismObject<F> userType, ResourceType resourceType, SystemConfigurationType configurationType, ConditionalSearchFilterType conditionalFilter, Task task, OperationResult result){
+		PrismObject<F> userType, ResourceType resourceType, SystemConfigurationType configurationType, ConditionalSearchFilterType conditionalFilter, Task task, OperationResult result) throws SchemaException{
 	if (conditionalFilter == null) {
 		LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
 				+ "returning empty list of users.", resourceType);
@@ -295,6 +295,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 		
 		List<ConditionalSearchFilterType> conditionalFilters = synchronization.getCorrelation();
 		
+		try {
 		for (ConditionalSearchFilterType conditionalFilter : conditionalFilters){
 			
 			if (true && matchUserCorrelationRule(focusType, currentShadow, userType, resourceType, configurationType, conditionalFilter, task, result)){
@@ -302,6 +303,9 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 						currentShadow, userType });
 				return true;
 			}
+		}
+		} catch (SchemaException ex){
+			throw new SystemException("Failed to match user using correlation rule. " + ex.getMessage(), ex);
 		}
 		
 		

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.input;
+package com.evolveum.midpoint.web.component.input.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -84,7 +84,7 @@ public class ExpressionTypeDto implements Serializable{
             //TODO - add algorithm to determine objectReferenceType from String expression
         } catch (SchemaException e){
             //TODO - how can we show this error to user?
-            LoggingUtils.logException(LOGGER, "Could not load expressions from ExpressionType.", e, e.getStackTrace());
+            LoggingUtils.logException(LOGGER, "Could not load expressions from ExpressionType.", e);
             expression = e.getMessage();
         }
     }

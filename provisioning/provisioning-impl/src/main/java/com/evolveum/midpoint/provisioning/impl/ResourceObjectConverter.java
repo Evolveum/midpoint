@@ -464,6 +464,7 @@ public class ResourceObjectConverter {
         
         if (isRename(operations)){
 			Collection<PropertyModificationOperation> renameOperations = distillRenameDeltas(itemDeltas, shadowAfter, objectClassDefinition);
+			LOGGER.trace("Determinig rename operation {}", renameOperations);
 			sideEffectChanges.addAll(renameOperations);
 		}
 
@@ -618,17 +619,17 @@ public class ResourceObjectConverter {
 			return null;
 		}
 				
-				PrismProperty<String> name = nameDelta.getPropertyNewMatchingPath();
-				String newName = name.getRealValue();
+//				PrismProperty<String> name = nameDelta.getPropertyNewMatchingPath();
+//				String newName = name.getRealValue();
 				
 				Collection<PropertyModificationOperation> deltas = new ArrayList<PropertyModificationOperation>();
 				
 				// $shadow/attributes/icfs:name
 //				String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getElementName()));
-				PropertyDelta<String> cloneNameDelta = nameDelta.clone();
-				cloneNameDelta.clearValuesToReplace();
-				cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(newName));
-				PropertyModificationOperation operation = new PropertyModificationOperation(cloneNameDelta);
+//				PropertyDelta<String> cloneNameDelta = nameDelta.clone();
+//				cloneNameDelta.clearValuesToReplace();
+//				cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(newName));
+				PropertyModificationOperation operation = new PropertyModificationOperation(nameDelta.clone());
 				deltas.add(operation);
 				
 				// $shadow/name

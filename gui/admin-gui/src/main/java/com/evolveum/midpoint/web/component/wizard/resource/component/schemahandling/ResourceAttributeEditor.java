@@ -194,6 +194,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), "fetchStrategy"),
                 WebMiscUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
+        fetchStrategy.setNullValid(true);
         add(fetchStrategy);
 
         DropDownChoice matchingRule = new DropDownChoice<>(ID_MATCHING_RULE,
@@ -202,7 +203,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
 
                     @Override
                     public List<QName> getObject() {
-                        return getMatchingRuleList();
+                        return WebMiscUtil.getMatchingRuleList();
                     }
                 }, new IChoiceRenderer<QName>() {
 
@@ -216,6 +217,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
                 return Integer.toString(index);
             }
         });
+        matchingRule.setNullValid(true);
         add(matchingRule);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
@@ -284,17 +286,6 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
             }
         };
         add(mappingEditor);
-    }
-
-    private List<QName> getMatchingRuleList(){
-        List<QName> list = new ArrayList<>();
-
-        MatchingRuleRegistry registry = getPageBase().getMatchingRuleRegistry();
-        if(registry != null){
-            list.addAll(registry.matchingRules.keySet());
-        }
-
-        return list;
     }
 
     private List<QName> loadObjectReferences(){

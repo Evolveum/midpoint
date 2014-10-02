@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.testing.sanity;
 
+import static com.evolveum.midpoint.prism.util.PrismAsserts.assertEqualsPolyString;
+import static com.evolveum.midpoint.prism.util.PrismAsserts.assertParentConsistency;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
@@ -48,12 +50,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.opends.server.core.ModifyOperation;
@@ -69,6 +65,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.ChangeRecordEntry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -85,6 +82,7 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -94,6 +92,8 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -103,6 +103,8 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -139,6 +141,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
@@ -148,6 +151,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollection
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -344,6 +348,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static String lastJacksLdapPassword = null;
 
     private int lastSyncToken;
+    
+    @Autowired(required = true)
+    private MatchingRuleRegistry matchingRuleRegistry;
     
     // This will get called from the superclass to init the repository
     // It will be called only once
@@ -671,7 +678,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DERBY_FILENAME));
-        PrismAsserts.assertParentConsistency(resource);
+        assertParentConsistency(resource);
         fillInConnectorRef(resource, IntegrationTestTools.DBTABLE_CONNECTOR_TYPE, result);
 
         OperationResultType resultType = new OperationResultType();
@@ -958,11 +965,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
         UserType userType = user.asObjectable();
-        PrismAsserts.assertParentConsistency(user);
+        assertParentConsistency(user);
         
         // Encrypt Jack's password
         protector.encrypt(userType.getCredentials().getPassword().getValue());
-        PrismAsserts.assertParentConsistency(user);
+        assertParentConsistency(user);
 
         OperationResultType result = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
@@ -990,7 +997,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("repository.getObject result", repoResult);
         TestUtil.assertSuccess("getObject has failed", repoResult);
         AssertJUnit.assertEquals(USER_JACK_OID, repoUser.getOid());
-        PrismAsserts.assertEqualsPolyString("fullName", userType.getFullName(), repoUser.getFullName());
+        assertEqualsPolyString("fullName", userType.getFullName(), repoUser.getFullName());
 
         // TODO: better checks
     }
@@ -1296,7 +1303,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 //        ObjectQuery q = QueryConvertor.createObjectQuery(ResourceObjectShadowType.class, query, prismContext);
 
         final Collection<ObjectType> objects = new HashSet<ObjectType>();
-
+        final MatchingRule caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
         ResultHandler handler = new ResultHandler<ObjectType>() {
 
             @Override
@@ -1316,8 +1323,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 assertNotNull("No ICF UID", icfUid);
                 String icfName = getNormalizedAttributeValue(shadow, refinedAccountDefinition, SchemaConstants.ICFS_NAME);
                 assertNotNull("No ICF NAME", icfName);
-                
-                assertEquals("Wrong shadow name", shadow.getName().getOrig(), icfName);
+                PrismAsserts.assertEquals("Wrong shadow name", caseIgnoreMatchingRule, shadow.getName().getOrig(), icfName);
                 assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "uid")));
                 assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "cn")));
                 assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "sn")));
@@ -1580,8 +1586,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         UserType repoUserType = repoUser.asObjectable();
 
         // Check if nothing else was modified
-        PrismAsserts.assertEqualsPolyString("wrong repo fullName", "Cpt. Jack Sparrow", repoUserType.getFullName());
-        PrismAsserts.assertEqualsPolyString("wrong repo locality", "somewhere", repoUserType.getLocality());
+        assertEqualsPolyString("wrong repo fullName", "Cpt. Jack Sparrow", repoUserType.getFullName());
+        assertEqualsPolyString("wrong repo locality", "somewhere", repoUserType.getLocality());
 
         // Check if appropriate accountRef is still there
         List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
@@ -2903,7 +2909,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String accountOid = accountRefs.get(0).getOid();
         ShadowType account = searchAccountByOid(accountOid);
 
-        PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=e,ou=people,dc=example,dc=com", account.getName());
+        assertEqualsPolyString("Name doesn't match",  "uid=e,ou=People,dc=example,dc=com", account.getName());
         
         assertAndStoreSyncTokenIncrement(syncCycle, 4);
         checkAllShadows();
@@ -2946,7 +2952,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String accountOid = accountRefs.get(0).getOid();
         ShadowType account = searchAccountByOid(accountOid);
 
-        PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=" + userName + ",ou=people,dc=example,dc=com", account.getName());
+        assertEqualsPolyString("Name doesn't match",  "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
 //        assertEquals("Name doesn't match", "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
         Collection<String> localities = getAttributeValues(account, new QName(IMPORT_OBJECTCLASS.getNamespaceURI(), "l"));
         assertNotNull("null value list for attribute 'l'", localities);

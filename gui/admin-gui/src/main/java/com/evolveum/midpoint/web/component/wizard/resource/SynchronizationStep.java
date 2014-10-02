@@ -290,6 +290,7 @@ public class SynchronizationStep extends WizardStep {
                 new PropertyModel<ShadowKindType>(model, ResourceSynchronizationDto.F_SELECTED + ".kind"),
                 WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                 new EnumChoiceRenderer<ShadowKindType>(this));
+        editorKind.setNullValid(true);
         editor.add(editorKind);
 
         TextField editorIntent = new TextField<>(ID_EDITOR_INTENT, new PropertyModel<String>(model,
@@ -367,6 +368,7 @@ public class SynchronizationStep extends WizardStep {
                 return Integer.toString(index);
             }
         });
+        editorFocus.setNullValid(true);
         editor.add(editorFocus);
 
         CheckBox editorEnabled = new CheckBox(ID_EDITOR_ENABLED, new PropertyModel<Boolean>(model,
@@ -413,6 +415,7 @@ public class SynchronizationStep extends WizardStep {
                 return Integer.toString(index);
             }
         });
+        editorObjectTemplate.setNullValid(true);
         editor.add(editorObjectTemplate);
 
         CheckBox editorReconcile = new CheckBox(ID_EDITOR_RECONCILE, new PropertyModel<Boolean>(model,
@@ -520,7 +523,7 @@ public class SynchronizationStep extends WizardStep {
 
                 if(syncObject != null && syncObject.getSyncType() != null){
                     ObjectSynchronizationType object = syncObject.getSyncType();
-                    sb.append(object.getName() != null ? object.getName() : "- ");
+                    sb.append(object.getName() != null ? object.getName() : "(name not specified) ");
 
                     if(object.getKind() != null || object.getIntent() != null){
                         sb.append("(");
@@ -697,7 +700,7 @@ public class SynchronizationStep extends WizardStep {
 
         } catch (Exception e){
             LoggingUtils.logException(LOGGER, "Couldn't save resource synchronization.", e);
-            result.recordFatalError(getString("SchemaHandlingStep.message.saveError", e));
+            result.recordFatalError(getString("SynchronizationStep.message.cantSave", e));
         } finally {
             result.computeStatusIfUnknown();
         }

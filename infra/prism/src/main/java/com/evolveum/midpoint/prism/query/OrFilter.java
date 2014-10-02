@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class OrFilter extends NaryLogicalFilter {
 
@@ -83,7 +84,7 @@ public class OrFilter extends NaryLogicalFilter {
 
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
 		for (ObjectFilter filter : getConditions()){
 			if (filter.match(object, matchingRuleRegistry)){
 				return true;
