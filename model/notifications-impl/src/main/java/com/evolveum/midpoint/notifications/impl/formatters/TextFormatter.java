@@ -178,6 +178,7 @@ public class TextFormatter {
                     String prefixSubContainer = prefix + "   ";
                     formatContainerValue(sb, prefixSubContainer, subContainerValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
                 }
+                sb.append("\n");
             } else {
                 sb.append("Unexpected Item type: ");
                 sb.append(item);

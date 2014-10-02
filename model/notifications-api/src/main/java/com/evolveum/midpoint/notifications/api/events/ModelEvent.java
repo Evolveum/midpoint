@@ -19,6 +19,8 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -29,8 +31,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -140,10 +143,10 @@ public class ModelEvent extends BaseEvent {
         return eventCategoryType == EventCategoryType.MODEL_EVENT;
     }
 
-    public List<ObjectDelta<UserType>> getUserDeltas() {
-        List<ObjectDelta<UserType>> retval = new ArrayList<ObjectDelta<UserType>>();
+    public List<ObjectDelta<FocusType>> getFocusDeltas() {
+        List<ObjectDelta<FocusType>> retval = new ArrayList<>();
         Class c = modelContext.getFocusClass();
-        if (c != null && UserType.class.isAssignableFrom(c)) {
+        if (c != null && FocusType.class.isAssignableFrom(c)) {
             for (Object o : getFocusExecutedDeltas()) {
                 ObjectDeltaOperation objectDeltaOperation = (ObjectDeltaOperation) o;
                 retval.add(objectDeltaOperation.getObjectDelta());
@@ -152,7 +155,29 @@ public class ModelEvent extends BaseEvent {
         return retval;
     }
 
-    public ObjectDelta<UserType> getSummarizedUserDeltas() throws SchemaException {
-        return ObjectDelta.summarize(getUserDeltas());
+    public ObjectDelta<? extends FocusType> getSummarizedFocusDeltas() throws SchemaException {
+        return ObjectDelta.summarize(getFocusDeltas());
+    }
+
+    public boolean hasFocusOfType(Class<? extends FocusType> clazz) {
+        return clazz.isAssignableFrom(getFocusContext().getObjectTypeClass());
+    }
+
+    public boolean hasFocusOfType(QName focusType) {
+        PrismContext prismContext = getModelContext().getPrismContext();
+        if (prismContext == null) {
+            throw new IllegalStateException("No prismContext in model context");
+        }
+        PrismContainerDefinition pcd = prismContext.getSchemaRegistry().findContainerDefinitionByType(focusType);
+        if (pcd == null) {
+            LOGGER.warn("Couldn't find definition for type " + focusType);
+            return false;
+        }
+        Class expectedClass = pcd.getCompileTimeClass();
+        if (expectedClass == null) {
+            LOGGER.warn("Couldn't find class for type " + focusType);
+            return false;
+        }
+        return hasFocusOfType(expectedClass);
     }
 }
