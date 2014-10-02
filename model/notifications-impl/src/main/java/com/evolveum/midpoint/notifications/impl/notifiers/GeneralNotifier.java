@@ -49,6 +49,7 @@ import javax.annotation.PostConstruct;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.NOTIFICATIONS;
@@ -74,7 +75,7 @@ public class GeneralNotifier extends BaseHandler {
     @Autowired
     protected AggregatedEventHandler aggregatedEventHandler;
 
-    protected static final List<ItemPath> auxiliaryPaths = Arrays.asList(
+    protected static final List<ItemPath> auxiliaryPaths = Collections.unmodifiableList(Arrays.asList(
             new ItemPath(ShadowType.F_METADATA),
             new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),                // works for user activation as well
             new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
@@ -85,7 +86,7 @@ public class GeneralNotifier extends BaseHandler {
             new ItemPath(ShadowType.F_ITERATION),
             new ItemPath(ShadowType.F_ITERATION_TOKEN),
             new ItemPath(UserType.F_LINK_REF),
-            new ItemPath(ShadowType.F_TRIGGER)
+            new ItemPath(ShadowType.F_TRIGGER))
     );
 
 
@@ -338,5 +339,16 @@ public class GeneralNotifier extends BaseHandler {
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
+        ExpressionVariables variables = super.getDefaultVariables(event, result);
+        variables.addVariableDefinition(SchemaConstants.C_TEXT_FORMATTER, textFormatter);
+        return variables;
+    }
+
+    public static List<ItemPath> getAuxiliaryPaths() {
+        return auxiliaryPaths;
     }
 }
