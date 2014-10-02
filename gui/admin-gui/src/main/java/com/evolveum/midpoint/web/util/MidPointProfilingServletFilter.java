@@ -23,7 +23,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.DecimalFormat;
 
@@ -45,14 +44,11 @@ import java.text.DecimalFormat;
  */
 public class MidPointProfilingServletFilter implements Filter {
 
-    /* Class Variables */
     private static final Trace LOGGER = TraceManager.getTrace(MidPointProfilingServletFilter.class);
     private static DecimalFormat df = new DecimalFormat("0.00");
 
-    /* Attributes */
     protected FilterConfig config;
 
-    /* Behavior */
     @Override
     public void destroy() {
     }
@@ -73,11 +69,7 @@ public class MidPointProfilingServletFilter implements Filter {
 
             if(request instanceof HttpServletRequest){
                 String uri = ((HttpServletRequest)request).getRequestURI();
-                //String info = ((HttpServletRequest)request).getMethod();
-                //String sessionId = ((HttpServletRequest)request).getRequestedSessionId();
-                //if(uri.startsWith("/midpoint/admin")){
-                //    LOGGER.trace(info + " " + uri + " " + sessionId + " " + df.format(((double)elapsedTime)/1000000) + " (ms).");
-                //}
+
                 if(uri.startsWith("/midpoint/admin")){
                     prepareRequestProfilingEvent(request, elapsedTime, uri);
                 }
@@ -85,18 +77,15 @@ public class MidPointProfilingServletFilter implements Filter {
         } else {
             chain.doFilter(request, response);
         }
-    }   //doFilter
+    }
 
-    /*
-    *   Prepares profiling event from captured servlet request
-    * */
     private void prepareRequestProfilingEvent(ServletRequest request, long elapsed, String uri){
         String info = ((HttpServletRequest)request).getMethod();
         String sessionId = ((HttpServletRequest)request).getRequestedSessionId();
 
         ProfilingDataLog event = new ProfilingDataLog(info, uri, sessionId, elapsed, System.currentTimeMillis());
         ProfilingDataManager.getInstance().prepareRequestProfilingEvent(event);
-    }   //prepareRequestProfilingEvent
+    }
 
 
 }

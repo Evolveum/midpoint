@@ -178,6 +178,7 @@ public class PageAdmin extends PageBase {
         configuration.addMenuItem(new MenuItem(null));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.configuration"), true, null, null));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.basic"), PageSystemConfiguration.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.logging"), PageSystemConfigurationLogging.class));
 //        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.security"), PageDashboard.class));
         configuration.addMenuItem(new MenuItem(null));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.development"), true, null, null));

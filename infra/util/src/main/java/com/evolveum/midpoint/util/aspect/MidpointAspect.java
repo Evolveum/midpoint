@@ -17,8 +17,6 @@ package com.evolveum.midpoint.util.aspect;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -106,7 +104,7 @@ public class MidpointAspect {
 
 	// This is made public to use in testing
 	public static String swapSubsystemMark(String subsystemName) {
-		String prev = (String) MDC.get(MDC_SUBSYSTEM_KEY);
+		String prev = MDC.get(MDC_SUBSYSTEM_KEY);
 		if (subsystemName == null) {
 			MDC.remove(MDC_SUBSYSTEM_KEY);
 		} else {

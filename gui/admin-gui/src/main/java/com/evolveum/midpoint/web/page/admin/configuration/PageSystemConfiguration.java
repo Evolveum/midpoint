@@ -96,7 +96,6 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             }
         };
 
-
         initLayout();
     }
 
@@ -151,7 +150,11 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             }
         });
 
-        mainForm.add(new TabbedPanel(ID_TAB_PANEL, tabs));
+        TabbedPanel tabPanel = new TabbedPanel(ID_TAB_PANEL, tabs);
+        tabPanel.setOutputMarkupId(true);
+        tabPanel.setSelectedTab(getTabIndex());
+
+        mainForm.add(tabPanel);
 
         initButtons(mainForm);
     }
@@ -241,6 +244,10 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         }
 
         return configuration;
+    }
+
+    public TabbedPanel getTabPanel(){
+        return (TabbedPanel)get(ID_MAIN_FORM + ":" + ID_TAB_PANEL);
     }
 
     private ClassLoggerConfigurationType createCustomClassLogger(String name, LoggingLevelType level, String appender) {
@@ -358,10 +365,14 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
         showResultInSession(result);
         target.add(getFeedbackPanel());
-        resetPerformed(target);
+        resetPerformed();
     }
 
     private void saveObjectPolicies(SystemConfigurationType systemConfig){
+        if(systemConfigPanel == null){
+            return;
+        }
+
         List<ObjectPolicyConfigurationTypeDto> configList = systemConfigPanel.getModel().getObject().getObjectPolicyList();
         List<ObjectPolicyConfigurationType> confList = new ArrayList<>();
 
@@ -405,7 +416,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         MailConfigurationType mailConfig;
         MailServerConfigurationType mailServerConfig;
 
-        if(systemConfigPanel.getModel().getObject().getNotificationConfig() != null){
+        if(systemConfigPanel != null && systemConfigPanel.getModel().getObject().getNotificationConfig() != null){
             dto = systemConfigPanel.getModel().getObject().getNotificationConfig();
 
             if(config.getNotificationConfiguration() != null){
@@ -501,12 +512,23 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         return config;
     }
 
-    private void resetPerformed(AjaxRequestTarget target) {
+    private void resetPerformed() {
         model.reset();
-        setResponsePage(PageSystemConfiguration.class);
+
+        setResponsePage(new PageSystemConfiguration(){
+
+            @Override
+            public int getTabIndex(){
+                return PageSystemConfiguration.this.getTabPanel().getSelectedTab();
+            }
+        });
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
-        resetPerformed(target);
+        resetPerformed();
+    }
+
+    public int getTabIndex(){
+        return CONFIGURATION_TAB_BASIC;
     }
 }

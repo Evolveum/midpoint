@@ -27,4 +27,7 @@ public class PageAdminConfiguration extends PageAdmin {
     public static final String AUTH_CONFIGURATION_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#configurationAll";
     public static final String AUTH_CONFIGURATION_ALL_LABEL = "PageAdminConfiguration.auth.configurationAll.label";
     public static final String AUTH_CONFIGURATION_ALL_DESCRIPTION = "PageAdminConfiguration.auth.configurationAll.description";
+
+    protected static final int CONFIGURATION_TAB_BASIC = 0;
+    protected static final int CONFIGURATION_TAB_LOGGING = 1;
 }
