@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.provisioning.consistency.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -38,7 +39,9 @@ import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -120,8 +123,15 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 
 	private ObjectQuery createQueryByIcfName(ShadowType shadow) throws SchemaException {
 		// TODO: error handling TODO TODO TODO set matching rule instead of null in equlas filter
-		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue()
-				.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+		PrismProperty nameProperty = null;
+		if (secondaryIdentifiers.size() != 1){
+			nameProperty = shadow.getAttributes().asPrismContainerValue()
+					.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
+		} else {
+			nameProperty = secondaryIdentifiers.iterator().next();
+		}
+		
 		EqualFilter nameFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, nameProperty.getDefinition().getName()),nameProperty);
 		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
 				prismContext, shadow.getResourceRef().getOid());
