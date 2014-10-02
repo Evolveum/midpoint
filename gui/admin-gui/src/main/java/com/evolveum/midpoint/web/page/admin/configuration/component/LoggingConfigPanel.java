@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.DropDownMultiChoice;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -31,8 +30,8 @@ import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -45,13 +44,12 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.w3c.dom.html.HTMLTableElement;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -64,7 +62,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
     private static final String DOT_CLASS = LoggingConfigPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_LOGGING_CONFIGURATION = DOT_CLASS + "loadLoggingConfiguration";
-    private static final String OPERATION_UPDATE_LOGGING_CONFIGURATION = DOT_CLASS + "updateLoggingConfiguration";
 
     private static final String ID_LOGGERS_TABLE = "loggersTable";
     private static final String ID_ROOT_LEVEL = "rootLevel";
@@ -74,6 +71,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     private static final String ID_BUTTON_ADD_FILE_APPENDER = "addFileAppender";
     private static final String ID_BUTTON_DELETE_APPENDER = "deleteAppender";
     private static final String ID_BUTTON_ADD_STANDARD_LOGGER = "addStandardLogger";
+    private static final String ID_DUMP_INTERVAL_TOOLTIP = "dumpIntervalTooltip";
 
     public LoggingConfigPanel(String id) {
         super(id, null);
@@ -130,9 +128,9 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     private void initLoggers() {
         initRoot();
 
-        ISortableDataProvider<LoggerConfiguration, String> provider = new ListDataProvider<LoggerConfiguration>(this,
+        ISortableDataProvider<LoggerConfiguration, String> provider = new ListDataProvider<>(this,
                 new PropertyModel<List<LoggerConfiguration>>(getModel(), "loggers"));
-        TablePanel table = new TablePanel<LoggerConfiguration>(ID_LOGGERS_TABLE, provider, initLoggerColumns());
+        TablePanel table = new TablePanel<>(ID_LOGGERS_TABLE, provider, initLoggerColumns());
         table.setOutputMarkupId(true);
         table.setShowPaging(false);
         add(table);
@@ -181,13 +179,13 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     }
 
     private void initRoot() {
-        DropDownChoice<LoggingLevelType> rootLevel = new DropDownChoice<LoggingLevelType>(ID_ROOT_LEVEL,
+        DropDownChoice<LoggingLevelType> rootLevel = new DropDownChoice<>(ID_ROOT_LEVEL,
                 new PropertyModel<LoggingLevelType>(getModel(), LoggingDto.F_ROOT_LEVEL),
                 WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
 
         add(rootLevel);
 
-        DropDownChoice<String> rootAppender = new DropDownChoice<String>(ID_ROOT_APPENDER,
+        DropDownChoice<String> rootAppender = new DropDownChoice<>(ID_ROOT_APPENDER,
                 new PropertyModel<String>(getModel(), LoggingDto.F_ROOT_APPENDER), createAppendersListModel());
         rootAppender.setNullValid(true);
         rootAppender.add(new OnChangeAjaxBehavior() {
@@ -207,7 +205,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         CheckBox auditDetails = new CheckBox("auditDetails", new PropertyModel<Boolean>(getModel(), "auditDetails"));
         add(auditDetails);
 
-        DropDownChoice<String> auditAppender = new DropDownChoice<String>("auditAppender", new PropertyModel<String>(
+        DropDownChoice<String> auditAppender = new DropDownChoice<>("auditAppender", new PropertyModel<String>(
                 getModel(), "auditAppender"), createAppendersListModel());
         auditAppender.setNullValid(true);
         add(auditAppender);
@@ -215,13 +213,13 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
     private void initProfiling(){
         //Entry-Exit profiling init
-        DropDownChoice<ProfilingLevel> profilingLevel = new DropDownChoice<ProfilingLevel>("profilingLevel",
+        DropDownChoice<ProfilingLevel> profilingLevel = new DropDownChoice<>("profilingLevel",
                 new PropertyModel<ProfilingLevel>(getModel(), "profilingLevel"),
                 WebMiscUtil.createReadonlyModelFromEnum(ProfilingLevel.class),
-                new EnumChoiceRenderer(this));
+                new EnumChoiceRenderer<ProfilingLevel>(this));
         add(profilingLevel);
 
-        DropDownChoice<String> profilingAppender = new DropDownChoice<String>("profilingAppender",
+        DropDownChoice<String> profilingAppender = new DropDownChoice<>("profilingAppender",
                 new PropertyModel<String>(getModel(), "profilingAppender"), createAppendersListModel());
         profilingAppender.setNullValid(true);
         add(profilingAppender);
@@ -246,9 +244,13 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         add(subsystemTaskManager);
         add(subsystemWorkflow);
 
-        TextField<Integer> dumpInterval = new TextField<Integer>("dumpInterval", new PropertyModel<Integer>(getModel(),
+        TextField<Integer> dumpInterval = new TextField<>("dumpInterval", new PropertyModel<Integer>(getModel(),
                 "dumpInterval"));
         add(dumpInterval);
+
+        Label dumpIntervalTooltip = new Label(ID_DUMP_INTERVAL_TOOLTIP);
+        dumpIntervalTooltip.add(new InfoTooltipBehavior());
+        add(dumpIntervalTooltip);
     }
 
     private void addStandardLoggerPerformed(AjaxRequestTarget target){
@@ -287,7 +289,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     }
 
     private List<IColumn<LoggerConfiguration, String>> initLoggerColumns() {
-        List<IColumn<LoggerConfiguration, String>> columns = new ArrayList<IColumn<LoggerConfiguration, String>>();
+        List<IColumn<LoggerConfiguration, String>> columns = new ArrayList<>();
         IColumn column = new CheckBoxHeaderColumn<LoggerConfiguration>();
         columns.add(column);
 
@@ -342,7 +344,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                     return dropDownChoicePanel;
 
                 } else {
-                    TextPanel<String> textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+                    TextPanel textPanel = new TextPanel<>(componentId, new PropertyModel<String>(model, getPropertyExpression()));
                     FormComponent input = textPanel.getBaseFormComponent();
                     input.add(new AttributeAppender("style", "width: 100%"));
                     input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -415,7 +417,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
             @Override
             protected InputPanel createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
                 IModel<Map<String, String>> options = new Model(null);
-                ListMultipleChoicePanel panel = new ListMultipleChoicePanel<String>(componentId,
+                ListMultipleChoicePanel panel = new ListMultipleChoicePanel<>(componentId,
                         new PropertyModel<List<String>>(model, getPropertyExpression()),
                         createNewLoggerAppendersListModel(), new IChoiceRenderer<String>() {
 
@@ -454,7 +456,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
             @Override
             public List<String> getObject() {
-                List<String> list = new ArrayList<String>();
+                List<String> list = new ArrayList<>();
 
                 LoggingDto dto = getModel().getObject();
 
@@ -476,7 +478,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
             @Override
             public List<String> getObject() {
-                List<String> list = new ArrayList<String>();
+                List<String> list = new ArrayList<>();
 
                 LoggingDto dto = getModel().getObject();
                 for (AppenderConfiguration appender : dto.getAppenders()) {
@@ -500,10 +502,10 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     }
 
     private void initAppenders(){
-        ISortableDataProvider<AppenderConfiguration, String> provider = new ListDataProvider<AppenderConfiguration>(
+        ISortableDataProvider<AppenderConfiguration, String> provider = new ListDataProvider<>(
                 this, new PropertyModel<List<AppenderConfiguration>>(getModel(), LoggingDto.F_APPENDERS));
 
-        TablePanel table = new TablePanel<AppenderConfiguration>(ID_TABLE_APPENDERS, provider, initAppenderColumns());
+        TablePanel table = new TablePanel<>(ID_TABLE_APPENDERS, provider, initAppenderColumns());
         table.setOutputMarkupId(true);
         table.setShowPaging(false);
         add(table);
@@ -593,7 +595,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
             @Override
             protected InputPanel createInputPanel(String componentId, IModel model) {
-                TextPanel panel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+                TextPanel panel = new TextPanel<>(componentId, new PropertyModel<String>(model, getPropertyExpression()));
                 FormComponent component = panel.getBaseFormComponent();
                 component.add(new AttributeModifier("size", 5));
                 component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -608,7 +610,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
             @Override
             protected InputPanel createInputPanel(String componentId, IModel model) {
-                TextPanel<String> panel = new TextPanel(componentId, new PropertyModel(model,
+                TextPanel<String> panel = new TextPanel<>(componentId, new PropertyModel<String>(model,
                         getPropertyExpression()));
                 FormComponent component = panel.getBaseFormComponent();
                 component.add(new AttributeModifier("size", 5));

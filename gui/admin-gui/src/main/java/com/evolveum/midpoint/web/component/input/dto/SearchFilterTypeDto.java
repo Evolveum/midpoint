@@ -56,13 +56,12 @@ public class SearchFilterTypeDto implements Serializable{
     }
 
     private String loadFilterClause(PrismContext prismContext){
-        MapXNode clause = filterObject.getFilterClauseXNode();
         String fClause;
 
         try {
-            //TODO - fix the problem with RootElement
-            RootXNode rootClause = new RootXNode(new QName("fixMe"), clause);
-            fClause = prismContext.serializeXNodeToString(rootClause, PrismContext.LANG_XML);
+            RootXNode clause = filterObject.getFilterClauseAsRootXNode();
+
+            fClause = prismContext.serializeXNodeToString(clause, PrismContext.LANG_XML);
         } catch (SchemaException e){
             LoggingUtils.logException(LOGGER, "Could not load filterClause from SearchFilterType object.", e);
 
@@ -84,11 +83,9 @@ public class SearchFilterTypeDto implements Serializable{
                 LOGGER.trace("Filter Clause to serialize: " + filterClause);
             }
 
-            XNode filterClauseNode = context.parseToXNode(filterClause, PrismContext.LANG_XML);
+            RootXNode filterClauseNode = (RootXNode) context.parseToXNode(filterClause, PrismContext.LANG_XML);
 
-            MapXNode newClause = new MapXNode();
-            newClause.setParent(filterClauseNode);
-            filterObject.setFilterClauseXNode(newClause);
+            filterObject.setFilterClauseXNode(filterClauseNode);
         }
     }
 
