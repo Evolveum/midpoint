@@ -144,6 +144,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         resource.setCaseIgnoreValues(this.configuration.getCaseIgnoreValues());
         resource.setEnforceUniqueName(this.configuration.isEnforceUniqueName());
         resource.setTolerateDuplicateValues(this.configuration.getTolerateDuplicateValues());
+        resource.setGenerateDefaultValues(this.configuration.isGenerateDefaultValues());
         
         resource.setUselessString(this.configuration.getUselessString());
         GuardedString uselessGuardedString = this.configuration.getUselessGuardedString();
@@ -227,6 +228,8 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			throw new ConnectionFailedException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			throw new ConnectorIOException(e.getMessage(), e);
+		} catch (SchemaViolationException e) {
+			throw new ConnectorException(e);
 		}
         
         String id;
@@ -1065,7 +1068,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 					(attributesToGet == null || attributesToGet.contains(OperationalAttributes.DISABLE_DATE_NAME))) {
 				builder.addAttribute(OperationalAttributes.DISABLE_DATE_NAME, convertToLong(dummyObject.getValidTo()));
 			}
-		}
+		}	
 		
 		return builder;
    }

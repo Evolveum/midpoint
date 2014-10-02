@@ -152,11 +152,14 @@ public class Projector {
 	        LOGGER.trace("WAVE: Starting the waves.");
 	        context.setProjectionWave(0);
 	        while (context.getProjectionWave() < maxWaves) {
-
+	        	
                 context.checkAbortRequested();
 
 	        	LOGGER.trace("WAVE {} (maxWaves={}, executionWave={})", new Object[]{
 	        			context.getProjectionWave(), maxWaves, context.getExecutionWave()});
+	        	
+	        	//just make sure everythink is loaded and set as needed
+				dependencyProcessor.preprocessDependencies(context);
 	        	
 	        	// Process the focus-related aspects of the context. That means inbound, focus activation,
 	        	// object template and assignments.

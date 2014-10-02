@@ -215,6 +215,7 @@ public class AssignmentProcessor {
         LOGGER.trace("Current assignments {}", SchemaDebugUtil.prettyPrint(assignmentsCurrent));
         LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
 
+//        ObjectType source = determineSource(focusContext);
         ObjectType source = null;
         if (focusContext.getObjectCurrent() != null) {
             source = focusContext.getObjectCurrent().asObjectable();
@@ -634,6 +635,20 @@ public class AssignmentProcessor {
         finishLegalDecisions(context);
         
     }
+    
+	private <F extends ObjectType> ObjectType determineSource(LensFocusContext<F> focusContext)
+			throws SchemaException {
+		ObjectDelta delta = focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
+		if (delta != null && !delta.isEmpty()) {
+			return focusContext.getObjectNew().asObjectable();
+		}
+
+		if (focusContext.getObjectCurrent() != null) {
+			return focusContext.getObjectCurrent().asObjectable();
+		}
+
+		return focusContext.getObjectNew().asObjectable();
+	}
     
     private <F extends FocusType> void collectToZero(DeltaSetTriple<EvaluatedAssignment<F>> evaluatedAssignmentTriple, 
     		EvaluatedAssignment<F> evaluatedAssignment, boolean forceRecon) {

@@ -48,6 +48,7 @@
 			<icfi:instanceId>mail</icfi:instanceId>
 			<icfi:caseIgnoreId>true</icfi:caseIgnoreId>
 			<icfi:uidMode>uuid</icfi:uidMode>
+			<icfi:generateDefaultValues>true</icfi:generateDefaultValues>
 		</icfc:configurationProperties>
 		
 		<icfc:resultsHandlerConfiguration>
@@ -185,6 +186,16 @@ basic.norm(basic.stringify(familyName))?.replaceAll(/\w+/, { it[0].toUpperCase()
 						<strength>weak</strength>
                         <target>
                             <path>$user/familyName</path>
+                        </target>
+                    </inbound>
+                </attribute>
+                       <attribute>
+                       
+                    <ref>ri:internalId</ref>
+                    <displayName>Generated ID by resource</displayName>
+                    <inbound>
+					    <target>
+                            <path>$user/extension/trafo:uid</path>
                         </target>
                     </inbound>
                 </attribute>

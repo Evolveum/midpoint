@@ -37,6 +37,13 @@
             		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="uid" type="xsd:int" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:appinfo>
+            			<a:indexed>true</a:indexed>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     
