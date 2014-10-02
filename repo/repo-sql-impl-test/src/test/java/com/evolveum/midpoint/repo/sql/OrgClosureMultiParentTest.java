@@ -61,13 +61,13 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
     private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 5, 3, 3, 5, 4,  0};
     private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 3, 4, 5, 6, 7, 10};
     private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 2, 2, 2,  2};
-//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 10, 2 ,2 ,2 ,2 , 0 };
-//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 0, 0, 0 ,0 ,0 ,0 , 0 };
-//    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 5 ,5 ,5 ,5 ,5 , 5 };
-
     private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 10, 15,15,15,15, 0 };
     private static final int[] NODE_ROUNDS_FOR_LEVELS = { 5, 10, 15,15,15,15, 0 };
     private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20,20,20, 20};
+
+//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 10, 2 ,2 ,2 ,2 , 0 };
+//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 0, 0, 0 ,0 ,0 ,0 , 0 };
+//    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 5 ,5 ,5 ,5 ,5 , 5 };
 //    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 2, 0 ,0 ,0 ,0 , 0 };
 //    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 0, 0, 0 ,0 ,0 ,0 , 0 };
 //    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 0 ,0 ,0 ,0 ,0 , 0 };
@@ -95,8 +95,8 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
     private static boolean CHECK_CLOSURE_MATRIX = false;
     private long closureSize;
 
-    @Test(enabled = false) public void test100LoadOrgStructure() throws Exception { _test100LoadOrgStructure(); }
-    @Test(enabled = true) public void test110ScanOrgStructure() throws Exception { _test110ScanOrgStructure() ; }
+    @Test(enabled = true) public void test100LoadOrgStructure() throws Exception { _test100LoadOrgStructure(); }
+    @Test(enabled = false) public void test110ScanOrgStructure() throws Exception { _test110ScanOrgStructure() ; }
     @Test(enabled = true) public void test150CheckClosure() throws Exception { _test150CheckClosure(); }
     @Test(enabled = false) public void test180RemoveAddCycle() throws Exception { _test180RemoveAddCycle(); }
     @Test(enabled = false) public void test190AddLink() throws Exception { _test190AddLink(); }

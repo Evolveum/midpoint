@@ -217,55 +217,83 @@ public class OrgClosureManager {
 
         if (!edges.isEmpty()) {
             String deltaTempTableName = computeDeltaTable(edges, session);
-            int count;
+            try {
+                int count;
 
-            long startUpdate = System.currentTimeMillis();
-            String updateInClosureQueryText;
-            if (repoConfiguration.isUsingH2()) {
-                updateInClosureQueryText = "update " + closureTableName + " " +
-                        "set val = val + (select val from " + deltaTempTableName + " td " +
-                        "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
-                        "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
-            } else if (repoConfiguration.isUsingPostgreSQL()) {
-                updateInClosureQueryText = "update " + closureTableName + " " +
-                        "set val = val + (select val from " + deltaTempTableName + " td " +
-                        "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
-                        "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
-            } else {
-                throw new UnsupportedOperationException("implement other databases");
-            }
-            Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
-            int countUpdate = updateInClosureQuery.executeUpdate();
-            if (LOGGER.isTraceEnabled())
-                LOGGER.trace("Updated {} records to closure table ({} ms)", countUpdate, System.currentTimeMillis() - startUpdate);
+                if (isMySQL()) {
 
-            if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
+                    long startUpsert = System.currentTimeMillis();
+                    String upsertQueryText = "insert into " + closureTableName + " (descendant_oid, ancestor_oid, val) " +
+                            "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta " +
+                            "on duplicate key update "+closureTableName+".val = "+closureTableName+".val + values(val)";
+                    Query upsertQuery = session.createSQLQuery(upsertQueryText);
+                    int countUpsert = upsertQuery.executeUpdate();
+                    if (LOGGER.isTraceEnabled())
+                        LOGGER.trace("Added/updated {} records to closure table ({} ms)", countUpsert, System.currentTimeMillis() - startUpsert);
+                    if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
 
-            long startAdd = System.currentTimeMillis();
-            String addQuery =
-                    "insert into " + closureTableName + " (descendant_oid, ancestor_oid, val) " +
-                            "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta ";
-            if (countUpdate > 0) {
-                if (repoConfiguration.isUsingH2()) {
-                    addQuery += " where (descendant_oid, ancestor_oid) not in (select (descendant_oid, ancestor_oid) from " + closureTableName + ")";
-                } else if (repoConfiguration.isUsingPostgreSQL()) {
-                    addQuery += " where not exists (select 1 from " + closureTableName + " cl where cl.descendant_oid=delta.descendant_oid and cl.ancestor_oid=delta.ancestor_oid)";
-                } else {
-                    throw new UnsupportedOperationException("implement other databases");
+                } else {    // separate update and insert
+
+                    long startUpdate = System.currentTimeMillis();
+                    String updateInClosureQueryText;
+                    if (isH2()) {
+                        updateInClosureQueryText = "update " + closureTableName + " " +
+                                "set val = val + (select val from " + deltaTempTableName + " td " +
+                                "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
+                                "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
+                    } else if (isPostgreSQL()) {
+                        updateInClosureQueryText = "update " + closureTableName + " " +
+                                "set val = val + (select val from " + deltaTempTableName + " td " +
+                                "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
+                                "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
+                    } else {
+                        throw new UnsupportedOperationException("implement other databases");
+                    }
+                    Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
+                    int countUpdate = updateInClosureQuery.executeUpdate();
+                    if (LOGGER.isTraceEnabled())
+                        LOGGER.trace("Updated {} records to closure table ({} ms)", countUpdate, System.currentTimeMillis() - startUpdate);
+
+                    if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
+
+                    long startAdd = System.currentTimeMillis();
+                    String addQuery =
+                            "insert into " + closureTableName + " (descendant_oid, ancestor_oid, val) " +
+                                    "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta ";
+                    if (countUpdate > 0) {
+                        if (isH2()) {
+                            addQuery += " where (descendant_oid, ancestor_oid) not in (select (descendant_oid, ancestor_oid) from " + closureTableName + ")";
+                        } else if (isPostgreSQL()) {
+                            addQuery += " where not exists (select 1 from " + closureTableName + " cl where cl.descendant_oid=delta.descendant_oid and cl.ancestor_oid=delta.ancestor_oid)";
+                        } else {
+                            throw new UnsupportedOperationException("implement other databases");
+                        }
+                    }
+                    Query addToClosureQuery = session.createSQLQuery(addQuery);
+                    count = addToClosureQuery.executeUpdate();
+                    if (LOGGER.isTraceEnabled())
+                        LOGGER.trace("Added {} records to closure table ({} ms)", count, System.currentTimeMillis() - startAdd);
+
+                    if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
                 }
+            } finally {
+                dropDeltaTableIfNecessary(session, deltaTempTableName);
             }
-            Query addToClosureQuery = session.createSQLQuery(addQuery);
-            count = addToClosureQuery.executeUpdate();
-            if (LOGGER.isTraceEnabled())
-                LOGGER.trace("Added {} records to closure table ({} ms)", count, System.currentTimeMillis() - startAdd);
-
-            if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
         }
 
         session.flush();
         session.clear();
 
         LOGGER.trace("--------------------- DONE ADD EDGES: {} ({} ms) ----------------", edges, System.currentTimeMillis()-start);
+    }
+
+    private void dropDeltaTableIfNecessary(Session session, String deltaTempTableName) {
+        // postgresql deletes the table automatically on commit
+        // TODO what in case of H2?
+        if (isMySQL()) {
+            Query dropQuery = session.createSQLQuery("drop temporary table " + deltaTempTableName);
+            dropQuery.executeUpdate();
+        }
     }
 
     //endregion
@@ -318,46 +346,75 @@ public class OrgClosureManager {
 
         if (!edges.isEmpty()) {
             String deltaTempTableName = computeDeltaTable(edges, session);
-            int count;
+            try {
+                int count;
 
-            String deleteFromClosureQueryText, updateInClosureQueryText;
-            if (repoConfiguration.isUsingH2()) {
-                deleteFromClosureQueryText = "delete from " + closureTableName + " " +
-                        "where (descendant_oid, ancestor_oid, val) in " +
-                        "(select (descendant_oid, ancestor_oid, val) from " + deltaTempTableName + ")";
-                updateInClosureQueryText = "update " + closureTableName + " " +
-                        "set val = val - (select val from " + deltaTempTableName + " td " +
-                        "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
-                        "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
-            } else if (repoConfiguration.isUsingPostgreSQL()) {
-                deleteFromClosureQueryText = "delete from " + closureTableName + " " +
-                        "where (descendant_oid, ancestor_oid, val) in " +
-                        "(select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ")";
-                updateInClosureQueryText = "update " + closureTableName + " " +
-                        "set val = val - (select val from " + deltaTempTableName + " td " +
-                        "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
-                        "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
-            } else {
-                throw new UnsupportedOperationException("implement other databases");
+                String deleteFromClosureQueryText, updateInClosureQueryText;
+                if (isH2()) {
+                    deleteFromClosureQueryText = "delete from " + closureTableName + " " +
+                            "where (descendant_oid, ancestor_oid, val) in " +
+                            "(select (descendant_oid, ancestor_oid, val) from " + deltaTempTableName + ")";
+                    updateInClosureQueryText = "update " + closureTableName + " " +
+                            "set val = val - (select val from " + deltaTempTableName + " td " +
+                            "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
+                            "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
+                } else if (isPostgreSQL()) {
+                    deleteFromClosureQueryText = "delete from " + closureTableName + " " +
+                            "where (descendant_oid, ancestor_oid, val) in " +
+                            "(select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ")";
+                    updateInClosureQueryText = "update " + closureTableName + " " +
+                            "set val = val - (select val from " + deltaTempTableName + " td " +
+                            "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
+                            "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
+                } else if (isMySQL()) {
+                    // http://stackoverflow.com/questions/652770/delete-with-join-in-mysql
+                    // TODO consider this for postgresql/h2 as well
+                    deleteFromClosureQueryText = "delete " + closureTableName + " from " + closureTableName + " " +
+                            "inner join " + deltaTempTableName + " td on " +
+                            "td.descendant_oid = "+closureTableName+".descendant_oid and td.ancestor_oid = "+closureTableName+".ancestor_oid and "+
+                                "td.val = "+closureTableName+".val";
+                    // it is not possible to use temporary table twice in a query
+                    // TODO consider using this in postgresql and h2 as well...
+                    updateInClosureQueryText = "update " + closureTableName +
+                            " join " + deltaTempTableName + " td " +
+                                "on td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid " +
+                            "set "+closureTableName+".val = "+closureTableName+".val - td.val";
+                } else {
+                    throw new UnsupportedOperationException("implement other databases");
+                }
+                long startDelete = System.currentTimeMillis();
+                Query deleteFromClosureQuery = session.createSQLQuery(deleteFromClosureQueryText);
+                count = deleteFromClosureQuery.executeUpdate();
+                if (LOGGER.isTraceEnabled())
+                    LOGGER.trace("Deleted {} records from closure table in {} ms", count, System.currentTimeMillis() - startDelete);
+                if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
+
+                long startUpdate = System.currentTimeMillis();
+                Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
+                count = updateInClosureQuery.executeUpdate();
+                if (LOGGER.isTraceEnabled())
+                    LOGGER.trace("Updated {} records in closure table in {} ms", count, System.currentTimeMillis() - startUpdate);
+                if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
+            } finally {
+                dropDeltaTableIfNecessary(session, deltaTempTableName);
             }
-            long startDelete = System.currentTimeMillis();
-            Query deleteFromClosureQuery = session.createSQLQuery(deleteFromClosureQueryText);
-            count = deleteFromClosureQuery.executeUpdate();
-            if (LOGGER.isTraceEnabled())
-                LOGGER.trace("Deleted {} records from closure table in {} ms", count, System.currentTimeMillis() - startDelete);
-            if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
-
-            long startUpdate = System.currentTimeMillis();
-            Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
-            count = updateInClosureQuery.executeUpdate();
-            if (LOGGER.isTraceEnabled())
-                LOGGER.trace("Updated {} records in closure table in {} ms", count, System.currentTimeMillis() - startUpdate);
-            if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
         }
         session.flush();
         session.clear();
 
         LOGGER.trace("--------------------- DONE REMOVE EDGES: {} ({} ms) ----------------", edges, System.currentTimeMillis()-start);
+    }
+
+    private boolean isMySQL() {
+        return repoConfiguration.isUsingMySQL();
+    }
+
+    private boolean isH2() {
+        return repoConfiguration.isUsingH2();
+    }
+
+    private boolean isPostgreSQL() {
+        return repoConfiguration.isUsingPostgreSQL();
     }
     //endregion
 
@@ -429,10 +486,12 @@ public class OrgClosureManager {
 
         long start = System.currentTimeMillis();
         String createTablePrefix;
-        if (repoConfiguration.isUsingH2()) {
+        if (isH2()) {
             createTablePrefix = "create cached local temporary " + deltaTempTableName + " on commit drop";
-        } else if (repoConfiguration.isUsingPostgreSQL()) {
+        } else if (isPostgreSQL()) {
             createTablePrefix = "create temporary table " + deltaTempTableName;
+        } else if (isMySQL()) {
+            createTablePrefix = "create temporary table " + deltaTempTableName + " engine=memory";
         } else {
             throw new UnsupportedOperationException("define other databases");
         }
@@ -461,7 +520,7 @@ public class OrgClosureManager {
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to temporary delta table {} ({} ms).",
                 new Object[] {count, deltaTempTableName, System.currentTimeMillis()-start});
 
-        if (repoConfiguration.isUsingPostgreSQL()) {
+        if (isPostgreSQL()) {
             start = System.currentTimeMillis();
             Query qIndex = session.createSQLQuery("CREATE INDEX " + deltaTempTableName + "_idx " +
                     "  ON " + deltaTempTableName +
@@ -473,6 +532,8 @@ public class OrgClosureManager {
 
         if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
         if (DUMP_TABLES) dumpOrgClosureTypeTable(session, deltaTempTableName);
+
+        // TODO drop delta table in case of exception
 
         return deltaTempTableName;
     }
