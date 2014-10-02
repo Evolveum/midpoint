@@ -46,6 +46,7 @@ import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -126,6 +127,15 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 		this.filterClauseXNode = filterClauseXNode;
 	}
 
+    public void setFilterClauseXNode(RootXNode filterClauseNode) {
+        if (filterClauseNode == null) {
+            this.filterClauseXNode = null;
+        } else {
+            this.filterClauseXNode = new MapXNode();
+            this.filterClauseXNode.put(filterClauseNode.getRootElementName(), filterClauseNode.getSubnode());
+        }
+    }
+
     @Deprecated     // use the version without prismContext instead
     public MapXNode getFilterClauseXNode(PrismContext prismContext) throws SchemaException {
         return getFilterClauseXNode();
@@ -137,6 +147,20 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         } else {
             return (MapXNode) this.filterClauseXNode.clone();
         }
+    }
+
+    public RootXNode getFilterClauseAsRootXNode() throws SchemaException {
+        MapXNode clause = getFilterClauseXNode();
+        if (clause == null) {
+            return null;
+        }
+
+        Entry<QName, XNode> singleEntry = clause.getSingleSubEntry("getFilterClauseAsRootXNode");
+        if (singleEntry == null) {
+            return null;
+        }
+
+        return new RootXNode(singleEntry.getKey(), singleEntry.getValue());
     }
 
     public Element getFilterClauseAsElement() throws SchemaException {
@@ -672,4 +696,5 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 		}
 		return sb.toString();
 	}
+
 }
