@@ -36,6 +36,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -66,6 +67,8 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
     private static final String ID_LANGUAGE_CONTAINER = "languageContainer";
     private static final String ID_POLICY_CONTAINER = "policyRefContainer";
     private static final String ID_BUTTON_UPDATE = "update";
+    private static final String ID_LABEL_TYPE = "typeLabel";
+    private static final String ID_LABEL_EXPRESSION = "expressionLabel";
 
     private IModel<ExpressionTypeDto> model;
     private Map<String, String> policyMap = new HashMap<>();
@@ -93,6 +96,9 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
     @Override
     protected void initLayout(){
         loadModel();
+
+        Label typeLabel = new Label(ID_LABEL_TYPE, createStringResource(getTypeLabelKey()));
+        add(typeLabel);
 
         DropDownChoice type = new DropDownChoice<>(ID_TYPE,
                 new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, ExpressionTypeDto.F_TYPE),
@@ -180,6 +186,9 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
         policyRef.setNullValid(true);
         policyContainer.add(policyRef);
 
+        Label expressionLabel = new Label(ID_LABEL_EXPRESSION, createStringResource(getExpressionLabelKey()));
+        add(expressionLabel);
+
         TextArea expression = new TextArea<>(ID_EXPRESSION, new PropertyModel<String>(model, ExpressionTypeDto.F_EXPRESSION));
         expression.setOutputMarkupId(true);
         add(expression);
@@ -250,4 +259,17 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
 
     }
 
+    /**
+     *  Provide key for expression type label
+     * */
+    public String getTypeLabelKey(){
+        return "ExpressionEditorPanel.label.type";
+    }
+
+    /**
+     *  Provide key for expression label
+     * */
+    public String getExpressionLabelKey(){
+        return "ExpressionEditorPanel.label.expression";
+    }
 }

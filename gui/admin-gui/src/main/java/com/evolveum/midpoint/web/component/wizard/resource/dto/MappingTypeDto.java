@@ -65,6 +65,12 @@ public class MappingTypeDto implements Serializable {
 
     public MappingTypeDto(MappingType mapping, PrismContext prismContext){
 
+        if(mapping != null && mapping.equals(new MappingType())){
+            mappingObject = mapping;
+            expression = ExpressionUtil.EXPRESSION_AS_IS;
+            expressionType = ExpressionUtil.ExpressionEvaluatorType.AS_IS;
+        }
+
         if(mapping == null){
             mappingObject = new MappingType();
         } else {
