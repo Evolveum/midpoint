@@ -16,15 +16,16 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectPatternType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -51,8 +52,7 @@ public class ResourceProtectedEditor extends SimplePanel<List<ResourceObjectPatt
     private static final String ID_ACCOUNT_BODY = "accountBodyContainer";
     private static final String ID_NAME = "name";
     private static final String ID_UID = "uid";
-    private static final String ID_FILTER_DESCRIPTION = "filterDescription";
-    private static final String ID_FILTER_CLAUSE = "filterClause";
+    private static final String ID_FILTER_EDITOR = "filterClause";
     private static final String ID_BUTTON_ADD = "addButton";
     private static final String ID_BUTTON_DELETE = "deleteAccount";
 
@@ -150,16 +150,9 @@ public class ResourceProtectedEditor extends SimplePanel<List<ResourceObjectPatt
                 uid.add(prepareAjaxOnComponentTagUpdateBehavior());
                 accountBody.add(uid);
 
-                TextArea filterDescription = new TextArea<>(ID_FILTER_DESCRIPTION,
-                        new PropertyModel<String>(item.getModelObject(), "filter.description"));
-                filterDescription.add(prepareAjaxOnComponentTagUpdateBehavior());
-                accountBody.add(filterDescription);
-
-                //TODO - what is this? How should we edit this?
-                TextField filterClause = new TextField<>(ID_FILTER_CLAUSE,
-                        new PropertyModel<String>(item.getModelObject(), "filter.filterClauseXNode"));
-                filterClause.add(prepareAjaxOnComponentTagUpdateBehavior());
-                accountBody.add(filterClause);
+                SearchFilterPanel searchFilterPanel = new SearchFilterPanel<>(ID_FILTER_EDITOR,
+                        new PropertyModel<SearchFilterType>(item.getModelObject(), "filter"));
+                accountBody.add(searchFilterPanel);
             }
         };
         repeater.setOutputMarkupId(true);

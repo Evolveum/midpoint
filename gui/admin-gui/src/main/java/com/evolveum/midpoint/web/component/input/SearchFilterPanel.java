@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.component.input;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -25,7 +24,8 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -41,7 +41,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends SimplePanel<T
     private static final String ID_FILTER_CLAUSE = "filterClause";
     private static final String ID_BUTTON_UPDATE = "update";
 
-    private IModel<SearchFilterTypeDto> model;
+    protected IModel<SearchFilterTypeDto> model;
 
     public SearchFilterPanel(String id, IModel<T> model){
         super(id, model);
@@ -71,10 +71,10 @@ public class SearchFilterPanel<T extends SearchFilterType> extends SimplePanel<T
                 new PropertyModel<String>(model, SearchFilterTypeDto.F_FILTER_CLAUSE));
         add(filterClause);
 
-        AjaxLink update = new AjaxLink(ID_BUTTON_UPDATE) {
+        AjaxSubmitLink update = new AjaxSubmitLink(ID_BUTTON_UPDATE) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 updateClausePerformed(target);
             }
         };
@@ -86,7 +86,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends SimplePanel<T
             model.getObject().updateFilterClause(getPageBase().getPrismContext());
 
             success(getString("SearchFilterPanel.message.expressionSuccess"));
-        } catch (SchemaException e){
+        } catch (Exception e){
             LoggingUtils.logException(LOGGER, "Could not create MapXNode from provided XML filterClause.", e);
             error(getString("SearchFilterPanel.message.cantSerialize"));
         }
@@ -98,7 +98,5 @@ public class SearchFilterPanel<T extends SearchFilterType> extends SimplePanel<T
     /**
      *  Override this in component with SearchFilterPanel to provide additional functionality when filterClause is updated
      * */
-    public void performFilterClauseHook(AjaxRequestTarget target){
-        target.add();
-    }
+    public void performFilterClauseHook(AjaxRequestTarget target){}
 }

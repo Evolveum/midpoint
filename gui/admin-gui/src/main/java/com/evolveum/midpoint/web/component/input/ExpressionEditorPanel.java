@@ -35,12 +35,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -114,6 +112,7 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
         });
         type.setOutputMarkupId(true);
         type.setOutputMarkupPlaceholderTag(true);
+        type.setNullValid(true);
         add(type);
 
         WebMarkupContainer languageContainer = new WebMarkupContainer(ID_LANGUAGE_CONTAINER);
@@ -193,10 +192,10 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
         expression.setOutputMarkupId(true);
         add(expression);
 
-        AjaxLink update = new AjaxLink(ID_BUTTON_UPDATE) {
+        AjaxSubmitLink update = new AjaxSubmitLink(ID_BUTTON_UPDATE) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 updateExpressionPerformed(target);
             }
         };
@@ -255,9 +254,7 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
     /**
      *  Override this in component with ExpressionEditorPanel to provide additional functionality when expression is updated
      * */
-    public void performExpressionHook(AjaxRequestTarget target){
-
-    }
+    public void performExpressionHook(AjaxRequestTarget target){}
 
     /**
      *  Provide key for expression type label
