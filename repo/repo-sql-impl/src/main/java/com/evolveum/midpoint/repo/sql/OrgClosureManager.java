@@ -220,12 +220,23 @@ public class OrgClosureManager {
             try {
                 int count;
 
-                if (isMySQL()) {
+                if (isMySQL() || isOracle()) {
 
                     long startUpsert = System.currentTimeMillis();
-                    String upsertQueryText = "insert into " + closureTableName + " (descendant_oid, ancestor_oid, val) " +
-                            "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta " +
-                            "on duplicate key update "+closureTableName+".val = "+closureTableName+".val + values(val)";
+                    String upsertQueryText;
+
+                    if (isMySQL()) {
+                        upsertQueryText = "insert into " + closureTableName + " (descendant_oid, ancestor_oid, val) " +
+                                "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta " +
+                                "on duplicate key update " + closureTableName + ".val = " + closureTableName + ".val + values(val)";
+                    } else {
+                        upsertQueryText = "merge into " + closureTableName + " closure " +
+                            "using (select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ") delta " +
+                            "on (closure.descendant_oid = delta.descendant_oid and closure.ancestor_oid = delta.ancestor_oid) " +
+                            "when matched then update set closure.val = closure.val + delta.val " +
+                            "when not matched then insert (closure.descendant_oid, closure.ancestor_oid, closure.val) " +
+                                "values (delta.descendant_oid, delta.ancestor_oid, deltea.val)";
+                    }
                     Query upsertQuery = session.createSQLQuery(upsertQueryText);
                     int countUpsert = upsertQuery.executeUpdate();
                     if (LOGGER.isTraceEnabled())
@@ -366,7 +377,7 @@ public class OrgClosureManager {
                             "set val = val - (select val from " + deltaTempTableName + " td " +
                             "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
                             "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
-                } else if (isMySQL()) {
+                } else if (isMySQL() || isOracle()) {
                     // http://stackoverflow.com/questions/652770/delete-with-join-in-mysql
                     // TODO consider this for postgresql/h2 as well
                     deleteFromClosureQueryText = "delete " + closureTableName + " from " + closureTableName + " " +
@@ -408,6 +419,11 @@ public class OrgClosureManager {
     private boolean isMySQL() {
         return repoConfiguration.isUsingMySQL();
     }
+
+    private boolean isOracle() {
+        return repoConfiguration.isUsingOracle();
+    }
+
 
     private boolean isH2() {
         return repoConfiguration.isUsingH2();
@@ -476,7 +492,13 @@ public class OrgClosureManager {
             throw new IllegalArgumentException("No edges to add/remove");
         }
 
-        String deltaTempTableName = "m_org_closure_delta_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
+        String deltaTempTableName;
+
+        if (!isOracle()) {
+            deltaTempTableName = "m_org_closure_delta_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
+        } else {
+            deltaTempTableName = "m_org_closure_temp_delta";            // table definition is global
+        }
 
         if (COUNT_CLOSURE_RECORDS && LOGGER.isTraceEnabled()) {
             Query q = session.createSQLQuery("select count(*) from " + closureTableName);
@@ -487,11 +509,13 @@ public class OrgClosureManager {
         long start = System.currentTimeMillis();
         String createTablePrefix;
         if (isH2()) {
-            createTablePrefix = "create cached local temporary " + deltaTempTableName + " on commit drop";
+            createTablePrefix = "create cached local temporary " + deltaTempTableName + " on commit drop as";
         } else if (isPostgreSQL()) {
-            createTablePrefix = "create temporary table " + deltaTempTableName;
+            createTablePrefix = "create temporary table " + deltaTempTableName + " as ";
         } else if (isMySQL()) {
-            createTablePrefix = "create temporary table " + deltaTempTableName + " engine=memory";
+            createTablePrefix = "create temporary table " + deltaTempTableName + " engine=memory as ";
+        } else if (isOracle()) {
+            createTablePrefix = "insert into " + deltaTempTableName;
         } else {
             throw new UnsupportedOperationException("define other databases");
         }
@@ -508,8 +532,7 @@ public class OrgClosureManager {
             whereClause.append("and t2.descendant_oid = '").append(edge.getHead()).append("')");
         }
         Query query1 = session.createSQLQuery(
-                        createTablePrefix +
-                        " as " +
+                        createTablePrefix + " " +
                         "select t1.descendant_oid as descendant_oid, t2.ancestor_oid as ancestor_oid, " +
                                "sum(t1.val*t2.val) as val " +
                         "from "+closureTableName+" t1, "+closureTableName+" t2 " +
@@ -529,6 +552,7 @@ public class OrgClosureManager {
             qIndex.executeUpdate();
             if (LOGGER.isTraceEnabled()) LOGGER.trace("Index created in {} ms", System.currentTimeMillis()-start);
         }
+        // TODO index for MySQL!!!
 
         if (DUMP_TABLES) dumpOrgClosureTypeTable(session, closureTableName);
         if (DUMP_TABLES) dumpOrgClosureTypeTable(session, deltaTempTableName);
