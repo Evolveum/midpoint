@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandl
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -221,7 +222,29 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         add(matchingRule);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
-                new PropertyModel<String>(getModel(), "outbound.name"));
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        ResourceAttributeDefinitionType attributeDefinition = getModel().getObject();
+
+                        if(attributeDefinition == null){
+                            return null;
+                        }
+
+                        MappingType outbound = attributeDefinition.getOutbound();
+
+                        if(outbound == null){
+                            return null;
+                        }
+
+                        if(outbound.getName() != null && StringUtils.isNotEmpty(outbound.getName())){
+                            return outbound.getName();
+                        } else {
+                            return getString("MultiValueField.nameNotSpecified");
+                        }
+                    }
+                });
         outboundLabel.setEnabled(false);
         outboundLabel.setOutputMarkupId(true);
         add(outboundLabel);
@@ -247,10 +270,14 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
                     public String getObject() {
                         MappingType mapping = model.getObject();
 
-                        if(mapping != null){
+                        if(mapping == null){
+                            return null;
+                        }
+
+                        if(mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())){
                             return mapping.getName();
                         } else {
-                            return null;
+                            return getString("MultiValueField.nameNotSpecified");
                         }
                     }
                 };

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandl
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -323,10 +324,14 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                     public String getObject() {
                         MappingType mapping = model.getObject();
 
-                        if(mapping != null){
+                        if(mapping == null){
+                            return null;
+                        }
+
+                        if(mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())){
                             return mapping.getName();
                         } else {
-                            return null;
+                            return getString("MultiValueField.nameNotSpecified");
                         }
                     }
                 };

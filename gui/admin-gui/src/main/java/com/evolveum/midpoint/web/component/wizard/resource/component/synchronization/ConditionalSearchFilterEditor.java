@@ -90,6 +90,16 @@ public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearch
                     ConditionalSearchFilterEditor.this.getModel().getObject().setCondition(expression);
                 }
             }
+
+            @Override
+            public String getTypeLabelKey() {
+                return "ConditionalSearchFilterEditor.condition.type.label";
+            }
+
+            @Override
+            public String getExpressionLabelKey() {
+                return "ConditionalSearchFilterEditor.condition.label";
+            }
         };
         add(expressionEditor);
 
