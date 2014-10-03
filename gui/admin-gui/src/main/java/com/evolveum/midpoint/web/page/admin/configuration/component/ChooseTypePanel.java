@@ -69,6 +69,7 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
         name.setOutputMarkupId(true);
 
         AjaxLink choose = new AjaxLink(ID_LINK_CHOOSE) {
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                  changeOptionPerformed(target);
@@ -76,6 +77,7 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
         };
 
         AjaxLink remove = new AjaxLink(ID_LINK_REMOVE) {
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 setToDefault();
@@ -91,7 +93,7 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     }
 
     private void initDialog(){
-        ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_SHOW_CHOOSE_OPTIONS, getModel().getObject().getType()){
+        ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_SHOW_CHOOSE_OPTIONS, getObjectTypeClass()){
 
             @Override
             protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
@@ -151,7 +153,13 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     }
 
     private void setToDefault(){
-        getModel().setObject(new ObjectViewDto());
+        ObjectViewDto dto = new ObjectViewDto();
+        dto.setType(getObjectTypeClass());
+        getModel().setObject(dto);
+    }
+
+    private Class<T> getObjectTypeClass(){
+        return getModel().getObject().getType();
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
