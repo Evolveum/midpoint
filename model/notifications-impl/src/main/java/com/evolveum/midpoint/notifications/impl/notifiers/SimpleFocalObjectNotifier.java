@@ -161,7 +161,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
             body.append("\n");
         } else if (delta.isModify()) {
             body.append("The ").append(typeNameLower).append(" record was " + attemptedTo + "modified. Modified attributes are:\n");
-            body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
+            body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType), focusContext.getObjectOld(), focusContext.getObjectNew()));
             body.append("\n");
         } else if (delta.isDelete()) {
             body.append("The ").append(typeNameLower).append(" record was " + attemptedTo + "removed.\n\n");

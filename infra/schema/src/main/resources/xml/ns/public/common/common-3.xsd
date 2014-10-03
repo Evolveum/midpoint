@@ -764,6 +764,7 @@
     		<xsd:appinfo>
     			<a:operational>true</a:operational>
     			<a:container/>
+                <a:displayName>Metadata</a:displayName>
     		</xsd:appinfo>
     	</xsd:annotation>
     	<xsd:sequence>
@@ -1900,6 +1901,9 @@
                                 a desired state of things (cf. linkRef).
                                 </p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Assignment</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -2518,6 +2522,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:displayName>Assignment</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2543,6 +2548,7 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                     		<a:objectReference>tns:targetRef</a:objectReference>
+                            <a:displayName>Target</a:displayName>
                     	</xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2552,6 +2558,9 @@
                         <xsd:documentation>
                             TODO: target ref
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>Target</a:displayName>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 
@@ -2560,6 +2569,9 @@
                         <xsd:documentation>
                             TODO
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>Construction</a:displayName>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 
@@ -2590,6 +2602,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                        <a:displayName>Tenant reference</a:displayName>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6084,6 +6097,9 @@
                             <xsd:documentation>
                             	TODO
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Inducement</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="authorization" type="tns:AuthorizationType" minOccurs="0" maxOccurs="unbounded">

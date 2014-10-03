@@ -185,7 +185,10 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
             }
 
             if (resourceObjectEvent.getOperationStatus() != OperationStatus.IN_PROGRESS) {
-                body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
+                // todo we do not have objectOld + objectNew, only the current status
+                // it is used to explain modified containers with identifiers -- however, currently I don't know of use of such containers in shadows, which would be visible in notifications
+                body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType),
+                        resourceObjectEvent.getAccountOperationDescription().getCurrentShadow(), null));
             } else {
                 // special case - here the attributes are 'result', 'failedOperationType', 'objectChange', 'attemptNumber'
                 // we have to unwrap attributes that are to be modified from the objectChange item
@@ -206,7 +209,8 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
                             deltas.add((ObjectDelta) DeltaConvertor.createObjectDelta(change.getValue(), prismContext));
                         }
                         ObjectDelta<ShadowType> shadowDelta = ObjectDelta.summarize(deltas);
-                        body.append(textFormatter.formatObjectModificationDelta(shadowDelta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
+                        body.append(textFormatter.formatObjectModificationDelta(shadowDelta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType),
+                                resourceObjectEvent.getAccountOperationDescription().getCurrentShadow(), null));
                     } catch (SchemaException e) {
                         LoggingUtils.logException(LOGGER, "Unable to determine the shadow change; operation = {}", e, resourceObjectEvent.getAccountOperationDescription().debugDump());
                         body.append("(unable to determine the change because of schema exception: ").append(e.getMessage()).append(")\n");

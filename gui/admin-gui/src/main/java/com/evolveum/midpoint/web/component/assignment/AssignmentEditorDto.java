@@ -233,6 +233,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
             } else {
                 ObjectReferenceType ref = new ObjectReferenceType();
                 ref.setOid(this.tenantRef.getOid());
+                ref.setType(OrgType.COMPLEX_TYPE);
                 newAssignment.setTenantRef(ref);
             }
         }
