@@ -131,6 +131,10 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
             fullName = "";          // TODO (currently it's not possible to get here)
         }
 
+        if (fullName == null) {
+            fullName = "";          // "null" is not nice in notifications
+        }
+
         ObjectDelta<FocusType> delta = ObjectDelta.summarize(((ModelEvent) event).getFocusDeltas());
 
         StringBuilder body = new StringBuilder();
