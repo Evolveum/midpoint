@@ -381,8 +381,6 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         		limitations.getAccess().setAdd(previousLimitations.getAccess().isAdd());
         		limitations.getAccess().setRead(previousLimitations.getAccess().isRead());
         		limitations.getAccess().setModify(previousLimitations.getAccess().isModify());
-        		limitations.setSecondaryIdentifier(previousLimitations.isSecondaryIdentifier());
-        		limitations.setUnique(previousLimitations.isUnique());
         	}
         	previousLimitations = limitations;
         	if (schemaHandlingAttrDefType != null) {
