@@ -197,7 +197,10 @@ public class ProvisioningUtil {
 					return values.get(0).getOid();
 				}
 				if (NaryLogicalFilter.class.isAssignableFrom(f.getClass())){
-					return getResourceOidFromFilter(((NaryLogicalFilter) f).getConditions());
+					String resourceOid = getResourceOidFromFilter(((NaryLogicalFilter) f).getConditions());
+					if (resourceOid != null){
+						return resourceOid;
+					}
 				}
 			}
 			
@@ -221,7 +224,10 @@ public class ProvisioningUtil {
 					return (T) ((PrismPropertyValue)values.get(0)).getValue();
 				}
 				if (NaryLogicalFilter.class.isAssignableFrom(f.getClass())){
-					return getValueFromFilter(((NaryLogicalFilter) f).getConditions(), propertyName);
+					T value = getValueFromFilter(((NaryLogicalFilter) f).getConditions(), propertyName);
+					if (value != null){
+						return value;
+					}
 				}
 			}
 			

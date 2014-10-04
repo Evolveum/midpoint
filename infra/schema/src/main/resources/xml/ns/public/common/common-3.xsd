@@ -3567,6 +3567,16 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="secondaryIdentifier" type="xsd:boolean" minOccurs="0">
+            <xsd:annotation>
+            		<xsd:documentation>
+            			Indicated if the attribute should be considered as secondary identifier. If set to true,
+            			this attribue is stored in repository and user for example by synchronization (correlation
+            			rule), consistency mechanism, etc.
+            		</xsd:documentation>
+            	</xsd:annotation>
+			</xsd:element>
+    		
             <xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>

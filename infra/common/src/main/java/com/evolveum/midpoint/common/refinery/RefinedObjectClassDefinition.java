@@ -576,7 +576,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		if (objectClassDef.isIdentifier(attrName)) {
 			((Collection)getIdentifiers()).add(rAttrDef);
 		}
-		if (objectClassDef.isSecondaryIdentifier(attrName)) {
+		if (objectClassDef.isSecondaryIdentifier(attrName) || rAttrDef.isSecondaryIdentifier()) {
 			((Collection)getSecondaryIdentifiers()).add(rAttrDef);
 		}		
 	}
