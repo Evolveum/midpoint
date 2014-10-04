@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.IWizard;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -49,15 +50,13 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
 
     @Override
     public Component getHeader(String id, Component parent, IWizard wizard) {
-        Label header = new Label(id, new AbstractReadOnlyModel<String>() {
+        return new Label(id, new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
                 return getTitle();
             }
         });
-
-        return header;
     }
 
     public PageBase getPageBase() {
@@ -127,8 +126,8 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
         return new IValidator<String>() {
 
             @Override
-            public void validate(IValidatable<String> validatable) {
-                String value = validatable.getValue();
+            public void validate(IValidatable<String> validated) {
+                String value = validated.getValue();
                 List<QName> list = model.getObject();
                 List<String> stringList = new ArrayList<>();
 
@@ -138,6 +137,8 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
 
                 if(!stringList.contains(value)){
                     error(createStringResource("SchemaHandlingStep.message.validationError", value).getString());
+                    AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class);
+                    target.add(getPageBase().getFeedbackPanel());
                 }
             }
         };

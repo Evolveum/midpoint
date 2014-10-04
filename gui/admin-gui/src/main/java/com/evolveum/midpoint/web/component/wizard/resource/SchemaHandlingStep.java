@@ -537,7 +537,7 @@ public class SchemaHandlingStep extends WizardStep {
                 new PropertyModel<List<ResourceObjectTypeDependencyType>>(model, SchemaHandlingDto.F_SELECTED + ".dependency"));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), getPageBase().getFeedbackPanel());
     }
 
     private void iterationEditPerformed(AjaxRequestTarget target){
@@ -545,7 +545,7 @@ public class SchemaHandlingStep extends WizardStep {
                 new PropertyModel<IterationSpecificationType>(model, SchemaHandlingDto.F_SELECTED + ".iteration"));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), getPageBase().getFeedbackPanel());
     }
 
     private void protectedEditPerformed(AjaxRequestTarget target){
@@ -553,7 +553,7 @@ public class SchemaHandlingStep extends WizardStep {
                 new PropertyModel<List<ResourceObjectPatternType>>(model, SchemaHandlingDto.F_SELECTED + "._protected"));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), getPageBase().getFeedbackPanel());
     }
 
     private void activationEditPerformed(AjaxRequestTarget target){
@@ -561,7 +561,7 @@ public class SchemaHandlingStep extends WizardStep {
                 new PropertyModel<ResourceActivationDefinitionType>(model, SchemaHandlingDto.F_SELECTED + ".activation"));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), getPageBase().getFeedbackPanel());
     }
 
     private void credentialsEditPerformed(AjaxRequestTarget target){
@@ -569,7 +569,7 @@ public class SchemaHandlingStep extends WizardStep {
                 new PropertyModel<ResourceCredentialsDefinitionType>(model, SchemaHandlingDto.F_SELECTED + ".credentials"));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), getPageBase().getFeedbackPanel());
     }
 
     private void editAttributePerformed(AjaxRequestTarget target, ResourceAttributeDefinitionType object){
@@ -592,7 +592,7 @@ public class SchemaHandlingStep extends WizardStep {
                     model.getObject().getSelected(), resourceModel.getObject());
             getThirdRowContainer().replaceWith(newContainer);
 
-            target.add(getThirdRowContainer());
+            target.add(getThirdRowContainer(), getPageBase().getFeedbackPanel());
         } else {
             warn(getString("SchemaHandlingStep.message.selectObjectClassAss"));
             getThirdRowContainer().replaceWith(new WebMarkupContainer(ID_THIRD_ROW_CONTAINER));
