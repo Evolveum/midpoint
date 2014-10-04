@@ -235,7 +235,7 @@ public class OrgClosureManager {
                             "on (closure.descendant_oid = delta.descendant_oid and closure.ancestor_oid = delta.ancestor_oid) " +
                             "when matched then update set closure.val = closure.val + delta.val " +
                             "when not matched then insert (closure.descendant_oid, closure.ancestor_oid, closure.val) " +
-                                "values (delta.descendant_oid, delta.ancestor_oid, deltea.val)";
+                                "values (delta.descendant_oid, delta.ancestor_oid, delta.val)";
                     }
                     Query upsertQuery = session.createSQLQuery(upsertQueryText);
                     int countUpsert = upsertQuery.executeUpdate();
@@ -369,7 +369,7 @@ public class OrgClosureManager {
                             "set val = val - (select val from " + deltaTempTableName + " td " +
                             "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
                             "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
-                } else if (isPostgreSQL()) {
+                } else if (isPostgreSQL() || isOracle()) {
                     deleteFromClosureQueryText = "delete from " + closureTableName + " " +
                             "where (descendant_oid, ancestor_oid, val) in " +
                             "(select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ")";
@@ -377,7 +377,7 @@ public class OrgClosureManager {
                             "set val = val - (select val from " + deltaTempTableName + " td " +
                             "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
                             "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
-                } else if (isMySQL() || isOracle()) {
+                } else if (isMySQL()) {
                     // http://stackoverflow.com/questions/652770/delete-with-join-in-mysql
                     // TODO consider this for postgresql/h2 as well
                     deleteFromClosureQueryText = "delete " + closureTableName + " from " + closureTableName + " " +
@@ -515,6 +515,10 @@ public class OrgClosureManager {
         } else if (isMySQL()) {
             createTablePrefix = "create temporary table " + deltaTempTableName + " engine=memory as ";
         } else if (isOracle()) {
+            // todo skip if this is first in this transaction
+            Query q = session.createSQLQuery("delete from " + deltaTempTableName);
+            int count = q.executeUpdate();
+            LOGGER.trace("Deleted {} rows from temporary table {}", count, deltaTempTableName);
             createTablePrefix = "insert into " + deltaTempTableName;
         } else {
             throw new UnsupportedOperationException("define other databases");

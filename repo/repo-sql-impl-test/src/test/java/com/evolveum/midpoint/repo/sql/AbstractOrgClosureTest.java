@@ -178,7 +178,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         for (Object[] item : list) {
             closureInDatabase.set(vertexList.indexOf(item[0]),
                     vertexList.indexOf(item[1]),
-                    (Integer) item[2]);
+                    Integer.parseInt(item[2].toString()));
         }
 
         double zSumResultBefore = result.zSum();

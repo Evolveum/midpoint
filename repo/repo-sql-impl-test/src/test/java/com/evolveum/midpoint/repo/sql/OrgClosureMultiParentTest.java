@@ -72,26 +72,26 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
 //    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 0, 0, 0 ,0 ,0 ,0 , 0 };
 //    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 0 ,0 ,0 ,0 ,0 , 0 };
 
-//    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 3, 4, 5, 0};
-//    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 1, 2, 3, 4, 5};
-//    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 3, 3, 3};
-//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15,15,15,0 };
-//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15,15,15,0 };
-//    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20,20,20};
+    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 3, 4, 5, 0};
+    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 1, 2, 3, 4, 5};
+    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 3, 3, 3};
+    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15,15,15,0 };
+    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15,15,15,0 };
+    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20,20,20};
 
-    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 3, 0  };
-    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 1, 2, 3  };
-    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 3  };
-    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15    };
-    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15    };
-    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20 };
+//    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 3, 0  };
+//    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 1, 2, 3  };
+//    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 3  };
+//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15    };
+//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15    };
+//    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20 };
 
     // quick access to enabling/disabling tests
 
-    private static final String TEST_19x_CHILD_OID = "o2000...-....-....-....-............";
-    private static final String TEST_19x_PARENT_OID = "o000....-....-....-....-............";
+    private static final String TEST_19x_CHILD_OID = "o00.....-....-....-....-............";
+    private static final String TEST_19x_PARENT_OID = "o0......-....-....-....-............";
 
-    private static boolean CHECK_CHILDREN_SETS = true;
+    private static boolean CHECK_CHILDREN_SETS = false;
     private static boolean CHECK_CLOSURE_MATRIX = true;
     private long closureSize;
 
@@ -104,8 +104,8 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
     @Test(enabled = true) public void test200AddRemoveLinks() throws Exception { _test200AddRemoveLinks(); }
     @Test(enabled = true) public void test300AddRemoveOrgs() throws Exception { _test300AddRemoveOrgs(); }
     @Test(enabled = true) public void test310AddRemoveUsers() throws Exception { _test310AddRemoveUsers(); }
-    @Test(enabled = true) public void test400UnloadOrgStructure() throws Exception { _test400UnloadOrgStructure(); }
-    @Test(enabled = false) public void test410RandomUnloadOrgStructure() throws Exception { _test410RandomUnloadOrgStructure(); }
+    @Test(enabled = false) public void test400UnloadOrgStructure() throws Exception { _test400UnloadOrgStructure(); }
+    @Test(enabled = true) public void test410RandomUnloadOrgStructure() throws Exception { _test410RandomUnloadOrgStructure(); }
 
     @Override
     public boolean isCheckChildrenSets() {
