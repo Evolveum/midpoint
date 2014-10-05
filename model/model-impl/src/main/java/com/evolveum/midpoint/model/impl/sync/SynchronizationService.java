@@ -711,7 +711,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			// resource. We only want to resolve the problem and continue in
 			// previous provisioning/synchronization during which his
 			// compensation was triggered
-			if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(channelQName)){
+			if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(channelQName) && SynchronizationSituationType.DELETED != reactionDefinition.getSituation()){
 				return true;
 			}
 		}
