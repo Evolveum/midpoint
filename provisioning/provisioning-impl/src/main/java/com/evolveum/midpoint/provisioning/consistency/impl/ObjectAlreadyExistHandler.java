@@ -108,7 +108,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 			changeNotificationDispatcher.notifyChange(change, task, operationResult);
 		}
 		} finally {
-		operationResult.computeStatus();
+			operationResult.computeStatus();
 		}
 		if (operationResult.isSuccess()) {
 			parentResult.recordSuccess();
@@ -133,15 +133,6 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 			secondaryIdentifierFilters.add(equal);
 		}
 		OrFilter orSecondary = OrFilter.createOr((List)secondaryIdentifierFilters);
-//		PrismProperty nameProperty = null;
-//		if (secondaryIdentifiers.size() != 1){
-//			nameProperty = shadow.getAttributes().asPrismContainerValue()
-//					.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
-//		} else {
-//			nameProperty = secondaryIdentifiers.iterator().next();
-//		}
-		
-//		EqualFilter nameFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, nameProperty.getDefinition().getName()),nameProperty);
 		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
 				prismContext, shadow.getResourceRef().getOid());
 		EqualFilter objectClassFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext,

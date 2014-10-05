@@ -16,7 +16,19 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import ch.qos.logback.classic.Logger;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -39,7 +51,15 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -47,20 +67,18 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -68,7 +86,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -77,28 +94,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * Assignment processor is recomputing user assignments. It recomputes all the assignements whether they are direct
@@ -157,6 +157,10 @@ public class AssignmentProcessor {
     		// We can do this only for FocusType.
     		return;
     	}
+//    	if (ModelExecuteOptions.isLimitPropagation(context.getOptions()) && SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))){
+//    		//do not execute assignment if the execution was triggered by compensation mechanism and limitPropagation is set
+//    		return;
+//    	}
     	processAssignmentsProjectionsWithFocus((LensContext<? extends FocusType>)context, now, task, result);
     }
     
@@ -463,6 +467,8 @@ public class AssignmentProcessor {
             LOGGER.trace("Projection maps:\n{}", constructionMapTriple.debugDump());
         }
         
+        
+        
         // Now we are processing constructions from all the three sets once again. We will create projection contexts
         // for them if not yet created. Now we will do the usual routing for converting the delta triples to deltas. 
         // I.e. zero means unchanged, plus means added, minus means deleted. That will be recorded in the SynchronizationPolicyDecision.
@@ -470,13 +476,30 @@ public class AssignmentProcessor {
         // actual attribute deltas (in consolidation processor).
         Collection<ResourceShadowDiscriminator> allAccountTypes = constructionMapTriple.unionKeySets();
         for (ResourceShadowDiscriminator rat : allAccountTypes) {
-
+        
             if (rat.getResourceOid() == null) {
                 throw new IllegalStateException("Resource OID null in ResourceAccountType during assignment processing");
             }
             if (rat.getIntent() == null) {
                 throw new IllegalStateException("Account type is null in ResourceAccountType during assignment processing");
             }
+            
+            boolean processOnlyExistingProjCxts = false;
+            if (ModelExecuteOptions.isLimitPropagation(context.getOptions())){
+				if (context.getTriggeredResourceOid() != null
+						&& !rat.getResourceOid().equals(context.getTriggeredResourceOid())) {
+					LOGGER.trace(
+							"Skipping processing construction for shadow identified by {} because of limitation to propagate changes only for resource {}",
+							rat, context.getTriggeredResourceOid());
+					continue;
+				}
+				
+				if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))){
+					LOGGER.trace("Processing of shadow identified by {} will be skipped because of limitation for discovery channel.");
+					processOnlyExistingProjCxts = true;
+				}
+            }
+            
             String desc = rat.toHumanReadableString();
 
             // SITUATION: The projection should exist (if valid), there is NO CHANGE in assignments
@@ -484,6 +507,9 @@ public class AssignmentProcessor {
             	
                 LensProjectionContext projectionContext = context.findProjectionContext(rat);
                 if (projectionContext == null) {
+                	if (processOnlyExistingProjCxts){
+                		continue;
+                	}
                 	// The projection should exist before the change but it does not
                 	// This happens during reconciliation if there is an inconsistency. 
                 	// Pretend that the assignment was just added. That should do.
@@ -516,6 +542,9 @@ public class AssignmentProcessor {
             	
 	            	LensProjectionContext projectionContext = context.findProjectionContext(rat);
 	            	if (projectionContext == null) {
+	            		if (processOnlyExistingProjCxts){
+	                		continue;
+	                	}
 	                	// The projection should exist before the change but it does not
 	                	// This happens during reconciliation if there is an inconsistency. 
 	                	// Pretend that the assignment was just added. That should do.
@@ -532,8 +561,14 @@ public class AssignmentProcessor {
                 	
             	} else if (plusPack.hasValidAssignment() && !minusPack.hasValidAssignment()) {
             		// Assignment became valid. Same as if it was assigned.
-            		LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
-	            	projectionContext.setAssigned(true);
+            		LensProjectionContext projectionContext = context.findProjectionContext(rat);
+            		if (projectionContext == null){
+            			if (processOnlyExistingProjCxts){
+                    		continue;
+                    	}
+            			projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+            		}
+            		projectionContext.setAssigned(true);
 	            	projectionContext.setLegalOld(false);
 	            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
 	            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
@@ -544,7 +579,13 @@ public class AssignmentProcessor {
             	} else if (!plusPack.hasValidAssignment() && minusPack.hasValidAssignment()) {
             		// Assignment became invalid. Same as if it was unassigned.
             		if (accountExists(context,rat)) {
-                		LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+            			LensProjectionContext projectionContext = context.findProjectionContext(rat);
+                		if (projectionContext == null){
+                			if (processOnlyExistingProjCxts){
+                        		continue;
+                        	}
+                			projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+                		}
                 		projectionContext.setAssigned(false);
                 		projectionContext.setLegalOld(true);
                 		
