@@ -42,8 +42,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.type.LongType;
+import org.hibernate.type.StringType;
 import org.jgrapht.alg.TransitiveClosure;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -170,7 +173,10 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         }
         LOGGER.info("TC matrix computed in {} ms", System.currentTimeMillis() - start);
 
-        Query q = session.createSQLQuery("select descendant_oid, ancestor_oid, val from m_org_closure");
+        Query q = session.createSQLQuery("select descendant_oid, ancestor_oid, val from m_org_closure")
+                .addScalar("descendant_oid", StringType.INSTANCE)
+                .addScalar("ancestor_oid", StringType.INSTANCE)
+                .addScalar("val", LongType.INSTANCE);
         List<Object[]> list = q.list();
         LOGGER.info("OrgClosure has {} rows", list.size());
 
@@ -555,7 +561,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     protected void randomRemoveOrgStructure(OperationResult result) throws Exception {
         openSessionIfNeeded();
 
-        int CHECK_EACH = 15;
+        int CHECK_EACH = 1;
 
         int count = 0;
         long totalTime = 0;

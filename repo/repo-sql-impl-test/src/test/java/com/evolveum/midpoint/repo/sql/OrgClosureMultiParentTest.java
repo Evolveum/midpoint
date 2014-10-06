@@ -91,7 +91,7 @@ public class OrgClosureMultiParentTest extends AbstractOrgClosureTest {
     private static final String TEST_19x_CHILD_OID = "o00.....-....-....-....-............";
     private static final String TEST_19x_PARENT_OID = "o0......-....-....-....-............";
 
-    private static boolean CHECK_CHILDREN_SETS = false;
+    private static boolean CHECK_CHILDREN_SETS = true;
     private static boolean CHECK_CLOSURE_MATRIX = true;
     private long closureSize;
 
