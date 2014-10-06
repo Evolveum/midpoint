@@ -448,6 +448,9 @@ public class DependencyProcessor {
 		}
 		
 		for (LensProjectionContext projContext : context.getProjectionContexts()){
+			if (!projContext.isCanProject()){
+				continue;
+			}
 		
 			for (ResourceObjectTypeDependencyType dependency: projContext.getDependencies()) {
 				ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency, 
@@ -456,20 +459,17 @@ public class DependencyProcessor {
 				LensProjectionContext dependencyAccountContext = context.findProjectionContext(refRat);
 				ResourceObjectTypeDependencyStrictnessType strictness = ResourceTypeUtil.getDependencyStrictness(dependency);
 				if (dependencyAccountContext != null){
+					if (!dependencyAccountContext.isCanProject()){
+						continue;
+					}
 					// We have the context of the object that we depend on. We need to check if it was provisioned.
 					if (strictness == ResourceObjectTypeDependencyStrictnessType.STRICT
 							|| strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 						if (wasExecuted(dependencyAccountContext)) {
 							// everything OK
 							if (ResourceTypeUtil.isForceLoadDependentShadow(dependency) && !dependencyAccountContext.isDelete()){
-								LOGGER.info("FORCE TO LOAD FULL ACCOUNT " + dependencyAccountContext);
 								dependencyAccountContext.setDoReconciliation(true);
 								projContext.setDoReconciliation(true);
-//								if (dependencyAccountContext.getExecutedDeltas() != null && !dependencyAccountContext.getExecutedDeltas().isEmpty()){
-//									if (context.getProjectionWave() < context.getExecutionWave()){
-//										context.resetProjectionWave();	
-//									}
-//								}
 							}
 						}
 					}

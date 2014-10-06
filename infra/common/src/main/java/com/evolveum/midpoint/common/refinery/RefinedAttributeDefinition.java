@@ -48,6 +48,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private String description;
     private boolean tolerant = true;
     private boolean isExclusiveStrong = false;
+	protected boolean secondaryIdentifier = false;
     private List<String> intolerantValuePattern;
     private List<String> tolerantValuePattern;
     private ResourceAttributeDefinition attributeDefinition;
@@ -73,6 +74,14 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 
 	public void setTolerant(boolean tolerant) {
 		this.tolerant = tolerant;
+	}
+	
+	public boolean isSecondaryIdentifier() {
+		return secondaryIdentifier;
+	}
+	
+	public void setSecondaryIdentifier(boolean secondaryIdentifier) {
+		this.secondaryIdentifier = secondaryIdentifier;
 	}
 	
 	@Override
@@ -328,6 +337,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         schemaLimitations.getAccess().setModify(schemaAttrDef.canModify());
         schemaLimitations.getAccess().setRead(schemaAttrDef.canRead());
         
+       
         if (schemaHandlingAttrDefType != null) {
         	
         	if (schemaHandlingAttrDefType.getDescription() != null) {
@@ -338,6 +348,12 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         		rAttrDef.tolerant = true;
         	} else {
         		rAttrDef.tolerant = schemaHandlingAttrDefType.isTolerant();
+        	}
+        	
+        	if (schemaHandlingAttrDefType.isSecondaryIdentifier() == null){
+        		rAttrDef.secondaryIdentifier = false;
+        	} else {
+        		rAttrDef.secondaryIdentifier = schemaHandlingAttrDefType.isSecondaryIdentifier();
         	}
         	
         	rAttrDef.tolerantValuePattern = schemaHandlingAttrDefType.getTolerantValuePattern();
@@ -408,6 +424,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 				limitations.getAccess().setModify(accessType.isModify());
 			}
 		}
+		
 	}
 
 	private static PropertyLimitationsType getLimitationsType(List<PropertyLimitationsType> limitationsTypes, LayerType layer) throws SchemaException {

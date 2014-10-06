@@ -80,6 +80,7 @@ public class ExpressionUtil {
     public static final String ELEMENT_PATH = "</path>";
     public static final String ELEMENT_VALUE = "</value>";
     public static final String ELEMENT_AS_IS = "<asIs/>";
+    public static final String ELEMENT_AS_IS_WITH_NS = "<asIs";
 
     public static String getExpressionString(ExpressionEvaluatorType type, ObjectReferenceType policy){
         if(ExpressionEvaluatorType.GENERATE.equals(type) && policy != null){
@@ -137,7 +138,7 @@ public class ExpressionUtil {
     }
 
     public static ExpressionEvaluatorType getExpressionType(String expression){
-        if(expression.contains(ELEMENT_AS_IS)){
+        if(expression.contains(ELEMENT_AS_IS) || expression.contains(ELEMENT_AS_IS_WITH_NS)){
             return ExpressionEvaluatorType.AS_IS;
         } else if(expression.contains(ELEMENT_GENERATE)){
             return ExpressionEvaluatorType.GENERATE;

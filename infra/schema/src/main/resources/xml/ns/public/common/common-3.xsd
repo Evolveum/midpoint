@@ -3567,6 +3567,16 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="secondaryIdentifier" type="xsd:boolean" minOccurs="0">
+            <xsd:annotation>
+            		<xsd:documentation>
+            			Indicated if the attribute should be considered as secondary identifier. If set to true,
+            			this attribue is stored in repository and user for example by synchronization (correlation
+            			rule), consistency mechanism, etc.
+            		</xsd:documentation>
+            	</xsd:annotation>
+			</xsd:element>
+    		
             <xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -5195,6 +5205,19 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+             <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0" default="false">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			If set to true, applicable synchronization reactions will propagate changes only form/to source 
+            			resource. In the case focus cotains links to another resource this will be not recomputed
+            			and after reaction execution there may be small inconsistencies.
+            			
+            			It can improve performance for example for initial import.
+            			
+            			Default value is false. 
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="opportunistic" type="xsd:boolean" minOccurs="0" default="true">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -5314,6 +5337,7 @@
             <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="synchronize" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="reconcile" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -8537,6 +8561,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Option to simulate import operation. E.g. search filters will be resolved.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Option to limit change computation and execution only for the source resource.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

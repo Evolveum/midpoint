@@ -17,9 +17,7 @@
 package com.evolveum.midpoint.web.component.input.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -27,7 +25,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 /**
@@ -86,6 +83,11 @@ public class SearchFilterTypeDto implements Serializable{
             RootXNode filterClauseNode = (RootXNode) context.parseToXNode(filterClause, PrismContext.LANG_XML);
 
             filterObject.setFilterClauseXNode(filterClauseNode);
+        } else {
+            String oldDescription = filterObject.getDescription();
+
+            filterObject = new SearchFilterType();
+            filterObject.setDescription(oldDescription);
         }
     }
 

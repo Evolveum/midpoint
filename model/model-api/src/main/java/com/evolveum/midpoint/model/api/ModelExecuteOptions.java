@@ -65,6 +65,11 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
     
     Boolean isImport;
     
+    /**
+     * Option to limit propagation only for the source resource
+     */
+    Boolean limitPropagation;
+    
 
     public Boolean getForce() {
 		return force;
@@ -224,6 +229,27 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         }
         return options.executeImmediatelyAfterApproval;
     }
+    
+    public static ModelExecuteOptions createIsLimitPropagation() {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setLimitPropagation(true);
+		return opts;
+
+	}
+    
+    public void setLimitPropagation(Boolean limitPropagation) {
+		this.limitPropagation = limitPropagation;
+	}
+    
+    public static boolean isLimitPropagation(ModelExecuteOptions options){
+    	if (options == null){
+    		return false;
+    	}
+    	if (options.limitPropagation == null){
+    		return false;
+    	}
+    	return options.limitPropagation;
+    }
 
     public static ModelExecuteOptions createExecuteImmediatelyAfterApproval(){
         ModelExecuteOptions opts = new ModelExecuteOptions();
@@ -240,6 +266,7 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         retval.setExecuteImmediatelyAfterApproval(executeImmediatelyAfterApproval);
         retval.setOverwrite(overwrite);
         retval.setIsImport(isImport);
+        retval.setLimitPropagation(limitPropagation);
         return retval;
     }
 
@@ -255,6 +282,7 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         retval.setExecuteImmediatelyAfterApproval(type.isExecuteImmediatelyAfterApproval());
         retval.setOverwrite(type.isOverwrite());
         retval.setIsImport(type.isIsImport());
+        retval.setLimitPropagation(type.isLimitPropagation());
         return retval;
     }
     
@@ -286,6 +314,9 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
     		if (ModelExecuteOptionsType.F_IS_IMPORT.getLocalPart().equals(option)){
     			retVal.setIsImport(true);;
     		}
+    		if (ModelExecuteOptionsType.F_LIMIT_PROPAGATION.getLocalPart().equals(option)){
+    			retVal.setIsImport(true);;
+    		}
     	}
     	
     	return retVal;
@@ -297,7 +328,7 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 				+ ",reconcile=" + reconcile
 				+ ",executeImmediatelyAfterApproval="
 				+ executeImmediatelyAfterApproval + ",overwrite=" + overwrite
-				+ "]";
+				+ "limitPropagation="+limitPropagation+"]";
     }
 
     public ModelExecuteOptions clone() {
