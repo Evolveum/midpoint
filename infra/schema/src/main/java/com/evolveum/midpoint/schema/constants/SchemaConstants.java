@@ -209,6 +209,7 @@ public abstract class SchemaConstants {
     public static final QName SE_EXECUTE_SCRIPT = new QName(SCRIPTING_EXTENSION_NS, "executeScript");
 
     public static final QName C_EVENT = new QName(NS_C, "event");
+    public static final QName C_TEXT_FORMATTER = new QName(NS_C, "textFormatter");
 
     public static final QName C_TRANSPORT_NAME = new QName(NS_C, "transportName");
     public static final QName C_FROM = new QName(NS_C, "from");

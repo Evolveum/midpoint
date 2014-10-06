@@ -152,11 +152,14 @@ public class Projector {
 	        LOGGER.trace("WAVE: Starting the waves.");
 	        context.setProjectionWave(0);
 	        while (context.getProjectionWave() < maxWaves) {
-
+	        	
                 context.checkAbortRequested();
 
 	        	LOGGER.trace("WAVE {} (maxWaves={}, executionWave={})", new Object[]{
 	        			context.getProjectionWave(), maxWaves, context.getExecutionWave()});
+	        	
+	        	//just make sure everythink is loaded and set as needed
+				dependencyProcessor.preprocessDependencies(context);
 	        	
 	        	// Process the focus-related aspects of the context. That means inbound, focus activation,
 	        	// object template and assignments.
@@ -211,7 +214,7 @@ public class Projector {
 		        	
 		        	if (consistencyChecks) context.checkConsistence();
 		        	
-		        	if (!dependencyProcessor.checkDependencies(context, projectionContext)) {
+		        	if (!dependencyProcessor.checkDependencies(context, projectionContext, result)) {
 		        		continue;
 		        	}
 		        	
@@ -255,7 +258,7 @@ public class Projector {
 	        
 	        // We can do this only when computation of all the waves is finished. Before that we do not know
 	        // activation of every account and therefore cannot decide what is OK and what is not
-	        dependencyProcessor.checkDependenciesFinal(context);
+	        dependencyProcessor.checkDependenciesFinal(context, result);
 	        
 	        if (consistencyChecks) context.checkConsistence();
 	        

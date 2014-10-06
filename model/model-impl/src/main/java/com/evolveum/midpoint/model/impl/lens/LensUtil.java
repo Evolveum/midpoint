@@ -595,7 +595,7 @@ public class LensUtil {
 			// already loaded
 			return;
 		}
-		if (accCtx.isAdd()) {
+		if (accCtx.isAdd() && accCtx.getOid() == null) {
 			// nothing to load yet
 			return;
 		}

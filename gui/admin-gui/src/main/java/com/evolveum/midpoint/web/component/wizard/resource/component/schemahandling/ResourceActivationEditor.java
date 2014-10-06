@@ -24,6 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrate
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -119,7 +120,17 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
 
                     @Override
                     public String getObject() {
-                        return model.getObject().getName();
+                        MappingType mapping = model.getObject();
+
+                        if(mapping == null){
+                            return null;
+                        }
+
+                        if(mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())){
+                            return mapping.getName();
+                        } else {
+                            return getString("MultiValueField.nameNotSpecified");
+                        }
                     }
                 };
             }
@@ -147,10 +158,14 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
                     public String getObject() {
                         MappingType mapping = model.getObject();
 
-                        if(mapping != null){
+                        if(mapping == null){
+                            return null;
+                        }
+
+                        if(mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())){
                             return mapping.getName();
                         } else {
-                            return null;
+                            return getString("MultiValueField.nameNotSpecified");
                         }
                     }
                 };

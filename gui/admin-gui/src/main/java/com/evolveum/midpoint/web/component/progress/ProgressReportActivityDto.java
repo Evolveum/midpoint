@@ -95,10 +95,15 @@ public class ProgressReportActivityDto implements Serializable {
         if (activityType != newStatus.getActivityType()) {
             return false;
         }
-        if (activityType == RESOURCE_OBJECT_OPERATION
-                && (resourceShadowDiscriminator == null ||
-                    !resourceShadowDiscriminator.equals(newStatus.getResourceShadowDiscriminator()))) {
-            return false;
+        if (activityType == RESOURCE_OBJECT_OPERATION) {
+            if (resourceShadowDiscriminator != null &&
+                    !resourceShadowDiscriminator.equals(newStatus.getResourceShadowDiscriminator())) {
+                return false;
+            }
+            if (resourceShadowDiscriminator == null && newStatus.getResourceShadowDiscriminator() != null) {
+                // actually, we consider all resource-related records with null RSD to be equal (even if they deal with different resources)
+                return false;
+            }
         }
         return true;
     }

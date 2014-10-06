@@ -38,6 +38,7 @@ public class DummyAccount extends DummyObject {
 	public static final String ATTR_DESCRIPTION_NAME = "description";
 	public static final String ATTR_INTERESTS_NAME = "interests";
 	public static final String ATTR_PRIVILEGES_NAME = "privileges";
+	public static final String ATTR_INTERNAL_ID = "internalId";
 	
 	private String password = null;
 	private Boolean lockout = null;

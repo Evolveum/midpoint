@@ -98,6 +98,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * Current wave of execution.
 	 */
 	int executionWave = 0;
+	
+	private String triggeredResourceOid;
 
 	transient private boolean isFresh = false;
 	transient private boolean isRequestAuthorized = false;
@@ -149,6 +151,21 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     public ProvisioningService getProvisioningService() {
         return provisioningService;
     }
+    
+    public void setTriggeredResource(String triggeredResourceOid) {
+		this.triggeredResourceOid = triggeredResourceOid;
+	}
+    
+    public void setTriggeredResource(ResourceType triggeredResource) {
+    	if (triggeredResource != null){
+    		this.triggeredResourceOid = triggeredResource.getOid();
+    	}
+	}
+    
+    public String getTriggeredResourceOid() {
+		return triggeredResourceOid;
+	}
+
 
     @Override
 	public ModelState getState() {

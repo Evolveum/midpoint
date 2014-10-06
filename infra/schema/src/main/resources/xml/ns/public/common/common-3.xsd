@@ -764,6 +764,7 @@
     		<xsd:appinfo>
     			<a:operational>true</a:operational>
     			<a:container/>
+                <a:displayName>Metadata</a:displayName>
     		</xsd:appinfo>
     	</xsd:annotation>
     	<xsd:sequence>
@@ -1900,6 +1901,9 @@
                                 a desired state of things (cf. linkRef).
                                 </p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Assignment</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -2518,6 +2522,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:displayName>Assignment</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2543,6 +2548,7 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                     		<a:objectReference>tns:targetRef</a:objectReference>
+                            <a:displayName>Target</a:displayName>
                     	</xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2552,6 +2558,9 @@
                         <xsd:documentation>
                             TODO: target ref
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>Target</a:displayName>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 
@@ -2560,6 +2569,9 @@
                         <xsd:documentation>
                             TODO
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>Construction</a:displayName>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 
@@ -2590,6 +2602,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                        <a:displayName>Tenant reference</a:displayName>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3425,6 +3438,14 @@
    							</xsd:documentation>
    						</xsd:annotation>
    					</xsd:element>
+   					<xsd:element name="forceLoad" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+   						<xsd:annotation>
+   							<xsd:documentation>
+   								Specifies if the shadow on which we depends has to be load. By default we do
+   								not force to load full dependent shadow.
+   							</xsd:documentation>
+   						</xsd:annotation>
+   					</xsd:element>
    				</xsd:sequence>
    			</xsd:extension>
    		</xsd:complexContent>
@@ -3546,6 +3567,16 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="secondaryIdentifier" type="xsd:boolean" minOccurs="0">
+            <xsd:annotation>
+            		<xsd:documentation>
+            			Indicated if the attribute should be considered as secondary identifier. If set to true,
+            			this attribue is stored in repository and user for example by synchronization (correlation
+            			rule), consistency mechanism, etc.
+            		</xsd:documentation>
+            	</xsd:annotation>
+			</xsd:element>
+    		
             <xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -5174,6 +5205,19 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+             <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0" default="false">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			If set to true, applicable synchronization reactions will propagate changes only form/to source 
+            			resource. In the case focus cotains links to another resource this will be not recomputed
+            			and after reaction execution there may be small inconsistencies.
+            			
+            			It can improve performance for example for initial import.
+            			
+            			Default value is false. 
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="opportunistic" type="xsd:boolean" minOccurs="0" default="true">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -5293,6 +5337,7 @@
             <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="synchronize" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="reconcile" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -6076,6 +6121,9 @@
                             <xsd:documentation>
                             	TODO
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Inducement</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="authorization" type="tns:AuthorizationType" minOccurs="0" maxOccurs="unbounded">
@@ -8516,6 +8564,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Option to limit change computation and execution only for the source resource.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -8776,7 +8831,6 @@
                         Focus types supported by this handler. (Default: all)
                         Types not listed are filtered out: not handled by this handler nor any of its successors.
                         (Relevant only for model-generated events.)
-                        NOT IMPLEMENTED YET.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -8802,6 +8856,13 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simpleFocalObjectNotifier" type="tns:SimpleFocalObjectNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -9067,6 +9128,18 @@
     </xsd:complexType>
 
     <xsd:complexType name="SimpleUserNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:SimpleFocalObjectNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SimpleFocalObjectNotifierType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO

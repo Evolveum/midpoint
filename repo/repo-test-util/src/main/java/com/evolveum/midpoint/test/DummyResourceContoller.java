@@ -239,7 +239,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertDummyResourceSchemaSanity(resourceSchema, resourceType);
 		
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);		
-		assertEquals("Unexpected number of defnitions", 16, accountDef.getDefinitions().size());
+		assertEquals("Unexpected number of defnitions", 17, accountDef.getDefinitions().size());
 		ResourceAttributeDefinition treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
 		assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());
 	}

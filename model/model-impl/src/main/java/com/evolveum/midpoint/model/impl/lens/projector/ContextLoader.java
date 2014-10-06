@@ -24,6 +24,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -56,6 +58,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -481,6 +484,11 @@ public class ContextLoader {
 				throw new SchemaException("Null or empty OID in link reference in " + focus);
 			}
 			LensProjectionContext existingAccountContext = findAccountContext(oid, context);
+			
+			if (!canBeLoaded(context, existingAccountContext)){
+				continue;
+			}
+			
 			if (existingAccountContext != null) {
 				// TODO: do we need to reload the account inside here? yes we need
 				
@@ -769,6 +777,15 @@ public class ContextLoader {
 		}
 	}
 
+	private <F extends ObjectType> boolean canBeLoaded(LensContext<F> context, LensProjectionContext projCtx){
+		if (QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY).equals(context.getChannel()) && projCtx == null && ModelExecuteOptions.isLimitPropagation(context.getOptions())) {
+			// avoid to create projection context if the channel which
+			// triggered this operation is discovery..we need only
+			// projection context of discovered shadow
+			return false;
+		}
+		return true;
+	}
 	private <F extends FocusType> LensProjectionContext getOrCreateAccountContext(LensContext<F> context,
 			PrismObject<ShadowType> account, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
@@ -961,6 +978,14 @@ public class ContextLoader {
 			}
 		}
 		
+		//set limitation, e.g. if this projection context should be recomputed and processed by projector
+		if (ModelExecuteOptions.isLimitPropagation(context.getOptions())){
+			if (context.getTriggeredResourceOid() != null){
+				if (!context.getTriggeredResourceOid().equals(resourceOid)){
+					projContext.setCanProject(false);
+				}
+			}
+		}
 	}
 	
 	private <F extends ObjectType> boolean needToReload(LensContext<F> context,

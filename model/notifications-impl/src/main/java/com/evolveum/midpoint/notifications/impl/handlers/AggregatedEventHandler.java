@@ -22,6 +22,7 @@ import com.evolveum.midpoint.notifications.impl.NotificationManagerImpl;
 import com.evolveum.midpoint.notifications.impl.helpers.CategoryFilterHelper;
 import com.evolveum.midpoint.notifications.impl.helpers.ChainHelper;
 import com.evolveum.midpoint.notifications.impl.helpers.ExpressionFilterHelper;
+import com.evolveum.midpoint.notifications.impl.helpers.FocusTypeFilterHelper;
 import com.evolveum.midpoint.notifications.impl.helpers.ForkHelper;
 import com.evolveum.midpoint.notifications.impl.helpers.KindIntentFilterHelper;
 import com.evolveum.midpoint.notifications.impl.helpers.OperationFilterHelper;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.notifications.impl.helpers.StatusFilterHelper;
 import com.evolveum.midpoint.notifications.impl.notifiers.AccountPasswordNotifier;
 import com.evolveum.midpoint.notifications.impl.notifiers.GeneralNotifier;
 import com.evolveum.midpoint.notifications.impl.notifiers.SimpleResourceObjectNotifier;
+import com.evolveum.midpoint.notifications.impl.notifiers.SimpleFocalObjectNotifier;
 import com.evolveum.midpoint.notifications.impl.notifiers.SimpleUserNotifier;
 import com.evolveum.midpoint.notifications.impl.notifiers.SimpleWorkflowNotifier;
 import com.evolveum.midpoint.notifications.impl.notifiers.UserPasswordNotifier;
@@ -72,6 +74,9 @@ public class AggregatedEventHandler extends BaseHandler {
     private KindIntentFilterHelper kindIntentFilter;
 
     @Autowired
+    private FocusTypeFilterHelper focusTypeFilterHelper;
+
+    @Autowired
     private ExpressionFilterHelper expressionFilter;
 
     @Autowired
@@ -79,6 +84,9 @@ public class AggregatedEventHandler extends BaseHandler {
 
     @Autowired
     private ForkHelper forkHelper;
+
+    @Autowired
+    protected SimpleFocalObjectNotifier simpleFocalObjectNotifier;
 
     @Autowired
     protected SimpleUserNotifier simpleUserNotifier;
@@ -114,11 +122,13 @@ public class AggregatedEventHandler extends BaseHandler {
                 operationFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 statusFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 kindIntentFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
+                focusTypeFilterHelper.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 expressionFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 chainHelper.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 forkHelper.processEvent(event, eventHandlerType, notificationManager, task, result);
 
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleUserNotifier(), notificationManager, task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleFocalObjectNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleResourceObjectNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleWorkflowNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getUserPasswordNotifier(), notificationManager, task, result);

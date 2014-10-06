@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -115,10 +116,14 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
                     public String getObject() {
                         MappingType mapping = model.getObject();
 
-                        if(mapping != null){
+                        if(mapping == null){
+                            return null;
+                        }
+
+                        if(mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())){
                             return mapping.getName();
                         } else {
-                            return null;
+                            return getString("MultiValueField.nameNotSpecified");
                         }
                     }
                 };

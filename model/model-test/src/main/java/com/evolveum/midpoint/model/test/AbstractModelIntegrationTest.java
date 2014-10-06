@@ -2189,6 +2189,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		}
 	}
+	
+	protected void assertDummyAccountAttributeGenerated(String dummyInstanceName, String username) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy account for username "+username, account);
+		Integer generated = account.getAttributeValue(DummyAccount.ATTR_INTERNAL_ID, Integer.class);
+		if (generated == null) {
+			AssertJUnit.fail("No value in generated attribute dir of " + dummyInstanceName + " dummy account " + username);
+		}
+	}
 
 	protected DummyGroup getDummyGroup(String dummyInstanceName, String name) {
 		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);

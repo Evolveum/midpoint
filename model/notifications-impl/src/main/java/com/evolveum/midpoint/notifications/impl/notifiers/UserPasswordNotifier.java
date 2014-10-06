@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserPasswordNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -59,7 +60,7 @@ public class UserPasswordNotifier extends GeneralNotifier {
 
     @Override
     protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        if (!(event instanceof ModelEvent)) {
+        if (!(event instanceof ModelEvent) || !((ModelEvent) event).hasFocusOfType(UserType.class)) {
             LOGGER.trace("UserPasswordNotifier is not applicable for this kind of event, continuing in the handler chain; event class = " + event.getClass());
             return false;
         } else {
@@ -76,11 +77,11 @@ public class UserPasswordNotifier extends GeneralNotifier {
         }
 
         ModelEvent modelEvent = (ModelEvent) event;
-        if (modelEvent.getUserDeltas().isEmpty()) {
+        if (modelEvent.getFocusDeltas().isEmpty()) {
             LOGGER.trace("No user deltas in event, exiting.");
             return false;
         }
-        if (getPasswordFromDeltas(modelEvent.getUserDeltas()) != null) {
+        if (getPasswordFromDeltas(modelEvent.getFocusDeltas()) != null) {
             LOGGER.trace("Found password in user delta(s), continuing.");
             return true;
         } else {
@@ -89,9 +90,9 @@ public class UserPasswordNotifier extends GeneralNotifier {
         }
     }
 
-    private String getPasswordFromDeltas(List<ObjectDelta<UserType>> deltas) {
+    private String getPasswordFromDeltas(List<ObjectDelta<FocusType>> deltas) {
         try {
-            return midpointFunctions.getPlaintextUserPasswordFromDeltas(deltas);
+            return midpointFunctions.getPlaintextUserPasswordFromDeltas((List) deltas);
         } catch (EncryptionException e) {
             LoggingUtils.logException(LOGGER, "Couldn't decrypt password from user deltas: {}", e, DebugUtil.debugDump(deltas));
             return null;
@@ -107,7 +108,7 @@ public class UserPasswordNotifier extends GeneralNotifier {
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
 
         ModelEvent modelEvent = (ModelEvent) event;
-        List<ObjectDelta<UserType>> deltas = modelEvent.getUserDeltas();
+        List<ObjectDelta<FocusType>> deltas = modelEvent.getFocusDeltas();
         return "Password for user " + notificationsUtil.getObjectType(event.getRequestee(), result).getName() + " is: " + getPasswordFromDeltas(deltas);
     }
 

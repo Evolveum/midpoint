@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -64,6 +66,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class DependencyProcessor {
 		
 	private static final Trace LOGGER = TraceManager.getTrace(DependencyProcessor.class);
+	
+	@Autowired
+    private ProvisioningService provisioningService;
 	
 	public <F extends ObjectType> void resetWaves(LensContext<F> context) throws PolicyViolationException {
 	}
@@ -333,7 +338,7 @@ public class DependencyProcessor {
 	 * and stuff like that. 
 	 */
 	public <F extends ObjectType> boolean checkDependencies(LensContext<F> context, 
-    		LensProjectionContext projContext) throws PolicyViolationException {
+    		LensProjectionContext projContext, OperationResult result) throws PolicyViolationException {
 		if (projContext.isDelete()) {
 			// It is OK if we depend on something that is not there if we are being removed ... for now
 			return true;
@@ -402,6 +407,20 @@ public class DependencyProcessor {
 						|| strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 					if (wasProvisioned(dependencyAccountContext, context.getExecutionWave())) {
 						// everything OK
+//						if (ResourceTypeUtil.isForceLoadDependentShadow(dependency) && !dependencyAccountContext.isDelete()){
+//							LOGGER.info("FORCE TO LOAD FULL ACCOUNT " + dependencyAccountContext);
+//							try {
+//								LensUtil.loadFullAccount(context, dependencyAccountContext, provisioningService, result);
+//								dependencyAccountContext.setDoReconciliation(true);
+//								if (dependencyAccountContext.getExecutedDeltas() != null && !dependencyAccountContext.getExecutedDeltas().isEmpty()){
+//									context.resetProjectionWave();
+//								}
+//							} catch (ObjectNotFoundException | CommunicationException | SchemaException
+//									| ConfigurationException | SecurityViolationException e) {
+//								// this is not fatal error. we can continue without full account..the incosinstencies will be treaten later, by reconciliation
+//								LOGGER.warn("Could not load dependent shadow, continue with the shadow loaded before.");
+//							}
+//						}
 					} else {
 						// We do not want to throw exception here. That will stop entire projection.
 						// Let's just mark the projection as broken and skip it.
@@ -421,14 +440,53 @@ public class DependencyProcessor {
 		return true;
 	}
 	
+	public <F extends ObjectType> void preprocessDependencies(LensContext<F> context){
+		
+		//in the first wave we do not have enougth information to preprocess connetxts
+		if (context.getExecutionWave() == 0){
+			return;
+		}
+		
+		for (LensProjectionContext projContext : context.getProjectionContexts()){
+			if (!projContext.isCanProject()){
+				continue;
+			}
+		
+			for (ResourceObjectTypeDependencyType dependency: projContext.getDependencies()) {
+				ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency, 
+						projContext.getResource().getOid(), projContext.getKind());
+				LOGGER.trace("LOOKING FOR {}", refRat);
+				LensProjectionContext dependencyAccountContext = context.findProjectionContext(refRat);
+				ResourceObjectTypeDependencyStrictnessType strictness = ResourceTypeUtil.getDependencyStrictness(dependency);
+				if (dependencyAccountContext != null){
+					if (!dependencyAccountContext.isCanProject()){
+						continue;
+					}
+					// We have the context of the object that we depend on. We need to check if it was provisioned.
+					if (strictness == ResourceObjectTypeDependencyStrictnessType.STRICT
+							|| strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+						if (wasExecuted(dependencyAccountContext)) {
+							// everything OK
+							if (ResourceTypeUtil.isForceLoadDependentShadow(dependency) && !dependencyAccountContext.isDelete()){
+								dependencyAccountContext.setDoReconciliation(true);
+								projContext.setDoReconciliation(true);
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
+	
 	/**
 	 * Finally checks for all the dependencies. Some dependencies cannot be checked during wave computations as
 	 * we might not have all activation decisions yet. 
 	 */
-	public <F extends ObjectType> void checkDependenciesFinal(LensContext<F> context) throws PolicyViolationException {
+	public <F extends ObjectType> void checkDependenciesFinal(LensContext<F> context, OperationResult result) throws PolicyViolationException {
 		
 		for (LensProjectionContext accountContext: context.getProjectionContexts()) {
-			checkDependencies(context, accountContext);
+			checkDependencies(context, accountContext, result);
 		}
 		
 		for (LensProjectionContext accountContext: context.getProjectionContexts()) {
@@ -471,14 +529,18 @@ public class DependencyProcessor {
 				|| accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 			return false;
 		}
+		
+		
 		PrismObject<ShadowType> objectCurrent = accountContext.getObjectCurrent();
 		if (objectCurrent != null && objectCurrent.asObjectable().getFailedOperationType() != null) {
 			// There is unfinished operation in the shadow. We cannot continue.
 			return false;
-		}
+		}		
+		
 		if (accountContext.isExists()) {
 			return true;
 		}
+		
 		if (accountContext.isAdd()) {
 			List<LensObjectDeltaOperation<ShadowType>> executedDeltas = accountContext.getExecutedDeltas();
 			if (executedDeltas == null || executedDeltas.isEmpty()) {
@@ -492,7 +554,23 @@ public class DependencyProcessor {
 			}
 			return true;
 		}
+		
 		return false;
+	}
+	
+	private boolean wasExecuted(LensProjectionContext accountContext){
+		if (accountContext.isAdd()) {
+			
+			if (accountContext.getOid() == null){
+				return false;
+			}
+			
+			List<LensObjectDeltaOperation<ShadowType>> executedDeltas = accountContext.getExecutedDeltas();
+			if (executedDeltas == null || executedDeltas.isEmpty()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	class DependencyAndSource {

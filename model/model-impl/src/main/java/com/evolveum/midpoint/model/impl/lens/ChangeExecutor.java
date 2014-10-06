@@ -169,7 +169,7 @@ public class ChangeExecutor {
 	    			throw e;
 	    		} catch (ObjectAlreadyExistsException e) {
 	    			subResult.computeStatus();
-	    			if (!subResult.isSuccess()) {
+	    			if (!subResult.isSuccess() && !subResult.isHandledError()) {
 	    				subResult.recordFatalError(e);
 	    			}
 	    			result.computeStatusComposite();
@@ -205,6 +205,11 @@ public class ChangeExecutor {
         	if (accCtx.getWave() != syncContext.getExecutionWave()) {
         		continue;
 			}
+        	
+        	if (!accCtx.isCanProject()){
+        		continue;
+        	}
+        	
         	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_PROJECTION+"."+accCtx.getObjectTypeClass().getSimpleName());
         	subResult.addContext("discriminator", accCtx.getResourceShadowDiscriminator());
 			if (accCtx.getResource() != null) {
@@ -290,7 +295,8 @@ public class ChangeExecutor {
 				// and also do not set fatal error to the operation result, this is a special case
 				// if it is fatal, it will be set later
 				// but we need to set some result
-				subResult.recordHandledError(e);
+				subResult.recordSuccess();
+				subResult.muteLastSubresultError();
 				continue;
 			} catch (CommunicationException e) {
 				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);

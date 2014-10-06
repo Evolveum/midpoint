@@ -20,6 +20,7 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -40,4 +41,6 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     Class<F> getFocusClass();
 
     void reportProgress(ProgressInformation progress);
+
+    PrismContext getPrismContext();       // use with care
 }

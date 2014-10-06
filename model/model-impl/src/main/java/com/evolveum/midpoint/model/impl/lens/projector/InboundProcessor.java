@@ -135,6 +135,10 @@ public class InboundProcessor {
 
         try {
             for (LensProjectionContext accountContext : context.getProjectionContexts()) {
+            	if (!accountContext.isCanProject()){
+            		LOGGER.trace("Skipping processing of inbound expressions for account {}: there is a limit to propagate changes only from resource", context.getTriggeredResourceOid());
+            		continue;
+            	}
             	ResourceShadowDiscriminator rat = accountContext.getResourceShadowDiscriminator();
             	
             	ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, accountContext);

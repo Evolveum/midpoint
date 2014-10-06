@@ -319,6 +319,15 @@ if (basic.stringify(employeeType) == 'T' || basic.stringify(employeeType) == 'R'
 						<source>
 							<path>$user/title</path>
 						</source>
+						<source>
+							<path>extension/trafo:uid</path>
+							<name>extensionUid</name>
+						</source>
+						<expression>
+							<script>
+								<code>extensionUid</code>
+							</script>
+						</expression>
 					</outbound>
 					<inbound>
 						<strength>weak</strength>
@@ -377,6 +386,7 @@ midPoint -->
             </resourceRef>
             <strictness>relaxed</strictness>
              <order>10</order>
+             <forceLoad>true</forceLoad>
          </dependency>
 		<iteration>
 			<maxIterations>10</maxIterations>

@@ -44,6 +44,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean requireExplicitEnable = false;
     private boolean caseIgnoreId = false;
     private boolean caseIgnoreValues = false;
+    private boolean generateDefaultValues = false;
     private boolean tolerateDuplicateValues = true;
     private String uselessString;
     private GuardedString uselessGuardedString;
@@ -159,6 +160,19 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setCaseIgnoreId(boolean caseIgnoreId) {
 		this.caseIgnoreId = caseIgnoreId;
+	}
+	
+	/**
+	 * If set to true then the "home dir" will be generated
+	 */
+	@ConfigurationProperty(displayMessageKey = "UI_GENERATE_DEFAULT_VALUES",
+    		helpMessageKey = "UI_GENERATE_DEFAULT_VALUES")
+	public boolean isGenerateDefaultValues() {
+		return generateDefaultValues;
+	}
+	
+	public void setGenerateDefaultValues(boolean generateDefaultValues) {
+		this.generateDefaultValues = generateDefaultValues;
 	}
 
 	/**

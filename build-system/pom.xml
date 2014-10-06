@@ -45,7 +45,7 @@
         <commons.io.version>2.0.1</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
         <commons.cli>1.2</commons.cli>
-        <cxf.version>3.0.1.e1</cxf.version>
+        <cxf.version>3.0.1.e2</cxf.version>
         <cxf-xjc.version>3.0.1</cxf-xjc.version>
         <dbunit.version>2.4.7</dbunit.version>
         <jaxb-api.version>2.2.9</jaxb-api.version>

@@ -18,10 +18,12 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.synchroniz
 
 import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
 import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
+import com.evolveum.midpoint.web.component.input.dto.SearchFilterTypeDto;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
@@ -90,10 +92,33 @@ public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearch
                     ConditionalSearchFilterEditor.this.getModel().getObject().setCondition(expression);
                 }
             }
+
+            @Override
+            public String getTypeLabelKey() {
+                return "ConditionalSearchFilterEditor.condition.type.label";
+            }
+
+            @Override
+            public String getExpressionLabelKey() {
+                return "ConditionalSearchFilterEditor.condition.label";
+            }
         };
         add(expressionEditor);
 
-        SearchFilterPanel filterClauseEditor = new SearchFilterPanel<>(ID_FILTER_CLAUSE_PANEL, getModel());
+        SearchFilterPanel filterClauseEditor = new SearchFilterPanel<ConditionalSearchFilterType>(ID_FILTER_CLAUSE_PANEL, getModel()){
+
+            @Override
+            public void performFilterClauseHook(AjaxRequestTarget target){
+                if(model != null && model.getObject() != null && ConditionalSearchFilterEditor.this.getModel() != null){
+                    SearchFilterTypeDto dto = model.getObject();
+                    SearchFilterType filter = dto.getFilterObject();
+
+                    if(filter != null){
+                        ConditionalSearchFilterEditor.this.getModelObject().setFilterClauseXNode(filter.getFilterClauseXNode());
+                    }
+                }
+            }
+        };
         add(filterClauseEditor);
     }
 }

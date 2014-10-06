@@ -132,6 +132,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      */
     private boolean doReconciliation;
     
+    /**
+     * false if the context should be not taken into the account while synchronizing changes from other resource
+     */
+    private boolean canProject = true;
+    
     
 
     /**
@@ -508,6 +513,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	
 	public ValuePolicyType getAccountPasswordPolicy() {
 		return accountPasswordPolicy;
+	}
+	
+	public void setCanProject(boolean canProject) {
+		this.canProject = canProject;
+	}
+	
+	public boolean isCanProject() {
+		return canProject;
 	}
 	
 	public void setAccountPasswordPolicy(ValuePolicyType accountPasswordPolicy) {
