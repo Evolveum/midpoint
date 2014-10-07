@@ -15,14 +15,17 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import org.apache.commons.lang.Validate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 
@@ -62,21 +65,15 @@ public class OrgClosureManager {
     public static class Edge {
         private String descendant;              // i.e. child, or technically, edge tail
         private String ancestor;                // i.e. parent, or technically, edge head
-        private Edge(String descendant, String ancestor) {
+        public Edge(String descendant, String ancestor) {
             this.descendant = descendant;
             this.ancestor = ancestor;
         }
         public String getDescendant() {
             return descendant;
         }
-        public void setDescendant(String descendant) {
-            this.descendant = descendant;
-        }
         public String getAncestor() {
             return ancestor;
-        }
-        public void setAncestor(String ancestor) {
-            this.ancestor = ancestor;
         }
         public String getTail() {
             return descendant;
@@ -87,16 +84,49 @@ public class OrgClosureManager {
         public String toString() {
             return descendant + "->" + ancestor;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Edge edge = (Edge) o;
+
+            if (!ancestor.equals(edge.ancestor)) return false;
+            if (!descendant.equals(edge.descendant)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = descendant.hashCode();
+            result = 31 * result + ancestor.hashCode();
+            return result;
+        }
     }
 
     public OrgClosureManager(SqlRepositoryConfiguration repoConfiguration) {
         this.repoConfiguration = repoConfiguration;
     }
 
-    // only for performance testing
+    // only for single-thread performance testing
     long lastOperationDuration;
 
-    public <T extends ObjectType> void updateOrgClosure(Collection<? extends ItemDelta> modifications, Session session,
+    /**
+     * Main method called from SQL repository service to update the closure table during an operation.
+     *
+     * @param originalObject Original state of the object - before applying modification in the repository.
+     *                       It is used only in case of MODIFY (note that "overwriting ADD" is present here as MODIFY!)
+     * @param modifications Collection of modifications to be applied to the object.
+     * @param session Database session to use.
+     * @param oid OID of the object.
+     * @param type Type of the object.
+     * @param operation Operation that is carried out.
+     * @param <T>
+     */
+    public <T extends ObjectType> void updateOrgClosure(PrismObject<? extends ObjectType> originalObject,
+                                                        Collection<? extends ItemDelta> modifications, Session session,
                                                         String oid, Class<T> type, Operation operation) {
         session.flush();
         session.clear();
@@ -110,14 +140,13 @@ public class OrgClosureManager {
 
         switch (operation) {
             case ADD:
-                Set<String> parents = getOidFromAddDeltas(deltas);
-                handleAdd(oid, parents, type, session);
+                handleAdd(oid, type, deltas, session);
                 break;
             case DELETE:
                 handleDelete(oid, type, session);
                 break;
             case MODIFY:
-                handleModify(deltas, session, oid, type);
+                handleModify(oid, type, deltas, originalObject, session);
         }
 
         long duration = System.currentTimeMillis() - time;
@@ -127,7 +156,8 @@ public class OrgClosureManager {
 
     //region Handling ADD operation
 
-    private <T extends ObjectType> void handleAdd(String oid, Set<String> parents, Class<T> type, Session session) {
+    // we can safely expect that the object didn't exist before (because the "overwriting add" is sent to us as MODIFY operation)
+    private <T extends ObjectType> void handleAdd(String oid, Class<T> type, List<ReferenceDelta> deltas, Session session) {
 
         // adding self-record
         session.save(new ROrgClosure(oid, oid, 1));
@@ -142,19 +172,25 @@ public class OrgClosureManager {
             addChildrenEdges(oid, livingChildren, session);
         }
 
-        if (parents.size() <= 1 && (livingChildren == null || livingChildren.isEmpty())) {
+        // all parents are "new", so we should just select which do really exist at this moment
+        Set<String> parents = getParentOidsFromAddDeltas(deltas, null);
+        Collection<String> livingParents = retainExistingOids(parents, session);
+
+        if (livingParents.size() <= 1 && (livingChildren == null || livingChildren.isEmpty())) {
             String parent;
-            if (parents.isEmpty()) {
+            if (livingParents.isEmpty()) {
                 parent = null;
             } else {
-                parent = parents.iterator().next();
+                parent = livingParents.iterator().next();
             }
             addEdgeSimple(oid, parent, session);
         } else {
-            addParentEdges(oid, retainExistingOids(parents, session), session);
+            addParentEdges(oid, livingParents, session);
         }
     }
 
+    // we expect that all livingChildren do exist and
+    // that none of the links child->oid does exist yet
     private void addChildrenEdges(String oid, List<String> livingChildren, Session session) {
         List<Edge> edges = childrenToEdges(oid, livingChildren);
         addIndependentEdges(edges, session);
@@ -173,8 +209,10 @@ public class OrgClosureManager {
         return edges;
     }
 
-    private void addParentEdges(String oid, List<String> parents, Session session) {
-        List<Edge> edges = parentsToEdges(oid, parents);
+    // we expect that all livingParents do exist and
+    // that none of the links oid->parent does exist yet
+    private void addParentEdges(String oid, Collection<String> livingParents, Session session) {
+        List<Edge> edges = parentsToEdges(oid, livingParents);
         addIndependentEdges(edges, session);
     }
 
@@ -191,6 +229,7 @@ public class OrgClosureManager {
         return edges;
     }
 
+    // we expect that the link oid->parent does not exist yet and the parent exists
     private void addEdgeSimple(String oid, String parent, Session session) {
         if (parent != null) {
             long start = System.currentTimeMillis();
@@ -210,6 +249,9 @@ public class OrgClosureManager {
         session.clear();
     }
 
+    // IMPORTANT PRECONDITIONS:
+    //  - all edges are "legal", i.e. their tails and heads (as objects) do exist in repository
+    //  - none of the edges does exist yet
     private void addIndependentEdges(List<Edge> edges, Session session) {
 
         long start = System.currentTimeMillis();
@@ -335,20 +377,20 @@ public class OrgClosureManager {
             return;
         }
 
-        List<String> children = getChildren(oid, session);
-        if (children.isEmpty()) {
+        List<String> livingChildren = getChildren(oid, session);
+        if (livingChildren.isEmpty()) {
             handleDeleteLeaf(oid, session);
             return;
         }
 
         // delete all edges "<child> -> OID" from the closure
-        removeChildrenEdges(oid, children, session);
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'child' links.", children.size());
+        removeChildrenEdges(oid, livingChildren, session);
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'child' links.", livingChildren.size());
 
         // delete all edges "OID -> <parent>" from the closure
-        List<String> parents = getParents(oid, session);
-        removeParentEdges(oid, parents, session);               // todo check for parents' existence?
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'parent' links.", parents.size());
+        List<String> livingParents = retainExistingOids(getParents(oid, session), session);
+        removeParentEdges(oid, livingParents, session);
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'parent' links.", livingParents.size());
 
         // delete (OID, OID) record
         Query deleteSelfQuery = session.createSQLQuery("delete from "+closureTableName+" " +
@@ -469,21 +511,24 @@ public class OrgClosureManager {
 
     //region Handling MODIFY
 
-    private <T extends ObjectType> void handleModify(Collection<? extends ItemDelta> modifications, Session session,
-                                                     String oid, Class<T> type) {
+    private <T extends ObjectType> void handleModify(String oid, Class<T> type,
+                                                     Collection<? extends ItemDelta> modifications,
+                                                     PrismObject<? extends ObjectType> originalObject,
+                                                     Session session) {
         if (modifications.isEmpty()) {
             return;
         }
 
-        boolean maybeNonLeaf = isTypeNonLeaf(type);
+        Set<String> parentsToDelete = getParentOidsFromDeleteDeltas(modifications, originalObject);
+        Set<String> parentsToAdd = getParentOidsFromAddDeltas(modifications, originalObject);
 
-        Set<String> parentsToDelete = getOidFromDeleteDeltas(modifications);
-        Set<String> parentsToAdd = getOidFromAddDeltas(modifications);
+        Collection<String> livingParentsToDelete = retainExistingOids(parentsToDelete, session);
+        Collection<String> livingParentsToAdd = retainExistingOids(parentsToAdd, session);
 
         parentsToDelete.removeAll(parentsToAdd);            // if something is deleted and the re-added we can skip this operation
 
-        removeParentEdges(oid, parentsToDelete, session);
-        addParentEdges(oid, retainExistingOids(parentsToAdd, session), session);
+        removeParentEdges(oid, livingParentsToDelete, session);
+        addParentEdges(oid, livingParentsToAdd, session);
     }
 
     //endregion
@@ -649,34 +694,61 @@ public class OrgClosureManager {
         return deltas;
     }
 
-    private Set<String> getOidFromDeleteDeltas(Collection<? extends ItemDelta> modifications) {
+    private Set<String> getParentOidsFromDeleteDeltas(Collection<? extends ItemDelta> modifications, PrismObject<? extends ObjectType> originalObject) {
+        Validate.notNull(originalObject);
+
         Set<String> oids = new HashSet<>();
+
+        Set<String> existingOids = getExistingParentOids(originalObject);
 
         for (ItemDelta delta : modifications) {
             if (delta.getValuesToDelete() == null) {
                 continue;
             }
             for (PrismReferenceValue val : (Collection<PrismReferenceValue>) delta.getValuesToDelete()) {
-                oids.add(val.getOid());
+                String oid = val.getOid();
+                if (existingOids.contains(oid)) {           // if it's not there, we do not want to delete it!
+                    oids.add(oid);
+                }
             }
         }
 
         return oids;
     }
 
-    private Set<String> getOidFromAddDeltas(Collection<? extends ItemDelta> modifications) {
+    // filters out those OIDs that are already present in originalObject (beware, it may be null)
+    private Set<String> getParentOidsFromAddDeltas(Collection<? extends ItemDelta> modifications, PrismObject<? extends ObjectType> originalObject) {
         Set<String> oids = new HashSet<>();
+
+        Set<String> existingOids = getExistingParentOids(originalObject);
 
         for (ItemDelta delta : modifications) {
             if (delta.getValuesToAdd() == null) {
                 continue;
             }
             for (PrismReferenceValue val : (Collection<PrismReferenceValue>) delta.getValuesToAdd()) {
-                oids.add(val.getOid());
+                String oid = val.getOid();
+                if (!existingOids.contains(oid)) {          // if it's already there, we don't want to add it
+                    oids.add(oid);
+                }
             }
         }
 
         return oids;
+    }
+
+    private Set<String> getExistingParentOids(PrismObject<? extends ObjectType> originalObject) {
+        Set<String> retval = new HashSet<>();
+        if (originalObject != null) {
+            for (ObjectReferenceType ort : originalObject.asObjectable().getParentOrgRef()) {
+                retval.add(ort.getOid());
+            }
+            // is this really necessary?
+            for (OrgType org : originalObject.asObjectable().getParentOrg()) {
+                retval.add(org.getOid());
+            }
+        }
+        return retval;
     }
 
     // only for performance testing (doesn't account for multithreading!)

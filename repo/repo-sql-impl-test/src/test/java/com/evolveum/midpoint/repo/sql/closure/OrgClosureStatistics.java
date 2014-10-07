@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sql.closure;
 
 import com.evolveum.midpoint.util.logging.Trace;
 

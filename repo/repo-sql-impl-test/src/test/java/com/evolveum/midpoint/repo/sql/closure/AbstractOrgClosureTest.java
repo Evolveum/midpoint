@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sql.closure;
 
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.SparseDoubleMatrix2D;
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.repo.sql.BaseSQLRepoTest;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,7 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.type.LongType;
@@ -52,7 +52,6 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
 
 import javax.xml.namespace.QName;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -62,19 +61,20 @@ import java.util.Set;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author lazyman
+ * @author mederly
  */
 public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractOrgClosureTest.class);
 
-    private static final File TEST_DIR = new File("src/test/resources/orgstruct");
-    private static final String ORG_STRUCT_OBJECTS = TEST_DIR + "/org-monkey-island.xml";
-    private static final String ORG_SIMPLE_TEST = TEST_DIR + "/org-simple-test.xml";
+    // The following attributes describe the object graph as originally created/scanned.
+    // Subsequent operations (add/remove node or link) DO NOT change these.
 
-    protected int count = 0;
+    protected int objectCount = 0;
 
     protected List<String> rootOids = new ArrayList<>();
 
@@ -86,27 +86,37 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected List<List<String>> usersByLevels = new ArrayList<>();
 
-    protected SimpleDirectedGraph<String, DefaultEdge> orgGraph = new SimpleDirectedGraph<>(DefaultEdge.class);
-
-    protected Session session;            // used exclusively for read-only operations
-
     private int maxLevel = 0;
 
-    protected void openSessionIfNeeded() {
+    protected long closureSize;
+
+    // Describes current state of the org graph
+    // Beware! Access to this object should be synchronized (for multithreaded tests).
+    protected SimpleDirectedGraph<String, DefaultEdge> orgGraph = new SimpleDirectedGraph<>(DefaultEdge.class);
+
+    // database session, used exclusively for read-only operations
+    protected ThreadLocal<Session> sessionTl = new ThreadLocal<>();
+
+    protected Session getSession() {
+        Session session = sessionTl.get();
         if (session == null || !session.isConnected()) {
             session = repositoryService.getSessionFactory().openSession();
+            sessionTl.set(session);
         }
+        return session;
     }
 
     protected void checkClosure(Set<String> oidsToCheck) {
-        if (isCheckClosureMatrix()) {
-            openSessionIfNeeded();
-            checkClosureMatrix(session);
+        if (getConfiguration().isCheckClosureMatrix()) {
+            checkClosureMatrix();
         }
-        if (isCheckChildrenSets()) {
-            openSessionIfNeeded();
+        if (getConfiguration().isCheckChildrenSets()) {
             checkChildrenSets(oidsToCheck);
         }
+    }
+
+    protected void checkClosureUnconditional(Set<String> oidsToCheck) {
+        checkChildrenSets(oidsToCheck);
     }
 
     private void checkChildrenSets(Set<String> oidsToCheck) {
@@ -140,14 +150,15 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     /**
      * Recomputes closure table from scratch (using matrix multiplication) and compares it with M_ORG_CLOSURE.
      */
-    protected void checkClosureMatrix(Session session) {
+    protected void checkClosureMatrix() {
+        Session session = getSession();
         // we compute the closure table "by hand" as 1 + A + A^2 + A^3 + ... + A^n where n is the greatest expected path length
-        int vertices = orgGraph.vertexSet().size();
+        int vertices = getVertices().size();
 
         long start = System.currentTimeMillis();
 
         // used to give indices to vertices
-        List<String> vertexList = new ArrayList<>(orgGraph.vertexSet());
+        List<String> vertexList = new ArrayList<>(getVertices());
         DoubleMatrix2D a = new SparseDoubleMatrix2D(vertices, vertices);
 //        for (int i = 0; i < vertices; i++) {
 //            a.setQuick(i, i, 1.0);
@@ -217,13 +228,13 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     private List<ROrgClosure> getOrgClosureByDescendant(String descendantOid) {
-        Query query = session.createQuery("from ROrgClosure where descendantOid=:oid");
+        Query query = getSession().createQuery("from ROrgClosure where descendantOid=:oid");
         query.setString("oid", descendantOid);
         return query.list();
     }
 
     private List<ROrgClosure> getOrgClosureByAncestor(String ancestorOid) {
-        Query query = session.createQuery("from ROrgClosure where ancestorOid=:oid");
+        Query query = getSession().createQuery("from ROrgClosure where ancestorOid=:oid");
         query.setString("oid", ancestorOid);
         return query.list();
     }
@@ -277,8 +288,13 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     // parentsInLevel may be null (in that case, a simple tree is generated)
-    protected void loadOrgStructure(int level, String parentOid, int[] orgChildrenInLevel, int[] userChildrenInLevel, int[] parentsInLevel, String oidPrefix,
-                                  OperationResult result) throws Exception {
+    protected void loadOrgStructure(int level, String parentOid, String oidPrefix,
+                                    OperationResult result) throws Exception {
+
+        int[] orgChildrenInLevel = getConfiguration().getOrgChildrenInLevel();
+        int[] userChildrenInLevel = getConfiguration().getUserChildrenInLevel();
+        int[] parentsInLevel = getConfiguration().getParentsInLevel();
+
         if (level == orgChildrenInLevel.length) {
             return;
         }
@@ -293,7 +309,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             String newOidPrefix = getOidCharFor(i) + oidPrefix;
             int numberOfParents = parentsInLevel==null ? (parentOid != null ? 1 : 0) : parentsInLevel[level];
             PrismObject<OrgType> org = createOrg(generateParentsForLevel(parentOid, level, numberOfParents), newOidPrefix);
-            LOGGER.info("Creating {}, total {}; parents = {}", new Object[]{org, count, getParentsOids(org)});
+            LOGGER.info("Creating {}, total {}; parents = {}", new Object[]{org, objectCount, getParentsOids(org)});
             String oid = repositoryService.addObject(org, null, result);
             org.setOid(oid);
             if (parentOid == null) {
@@ -302,9 +318,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             allOrgCreated.add(org.asObjectable());
             registerObject(org.asObjectable(), false);
             orgsAtThisLevel.add(oid);
-            count++;
+            objectCount++;
 
-            loadOrgStructure(level+1, oid, orgChildrenInLevel, userChildrenInLevel, parentsInLevel, newOidPrefix, result);
+            loadOrgStructure(level+1, oid, newOidPrefix, result);
         }
 
         if (parentOid != null) {
@@ -314,13 +330,13 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             for (int u = 0; u < userChildrenInLevel[level]; u++) {
                 int numberOfParents = parentsInLevel==null ? 1 : parentsInLevel[level];
                 PrismObject<UserType> user = createUser(generateParentsForLevel(parentOid, level, numberOfParents), getOidCharFor(u) + ":" + oidPrefix);
-                LOGGER.info("Creating {}, total {}; parents = {}", new Object[]{user, count, getParentsOids(user)});
+                LOGGER.info("Creating {}, total {}; parents = {}", new Object[]{user, objectCount, getParentsOids(user)});
                 String uoid = repositoryService.addObject(user, null, result);
                 user.setOid(uoid);
                 allUsersCreated.add(user.asObjectable());
                 registerObject(user.asObjectable(), false);
                 usersAtThisLevel.add(uoid);
-                count++;
+                objectCount++;
             }
         }
 
@@ -395,7 +411,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 allOrgCreated.add(org);
                 registerOrgToLevels(0, org.getOid());
                 registerObject(org, false);
-                count++;
+                objectCount++;
             } catch (ObjectNotFoundException e) {
                 break;
             }
@@ -425,8 +441,8 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             if (alreadyKnown(childOid)) {
                 continue;
             }
-            count++;
-            System.out.println("#" + count + ": parent level = " + level + ", childOid = " + childOid);
+            objectCount++;
+            System.out.println("#" + objectCount + ": parent level = " + level + ", childOid = " + childOid);
             ObjectType objectType = repositoryService.getObject(ObjectType.class, childOid, null, opResult).asObjectable();
             registerObject(objectType, false);          // children will be registered to graph later
             if (objectType instanceof OrgType) {
@@ -514,7 +530,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected List<String> getChildren(String oid) {
-        Query childrenQuery = session.createQuery("select distinct ownerOid from RParentOrgRef where targetOid=:oid");
+        Query childrenQuery = getSession().createQuery("select distinct ownerOid from RParentOrgRef where targetOid=:oid");
         childrenQuery.setString("oid", oid);
         return childrenQuery.list();
     }
@@ -559,13 +575,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected void randomRemoveOrgStructure(OperationResult result) throws Exception {
-        openSessionIfNeeded();
-
-        int CHECK_EACH = 1;
-
         int count = 0;
         long totalTime = 0;
-        List<String> vertices = new ArrayList<>(orgGraph.vertexSet());
+        List<String> vertices = new ArrayList<>(getVertices());
         while (!vertices.isEmpty()) {
             int i = (int) Math.floor(vertices.size()*Math.random());
             String oid = vertices.get(i);
@@ -580,8 +592,8 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             }
             orgGraph.removeVertex(oid);
             vertices.remove(oid);
-            if (count%CHECK_EACH == 0) {
-                checkClosure(orgGraph.vertexSet());
+            if (count%getConfiguration().getDeletionsToClosureTest() == 0) {
+                checkClosure(getVertices());
             }
         }
         System.out.println(count + " objects deleted in avg time " + ((float) totalTime/count) + " ms (net)");
@@ -688,7 +700,283 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         return repositoryService.getClosureManager().getLastOperationDuration();
     }
 
-    public abstract boolean isCheckChildrenSets();
+    public abstract OrgClosureTestConfiguration getConfiguration();
 
-    public abstract boolean isCheckClosureMatrix();
+    protected void _test100LoadOrgStructure() throws Exception {
+        OperationResult opResult = new OperationResult("===[ test100LoadOrgStructure ]===");
+
+        LOGGER.info("Start.");
+
+        long start = System.currentTimeMillis();
+        loadOrgStructure(0, null, "", opResult);
+        System.out.println("Loaded " + allOrgCreated.size() + " orgs and " + (objectCount - allOrgCreated.size()) + " users in " + (System.currentTimeMillis() - start) + " ms");
+        Query q = getSession().createSQLQuery("select count(*) from m_org_closure");
+        System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
+        closureSize = Long.parseLong(q.list().get(0).toString());
+    }
+
+    protected void _test110ScanOrgStructure() throws Exception {
+        OperationResult opResult = new OperationResult("===[ test110ScanOrgStructure ]===");
+
+        long start = System.currentTimeMillis();
+        scanOrgStructure(opResult);
+        System.out.println("Found " + allOrgCreated.size() + " orgs and " + (objectCount - allOrgCreated.size()) + " users in " + (System.currentTimeMillis() - start) + " ms");
+        Query q = getSession().createSQLQuery("select count(*) from m_org_closure");
+        System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
+        closureSize = Long.parseLong(q.list().get(0).toString());
+    }
+
+    protected void _test150CheckClosure() throws Exception {
+        OperationResult opResult = new OperationResult("===[ test110CheckClosure ]===");
+        checkClosureUnconditional(getVertices());
+    }
+
+    protected synchronized Set<String> getVertices() {
+        return new HashSet<>(orgGraph.vertexSet());
+    }
+
+    protected void _test190AddLink(String childOid, String parentOid) throws Exception {
+        OperationResult opResult = new OperationResult("===[ test190AddLink ]===");
+
+        //checkClosure(orgGraph.vertexSet());
+
+        ObjectType child = repositoryService.getObject(ObjectType.class, childOid, null, opResult).asObjectable();
+        ObjectReferenceType parentOrgRef = new ObjectReferenceType();
+        parentOrgRef.setOid(parentOid);
+        parentOrgRef.setType(OrgType.COMPLEX_TYPE);
+        System.out.println("Adding link " + childOid + " -> " + parentOid);
+        long start = System.currentTimeMillis();
+        if (child instanceof OrgType) {
+            addOrgParent((OrgType) child, parentOrgRef, opResult);
+        } else {
+            addUserParent((UserType) child, parentOrgRef, opResult);
+        }
+        long timeAddition = System.currentTimeMillis() - start;
+        System.out.println(" ... done in " + timeAddition + " ms" + getNetDurationMessage());
+
+        //checkClosure(orgGraph.vertexSet());
+    }
+
+
+    protected void _test195RemoveLink(String childOid, String parentOid) throws Exception {
+        OperationResult opResult = new OperationResult("===[ test195RemoveLink ]===");
+
+        //checkClosure(orgGraph.vertexSet());
+
+        System.out.println("Removing link " + childOid + " -> " + parentOid);
+        ObjectType child = repositoryService.getObject(ObjectType.class, childOid, null, opResult).asObjectable();
+        ObjectReferenceType parentOrgRef = null;
+        for (ObjectReferenceType ort : child.getParentOrgRef()) {
+            if (parentOid.equals(ort.getOid())) {
+                parentOrgRef = ort;
+            }
+        }
+        assertNotNull(parentOid + " is not a parent of " + childOid, parentOrgRef);
+        long start = System.currentTimeMillis();
+        removeObjectParent(child, parentOrgRef, opResult);
+        long timeAddition = System.currentTimeMillis() - start;
+        System.out.println(" ... done in " + timeAddition + " ms" + getNetDurationMessage());
+
+        //checkClosure(orgGraph.vertexSet());
+    }
+
+    protected String getNetDurationMessage() {
+        return " (closure update: " + getNetDuration() + " ms)";
+    }
+
+    protected void _test200AddRemoveLinks() throws Exception {
+        OperationResult opResult = new OperationResult("===[ addRemoveLinks ]===");
+
+        int totalRounds = 0;
+        OrgClosureStatistics stat = new OrgClosureStatistics();
+
+        // parentRef link removal + addition
+        long totalTimeLinkRemovals = 0, totalTimeLinkAdditions = 0;
+        for (int level = 0; level < getConfiguration().getLinkRoundsForLevel().length; level++) {
+            for (int round = 0; round < getConfiguration().getLinkRoundsForLevel()[level]; round++) {
+
+                // removal
+                List<String> levelOids = orgsByLevels.get(level);
+                if (levelOids.isEmpty()) {
+                    continue;
+                }
+                int index = (int) Math.floor(Math.random() * levelOids.size());
+                String oid = levelOids.get(index);
+                OrgType org = repositoryService.getObject(OrgType.class, oid, null, opResult).asObjectable();
+
+                // check if it has no parents (shouldn't occur here!)
+                if (org.getParentOrgRef().isEmpty()) {
+                    throw new IllegalStateException("No parents in " + org);
+                }
+
+                int i = (int) Math.floor(Math.random() * org.getParentOrgRef().size());
+                ObjectReferenceType parentOrgRef = org.getParentOrgRef().get(i);
+
+                System.out.println("Removing parent from org #" + totalRounds + "(" + level + "/" + round + "): " + org.getOid() + ", parent: " + parentOrgRef.getOid());
+                long start = System.currentTimeMillis();
+                removeObjectParent(org, parentOrgRef, opResult);
+                long timeRemoval = System.currentTimeMillis() - start;
+                System.out.println(" ... done in " + timeRemoval + " ms " + getNetDurationMessage());
+                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks", level, false, getNetDuration());
+                totalTimeLinkRemovals += getNetDuration();
+
+                checkClosure(getVertices());
+
+                // addition
+                System.out.println("Re-adding parent for org #" + totalRounds);
+                start = System.currentTimeMillis();
+                addOrgParent(org, parentOrgRef, opResult);
+                long timeAddition = System.currentTimeMillis() - start;
+                System.out.println(" ... done in " + timeAddition + " ms " + getNetDurationMessage());
+                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks", level, true, getNetDuration());
+
+                checkClosure(getVertices());
+
+                totalTimeLinkAdditions += getNetDuration();
+                totalRounds++;
+            }
+        }
+
+        if (totalRounds > 0) {
+            System.out.println("Avg time for an arbitrary link removal: " + ((double) totalTimeLinkRemovals / totalRounds) + " ms");
+            System.out.println("Avg time for an arbitrary link re-addition: " + ((double) totalTimeLinkAdditions / totalRounds) + " ms");
+            LOGGER.info("===================================================");
+            LOGGER.info("Statistics for org link removal/addition:");
+            stat.dump(LOGGER, repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks");
+        }
+    }
+
+    protected void _test300AddRemoveOrgs() throws Exception {
+        OperationResult opResult = new OperationResult("===[ test300AddRemoveOrgs ]===");
+
+        int totalRounds = 0;
+        OrgClosureStatistics stat = new OrgClosureStatistics();
+
+        // OrgType node removal + addition
+        long totalTimeNodeRemovals = 0, totalTimeNodeAdditions = 0;
+        for (int level = 0; level < getConfiguration().getNodeRoundsForLevel().length; level++) {
+            for (int round = 0; round < getConfiguration().getNodeRoundsForLevel()[level]; round++) {
+
+                // removal
+                List<String> levelOids = orgsByLevels.get(level);
+                if (levelOids.isEmpty()) {
+                    continue;
+                }
+                int index = (int) Math.floor(Math.random() * levelOids.size());
+                String oid = levelOids.get(index);
+                OrgType org = repositoryService.getObject(OrgType.class, oid, null, opResult).asObjectable();
+
+                System.out.println("Removing org #" + totalRounds + " (" + level + "/" + round + "): " + org.getOid() + " (parents: " + getParentsOids(org.asPrismObject()) + ")");
+                long start = System.currentTimeMillis();
+                removeOrg(org.getOid(), opResult);
+                long timeRemoval = System.currentTimeMillis() - start;
+                System.out.println(" ... done in " + timeRemoval + " ms" + getNetDurationMessage());
+                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs", level, false, getNetDuration());
+                totalTimeNodeRemovals += getNetDuration();
+
+                checkClosure(getVertices());
+
+                // addition
+                System.out.println("Re-adding org #" + totalRounds);
+                start = System.currentTimeMillis();
+                reAddOrg(org, opResult);
+                long timeAddition = System.currentTimeMillis() - start;
+                System.out.println(" ... done in " + timeAddition + "ms" + getNetDurationMessage());
+                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs", level, true, getNetDuration());
+
+                checkClosure(getVertices());
+
+                totalTimeNodeAdditions += getNetDuration();
+                totalRounds++;
+            }
+        }
+
+        if (totalRounds > 0) {
+            System.out.println("Avg time for an arbitrary node removal: " + ((double) totalTimeNodeRemovals / totalRounds) + " ms");
+            System.out.println("Avg time for an arbitrary node re-addition: " + ((double) totalTimeNodeAdditions / totalRounds) + " ms");
+            LOGGER.info("===================================================");
+            LOGGER.info("Statistics for org node removal/addition:");
+            stat.dump(LOGGER, repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs");
+        }
+    }
+
+    public void _test310AddRemoveUsers() throws Exception {
+        OperationResult opResult = new OperationResult("===[ test310AddRemoveUsers ]===");
+
+        int totalRounds = 0;
+        OrgClosureStatistics stat = new OrgClosureStatistics();
+
+        long totalTimeNodeRemovals = 0, totalTimeNodeAdditions = 0;
+        for (int level = 0; level < getConfiguration().getUserRoundsForLevel().length; level++) {
+            for (int round = 0; round < getConfiguration().getUserRoundsForLevel()[level]; round++) {
+
+                // removal
+                List<String> levelOids = usersByLevels.get(level);
+                if (levelOids.isEmpty()) {
+                    continue;
+                }
+                int index = (int) Math.floor(Math.random() * levelOids.size());
+                String oid = levelOids.get(index);
+                UserType user = repositoryService.getObject(UserType.class, oid, null, opResult).asObjectable();
+
+                System.out.println("Removing user #" + totalRounds + " (" + level + "/" + round + "): " + user.getOid() + " (parents: " + getParentsOids(user.asPrismObject()) + ")");
+                long start = System.currentTimeMillis();
+                removeUser(user.getOid(), opResult);
+                long timeRemoval = System.currentTimeMillis() - start;
+                System.out.println(" ... done in " + timeRemoval + " ms" + getNetDurationMessage());
+                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveUsers", level, false, getNetDuration());
+                totalTimeNodeRemovals += getNetDuration();
+
+                checkClosure(getVertices());
+
+                // addition
+                System.out.println("Re-adding user #" + totalRounds);
+                start = System.currentTimeMillis();
+                reAddUser(user, opResult);
+                long timeAddition = System.currentTimeMillis() - start;
+                System.out.println(" ... done in " + timeAddition + "ms" + getNetDurationMessage());
+                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveUsers", level, true, getNetDuration());
+
+                checkClosure(getVertices());
+
+                totalTimeNodeAdditions += getNetDuration();
+                totalRounds++;
+            }
+        }
+
+        if (totalRounds > 0) {
+            System.out.println("Avg time for an arbitrary user removal: " + ((double) totalTimeNodeRemovals / totalRounds) + " ms");
+            System.out.println("Avg time for an arbitrary user re-addition: " + ((double) totalTimeNodeAdditions / totalRounds) + " ms");
+            LOGGER.info("===================================================");
+            LOGGER.info("Statistics for user node removal/addition:");
+            stat.dump(LOGGER, repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveUsers");
+        }
+    }
+
+    protected void _test400UnloadOrgStructure() throws Exception {
+        OperationResult opResult = new OperationResult("===[ unloadOrgStruct ]===");
+        long start = System.currentTimeMillis();
+        removeOrgStructure(opResult);
+        System.out.println("Removed in " + (System.currentTimeMillis() - start) + " ms");
+
+        Query q = getSession().createSQLQuery("select count(*) from m_org_closure");
+        System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
+
+        LOGGER.info("Finish.");
+    }
+
+    protected void _test410RandomUnloadOrgStructure() throws Exception {
+        OperationResult opResult = new OperationResult("===[ test410RandomUnloadOrgStructure ]===");
+        long start = System.currentTimeMillis();
+        randomRemoveOrgStructure(opResult);
+        System.out.println("Removed in " + (System.currentTimeMillis() - start) + " ms");
+
+        Query q = getSession().createSQLQuery("select count(*) from m_org_closure");
+        Object count = q.list().get(0);
+        System.out.println("OrgClosure table has " + count + " rows");
+        assertEquals("Closure is not empty", "0", count.toString());
+
+        LOGGER.info("Finish.");
+    }
+
 }

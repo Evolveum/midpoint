@@ -514,11 +514,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                                                     String originalOid, Session session)
             throws ObjectAlreadyExistsException, SchemaException, DtoTranslationException {
 
+        PrismObject<T> oldObject = null;
+
         //check if object already exists, find differences and increment version if necessary
         Collection<? extends ItemDelta> modifications = null;
         if (originalOid != null) {
             try {
-                PrismObject<T> oldObject = getObject(session, object.getCompileTimeClass(), originalOid, null, true);
+                oldObject = getObject(session, object.getCompileTimeClass(), originalOid, null, true);
                 ObjectDelta<T> delta = object.diff(oldObject);
                 modifications = delta.getModifications();
 
@@ -537,12 +539,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         updateFullObject(rObject, object);
         RObject merged = (RObject) session.merge(rObject);
         //add and maybe modify
-        OrgClosureManager.Operation operation = modifications == null ? OrgClosureManager.Operation.ADD :
-                OrgClosureManager.Operation.MODIFY;
+        OrgClosureManager.Operation operation;
         if (modifications == null) {
+            operation = OrgClosureManager.Operation.ADD;
             modifications = createAddParentRefDelta(object);
+        } else {
+            operation = OrgClosureManager.Operation.MODIFY;
         }
-        getClosureManager().updateOrgClosure(modifications, session, merged.getOid(), object.getCompileTimeClass(),
+        getClosureManager().updateOrgClosure(oldObject, modifications, session, merged.getOid(), object.getCompileTimeClass(),
                 operation);
 
         return merged.getOid();
@@ -593,7 +597,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         String oid = (String) session.save(rObject);
 
         Collection<ReferenceDelta> modifications = createAddParentRefDelta(object);
-        getClosureManager().updateOrgClosure(modifications, session, oid, object.getCompileTimeClass(),
+        getClosureManager().updateOrgClosure(null, modifications, session, oid, object.getCompileTimeClass(),
                 OrgClosureManager.Operation.ADD);
 
         return oid;
@@ -660,7 +664,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         + "' was not found.", null, oid);
             }
 
-            getClosureManager().updateOrgClosure(null, session, oid, type, OrgClosureManager.Operation.DELETE);
+            getClosureManager().updateOrgClosure(null, null, session, oid, type, OrgClosureManager.Operation.DELETE);
 
             session.delete(object);
 
@@ -992,6 +996,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.debugDump()});
             }
+            PrismObject<T> originalObject = prismObject.clone();
             ItemDelta.applyTo(modifications, prismObject);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.debugDump());
@@ -1004,7 +1009,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             updateFullObject(rObject, prismObject);
             session.merge(rObject);
 
-            getClosureManager().updateOrgClosure(modifications, session, oid, type, OrgClosureManager.Operation.MODIFY);
+            getClosureManager().updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY);
 
             LOGGER.trace("Before commit...");
             session.getTransaction().commit();
