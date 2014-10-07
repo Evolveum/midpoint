@@ -20,7 +20,9 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -187,6 +189,12 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
             } else {
             	definition = containerDefinition;
             }
+        } else if (ResourceType.class.isAssignableFrom(clazz)) {
+        	if (containerDefinition != null){
+        		definition = containerDefinition;
+        	} else{
+        		definition = container.getDefinition();
+       		}
         } else {
         	definition = containerDefinition;
         }
