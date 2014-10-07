@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -80,8 +81,8 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
     @Test(enabled = true) public void test150CheckClosure() throws Exception { _test150CheckClosure(); }
     @Test(enabled = true) public void test200AddRemoveLinksSeq() throws Exception { _test200AddRemoveLinksMT(false); }
     @Test(enabled = true) public void test201AddRemoveLinksRandom() throws Exception { _test200AddRemoveLinksMT(true); }
-    @Test(enabled = true) public void test300AddRemoveOrgsSeq() throws Exception { _test300AddRemoveOrgsMT(false); }
-    @Test(enabled = true) public void test301AddRemoveOrgsRandom() throws Exception { _test300AddRemoveOrgsMT(true); }
+    @Test(enabled = true) public void test300AddRemoveNodesSeq() throws Exception { _test300AddRemoveNodesMT(false); }
+    @Test(enabled = true) public void test301AddRemoveNodesRandom() throws Exception { _test300AddRemoveNodesMT(true); }
     //@Test(enabled = true) public void test310AddRemoveUsers() throws Exception { _test310AddRemoveUsersMT(); }
 
     /**
@@ -154,7 +155,9 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                             LOGGER.info("Removing {}", edge);
                             removeEdge(edge);
                             info(Thread.currentThread().getName() + " removed " + edge);
-                            edgesToRemove.remove(edge);
+                            synchronized (OrgClosureConcurrencyTest.this) {
+                                edgesToRemove.remove(edge);
+                            }
                         }
                     } catch (Throwable e) {
                         e.printStackTrace();
@@ -197,7 +200,9 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                             LOGGER.info("Adding {}", edge);
                             addEdge(edge);
                             info(Thread.currentThread().getName() + " re-added " + edge);
-                            edgesToAdd.remove(edge);
+                            synchronized (OrgClosureConcurrencyTest.this) {
+                                edgesToAdd.remove(edge);
+                            }
                         }
                     } catch (Throwable e) {
                         e.printStackTrace();
@@ -274,41 +279,25 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         }
     }
 
-    protected void _test300AddRemoveOrgsMT(final boolean random) throws Exception {
-        OperationResult opResult = new OperationResult("===[ test300AddRemoveOrgsMT ]===");
+    protected void _test300AddRemoveNodesMT(final boolean random) throws Exception {
+        OperationResult opResult = new OperationResult("===[ test300AddRemoveNodesMT ]===");
 
-        info("test300AddRemoveOrgs starting with random = " + random);
+        info("test300AddRemoveNodes starting with random = " + random);
 
-        final Set<OrgType> orgsToRemove = Collections.synchronizedSet(new HashSet<OrgType>());
-        final Set<OrgType> orgsToAdd = Collections.synchronizedSet(new HashSet<OrgType>());
+        final Set<ObjectType> nodesToRemove = Collections.synchronizedSet(new HashSet<ObjectType>());
+        final Set<ObjectType> nodesToAdd = Collections.synchronizedSet(new HashSet<ObjectType>());
 
         final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<Throwable>());
 
         for (int level = 0; level < getConfiguration().getNodeRoundsForLevel().length; level++) {
             int rounds = getConfiguration().getNodeRoundsForLevel()[level];
             List<String> levelOids = orgsByLevels.get(level);
-            if (levelOids.isEmpty()) {
-                continue;
-            }
-            int retries = 0;
-            for (int round = 0; round < rounds; round++) {
-
-                int index = (int) Math.floor(Math.random() * levelOids.size());
-                String oid = levelOids.get(index);
-                OrgType org = repositoryService.getObject(OrgType.class, oid, null, opResult).asObjectable();
-
-                if (orgsToRemove.contains(org)) {
-                    round--;
-                    if (++retries == 1000) {
-                        throw new IllegalStateException("Too many retries");    // primitive attempt to break potential cycles when there is not enough edges to process
-                    } else {
-                        continue;
-                    }
-                }
-
-                orgsToRemove.add(org);
-                orgsToAdd.add(org);
-            }
+            generateNodesAtOneLevel(nodesToRemove, nodesToAdd, OrgType.class, rounds, levelOids, opResult);
+        }
+        for (int level = 0; level < getConfiguration().getUserRoundsForLevel().length; level++) {
+            int rounds = getConfiguration().getUserRoundsForLevel()[level];
+            List<String> levelOids = usersByLevels.get(level);
+            generateNodesAtOneLevel(nodesToRemove, nodesToAdd, UserType.class, rounds, levelOids, opResult);
         }
 
         int numberOfRunners = 3;
@@ -320,18 +309,20 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                 public void run() {
                     try {
                         while (true) {
-                            OrgType org = getNext(orgsToRemove, random);
-                            if (org == null) {
+                            ObjectType objectType = getNext(nodesToRemove, random);
+                            if (objectType == null) {
                                 break;
                             }
-                            LOGGER.info("Removing {}", org);
+                            LOGGER.info("Removing {}", objectType);
                             try {
-                                removeObject(org);
-                                orgsToRemove.remove(org);
-                                info(Thread.currentThread().getName() + " removed " + org);
+                                removeObject(objectType);
+                                synchronized (OrgClosureConcurrencyTest.this) {
+                                    nodesToRemove.remove(objectType);
+                                }
+                                info(Thread.currentThread().getName() + " removed " + objectType);
                             } catch (ObjectNotFoundException e) {
                                 // this is OK
-                                info(Thread.currentThread().getName() + ": " + org + " already deleted");
+                                info(Thread.currentThread().getName() + ": " + objectType + " already deleted");
                             }
                         }
                     } catch (Throwable e) {
@@ -351,8 +342,8 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             Thread.sleep(100);          // primitive way of waiting
         }
 
-        if (!orgsToRemove.isEmpty()) {
-            throw new AssertionError("Orgs to remove is not empty, see the console or log: " + orgsToRemove);
+        if (!nodesToRemove.isEmpty()) {
+            throw new AssertionError("Nodes to remove is not empty, see the console or log: " + nodesToRemove);
         }
 
         if (!exceptions.isEmpty()) {
@@ -368,18 +359,20 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                 public void run() {
                     try {
                         while (true) {
-                            OrgType org = getNext(orgsToAdd, random);
-                            if (org == null) {
+                            ObjectType objectType = getNext(nodesToAdd, random);
+                            if (objectType == null) {
                                 break;
                             }
-                            LOGGER.info("Adding {}", org);
+                            LOGGER.info("Adding {}", objectType);
                             try {
-                                addObject(org.clone());
-                                orgsToAdd.remove(org);
-                                info(Thread.currentThread().getName() + " re-added " + org);
+                                addObject(objectType.clone());
+                                synchronized (OrgClosureConcurrencyTest.this) {
+                                    nodesToAdd.remove(objectType);
+                                }
+                                info(Thread.currentThread().getName() + " re-added " + objectType);
                             } catch (ObjectAlreadyExistsException e) {
                                 // this is OK
-                                info(Thread.currentThread().getName() + ": " + org + " already exists");
+                                info(Thread.currentThread().getName() + ": " + objectType + " already exists");
                             }
                         }
                     } catch (Throwable e) {
@@ -399,8 +392,8 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             Thread.sleep(100);          // primitive way of waiting
         }
 
-        if (!orgsToAdd.isEmpty()) {
-            throw new AssertionError("Orgs to add is not empty, see the console or log: " + orgsToAdd);
+        if (!nodesToAdd.isEmpty()) {
+            throw new AssertionError("Nodes to add is not empty, see the console or log: " + nodesToAdd);
         }
 
         if (!exceptions.isEmpty()) {
@@ -409,6 +402,34 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
 
         checkClosure(orgGraph.vertexSet());
         info("Consistency after re-adding OK");
+    }
+
+    private void generateNodesAtOneLevel(Set<ObjectType> nodesToRemove, Set<ObjectType> nodesToAdd,
+                                         Class<? extends ObjectType> clazz,
+                                         int rounds, List<String> candidateOids,
+                                         OperationResult opResult) throws ObjectNotFoundException, SchemaException {
+        if (candidateOids.isEmpty()) {
+            return;
+        }
+        int retries = 0;
+        for (int round = 0; round < rounds; round++) {
+
+            int index = (int) Math.floor(Math.random() * candidateOids.size());
+            String oid = candidateOids.get(index);
+            ObjectType objectType = repositoryService.getObject(clazz, oid, null, opResult).asObjectable();
+
+            if (nodesToRemove.contains(objectType)) {
+                round--;
+                if (++retries == 1000) {
+                    throw new IllegalStateException("Too many retries");    // primitive attempt to break potential cycles when there is not enough edges to process
+                } else {
+                    continue;
+                }
+            }
+
+            nodesToRemove.add(objectType);
+            nodesToAdd.add(objectType);
+        }
     }
 
     void removeObject(ObjectType objectType) throws Exception {

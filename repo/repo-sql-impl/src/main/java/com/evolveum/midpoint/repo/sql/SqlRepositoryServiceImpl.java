@@ -35,13 +35,11 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
-import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -51,18 +49,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import java.lang.reflect.Method;
@@ -539,16 +535,18 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         updateFullObject(rObject, object);
         RObject merged = (RObject) session.merge(rObject);
         //add and maybe modify
-        OrgClosureManager.Operation operation;
-        if (modifications == null) {
-            operation = OrgClosureManager.Operation.ADD;
-            modifications = createAddParentRefDelta(object);
-        } else {
-            operation = OrgClosureManager.Operation.MODIFY;
-        }
-        getClosureManager().updateOrgClosure(oldObject, modifications, session, merged.getOid(), object.getCompileTimeClass(),
-                operation);
 
+        if (getClosureManager().isEnabled()) {
+            OrgClosureManager.Operation operation;
+            if (modifications == null) {
+                operation = OrgClosureManager.Operation.ADD;
+                modifications = createAddParentRefDelta(object);
+            } else {
+                operation = OrgClosureManager.Operation.MODIFY;
+            }
+            getClosureManager().updateOrgClosure(oldObject, modifications, session, merged.getOid(), object.getCompileTimeClass(),
+                    operation);
+        }
         return merged.getOid();
     }
 
@@ -596,9 +594,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         LOGGER.trace("Saving object (non overwrite).");
         String oid = (String) session.save(rObject);
 
-        Collection<ReferenceDelta> modifications = createAddParentRefDelta(object);
-        getClosureManager().updateOrgClosure(null, modifications, session, oid, object.getCompileTimeClass(),
-                OrgClosureManager.Operation.ADD);
+        if (getClosureManager().isEnabled()) {
+            Collection<ReferenceDelta> modifications = createAddParentRefDelta(object);
+            getClosureManager().updateOrgClosure(null, modifications, session, oid, object.getCompileTimeClass(),
+                    OrgClosureManager.Operation.ADD);
+        }
 
         return oid;
     }
@@ -996,7 +996,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.debugDump()});
             }
-            PrismObject<T> originalObject = prismObject.clone();
+            PrismObject<T> originalObject = null;
+            if (getClosureManager().isEnabled()) {
+                originalObject = prismObject.clone();
+            }
             ItemDelta.applyTo(modifications, prismObject);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.debugDump());
@@ -1009,7 +1012,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             updateFullObject(rObject, prismObject);
             session.merge(rObject);
 
-            getClosureManager().updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY);
+            if (getClosureManager().isEnabled()) {
+                getClosureManager().updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY);
+            }
 
             LOGGER.trace("Before commit...");
             session.getTransaction().commit();
@@ -1271,6 +1276,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     public void repositorySelfTest(OperationResult parentResult) {
         // TODO add some SQL-specific self-test methods
         // No self-tests for now
+    }
+
+    @PostConstruct
+    public void initialize() {
+        getClosureManager().executeStartupAction(this);
     }
 
     /* (non-Javadoc)

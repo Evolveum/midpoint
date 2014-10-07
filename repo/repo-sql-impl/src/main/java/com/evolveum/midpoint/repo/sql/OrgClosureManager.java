@@ -19,15 +19,25 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.mutable.MutableInt;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.type.IntegerType;
 
 import java.util.*;
 
@@ -128,6 +138,16 @@ public class OrgClosureManager {
     public <T extends ObjectType> void updateOrgClosure(PrismObject<? extends ObjectType> originalObject,
                                                         Collection<? extends ItemDelta> modifications, Session session,
                                                         String oid, Class<T> type, Operation operation) {
+
+        switch (repoConfiguration.getOrgClosureObjects()) {
+            case NONE:
+                return;
+            case FOCUS:
+                if (!FocusType.class.isAssignableFrom(type)) {
+                return;
+            }
+        }
+
         session.flush();
         session.clear();
 
@@ -154,11 +174,126 @@ public class OrgClosureManager {
         lastOperationDuration = duration;
     }
 
+    public void executeStartupAction(SqlRepositoryServiceImpl service) {
+        if (!isEnabled()) {
+            return;
+        }
+
+        boolean check, rebuild;
+        switch (repoConfiguration.getOrgClosureStartupAction()) {
+            case NONE:
+                return;
+            case CHECK:
+                check = true;
+                rebuild = false;
+                break;
+            case REBUILD_IF_NEEDED:
+                check = true;
+                rebuild = true;
+                break;
+            case ALWAYS_REBUILD:
+                check = false;
+                rebuild = true;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid value: " + repoConfiguration.getOrgClosureStartupAction());
+        }
+        checkAndOrRebuild(service, check, rebuild, repoConfiguration.isStopOnOrgClosureStartupFailure());
+    }
+
+    public boolean isEnabled() {
+        return repoConfiguration.getOrgClosureObjects() != OrgClosureObjects.NONE;
+    }
+
+
+    /**
+     * Does a basic consistency check by comparing whether are there any orgs without entries in closure
+     * (the reverse direction is ensured via foreign keys in m_org_closure).
+     */
+    public void checkAndOrRebuild(SqlRepositoryServiceImpl service, boolean check, boolean rebuild, boolean stopOnFailure) {
+        Session session = service.getSessionFactory().openSession();
+        try {
+            boolean ok = false;
+            if (check) {
+                Query q = session.createSQLQuery(
+                        "select count(m_org.oid) as problems from m_org left join m_org_closure cl " +
+                                "on cl.descendant_oid = m_org.oid and cl.ancestor_oid = m_org.oid " +
+                                "where cl.descendant_oid is null").addScalar("problems", IntegerType.INSTANCE);
+                List problemsList = q.list();
+                if (problemsList == null || problemsList.size() != 1) {
+                    throw new IllegalStateException("Unexpected return value from the closure check query: " + problemsList + " (a 1-item list of Integer expected)");
+                }
+                int problems = (int) problemsList.get(0);
+                if (problems != 0) {
+                    LOGGER.warn("Content of M_ORG_CLOSURE table is not consistent with the content of M_ORG one. Missing OIDs: {}", problems);
+                    if (!rebuild && stopOnFailure) {
+                        throw new IllegalStateException("Content of M_ORG_CLOSURE table is not consistent with the content of M_ORG one. Missing OIDs: " + problems);
+                    }
+                } else {
+                    LOGGER.debug("Org closure quick test passed.");
+                    ok = true;
+                }
+            }
+            if (!ok && rebuild) {
+                rebuild(service, stopOnFailure);
+            }
+        } finally {
+            session.close();
+        }
+    }
+
+    //region Rebuilding org closure
+    private void rebuild(SqlRepositoryServiceImpl service, boolean stopOnFailure) {
+        OperationResult result = new OperationResult("rebuild");
+
+        LOGGER.info("Rebuilding org closure table");
+
+        final Session session = service.beginTransaction();
+        try {
+            Query deleteQuery = session.createSQLQuery("delete from " + closureTableName);
+            deleteQuery.executeUpdate();
+            LOGGER.trace("Closure table content deleted");
+
+            final int orgsTotal = service.countObjects(OrgType.class, new ObjectQuery(), result);
+            final MutableInt orgsProcessed = new MutableInt(0);
+
+            ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {
+                @Override
+                public boolean handle(PrismObject<OrgType> object, OperationResult parentResult) {
+                    LOGGER.trace("Processing {}", object);
+                    handleAdd(object.getOid(), object.getCompileTimeClass(), getExistingParentOids(object), session);
+                    orgsProcessed.add(1);
+                    int currentState = orgsProcessed.intValue();
+                    if (currentState % 100 == 0) {
+                        LOGGER.info("{} organizations processed (out of {})", currentState, orgsTotal);
+                    }
+                    return true;
+                }
+            };
+            service.searchObjectsIterative(OrgType.class, new ObjectQuery(), handler, null, result);
+
+            session.getTransaction().commit();
+            LOGGER.info("Org closure table was successfully rebuilt; all {} organizations processed", orgsTotal);
+
+        } catch (SchemaException|RuntimeException e) {
+            session.getTransaction().rollback();
+            LoggingUtils.logException(LOGGER, "Rebuilding closure failed", e);
+            if (stopOnFailure) {
+                throw new SystemException("Rebuilding closure failed: " + e.getMessage(), e);
+            }
+        }
+    }
+    //endregion
+
     //region Handling ADD operation
 
     // we can safely expect that the object didn't exist before (because the "overwriting add" is sent to us as MODIFY operation)
     private <T extends ObjectType> void handleAdd(String oid, Class<T> type, List<ReferenceDelta> deltas, Session session) {
+        handleAdd(oid, type, getParentOidsFromAddDeltas(deltas, null), session);
+    }
 
+    // parents may be non-existent at this point
+    private <T extends ObjectType> void handleAdd(String oid, Class<T> type, Set<String> parents, Session session) {
         // adding self-record
         session.save(new ROrgClosure(oid, oid, 1));
         session.flush();
@@ -173,7 +308,6 @@ public class OrgClosureManager {
         }
 
         // all parents are "new", so we should just select which do really exist at this moment
-        Set<String> parents = getParentOidsFromAddDeltas(deltas, null);
         Collection<String> livingParents = retainExistingOids(parents, session);
 
         if (livingParents.size() <= 1 && (livingChildren == null || livingChildren.isEmpty())) {
@@ -345,7 +479,7 @@ public class OrgClosureManager {
         session.flush();
         session.clear();
 
-        LOGGER.trace("--------------------- DONE ADD EDGES: {} ({} ms) ----------------", edges, System.currentTimeMillis()-start);
+        LOGGER.trace("--------------------- DONE ADD EDGES: {} ({} ms) ----------------", edges, System.currentTimeMillis() - start);
     }
 
     private void dropDeltaTableIfNecessary(Session session, String deltaTempTableName) {
@@ -402,7 +536,7 @@ public class OrgClosureManager {
 
     private <T extends ObjectType> void handleDeleteLeaf(String oid, Session session) {
         Query removeFromClosureQuery = session.createSQLQuery(
-                "delete from "+closureTableName+" " +
+                "delete from " + closureTableName + " " +
                         "where descendant_oid = :oid");
         removeFromClosureQuery.setString("oid", oid);
         int count = removeFromClosureQuery.executeUpdate();
@@ -421,9 +555,11 @@ public class OrgClosureManager {
 
                 String deleteFromClosureQueryText, updateInClosureQueryText;
                 if (isH2()) {
-                    deleteFromClosureQueryText = "delete from " + closureTableName + " " +
-                            "where (descendant_oid, ancestor_oid, val) in " +
-                            "(select (descendant_oid, ancestor_oid, val) from " + deltaTempTableName + ")";
+                    // delete with join is not supported by H2
+                    deleteFromClosureQueryText = "delete from " + closureTableName + " cl " +
+                            "where exists (" +
+                            "select 0 from " + deltaTempTableName + " delta " +
+                            "where cl.descendant_oid = delta.descendant_oid and cl.ancestor_oid = delta.ancestor_oid and cl.val = delta.val)";
                     updateInClosureQueryText = "update " + closureTableName + " " +
                             "set val = val - (select val from " + deltaTempTableName + " td " +
                             "where td.descendant_oid=" + closureTableName + ".descendant_oid and td.ancestor_oid=" + closureTableName + ".ancestor_oid) " +
@@ -546,7 +682,17 @@ public class OrgClosureManager {
     }
 
     private List<String> getChildren(String oid, Session session) {
-        Query childrenQuery = session.createQuery("select distinct ownerOid from RParentOrgRef where targetOid=:oid");
+        Query childrenQuery;
+        if (repoConfiguration.getOrgClosureObjects() == OrgClosureObjects.ALL) {
+            childrenQuery = session.createQuery("select distinct ownerOid from RParentOrgRef where targetOid=:oid");
+        } else if (repoConfiguration.getOrgClosureObjects() == OrgClosureObjects.FOCUS) {
+            childrenQuery = session.createQuery("select distinct parentRef.ownerOid from RParentOrgRef as parentRef" +
+                    " join parentRef.owner as owner where parentRef.targetOid=:oid" +
+                    " and owner.objectTypeClass in (:types)");
+            childrenQuery.setParameterList("types", Arrays.asList(RObjectType.USER, RObjectType.ORG, RObjectType.ROLE));
+        } else {
+            throw new IllegalStateException("Unknown option: " + repoConfiguration.getOrgClosureObjects());
+        }
         childrenQuery.setString("oid", oid);
         return childrenQuery.list();
     }
@@ -612,9 +758,9 @@ public class OrgClosureManager {
             count = insertQuery.executeUpdate();
         } else {
             String createTablePrefix;
-            if (isH2()) {
+            if (isPostgreSQL()) {
                 createTablePrefix = "create cached local temporary " + deltaTempTableName + " on commit drop as ";
-            } else if (isPostgreSQL()) {
+            } else if (isH2()) {
                 createTablePrefix = "create temporary table " + deltaTempTableName + " as ";
             } else if (isMySQL()) {
                 createTablePrefix = "create temporary table " + deltaTempTableName + " engine=memory as ";
@@ -664,7 +810,7 @@ public class OrgClosureManager {
                 whereClause.append(" or ");
             }
             whereClause.append("(t1.ancestor_oid = '").append(edge.getTail()).append("'");
-            whereClause.append("and t2.descendant_oid = '").append(edge.getHead()).append("')");
+            whereClause.append(" and t2.descendant_oid = '").append(edge.getHead()).append("')");
         }
         return whereClause.toString();
     }
@@ -756,4 +902,53 @@ public class OrgClosureManager {
         return lastOperationDuration;
     }
 
+    public static enum StartupAction {
+
+        NONE("none"), CHECK("check"), REBUILD_IF_NEEDED("rebuidIfNeeded"), ALWAYS_REBUILD("alwaysRebuild");
+
+        private String value;
+
+        StartupAction(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+
+        public static StartupAction fromValue(String v) {
+            for (StartupAction a: StartupAction.values()) {
+                if (a.value.equals(v)) {
+                    return a;
+                }
+            }
+            throw new IllegalArgumentException(v);
+        }
+    }
+
+    public static enum OrgClosureObjects {
+
+        NONE("none"), FOCUS("focus"), ALL("all");
+
+        private String value;
+
+        OrgClosureObjects(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+
+        public static OrgClosureObjects fromValue(String v) {
+            for (OrgClosureObjects a: OrgClosureObjects.values()) {
+                if (a.value.equals(v)) {
+                    return a;
+                }
+            }
+            throw new IllegalArgumentException(v);
+        }
+    }
 }

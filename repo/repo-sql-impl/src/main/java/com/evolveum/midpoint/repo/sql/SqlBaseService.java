@@ -180,6 +180,14 @@ public class SqlBaseService {
         // todo: so it is probably not very safe to test for codes without testing for specific database (h2, oracle)
         // but the risk of problem is quite low here, so let it be...
 
+        // strange exception occurring in MySQL when doing multithreaded org closure maintenance
+        // alternatively we might check for error code = 1030, sql state = HY000
+        // but that would cover all cases of "Got error XYZ from storage engine"
+        if (getConfiguration().isUsingMySQL() && sqlException.getMessage() != null &&
+                sqlException.getMessage().contains("Got error -1 from storage engine")) {
+            return true;
+        }
+
         return sqlException.getErrorCode() == 50200
                 || sqlException.getErrorCode() == 40001
                 || "40001".equals(sqlException.getSQLState())

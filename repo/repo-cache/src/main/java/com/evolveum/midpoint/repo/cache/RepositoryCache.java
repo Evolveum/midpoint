@@ -298,8 +298,8 @@ public class RepositoryCache implements RepositoryService {
 	public void repositorySelfTest(OperationResult parentResult) {
 		repository.repositorySelfTest(parentResult);
 	}
-	
-	private <T extends ObjectType> void cacheObject(Map<String, PrismObject<ObjectType>> cache, PrismObject<T> object) {
+
+    private <T extends ObjectType> void cacheObject(Map<String, PrismObject<ObjectType>> cache, PrismObject<T> object) {
 		if (cache != null) {
 			cache.put(object.getOid(), (PrismObject<ObjectType>) object.clone());
 		}

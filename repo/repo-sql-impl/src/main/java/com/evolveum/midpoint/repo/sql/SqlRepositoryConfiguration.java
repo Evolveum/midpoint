@@ -66,6 +66,11 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING = "iterativeSearchByPaging";
     public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE = "iterativeSearchByPagingBatchSize";
 
+    //closure
+    public static final String PROPERTY_ORG_CLOSURE_OBJECTS = "orgClosureObjects";
+    public static final String PROPERTY_ORG_CLOSURE_STARTUP_ACTION = "orgClosureStartupAction";
+    public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
+
     //embedded configuration
     private boolean embedded;
     private boolean asServer;
@@ -95,6 +100,10 @@ public class SqlRepositoryConfiguration {
 
     private boolean iterativeSearchByPaging;
     private int iterativeSearchByPagingBatchSize;
+
+    private OrgClosureManager.OrgClosureObjects orgClosureObjects;
+    private OrgClosureManager.StartupAction orgClosureStartupAction;
+    private boolean stopOnOrgClosureStartupFailure;
 
     public SqlRepositoryConfiguration(Configuration configuration) {
         setAsServer(configuration.getBoolean(PROPERTY_AS_SERVER, false));
@@ -128,6 +137,10 @@ public class SqlRepositoryConfiguration {
 
         setIterativeSearchByPaging(configuration.getBoolean(PROPERTY_ITERATIVE_SEARCH_BY_PAGING, iterativeSearchByPaging));
         setIterativeSearchByPagingBatchSize(configuration.getInt(PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE, iterativeSearchByPagingBatchSize));
+
+        setOrgClosureObjects(configuration.getString(PROPERTY_ORG_CLOSURE_OBJECTS, OrgClosureManager.OrgClosureObjects.FOCUS.toString()));
+        setOrgClosureStartupAction(configuration.getString(PROPERTY_ORG_CLOSURE_STARTUP_ACTION, OrgClosureManager.StartupAction.REBUILD_IF_NEEDED.toString()));
+        setStopOnOrgClosureStartupFailure(configuration.getBoolean(PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE, true));
     }
 
     private void computeDefaultConcurrencyParameters() {
@@ -472,6 +485,22 @@ public class SqlRepositoryConfiguration {
         this.useZip = useZip;
     }
 
+    public OrgClosureManager.OrgClosureObjects getOrgClosureObjects() {
+        return orgClosureObjects;
+    }
+
+    public void setOrgClosureObjects(String orgClosureObjects) {
+        this.orgClosureObjects = OrgClosureManager.OrgClosureObjects.fromValue(orgClosureObjects);
+    }
+
+    public OrgClosureManager.StartupAction getOrgClosureStartupAction() {
+        return orgClosureStartupAction;
+    }
+
+    public void setOrgClosureStartupAction(String orgClosureStartupAction) {
+        this.orgClosureStartupAction = OrgClosureManager.StartupAction.fromValue(orgClosureStartupAction);
+    }
+
     public boolean isUsingH2() {
         if (hibernateDialect == null) {
             return true;
@@ -503,5 +532,13 @@ public class SqlRepositoryConfiguration {
         }
 
         return false;
+    }
+
+    public void setStopOnOrgClosureStartupFailure(boolean stopOnOrgClosureStartupFailure) {
+        this.stopOnOrgClosureStartupFailure = stopOnOrgClosureStartupFailure;
+    }
+
+    public boolean isStopOnOrgClosureStartupFailure() {
+        return stopOnOrgClosureStartupFailure;
     }
 }

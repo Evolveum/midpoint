@@ -27,12 +27,20 @@ import org.testng.annotations.Test;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgClosureCorrectnessTest extends AbstractOrgClosureTest {
 
-    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 3, 2, 3, 0  };
+    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 3, 0  };
     private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 1, 2, 3  };
     private static final int[] PARENTS_IN_LEVEL       = { 0, 2, 2, 3  };
     private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 10    };
     private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 10    };
     private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 5 ,5, 10 };
+
+    // trivial case for debugging
+//    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 0  };
+//    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 0, 0  };
+//    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 1  };
+//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 1, 0    };
+//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 10    };
+//    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 5 ,5, 10 };
 
     private OrgClosureTestConfiguration configuration;
 

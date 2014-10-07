@@ -150,6 +150,8 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     /**
      * Recomputes closure table from scratch (using matrix multiplication) and compares it with M_ORG_CLOSURE.
      */
+    private static final boolean DUMP_TC_MATRIX_DETAILS = false;
+
     protected void checkClosureMatrix() {
         Session session = getSession();
         // we compute the closure table "by hand" as 1 + A + A^2 + A^3 + ... + A^n where n is the greatest expected path length
@@ -159,6 +161,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
         // used to give indices to vertices
         List<String> vertexList = new ArrayList<>(getVertices());
+
+        if (DUMP_TC_MATRIX_DETAILS) LOGGER.info("Vertex list = {}", vertexList);
+
         DoubleMatrix2D a = new SparseDoubleMatrix2D(vertices, vertices);
 //        for (int i = 0; i < vertices; i++) {
 //            a.setQuick(i, i, 1.0);
@@ -184,6 +189,8 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         }
         LOGGER.info("TC matrix computed in {} ms", System.currentTimeMillis() - start);
 
+        if (DUMP_TC_MATRIX_DETAILS) LOGGER.info("TC matrix expected = {}", result);
+
         Query q = session.createSQLQuery("select descendant_oid, ancestor_oid, val from m_org_closure")
                 .addScalar("descendant_oid", StringType.INSTANCE)
                 .addScalar("ancestor_oid", StringType.INSTANCE)
@@ -193,16 +200,24 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
         DoubleMatrix2D closureInDatabase = new SparseDoubleMatrix2D(vertices, vertices);
         for (Object[] item : list) {
+            int val = Integer.parseInt(item[2].toString());
+            if (val == 0) {
+                throw new IllegalStateException("Row with val == 0 in closure table: " + list);
+            }
             closureInDatabase.set(vertexList.indexOf(item[0]),
                     vertexList.indexOf(item[1]),
-                    Integer.parseInt(item[2].toString()));
+                    val);
         }
+
+        if (DUMP_TC_MATRIX_DETAILS) LOGGER.info("TC matrix fetched from db = {}", closureInDatabase);
 
         double zSumResultBefore = result.zSum();
         double zSumClosureInDb = closureInDatabase.zSum();
         result.assign(closureInDatabase, Functions.minus);
         double zSumResultAfter = result.zSum();
         LOGGER.info("Summary of items in closure computed: {}, in DB-stored closure: {}, delta: {}", new Object[]{zSumResultBefore, zSumClosureInDb, zSumResultAfter});
+
+        if (DUMP_TC_MATRIX_DETAILS) LOGGER.info("Difference matrix = {}", result);
 
         boolean problem = false;
         for (int i = 0; i < vertices; i++) {
