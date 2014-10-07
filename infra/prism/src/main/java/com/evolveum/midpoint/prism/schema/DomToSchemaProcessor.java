@@ -204,6 +204,13 @@ class DomToSchemaProcessor {
 		} catch (TransformerException e) {
 			throw new SchemaException("XML transformer error during XSD schema parsing: "
 					+ e.getMessage() + "(locator: "+e.getLocator()+", embedded exception:"+ e.getException()+") in "+shortDescription, e);
+		} catch (RuntimeException e) {
+			// This sometimes happens, e.g. NPEs in Saxon
+			if (LOGGER.isErrorEnabled()) {
+				LOGGER.error("Unexpected error {} during parsing of schema:\n{}",e.getMessage(),DOMUtil.serializeDOMToString(schema));
+			}
+			throw new SchemaException("XML error during XSD schema parsing: "
+					+ e.getMessage() + " in "+shortDescription, e);
 		}
 
 		return xss;
