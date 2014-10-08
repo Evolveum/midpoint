@@ -348,19 +348,18 @@ CREATE TABLE m_org (
 ) INITRANS 30;
 
 CREATE TABLE m_org_closure (
-  id             NUMBER(19, 0) NOT NULL,
-  ancestor_oid   VARCHAR2(36 CHAR),
-  depthValue     NUMBER(10, 0),
-  descendant_oid VARCHAR2(36 CHAR),
-  relation       VARCHAR2(157 CHAR),
-  PRIMARY KEY (id)
-) INITRANS 30;
-
-CREATE TABLE m_org_incorrect (
   descendant_oid VARCHAR2(36 CHAR) NOT NULL,
   ancestor_oid   VARCHAR2(36 CHAR) NOT NULL,
+  val     NUMBER(10, 0) NOT NULL,
   PRIMARY KEY (descendant_oid, ancestor_oid)
 ) INITRANS 30;
+
+CREATE GLOBAL TEMPORARY TABLE m_org_closure_temp_delta (
+  descendant_oid VARCHAR2(36 CHAR) NOT NULL,
+  ancestor_oid VARCHAR2(36 CHAR) NOT NULL,
+  val NUMBER (10, 0) NOT NULL,
+  PRIMARY KEY (descendant_oid, ancestor_oid)
+) ON COMMIT DELETE ROWS;
 
 CREATE TABLE m_org_org_type (
   org_oid VARCHAR2(36 CHAR) NOT NULL,
@@ -734,10 +733,6 @@ REFERENCES m_abstract_role;
 CREATE INDEX iAncestor ON m_org_closure (ancestor_oid) INITRANS 30;
 
 CREATE INDEX iDescendant ON m_org_closure (descendant_oid) INITRANS 30;
-
-CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_oid, depthValue) INITRANS 30;
-
-CREATE INDEX iAncDescDepth ON m_org_closure (ancestor_oid, descendant_oid, depthValue) INITRANS 30;
 
 ALTER TABLE m_org_closure
 ADD CONSTRAINT fk_ancestor

@@ -24,8 +24,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
-import com.evolveum.midpoint.repo.sql.data.common.ROrgIncorrect;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -266,11 +264,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
             orgClosure = criteria.list();
             AssertJUnit.assertEquals(4, orgClosure.size());
 
-            LOGGER.info("==============ORG INCORRECT TABLE==========");
-            List<ROrgIncorrect> orgIncorrect = session.createQuery("from ROrgIncorrect").list();
-            AssertJUnit.assertEquals(1, orgIncorrect.size());
-            AssertJUnit.assertEquals(ORG_F012_OID, orgIncorrect.get(0).getAncestorOid());
-
 
         ObjectQuery query = new ObjectQuery();
         PrismObjectDefinition<UserType> userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -397,13 +390,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
                 AssertJUnit.assertEquals(MODIFY_ORG_INCORRECT_ADD_REF_OID, orgClosure.get(0).getDescendant().getOid());
             }
 
-            Criteria criteria = session.createCriteria(ROrgIncorrect.class)
-                    .add(Restrictions.eq("descendantOid", MODIFY_ORG_INCORRECT_ADD_REF_OID));
-
-            List<ROrgIncorrect> orgIncorrect = criteria.list();
-
-            AssertJUnit.assertEquals(1, orgIncorrect.size());
-            AssertJUnit.assertEquals(ORG_F012_OID, orgIncorrect.get(0).getAncestorOid());
         } finally {
             close(session);
         }

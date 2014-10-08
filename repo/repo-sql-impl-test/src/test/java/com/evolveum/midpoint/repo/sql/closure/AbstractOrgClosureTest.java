@@ -968,6 +968,32 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         }
     }
 
+    protected void _test390CyclePrevention() throws Exception {
+        OperationResult opResult = new OperationResult("===[ test390CyclePrevention ]===");
+        String childOid = orgsByLevels.get(1).get(0);       // we hope it exists
+
+        OrgType child = repositoryService.getObject(OrgType.class, childOid, null, opResult).asObjectable();
+        ObjectReferenceType parentOrgRef = child.getParentOrgRef().get(0);      // we hope it exists too
+        String parentOid = parentOrgRef.getOid();
+
+        System.out.println("Adding cycle-introducing link from " + parentOid + " to " + childOid);
+        List<ItemDelta> modifications = new ArrayList<>();
+        ObjectReferenceType ort = new ObjectReferenceType();
+        ort.setOid(childOid);
+        ort.setType(OrgType.COMPLEX_TYPE);
+        ItemDelta addParent = ReferenceDelta.createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, ort.asReferenceValue());
+        modifications.add(addParent);
+        try {
+            repositoryService.modifyObject(OrgType.class, parentOid, modifications, opResult);
+            throw new AssertionError("Cycle-introducing link from " + parentOid + " to " + childOid + " was successfully added!");
+        } catch (Exception e) {
+            // ok, expected
+            System.out.println("Got exception (as expected): " + e);        // would be fine to check the kind of exception...
+        }
+
+        checkClosure(getVertices());
+    }
+
     protected void _test400UnloadOrgStructure() throws Exception {
         OperationResult opResult = new OperationResult("===[ unloadOrgStruct ]===");
         long start = System.currentTimeMillis();

@@ -148,6 +148,6 @@ public class ROrgClosure implements Serializable {
 
     @Override
     public String toString() {
-        return "ROrgClosure{a='" + ancestorOid + "', d='" + descendantOid + "'}";
+        return "ROrgClosure{a='" + ancestorOid + "', d='" + descendantOid + "', val=" + val + "}";
     }
 }

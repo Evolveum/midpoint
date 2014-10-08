@@ -346,14 +346,8 @@ CREATE TABLE m_org (
 
 CREATE TABLE m_org_closure (
   descendant_oid VARCHAR(36) NOT NULL,
-  depthValue     INTEGER     NOT NULL,
   ancestor_oid   VARCHAR(36) NOT NULL,
-  PRIMARY KEY (descendant_oid, depthValue, ancestor_oid)
-);
-
-CREATE TABLE m_org_incorrect (
-  descendant_oid VARCHAR(36) NOT NULL,
-  ancestor_oid   VARCHAR(36) NOT NULL,
+  val            INTEGER     NOT NULL,
   PRIMARY KEY (descendant_oid, ancestor_oid)
 );
 
@@ -729,10 +723,6 @@ REFERENCES m_abstract_role;
 CREATE INDEX iDescendant ON m_org_closure (descendant_oid);
 
 CREATE INDEX iAncestor ON m_org_closure (ancestor_oid);
-
-CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_oid, depthValue);
-
-CREATE INDEX iAncDescDepth ON m_org_closure (ancestor_oid, descendant_oid, depthValue);
 
 ALTER TABLE m_org_closure
 ADD CONSTRAINT fk_ancestor

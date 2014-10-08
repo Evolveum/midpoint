@@ -1280,7 +1280,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @PostConstruct
     public void initialize() {
-        getClosureManager().executeStartupAction(this);
+        getClosureManager().initialize(this);
     }
 
     /* (non-Javadoc)
