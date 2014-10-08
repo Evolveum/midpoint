@@ -43,14 +43,12 @@ public class OrgClosurePerformanceTest1 extends AbstractOrgClosureTest {
         configuration.setParentsInLevel(PARENTS_IN_LEVEL);
         configuration.setLinkRoundsForLevel(LINK_ROUNDS_FOR_LEVELS);
         configuration.setNodeRoundsForLevel(NODE_ROUNDS_FOR_LEVELS);
-        configuration.setUserRoundsForLevel(USER_ROUNDS_FOR_LEVELS);
     }
 
     @Test(enabled = true) public void test100LoadOrgStructure() throws Exception { _test100LoadOrgStructure(); }
     @Test(enabled = true) public void test150CheckClosure() throws Exception { _test150CheckClosure(); }
     @Test(enabled = true) public void test200AddRemoveLinks() throws Exception { _test200AddRemoveLinks(); }
     @Test(enabled = true) public void test300AddRemoveOrgs() throws Exception { _test300AddRemoveOrgs(); }
-    @Test(enabled = true) public void test310AddRemoveUsers() throws Exception { _test310AddRemoveUsers(); }
     @Test(enabled = true) public void test410RandomUnloadOrgStructure() throws Exception { _test410RandomUnloadOrgStructure(); }
 
     @Override

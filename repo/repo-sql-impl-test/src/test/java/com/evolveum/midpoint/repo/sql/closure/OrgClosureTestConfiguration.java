@@ -47,9 +47,6 @@ public class OrgClosureTestConfiguration {
     // how many times should be add/remove node test be carried out for a given level
     private int[] nodeRoundsForLevel;
 
-    // how many times should be add/remove user test be carried out for a given level
-    private int[] userRoundsForLevel;
-
     // each (what number) of deletions in test410 should be the closure tested
     private int deletionsToClosureTest;
 
@@ -107,14 +104,6 @@ public class OrgClosureTestConfiguration {
 
     public void setNodeRoundsForLevel(int[] nodeRoundsForLevel) {
         this.nodeRoundsForLevel = nodeRoundsForLevel;
-    }
-
-    public int[] getUserRoundsForLevel() {
-        return userRoundsForLevel;
-    }
-
-    public void setUserRoundsForLevel(int[] userRoundsForLevel) {
-        this.userRoundsForLevel = userRoundsForLevel;
     }
 
     public int getDeletionsToClosureTest() {

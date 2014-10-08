@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.BaseSQLRepoTest;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -260,7 +261,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         ItemDelta removeParent = ReferenceDelta.createModificationDelete(object.getClass(), OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
         modifications.add(removeParent);
         repositoryService.modifyObject(object.getClass(), object.getOid(), modifications, opResult);
-        orgGraph.removeEdge(object.getOid(), existingValue.getOid());
+        if (object instanceof OrgType) {
+            orgGraph.removeEdge(object.getOid(), existingValue.getOid());
+        }
     }
 
     // TODO generalzie to addObjectParent
@@ -279,7 +282,6 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         ItemDelta readdParent = ReferenceDelta.createModificationAdd(UserType.class, UserType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
         modifications.add(readdParent);
         repositoryService.modifyObject(UserType.class, user.getOid(), modifications, opResult);
-        orgGraph.addEdge(user.getOid(), existingValue.getOid());
     }
 
     protected void removeOrg(String oid, OperationResult opResult) throws Exception {
@@ -289,7 +291,6 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected void removeUser(String oid, OperationResult opResult) throws Exception {
         repositoryService.deleteObject(UserType.class, oid, opResult);
-        orgGraph.removeVertex(oid);
     }
 
     protected void reAddOrg(OrgType org, OperationResult opResult) throws Exception {
@@ -299,7 +300,6 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected void reAddUser(UserType user, OperationResult opResult) throws Exception {
         repositoryService.addObject(user.asPrismObject(), null, opResult);
-        registerObject(user, false);
     }
 
     // parentsInLevel may be null (in that case, a simple tree is generated)
@@ -338,7 +338,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             loadOrgStructure(level+1, oid, newOidPrefix, result);
         }
 
-        if (parentOid != null) {
+        if (parentOid != null && userChildrenInLevel != null) {
 
             List<String> usersAtThisLevel = getUsersAtThisLevelSafe(level);
 
@@ -349,7 +349,6 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 String uoid = repositoryService.addObject(user, null, result);
                 user.setOid(uoid);
                 allUsersCreated.add(user.asObjectable());
-                registerObject(user.asObjectable(), false);
                 usersAtThisLevel.add(uoid);
                 objectCount++;
             }
@@ -459,10 +458,10 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             objectCount++;
             System.out.println("#" + objectCount + ": parent level = " + level + ", childOid = " + childOid);
             ObjectType objectType = repositoryService.getObject(ObjectType.class, childOid, null, opResult).asObjectable();
-            registerObject(objectType, false);          // children will be registered to graph later
             if (objectType instanceof OrgType) {
                 allOrgCreated.add((OrgType) objectType);
-                registerOrgToLevels(level+1, objectType.getOid());
+                registerOrgToLevels(level + 1, objectType.getOid());
+                registerObject(objectType, false);          // children will be registered to graph later
                 scanChildren(level + 1, objectType.getOid(), opResult);
             } else if (objectType instanceof UserType) {
                 allUsersCreated.add((UserType) objectType);
@@ -516,6 +515,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected void registerObject(ObjectType objectType, boolean registerChildrenLinks) {
+        if (!(objectType instanceof OrgType)) {
+            return;
+        }
         String oid = objectType.getOid();
         registerVertexIfNeeded(oid);
         for (ObjectReferenceType ort : objectType.getParentOrgRef()) {
@@ -530,7 +532,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
         if (registerChildrenLinks) {
             // let's check for existing children
-            List<String> children = getChildren(oid);
+            List<String> children = getOrgChildren(oid);
             for (String child : children) {
                 registerVertexIfNeeded(child);
                 orgGraph.addEdge(child, oid);
@@ -546,6 +548,15 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected List<String> getChildren(String oid) {
         Query childrenQuery = getSession().createQuery("select distinct ownerOid from RParentOrgRef where targetOid=:oid");
+        childrenQuery.setString("oid", oid);
+        return childrenQuery.list();
+    }
+
+    private List<String> getOrgChildren(String oid) {
+        Query childrenQuery = getSession().createQuery("select distinct parentRef.ownerOid from RParentOrgRef as parentRef" +
+                " join parentRef.owner as owner where parentRef.targetOid=:oid" +
+                " and owner.objectTypeClass = :orgType");
+        childrenQuery.setParameter("orgType", RObjectType.ORG);         // TODO eliminate use of parameter here
         childrenQuery.setString("oid", oid);
         return childrenQuery.list();
     }
@@ -912,59 +923,6 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             LOGGER.info("===================================================");
             LOGGER.info("Statistics for org node removal/addition:");
             stat.dump(LOGGER, repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs");
-        }
-    }
-
-    public void _test310AddRemoveUsers() throws Exception {
-        OperationResult opResult = new OperationResult("===[ test310AddRemoveUsers ]===");
-
-        int totalRounds = 0;
-        OrgClosureStatistics stat = new OrgClosureStatistics();
-
-        long totalTimeNodeRemovals = 0, totalTimeNodeAdditions = 0;
-        for (int level = 0; level < getConfiguration().getUserRoundsForLevel().length; level++) {
-            for (int round = 0; round < getConfiguration().getUserRoundsForLevel()[level]; round++) {
-
-                // removal
-                List<String> levelOids = usersByLevels.get(level);
-                if (levelOids.isEmpty()) {
-                    continue;
-                }
-                int index = (int) Math.floor(Math.random() * levelOids.size());
-                String oid = levelOids.get(index);
-                UserType user = repositoryService.getObject(UserType.class, oid, null, opResult).asObjectable();
-
-                System.out.println("Removing user #" + totalRounds + " (" + level + "/" + round + "): " + user.getOid() + " (parents: " + getParentsOids(user.asPrismObject()) + ")");
-                long start = System.currentTimeMillis();
-                removeUser(user.getOid(), opResult);
-                long timeRemoval = System.currentTimeMillis() - start;
-                System.out.println(" ... done in " + timeRemoval + " ms" + getNetDurationMessage());
-                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveUsers", level, false, getNetDuration());
-                totalTimeNodeRemovals += getNetDuration();
-
-                checkClosure(getVertices());
-
-                // addition
-                System.out.println("Re-adding user #" + totalRounds);
-                start = System.currentTimeMillis();
-                reAddUser(user, opResult);
-                long timeAddition = System.currentTimeMillis() - start;
-                System.out.println(" ... done in " + timeAddition + "ms" + getNetDurationMessage());
-                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveUsers", level, true, getNetDuration());
-
-                checkClosure(getVertices());
-
-                totalTimeNodeAdditions += getNetDuration();
-                totalRounds++;
-            }
-        }
-
-        if (totalRounds > 0) {
-            System.out.println("Avg time for an arbitrary user removal: " + ((double) totalTimeNodeRemovals / totalRounds) + " ms");
-            System.out.println("Avg time for an arbitrary user re-addition: " + ((double) totalTimeNodeAdditions / totalRounds) + " ms");
-            LOGGER.info("===================================================");
-            LOGGER.info("Statistics for user node removal/addition:");
-            stat.dump(LOGGER, repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveUsers");
         }
     }
 

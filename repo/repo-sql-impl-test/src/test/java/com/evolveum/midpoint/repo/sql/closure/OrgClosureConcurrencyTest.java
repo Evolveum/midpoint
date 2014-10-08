@@ -69,7 +69,6 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         configuration.setParentsInLevel(PARENTS_IN_LEVEL);
         configuration.setLinkRoundsForLevel(LINK_ROUNDS_FOR_LEVELS);
         configuration.setNodeRoundsForLevel(NODE_ROUNDS_FOR_LEVELS);
-        configuration.setUserRoundsForLevel(USER_ROUNDS_FOR_LEVELS);
     }
 
     @Override
@@ -294,11 +293,6 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             List<String> levelOids = orgsByLevels.get(level);
             generateNodesAtOneLevel(nodesToRemove, nodesToAdd, OrgType.class, rounds, levelOids, opResult);
         }
-        for (int level = 0; level < getConfiguration().getUserRoundsForLevel().length; level++) {
-            int rounds = getConfiguration().getUserRoundsForLevel()[level];
-            List<String> levelOids = usersByLevels.get(level);
-            generateNodesAtOneLevel(nodesToRemove, nodesToAdd, UserType.class, rounds, levelOids, opResult);
-        }
 
         int numberOfRunners = 3;
         final List<Thread> runners = Collections.synchronizedList(new ArrayList<Thread>());
@@ -435,14 +429,18 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
     void removeObject(ObjectType objectType) throws Exception {
         repositoryService.deleteObject(objectType.getClass(), objectType.getOid(), new OperationResult("dummy"));
         synchronized(orgGraph) {
-            orgGraph.removeVertex(objectType.getOid());
+            if (objectType instanceof OrgType) {
+                orgGraph.removeVertex(objectType.getOid());
+            }
         }
     }
 
     void addObject(ObjectType objectType) throws Exception {
         repositoryService.addObject(objectType.asPrismObject(), null, new OperationResult("dummy"));
         synchronized(orgGraph) {
-            registerObject(objectType, true);
+            if (objectType instanceof OrgType) {
+                registerObject(objectType, true);
+            }
         }
     }
 

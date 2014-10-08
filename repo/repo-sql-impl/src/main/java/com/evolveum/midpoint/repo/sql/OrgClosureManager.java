@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -94,13 +93,12 @@ public class OrgClosureManager {
                                                         Collection<? extends ItemDelta> modifications, Session session,
                                                         String oid, Class<T> type, Operation operation) {
 
-        switch (repoConfiguration.getOrgClosureObjects()) {
-            case NONE:
-                return;
-            case FOCUS:
-                if (!FocusType.class.isAssignableFrom(type)) {
-                return;
-            }
+        if (repoConfiguration.getOrgClosureObjects() == OrgClosureObjects.NONE) {
+            return;
+        }
+
+        if (!OrgType.class.isAssignableFrom(type)) {
+            return;
         }
 
         session.flush();
@@ -115,13 +113,13 @@ public class OrgClosureManager {
 
         switch (operation) {
             case ADD:
-                handleAdd(oid, type, deltas, session);
+                handleAdd(oid, deltas, session);
                 break;
             case DELETE:
-                handleDelete(oid, type, session);
+                handleDelete(oid, session);
                 break;
             case MODIFY:
-                handleModify(oid, type, deltas, originalObject, session);
+                handleModify(oid, deltas, originalObject, session);
         }
 
         long duration = System.currentTimeMillis() - time;
@@ -220,7 +218,7 @@ public class OrgClosureManager {
                 @Override
                 public boolean handle(PrismObject<OrgType> object, OperationResult parentResult) {
                     LOGGER.trace("Processing {}", object);
-                    handleAdd(object.getOid(), object.getCompileTimeClass(), getExistingParentOids(object), session);
+                    handleAdd(object.getOid(), getExistingParentOids(object), session);
                     orgsProcessed.add(1);
                     int currentState = orgsProcessed.intValue();
                     if (currentState % 100 == 0) {
@@ -247,24 +245,19 @@ public class OrgClosureManager {
     //region Handling ADD operation
 
     // we can safely expect that the object didn't exist before (because the "overwriting add" is sent to us as MODIFY operation)
-    private <T extends ObjectType> void handleAdd(String oid, Class<T> type, List<ReferenceDelta> deltas, Session session) {
-        handleAdd(oid, type, getParentOidsFromAddDeltas(deltas, null), session);
+    private void handleAdd(String oid, List<ReferenceDelta> deltas, Session session) {
+        handleAdd(oid, getParentOidsFromAddDeltas(deltas, null), session);
     }
 
     // parents may be non-existent at this point
-    private <T extends ObjectType> void handleAdd(String oid, Class<T> type, Set<String> parents, Session session) {
+    private void handleAdd(String oid, Set<String> parents, Session session) {
         // adding self-record
         session.save(new ROrgClosure(oid, oid, 1));
         session.flush();
         session.clear();
 
-        boolean maybeNonLeaf = isTypeNonLeaf(type);
-
-        List<String> livingChildren = null;
-        if (maybeNonLeaf) {
-            livingChildren = getChildren(oid, session);        // no need to check existence of these oids, as owner is a FK pointing to RObject in RParentRef
-            addChildrenEdges(oid, livingChildren, session);
-        }
+        List<String> livingChildren = getChildren(oid, session);        // no need to check existence of these oids, as owner is a FK pointing to RObject in RParentRef
+        addChildrenEdges(oid, livingChildren, session);
 
         // all parents are "new", so we should just select which do really exist at this moment
         Collection<String> livingParents = retainExistingOids(parents, session);
@@ -512,13 +505,7 @@ public class OrgClosureManager {
     //endregion
 
     //region Handling DELETE operation
-    private <T extends ObjectType> void handleDelete(String oid, Class<T> type, Session session) {
-
-        boolean maybeNonLeaf = isTypeNonLeaf(type);
-        if (!maybeNonLeaf) {
-            handleDeleteLeaf(oid, session);
-            return;
-        }
+    private void handleDelete(String oid, Session session) {
 
         List<String> livingChildren = getChildren(oid, session);
         if (livingChildren.isEmpty()) {
@@ -543,7 +530,7 @@ public class OrgClosureManager {
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Removed {} self-record from closure table.", count);
     }
 
-    private <T extends ObjectType> void handleDeleteLeaf(String oid, Session session) {
+    private void handleDeleteLeaf(String oid, Session session) {
         Query removeFromClosureQuery = session.createSQLQuery(
                 "delete from " + CLOSURE_TABLE_NAME + " " +
                         "where descendant_oid = :oid");
@@ -575,6 +562,7 @@ public class OrgClosureManager {
                 String deleteFromClosureQueryText, updateInClosureQueryText;
                 if (isH2()) {
                     // delete with join is not supported by H2
+                    // and the "postgresql/oracle version" does not work for some reasons
                     deleteFromClosureQueryText = "delete from " + CLOSURE_TABLE_NAME + " cl " +
                             "where exists (" +
                             "select 0 from " + deltaTempTableName + " delta " +
@@ -612,7 +600,7 @@ public class OrgClosureManager {
                             "td.descendant_oid = "+ CLOSURE_TABLE_NAME +".descendant_oid and td.ancestor_oid = "+ CLOSURE_TABLE_NAME +".ancestor_oid and "+
                             "td.val = "+ CLOSURE_TABLE_NAME +".val";
                     // it is not possible to use temporary table twice in a query
-                    // TODO consider using this in postgresql and h2 as well...
+                    // TODO consider using this in postgresql as well...
                     updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME +
                             " join " + deltaTempTableName + " td " +
                             "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid " +
@@ -646,10 +634,8 @@ public class OrgClosureManager {
 
     //region Handling MODIFY
 
-    private <T extends ObjectType> void handleModify(String oid, Class<T> type,
-                                                     Collection<? extends ItemDelta> modifications,
-                                                     PrismObject<? extends ObjectType> originalObject,
-                                                     Session session) {
+    private void handleModify(String oid, Collection<? extends ItemDelta> modifications,
+                              PrismObject<? extends ObjectType> originalObject, Session session) {
         if (modifications.isEmpty()) {
             return;
         }
@@ -900,17 +886,10 @@ public class OrgClosureManager {
     }
 
     private List<String> getChildren(String oid, Session session) {
-        Query childrenQuery;
-        if (repoConfiguration.getOrgClosureObjects() == OrgClosureObjects.ALL) {
-            childrenQuery = session.createQuery("select distinct ownerOid from RParentOrgRef where targetOid=:oid");
-        } else if (repoConfiguration.getOrgClosureObjects() == OrgClosureObjects.FOCUS) {
-            childrenQuery = session.createQuery("select distinct parentRef.ownerOid from RParentOrgRef as parentRef" +
-                    " join parentRef.owner as owner where parentRef.targetOid=:oid" +
-                    " and owner.objectTypeClass in (:types)");
-            childrenQuery.setParameterList("types", Arrays.asList(RObjectType.USER, RObjectType.ORG, RObjectType.ROLE));
-        } else {
-            throw new IllegalStateException("Unknown option: " + repoConfiguration.getOrgClosureObjects());
-        }
+        Query childrenQuery = session.createQuery("select distinct parentRef.ownerOid from RParentOrgRef as parentRef" +
+                " join parentRef.owner as owner where parentRef.targetOid=:oid" +
+                " and owner.objectTypeClass = :orgType");
+        childrenQuery.setParameter("orgType", RObjectType.ORG);         // TODO eliminate use of parameter here
         childrenQuery.setString("oid", oid);
         return childrenQuery.list();
     }
