@@ -357,11 +357,8 @@ public class ObjectWrapper implements Serializable, Revivable {
     private List<ContainerWrapper> createResourceContainers(PageBase pageBase) throws SchemaException {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
         PrismObject<ConnectorType> connector = loadConnector();
-
-        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_CONFIGURATION_PROPERTIES, connector, pageBase));
-        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_CONNECTOR_POOL_CONFIGURATION, connector, pageBase));
-        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_TIMEOUTS, connector, pageBase));
-
+ 
+        containers.addAll(createResourceContainerWrapper(connector, pageBase));
         return containers;
     }
 
@@ -371,30 +368,22 @@ public class ObjectWrapper implements Serializable, Revivable {
         //todo reimplement
     }
 
-    private ContainerWrapper createResourceContainerWrapper(QName name, PrismObject<ConnectorType> connector, PageBase pageBase)
+    private List<ContainerWrapper> createResourceContainerWrapper(PrismObject<ConnectorType> connector, PageBase pageBase)
         throws SchemaException {
 
         PrismContainer container = object.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-        if (container != null && container.size() == 1 &&  container.getValue() != null) {
-            PrismContainerValue value = container.getValue();
-            container = value.findContainer(name);
-        }
 
+        ConnectorType connectorType = connector.asObjectable();
+        PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType, connector.getPrismContext());
+        PrismContainerDefinition definition = ConnectorTypeUtil.findConfigurationContainerDefintion(connectorType, schema);
+        
         ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         if (container == null) {
-            ConnectorType connectorType = connector.asObjectable();
-            PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType, connector.getPrismContext());
-            PrismContainerDefinition definition = ConnectorTypeUtil.findConfigurationContainerDefintion(connectorType, schema);
-
-            definition = definition.findContainerDefinition(new ItemPath(name));
             container =  definition.instantiate();
         }
-
-        ContainerWrapper wrapper = new ContainerWrapper(this, container, status,
-                new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, name), pageBase);
-        addSubresult(wrapper.getResult());
-
-        return wrapper;
+        
+        return createContainerWrapper(container, new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION), pageBase);
+        
     }
 
 	private List<ContainerWrapper> createContainerWrapper(PrismContainer parent, ItemPath path, PageBase pageBase) {
@@ -432,7 +421,7 @@ public class ObjectWrapper implements Serializable, Revivable {
             }
 
 			ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
-			PrismContainer prismContainer = object.findContainer(def.getName());
+			PrismContainer prismContainer = parent.findContainer(def.getName());
             ContainerWrapper container;
 			if (prismContainer != null) {
                 container = new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING, newPath, pageBase);
