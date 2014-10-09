@@ -525,7 +525,11 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		// Test if this path is single jar or need to do deep examination
 		if (isThisJarFileBundle(dir)) {
 			try {
-				bundle.add(dir.toURI().toURL());
+				if (isThisBundleCompatible(dir.toURI().toURL())) {
+					bundle.add(dir.toURI().toURL());
+				} else {
+					LOGGER.warn("Skip loading budle {} due error occured", dir.toURI().toURL());
+				}
 			} catch (MalformedURLException e) {
 				LOGGER.error("This never happend we hope.", e);
 				throw new SystemException(e);
@@ -573,7 +577,15 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		if (null == bundleUrl)
 			return false;
 		try {
-			ConnectorInfoManagerFactory.getInstance().getLocalManager(bundleUrl);
+			ConnectorInfoManager localManager = ConnectorInfoManagerFactory.getInstance().getLocalManager(bundleUrl);
+			List<ConnectorInfo> connectorInfos = localManager.getConnectorInfos();
+			if (connectorInfos == null || connectorInfos.isEmpty()) {
+				LOGGER.error("Strange error happened. ConnId is not accepting bundle {}. But no error is indicated.", bundleUrl);
+				return false;
+			} else {
+				LOGGER.trace("Found {} compatible connectors in bundle {}", connectorInfos.size(), bundleUrl);
+				return true;
+			}
 		} catch (Exception ex) {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()}, ex);
@@ -582,7 +594,6 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			}
 			return false;
 		}
-		return true;
 	}
 
 	/**
