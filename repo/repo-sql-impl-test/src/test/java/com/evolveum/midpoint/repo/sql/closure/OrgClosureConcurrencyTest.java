@@ -51,11 +51,12 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
     private static final Trace LOGGER = TraceManager.getTrace(OrgClosureConcurrencyTest.class);
 
     private static final int[] ORG_CHILDREN_IN_LEVEL  = { 5, 3, 3, 3, 0  };
-    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 1, 2, 3, 3  };
-    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 3, 3  };
+    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 2, 2, 3, 3  };
+    private static final int[] PARENTS_IN_LEVEL       = { 0, 2, 2, 3, 3  };
     private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 15, 20, 30  };
     private static final int[] NODE_ROUNDS_FOR_LEVELS = { 3, 15, 20, 30  };
     private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 5 ,5, 10 };
+    public static final int THREADS = 3;
 
     private OrgClosureTestConfiguration configuration;
 
@@ -136,7 +137,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             }
         }
 
-        int numberOfRunners = 3;
+        int numberOfRunners = THREADS;
         info("Edges to remove/add (" + edgesToRemove.size() + ": " + edgesToRemove);
         info("Number of runners: " + numberOfRunners);
         final List<Thread> runners = Collections.synchronizedList(new ArrayList<Thread>());
@@ -294,7 +295,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             generateNodesAtOneLevel(nodesToRemove, nodesToAdd, OrgType.class, rounds, levelOids, opResult);
         }
 
-        int numberOfRunners = 3;
+        int numberOfRunners = THREADS;
         final List<Thread> runners = Collections.synchronizedList(new ArrayList<Thread>());
 
         for (int i = 0; i < numberOfRunners; i++) {

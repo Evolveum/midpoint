@@ -17,42 +17,43 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false">
-    <!--<test name="Startup Tests" parallel="false" preserve-order="true" verbose="10">-->
-        <!--<classes>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.SpringApplicationContextTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.EmbeddedServerModeTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.DataSourceTest"/>-->
-        <!--</classes>-->
-    <!--</test>-->
-    <test name="Query Add Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
+    <test name="Startup Tests" parallel="false" preserve-order="true" verbose="10">
         <classes>
-            <!--<class name="com.evolveum.midpoint.repo.sql.QueryInterpreterTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.DeleteTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.AddGetObjectTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.AddOverwriteTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.EncodingTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.ModifyTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.ModifyUser"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.ModifyAssignmentTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.ResourceModifyTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.ListAccountShadowOwnerTest"/>-->
-            <class name="com.evolveum.midpoint.repo.sql.OrgStructTest"/>
-            <!--<class name="com.evolveum.midpoint.repo.sql.closure.OrgClosureSimpleTreeTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.SearchTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.CleanupTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.SearchShadowOwnerTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.PerformanceTest"/>-->
+            <class name="com.evolveum.midpoint.repo.sql.SpringApplicationContextTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.EmbeddedServerModeTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.DataSourceTest"/>
         </classes>
     </test>
-    <!--<test name="Concurrency Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">-->
-        <!--<classes>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.ConcurrencyTest"/>-->
-        <!--</classes>-->
-    <!--</test>-->
-    <!--<test name="Utils Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">-->
-        <!--<classes>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.RAnyConverterStaticTest"/>-->
-            <!--<class name="com.evolveum.midpoint.repo.sql.RUtilTest"/>-->
-        <!--</classes>-->
-    <!--</test>-->
+    <test name="Query Add Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.repo.sql.QueryInterpreterTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.DeleteTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.AddGetObjectTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.AddOverwriteTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.EncodingTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.ModifyTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.ModifyUser"/>
+            <class name="com.evolveum.midpoint.repo.sql.ModifyAssignmentTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.ResourceModifyTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.ListAccountShadowOwnerTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.OrgStructTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.closure.OrgClosureCorrectnessTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.SearchTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.CleanupTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.SearchShadowOwnerTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.PerformanceTest"/>
+        </classes>
+    </test>
+    <test name="Concurrency Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.repo.sql.ConcurrencyTest"/>
+            <!--<class name="com.evolveum.midpoint.repo.sql.closure.OrgClosureConcurrencyTest"/>-->
+        </classes>
+    </test>
+    <test name="Utils Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.repo.sql.RAnyConverterStaticTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.RUtilTest"/>
+        </classes>
+    </test>
 </suite>

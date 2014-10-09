@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgClosureCorrectnessTest extends AbstractOrgClosureTest {
 
-    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 3  };
+    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 4, 3, 3  };
     private static final int[] USER_CHILDREN_IN_LEVEL = null;
     private static final int[] PARENTS_IN_LEVEL       = { 0, 2, 2  };
     private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 10 };

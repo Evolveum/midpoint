@@ -137,12 +137,12 @@ public class OrgStructTest extends BaseSQLRepoTest {
         Session session = open();
         try {
             Query qCount = session.createQuery("select count(*) from ROrgClosure");
-            assertCount(qCount, 52);
+            assertCount(qCount, 19);
 
             // check descendants for F0001 org unit
             qCount = session.createQuery("select count(*) from ROrgClosure where ancestorOid = :ancestorOid");
             qCount.setParameter("ancestorOid", ORG_F001_OID);
-            assertCount(qCount, 12);
+            assertCount(qCount, 6);
 
             qCount = session.createQuery("select count(*) from ROrgClosure where ancestorOid = :ancestorOid and descendantOid = :descendantOid");
             qCount.setParameter("ancestorOid", ORG_F001_OID);
@@ -254,7 +254,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             for (ROrgClosure c : orgClosure) {
                 LOGGER.info("{}", c.getDescendant());
             }
-            AssertJUnit.assertEquals(5, orgClosure.size());
+            AssertJUnit.assertEquals(4, orgClosure.size());
 
             criteria = session.createCriteria(ROrgClosure.class)
                     .createCriteria("ancestor", "anc")
@@ -262,7 +262,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
                     .add(Restrictions.eq("anc.oid", ORG_F009_OID));
 
             orgClosure = criteria.list();
-            AssertJUnit.assertEquals(4, orgClosure.size());
+            AssertJUnit.assertEquals(3, orgClosure.size());
 
 
         ObjectQuery query = new ObjectQuery();
@@ -276,7 +276,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             UserType elaine1 = users.get(0).asObjectable();
             LOGGER.info("--->elaine1<----");
 
-            AssertJUnit.assertEquals("Expected name elaine, but got " + elaine1.getName().getOrig(), "elaine1", elaine1.getName().getOrig());
+            AssertJUnit.assertEquals("Expected name elaine1, but got " + elaine1.getName().getOrig(), "elaine1", elaine1.getName().getOrig());
             AssertJUnit.assertEquals("Expected elaine has one org ref, but got " + elaine1.getParentOrgRef().size(), 2, elaine1.getParentOrgRef().size());
             AssertJUnit.assertEquals("Parent org ref oid not equal.", "00000000-8888-6666-0000-100000000011", elaine1.getParentOrgRef().get(0).getOid());
         } finally {
@@ -457,7 +457,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         }
     }
 
-    @Test
+    @Test(enabled = false)          // users are not in the closure any more
     public void test004modifyOrgStructAddUser() throws Exception {
         Session session = open();
         try {
@@ -533,7 +533,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
                 LOGGER.info("=> A: {}, D: {}", new Object[]{o.getAncestor().toJAXB(prismContext, null),
                         o.getDescendant().toJAXB(prismContext, null)});
             }
-            AssertJUnit.assertEquals(4, orgClosure.size());
+            AssertJUnit.assertEquals(1, orgClosure.size());
             session.getTransaction().commit();
             session.close();
 
@@ -547,7 +547,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
             }
             AssertJUnit.assertEquals(4, sOrgClosure.size());
         } finally {
-            close(session);
+            if (session.isOpen()) {
+                close(session);
+            }
         }
     }
 

@@ -74,7 +74,7 @@ public class OrgFilter extends ObjectFilter {
         this.scope = scope;
     }
 
-    public void setRoot(boolean root) {
+    private void setRoot(boolean root) {
         this.root = root;
     }
 
@@ -84,7 +84,11 @@ public class OrgFilter extends ObjectFilter {
 
     @Override
     public OrgFilter clone() {
-        return new OrgFilter(getOrgRef(), getScope());
+        if (isRoot()) {
+            return createRootOrg();
+        } else {
+            return new OrgFilter(getOrgRef(), getScope());
+        }
     }
 
     @Override
@@ -128,6 +132,9 @@ public class OrgFilter extends ObjectFilter {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("ORG: \n");
+        if (isRoot()) {
+            sb.append(getOrgRef().debugDump(indent + 1)).append("ROOT\n");
+        }
         if (getOrgRef() != null) {
             sb.append(getOrgRef().debugDump(indent + 1));
             sb.append("\n");

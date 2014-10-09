@@ -23,6 +23,7 @@
 		</encoder>
 	</appender>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
+    <logger name="org.hibernate.engine.jdbc.batch.internal.BatchingBatch" level="OFF"/>
 	<logger name="com.evolveum.midpoint.web" level="TRACE" />
 	<logger name="PROFILING" level="TRACE" />
 	<root level="INFO">

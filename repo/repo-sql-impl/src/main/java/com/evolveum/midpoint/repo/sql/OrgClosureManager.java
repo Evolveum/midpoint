@@ -39,6 +39,7 @@ import org.hibernate.Session;
 import org.hibernate.type.IntegerType;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
 
 /**
  * This class and its subclasses provides org. closure table handling.
@@ -62,9 +63,9 @@ public class OrgClosureManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgClosureManager.class);
 
-    private static boolean DUMP_TABLES = false;
-    private static final boolean COUNT_CLOSURE_RECORDS = false;
-    private static final String CLOSURE_TABLE_NAME = "m_org_closure";
+    private static boolean DUMP_TABLES = true;
+    private static final boolean COUNT_CLOSURE_RECORDS = true;
+    static final String CLOSURE_TABLE_NAME = "m_org_closure";
     public static final String TEMP_DELTA_TABLE_NAME_FOR_ORACLE = "m_org_closure_temp_delta";
 
     private SqlRepositoryConfiguration repoConfiguration;
@@ -93,7 +94,7 @@ public class OrgClosureManager {
                                                         Collection<? extends ItemDelta> modifications, Session session,
                                                         String oid, Class<T> type, Operation operation) {
 
-        if (repoConfiguration.getOrgClosureObjects() == OrgClosureObjects.NONE) {
+        if (!isEnabled()) {
             return;
         }
 
@@ -125,6 +126,21 @@ public class OrgClosureManager {
         long duration = System.currentTimeMillis() - time;
         LOGGER.debug("################# Org. closure update finished in {} ms.", duration);
         lastOperationDuration = duration;
+    }
+
+    private void lockClosureTableIfNeeded(Session session) {
+        if (!isH2()) {
+            return;
+        }
+
+        long start = System.currentTimeMillis();
+        LOGGER.trace("Locking closure table");
+        if (isH2()) {
+            Query q = session.createSQLQuery("SELECT * FROM " + CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
+            q.list();
+        }
+        LOGGER.trace("...locked in {} ms", System.currentTimeMillis()-start);
+
     }
 
     public void initialize(SqlRepositoryServiceImpl service) {
@@ -159,7 +175,7 @@ public class OrgClosureManager {
     }
 
     public boolean isEnabled() {
-        return repoConfiguration.getOrgClosureObjects() != OrgClosureObjects.NONE;
+        return !repoConfiguration.isIgnoreOrgClosure();
     }
 
     /**
@@ -508,10 +524,10 @@ public class OrgClosureManager {
     private void handleDelete(String oid, Session session) {
 
         List<String> livingChildren = getChildren(oid, session);
-        if (livingChildren.isEmpty()) {
-            handleDeleteLeaf(oid, session);
-            return;
-        }
+//        if (livingChildren.isEmpty()) {
+//            handleDeleteLeaf(oid, session);
+//            return;
+//        }
 
         // delete all edges "<child> -> OID" from the closure
         removeChildrenEdges(oid, livingChildren, session);
@@ -706,9 +722,9 @@ public class OrgClosureManager {
         } else {
             String createTablePrefix;
             if (isPostgreSQL()) {
-                createTablePrefix = "create cached local temporary " + deltaTempTableName + " on commit drop as ";
+                createTablePrefix = "create local temporary table " + deltaTempTableName + " on commit drop as ";
             } else if (isH2()) {
-                createTablePrefix = "create temporary table " + deltaTempTableName + " as ";
+                createTablePrefix = "create cached temporary table " + deltaTempTableName + " as ";
             } else if (isMySQL()) {
                 createTablePrefix = "create temporary table " + deltaTempTableName + " engine=memory as ";
             } else if (isOracle()) {
@@ -998,31 +1014,5 @@ public class OrgClosureManager {
             throw new IllegalArgumentException(v);
         }
     }
-
-    public static enum OrgClosureObjects {
-
-        NONE("none"), FOCUS("focus"), ALL("all");
-
-        private String value;
-
-        OrgClosureObjects(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return value;
-        }
-
-        public static OrgClosureObjects fromValue(String v) {
-            for (OrgClosureObjects a: OrgClosureObjects.values()) {
-                if (a.value.equals(v)) {
-                    return a;
-                }
-            }
-            throw new IllegalArgumentException(v);
-        }
-    }
-
     //endregion
 }

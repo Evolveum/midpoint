@@ -67,7 +67,7 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE = "iterativeSearchByPagingBatchSize";
 
     //closure
-    public static final String PROPERTY_ORG_CLOSURE_OBJECTS = "orgClosureObjects";
+    public static final String PROPERTY_IGNORE_ORG_CLOSURE = "ignoreOrgClosure";
     public static final String PROPERTY_ORG_CLOSURE_STARTUP_ACTION = "orgClosureStartupAction";
     public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
 
@@ -101,7 +101,7 @@ public class SqlRepositoryConfiguration {
     private boolean iterativeSearchByPaging;
     private int iterativeSearchByPagingBatchSize;
 
-    private OrgClosureManager.OrgClosureObjects orgClosureObjects;
+    private boolean ignoreOrgClosure;
     private OrgClosureManager.StartupAction orgClosureStartupAction;
     private boolean stopOnOrgClosureStartupFailure;
 
@@ -138,7 +138,7 @@ public class SqlRepositoryConfiguration {
         setIterativeSearchByPaging(configuration.getBoolean(PROPERTY_ITERATIVE_SEARCH_BY_PAGING, iterativeSearchByPaging));
         setIterativeSearchByPagingBatchSize(configuration.getInt(PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE, iterativeSearchByPagingBatchSize));
 
-        setOrgClosureObjects(configuration.getString(PROPERTY_ORG_CLOSURE_OBJECTS, OrgClosureManager.OrgClosureObjects.FOCUS.toString()));
+        setIgnoreOrgClosure(configuration.getBoolean(PROPERTY_IGNORE_ORG_CLOSURE, false));
         setOrgClosureStartupAction(configuration.getString(PROPERTY_ORG_CLOSURE_STARTUP_ACTION, OrgClosureManager.StartupAction.REBUILD_IF_NEEDED.toString()));
         setStopOnOrgClosureStartupFailure(configuration.getBoolean(PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE, true));
     }
@@ -485,12 +485,12 @@ public class SqlRepositoryConfiguration {
         this.useZip = useZip;
     }
 
-    public OrgClosureManager.OrgClosureObjects getOrgClosureObjects() {
-        return orgClosureObjects;
+    public boolean isIgnoreOrgClosure() {
+        return ignoreOrgClosure;
     }
 
-    public void setOrgClosureObjects(String orgClosureObjects) {
-        this.orgClosureObjects = OrgClosureManager.OrgClosureObjects.fromValue(orgClosureObjects);
+    public void setIgnoreOrgClosure(boolean value) {
+        this.ignoreOrgClosure = value;
     }
 
     public OrgClosureManager.StartupAction getOrgClosureStartupAction() {

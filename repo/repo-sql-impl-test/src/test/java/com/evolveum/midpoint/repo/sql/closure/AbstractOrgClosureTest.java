@@ -108,12 +108,14 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected void checkClosure(Set<String> oidsToCheck) {
+        boolean matrixProblem = false;
         if (getConfiguration().isCheckClosureMatrix()) {
-            checkClosureMatrix();
+            matrixProblem = checkClosureMatrix();
         }
         if (getConfiguration().isCheckChildrenSets()) {
             checkChildrenSets(oidsToCheck);
         }
+        assertFalse("A difference in transitive closure matrix was detected", matrixProblem);
     }
 
     protected void checkClosureUnconditional(Set<String> oidsToCheck) {
@@ -151,9 +153,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     /**
      * Recomputes closure table from scratch (using matrix multiplication) and compares it with M_ORG_CLOSURE.
      */
-    private static final boolean DUMP_TC_MATRIX_DETAILS = false;
+    private static final boolean DUMP_TC_MATRIX_DETAILS = true;
 
-    protected void checkClosureMatrix() {
+    protected boolean checkClosureMatrix() {
         Session session = getSession();
         // we compute the closure table "by hand" as 1 + A + A^2 + A^3 + ... + A^n where n is the greatest expected path length
         int vertices = getVertices().size();
@@ -225,13 +227,14 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             for (int j = 0; j < vertices; j++) {
                 double delta = result.get(i, j);
                 if (Math.round(delta) != 0) {
-                    System.err.println("delta("+vertexList.get(i)+","+vertexList.get(j)+") = " + delta);
+                    System.err.println("delta("+vertexList.get(i)+","+vertexList.get(j)+") = " + delta +
+                            " (closureInDB=" + closureInDatabase.get(i, j) + ", expected=" + (result.get(i, j) + closureInDatabase.get(i, j)) + ")");
                     LOGGER.error("delta("+vertexList.get(i)+","+vertexList.get(j)+") = " + delta);
                     problem = true;
                 }
             }
         }
-        assertFalse("Difference found", problem);
+        return problem;
     }
 
     protected Set<String> getActualChildrenOf(String ancestor) {

@@ -463,6 +463,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             RObject rObject = createDataObjectFromJAXB(object, true);
 
             session = beginTransaction();
+
+            if (object.asObjectable() instanceof OrgType) {
+                lockClosureTableIfNeeded(session);
+            }
+
             if (options.isOverwrite()) {
                 oid = overwriteAddObjectAttempt(object, rObject, originalOid, session);
             } else {
@@ -655,6 +660,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginTransaction();
+
+            if (OrgType.class.isAssignableFrom(type)) {
+                lockClosureTableIfNeeded(session);
+            }
 
             Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
             query.add(Restrictions.eq("oid", oid));
@@ -990,6 +999,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             session = beginTransaction();
 
+            if (OrgType.class.isAssignableFrom(type)) {
+                lockClosureTableIfNeeded(session);
+            }
+
             // get user
             PrismObject<T> prismObject = getObject(session, type, oid, null, true);
             // apply diff
@@ -1040,6 +1053,22 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             cleanupSessionAndResult(session, result);
             LOGGER.trace("Session cleaned up.");
         }
+    }
+
+    private void lockClosureTableIfNeeded(Session session) {
+        if (!getConfiguration().isUsingH2()) {
+            return;
+        }
+
+        long start = System.currentTimeMillis();
+        LOGGER.info("Locking closure table");
+        if (getConfiguration().isUsingH2()) {
+            //Query q = session.createSQLQuery("SELECT * FROM " + OrgClosureManager.CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
+            Query q = session.createSQLQuery("SELECT * FROM m_connector_host WHERE 1=0 FOR UPDATE");
+            q.list();
+        }
+        LOGGER.info("...locked in {} ms", System.currentTimeMillis()-start);
+
     }
 
     @Override
@@ -1513,39 +1542,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             Query query;
             if (lowerObjectOids.size() == 1) {
                 query = session.getNamedQuery("isAnySubordinateAttempt.oneLowerOid");
+                query.setString("dOid", lowerObjectOids.iterator().next());
             } else {
-                StringBuilder sb = new StringBuilder();
-                sb.append("select count(*) from ROrgClosure o where ");
-
-                sb.append('(');
-                Iterator<String> iterator = lowerObjectOids.iterator();
-                int paramIndex = 0;
-                while (iterator.hasNext()) {
-                    iterator.next();
-                    sb.append("(o.ancestorOid=:aOid").append(paramIndex);
-                    sb.append(" and o.descendantOid=:dOid").append(paramIndex);
-                    sb.append(')');
-                    paramIndex++;
-                    if (iterator.hasNext()) {
-                        sb.append(" or ");
-                    }
-                }
-                sb.append(')');
-
-                query = session.createQuery(sb.toString());
+                query = session.getNamedQuery("isAnySubordinateAttempt.moreLowerOids");
+                query.setParameterList("dOids", lowerObjectOids);
             }
-
-            Iterator<String> iterator = lowerObjectOids.iterator();
-            int paramIndex = 0;
-            while (iterator.hasNext()) {
-                String subOid = iterator.next();
-                query.setString("aOid" + paramIndex, upperOrgOid);
-                query.setString("dOid" + paramIndex, subOid);
-                paramIndex++;
-            }
+            query.setString("aOid", upperOrgOid);
 
             Number number = (Number) query.uniqueResult();
-            return (number != null && number.longValue() != 0L) ? true : false;
+            return number != null && number.longValue() != 0L;
         } catch (RuntimeException ex) {
             handleGeneralException(ex, session, null);
         } finally {

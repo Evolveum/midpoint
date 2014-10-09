@@ -16,20 +16,23 @@
 
 package com.evolveum.midpoint.repo.sql.closure;
 
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 /**
  * @author mederly
  */
+@ContextConfiguration(locations = {"../../../../../../ctx-test.xml"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgClosurePerformanceTest2 extends AbstractOrgClosureTest {
 
     // relatively bigger graph
-    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 5, 3, 3, 5, 4,  0};
-    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 3, 4, 5, 6, 7, 10};
-    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 2, 2, 2,  2};
-    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 10, 15,15,15,15, 0 };
-    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 5, 10, 15,15,15,15, 0 };
-    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20,20,20, 20};
+    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 2, 5, 3, 3, 5, 4 };
+    private static final int[] USER_CHILDREN_IN_LEVEL = null;
+    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 2, 2, 2 };
+    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 10, 15,15,15,15 };
+    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 5, 10, 15,15,15,15 };
 
     private OrgClosureTestConfiguration configuration;
 

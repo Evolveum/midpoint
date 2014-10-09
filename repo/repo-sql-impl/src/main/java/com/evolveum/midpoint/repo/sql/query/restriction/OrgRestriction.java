@@ -87,10 +87,12 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                 break;
             case SUBTREE:
             default:
-                detached = DetachedCriteria.forClass(ROrgClosure.class, "cl");
-                detached.setProjection(Projections.distinct(Projections.property("cl.descendantOid")));
-                detached.add(Restrictions.eq("cl.ancestorOid", filter.getOrgRef().getOid()));
-                detached.add(Restrictions.ne("cl.descendantOid", filter.getOrgRef().getOid()));
+                detached = DetachedCriteria.forClass(RParentOrgRef.class, "p");
+                detached.setProjection(Projections.distinct(Projections.property("p.ownerOid")));
+                detached.add(Property.forName("targetOid").in(
+                        DetachedCriteria.forClass(ROrgClosure.class, "cl")
+                            .setProjection(Projections.property("cl.descendantOid"))
+                            .add(Restrictions.eq("cl.ancestorOid", filter.getOrgRef().getOid()))));
         }
         String mainAlias = getContext().getAlias(null);
         return Subqueries.propertyIn(mainAlias + ".oid", detached);

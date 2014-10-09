@@ -28,6 +28,7 @@ import org.hibernate.FlushMode;
 import org.hibernate.PessimisticLockException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.StaleObjectStateException;
 import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -153,7 +154,8 @@ public class SqlBaseService {
 
         if (ex instanceof PessimisticLockException
                 || ex instanceof LockAcquisitionException
-                || ex instanceof HibernateOptimisticLockingFailureException) {
+                || ex instanceof HibernateOptimisticLockingFailureException
+                || ex instanceof StaleObjectStateException) {                       // todo the last one is questionable
             return true;
         }
 
