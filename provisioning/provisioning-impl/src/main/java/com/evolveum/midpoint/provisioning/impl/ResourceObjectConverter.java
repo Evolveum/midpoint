@@ -827,7 +827,7 @@ public class ResourceObjectConverter {
 			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
 
 		try {
-			
+		
 			if (!ResourceTypeUtil.hasReadCapability(resource)){
 				throw new UnsupportedOperationException("Resource does not support 'read' operation");
 			}

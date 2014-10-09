@@ -189,6 +189,7 @@ public abstract class SchemaConstants {
 	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3";
 	public static final QName ICF_CONFIGURATION_PROPERTIES = new QName(NS_ICF_CONFIGURATION, "configurationProperties");
 	public static final QName ICF_TIMEOUTS = new QName(NS_ICF_CONFIGURATION, "timeouts");
+	public static final QName ICF_RESULTS_HANDLER_CONFIGURATION = new QName(NS_ICF_CONFIGURATION, "resultsHandlerConfiguration");
 	public static final QName ICF_CONNECTOR_POOL_CONFIGURATION = new QName(NS_ICF_CONFIGURATION,
 			"connectorPoolConfiguration");
 	

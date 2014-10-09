@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
@@ -201,19 +202,32 @@ public class ShadowManager {
 					throws SchemaException, ConfigurationException {
 
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(resourceShadow);
-		ResourceAttribute<?> secondaryIdentifier = null;
+//		ResourceAttribute<?> secondaryIdentifier = null;
 		if (secondaryIdentifiers.size() < 1){
 			LOGGER.trace("Shadow does not contain secondary idetifier. Skipping lookup shadows according to name.");
 			return null;
 		}
 		
-		secondaryIdentifier = secondaryIdentifiers.iterator().next();
-		LOGGER.trace("Shadow secondary identifier {}", secondaryIdentifier);
+		List<EqualFilter> secondaryEquals = new ArrayList<>();
+		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers){
+			secondaryEquals.add(EqualFilter.createEqual(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition(),
+					getNormalizedValue(secondaryIdentifier, rObjClassDef)));
+		}
+		
+		ObjectFilter secondaryIdentifierFilter = null;
+		if (secondaryEquals.size() > 1){
+			secondaryIdentifierFilter = OrFilter.createOr((List) secondaryEquals);
+		} else {
+			secondaryIdentifierFilter = secondaryEquals.iterator().next();
+		}
+		
+//		
+//		
+//		secondaryIdentifier = secondaryIdentifiers.iterator().next();
+//		LOGGER.trace("Shadow secondary identifier {}", secondaryIdentifier);
 		
 		AndFilter filter = AndFilter.createAnd(
-				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), 
-				EqualFilter.createEqual(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition(),
-				getNormalizedValue(secondaryIdentifier, rObjClassDef)));
+				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), secondaryIdentifierFilter);
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter on secondary identifier:\n{}",
@@ -269,19 +283,23 @@ public class ShadowManager {
 		return conflictingShadows.get(0);
 	}
 
-	private <T> PrismPropertyValue<T> getNormalizedValue(PrismProperty<T> attr, RefinedObjectClassDefinition rObjClassDef) throws SchemaException {
+	private <T> List<PrismPropertyValue<T>> getNormalizedValue(PrismProperty<T> attr, RefinedObjectClassDefinition rObjClassDef) throws SchemaException {
 		RefinedAttributeDefinition refinedAttributeDefinition = rObjClassDef.findAttributeDefinition(attr.getElementName());
 		QName matchingRuleQName = refinedAttributeDefinition.getMatchingRuleQName();
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, refinedAttributeDefinition.getTypeName());
-		PrismPropertyValue<T> origPValue = attr.getValue();
-		if (matchingRule != null) {
-			T normalizedValue = matchingRule.normalize(origPValue.getValue());
-			PrismPropertyValue<T> normalizedPValue = origPValue.clone();
-			normalizedPValue.setValue(normalizedValue);
-			return normalizedPValue;
-		} else {
-			return origPValue;
+		List<PrismPropertyValue<T>> normalized = new ArrayList<>();
+		for (PrismPropertyValue<T> origPValue : attr.getValues()){
+			if (matchingRule != null) {
+				T normalizedValue = matchingRule.normalize(origPValue.getValue());
+				PrismPropertyValue<T> normalizedPValue = origPValue.clone();
+				normalizedPValue.setValue(normalizedValue);
+				normalized.add(normalizedPValue);
+			} else {
+				normalized.add(origPValue);
+			}
 		}
+		return normalized;
+		
 	}
 
 

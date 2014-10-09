@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
@@ -66,6 +67,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
@@ -78,6 +80,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.util.RawTypeUtil;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -92,6 +96,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -114,15 +119,21 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
@@ -135,6 +146,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * Consistency test suite. It tests consistency mechanisms. It works as end-to-end integration test accross all subsystems.
@@ -871,7 +883,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		ResourceAttributeContainer attributes = ShadowUtil.getAttributesContainer(account);
 
 		assertEquals("shadow secondary identifier not equal with the account dn. ", dn, attributes
-				.getSecondaryIdentifier().getRealValue(String.class));
+				.findAttribute(SchemaConstants.ICFS_NAME).getRealValue(String.class));
 
 		String identifier = attributes.getIdentifier().getRealValue(String.class);
 
@@ -1846,8 +1858,142 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
         // TODO: check OpenDJ Account        
 	}
+	
+	/**
+	 *  Unlink account morgan, delete shadow and remove assignmnet from user morgan - preparation for the next test
+	 */	
+	@Test
+    public void test110UnlinkAndUnassignAccountMorgan() throws Exception {
+		final String TEST_NAME = "test110UnlinkAndUnassignAccountMorgan";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
+        // GIVEN
+        Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_MORGAN_OID, null, result);
+        display("User Morgan: ", user);
+        List<PrismReferenceValue> linkRefs = user.findReference(UserType.F_LINK_REF).getValues();
+        assertEquals("Unexpected number of link refs", 1, linkRefs.size());
+        PrismReferenceValue linkRef = linkRefs.iterator().next();
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteReference(UserType.class,
+				USER_MORGAN_OID, UserType.F_LINK_REF, prismContext, linkRef.clone());
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+		
+		///----user's link is removed, now, remove assignment
+		userDelta = ObjectDelta.createModificationDeleteContainer(UserType.class,
+				USER_MORGAN_OID, UserType.F_ASSIGNMENT, prismContext, user.findContainer(UserType.F_ASSIGNMENT).getValue().clone());
+        deltas = MiscSchemaUtil.createCollection(userDelta);
+     // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+		
+		repositoryService.deleteObject(ShadowType.class, linkRef.getOid(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+//		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
+        
+		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
+		display("User morgan after", userMorgan);
+        UserType userMorganType = userMorgan.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 0, userMorganType.getLinkRef().size());
+        
+		// Check shadow
+        String accountOid = linkRef.getOid();
+        try {
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        assertAccountShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        fail("Unexpected shadow in repo. Shadow mut not exist");
+        } catch (ObjectNotFoundException ex){
+        	//this is expected..shadow must not exist in repo
+        }
+        // Check account
+        try {
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertAccountShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        fail("Unexpected shadow in repo. Shadow mut not exist");
+        } catch (ObjectNotFoundException ex){
+        	//this is expected..shadow must not exist in repo
+        }
+        // TODO: check OpenDJ Account        
+	}
+	
+	
+	/**
+	 * assign account to the user morgan. Account with the same 'uid' (not dn, nut other secondary identifier already exists)
+	 * account should be linked to the user.
+	 * @throws Exception
+	 */
+	@Test
+    public void test111AssignAccountMorgan() throws Exception {
+		final String TEST_NAME = "test111AssignAccountMorgan";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
+        // GIVEN
+        Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_MORGAN_OID, null, result);
+        display("User Morgan: ", user);
+        PrismReference linkRef = user.findReference(UserType.F_LINK_REF);
+        
+        ExpressionType expression = new ExpressionType();
+        ObjectFactory of = new ObjectFactory();
+        RawType raw = new RawType(new PrimitiveXNode("uid=morganNew,ou=people,dc=example,dc=com"), prismContext);       
+       
+        JAXBElement val = of.createValue(raw);
+        expression.getExpressionEvaluator().add(val);
+        
+        MappingType mapping = new MappingType();
+        mapping.setExpression(expression);
+        
+        ResourceAttributeDefinitionType attrDefType = new ResourceAttributeDefinitionType();
+        attrDefType.setRef(SchemaConstants.ICFS_NAME);
+        attrDefType.setOutbound(mapping);
+        
+        ConstructionType construction = new ConstructionType();
+        construction.getAttribute().add(attrDefType);
+        construction.setResourceRef(ObjectTypeUtil.createObjectRef(resourceTypeOpenDjrepo));
+        
+        AssignmentType assignment = new AssignmentType();
+        assignment.setConstruction(construction);
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddContainer(UserType.class, USER_MORGAN_OID, UserType.F_ASSIGNMENT, prismContext, assignment.asPrismContainerValue());
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+		
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+//		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
+        
+		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
+		display("User morgan after", userMorgan);
+        UserType userMorganType = userMorgan.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getLinkRef().size());
+        String accountOid = userMorganType.getLinkRef().iterator().next().getOid();
+        
+		// Check shadow
+        
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        assertAccountShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertAccountShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        // TODO: check OpenDJ Account        
+	}
 	
 	// This should run last. It starts a task that may interfere with other tests
 	@Test

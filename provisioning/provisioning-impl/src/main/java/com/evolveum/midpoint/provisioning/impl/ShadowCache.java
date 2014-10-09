@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.identityconnectors.framework.spi.operations.CreateOp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -59,6 +61,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -777,7 +780,7 @@ public abstract class ShadowCache {
 		
 		if (filter instanceof AndFilter){
 			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
-			attributeFilter = getAttributeQuery(conditions, attributeFilter);
+			attributeFilter = getAttributeQuery(conditions);
 			if (attributeFilter.size() > 1){
 				attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
 			}
@@ -787,7 +790,7 @@ public abstract class ShadowCache {
 			}
 			
 			if (attributeFilter.size() == 1){
-				attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.get(0));
+				attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.iterator().next());
 			}
 			
 		}
@@ -948,8 +951,9 @@ public abstract class ShadowCache {
 		return repoShadow;
 	}
 	
-	private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> conditions, List<ObjectFilter> attributeFilter) throws SchemaException{
+	private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> conditions) throws SchemaException{
 		
+		List<ObjectFilter> attributeFilter = new ArrayList<>();
 		ItemPath objectClassPath = new ItemPath(ShadowType.F_OBJECT_CLASS);
 		ItemPath resourceRefPath = new ItemPath(ShadowType.F_RESOURCE_REF);
 		for (ObjectFilter f : conditions){
@@ -963,7 +967,13 @@ public abstract class ShadowCache {
 				
 				attributeFilter.add(f);
 			} else if (f instanceof NaryLogicalFilter){
-				attributeFilter = getAttributeQuery(((NaryLogicalFilter) f).getConditions(), attributeFilter);
+				List<ObjectFilter> filters = getAttributeQuery(((NaryLogicalFilter) f).getConditions());
+				if (f instanceof OrFilter){
+					attributeFilter.add(OrFilter.createOr(filters));
+				} else if (f instanceof AndFilter){
+					attributeFilter.add(AndFilter.createAnd(filters));
+				} else 
+					throw new IllegalArgumentException("Could not translate query filter. Unknow type: " + f);
 			} else if (f instanceof SubstringFilter){
 				attributeFilter.add(f);
 			}
@@ -1258,39 +1268,73 @@ public abstract class ShadowCache {
 			return;
 		}
 		
-		if (oldSecondaryIdentifiers.size() > 1){
-			return;
-		}
+//		if (oldSecondaryIdentifiers.size() > 1){
+//			return;
+//		}
+		LOGGER.info("force rename if needed");
+		ResourceAttributeContainer newSecondaryIdentifiers = ShadowUtil.getAttributesContainer(currentShadowType);
 		
-		ResourceAttribute<?> oldSecondaryIdentifier = oldSecondaryIdentifiers.iterator().next();
-		Object oldValue = oldSecondaryIdentifier.getRealValue();
+		Iterator<ResourceAttribute<?>> oldSecondaryIterator = oldSecondaryIdentifiers.iterator();
+		Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
+		while (oldSecondaryIterator.hasNext()){
+			ResourceAttribute<?> oldSecondaryIdentifier = oldSecondaryIterator.next();
+			LOGGER.info("old identifier: {}", oldSecondaryIdentifier);
+			ResourceAttribute newSecondaryIdentifier = newSecondaryIdentifiers.findAttribute(oldSecondaryIdentifier.getElementName());
+			LOGGER.info("new identifier: {}", newSecondaryIdentifier);
+			Collection newValue = newSecondaryIdentifier.getRealValues();
+			
+			if (!shadowManager.compareAttribute(refinedObjectClassDefinition, newSecondaryIdentifier, oldSecondaryIdentifier)){
+				PropertyDelta<?> shadowNameDelta = PropertyDelta.createDelta(new ItemPath(ShadowType.F_ATTRIBUTES, oldSecondaryIdentifier.getElementName()), oldShadowType.asPrismObject().getDefinition());
+				shadowNameDelta.addValuesToDelete(PrismPropertyValue.cloneCollection((Collection)oldSecondaryIdentifier.getValues()));
+				shadowNameDelta.addValuesToAdd(PrismPropertyValue.cloneCollection((Collection)newSecondaryIdentifier.getValues()));
+//				PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, oldSecondaryIdentifier.getElementName()), oldShadowType.asPrismObject().getDefinition(), newValue.toArray());
+				renameDeltas.add(shadowNameDelta);
+				
+				
+			}
 
-		Collection<ResourceAttribute<?>> newSecondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(currentShadowType);
-		if (newSecondaryIdentifiers.isEmpty()){
-			return;
 		}
+		LOGGER.info("rename delta: {}", renameDeltas);
+		if (!renameDeltas.isEmpty()){
 		
-		if (newSecondaryIdentifiers.size() > 1){
-			return;
-		}
-		
-		ResourceAttribute newSecondaryIdentifier = newSecondaryIdentifiers.iterator().next();
-		Object newValue = newSecondaryIdentifier.getRealValue();
-		
-		if (!shadowManager.compareAttribute(refinedObjectClassDefinition, newSecondaryIdentifier, oldSecondaryIdentifier)){
-			Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
-			
-			
 			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
 					oldShadowType.asPrismObject().getDefinition(), 
 					ProvisioningUtil.determineShadowName(currentShadowType.asPrismObject()));
 			renameDeltas.add(shadowNameDelta);
-			
-			shadowNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), oldShadowType.asPrismObject().getDefinition(), newValue);
-			renameDeltas.add(shadowNameDelta);
-			
 			repositoryService.modifyObject(ShadowType.class, oldShadowType.getOid(), renameDeltas, parentResult);
 		}
+		
+		
+		
+//		ResourceAttribute<?> oldSecondaryIdentifier = oldSecondaryIdentifiers.iterator().next();
+//		Object oldValue = oldSecondaryIdentifier.getRealValue();
+//
+//		Collection<ResourceAttribute<?>> newSecondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(currentShadowType);
+//		if (newSecondaryIdentifiers.isEmpty()){
+//			return;
+//		}
+//		
+//		if (newSecondaryIdentifiers.size() > 1){
+//			return;
+//		}
+//		
+//		ResourceAttribute newSecondaryIdentifier = newSecondaryIdentifiers.iterator().next();
+//		Object newValue = newSecondaryIdentifier.getRealValue();
+//		
+//		if (!shadowManager.compareAttribute(refinedObjectClassDefinition, newSecondaryIdentifier, oldSecondaryIdentifier)){
+//			Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
+//			
+//			
+//			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
+//					oldShadowType.asPrismObject().getDefinition(), 
+//					ProvisioningUtil.determineShadowName(currentShadowType.asPrismObject()));
+//			renameDeltas.add(shadowNameDelta);
+//			
+//			shadowNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), oldShadowType.asPrismObject().getDefinition(), newValue);
+//			renameDeltas.add(shadowNameDelta);
+//			
+//			repositoryService.modifyObject(ShadowType.class, oldShadowType.getOid(), renameDeltas, parentResult);
+//		}
 		
 	}
 
