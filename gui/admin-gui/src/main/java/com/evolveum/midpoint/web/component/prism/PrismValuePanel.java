@@ -436,7 +436,7 @@ public class PrismValuePanel extends Panel {
             PrismObject<ShadowType> shadowPrism = (PrismObject<ShadowType>)property.getParent().getParent();
             ShadowType shadow = shadowPrism.asObjectable();
 
-            if(shadow.getActivation() != null){
+            if(shadow.getAttributes() != null){
                 ShadowAttributesType attributes = shadow.getAttributes();
                 AnyArrayList attrs = (AnyArrayList)attributes.getAny();
 
