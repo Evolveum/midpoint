@@ -423,7 +423,7 @@ public class ObjectWrapper implements Serializable, Revivable {
 			ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
 			PrismContainer prismContainer = parent.findContainer(def.getName());
             ContainerWrapper container;
-			if (prismContainer != null) {
+			if (prismContainer != null && !prismContainer.getElementName().equals(CredentialsType.F_PASSWORD)) {
                 container = new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING, newPath, pageBase);
 			} else {
 				prismContainer = containerDef.instantiate();
