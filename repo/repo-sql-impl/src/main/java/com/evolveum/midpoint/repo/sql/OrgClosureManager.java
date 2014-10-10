@@ -80,19 +80,18 @@ public class OrgClosureManager {
     //region Public interface
     /**
      * Main method called from SQL repository service to update the closure table during an operation.
-     *
-     * @param originalObject Original state of the object - before applying modification in the repository.
+     *  @param originalObject Original state of the object - before applying modification in the repository.
      *                       It is used only in case of MODIFY (note that "overwriting ADD" is present here as MODIFY!)
      * @param modifications Collection of modifications to be applied to the object.
      * @param session Database session to use.
      * @param oid OID of the object.
      * @param type Type of the object.
      * @param operation Operation that is carried out.
-     * @param <T>
+     * @param closureContext
      */
     public <T extends ObjectType> void updateOrgClosure(PrismObject<? extends ObjectType> originalObject,
                                                         Collection<? extends ItemDelta> modifications, Session session,
-                                                        String oid, Class<T> type, Operation operation) {
+                                                        String oid, Class<T> type, Operation operation, Context closureContext) {
 
         if (!isEnabled()) {
             return;
@@ -726,7 +725,7 @@ public class OrgClosureManager {
             } else if (isH2()) {
                 createTablePrefix = "create cached temporary table " + deltaTempTableName + " as ";
             } else if (isMySQL()) {
-                createTablePrefix = "create temporary table " + deltaTempTableName + " engine=memory as ";
+                createTablePrefix = "create temporary table " + deltaTempTableName + " as ";            // engine=memory is forbidden because of missing tansactionality (?)
             } else if (isOracle()) {
                 // todo skip if this is first in this transaction
                 Query q = session.createSQLQuery("delete from " + deltaTempTableName);
@@ -940,6 +939,18 @@ public class OrgClosureManager {
         return repoConfiguration.isUsingPostgreSQL();
     }
 
+    public <T extends ObjectType> Context onBeginTransactionAdd(Session session, PrismObject<T> object, boolean overwrite) {
+        return null;
+    }
+
+    public <T extends ObjectType> Context onBeginTransactionModify(Session session, Class<T> type, String oid, Collection<? extends ItemDelta> modifications) {
+        return null;
+    }
+
+    public <T extends ObjectType> Context onBeginTransactionDelete(Session session, Class<T> type, String oid) {
+        return null;
+    }
+
     //endregion
 
     //region Helper classes
@@ -1014,5 +1025,31 @@ public class OrgClosureManager {
             throw new IllegalArgumentException(v);
         }
     }
+
+    public static class Context {
+        String temporaryTableName;
+    }
     //endregion
+
+
+
+//    private void lockClosureTableIfNeeded(Session session) {
+//        if (!getConfiguration().isUsingH2()) {
+//            return;
+//        }
+//
+//        long start = System.currentTimeMillis();
+//        LOGGER.info("Locking closure table");
+//        if (getConfiguration().isUsingH2()) {
+//            //Query q = session.createSQLQuery("SELECT * FROM " + OrgClosureManager.CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
+//            Query q = session.createSQLQuery("SELECT * FROM m_connector_host WHERE 1=0 FOR UPDATE");
+//            q.list();
+//        }
+//        LOGGER.info("...locked in {} ms", System.currentTimeMillis()-start);
+//
+//    }
+
+
+
+
 }

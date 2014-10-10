@@ -63,6 +63,7 @@ import java.util.Set;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author lazyman
@@ -234,7 +235,39 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 }
             }
         }
+        if (problem) {
+            checkOrgGraph();
+        }
         return problem;
+    }
+
+    // checks org graph w.r.t. real org/parentref situation in repo
+    protected void checkOrgGraph() {
+        OperationResult result = new OperationResult("temp");
+        int numberOfOrgsInRepo = repositoryService.countObjects(OrgType.class, new ObjectQuery(), result);
+        info("Checking graph with repo. Orgs in repo: " + numberOfOrgsInRepo + ", orgs in graph: " + orgGraph.vertexSet().size());
+        assertTrue("# of orgs in repo (" + numberOfOrgsInRepo + ") is different from # of orgs in graph (" + orgGraph.vertexSet().size() + ")",
+                numberOfOrgsInRepo == orgGraph.vertexSet().size());
+        for (String oid : orgGraph.vertexSet()) {
+            //info("Checking " + oid);
+            OrgType orgType = null;
+            try {
+                orgType = repositoryService.getObject(OrgType.class, oid, null, result).asObjectable();
+            } catch (ObjectNotFoundException|SchemaException e) {
+                throw new AssertionError("Couldn't fetch " + oid, e);
+            }
+            assertEquals("Unexpected # of parentRefOrgs in " + orgType, orgGraph.outgoingEdgesOf(oid).size(), orgType.getParentOrgRef().size());
+            Set<String> parentOidsInRepo = new HashSet<>();
+            for (ObjectReferenceType ort : orgType.getParentOrgRef()) {
+                parentOidsInRepo.add(ort.getOid());
+            }
+            Set<String> parentOidsInGraph = new HashSet<>();
+            for (DefaultEdge edge : orgGraph.outgoingEdgesOf(oid)) {
+                parentOidsInGraph.add(orgGraph.getEdgeTarget(edge));
+            }
+            assertEquals("Unexpected parentRefOrg set in " + orgType, parentOidsInGraph, parentOidsInRepo);
+        }
+        info("Graph is OK w.r.t. repo");
     }
 
     protected Set<String> getActualChildrenOf(String ancestor) {
@@ -980,5 +1013,11 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
         LOGGER.info("Finish.");
     }
+
+    protected void info(String s) {
+        System.out.println(s);
+        LOGGER.info(s);
+    }
+
 
 }

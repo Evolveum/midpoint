@@ -152,7 +152,8 @@ public class SqlBaseService {
 
     private boolean isExceptionRelatedToSerialization(Exception ex) {
 
-        if (ex instanceof PessimisticLockException
+        if (ex instanceof SerializationRelatedException
+                || ex instanceof PessimisticLockException
                 || ex instanceof LockAcquisitionException
                 || ex instanceof HibernateOptimisticLockingFailureException
                 || ex instanceof StaleObjectStateException) {                       // todo the last one is questionable

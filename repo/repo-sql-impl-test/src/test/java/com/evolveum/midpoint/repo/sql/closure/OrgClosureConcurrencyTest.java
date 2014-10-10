@@ -53,10 +53,12 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
     private static final int[] ORG_CHILDREN_IN_LEVEL  = { 5, 3, 3, 3, 0  };
     private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 2, 2, 3, 3  };
     private static final int[] PARENTS_IN_LEVEL       = { 0, 2, 2, 3, 3  };
-    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 15, 20, 30  };
-    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 3, 15, 20, 30  };
-    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 5 ,5, 10 };
-    public static final int THREADS = 3;
+//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 15, 20, 30  };
+//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 3, 15, 20, 30  };
+    private static final int[] LINK_ROUNDS_FOR_LEVELS = null;
+    //private static final int[] NODE_ROUNDS_FOR_LEVELS = { 3,  3,  3,  3  };           // small number of deletes
+    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 5, 15, 45, 100  };            // big number of deletes
+    public static final int THREADS = 7;
 
     private OrgClosureTestConfiguration configuration;
 
@@ -79,8 +81,8 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
 
     @Test(enabled = true) public void test100LoadOrgStructure() throws Exception { _test100LoadOrgStructure(); }
     @Test(enabled = true) public void test150CheckClosure() throws Exception { _test150CheckClosure(); }
-    @Test(enabled = true) public void test200AddRemoveLinksSeq() throws Exception { _test200AddRemoveLinksMT(false); }
-    @Test(enabled = true) public void test201AddRemoveLinksRandom() throws Exception { _test200AddRemoveLinksMT(true); }
+    @Test(enabled = false) public void test200AddRemoveLinksSeq() throws Exception { _test200AddRemoveLinksMT(false); }
+    @Test(enabled = false) public void test201AddRemoveLinksRandom() throws Exception { _test200AddRemoveLinksMT(true); }
     @Test(enabled = true) public void test300AddRemoveNodesSeq() throws Exception { _test300AddRemoveNodesMT(false); }
     @Test(enabled = true) public void test301AddRemoveNodesRandom() throws Exception { _test300AddRemoveNodesMT(true); }
     //@Test(enabled = true) public void test310AddRemoveUsers() throws Exception { _test310AddRemoveUsersMT(); }
@@ -246,11 +248,6 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             }
         }
         return iterator.next();
-    }
-
-    private void info(String s) {
-        System.out.println(s);
-        LOGGER.info(s);
     }
 
     private void removeEdge(Edge edge) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {

@@ -464,14 +464,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             session = beginTransaction();
 
-            if (object.asObjectable() instanceof OrgType) {
-                lockClosureTableIfNeeded(session);
-            }
+            OrgClosureManager.Context closureContext = getClosureManager().onBeginTransactionAdd(session, object, options.isOverwrite());
 
             if (options.isOverwrite()) {
-                oid = overwriteAddObjectAttempt(object, rObject, originalOid, session);
+                oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
             } else {
-                oid = nonOverwriteAddObjectAttempt(object, rObject, originalOid, session);
+                oid = nonOverwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
             }
             session.getTransaction().commit();
 
@@ -512,7 +510,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private <T extends ObjectType> String overwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
-                                                                    String originalOid, Session session)
+                                                                    String originalOid, Session session, OrgClosureManager.Context closureContext)
             throws ObjectAlreadyExistsException, SchemaException, DtoTranslationException {
 
         PrismObject<T> oldObject = null;
@@ -550,7 +548,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 operation = OrgClosureManager.Operation.MODIFY;
             }
             getClosureManager().updateOrgClosure(oldObject, modifications, session, merged.getOid(), object.getCompileTimeClass(),
-                    operation);
+                    operation, closureContext);
         }
         return merged.getOid();
     }
@@ -575,7 +573,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
-                                                                       String originalOid, Session session)
+                                                                       String originalOid, Session session, OrgClosureManager.Context closureContext)
             throws ObjectAlreadyExistsException, SchemaException, DtoTranslationException {
 
         // check name uniqueness (by type)
@@ -602,7 +600,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (getClosureManager().isEnabled()) {
             Collection<ReferenceDelta> modifications = createAddParentRefDelta(object);
             getClosureManager().updateOrgClosure(null, modifications, session, oid, object.getCompileTimeClass(),
-                    OrgClosureManager.Operation.ADD);
+                    OrgClosureManager.Operation.ADD, closureContext);
         }
 
         return oid;
@@ -661,9 +659,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             session = beginTransaction();
 
-            if (OrgType.class.isAssignableFrom(type)) {
-                lockClosureTableIfNeeded(session);
-            }
+            OrgClosureManager.Context closureContext = getClosureManager().onBeginTransactionDelete(session, type, oid);
 
             Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
             query.add(Restrictions.eq("oid", oid));
@@ -673,7 +669,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         + "' was not found.", null, oid);
             }
 
-            getClosureManager().updateOrgClosure(null, null, session, oid, type, OrgClosureManager.Operation.DELETE);
+            getClosureManager().updateOrgClosure(null, null, session, oid, type, OrgClosureManager.Operation.DELETE, closureContext);
 
             session.delete(object);
 
@@ -989,7 +985,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
                                                             Collection<? extends ItemDelta> modifications,
                                                             OperationResult result) throws ObjectNotFoundException,
-            SchemaException, ObjectAlreadyExistsException {
+            SchemaException, ObjectAlreadyExistsException, SerializationRelatedException {
         LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Modifications:\n{}", new Object[]{DebugUtil.debugDump(modifications)});
@@ -999,9 +995,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             session = beginTransaction();
 
-            if (OrgType.class.isAssignableFrom(type)) {
-                lockClosureTableIfNeeded(session);
-            }
+            OrgClosureManager.Context closureContext = getClosureManager().onBeginTransactionModify(session, type, oid, modifications);
 
             // get user
             PrismObject<T> prismObject = getObject(session, type, oid, null, true);
@@ -1026,7 +1020,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             session.merge(rObject);
 
             if (getClosureManager().isEnabled()) {
-                getClosureManager().updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY);
+                getClosureManager().updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
             }
 
             LOGGER.trace("Before commit...");
@@ -1036,6 +1030,27 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (ConstraintViolationException ex) {
+
+            // BRUTAL HACK - in PostgreSQL, concurrent changes in parentRefOrg sometimes cause the following exception
+            // "duplicate key value violates unique constraint "m_reference_pkey". This is *not* a ObjectAlreadyExistsException,
+            // more likely it is a serialization-related one
+            if (ex.getSQLException() != null) {
+                LOGGER.debug("ConstraintViolationException = {}, getNextException = {}", ex, ex.getSQLException().getNextException());
+                String[] ok = new String[] {
+                        "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
+                        "duplicate key value violates unique constraint \"m_reference_pkey\""
+                };
+                if (ex.getSQLException().getNextException() != null && ex.getSQLException().getNextException().getMessage() != null) {
+                    String msg = ex.getSQLException().getNextException().getMessage();
+                    for (int i = 0; i < ok.length; i++) {
+                        if (msg.contains(ok[i])) {
+                            rollbackTransaction(session, ex, result, false);
+                            throw new SerializationRelatedException(ex);
+                        }
+                    }
+                }
+            }
+
             rollbackTransaction(session, ex, result, true);
 
             LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", ex);
@@ -1053,22 +1068,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             cleanupSessionAndResult(session, result);
             LOGGER.trace("Session cleaned up.");
         }
-    }
-
-    private void lockClosureTableIfNeeded(Session session) {
-        if (!getConfiguration().isUsingH2()) {
-            return;
-        }
-
-        long start = System.currentTimeMillis();
-        LOGGER.info("Locking closure table");
-        if (getConfiguration().isUsingH2()) {
-            //Query q = session.createSQLQuery("SELECT * FROM " + OrgClosureManager.CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
-            Query q = session.createSQLQuery("SELECT * FROM m_connector_host WHERE 1=0 FOR UPDATE");
-            q.list();
-        }
-        LOGGER.info("...locked in {} ms", System.currentTimeMillis()-start);
-
     }
 
     @Override
