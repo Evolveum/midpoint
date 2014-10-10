@@ -293,9 +293,12 @@ public abstract class ShadowCache {
 				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump());
 			}
 			
+			forceRenameIfNeeded(resourceShadow.asObjectable(), repositoryShadow.asObjectable(), objectClassDefinition, parentResult);
 			// Complete the shadow by adding attributes from the resource object
 			PrismObject<ShadowType> resultShadow = completeShadow(connector, resourceShadow, repositoryShadow, resource, objectClassDefinition, parentResult);
 
+			
+			
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.debugDump());
 			}
@@ -1267,75 +1270,49 @@ public abstract class ShadowCache {
 		if (oldSecondaryIdentifiers.isEmpty()){
 			return;
 		}
-		
-//		if (oldSecondaryIdentifiers.size() > 1){
-//			return;
-//		}
 		LOGGER.info("force rename if needed");
 		ResourceAttributeContainer newSecondaryIdentifiers = ShadowUtil.getAttributesContainer(currentShadowType);
+		
+		//remember name before normalizing attributes
+		PolyString currentShadowName = ProvisioningUtil.determineShadowName(currentShadowType);
+		currentShadowType.setName(new PolyStringType(currentShadowName));
 		
 		Iterator<ResourceAttribute<?>> oldSecondaryIterator = oldSecondaryIdentifiers.iterator();
 		Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
 		while (oldSecondaryIterator.hasNext()){
 			ResourceAttribute<?> oldSecondaryIdentifier = oldSecondaryIterator.next();
-			LOGGER.info("old identifier: {}", oldSecondaryIdentifier);
 			ResourceAttribute newSecondaryIdentifier = newSecondaryIdentifiers.findAttribute(oldSecondaryIdentifier.getElementName());
-			LOGGER.info("new identifier: {}", newSecondaryIdentifier);
 			Collection newValue = newSecondaryIdentifier.getRealValues();
 			
 			if (!shadowManager.compareAttribute(refinedObjectClassDefinition, newSecondaryIdentifier, oldSecondaryIdentifier)){
 				PropertyDelta<?> shadowNameDelta = PropertyDelta.createDelta(new ItemPath(ShadowType.F_ATTRIBUTES, oldSecondaryIdentifier.getElementName()), oldShadowType.asPrismObject().getDefinition());
 				shadowNameDelta.addValuesToDelete(PrismPropertyValue.cloneCollection((Collection)oldSecondaryIdentifier.getValues()));
+				shadowManager.normalizeAttributes(currentShadowType.asPrismObject(), refinedObjectClassDefinition);
 				shadowNameDelta.addValuesToAdd(PrismPropertyValue.cloneCollection((Collection)newSecondaryIdentifier.getValues()));
-//				PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, oldSecondaryIdentifier.getElementName()), oldShadowType.asPrismObject().getDefinition(), newValue.toArray());
 				renameDeltas.add(shadowNameDelta);
-				
-				
 			}
 
 		}
-		LOGGER.info("rename delta: {}", renameDeltas);
+		
 		if (!renameDeltas.isEmpty()){
 		
 			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
-					oldShadowType.asPrismObject().getDefinition(), 
-					ProvisioningUtil.determineShadowName(currentShadowType.asPrismObject()));
+					oldShadowType.asPrismObject().getDefinition(),currentShadowName);
 			renameDeltas.add(shadowNameDelta);
-			repositoryService.modifyObject(ShadowType.class, oldShadowType.getOid(), renameDeltas, parentResult);
+		} else {
+			
+			if (!oldShadowType.getName().getOrig().equals(currentShadowType.getName().getOrig())){
+				PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
+						oldShadowType.asPrismObject().getDefinition(), currentShadowName);
+				renameDeltas.add(shadowNameDelta);
+				
+			}
 		}
-		
-		
-		
-//		ResourceAttribute<?> oldSecondaryIdentifier = oldSecondaryIdentifiers.iterator().next();
-//		Object oldValue = oldSecondaryIdentifier.getRealValue();
-//
-//		Collection<ResourceAttribute<?>> newSecondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(currentShadowType);
-//		if (newSecondaryIdentifiers.isEmpty()){
-//			return;
-//		}
-//		
-//		if (newSecondaryIdentifiers.size() > 1){
-//			return;
-//		}
-//		
-//		ResourceAttribute newSecondaryIdentifier = newSecondaryIdentifiers.iterator().next();
-//		Object newValue = newSecondaryIdentifier.getRealValue();
-//		
-//		if (!shadowManager.compareAttribute(refinedObjectClassDefinition, newSecondaryIdentifier, oldSecondaryIdentifier)){
-//			Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
-//			
-//			
-//			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
-//					oldShadowType.asPrismObject().getDefinition(), 
-//					ProvisioningUtil.determineShadowName(currentShadowType.asPrismObject()));
-//			renameDeltas.add(shadowNameDelta);
-//			
-//			shadowNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), oldShadowType.asPrismObject().getDefinition(), newValue);
-//			renameDeltas.add(shadowNameDelta);
-//			
-//			repositoryService.modifyObject(ShadowType.class, oldShadowType.getOid(), renameDeltas, parentResult);
-//		}
-		
+		if (!renameDeltas.isEmpty()){
+			repositoryService.modifyObject(ShadowType.class, oldShadowType.getOid(), renameDeltas, parentResult);
+			oldShadowType.setName(new PolyStringType(currentShadowName));
+		}
+
 	}
 
 	public PrismProperty<?> fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)

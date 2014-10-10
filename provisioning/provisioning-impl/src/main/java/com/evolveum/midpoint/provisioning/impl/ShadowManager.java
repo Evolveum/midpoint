@@ -458,7 +458,6 @@ public class ShadowManager {
 	private ObjectQuery createSearchShadowQuery(PrismObject<ShadowType> resourceShadow, 
 			RefinedObjectClassDefinition rObjClassDef, ResourceType resource,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException {
-		// XPathHolder xpath = createXpathHolder();
 		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(resourceShadow);
 		PrismProperty identifier = attributesContainer.getIdentifier();
@@ -466,22 +465,15 @@ public class ShadowManager {
 		Collection<PrismPropertyValue<Object>> idValues = identifier.getValues();
 		// Only one value is supported for an identifier
 		if (idValues.size() > 1) {
-			// LOGGER.error("More than one identifier value is not supported");
 			// TODO: This should probably be switched to checked exception later
 			throw new IllegalArgumentException("More than one identifier value is not supported");
 		}
 		if (idValues.size() < 1) {
-			// LOGGER.error("The identifier has no value");
 			// TODO: This should probably be switched to checked exception later
 			throw new IllegalArgumentException("The identifier has no value");
 		}
 
 		// We have all the data, we can construct the filter now
-		// Document doc = DOMUtil.getDocument();
-		// Element filter;
-		// List<Element> identifierElements =
-		// prismContext.getPrismDomProcessor().serializeItemToDom(identifier,
-		// doc);
 		ObjectFilter filter = null;
 		try {
 			// TODO TODO TODO TODO: set matching rule instead of null
@@ -490,14 +482,10 @@ public class ShadowManager {
 					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), 
 					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, getNormalizedValue(identifier, rObjClassDef)));
 		} catch (SchemaException e) {
-			// LOGGER.error("Schema error while creating search filter: {}",
-			// e.getMessage(), e);
 			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
 		}
 
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
-		// LOGGER.trace("created query " + DOMUtil.printDom(filter));
 
 		return query;
 	}

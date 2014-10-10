@@ -532,10 +532,39 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will,ou=People,dc=example,dc=com", provisioningAccountType.getName());
 	}
 
+	@Test
+	public void test121renameAccountWillOnResource() throws Exception{
+		String TEST_NAME = "test500renameAccountOnResource";
+		TestUtil.displayTestTile(TEST_NAME);
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		openDJController.executeRenameChange(TEST_DIR_NAME + "/rename.ldif");
+		
+		SearchResultEntry entry = openDJController.fetchEntry("uid=will123,ou=People,dc=example,dc=com");
+		assertNotNull("Entry with dn uid=will123,ou=People,dc=example,dc=com does not exist", entry);
+		
+		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+				null, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowType.getName());
+		assertAttribute(repoShadowType, ConnectorFactoryIcfImpl.ICFS_NAME, StringUtils.lowerCase(ACCOUNT_NEW_DN));
+
+		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+				null, task, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will123,ou=People,dc=example,dc=com", provisioningAccountType.getName());
+		assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_NAME, "uid=will123,ou=people,dc=example,dc=com");
+		
+		repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+				null, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal (repo after provisioning)", "uid=will123,ou=People,dc=example,dc=com", repoShadowType.getName());
+		assertAttribute(repoShadowType, ConnectorFactoryIcfImpl.ICFS_NAME, "uid=will123,ou=people,dc=example,dc=com");
+		
+		
+	}
 	
 	@Test
-	public void test121AddObjectNull() throws Exception {
-		final String TEST_NAME = "test121AddObjectNull";
+	public void test125AddObjectNull() throws Exception {
+		final String TEST_NAME = "test125AddObjectNull";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
@@ -641,18 +670,6 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("Object after change",accountType);
 		
 
-//			String changedSn = null;
-//			String uid = null;
-//			for (Object e : accountType.getAttributes().getAny()) {
-//				if ("sn".equals(JAXBUtil.getElementQName(e).getLocalPart())) {
-//					changedSn = ((Element)e).getTextContent();
-//				}
-//				if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(e))) {
-//					uid = ((Element)e).getTextContent();
-//				}
-//
-//			}
-		
 		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
 		List<Object> snValues = ShadowUtil.getAttributeValues(accountType, new QName(RESOURCE_NS, "sn"));
 		assertNotNull(snValues);
@@ -1015,7 +1032,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		Task task = taskManager.createTaskInstance();
 		
 		openDJController.executeLdifChange(
-				"dn: uid=will,ou=People,dc=example,dc=com\n" +
+				"dn: uid=will123,ou=People,dc=example,dc=com\n" +
 				"changetype: modify\n" +
 				"replace: pager\n" +
 				"pager: 1"
@@ -1298,7 +1315,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test300AddObjectObjectAlreadyExist");
 		
-		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NEW_FILENAME));
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_SEARCH_FILENAME));
 		display("Account to add", account);
 		
 		try {
@@ -1430,5 +1447,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				// this is expected..				
 		}
 	}
+	
+	
 	
 }
