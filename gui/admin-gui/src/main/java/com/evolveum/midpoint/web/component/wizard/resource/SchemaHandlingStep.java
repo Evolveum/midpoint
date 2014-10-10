@@ -219,7 +219,7 @@ public class SchemaHandlingStep extends WizardStep {
                         deleteObjectTypePerformed(target, objectType);
                     }
                 };
-                item.add(delete);
+                link.add(delete);
 
                 item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
 

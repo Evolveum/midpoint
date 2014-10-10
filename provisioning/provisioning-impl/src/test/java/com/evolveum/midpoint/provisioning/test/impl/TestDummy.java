@@ -44,6 +44,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.prism.query.OrFilter;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -2299,7 +2300,7 @@ public class TestDummy extends AbstractDummyTest {
 	public void test160SearchNull() throws Exception {
 		final String TEST_NAME = "test160SearchNull";
 		TestUtil.displayTestTile(TEST_NAME);
-		testSeachIterative(TEST_NAME, null, null, true,
+		testSeachIterative(TEST_NAME, null, null, true, true, false,
 				"meathook", "daemon", "morgan", "Will");
 	}
 	
@@ -2398,7 +2399,19 @@ public class TestDummy extends AbstractDummyTest {
 				ACCOUNT_WILL_USERNAME);
 	}
 
-	protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, String attrName, T attrVal, 
+    // TEMPORARY todo move to more appropriate place (model-intest?)
+    @Test
+    public void test168bSearchIcfNameAndUidExactNoFetch() throws Exception {
+        final String TEST_NAME = "test168bSearchIcfNameAndUidExactNoFetch";
+        TestUtil.displayTestTile(TEST_NAME);
+        testSeachIterativeAlternativeAttrFilter(TEST_NAME, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_WILL_USERNAME,
+                ConnectorFactoryIcfImpl.ICFS_UID, willIcfUid,
+                GetOperationOptions.createNoFetch(), false,
+                ACCOUNT_WILL_USERNAME);
+    }
+
+
+    protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, String attrName, T attrVal,
 			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountIds) throws Exception {
 		testSeachIterativeSingleAttrFilter(TEST_NAME, dummyResourceCtl.getAttributeQName(attrName), attrVal, 
 				rootOptions, fullShadow, expectedAccountIds);
@@ -2415,22 +2428,52 @@ public class TestDummy extends AbstractDummyTest {
 		ResourceAttributeDefinition attrDef = objectClassDef.findAttributeDefinition(attrQName);
 		ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attrPVal);
 		
-		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, expectedAccountNames);
+		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, true, false, expectedAccountNames);
 	}
-	
-	private void testSeachIterative(final String TEST_NAME, ObjectFilter attrFilter, GetOperationOptions rootOptions, 
-			final boolean fullShadow, String... expectedAccountNames) throws Exception {
+
+    protected <T> void testSeachIterativeAlternativeAttrFilter(final String TEST_NAME, QName attr1QName, T attr1Val,
+                                                               QName attr2QName, T attr2Val,
+                                                          GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
+        PrismPropertyValue<T> attr1PVal = null;
+        if (attr1Val != null) {
+            attr1PVal = new PrismPropertyValue<T>(attr1Val);
+        }
+        PrismPropertyValue<T> attr2PVal = null;
+        if (attr2Val != null) {
+            attr2PVal = new PrismPropertyValue<T>(attr2Val);
+        }
+        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+        ResourceAttributeDefinition attr1Def = objectClassDef.findAttributeDefinition(attr1QName);
+        ObjectFilter filter1 = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attr1Def.getName()), attr1Def, attr1PVal);
+        ResourceAttributeDefinition attr2Def = objectClassDef.findAttributeDefinition(attr2QName);
+        ObjectFilter filter2 = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attr2Def.getName()), attr2Def, attr2PVal);
+
+        testSeachIterative(TEST_NAME, OrFilter.createOr(filter1, filter2), rootOptions, fullShadow, false, true, expectedAccountNames);
+    }
+
+
+    private void testSeachIterative(final String TEST_NAME, ObjectFilter attrFilter, GetOperationOptions rootOptions,
+			final boolean fullShadow, boolean useObjectClassFilter, final boolean useRepo, String... expectedAccountNames) throws Exception {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
 
-		ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
-						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
+		ObjectQuery query;
+        if (useObjectClassFilter) {
+            query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+                    ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
+            if (attrFilter != null) {
+                AndFilter filter = (AndFilter) query.getFilter();
+                filter.getConditions().add(attrFilter);
+            }
+        } else {
+            query = ObjectQueryUtil.createResourceQuery(RESOURCE_DUMMY_OID, prismContext);
+            if (attrFilter != null) {
+                query.setFilter(AndFilter.createAnd(query.getFilter(), attrFilter));
+            }
+        }
 		
-		if (attrFilter != null) {
-			AndFilter filter = (AndFilter) query.getFilter();
-			filter.getConditions().add(attrFilter);
-		}
-		
+
 		display("Query", query);
 
 		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>();
@@ -2442,8 +2485,10 @@ public class TestDummy extends AbstractDummyTest {
 
 				ObjectType objectType = object.asObjectable();
 				assertTrue(objectType instanceof ShadowType);
-				ShadowType shadow = (ShadowType) objectType;
-				checkAccountShadow(shadow, parentResult, fullShadow);
+                if (!useRepo) {
+                    ShadowType shadow = (ShadowType) objectType;
+                    checkAccountShadow(shadow, parentResult, fullShadow);
+                }
 				return true;
 			}
 		};
@@ -2451,7 +2496,11 @@ public class TestDummy extends AbstractDummyTest {
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
 		
 		// WHEN
-		provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, result);
+        if (useRepo) {
+            repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, result);
+        } else {
+            provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, result);
+        }
 
 		// THEN
 		result.computeStatus();
@@ -2474,9 +2523,10 @@ public class TestDummy extends AbstractDummyTest {
 		}
 		
 		assertEquals("Wrong number of found objects ("+foundObjects+"): "+foundObjects, expectedAccountNames.length, foundObjects.size());
-		checkConsistency(foundObjects);
-		
-		assertSteadyResource();
+        if (!useRepo) {
+            checkConsistency(foundObjects);
+        }
+        assertSteadyResource();
 	}
 	
 	@Test

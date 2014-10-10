@@ -35,7 +35,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
             <class name="com.evolveum.midpoint.model.intest.negative.TestAssignmentErrors"/>
             <class name="com.evolveum.midpoint.model.intest.TestMisc"/>
-            <class name="com.evolveum.midpoint.model.intest.TestResourceModifications"/>
+            <class name="com.evolveum.midpoint.model.intest.TestResources"/>
             <class name="com.evolveum.midpoint.model.intest.TestMapping"/>
             <class name="com.evolveum.midpoint.model.intest.TestSecurity"/>
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>

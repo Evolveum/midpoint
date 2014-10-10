@@ -16,6 +16,9 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,8 +34,11 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -46,6 +52,7 @@ import com.evolveum.midpoint.repo.sql.testing.CarefulAnt;
 import com.evolveum.midpoint.repo.sql.testing.ResourceCarefulAntUtil;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -61,6 +68,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -70,7 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestResourceModifications extends AbstractInitializedModelIntegrationTest {
+public class TestResources extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/contract");
 
@@ -80,11 +88,7 @@ public class TestResourceModifications extends AbstractInitializedModelIntegrati
 	private static CarefulAnt<ResourceType> descriptionAnt;
 	private static String lastVersion;
 	private static Random rnd = new Random();
-	
-	public TestResourceModifications() throws JAXBException {
-		super();
-	}
-	
+		
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -92,15 +96,135 @@ public class TestResourceModifications extends AbstractInitializedModelIntegrati
 		descriptionAnt = ants.get(0);
 		// get resource to make sure it has generated schema
 		modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, initTask, initResult);
+		InternalMonitor.reset();
+		InternalMonitor.setTraceShadowFetchOperation(true);
+		InternalMonitor.setTraceResourceSchemaOperations(true);
 	}
-
+	
 	@Test
-    public void test010GetResourceRaw() throws Exception {
-		final String TEST_NAME = "test040GetResourceRaw";
+    public void test100GetResource() throws Exception {
+		final String TEST_NAME = "test100GetResource";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestResourceModifications.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+        
+		// WHEN
+		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null , task, result);
+		
+		// THEN
+		assertResourceDummy(resource);
+		
+        result.computeStatus();
+        TestUtil.assertSuccess("getObject result", result);
+        
+        assertSteadyResources();
+	}
+	
+	@Test
+    public void test110SearchResources() throws Exception {
+		final String TEST_NAME = "test110SearchResources";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+        
+		// WHEN
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
+
+		// THEN
+        assertNotNull("null search return", resources);
+        assertFalse("Empty search return", resources.isEmpty());
+        assertEquals("Unexpected number of resources found", 8, resources.size());
+        
+        result.computeStatus();
+        TestUtil.assertSuccess("searchObjects result", result);
+
+        for (PrismObject<ResourceType> resource: resources) {
+        	assertResource(resource);
+        }
+        
+        assertSteadyResources();
+	}
+	
+	@Test
+    public void test120SearchResourcesIterative() throws Exception {
+		final String TEST_NAME = "test120SearchResourcesIterative";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);        
+
+        final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
+        		
+        ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
+			@Override
+			public boolean handle(PrismObject<ResourceType> resource, OperationResult parentResult) {
+				try {
+					assertResource(resource);
+				} catch (JAXBException e) {
+					throw new RuntimeException(e.getMessage(),e);
+				}
+				resources.add(resource);
+				return true;
+			}
+		};
+        
+		// WHEN
+        modelService.searchObjectsIterative(ResourceType.class, null, handler, null, task, result);
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess("searchObjects result", result);
+
+        assertFalse("Empty search return", resources.isEmpty());
+        assertEquals("Unexpected number of resources found", 8, resources.size());
+        
+        assertSteadyResources();
+	}
+	
+	private void assertResourceDummy(PrismObject<ResourceType> resource) throws JAXBException {
+		assertResource(resource);
+		PrismContainer<ConnectorConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = configurationContainer.getDefinition();
+		
+	}
+	
+	private void assertResource(PrismObject<ResourceType> resource) throws JAXBException {
+		display("Resource", resource);
+		display("Resource def", resource.getDefinition());
+		PrismContainer<ConnectorConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		assertNotNull("No Resource connector configuration def", configurationContainer);
+		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = configurationContainer.getDefinition();
+		display("Resource connector configuration def", configurationContainerDefinition);
+		display("Resource connector configuration def complex type def", configurationContainerDefinition.getComplexTypeDefinition());
+		assertNotNull("Empty Resource connector configuration def", configurationContainer.isEmpty());
+		assertEquals("Wrong compile-time class in Resource connector configuration in "+resource, ConnectorConfigurationType.class, 
+				configurationContainer.getCompileTimeClass());
+		assertEquals("configurationContainer maxOccurs", 1, configurationContainerDefinition.getMaxOccurs());
+		
+		resource.checkConsistence(true, true);
+		
+		// Try to marshal using pure JAXB as a rough test that it is OK JAXB-wise
+        // skipped because of parsing changes [pm]
+//		Element resourceDomElement = prismContext.getPrismJaxbProcessor().marshalJaxbObjectToDom(resource.asObjectable(), new QName(SchemaConstants.NS_C, "resource"),
+//				DOMUtil.getDocument());
+//		display("Resouce DOM element after JAXB marshall", resourceDomElement);
+	}
+
+	@Test
+    public void test200GetResourceRaw() throws Exception {
+		final String TEST_NAME = "test200GetResourceRaw";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -122,22 +246,22 @@ public class TestResourceModifications extends AbstractInitializedModelIntegrati
 	
 	
 	@Test
-    public void test020SingleDescriptionModify() throws Exception {
-		final String TEST_NAME = "test020SingleDescriptionModify";
+    public void test820SingleDescriptionModify() throws Exception {
+		final String TEST_NAME = "test820SingleDescriptionModify";
         TestUtil.displayTestTile(this, TEST_NAME);
     	
-        Task task = taskManager.createTaskInstance(TestResourceModifications.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
     	singleModify(descriptionAnt, -1, task, result);
     }
 	
 	@Test
-    public void test040RadomModifySequence() throws Exception {
-    	final String TEST_NAME = "test040RadomModifySequence";
+    public void test840RadomModifySequence() throws Exception {
+    	final String TEST_NAME = "test840RadomModifySequence";
     	TestUtil.displayTestTile(this, TEST_NAME);
     	
-    	Task task = taskManager.createTaskInstance(TestResourceModifications.class.getName() + "." + TEST_NAME);
+    	Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
     	
     	for(int i=0; i <= MAX_RANDOM_SEQUENCE_ITERATIONS; i++) {
@@ -178,11 +302,11 @@ public class TestResourceModifications extends AbstractInitializedModelIntegrati
     }
     
     @Test
-    public void test100ModifyConfiguration() throws Exception {
-		final String TEST_NAME = "test020SingleDescriptionModify";
+    public void test850ModifyConfiguration() throws Exception {
+		final String TEST_NAME = "test850ModifyConfiguration";
         TestUtil.displayTestTile(this, TEST_NAME);
     	
-        Task task = taskManager.createTaskInstance(TestResourceModifications.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         ItemPath propPath = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, 
@@ -205,4 +329,10 @@ public class TestResourceModifications extends AbstractInitializedModelIntegrati
     	
     }
 
+	private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		assumeAssignmentPolicy(enforcementPolicy);
+        dummyAuditService.clear();
+        prepareNotifications();
+        rememberShadowFetchOperationCount();
+	}
 }

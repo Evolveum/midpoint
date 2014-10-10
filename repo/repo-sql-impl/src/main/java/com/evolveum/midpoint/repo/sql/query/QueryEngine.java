@@ -3,6 +3,8 @@ package com.evolveum.midpoint.repo.sql.query;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sql.query.custom.CustomQuery;
+import com.evolveum.midpoint.repo.sql.query.custom.ShadowQueryWithDisjunction;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -24,6 +26,7 @@ public class QueryEngine {
     private static final List<CustomQuery> queryLibrary = new ArrayList<>();
 
     static {
+        queryLibrary.add(new ShadowQueryWithDisjunction());
 //        queryLibrary.add(new OrgFilterQuery());
     }
 
