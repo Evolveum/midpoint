@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -32,10 +31,10 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
+import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -298,7 +297,20 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
         add(matchingRule);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
-                new PropertyModel<String>(getModel(), "outbound.name"));
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        ResourceObjectAssociationType association = getModel().getObject();
+
+                        if(association == null){
+                            return null;
+                        }
+
+                        return MappingTypeDto.createMappingLabel(association.getOutbound(), LOGGER, getPageBase().getPrismContext(),
+                                getString("MappingType.label.placeholder"), getString("MultiValueField.nameNotSpecified"));
+                    }
+                });
         outboundLabel.setOutputMarkupId(true);
         outboundLabel.setEnabled(false);
         add(outboundLabel);
@@ -322,17 +334,8 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
                     @Override
                     public String getObject() {
-                        MappingType mapping = model.getObject();
-
-                        if(mapping == null){
-                            return null;
-                        }
-
-                        if(mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())){
-                            return mapping.getName();
-                        } else {
-                            return getString("MultiValueField.nameNotSpecified");
-                        }
+                        return MappingTypeDto.createMappingLabel(model.getObject(), LOGGER, getPageBase().getPrismContext(),
+                                getString("MappingType.label.placeholder"), getString("MultiValueField.nameNotSpecified"));
                     }
                 };
             }

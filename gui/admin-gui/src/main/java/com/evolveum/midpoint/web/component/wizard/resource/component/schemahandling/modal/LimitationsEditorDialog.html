@@ -37,11 +37,16 @@
                     <div class="panel-heading">
                         <h4 class="panel-title">
                             <a wicket:id="limitationsLink" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                                <button wicket:id="deleteLimitation" type="button" class="close">
+                                    <span aria-hidden="true">&times;</span>
+                                    <span class="sr-only">
+                                        <wicket:message key="LimitationsEditorDialog.label.close"/>
+                                    </span>
+                                </button>
+                                <span class="close">&nbsp;</span>
+                                <button type="button" class="close"><span aria-hidden="true">&#8628;</span><span class="sr-only">Expand</span></button>
                                 <span wicket:id="limitationsLinkName"></span>
                             </a>
-                            <button wicket:id="deleteLimitation" type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">
-                                <wicket:message key="LimitationsEditorDialog.label.close"/>
-                            </span></button>
                         </h4>
                     </div>
 

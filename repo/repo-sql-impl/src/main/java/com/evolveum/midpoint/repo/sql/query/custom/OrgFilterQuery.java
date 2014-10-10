@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query;
+package com.evolveum.midpoint.repo.sql.query.custom;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.repo.sql.query.RQuery;
+import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -26,7 +28,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
 
@@ -34,6 +35,8 @@ import java.util.Collection;
 
 /**
  * @author lazyman
+ *
+ * CURRENTLY UNUSED.
  */
 public class OrgFilterQuery extends CustomQuery {
 

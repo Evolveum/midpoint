@@ -196,7 +196,7 @@ public class CapabilityStep extends WizardStep {
                         deleteCapabilityPerformed(target, dto);
                     }
                 };
-                capabilityRow.add(deleteLink);
+                name.add(deleteLink);
 
                 capabilityRow.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<Object>() {
 

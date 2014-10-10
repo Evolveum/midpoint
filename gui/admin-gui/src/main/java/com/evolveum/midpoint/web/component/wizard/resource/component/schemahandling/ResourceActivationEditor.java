@@ -16,15 +16,17 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
+import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -39,6 +41,8 @@ import java.util.List;
  *  @author shood
  * */
 public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefinitionType>{
+
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceActivationEditor.class);
 
     private static final String ID_EXISTENCE_FS = "existenceFetchStrategy";
     private static final String ID_EXISTENCE_OUT = "existenceOutbound";
@@ -120,17 +124,8 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
 
                     @Override
                     public String getObject() {
-                        MappingType mapping = model.getObject();
-
-                        if(mapping == null){
-                            return null;
-                        }
-
-                        if(mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())){
-                            return mapping.getName();
-                        } else {
-                            return getString("MultiValueField.nameNotSpecified");
-                        }
+                        return MappingTypeDto.createMappingLabel(model.getObject(), LOGGER, getPageBase().getPrismContext(),
+                                getString("MappingType.label.placeholder"), getString("MultiValueField.nameNotSpecified"));
                     }
                 };
             }
@@ -156,17 +151,8 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
 
                     @Override
                     public String getObject() {
-                        MappingType mapping = model.getObject();
-
-                        if(mapping == null){
-                            return null;
-                        }
-
-                        if(mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())){
-                            return mapping.getName();
-                        } else {
-                            return getString("MultiValueField.nameNotSpecified");
-                        }
+                        return MappingTypeDto.createMappingLabel(model.getObject(), LOGGER, getPageBase().getPrismContext(),
+                                getString("MappingType.label.placeholder"), getString("MultiValueField.nameNotSpecified"));
                     }
                 };
             }
