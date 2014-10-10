@@ -121,7 +121,7 @@ public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTyp
                         deleteDependencyPerformed(target, item);
                     }
                 };
-                item.add(delete);
+                linkContainer.add(delete);
 
                 WebMarkupContainer dependencyBody = new WebMarkupContainer(ID_DEPENDENCY_BODY);
                 dependencyBody.setOutputMarkupId(true);

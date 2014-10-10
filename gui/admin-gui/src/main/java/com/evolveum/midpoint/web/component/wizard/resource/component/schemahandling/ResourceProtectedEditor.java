@@ -116,7 +116,7 @@ public class ResourceProtectedEditor extends SimplePanel<List<ResourceObjectPatt
                         deleteDependencyPerformed(target, item);
                     }
                 };
-                item.add(delete);
+                linkCont.add(delete);
 
                 WebMarkupContainer accountBody = new WebMarkupContainer(ID_ACCOUNT_BODY);
                 accountBody.setOutputMarkupId(true);

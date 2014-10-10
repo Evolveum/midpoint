@@ -16,7 +16,14 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import javax.xml.bind.JAXBElement;
 
 /**
  *  @author shood
@@ -77,6 +84,7 @@ public class ExpressionUtil {
 
     public static final String ELEMENT_SCRIPT = "</script>";
     public static final String ELEMENT_GENERATE = "</generate>";
+    public static final String ELEMENT_GENERATE_WITH_NS = "<generate";
     public static final String ELEMENT_PATH = "</path>";
     public static final String ELEMENT_VALUE = "</value>";
     public static final String ELEMENT_AS_IS = "<asIs/>";
@@ -140,7 +148,7 @@ public class ExpressionUtil {
     public static ExpressionEvaluatorType getExpressionType(String expression){
         if(expression.contains(ELEMENT_AS_IS) || expression.contains(ELEMENT_AS_IS_WITH_NS)){
             return ExpressionEvaluatorType.AS_IS;
-        } else if(expression.contains(ELEMENT_GENERATE)){
+        } else if(expression.contains(ELEMENT_GENERATE) || expression.contains(ELEMENT_GENERATE_WITH_NS)){
             return ExpressionEvaluatorType.GENERATE;
         } else if(expression.contains(ELEMENT_PATH)){
             return ExpressionEvaluatorType.PATH;
@@ -184,5 +192,34 @@ public class ExpressionUtil {
         }
 
         return newExpression;
+    }
+
+    public static String loadExpression(MappingType mapping, PrismContext prismContext,
+                                        Trace LOGGER){
+        String expression = "";
+
+        if(mapping.getExpression() != null && mapping.getExpression().getExpressionEvaluator() != null
+                && !mapping.getExpression().getExpressionEvaluator().isEmpty()){
+
+
+            try {
+                if(mapping.getExpression().getExpressionEvaluator().size() == 1){
+                    expression = prismContext.serializeAtomicValue(mapping.getExpression().getExpressionEvaluator().get(0), PrismContext.LANG_XML);
+                } else{
+                    StringBuilder sb = new StringBuilder();
+                    for(JAXBElement<?> element: mapping.getExpression().getExpressionEvaluator()){
+                        String subElement = prismContext.serializeAtomicValue(element, PrismContext.LANG_XML);
+                        sb.append(subElement).append("\n");
+                    }
+                    expression = sb.toString();
+                }
+            } catch (SchemaException e) {
+                //TODO - how can we show this error to user?
+                LoggingUtils.logException(LOGGER, "Could not load expressions from mapping.", e, e.getStackTrace());
+                expression = e.getMessage();
+            }
+        }
+
+        return expression;
     }
 }

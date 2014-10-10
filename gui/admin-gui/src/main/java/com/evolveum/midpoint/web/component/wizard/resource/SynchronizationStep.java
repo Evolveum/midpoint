@@ -228,7 +228,7 @@ public class SynchronizationStep extends WizardStep {
                         deleteSyncObjectPerformed(target, syncObject);
                     }
                 };
-                item.add(delete);
+                link.add(delete);
 
                 item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
 

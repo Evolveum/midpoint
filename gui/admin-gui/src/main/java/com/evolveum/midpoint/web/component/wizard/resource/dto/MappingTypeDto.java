@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.lang.StringUtils;
 
 import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
@@ -109,30 +110,11 @@ public class MappingTypeDto implements Serializable {
     }
 
     private void loadExpressions(PrismContext context){
-        if(mappingObject.getExpression() != null && mappingObject.getExpression().getExpressionEvaluator() != null
-                && !mappingObject.getExpression().getExpressionEvaluator().isEmpty()){
+        expression = ExpressionUtil.loadExpression(mappingObject, context, LOGGER);
 
-            try {
-                if(mappingObject.getExpression().getExpressionEvaluator().size() == 1){
-                    expression = context.serializeAtomicValue(mappingObject.getExpression().getExpressionEvaluator().get(0), PrismContext.LANG_XML);
-                } else{
-                    StringBuilder sb = new StringBuilder();
-                    for(JAXBElement<?> element: mappingObject.getExpression().getExpressionEvaluator()){
-                        String subElement = context.serializeAtomicValue(element, PrismContext.LANG_XML);
-                        sb.append(subElement).append("\n");
-                    }
-                    expression = sb.toString();
-                }
-
-                expressionType = ExpressionUtil.getExpressionType(expression);
-                if(expressionType != null && expressionType.equals(ExpressionUtil.ExpressionEvaluatorType.SCRIPT)){
-                    expressionLanguage = ExpressionUtil.getExpressionLanguage(expression);
-                }
-            } catch (SchemaException e) {
-                //TODO - how can we show this error to user?
-                LoggingUtils.logException(LOGGER, "Could not load expressions from mapping.", e, e.getStackTrace());
-                expression = e.getMessage();
-            }
+        expressionType = ExpressionUtil.getExpressionType(expression);
+        if(expressionType != null && expressionType.equals(ExpressionUtil.ExpressionEvaluatorType.SCRIPT)){
+            expressionLanguage = ExpressionUtil.getExpressionLanguage(expression);
         }
     }
 
@@ -373,4 +355,30 @@ public class MappingTypeDto implements Serializable {
         result = 31 * result + (conditionPolicyRef != null ? conditionPolicyRef.hashCode() : 0);
         return result;
     }
+
+    /**
+     *  TODO - find a better place for this method, it probably shouldn't be here
+     * */
+    public static String createMappingLabel(MappingType mapping, Trace LOGGER, PrismContext context,
+                                            String placeholder, String nameNotSpecified ){
+        if(mapping == null){
+            return placeholder;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        if(mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())){
+            sb.append(mapping.getName());
+        } else {
+            sb.append(nameNotSpecified);
+        }
+
+        if(mapping.getExpression() != null && mapping.getExpression().getExpressionEvaluator() != null){
+            sb.append(" (");
+            sb.append(ExpressionUtil.getExpressionType(ExpressionUtil.loadExpression(mapping, context, LOGGER)));
+            sb.append(")");
+        }
+
+        return sb.toString();
+    }
+
 }

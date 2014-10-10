@@ -150,7 +150,7 @@ public class LimitationsEditorDialog extends ModalWindow{
                         deleteLimitationPerformed(target, item);
                     }
                 };
-                item.add(delete);
+                linkContainer.add(delete);
 
                 WebMarkupContainer limitationBody = new WebMarkupContainer(ID_BODY);
                 limitationBody.setOutputMarkupId(true);
