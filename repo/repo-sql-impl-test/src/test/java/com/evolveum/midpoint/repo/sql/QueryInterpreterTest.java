@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -35,12 +36,17 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
+import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query.RQuery;
+import com.evolveum.midpoint.repo.sql.query.RQueryCriteriaImpl;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -1563,4 +1569,47 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             close(session);
         }
     }
+
+//    @Test
+//    public void atest100() throws Exception {
+//        Session session = open();
+//
+//        try {
+//            String expected = null;//HibernateToSqlTranslator.toSql(main);
+//
+//            List<EqualFilter> secondaryEquals = new ArrayList<>();
+//            EqualFilter eq = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_UID),
+//                    new PrismPropertyDefinition(SchemaConstantsGenerated.ICF_S_UID, DOMUtil.XSD_STRING, prismContext),
+//                    "8daaeeae-f0c7-41c9-b258-2a3351aa8876");
+//            secondaryEquals.add(eq);
+//            eq = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_NAME),
+//                    new PrismPropertyDefinition(SchemaConstantsGenerated.ICF_S_NAME, DOMUtil.XSD_STRING, prismContext),
+//                    "some-name");
+//            secondaryEquals.add(eq);
+//
+//            OrFilter secondaryIdentifierFilter = OrFilter.createOr((List) secondaryEquals);
+//            RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
+//                    prismContext, "ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2");
+//
+//            AndFilter filter = AndFilter.createAnd(ref, secondaryIdentifierFilter);
+//            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+//            LOGGER.debug("Query\n{}", query);
+//
+//            QueryEngine engine = new QueryEngine(repositoryService.getConfiguration(), prismContext);
+//            RQuery rQuery = engine.interpret(query, ShadowType.class, null, false, session);
+//            RQueryCriteriaImpl rci = (RQueryCriteriaImpl) rQuery;
+//            System.out.println(rci);
+//            System.out.println(rci.getCriteria());
+//            //just test if DB will handle it or throws some exception
+//            List l = rQuery.list();
+//            LOGGER.info(">>>>>>>>asdfasdfasdfasdf{}",l.size());
+//
+//            String real = getInterpretedQuery(session, ShadowType.class, query);
+//
+//            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+//            AssertJUnit.assertEquals(expected, real);
+//        } finally {
+//            close(session);
+//        }
+//    }
 }
