@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.query.custom;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Conjunction;
@@ -56,6 +58,7 @@ import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
 
 import javax.xml.namespace.QName;
+
 import java.util.Collection;
 
 /**
@@ -85,6 +88,7 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
         if (!ShadowType.class.equals(type)) {
             return false;
         }
+        LOGGER.info("shadow disjunction query match");
         return parse(objectQuery) != null;
     }
 
@@ -94,6 +98,7 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
             return null;
         }
 
+        LOGGER.info("create shadow disjunction parse");
         AndFilter andFilter = (AndFilter) objectQuery.getFilter();
 
         RefFilter refFilter = null;
@@ -119,17 +124,17 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
 
         EqualFilter eqUidFilter = null;
         EqualFilter eqNameFilter = null;
-        ItemPath uidPath = new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_UID);
+//        ItemPath uidPath = new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_UID);
         ItemPath namePath = new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_NAME);
         for (ObjectFilter filter : orFilter.getConditions()) {
             if (!(filter instanceof EqualFilter)) {
                 return null;
             }
             EqualFilter equalFilter = (EqualFilter) filter;
-            if (uidPath.equivalent(equalFilter.getPath())) {
-                eqUidFilter = equalFilter;
-            } else if (namePath.equivalent(equalFilter.getPath())) {
-                eqNameFilter = equalFilter;
+            if (namePath.equivalent(equalFilter.getPath())) {
+            	eqNameFilter = equalFilter;
+            } else if (ShadowType.F_ATTRIBUTES.equals(((NameItemPathSegment)equalFilter.getPath().first()).getName())) {
+            	eqUidFilter = equalFilter;
             } else {
                 return null;
             }
@@ -155,7 +160,7 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
                               Collection<SelectorOptions<GetOperationOptions>> options, boolean countingObjects,
                               Session session) {
 
-
+    	LOGGER.info("create shadow disjunction query");
         DetachedCriteria c1 = DetachedCriteria.forClass(ClassMapper.getHQLTypeClass(ShadowType.class), "s");
         c1.createCriteria("strings", "s1", JoinType.LEFT_OUTER_JOIN);
 
@@ -163,7 +168,7 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(Restrictions.eq("resourceRef.targetOid", parsedQuery.refFilter.getValues().get(0).getOid()));
         Disjunction disjunction = Restrictions.disjunction();
-        disjunction.add(createAttributeEq(parsedQuery.eqUidFilter, SchemaConstantsGenerated.ICF_S_UID));
+        disjunction.add(createAttributeEq(parsedQuery.eqUidFilter, parsedQuery.eqUidFilter.getPath().lastNamed().getName()));
         disjunction.add(createAttributeEq(parsedQuery.eqNameFilter, SchemaConstantsGenerated.ICF_S_NAME));
         conjunction.add(disjunction);
         c1.add(conjunction);
@@ -193,6 +198,7 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
         cMain.setProjection(projections);
 
         cMain.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+        LOGGER.info("Criteria: {}", cMain);
         return new RQueryCriteriaImpl(cMain);
     }
 
