@@ -130,19 +130,6 @@ public class ShadowManager {
 		if (FailedOperationTypeType.ADD == conflictedShadow.asObjectable().getFailedOperationType()) {
 			objectDelta = ObjectDelta.createAddDelta(conflictedShadow);
 		} 
-//		else if (FailedOperationTypeType.MODIFY == conflictedShadow.getFailedOperationType()) {
-//			ObjectDeltaType objDeltaType = conflictedShadow.getObjectChange();
-//			if (objDeltaType != null) {
-//				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-//						objDeltaType.getModification(), account.getDefinition());
-//				objectDelta = ObjectDelta.createModifyDelta(conflictedShadow.getOid(), modifications,
-//						AccountShadowType.class, prismContext);
-//
-//			}
-//		}
-//		else if (FailedOperationTypeType.DELETE == conflictedShadow.getFailedOperationType()){
-//			objectDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, conflictedShadow.getOid(), prismContext);
-//		}
 		failureDesc.setObjectDelta(objectDelta);
 		failureDesc.setResource(resource.asPrismObject());
 		failureDesc.setResult(parentResult);
@@ -196,7 +183,7 @@ public class ShadowManager {
 		return results.get(0);
 	}
 	
-	public PrismObject<ShadowType> lookupShadowByName( 
+	public PrismObject<ShadowType> lookupShadowBySecondaryIdentifiers( 
 			PrismObject<ShadowType> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
 			ResourceType resource, OperationResult parentResult) 
 					throws SchemaException, ConfigurationException {
@@ -309,10 +296,10 @@ public class ShadowManager {
 			ConfigurationException, SecurityViolationException {
 
 		// Try to locate existing shadow in the repository
-		List<PrismObject<ShadowType>> accountList = searchAccountByIdenifiers(change, objectClassDefinition, resource, parentResult);
+		List<PrismObject<ShadowType>> accountList = searchShadowByIdenifiers(change, objectClassDefinition, resource, parentResult);
 
 		if (accountList.size() > 1) {
-			String message = "Found more than one account with the identifier " + change.getIdentifiers() + ".";
+			String message = "Found more than one shadow with the identifier " + change.getIdentifiers() + ".";
 			LOGGER.error(message);
 			parentResult.recordFatalError(message);
 			throw new IllegalArgumentException(message);
@@ -333,11 +320,11 @@ public class ShadowManager {
 						change.getObjectDelta().setOid(oid);
 					}
 				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError("Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
+					parentResult.recordFatalError("Can't add " + SchemaDebugUtil.prettyPrint(newShadow)
 							+ " to the repository. Reason: " + e.getMessage(), e);
 					throw new IllegalStateException(e.getMessage(), e);
 				}
-				LOGGER.trace("Created account shadow object: {}", newShadow);
+				LOGGER.trace("Created shadow object: {}", newShadow);
 			}
 
 		} else {
@@ -353,11 +340,11 @@ public class ShadowManager {
 								parentResult);
 					} catch (ObjectAlreadyExistsException e) {
 						parentResult.recordFatalError(
-								"Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
+								"Can't add " + SchemaDebugUtil.prettyPrint(newShadow)
 										+ " to the repository. Reason: " + e.getMessage(), e);
 						throw new IllegalStateException(e.getMessage(), e);
 					} catch (ObjectNotFoundException e) {
-						parentResult.recordWarning("Account shadow " + SchemaDebugUtil.prettyPrint(newShadow)
+						parentResult.recordWarning("Shadow " + SchemaDebugUtil.prettyPrint(newShadow)
 								+ " was probably deleted from the repository in the meantime. Exception: "
 								+ e.getMessage(), e);
 						return null;
@@ -394,9 +381,9 @@ public class ShadowManager {
 		try {
 			shadow = createRepositoryShadow(shadow, resource, objectClassDefinition);
 		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Can't create account shadow from identifiers: "
+			parentResult.recordFatalError("Can't create shadow from identifiers: "
 					+ change.getIdentifiers());
-			throw new SchemaException("Can't create account shadow from identifiers: "
+			throw new SchemaException("Can't create shadow from identifiers: "
 					+ change.getIdentifiers());
 		}
 
@@ -404,7 +391,7 @@ public class ShadowManager {
 		return shadow;
 	}
 	
-	private List<PrismObject<ShadowType>> searchAccountByIdenifiers(Change<ShadowType> change, 
+	private List<PrismObject<ShadowType>> searchShadowByIdenifiers(Change<ShadowType> change, 
 			RefinedObjectClassDefinition rOcDef, ResourceType resource, OperationResult parentResult)
 			throws SchemaException {
 
@@ -415,9 +402,9 @@ public class ShadowManager {
 			accountList = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError(
-					"Failed to search account according to the identifiers: " + change.getIdentifiers() + ". Reason: "
+					"Failed to search shadow according to the identifiers: " + change.getIdentifiers() + ". Reason: "
 							+ ex.getMessage(), ex);
-			throw new SchemaException("Failed to search account according to the identifiers: "
+			throw new SchemaException("Failed to search shadow according to the identifiers: "
 					+ change.getIdentifiers() + ". Reason: " + ex.getMessage(), ex);
 		}
 		return accountList;

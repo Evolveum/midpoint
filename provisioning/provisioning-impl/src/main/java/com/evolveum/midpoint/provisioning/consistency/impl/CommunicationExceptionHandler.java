@@ -113,7 +113,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		switch (op) {
 		case ADD:
 			// if it is firt time, just store the whole account to the repo
-			LOGGER.trace("Postponing ADD operation for shadow {}", ObjectTypeUtil.toShortString(shadow));
+			LOGGER.trace("Postponing ADD operation for {}", ObjectTypeUtil.toShortString(shadow));
 			ResourceType resource = shadow.getResource();
 			if (shadow.getFailedOperationType() == null) {
 //				ResourceType resource = shadow.getResource();
@@ -152,9 +152,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			}
 			operationResult.computeStatus();
 			parentResult
-					.recordHandledError("Could not create account=" +shadow.getName().getOrig()+" on the resource, because "
+					.recordHandledError("Could not create object=" +shadow.getName().getOrig()+" on the resource, because "
 									+ ObjectTypeUtil.toShortString(resource)
-									+ " is unreachable at the moment. Shadow is stored in the repository and the account will be created when the resource goes online");   // there will be something like ": Add object failed" appended, so the final dot was a bit ugly here
+									+ " is unreachable at the moment. Shadow is stored in the repository and the resource object will be created when the resource goes online");   // there will be something like ": Add object failed" appended, so the final dot was a bit ugly here
 			
 //			task = taskManager.createTaskInstance();
 			delta = ObjectDelta.createAddDelta(shadow.asPrismObject());
@@ -211,7 +211,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			parentResult
 					.recordHandledError("Could not delete " +ObjectTypeUtil.getShortTypeName(shadow)+ " from the resource "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
-									+ ", because resource is unreachable. Account will be delete when the resource goes online");
+									+ ", because resource is unreachable. Resource object will be delete when the resource goes online");
 //			operationResult.recordSuccess();
 			operationResult.computeStatus();
 //			task = taskManager.createTaskInstance();

@@ -264,7 +264,7 @@ public abstract class ShadowCache {
 				//check if the account is not only partially created (exist only in repo so far)
 				if (repositoryShadow.asObjectable().getFailedOperationType() != null) {
 					throw new GenericConnectorException(
-							"Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+							"Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 				}
 				// No identifiers found
 				SchemaException ex = new SchemaException("No identifiers found in the repository shadow "
@@ -285,7 +285,7 @@ public abstract class ShadowCache {
 					&& resource.getOperationalState() != null
 					&& resource.getOperationalState().getLastAvailabilityStatus() == AvailabilityStatusType.UP) {
 				throw new GenericConnectorException(
-						"Found changes that have been not applied to the account yet. Trying to apply them now.");
+						"Found changes that have been not applied to the resource object yet. Trying to apply them now.");
 			}
 			
 			if (LOGGER.isTraceEnabled()) {
@@ -919,7 +919,7 @@ public abstract class ShadowCache {
 					SchemaDebugUtil.prettyPrint(resourceShadow));
 
 			
-			PrismObject<ShadowType> conflictingShadow = shadowManager.lookupShadowByName(resourceShadow, objectClassDef, resourceType, parentResult);
+			PrismObject<ShadowType> conflictingShadow = shadowManager.lookupShadowBySecondaryIdentifiers(resourceShadow, objectClassDef, resourceType, parentResult);
 			if (conflictingShadow != null){
 				applyAttributesDefinition(conflictingShadow, resourceType);
 				conflictingShadow = completeShadow(connector, resourceShadow, conflictingShadow, resourceType, objectClassDef, parentResult);
