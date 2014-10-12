@@ -88,7 +88,6 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
         if (!ShadowType.class.equals(type)) {
             return false;
         }
-        LOGGER.info("shadow disjunction query match");
         return parse(objectQuery) != null;
     }
 
@@ -125,6 +124,11 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
         EqualFilter eqUidFilter = null;
         EqualFilter eqNameFilter = null;
 //        ItemPath uidPath = new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_UID);
+        if (orFilter.getConditions() != null && !orFilter.getConditions().isEmpty()){
+        	if (orFilter.getConditions().size() != 2){
+        		return null;
+        	}
+        }
         ItemPath namePath = new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_NAME);
         for (ObjectFilter filter : orFilter.getConditions()) {
             if (!(filter instanceof EqualFilter)) {
@@ -160,7 +164,6 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
                               Collection<SelectorOptions<GetOperationOptions>> options, boolean countingObjects,
                               Session session) {
 
-    	LOGGER.info("create shadow disjunction query");
         DetachedCriteria c1 = DetachedCriteria.forClass(ClassMapper.getHQLTypeClass(ShadowType.class), "s");
         c1.createCriteria("strings", "s1", JoinType.LEFT_OUTER_JOIN);
 
