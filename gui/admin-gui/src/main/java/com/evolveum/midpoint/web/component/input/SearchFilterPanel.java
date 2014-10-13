@@ -22,9 +22,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.dto.SearchFilterTypeDto;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
@@ -40,6 +42,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends SimplePanel<T
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_FILTER_CLAUSE = "filterClause";
     private static final String ID_BUTTON_UPDATE = "update";
+    private static final String ID_T_CLAUSE = "filterClauseTooltip";
 
     protected IModel<SearchFilterTypeDto> model;
 
@@ -79,6 +82,10 @@ public class SearchFilterPanel<T extends SearchFilterType> extends SimplePanel<T
             }
         };
         add(update);
+
+        Label clauseTooltip = new Label(ID_T_CLAUSE);
+        clauseTooltip.add(new InfoTooltipBehavior());
+        add(clauseTooltip);
     }
 
     private void updateClausePerformed(AjaxRequestTarget target){

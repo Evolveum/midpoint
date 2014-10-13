@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandl
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
@@ -85,6 +86,24 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
     private static final String ID_BUTTON_LIMITATIONS = "buttonLimitations";
     private static final String ID_MODAL_LIMITATIONS = "limitationsEditor";
     private static final String ID_MODAL_MAPPING = "mappingEditor";
+
+    private static final String ID_T_REF = "referenceTooltip";
+    private static final String ID_T_ALLOW = "allowTooltip";
+    private static final String ID_T_LIMITATIONS = "limitationsTooltip";
+    private static final String ID_T_EXCLUSIVE_STRONG = "exclusiveStrongTooltip";
+    private static final String ID_T_TOLERANT = "tolerantTooltip";
+    private static final String ID_T_TOLERANT_VP = "tolerantVPTooltip";
+    private static final String ID_T_INTOLERANT_VP = "intolerantVPTooltip";
+    private static final String ID_T_FETCH = "fetchStrategyTooltip";
+    private static final String ID_T_MATCHING_RULE = "matchingRuleTooltip";
+    private static final String ID_T_OUTBOUND = "outboundTooltip";
+    private static final String ID_T_INBOUND = "inboundTooltip";
+    private static final String ID_T_KIND = "kindTooltip";
+    private static final String ID_T_INTENT = "intentTooltip";
+    private static final String ID_T_DIRECTION = "directionTooltip";
+    private static final String ID_T_ASSOCIATION_ATTRIBUTE = "associationAttributeTooltip";
+    private static final String ID_T_VALUE_ATTRIBUTE = "valueAttributeTooltip";
+    private static final String ID_T_EXPLICIT_REF_INTEGRITY = "explicitRefIntegrityTooltip";
 
     private PrismObject<ResourceType> resource;
     private ResourceObjectTypeDefinitionType objectType;
@@ -352,6 +371,74 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
         };
         inbound.setOutputMarkupId(true);
         add(inbound);
+
+        Label kindTooltip = new Label(ID_T_KIND);
+        kindTooltip.add(new InfoTooltipBehavior());
+        add(kindTooltip);
+
+        Label intentTooltip = new Label(ID_T_INTENT);
+        intentTooltip.add(new InfoTooltipBehavior());
+        add(intentTooltip);
+
+        Label directionTooltip = new Label(ID_T_DIRECTION);
+        directionTooltip.add(new InfoTooltipBehavior());
+        add(directionTooltip);
+
+        Label assAttributeTooltip = new Label(ID_T_ASSOCIATION_ATTRIBUTE);
+        assAttributeTooltip.add(new InfoTooltipBehavior());
+        add(assAttributeTooltip);
+
+        Label valueAttributeTooltip = new Label(ID_T_VALUE_ATTRIBUTE);
+        valueAttributeTooltip.add(new InfoTooltipBehavior());
+        add(valueAttributeTooltip);
+
+        Label integrityTooltip = new Label(ID_T_EXPLICIT_REF_INTEGRITY);
+        integrityTooltip.add(new InfoTooltipBehavior());
+        add(integrityTooltip);
+
+        Label refTooltip = new Label(ID_T_REF);
+        refTooltip.add(new InfoTooltipBehavior());
+        add(refTooltip);
+
+        Label allowTooltip = new Label(ID_T_ALLOW);
+        allowTooltip.add(new InfoTooltipBehavior());
+        add(allowTooltip);
+
+        Label limitationsTooltip = new Label(ID_T_LIMITATIONS);
+        limitationsTooltip.add(new InfoTooltipBehavior());
+        add(limitationsTooltip);
+
+        Label exclusiveStrongTooltip = new Label(ID_T_EXCLUSIVE_STRONG);
+        exclusiveStrongTooltip.add(new InfoTooltipBehavior());
+        add(exclusiveStrongTooltip);
+
+        Label tolerantTooltip = new Label(ID_T_TOLERANT);
+        tolerantTooltip.add(new InfoTooltipBehavior());
+        add(tolerantTooltip);
+
+        Label tolerantVPTooltip = new Label(ID_T_TOLERANT_VP);
+        tolerantVPTooltip.add(new InfoTooltipBehavior());
+        add(tolerantVPTooltip);
+
+        Label intolerantVPTooltip = new Label(ID_T_INTOLERANT_VP);
+        intolerantVPTooltip.add(new InfoTooltipBehavior());
+        add(intolerantVPTooltip);
+
+        Label fetchTooltip = new Label(ID_T_FETCH);
+        fetchTooltip.add(new InfoTooltipBehavior());
+        add(fetchTooltip);
+
+        Label matchingRuleTooltip = new Label(ID_T_MATCHING_RULE);
+        matchingRuleTooltip.add(new InfoTooltipBehavior());
+        add(matchingRuleTooltip);
+
+        Label outboundTooltip = new Label(ID_T_OUTBOUND);
+        outboundTooltip.add(new InfoTooltipBehavior());
+        add(outboundTooltip);
+
+        Label inboundTooltip = new Label(ID_T_INBOUND);
+        inboundTooltip.add(new InfoTooltipBehavior());
+        add(inboundTooltip);
 
         initModals();
     }

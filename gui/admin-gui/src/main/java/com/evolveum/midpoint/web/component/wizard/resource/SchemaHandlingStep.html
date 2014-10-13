@@ -57,6 +57,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SchemaHandlingStep.label.kind"/></label>
+                    <i wicket:id="kindTooltip" wicket:message="title:SchemaHandlingStep.tooltip.kind"/>
                 </dt>
                 <dd>
                     <select wicket:id="editorKind" class="form-control input-sm"></select>
@@ -66,6 +67,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SchemaHandlingStep.label.intent" /></label>
+                    <i wicket:id="intentTooltip" wicket:message="title:SchemaHandlingStep.tooltip.intent"/>
                 </dt>
                 <dd>
                     <input wicket:id="editorIntent" type="text" class="form-control input-sm"/>
@@ -96,6 +98,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SchemaHandlingStep.label.default" /></label>
+                            <i wicket:id="defaultTooltip" wicket:message="title:SchemaHandlingStep.tooltip.default"/>
                         </dt>
                         <dd>
                             <input wicket:id="editorDefault" type="checkbox" value="checked"/>
@@ -106,6 +109,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SchemaHandlingStep.label.dependency" /></label>
+                            <i wicket:id="dependencyTooltip" wicket:message="title:SchemaHandlingStep.tooltip.dependency"/>
                         </dt>
                         <dd>
                             <a wicket:id="editorDependencyButton" class="btn btn-sm btn-primary" title="Edit">
@@ -119,6 +123,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SchemaHandlingStep.label.objectClass" /></label>
+                    <i wicket:id="objectClassTooltip" wicket:message="title:SchemaHandlingStep.tooltip.objectClass"/>
                 </dt>
                 <dd>
                     <input wicket:id="editorObjectClass" type="text" class="form-control input-sm"/>
@@ -129,6 +134,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SchemaHandlingStep.label.attributes" /></label>
+                    <i wicket:id="attributesTooltip" wicket:message="title:SchemaHandlingStep.tooltip.attributes"/>
                 </dt>
                 <div wicket:id="editorAttributes" />
             </dl>
@@ -137,6 +143,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SchemaHandlingStep.label.associations" /></label>
+                    <i wicket:id="associationsTooltip" wicket:message="title:SchemaHandlingStep.tooltip.associations"/>
                 </dt>
                 <div wicket:id="editorAssociations" />
             </dl>
@@ -144,6 +151,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SchemaHandlingStep.label.assignmentPolicyRef" /></label>
+                    <i wicket:id="assignmentPolicyRefTooltip" wicket:message="title:SchemaHandlingStep.tooltip.assignmentPolicyRef"/>
                 </dt>
                 <dd>
                     <select wicket:id="editorAssignmentPolicyRef" class="form-control input-sm"></select>
@@ -156,6 +164,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SchemaHandlingStep.label.iteration" /></label>
+                            <i wicket:id="iterationTooltip" wicket:message="title:SchemaHandlingStep.tooltip.iteration"/>
                         </dt>
                         <dd>
                             <a wicket:id="editorIterationButton" class="btn btn-sm btn-primary" title="Edit">
@@ -169,6 +178,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SchemaHandlingStep.label.protected" /></label>
+                            <i wicket:id="protectedTooltip" wicket:message="title:SchemaHandlingStep.tooltip.protected"/>
                         </dt>
                         <dd>
                             <a wicket:id="editorProtectedButton" class="btn btn-sm btn-primary" title="Edit">
@@ -185,6 +195,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SchemaHandlingStep.label.activation" /></label>
+                            <i wicket:id="activationTooltip" wicket:message="title:SchemaHandlingStep.tooltip.activation"/>
                         </dt>
                         <dd>
                             <a wicket:id="editorActivationButton" class="btn btn-sm btn-primary" title="Edit">
@@ -198,6 +209,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SchemaHandlingStep.label.credentials" /></label>
+                            <i wicket:id="credentialsTooltip" wicket:message="title:SchemaHandlingStep.tooltip.credentials"/>
                         </dt>
                         <dd>
                             <a wicket:id="editorCredentialsButton" class="btn btn-sm btn-primary" title="Edit">

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueDropDownPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -62,6 +63,12 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
     private static final String ID_OBJECT_TEMPLATE_REF = "objectTemplateRef";
     private static final String ID_ACTION = "action";
     private static final String ID_ACTION_MODAL = "actionModal";
+    private static final String ID_T_SITUATION = "situationTooltip";
+    private static final String ID_T_CHANNEL = "channelTooltip";
+    private static final String ID_T_SYNCHRONIZE = "synchronizeTooltip";
+    private static final String ID_T_RECONCILE = "reconcileTooltip";
+    private static final String ID_T_OBJ_TEMPLATE = "objectTemplateRefTooltip";
+    private static final String ID_T_ACTION = "actionTooltip";
 
     private Map<String, String> objectTemplateMap = new HashMap<>();
 
@@ -80,7 +87,8 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
                 if(reaction.getName() == null && reaction.getSituation() == null){
                     return getString("SynchronizationReactionEditor.label.new");
                 } else {
-                    return getString("SynchronizationReactionEditor.label.edit", reaction.getName());
+                    return getString("SynchronizationReactionEditor.label.edit",
+                            reaction.getName() != null ? reaction.getName() : getString("MultiValueField.nameNotSpecified"));
                 }
             }
         });
@@ -200,6 +208,30 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
         };
         action.setOutputMarkupId(true);
         add(action);
+
+        Label situationTooltip = new Label(ID_T_SITUATION);
+        situationTooltip.add(new InfoTooltipBehavior());
+        add(situationTooltip);
+
+        Label channelTooltip = new Label(ID_T_CHANNEL);
+        channelTooltip.add(new InfoTooltipBehavior());
+        add(channelTooltip);
+
+        Label synchronizeTooltip = new Label(ID_T_SYNCHRONIZE);
+        synchronizeTooltip.add(new InfoTooltipBehavior());
+        add(synchronizeTooltip);
+
+        Label reconcileTooltip = new Label(ID_T_RECONCILE);
+        reconcileTooltip.add(new InfoTooltipBehavior());
+        add(reconcileTooltip);
+
+        Label objTemplateTooltip = new Label(ID_T_OBJ_TEMPLATE);
+        objTemplateTooltip.add(new InfoTooltipBehavior());
+        add(objTemplateTooltip);
+
+        Label actionTooltip = new Label(ID_T_ACTION);
+        actionTooltip.add(new InfoTooltipBehavior());
+        add(actionTooltip);
 
         initModals();
     }

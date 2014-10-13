@@ -30,6 +30,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="SearchFilterPanel.label.filterClause" /></label>
+            <i wicket:id="filterClauseTooltip" wicket:message="title:SchemaHandlingStep.tooltip.filterClause"/>
         </dt>
         <dd>
             <textarea wicket:id="filterClause" class="form-control input-sm" rows="10"></textarea>
@@ -41,7 +42,6 @@
             <label></label>
         </dt>
         <dd>
-            <!--TODO - enable this button when problem with SearchFilterType and RootXNode serialization is fixed-->
             <a wicket:id="update" class="btn btn-success">
                 <span><wicket:message key="SearchFilterPanel.button.update" /></span>
             </a>

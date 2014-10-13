@@ -27,11 +27,13 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPan
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -59,6 +61,10 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
     private static final String ID_INBOUND = "inbound";
     private static final String ID_PASS_POLICY = "passPolicy";
     private static final String ID_MODAL_MAPPING = "mappingEditor";
+    private static final String ID_T_FETCH = "fetchStrategyTooltip";
+    private static final String ID_T_OUT = "outboundTooltip";
+    private static final String ID_T_IN = "inboundTooltip";
+    private static final String ID_T_PASS_POLICY = "passwordPolicyRefTooltip";
 
     private Map<String, String> passPolicyMap = new HashMap<>();
 
@@ -166,6 +172,22 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
             }
         });
         add(passwordPolicy);
+
+        Label fetchTooltip = new Label(ID_T_FETCH);
+        fetchTooltip.add(new InfoTooltipBehavior());
+        add(fetchTooltip);
+
+        Label outTooltip = new Label(ID_T_OUT);
+        outTooltip.add(new InfoTooltipBehavior());
+        add(outTooltip);
+
+        Label inTooltip = new Label(ID_T_IN);
+        inTooltip.add(new InfoTooltipBehavior());
+        add(inTooltip);
+
+        Label passPolicyTooltip = new Label(ID_T_PASS_POLICY);
+        passPolicyTooltip.add(new InfoTooltipBehavior());
+        add(passPolicyTooltip);
 
         initModals();
     }

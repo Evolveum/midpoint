@@ -43,6 +43,7 @@
                         <dl class="dl-horizontal">
                             <dt>
                                 <label><wicket:message key="ResourceDependencyEditor.label.order" /></label>
+                                <i wicket:id="orderTooltip" wicket:message="title:SchemaHandlingStep.dependency.tooltip.order"/>
                             </dt>
                             <dd>
                                 <input wicket:id="order" class="form-control input-sm" />
@@ -52,6 +53,7 @@
                         <dl class="dl-horizontal">
                             <dt>
                                 <label><wicket:message key="ResourceDependencyEditor.label.strictness" /></label>
+                                <i wicket:id="strictnessTooltip" wicket:message="title:SchemaHandlingStep.dependency.tooltip.strictness"/>
                             </dt>
                             <dd>
                                 <select wicket:id="strictness" class="form-control input-sm"></select>
@@ -61,6 +63,7 @@
                         <dl class="dl-horizontal">
                             <dt>
                                 <label><wicket:message key="ResourceDependencyEditor.label.kind" /></label>
+                                <i wicket:id="kindTooltip" wicket:message="title:SchemaHandlingStep.dependency.tooltip.kind"/>
                             </dt>
                             <dd>
                                 <select wicket:id="kind" class="form-control input-sm"></select>
@@ -70,6 +73,7 @@
                         <dl class="dl-horizontal">
                             <dt>
                                 <label><wicket:message key="ResourceDependencyEditor.label.intent" /></label>
+                                <i wicket:id="intentTooltip" wicket:message="title:SchemaHandlingStep.dependency.tooltip.intent"/>
                             </dt>
                             <dd>
                                 <input wicket:id="intent" type="text" class="form-control input-sm" value=""/>
@@ -79,6 +83,7 @@
                         <dl class="dl-horizontal">
                             <dt>
                                 <label><wicket:message key="ResourceDependencyEditor.label.resourceRef" /></label>
+                                <i wicket:id="resourceRefTooltip" wicket:message="title:SchemaHandlingStep.dependency.tooltip.resourceRef"/>
                             </dt>
                             <dd class="cap-dl-multivalue">
                                 <select wicket:id="resourceRef" class="form-control input-sm"></select>

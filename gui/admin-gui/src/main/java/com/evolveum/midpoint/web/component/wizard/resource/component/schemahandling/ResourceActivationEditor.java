@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPan
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
@@ -57,6 +59,18 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
     private static final String ID_VALID_TO_OUT = "validToOutbound";
     private static final String ID_VALID_TO_IN = "validToInbound";
     private static final String ID_MODAL_MAPPING = "mappingEditor";
+    private static final String ID_T_EX_FETCH = "existenceFetchStrategyTooltip";
+    private static final String ID_T_EX_OUT = "existenceOutboundTooltip";
+    private static final String ID_T_EX_IN = "existenceInboundTooltip";
+    private static final String ID_T_ADM_FETCH = "admStatusFetchStrategyTooltip";
+    private static final String ID_T_ADM_OUT = "admStatusOutboundTooltip";
+    private static final String ID_T_ADM_IN = "admStatusInboundTooltip";
+    private static final String ID_T_VALID_F_FETCH = "validFromFetchStrategyTooltip";
+    private static final String ID_T_VALID_F_OUT = "validFromOutboundTooltip";
+    private static final String ID_T_VALID_F_IN = "validFromInboundTooltip";
+    private static final String ID_T_VALID_T_FETCH = "validToFetchStrategyTooltip";
+    private static final String ID_T_VALID_T_OUT = "validToOutboundTooltip";
+    private static final String ID_T_VALID_T_IN = "validToInboundTooltip";
 
     public ResourceActivationEditor(String id, IModel<ResourceActivationDefinitionType> model){
         super(id, model);
@@ -104,6 +118,54 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
 
         prepareActivationPanelBody(ResourceActivationDefinitionType.F_VALID_TO.getLocalPart(), ID_VALID_TO_FS,
                 ID_VALID_TO_OUT, ID_VALID_TO_IN);
+
+        Label exFetchTooltip = new Label(ID_T_EX_FETCH);
+        exFetchTooltip.add(new InfoTooltipBehavior());
+        add(exFetchTooltip);
+
+        Label exOutTooltip = new Label(ID_T_EX_OUT);
+        exOutTooltip.add(new InfoTooltipBehavior());
+        add(exOutTooltip);
+
+        Label exInTooltip = new Label(ID_T_EX_IN);
+        exInTooltip.add(new InfoTooltipBehavior());
+        add(exInTooltip);
+
+        Label admFetchTooltip = new Label(ID_T_ADM_FETCH);
+        admFetchTooltip.add(new InfoTooltipBehavior());
+        add(admFetchTooltip);
+
+        Label admOutTooltip = new Label(ID_T_ADM_OUT);
+        admOutTooltip.add(new InfoTooltipBehavior());
+        add(admOutTooltip);
+
+        Label admInTooltip = new Label(ID_T_ADM_IN);
+        admInTooltip.add(new InfoTooltipBehavior());
+        add(admInTooltip);
+
+        Label validFromFetchTooltip = new Label(ID_T_VALID_F_FETCH);
+        validFromFetchTooltip.add(new InfoTooltipBehavior());
+        add(validFromFetchTooltip);
+
+        Label validFromOutTooltip = new Label(ID_T_VALID_F_OUT);
+        validFromOutTooltip.add(new InfoTooltipBehavior());
+        add(validFromOutTooltip);
+
+        Label validFromInTooltip = new Label(ID_T_VALID_F_IN);
+        validFromInTooltip.add(new InfoTooltipBehavior());
+        add(validFromInTooltip);
+
+        Label validToFetchTooltip = new Label(ID_T_VALID_T_FETCH);
+        validToFetchTooltip.add(new InfoTooltipBehavior());
+        add(validToFetchTooltip);
+
+        Label validToOutTooltip = new Label(ID_T_VALID_T_OUT);
+        validToOutTooltip.add(new InfoTooltipBehavior());
+        add(validToOutTooltip);
+
+        Label validToInTooltip = new Label(ID_T_VALID_T_IN);
+        validToInTooltip.add(new InfoTooltipBehavior());
+        add(validToInTooltip);
 
         initModals();
     }

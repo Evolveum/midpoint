@@ -21,6 +21,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label wicket:id="typeLabel"></label>
+            <i wicket:id="typeTooltip" wicket:message="title:ResourceWizard.expression.tooltip.type"/>
         </dt>
         <dd>
             <select wicket:id="type" class="form-control input-sm"></select>
@@ -30,6 +31,7 @@
     <dl class="dl-horizontal" wicket:id="languageContainer">
         <dt>
             <label><wicket:message key="ExpressionEditorPanel.label.language" /></label>
+            <i wicket:id="languageTooltip" wicket:message="title:ResourceWizard.expression.tooltip.language"/>
         </dt>
         <dd>
             <select wicket:id="language" class="form-control input-sm"></select>
@@ -39,6 +41,7 @@
     <dl class="dl-horizontal" wicket:id="policyRefContainer">
         <dt>
             <label><wicket:message key="ExpressionEditorPanel.label.valuePolicyRef" /></label>
+            <i wicket:id="policyRefTooltip" wicket:message="title:ResourceWizard.expression.tooltip.policyRef"/>
         </dt>
         <dd>
             <select wicket:id="policyRef" class="form-control input-sm"></select>
@@ -48,6 +51,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label wicket:id="expressionLabel"></label>
+            <i wicket:id="expressionTooltip" wicket:message="title:ResourceWizard.expression.tooltip.expression"/>
         </dt>
         <dd>
             <textarea wicket:id="expression" class="form-control input-sm" rows="5"></textarea>

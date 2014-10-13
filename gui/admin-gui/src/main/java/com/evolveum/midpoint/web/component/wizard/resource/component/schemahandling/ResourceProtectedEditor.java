@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.schemahand
 
 import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectPatternType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.wicket.AttributeModifier;
@@ -55,6 +56,9 @@ public class ResourceProtectedEditor extends SimplePanel<List<ResourceObjectPatt
     private static final String ID_FILTER_EDITOR = "filterClause";
     private static final String ID_BUTTON_ADD = "addButton";
     private static final String ID_BUTTON_DELETE = "deleteAccount";
+    private static final String ID_T_NAME = "nameTooltip";
+    private static final String ID_T_UID = "uidTooltip";
+    private static final String ID_T_FILTER = "filterTooltip";
 
     private ChangeState changeState = ChangeState.FIRST;
 
@@ -153,6 +157,18 @@ public class ResourceProtectedEditor extends SimplePanel<List<ResourceObjectPatt
                 SearchFilterPanel searchFilterPanel = new SearchFilterPanel<>(ID_FILTER_EDITOR,
                         new PropertyModel<SearchFilterType>(item.getModelObject(), "filter"));
                 accountBody.add(searchFilterPanel);
+
+                Label nameTooltip = new Label(ID_T_NAME);
+                nameTooltip.add(new InfoTooltipBehavior());
+                accountBody.add(nameTooltip);
+
+                Label uidTooltip = new Label(ID_T_UID);
+                uidTooltip.add(new InfoTooltipBehavior());
+                accountBody.add(uidTooltip);
+
+                Label filterTooltip = new Label(ID_T_FILTER);
+                filterTooltip.add(new InfoTooltipBehavior());
+                accountBody.add(filterTooltip);
             }
         };
         repeater.setOutputMarkupId(true);
