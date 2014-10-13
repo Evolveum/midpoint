@@ -445,6 +445,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
+    //private Set<String> test = Collections.synchronizedSet(new HashSet<String>());
+
     private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
                                                            OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {
@@ -465,13 +467,25 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             session = beginTransaction();
 
             OrgClosureManager.Context closureContext = getClosureManager().onBeginTransactionAdd(session, object, options.isOverwrite());
-
-            if (options.isOverwrite()) {
-                oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
-            } else {
-                oid = nonOverwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
+            try {
+//                LOGGER.info("Entering critical section (oid = " + object.getOid() + ")");
+//                if (!test.isEmpty()) {
+//                    System.err.println("Test set is not empty: " + test);
+//                    throw new AssertionError("Look, test set is not empty: " + test);
+//                }
+//                test.add(Thread.currentThread().getName());
+                if (options.isOverwrite()) {
+                    oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
+                } else {
+                    oid = nonOverwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
+                }
+            } finally {
+//                test.remove(Thread.currentThread().getName());
+//                LOGGER.info("Leaving critical section (oid = " + object.getOid() + ")");
             }
+            LOGGER.info("Before commit.");
             session.getTransaction().commit();
+            LOGGER.info("After commit.");
 
             LOGGER.trace("Saved object '{}' with oid '{}'", new Object[]{
                     object.getCompileTimeClass().getSimpleName(), oid});
