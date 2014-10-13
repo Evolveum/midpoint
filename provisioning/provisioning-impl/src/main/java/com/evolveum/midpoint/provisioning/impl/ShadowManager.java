@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
@@ -129,19 +130,6 @@ public class ShadowManager {
 		if (FailedOperationTypeType.ADD == conflictedShadow.asObjectable().getFailedOperationType()) {
 			objectDelta = ObjectDelta.createAddDelta(conflictedShadow);
 		} 
-//		else if (FailedOperationTypeType.MODIFY == conflictedShadow.getFailedOperationType()) {
-//			ObjectDeltaType objDeltaType = conflictedShadow.getObjectChange();
-//			if (objDeltaType != null) {
-//				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-//						objDeltaType.getModification(), account.getDefinition());
-//				objectDelta = ObjectDelta.createModifyDelta(conflictedShadow.getOid(), modifications,
-//						AccountShadowType.class, prismContext);
-//
-//			}
-//		}
-//		else if (FailedOperationTypeType.DELETE == conflictedShadow.getFailedOperationType()){
-//			objectDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, conflictedShadow.getOid(), prismContext);
-//		}
 		failureDesc.setObjectDelta(objectDelta);
 		failureDesc.setResource(resource.asPrismObject());
 		failureDesc.setResult(parentResult);
@@ -195,25 +183,38 @@ public class ShadowManager {
 		return results.get(0);
 	}
 	
-	public PrismObject<ShadowType> lookupShadowByName( 
+	public PrismObject<ShadowType> lookupShadowBySecondaryIdentifiers( 
 			PrismObject<ShadowType> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
 			ResourceType resource, OperationResult parentResult) 
 					throws SchemaException, ConfigurationException {
 
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(resourceShadow);
-		ResourceAttribute<?> secondaryIdentifier = null;
+//		ResourceAttribute<?> secondaryIdentifier = null;
 		if (secondaryIdentifiers.size() < 1){
 			LOGGER.trace("Shadow does not contain secondary idetifier. Skipping lookup shadows according to name.");
 			return null;
 		}
 		
-		secondaryIdentifier = secondaryIdentifiers.iterator().next();
-		LOGGER.trace("Shadow secondary identifier {}", secondaryIdentifier);
+		List<EqualFilter> secondaryEquals = new ArrayList<>();
+		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers){
+			secondaryEquals.add(EqualFilter.createEqual(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition(),
+					getNormalizedValue(secondaryIdentifier, rObjClassDef)));
+		}
+		
+		ObjectFilter secondaryIdentifierFilter = null;
+		if (secondaryEquals.size() > 1){
+			secondaryIdentifierFilter = OrFilter.createOr((List) secondaryEquals);
+		} else {
+			secondaryIdentifierFilter = secondaryEquals.iterator().next();
+		}
+		
+//		
+//		
+//		secondaryIdentifier = secondaryIdentifiers.iterator().next();
+//		LOGGER.trace("Shadow secondary identifier {}", secondaryIdentifier);
 		
 		AndFilter filter = AndFilter.createAnd(
-				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), 
-				EqualFilter.createEqual(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition(),
-				getNormalizedValue(secondaryIdentifier, rObjClassDef)));
+				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), secondaryIdentifierFilter);
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter on secondary identifier:\n{}",
@@ -269,19 +270,23 @@ public class ShadowManager {
 		return conflictingShadows.get(0);
 	}
 
-	private <T> PrismPropertyValue<T> getNormalizedValue(PrismProperty<T> attr, RefinedObjectClassDefinition rObjClassDef) throws SchemaException {
+	private <T> List<PrismPropertyValue<T>> getNormalizedValue(PrismProperty<T> attr, RefinedObjectClassDefinition rObjClassDef) throws SchemaException {
 		RefinedAttributeDefinition refinedAttributeDefinition = rObjClassDef.findAttributeDefinition(attr.getElementName());
 		QName matchingRuleQName = refinedAttributeDefinition.getMatchingRuleQName();
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, refinedAttributeDefinition.getTypeName());
-		PrismPropertyValue<T> origPValue = attr.getValue();
-		if (matchingRule != null) {
-			T normalizedValue = matchingRule.normalize(origPValue.getValue());
-			PrismPropertyValue<T> normalizedPValue = origPValue.clone();
-			normalizedPValue.setValue(normalizedValue);
-			return normalizedPValue;
-		} else {
-			return origPValue;
+		List<PrismPropertyValue<T>> normalized = new ArrayList<>();
+		for (PrismPropertyValue<T> origPValue : attr.getValues()){
+			if (matchingRule != null) {
+				T normalizedValue = matchingRule.normalize(origPValue.getValue());
+				PrismPropertyValue<T> normalizedPValue = origPValue.clone();
+				normalizedPValue.setValue(normalizedValue);
+				normalized.add(normalizedPValue);
+			} else {
+				normalized.add(origPValue);
+			}
 		}
+		return normalized;
+		
 	}
 
 
@@ -291,10 +296,10 @@ public class ShadowManager {
 			ConfigurationException, SecurityViolationException {
 
 		// Try to locate existing shadow in the repository
-		List<PrismObject<ShadowType>> accountList = searchAccountByIdenifiers(change, objectClassDefinition, resource, parentResult);
+		List<PrismObject<ShadowType>> accountList = searchShadowByIdenifiers(change, objectClassDefinition, resource, parentResult);
 
 		if (accountList.size() > 1) {
-			String message = "Found more than one account with the identifier " + change.getIdentifiers() + ".";
+			String message = "Found more than one shadow with the identifier " + change.getIdentifiers() + ".";
 			LOGGER.error(message);
 			parentResult.recordFatalError(message);
 			throw new IllegalArgumentException(message);
@@ -315,11 +320,11 @@ public class ShadowManager {
 						change.getObjectDelta().setOid(oid);
 					}
 				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError("Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
+					parentResult.recordFatalError("Can't add " + SchemaDebugUtil.prettyPrint(newShadow)
 							+ " to the repository. Reason: " + e.getMessage(), e);
 					throw new IllegalStateException(e.getMessage(), e);
 				}
-				LOGGER.trace("Created account shadow object: {}", newShadow);
+				LOGGER.trace("Created shadow object: {}", newShadow);
 			}
 
 		} else {
@@ -335,11 +340,11 @@ public class ShadowManager {
 								parentResult);
 					} catch (ObjectAlreadyExistsException e) {
 						parentResult.recordFatalError(
-								"Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
+								"Can't add " + SchemaDebugUtil.prettyPrint(newShadow)
 										+ " to the repository. Reason: " + e.getMessage(), e);
 						throw new IllegalStateException(e.getMessage(), e);
 					} catch (ObjectNotFoundException e) {
-						parentResult.recordWarning("Account shadow " + SchemaDebugUtil.prettyPrint(newShadow)
+						parentResult.recordWarning("Shadow " + SchemaDebugUtil.prettyPrint(newShadow)
 								+ " was probably deleted from the repository in the meantime. Exception: "
 								+ e.getMessage(), e);
 						return null;
@@ -376,9 +381,9 @@ public class ShadowManager {
 		try {
 			shadow = createRepositoryShadow(shadow, resource, objectClassDefinition);
 		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Can't create account shadow from identifiers: "
+			parentResult.recordFatalError("Can't create shadow from identifiers: "
 					+ change.getIdentifiers());
-			throw new SchemaException("Can't create account shadow from identifiers: "
+			throw new SchemaException("Can't create shadow from identifiers: "
 					+ change.getIdentifiers());
 		}
 
@@ -386,7 +391,7 @@ public class ShadowManager {
 		return shadow;
 	}
 	
-	private List<PrismObject<ShadowType>> searchAccountByIdenifiers(Change<ShadowType> change, 
+	private List<PrismObject<ShadowType>> searchShadowByIdenifiers(Change<ShadowType> change, 
 			RefinedObjectClassDefinition rOcDef, ResourceType resource, OperationResult parentResult)
 			throws SchemaException {
 
@@ -397,9 +402,9 @@ public class ShadowManager {
 			accountList = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError(
-					"Failed to search account according to the identifiers: " + change.getIdentifiers() + ". Reason: "
+					"Failed to search shadow according to the identifiers: " + change.getIdentifiers() + ". Reason: "
 							+ ex.getMessage(), ex);
-			throw new SchemaException("Failed to search account according to the identifiers: "
+			throw new SchemaException("Failed to search shadow according to the identifiers: "
 					+ change.getIdentifiers() + ". Reason: " + ex.getMessage(), ex);
 		}
 		return accountList;
@@ -440,7 +445,6 @@ public class ShadowManager {
 	private ObjectQuery createSearchShadowQuery(PrismObject<ShadowType> resourceShadow, 
 			RefinedObjectClassDefinition rObjClassDef, ResourceType resource,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException {
-		// XPathHolder xpath = createXpathHolder();
 		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(resourceShadow);
 		PrismProperty identifier = attributesContainer.getIdentifier();
@@ -448,22 +452,15 @@ public class ShadowManager {
 		Collection<PrismPropertyValue<Object>> idValues = identifier.getValues();
 		// Only one value is supported for an identifier
 		if (idValues.size() > 1) {
-			// LOGGER.error("More than one identifier value is not supported");
 			// TODO: This should probably be switched to checked exception later
 			throw new IllegalArgumentException("More than one identifier value is not supported");
 		}
 		if (idValues.size() < 1) {
-			// LOGGER.error("The identifier has no value");
 			// TODO: This should probably be switched to checked exception later
 			throw new IllegalArgumentException("The identifier has no value");
 		}
 
 		// We have all the data, we can construct the filter now
-		// Document doc = DOMUtil.getDocument();
-		// Element filter;
-		// List<Element> identifierElements =
-		// prismContext.getPrismDomProcessor().serializeItemToDom(identifier,
-		// doc);
 		ObjectFilter filter = null;
 		try {
 			// TODO TODO TODO TODO: set matching rule instead of null
@@ -472,14 +469,10 @@ public class ShadowManager {
 					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), 
 					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, getNormalizedValue(identifier, rObjClassDef)));
 		} catch (SchemaException e) {
-			// LOGGER.error("Schema error while creating search filter: {}",
-			// e.getMessage(), e);
 			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
 		}
 
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
-		// LOGGER.trace("created query " + DOMUtil.printDom(filter));
 
 		return query;
 	}

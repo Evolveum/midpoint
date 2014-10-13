@@ -74,6 +74,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SchemaListPanel.details.kind" /></label>
+                            <i wicket:id="kindTooltip" wicket:message="title:SchemaStep.tooltip.kind"/>
                         </dt>
                         <dd>
                             <span wicket:id="kind"/>
@@ -83,6 +84,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SchemaListPanel.details.intent" /></label>
+                            <i wicket:id="intentTooltip" wicket:message="title:SchemaStep.tooltip.intent"/>
                         </dt>
                         <dd>
                             <span wicket:id="intent"/>
@@ -94,6 +96,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SchemaListPanel.details.nativeObjectClass" /></label>
+                            <i wicket:id="nativeObjectClassTooltip" wicket:message="title:SchemaStep.tooltip.nativeObjectClass"/>
                         </dt>
                         <dd>
                             <span wicket:id="nativeObjectClass"/>
@@ -103,6 +106,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SchemaListPanel.details.default" /></label>
+                            <i wicket:id="isDefaultTooltip" wicket:message="title:SchemaStep.tooltip.isDefault"/>
                         </dt>
                         <dd>
                             <input wicket:id="isDefault" type="checkbox" />
@@ -112,6 +116,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SchemaListPanel.details.kindDefault" /></label>
+                            <i wicket:id="isKindDefaultTooltip" wicket:message="title:SchemaStep.tooltip.isKindDefault"/>
                         </dt>
                         <dd>
                             <input wicket:id="isKindDefault" type="checkbox" />

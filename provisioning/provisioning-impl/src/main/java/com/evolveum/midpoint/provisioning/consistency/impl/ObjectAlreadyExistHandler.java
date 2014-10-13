@@ -95,7 +95,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 			resourceAccount = foundAccount.get(0);
 		}
 		
-		LOGGER.trace("Found conflicting resource account: {}", resourceAccount);
+		LOGGER.trace("Found conflicting resource object: {}", resourceAccount);
 
 		try{
 		if (resourceAccount != null) {

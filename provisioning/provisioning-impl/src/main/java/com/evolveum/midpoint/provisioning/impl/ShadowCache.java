@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.identityconnectors.framework.spi.operations.CreateOp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -59,6 +61,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -261,7 +264,7 @@ public abstract class ShadowCache {
 				//check if the account is not only partially created (exist only in repo so far)
 				if (repositoryShadow.asObjectable().getFailedOperationType() != null) {
 					throw new GenericConnectorException(
-							"Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+							"Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 				}
 				// No identifiers found
 				SchemaException ex = new SchemaException("No identifiers found in the repository shadow "
@@ -282,7 +285,7 @@ public abstract class ShadowCache {
 					&& resource.getOperationalState() != null
 					&& resource.getOperationalState().getLastAvailabilityStatus() == AvailabilityStatusType.UP) {
 				throw new GenericConnectorException(
-						"Found changes that have been not applied to the account yet. Trying to apply them now.");
+						"Found changes that have been not applied to the resource object yet. Trying to apply them now.");
 			}
 			
 			if (LOGGER.isTraceEnabled()) {
@@ -290,9 +293,12 @@ public abstract class ShadowCache {
 				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump());
 			}
 			
+			forceRenameIfNeeded(resourceShadow.asObjectable(), repositoryShadow.asObjectable(), objectClassDefinition, parentResult);
 			// Complete the shadow by adding attributes from the resource object
 			PrismObject<ShadowType> resultShadow = completeShadow(connector, resourceShadow, repositoryShadow, resource, objectClassDefinition, parentResult);
 
+			
+			
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.debugDump());
 			}
@@ -777,7 +783,7 @@ public abstract class ShadowCache {
 		
 		if (filter instanceof AndFilter){
 			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
-			attributeFilter = getAttributeQuery(conditions, attributeFilter);
+			attributeFilter = getAttributeQuery(conditions);
 			if (attributeFilter.size() > 1){
 				attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
 			}
@@ -787,7 +793,7 @@ public abstract class ShadowCache {
 			}
 			
 			if (attributeFilter.size() == 1){
-				attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.get(0));
+				attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.iterator().next());
 			}
 			
 		}
@@ -913,7 +919,7 @@ public abstract class ShadowCache {
 					SchemaDebugUtil.prettyPrint(resourceShadow));
 
 			
-			PrismObject<ShadowType> conflictingShadow = shadowManager.lookupShadowByName(resourceShadow, objectClassDef, resourceType, parentResult);
+			PrismObject<ShadowType> conflictingShadow = shadowManager.lookupShadowBySecondaryIdentifiers(resourceShadow, objectClassDef, resourceType, parentResult);
 			if (conflictingShadow != null){
 				applyAttributesDefinition(conflictingShadow, resourceType);
 				conflictingShadow = completeShadow(connector, resourceShadow, conflictingShadow, resourceType, objectClassDef, parentResult);
@@ -948,8 +954,9 @@ public abstract class ShadowCache {
 		return repoShadow;
 	}
 	
-	private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> conditions, List<ObjectFilter> attributeFilter) throws SchemaException{
+	private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> conditions) throws SchemaException{
 		
+		List<ObjectFilter> attributeFilter = new ArrayList<>();
 		ItemPath objectClassPath = new ItemPath(ShadowType.F_OBJECT_CLASS);
 		ItemPath resourceRefPath = new ItemPath(ShadowType.F_RESOURCE_REF);
 		for (ObjectFilter f : conditions){
@@ -963,7 +970,13 @@ public abstract class ShadowCache {
 				
 				attributeFilter.add(f);
 			} else if (f instanceof NaryLogicalFilter){
-				attributeFilter = getAttributeQuery(((NaryLogicalFilter) f).getConditions(), attributeFilter);
+				List<ObjectFilter> filters = getAttributeQuery(((NaryLogicalFilter) f).getConditions());
+				if (f instanceof OrFilter){
+					attributeFilter.add(OrFilter.createOr(filters));
+				} else if (f instanceof AndFilter){
+					attributeFilter.add(AndFilter.createAnd(filters));
+				} else 
+					throw new IllegalArgumentException("Could not translate query filter. Unknow type: " + f);
 			} else if (f instanceof SubstringFilter){
 				attributeFilter.add(f);
 			}
@@ -1257,41 +1270,48 @@ public abstract class ShadowCache {
 		if (oldSecondaryIdentifiers.isEmpty()){
 			return;
 		}
+		ResourceAttributeContainer newSecondaryIdentifiers = ShadowUtil.getAttributesContainer(currentShadowType);
 		
-		if (oldSecondaryIdentifiers.size() > 1){
-			return;
-		}
+		//remember name before normalizing attributes
+		PolyString currentShadowName = ProvisioningUtil.determineShadowName(currentShadowType);
+		currentShadowType.setName(new PolyStringType(currentShadowName));
 		
-		ResourceAttribute<?> oldSecondaryIdentifier = oldSecondaryIdentifiers.iterator().next();
-		Object oldValue = oldSecondaryIdentifier.getRealValue();
+		Iterator<ResourceAttribute<?>> oldSecondaryIterator = oldSecondaryIdentifiers.iterator();
+		Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
+		while (oldSecondaryIterator.hasNext()){
+			ResourceAttribute<?> oldSecondaryIdentifier = oldSecondaryIterator.next();
+			ResourceAttribute newSecondaryIdentifier = newSecondaryIdentifiers.findAttribute(oldSecondaryIdentifier.getElementName());
+			Collection newValue = newSecondaryIdentifier.getRealValues();
+			
+			if (!shadowManager.compareAttribute(refinedObjectClassDefinition, newSecondaryIdentifier, oldSecondaryIdentifier)){
+				PropertyDelta<?> shadowNameDelta = PropertyDelta.createDelta(new ItemPath(ShadowType.F_ATTRIBUTES, oldSecondaryIdentifier.getElementName()), oldShadowType.asPrismObject().getDefinition());
+				shadowNameDelta.addValuesToDelete(PrismPropertyValue.cloneCollection((Collection)oldSecondaryIdentifier.getValues()));
+				shadowManager.normalizeAttributes(currentShadowType.asPrismObject(), refinedObjectClassDefinition);
+				shadowNameDelta.addValuesToAdd(PrismPropertyValue.cloneCollection((Collection)newSecondaryIdentifier.getValues()));
+				renameDeltas.add(shadowNameDelta);
+			}
 
-		Collection<ResourceAttribute<?>> newSecondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(currentShadowType);
-		if (newSecondaryIdentifiers.isEmpty()){
-			return;
 		}
 		
-		if (newSecondaryIdentifiers.size() > 1){
-			return;
-		}
+		if (!renameDeltas.isEmpty()){
 		
-		ResourceAttribute newSecondaryIdentifier = newSecondaryIdentifiers.iterator().next();
-		Object newValue = newSecondaryIdentifier.getRealValue();
-		
-		if (!shadowManager.compareAttribute(refinedObjectClassDefinition, newSecondaryIdentifier, oldSecondaryIdentifier)){
-			Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
-			
-			
 			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
-					oldShadowType.asPrismObject().getDefinition(), 
-					ProvisioningUtil.determineShadowName(currentShadowType.asPrismObject()));
+					oldShadowType.asPrismObject().getDefinition(),currentShadowName);
 			renameDeltas.add(shadowNameDelta);
+		} else {
 			
-			shadowNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), oldShadowType.asPrismObject().getDefinition(), newValue);
-			renameDeltas.add(shadowNameDelta);
-			
-			repositoryService.modifyObject(ShadowType.class, oldShadowType.getOid(), renameDeltas, parentResult);
+			if (!oldShadowType.getName().getOrig().equals(currentShadowType.getName().getOrig())){
+				PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
+						oldShadowType.asPrismObject().getDefinition(), currentShadowName);
+				renameDeltas.add(shadowNameDelta);
+				
+			}
 		}
-		
+		if (!renameDeltas.isEmpty()){
+			repositoryService.modifyObject(ShadowType.class, oldShadowType.getOid(), renameDeltas, parentResult);
+			oldShadowType.setName(new PolyStringType(currentShadowName));
+		}
+
 	}
 
 	public PrismProperty<?> fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)

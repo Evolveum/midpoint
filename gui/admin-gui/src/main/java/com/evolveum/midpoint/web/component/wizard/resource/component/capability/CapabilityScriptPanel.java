@@ -19,8 +19,10 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.capability
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -37,6 +39,9 @@ public class CapabilityScriptPanel extends SimplePanel {
     private static final String ID_ENABLED = "enabled";
     private static final String ID_ON_CONNECTOR = "onConnectorValue";
     private static final String ID_ON_RESOURCE = "onResourceValue";
+    private static final String ID_T_ENABLED = "enabledTooltip";
+    private static final String ID_T_ON_CONNECTOR = "onConnectorTooltip";
+    private static final String ID_T_ON_RESOURCE = "onResourceTooltip";
 
     public CapabilityScriptPanel(String componentId, IModel<CapabilityDto> model){
         super(componentId, model);
@@ -52,6 +57,18 @@ public class CapabilityScriptPanel extends SimplePanel {
 
         MultiValueTextPanel onResource = new MultiValueTextPanel(ID_ON_RESOURCE, Model.of(prepareOnResourceModel()));
         add(onResource);
+
+        Label enabledTooltip = new Label(ID_T_ENABLED);
+        enabledTooltip.add(new InfoTooltipBehavior());
+        add(enabledTooltip);
+
+        Label onConnectorTooltip = new Label(ID_T_ON_CONNECTOR);
+        onConnectorTooltip.add(new InfoTooltipBehavior());
+        add(onConnectorTooltip);
+
+        Label onResourceTooltip = new Label(ID_T_ON_RESOURCE);
+        onResourceTooltip.add(new InfoTooltipBehavior());
+        add(onResourceTooltip);
     }
 
     private IModel prepareOnConnectorModel(){

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandl
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceObjectTypeDefinitionTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SchemaHandlingDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -94,6 +95,18 @@ public class SchemaHandlingStep extends WizardStep {
     private static final String ID_EDITOR_BUTTON_CREDENTIALS = "editorCredentialsButton";
     private static final String ID_EDITOR_ATTRIBUTES = "editorAttributes";
     private static final String ID_EDITOR_ASSOCIATIONS = "editorAssociations";
+    private static final String ID_T_KIND = "kindTooltip";
+    private static final String ID_T_INTENT = "intentTooltip";
+    private static final String ID_T_DEFAULT = "defaultTooltip";
+    private static final String ID_T_DEPENDENCY = "dependencyTooltip";
+    private static final String ID_T_OBJECT_CLASS = "objectClassTooltip";
+    private static final String ID_T_ATTRIBUTES = "attributesTooltip";
+    private static final String ID_T_ASSOCIATIONS = "associationsTooltip";
+    private static final String ID_T_ASSIGNMENT_POLICY_REF = "assignmentPolicyRefTooltip";
+    private static final String ID_T_ITERATION = "iterationTooltip";
+    private static final String ID_T_PROTECTED = "protectedTooltip";
+    private static final String ID_T_ACTIVATION = "activationTooltip";
+    private static final String ID_T_CREDENTIALS = "credentialsTooltip";
 
     private static final Integer AUTO_COMPLETE_LIST_SIZE = 10;
 
@@ -490,6 +503,54 @@ public class SchemaHandlingStep extends WizardStep {
         };
         addDisabledClassModifier(editorCredentials);
         editor.add(editorCredentials);
+
+        Label kindTooltip = new Label(ID_T_KIND);
+        kindTooltip.add(new InfoTooltipBehavior());
+        editor.add(kindTooltip);
+
+        Label intentTooltip = new Label(ID_T_INTENT);
+        intentTooltip.add(new InfoTooltipBehavior());
+        editor.add(intentTooltip);
+
+        Label defaultTooltip = new Label(ID_T_DEFAULT);
+        defaultTooltip.add(new InfoTooltipBehavior());
+        editor.add(defaultTooltip);
+
+        Label dependencyTooltip = new Label(ID_T_DEPENDENCY);
+        dependencyTooltip.add(new InfoTooltipBehavior());
+        editor.add(dependencyTooltip);
+
+        Label objectClassTooltip = new Label(ID_T_OBJECT_CLASS);
+        objectClassTooltip.add(new InfoTooltipBehavior());
+        editor.add(objectClassTooltip);
+
+        Label attributesTooltip = new Label(ID_T_ATTRIBUTES);
+        attributesTooltip.add(new InfoTooltipBehavior());
+        editor.add(attributesTooltip);
+
+        Label associationsTooltip = new Label(ID_T_ASSOCIATIONS);
+        associationsTooltip.add(new InfoTooltipBehavior());
+        editor.add(associationsTooltip);
+
+        Label assignmentPolicyRefTooltip = new Label(ID_T_ASSIGNMENT_POLICY_REF);
+        assignmentPolicyRefTooltip.add(new InfoTooltipBehavior());
+        editor.add(assignmentPolicyRefTooltip);
+
+        Label iterationTooltip = new Label(ID_T_ITERATION);
+        iterationTooltip.add(new InfoTooltipBehavior());
+        editor.add(iterationTooltip);
+
+        Label protectedTooltip = new Label(ID_T_PROTECTED);
+        protectedTooltip.add(new InfoTooltipBehavior());
+        editor.add(protectedTooltip);
+
+        Label activationTooltip = new Label(ID_T_ACTIVATION);
+        activationTooltip.add(new InfoTooltipBehavior());
+        editor.add(activationTooltip);
+
+        Label credentialsTooltip = new Label(ID_T_CREDENTIALS);
+        credentialsTooltip.add(new InfoTooltipBehavior());
+        editor.add(credentialsTooltip);
     }
 
     private void addDisabledClassModifier(Component component){

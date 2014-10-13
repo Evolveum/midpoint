@@ -511,32 +511,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				continue;
 			}
 			boolean isSuccess = getShadowCache(Mode.STANDARD).processSynchronization(change, task, resourceType, null, result);
-//
-//			ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
-//					change, resourceType);
-//
-//			if (LOGGER.isTraceEnabled()) {
-//				LOGGER.trace("**PROVISIONING: Created resource object shadow change description {}",
-//						SchemaDebugUtil.prettyPrint(shadowChangeDescription));
-//			}
-//			OperationResult notifyChangeResult = new OperationResult(ProvisioningService.class.getName()
-//					+ "notifyChange");
-//			notifyChangeResult.addParam("resourceObjectShadowChangeDescription", shadowChangeDescription);
-//
-//			try {
-//				notifyResourceObjectChangeListeners(shadowChangeDescription, task, notifyChangeResult);
-//				notifyChangeResult.recordSuccess();
-//			} catch (RuntimeException ex) {
-//				recordFatalError(LOGGER, notifyChangeResult, "Synchronization error: " + ex.getMessage(), ex);
-//				saveAccountResult(shadowChangeDescription, change, notifyChangeResult, result);
-//				throw new SystemException("Synchronization error: " + ex.getMessage(), ex);
-//			}
-//
-//			notifyChangeResult.computeStatus("Error by notify change operation.");
-//
+
 			if (isSuccess) {
-//				deleteShadowFromRepo(change, result);
-//
 //				// get updated token from change,
 //				// create property modification from new token
 //				// and replace old token with the new one
@@ -544,9 +520,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				task.setExtensionProperty(newToken);
 				processedChanges++;
 			}
-//			} else {
-//				saveAccountResult(shadowChangeDescription, change, notifyChangeResult, result);
-//			}
 
 		}
 		// also if no changes was detected, update token
@@ -1486,77 +1459,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.cleanupResult();
 	}
 
-//	@SuppressWarnings("rawtypes")
-//	private Collection<? extends ItemDelta> createShadowResultModification(Change change, OperationResult shadowResult) {
-//		PrismObjectDefinition<ShadowType> shadowDefinition = getResourceObjectShadowDefinition();
-//		
-//		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
-//		PropertyDelta resultDelta = PropertyDelta.createModificationReplaceProperty(
-//				ShadowType.F_RESULT, shadowDefinition, shadowResult.createOperationResultType());
-//		modifications.add(resultDelta);
-//		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-//			PropertyDelta failedOperationTypeDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_FAILED_OPERATION_TYPE, shadowDefinition, FailedOperationTypeType.DELETE);
-//			modifications.add(failedOperationTypeDelta);
-//		}		
-//		return modifications;
-//	}
-	
-//	private String getOidFromChange(Change change){
-//		String shadowOid = null;
-//		if (change.getObjectDelta() != null && change.getObjectDelta().getOid() != null) {
-//			shadowOid = change.getObjectDelta().getOid();
-//		} else {
-//			if (change.getCurrentShadow().getOid() != null) {
-//				shadowOid = change.getCurrentShadow().getOid();
-//			} else {
-//				if (change.getOldShadow().getOid() != null) {
-//					shadowOid = change.getOldShadow().getOid();
-//				} else {
-//					throw new IllegalArgumentException("No oid value defined for the object to synchronize.");
-//				}
-//			}
-//		}
-//		return shadowOid;
-//	}
-
-//	@SuppressWarnings("rawtypes")
-//	private void saveAccountResult(ResourceObjectShadowChangeDescription shadowChangeDescription, Change change,
-//			OperationResult notifyChangeResult, OperationResult parentResult) throws ObjectNotFoundException,
-//			SchemaException, ObjectAlreadyExistsException {
-//
-//		Collection<? extends ItemDelta> shadowModification = createShadowResultModification(change, notifyChangeResult);
-//		String oid = getOidFromChange(change);
-//		// maybe better error handling is needed
-//		try{
-//		cacheRepositoryService.modifyObject(ShadowType.class, oid,
-//				shadowModification, parentResult);
-//		} catch (SchemaException ex){
-//			parentResult.recordPartialError("Couldn't modify object: schema violation: " + ex.getMessage(), ex);
-////			throw ex;
-//		} catch (ObjectNotFoundException ex){
-//			parentResult.recordWarning("Couldn't modify object: object not found: " + ex.getMessage(), ex);
-////			throw ex;
-//		} catch (ObjectAlreadyExistsException ex){
-//			parentResult.recordPartialError("Couldn't modify object: object already exists: " + ex.getMessage(), ex);
-////			throw ex;
-//		}
-//
-//	}
-//
-//	private void deleteShadowFromRepo(Change change, OperationResult parentResult) throws ObjectNotFoundException {
-//		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE
-//				&& change.getOldShadow() != null) {
-//			LOGGER.debug("Deleting detected shadow object form repository.");
-//			try {
-//				cacheRepositoryService.deleteObject(ShadowType.class, change.getOldShadow().getOid(),
-//						parentResult);
-//			} catch (ObjectNotFoundException ex) {
-//				parentResult.recordFatalError("Can't find object " + change.getOldShadow() + " in repository.");
-//				throw new ObjectNotFoundException("Can't find object " + change.getOldShadow() + " in repository.");
-//			}
-//			LOGGER.debug("Shadow object deleted successfully form repository.");
-//		}
-//	}
 
 	private PrismObjectDefinition<ShadowType> getResourceObjectShadowDefinition() {
 		if (resourceObjectShadowDefinition == null) {
@@ -1574,7 +1476,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			if (!GetOperationOptions.isAllowNotFound(options)){
 				recordFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);
 			}
-//			result.recordFatalError("Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);
 			throw e;
 		} catch (SchemaException ex) {
 			recordFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + ex.getMessage(), ex);

@@ -288,18 +288,18 @@ public class ResourceObjectConverter {
 			applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
 		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
-					"Could not create account on the resource. Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
+					"Could not create object on the resource. Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with the connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
-			parentResult.recordFatalError("Could not create account on the resource. Generic error in connector: " + ex.getMessage(), ex);
+			parentResult.recordFatalError("Could not create object on the resource. Generic error in connector: " + ex.getMessage(), ex);
 //			LOGGER.info("Schema for add:\n{}",
 //					DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resource)));
 //			
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
 		} catch (ObjectAlreadyExistsException ex){
-			parentResult.recordFatalError("Could not create account on the resource. Account already exists on the resource: " + ex.getMessage(), ex);
-			throw new ObjectAlreadyExistsException("Account already exists on the resource: " + ex.getMessage(), ex);
+			parentResult.recordFatalError("Could not create object on the resource. Object already exists on the resource: " + ex.getMessage(), ex);
+			throw new ObjectAlreadyExistsException("Object already exists on the resource: " + ex.getMessage(), ex);
 		} catch (ConfigurationException ex){
 			parentResult.recordFatalError(ex);
 			throw ex;
@@ -335,7 +335,7 @@ public class ResourceObjectConverter {
 		//check idetifier if it is not null
 		if (identifiers.isEmpty() && shadow.asObjectable().getFailedOperationType()!= null){
 			throw new GenericConnectorException(
-					"Unable to delete account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+					"Unable to delete object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 		}
 		
 		// Execute entitlement modification on other objects (if needed)
@@ -435,7 +435,7 @@ public class ResourceObjectConverter {
 			//check identifier if it is not null
 			if (identifiers.isEmpty() && shadow.asObjectable().getFailedOperationType()!= null){
 				throw new GenericConnectorException(
-						"Unable to modify account in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+						"Unable to modify object in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 			}
 	
 //			PrismObject<ShadowType> currentShadow = null;
@@ -827,7 +827,7 @@ public class ResourceObjectConverter {
 			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
 
 		try {
-			
+		
 			if (!ResourceTypeUtil.hasReadCapability(resource)){
 				throw new UnsupportedOperationException("Resource does not support 'read' operation");
 			}
@@ -1168,7 +1168,7 @@ public class ResourceObjectConverter {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
 				}				
 			} else {
-				LOGGER.trace("Skip converting item delta: {}. It's not account change, but it it shadow change.", itemDelta);	
+				LOGGER.trace("Skip converting item delta: {}. It's not resource object change, but it is shadow change.", itemDelta);	
 			}
 			
 		}
@@ -1522,7 +1522,7 @@ public class ResourceObjectConverter {
 				ActivationCapabilityType.class);
 		if (activationCapability == null) {
 			result.recordWarning("Resource " + resource
-					+ " does not have native or simulated activation capability. Processing of activation for account "+ shadow +" was skipped");
+					+ " does not have native or simulated activation capability. Processing of activation for "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1530,7 +1530,7 @@ public class ResourceObjectConverter {
 		ActivationStatusCapabilityType capActStatus = getStatusCapability(resource, activationCapability);
 		if (capActStatus == null) {
 			result.recordWarning("Resource " + resource
-					+ " does not have native or simulated activation status capability. Processing of activation for account "+ shadow +" was skipped");
+					+ " does not have native or simulated activation status capability. Processing of activation for "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1547,7 +1547,7 @@ public class ResourceObjectConverter {
 		if (enableAttributeName == null) {
 			result.recordWarning("Resource "
 							+ ObjectTypeUtil.toShortString(resource)
-							+ " does not have attribute specification for simulated activation status capability. Processing of activation for account "+ shadow +" was skipped");
+							+ " does not have attribute specification for simulated activation status capability. Processing of activation for "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1557,7 +1557,7 @@ public class ResourceObjectConverter {
 		if (enableAttributeDefinition == null) {
 			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
 					+ "  attribute for simulated activation/enableDisable capability" + enableAttributeName
-					+ " in not present in the schema for objeclass " + objectClassDefinition+". Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+					+ " in not present in the schema for objeclass " + objectClassDefinition+". Processing of activation for "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1645,7 +1645,7 @@ public class ResourceObjectConverter {
 				ActivationCapabilityType.class);
 		if (activationCapability == null) {
 			result.recordWarning("Resource " + resource
-					+ " does not have native or simulated activation capability. Processing of activation for account "+ shadow +" was skipped");
+					+ " does not have native or simulated activation capability. Processing of activation for "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1653,7 +1653,7 @@ public class ResourceObjectConverter {
 		ActivationLockoutStatusCapabilityType capActStatus = getLockoutStatusCapability(resource, activationCapability);
 		if (capActStatus == null) {
 			result.recordWarning("Resource " + resource
-					+ " does not have native or simulated activation lockout capability. Processing of activation for account "+ shadow +" was skipped");
+					+ " does not have native or simulated activation lockout capability. Processing of activation for "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1668,7 +1668,7 @@ public class ResourceObjectConverter {
 		if (enableAttributeName == null) {
 			result.recordWarning("Resource "
 							+ ObjectTypeUtil.toShortString(resource)
-							+ " does not have attribute specification for simulated activation lockout capability. Processing of activation for account "+ shadow +" was skipped");
+							+ " does not have attribute specification for simulated activation lockout capability. Processing of activation for "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1678,7 +1678,7 @@ public class ResourceObjectConverter {
 		if (enableAttributeDefinition == null) {
 			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
 					+ "  attribute for simulated activation/lockout capability" + enableAttributeName
-					+ " in not present in the schema for objeclass " + objectClassDefinition+". Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+					+ " in not present in the schema for objeclass " + objectClassDefinition+". Processing of activation for "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}

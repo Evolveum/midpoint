@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectSynchroniza
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceSynchronizationDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -102,6 +103,18 @@ public class SynchronizationStep extends WizardStep {
     private static final String ID_EDITOR_OBJECT_CLASS = "editorObjectClass";
     private static final String ID_EDITOR_EDITOR_CORRELATION = "editorCorrelation";
     private static final String ID_EDITOR_REACTION = "editorReaction";
+    private static final String ID_T_KIND = "kindTooltip";
+    private static final String ID_T_INTENT = "intentTooltip";
+    private static final String ID_T_OBJ_CLASS = "objectClassTooltip";
+    private static final String ID_T_FOCUS = "focusTooltip";
+    private static final String ID_T_ENABLED = "enabledTooltip";
+    private static final String ID_T_CONDITION = "conditionTooltip";
+    private static final String ID_T_CONFIRMATION = "confirmationTooltip";
+    private static final String ID_T_OBJ_TEMPLATE = "objectTemplateTooltip";
+    private static final String ID_T_RECONCILE = "reconcileTooltip";
+    private static final String ID_T_OPPORTUNISTIC = "opportunisticTooltip";
+    private static final String ID_T_CORRELATION = "correlationTooltip";
+    private static final String ID_T_REACTION = "reactionTooltip";
 
     private IModel<PrismObject<ResourceType>> resourceModel;
     private IModel<ResourceSynchronizationDto> model;
@@ -512,6 +525,54 @@ public class SynchronizationStep extends WizardStep {
             }
         };
         editor.add(editorReaction);
+
+        Label kindTooltip = new Label(ID_T_KIND);
+        kindTooltip.add(new InfoTooltipBehavior());
+        editor.add(kindTooltip);
+
+        Label intentTooltip = new Label(ID_T_INTENT);
+        intentTooltip.add(new InfoTooltipBehavior());
+        editor.add(intentTooltip);
+
+        Label objClassTooltip = new Label(ID_T_OBJ_CLASS);
+        objClassTooltip.add(new InfoTooltipBehavior());
+        editor.add(objClassTooltip);
+
+        Label focusTooltip = new Label(ID_T_FOCUS);
+        focusTooltip.add(new InfoTooltipBehavior());
+        editor.add(focusTooltip);
+
+        Label enabledTooltip = new Label(ID_T_ENABLED);
+        enabledTooltip.add(new InfoTooltipBehavior());
+        editor.add(enabledTooltip);
+
+        Label conditionTooltip = new Label(ID_T_CONDITION);
+        conditionTooltip.add(new InfoTooltipBehavior());
+        editor.add(conditionTooltip);
+
+        Label confirmationTooltip = new Label(ID_T_CONFIRMATION);
+        confirmationTooltip.add(new InfoTooltipBehavior());
+        editor.add(confirmationTooltip);
+
+        Label objTemplateTooltip = new Label(ID_T_OBJ_TEMPLATE);
+        objTemplateTooltip.add(new InfoTooltipBehavior());
+        editor.add(objTemplateTooltip);
+
+        Label reconcileTooltip = new Label(ID_T_RECONCILE);
+        reconcileTooltip.add(new InfoTooltipBehavior());
+        editor.add(reconcileTooltip);
+
+        Label opportunisticTooltip = new Label(ID_T_OPPORTUNISTIC);
+        opportunisticTooltip.add(new InfoTooltipBehavior());
+        editor.add(opportunisticTooltip);
+
+        Label correlationTooltip = new Label(ID_T_CORRELATION);
+        correlationTooltip.add(new InfoTooltipBehavior());
+        editor.add(correlationTooltip);
+
+        Label reactionTooltip = new Label(ID_T_REACTION);
+        reactionTooltip.add(new InfoTooltipBehavior());
+        editor.add(reactionTooltip);
     }
 
     private IModel<String> createObjectSyncTypeDisplayModel(final ObjectSynchronizationTypeDto syncObject){

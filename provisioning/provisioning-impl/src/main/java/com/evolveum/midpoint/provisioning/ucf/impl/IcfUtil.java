@@ -294,7 +294,13 @@ class IcfUtil {
 		} else if (ex instanceof InvalidAttributeValueException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			Exception newEx = new SchemaException(createMessageFromAllExceptions("Invalid attribute", ex));
+			InvalidAttributeValueException e = (InvalidAttributeValueException) ex;
+			Exception newEx = null;
+			if (e.getExplanation().contains("unique attribute conflict")){
+				newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions("Invalid attribute", ex));
+			} else{
+				newEx = new SchemaException(createMessageFromAllExceptions("Invalid attribute", ex));
+			}
 			parentResult.recordFatalError("Invalid attribute: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof ConnectException) {

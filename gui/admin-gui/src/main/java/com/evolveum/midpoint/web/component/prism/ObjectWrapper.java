@@ -260,7 +260,10 @@ public class ObjectWrapper implements Serializable, Revivable {
         ContainerWrapper wrapper = new ContainerWrapper(this, container, status, new ItemPath(name), pageBase);
         addSubresult(wrapper.getResult());
 		list.add(wrapper);
+//		list.addAll(createContainerWrapper(container, null, pageBase)); 
+		if (!ShadowType.F_ASSOCIATION.equals(name)){
 		list.addAll(createContainerWrapper(container, new ItemPath(name), pageBase));     // [pm] is this OK? "name" is the name of the container itself; originally here was an empty path - that seems more logical
+		}
 
 		return list;
 	}
@@ -305,7 +308,10 @@ public class ObjectWrapper implements Serializable, Revivable {
 				
 				PrismContainer<ShadowAssociationType> associationContainer = object.findContainer(ShadowType.F_ASSOCIATION);
 				if (associationContainer != null) {
-					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_ASSOCIATION, pageBase));
+					container = new ContainerWrapper(this, associationContainer, ContainerStatus.MODIFYING, new ItemPath(
+							ShadowType.F_ASSOCIATION), pageBase);
+	                addSubresult(container.getResult());
+	                containers.add(container);
 				}
             } else if (ResourceType.class.isAssignableFrom(clazz)) {
                 containers = createResourceContainers(pageBase);
@@ -406,6 +412,7 @@ public class ObjectWrapper implements Serializable, Revivable {
             if (TriggerType.COMPLEX_TYPE.equals(def.getTypeName())) {
                 continue;       // TEMPORARY FIX TODO: remove after getEditSchema (authorization) will be fixed.
             }
+           
             LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
 
 			PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
@@ -421,9 +428,12 @@ public class ObjectWrapper implements Serializable, Revivable {
             }
 
 			ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
-			PrismContainer prismContainer = parent.findContainer(def.getName());
-            ContainerWrapper container;
-			if (prismContainer != null) {
+			
+			PrismContainer prismContainer = null;
+			 prismContainer = parent.findContainer(def.getName());
+			 
+			 ContainerWrapper container;
+			if (prismContainer != null && !prismContainer.getElementName().equals(CredentialsType.F_PASSWORD)) {
                 container = new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING, newPath, pageBase);
 			} else {
 				prismContainer = containerDef.instantiate();
@@ -432,7 +442,7 @@ public class ObjectWrapper implements Serializable, Revivable {
             addSubresult(container.getResult());
             wrappers.add(container);
 
-            if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {      // do not show internals of Assignments (e.g. activation)
+            if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName()) ||  !ShadowType.F_ASSOCIATION.equals(parent.getElementName())){      // do not show internals of Assignments (e.g. activation)
 			    wrappers.addAll(createContainerWrapper(prismContainer, newPath, pageBase));
             }
 		}

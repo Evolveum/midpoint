@@ -41,6 +41,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="SynchronizationReactionEditor.label.situation" /></label>
+            <i wicket:id="situationTooltip" wicket:message="title:SynchronizationStep.reaction.tooltip.situation"/>
         </dt>
         <dd>
             <select wicket:id="situation" class="form-control input-sm"></select>
@@ -51,6 +52,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="SynchronizationReactionEditor.label.channel" /></label>
+            <i wicket:id="channelTooltip" wicket:message="title:SynchronizationStep.reaction.tooltip.channel"/>
         </dt>
         <div wicket:id="channel" />
     </dl>
@@ -61,6 +63,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SynchronizationReactionEditor.label.synchronize" /></label>
+                    <i wicket:id="synchronizeTooltip" wicket:message="title:SynchronizationStep.reaction.tooltip.synchronize"/>
                 </dt>
                 <dd>
                     <input wicket:id="synchronize" type="checkbox" value="checked"/>
@@ -72,6 +75,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SynchronizationReactionEditor.label.reconcile" /></label>
+                    <i wicket:id="reconcileTooltip" wicket:message="title:SynchronizationStep.reaction.tooltip.reconcile"/>
                 </dt>
                 <dd>
                     <input wicket:id="reconcile" type="checkbox" value="checked"/>
@@ -83,6 +87,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="SynchronizationReactionEditor.label.objectTemplateRef" /></label>
+            <i wicket:id="objectTemplateRefTooltip" wicket:message="title:SynchronizationStep.reaction.tooltip.objectTemplateRef"/>
         </dt>
         <dd>
             <select wicket:id="objectTemplateRef" class="form-control input-sm"></select>
@@ -93,6 +98,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="SynchronizationReactionEditor.label.action" /></label>
+            <i wicket:id="actionTooltip" wicket:message="title:SynchronizationStep.reaction.tooltip.action"/>
         </dt>
         <div wicket:id="action" />
     </dl>

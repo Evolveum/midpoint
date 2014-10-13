@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.PropertyLimitationsTypeDto;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
@@ -68,6 +69,9 @@ public class LimitationsEditorDialog extends ModalWindow{
     private static final String ID_BUTTON_SAVE = "saveButton";
     private static final String ID_BUTTON_CANCEL = "cancelButton";
     private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_T_LAYERS = "layersTooltip";
+    private static final String ID_T_PROPERTY = "propertyAccessTooltip";
+    private static final String ID_T_OTHER = "otherTooltip";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-8";
@@ -242,20 +246,31 @@ public class LimitationsEditorDialog extends ModalWindow{
         body.add(modify);
 
         TextFormGroup minOccurs = new TextFormGroup(ID_MIN_OCCURS, new PropertyModel<String>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".minOccurs"),
-                createStringResource("LimitationsEditorDialog.label.minOccurs"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                createStringResource("LimitationsEditorDialog.label.minOccurs"), "SchemaHandlingStep.limitations.tooltip.minOccurs", ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         minOccurs.getField().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(minOccurs);
 
         TextFormGroup maxOccurs = new TextFormGroup(ID_MAX_OCCURS, new PropertyModel<String>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".maxOccurs"),
-                createStringResource("LimitationsEditorDialog.label.maxOccurs"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                createStringResource("LimitationsEditorDialog.label.maxOccurs"), "SchemaHandlingStep.limitations.tooltip.maxOccurs", ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         maxOccurs.getField().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(maxOccurs);
 
         CheckFormGroup ignore = new CheckFormGroup(ID_IGNORE, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".ignore"),
-                createStringResource("LimitationsEditorDialog.label.ignore"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+                createStringResource("LimitationsEditorDialog.label.ignore"), "SchemaHandlingStep.limitations.tooltip.ignore", ID_LABEL_SIZE, ID_INPUT_SIZE);
         ignore.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(ignore);
 
+        Label layersTooltip = new Label(ID_T_LAYERS);
+        layersTooltip.add(new InfoTooltipBehavior());
+        body.add(layersTooltip);
+
+        Label propertyTooltip = new Label(ID_T_PROPERTY);
+        propertyTooltip.add(new InfoTooltipBehavior());
+        body.add(propertyTooltip);
+
+        Label otherTooltip = new Label(ID_T_OTHER);
+        otherTooltip.add(new InfoTooltipBehavior());
+        body.add(otherTooltip);
     }
 
     private AjaxFormComponentUpdatingBehavior prepareAjaxOnComponentTagUpdateBehavior(){

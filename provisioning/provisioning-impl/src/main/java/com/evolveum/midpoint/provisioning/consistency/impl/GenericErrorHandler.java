@@ -91,7 +91,7 @@ public class GenericErrorHandler extends ErrorHandler{
 		case GET:
 				if (ShadowUtil.isDead(shadow) || ResourceTypeUtil.isDown(shadow.getResource()) || !compensate) {
 					result.recordStatus(OperationResultStatus.PARTIAL_ERROR,
-							"Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+							"Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 					result.computeStatus();
 					shadow.setFetchResult(parentResult.createOperationResultType());
 					return shadow;
@@ -156,13 +156,13 @@ public class GenericErrorHandler extends ErrorHandler{
 				// TODO: probably there is a need to union current changes with previous
 				cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), modifications,
 					result);
-				result.recordHandledError("Modifications not applied to the account, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
+				result.recordHandledError("Modifications not applied to the object, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
 			}
 			return shadow;
 			
 		case DELETE:
 			cacheRepositoryService.deleteObject(shadow.getClass(), shadow.getOid(), result);
-			result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Account has been not created on the resource yet. Shadow deleted from the repository");
+			result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Object has been not created on the resource yet. Shadow deleted from the repository");
 			return shadow;
 		default:
 			result.recordFatalError("Can't process "

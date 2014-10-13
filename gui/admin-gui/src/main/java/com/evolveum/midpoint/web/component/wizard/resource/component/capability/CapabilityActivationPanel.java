@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.capability
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -43,6 +45,16 @@ public class CapabilityActivationPanel extends SimplePanel{
     private static final String ID_STATUS_ENABLE_LIST = "statusEnableList";
     private static final String ID_STATUS_DISABLE_LIST = "statusDisableList";
     private static final String ID_SELECT_STATUS = "statusSelect";
+    private static final String ID_T_ENABLED = "enabledTooltip";
+    private static final String ID_T_RETURNED_BY_DEFAULT = "returnedByDefaultTooltip";
+    private static final String ID_T_IGNORE_ATTR = "ignoreAttributeTooltip";
+    private static final String ID_T_ATTR_NAME = "attributeNameTooltip";
+    private static final String ID_T_ENABLE_LIST = "enableListTooltip";
+    private static final String ID_T_DISABLE_LIST = "disableListTooltip";
+    private static final String ID_T_V_FROM_ENABLED = "validFromEnabledTooltip";
+    private static final String ID_T_V_FROM_RETURN = "validFromReturnedTooltip";
+    private static final String ID_T_V_TO_ENABLED = "validToEnabledTooltip";
+    private static final String ID_T_V_TO_RETURN = "validToReturnedTooltip";
 
     public CapabilityActivationPanel(String componentId, IModel<CapabilityDto> model){
         super(componentId, model);
@@ -98,7 +110,7 @@ public class CapabilityActivationPanel extends SimplePanel{
         };
         add(statusDisableList);
 
-        IChoiceRenderer renderer = new IChoiceRenderer<QName>() {
+        IChoiceRenderer<QName> renderer = new IChoiceRenderer<QName>() {
 
             @Override
             public Object getDisplayValue(QName object) {
@@ -111,10 +123,50 @@ public class CapabilityActivationPanel extends SimplePanel{
             }
         };
 
-        DropDownChoice statusChoice = new DropDownChoice(ID_SELECT_STATUS,
+        DropDownChoice statusChoice = new DropDownChoice<>(ID_SELECT_STATUS,
                 new PropertyModel<QName>(getModel(), "capability.status.attribute"),
                 createAttributeChoiceModel(), renderer);
         add(statusChoice);
+
+        Label enabledTooltip = new Label(ID_T_ENABLED);
+        enabledTooltip.add(new InfoTooltipBehavior());
+        add(enabledTooltip);
+
+        Label returnTooltip = new Label(ID_T_RETURNED_BY_DEFAULT);
+        returnTooltip.add(new InfoTooltipBehavior());
+        add(returnTooltip);
+
+        Label ignoreTooltip = new Label(ID_T_IGNORE_ATTR);
+        ignoreTooltip.add(new InfoTooltipBehavior());
+        add(ignoreTooltip);
+
+        Label attributeNameTooltip = new Label(ID_T_ATTR_NAME);
+        attributeNameTooltip.add(new InfoTooltipBehavior());
+        add(attributeNameTooltip);
+
+        Label enableListTooltip = new Label(ID_T_ENABLE_LIST);
+        enableListTooltip.add(new InfoTooltipBehavior());
+        add(enableListTooltip);
+
+        Label disableListTooltip = new Label(ID_T_DISABLE_LIST);
+        disableListTooltip.add(new InfoTooltipBehavior());
+        add(disableListTooltip);
+
+        Label vFromEnabledTooltip = new Label(ID_T_V_FROM_ENABLED);
+        vFromEnabledTooltip.add(new InfoTooltipBehavior());
+        add(vFromEnabledTooltip);
+
+        Label vFromReturnTooltip = new Label(ID_T_V_FROM_RETURN);
+        vFromReturnTooltip.add(new InfoTooltipBehavior());
+        add(vFromReturnTooltip);
+
+        Label vToEnabledTooltip = new Label(ID_T_V_TO_ENABLED);
+        vToEnabledTooltip.add(new InfoTooltipBehavior());
+        add(vToEnabledTooltip);
+
+        Label vToReturnTooltip = new Label(ID_T_V_TO_RETURN);
+        vToReturnTooltip.add(new InfoTooltipBehavior());
+        add(vToReturnTooltip);
     }
 
     public IModel<List<QName>> createAttributeChoiceModel(){

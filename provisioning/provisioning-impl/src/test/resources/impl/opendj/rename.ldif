@@ -1,0 +1,4 @@
+dn: uid=will,ou=People,dc=example,dc=com
+changetype: modrdn
+newrdn: uid=will123
+deleteoldrdn: true

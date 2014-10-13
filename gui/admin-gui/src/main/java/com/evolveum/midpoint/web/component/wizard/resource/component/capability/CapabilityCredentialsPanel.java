@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.capability
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
@@ -32,6 +33,9 @@ public class CapabilityCredentialsPanel extends SimplePanel{
     private static final String ID_LABEL_PASSWORD = "password";
     private static final String ID_PASSWORD_ENABLED = "passEnabled";
     private static final String ID_PASSWORD_RETURNED = "passReturned";
+    private static final String ID_T_ENABLED = "enabledTooltip";
+    private static final String ID_T_PASS_ENABLED = "passEnabledTooltip";
+    private static final String ID_T_PASS_RETURN = "passReturnedTooltip";
 
     public CapabilityCredentialsPanel(String componentId, IModel<CapabilityDto> model){
         super(componentId, model);
@@ -50,5 +54,17 @@ public class CapabilityCredentialsPanel extends SimplePanel{
 
         CheckBox passwordReturned = new CheckBox(ID_PASSWORD_RETURNED, new PropertyModel<Boolean>(getModel(), "capability.password.returnedByDefault"));
         add(passwordReturned);
+
+        Label enabledTooltip = new Label(ID_T_ENABLED);
+        enabledTooltip.add(new InfoTooltipBehavior());
+        add(enabledTooltip);
+
+        Label passEnabledTooltip = new Label(ID_T_PASS_ENABLED);
+        passEnabledTooltip.add(new InfoTooltipBehavior());
+        add(passEnabledTooltip);
+
+        Label passReturnTooltip = new Label(ID_T_PASS_RETURN);
+        passReturnTooltip.add(new InfoTooltipBehavior());
+        add(passReturnTooltip);
     }
 }

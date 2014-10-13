@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -82,6 +83,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 
 import javax.xml.bind.JAXBException;
@@ -573,7 +575,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		List<Item<?>> attributes = attributesContainer.getValue().getItems();
-		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
+//		Collection secIdentifiers = ShadowUtil.getSecondaryIdentifiers(accountShadow);
+		if (attributes == null){
+			AssertJUnit.fail("No attributes in repo shadow");
+		}
+		RefinedResourceSchema refinedSchema = null;
+		try {
+			refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+		} catch (SchemaException e) {
+			AssertJUnit.fail(e.getMessage());
+		}
+		ObjectClassComplexTypeDefinition objClassDef = refinedSchema.getRefinedDefinition(objectClass);
+		Collection secIdentifiers = objClassDef.getSecondaryIdentifiers();
+		if (secIdentifiers == null){
+			AssertJUnit.fail("No secondary identifiers in repo shadow");
+		}
+		// repo shadow should contains all secondary identifiers + ICF_UID
+		assertEquals("Unexpected number of attributes in repo shadow", secIdentifiers.size()+1, attributes.size());
 	}
 	
 	protected String getIcfUid(PrismObject<ShadowType> shadow) {

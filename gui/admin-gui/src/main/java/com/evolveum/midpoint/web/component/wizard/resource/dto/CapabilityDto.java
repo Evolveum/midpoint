@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 import java.io.Serializable;
 
@@ -33,12 +33,40 @@ public class CapabilityDto<T extends CapabilityType> implements Serializable {
     private boolean selected = false;
     private boolean nativeCapability;
     private String value;
+    private String tooltipKey;
     private T capability;
 
     public CapabilityDto(T capability, String value, boolean nativeCapability) {
-        this.nativeCapability = nativeCapability;
-        this.value = value;
         this.capability = capability;
+        this.value = value;
+        this.nativeCapability = nativeCapability;
+        this.tooltipKey = determineTooltipKey();
+    }
+
+    private String determineTooltipKey(){
+        if(capability != null){
+            if(capability instanceof ReadCapabilityType){
+                return "CapabilityStep.capability.read.tooltip";
+            } else if (capability instanceof UpdateCapabilityType){
+                return "CapabilityStep.capability.update.tooltip";
+            } else if (capability instanceof CreateCapabilityType){
+                return "CapabilityStep.capability.create.tooltip";
+            } else if (capability instanceof DeleteCapabilityType){
+                return "CapabilityStep.capability.delete.tooltip";
+            } else if (capability instanceof LiveSyncCapabilityType){
+                return "CapabilityStep.capability.liveSync.tooltip";
+            } else if (capability instanceof TestConnectionCapabilityType){
+                return "CapabilityStep.capability.testConnection.tooltip";
+            } else if (capability instanceof ActivationCapabilityType){
+                return "CapabilityStep.capability.activation.tooltip";
+            } else if (capability instanceof CredentialsCapabilityType){
+                return "CapabilityStep.capability.credentials.tooltip";
+            } else if (capability instanceof ScriptCapabilityType){
+                return "CapabilityStep.capability.script.tooltip";
+            }
+        }
+
+        return null;
     }
 
     public boolean isNativeCapability() {
@@ -73,24 +101,26 @@ public class CapabilityDto<T extends CapabilityType> implements Serializable {
         this.selected = selected;
     }
 
+    public String getTooltipKey() {
+        return tooltipKey;
+    }
+
+    public void setTooltipKey(String tooltipKey) {
+        this.tooltipKey = tooltipKey;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-
-        if (!(o instanceof CapabilityDto))
-            return false;
+        if (this == o) return true;
+        if (!(o instanceof CapabilityDto)) return false;
 
         CapabilityDto that = (CapabilityDto) o;
 
-        if (nativeCapability != that.nativeCapability)
-            return false;
-        if (selected != that.selected)
-            return false;
-        if (!capability.equals(that.capability))
-            return false;
-        if (!value.equals(that.value))
-            return false;
+        if (nativeCapability != that.nativeCapability) return false;
+        if (selected != that.selected) return false;
+        if (capability != null ? !capability.equals(that.capability) : that.capability != null) return false;
+        if (tooltipKey != null ? !tooltipKey.equals(that.tooltipKey) : that.tooltipKey != null) return false;
+        if (value != null ? !value.equals(that.value) : that.value != null) return false;
 
         return true;
     }
@@ -99,8 +129,9 @@ public class CapabilityDto<T extends CapabilityType> implements Serializable {
     public int hashCode() {
         int result = (selected ? 1 : 0);
         result = 31 * result + (nativeCapability ? 1 : 0);
-        result = 31 * result + value.hashCode();
-        result = 31 * result + capability.hashCode();
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + (tooltipKey != null ? tooltipKey.hashCode() : 0);
+        result = 31 * result + (capability != null ? capability.hashCode() : 0);
         return result;
     }
 }

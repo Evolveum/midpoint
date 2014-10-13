@@ -27,10 +27,12 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.ExpressionVariableEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.IterationSpecificationTypeDto;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -80,6 +82,13 @@ public class ResourceIterationEditor extends SimplePanel<IterationSpecificationT
     private static final String ID_PRE_POLICY_CONTAINER = "prePolicyContainer";
     private static final String ID_POST_LANG_CONTAINER = "postLanguageContainer";
     private static final String ID_POST_POLICY_CONTAINER = "postPolicyContainer";
+    private static final String ID_T_MAX_ITERATION = "maxIterationTooltip";
+    private static final String ID_T_TOKEN_VAR = "tokenVariableTooltip";
+    private static final String ID_T_TOKEN_MUL = "tokenReturnMultiplicityTooltip";
+    private static final String ID_T_PRE_VAR = "preVariableTooltip";
+    private static final String ID_T_PRE_MUL = "preReturnMultiplicityTooltip";
+    private static final String ID_T_POST_VAR = "postVariableTooltip";
+    private static final String ID_T_POST_MUL = "postReturnMultiplicityTooltip";
 
     private Map<String, String> policyMap = new HashMap<>();
     private IModel<IterationSpecificationTypeDto> model;
@@ -148,6 +157,34 @@ public class ResourceIterationEditor extends SimplePanel<IterationSpecificationT
                 ID_POST_VARIABLE_LIST, ID_POST_RETURN_MULTIPLICITY, ID_POST_EXPR_TYPE, ID_POST_EXPR,
                 ID_POST_EXPR_LANG, ID_POST_EXPR_POLICY, IterationSpecificationTypeDto.POST_EXPRESSION_PREFIX,
                 ID_POST_LANG_CONTAINER, ID_POST_POLICY_CONTAINER);
+
+        Label maxItTooltip = new Label(ID_T_MAX_ITERATION);
+        maxItTooltip.add(new InfoTooltipBehavior());
+        add(maxItTooltip);
+
+        Label tokenVarTooltip = new Label(ID_T_TOKEN_VAR);
+        tokenVarTooltip.add(new InfoTooltipBehavior());
+        add(tokenVarTooltip);
+
+        Label tokenMulTooltip = new Label(ID_T_TOKEN_MUL);
+        tokenMulTooltip.add(new InfoTooltipBehavior());
+        add(tokenMulTooltip);
+
+        Label preVarTooltip = new Label(ID_T_PRE_VAR);
+        preVarTooltip.add(new InfoTooltipBehavior());
+        add(preVarTooltip);
+
+        Label preMulTooltip = new Label(ID_T_PRE_MUL);
+        preMulTooltip.add(new InfoTooltipBehavior());
+        add(preMulTooltip);
+
+        Label postVarTooltip = new Label(ID_T_POST_VAR);
+        postVarTooltip.add(new InfoTooltipBehavior());
+        add(postVarTooltip);
+
+        Label postMulTooltip = new Label(ID_T_POST_MUL);
+        postMulTooltip.add(new InfoTooltipBehavior());
+        add(postMulTooltip);
 
         initModals();
     }

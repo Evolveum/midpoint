@@ -19,26 +19,22 @@
 <body>
 <wicket:panel>
     <div wicket:id="contents">
-        <br/>
-        <table border="1">
+        <table class="table table-striped table-condensed table-bordered" style="width: auto;">
             <tr>
-                <th><b><wicket:message key="ProgressTableHeader.Activity"/></b></th>
-                <th><b><wicket:message key="ProgressTableHeader.Status"/></b></th>
-                <th><b><wicket:message key="ProgressTableHeader.ResourceObject"/></b></th>
+                <th><wicket:message key="ProgressTableHeader.Activity"/></th>
+                <th><wicket:message key="ProgressTableHeader.Status"/></th>
+                <th><wicket:message key="ProgressTableHeader.ResourceObject"/></th>
             </tr>
             <tr wicket:id="progressReportActivities">
-                <td><span wicket:id="description"></span></td>
+                <td><span wicket:id="description"/></td>
                 <td><i wicket:id="status"></i></td>
-                <td><span wicket:id="comment"></span></td>
+                <td><span wicket:id="comment"/></td>
             </tr>
         </table>
-        <br/>
         <span wicket:id="executionTime"/>
-        <br/>
         <span wicket:id="logItems">
             <span wicket:id="logItem">label</span><br/>
         </span>
-        <br/>
     </div>
 </wicket:panel>
 </body>

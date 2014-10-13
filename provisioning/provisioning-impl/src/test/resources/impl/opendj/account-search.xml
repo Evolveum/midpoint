@@ -21,12 +21,12 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-	<c:name>uid=will123,ou=People,dc=example,dc=com</c:name>
+	<c:name>uid=will12345,ou=People,dc=example,dc=com</c:name>
 	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
 	<c:objectClass>ri:AccountObjectClass</c:objectClass>
 	<c:attributes>
-		<icfs:name>uid=will123,ou=People,dc=example,dc=com</icfs:name>
-		<ri:uid>will123</ri:uid>
+		<icfs:name>uid=will12345,ou=People,dc=example,dc=com</icfs:name>
+		<ri:uid>will12345</ri:uid>
 		<ri:cn>Will Turner</ri:cn>
 		<ri:givenName>Will</ri:givenName>
 		<ri:sn>Turner</ri:sn>

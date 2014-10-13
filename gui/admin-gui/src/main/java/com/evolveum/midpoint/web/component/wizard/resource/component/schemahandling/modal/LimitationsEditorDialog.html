@@ -52,17 +52,26 @@
 
                     <div wicket:id="accountBodyContainer" id="collapseOne" class="panel-collapse collapse">
                         <div style=".dl-horizontal{margin-bottom: 15px;}" class="panel-body">
-                            <h4><wicket:message key="LimitationsEditorDialog.label.layers" /></h4>
+                            <h4>
+                                <wicket:message key="LimitationsEditorDialog.label.layers" />
+                                <i wicket:id="layersTooltip" wicket:message="title:SchemaHandlingStep.limitations.tooltip.layers"/>
+                            </h4>
                             <div class="form-group" wicket:id="layerSchema" />
                             <div class="form-group" wicket:id="layerModel" />
                             <div class="form-group" wicket:id="layerPresentation" />
 
-                            <h4><wicket:message key="LimitationsEditorDialog.label.propertyAccess" /></h4>
+                            <h4>
+                                <wicket:message key="LimitationsEditorDialog.label.propertyAccess" />
+                                <i wicket:id="propertyAccessTooltip" wicket:message="title:SchemaHandlingStep.limitations.tooltip.propertyAccess"/>
+                            </h4>
                             <div class="form-group" wicket:id="addAccess" />
                             <div class="form-group" wicket:id="readAccess" />
                             <div class="form-group" wicket:id="modifyAccess" />
 
-                            <h4><wicket:message key="LimitationsEditorDialog.label.other" /></h4>
+                            <h4>
+                                <wicket:message key="LimitationsEditorDialog.label.other" />
+                                <i wicket:id="otherTooltip" wicket:message="title:SchemaHandlingStep.limitations.tooltip.other"/>
+                            </h4>
                             <div class="form-group" wicket:id="minOccurs" />
                             <div class="form-group" wicket:id="maxOccurs" />
                             <div class="form-group" wicket:id="ignore" />
