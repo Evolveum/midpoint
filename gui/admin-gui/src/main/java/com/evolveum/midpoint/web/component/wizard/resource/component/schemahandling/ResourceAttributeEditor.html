@@ -24,6 +24,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="ResourceAttributeEditor.label.reference" /></label>
+            <i wicket:id="referenceTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.reference"/>
         </dt>
         <dd>
             <select wicket:id="referenceSelect" class="form-control input-sm"></select>
@@ -34,6 +35,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="ResourceAttributeEditor.label.allow" /></label>
+            <i wicket:id="allowTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.allow"/>
         </dt>
         <dd>
             <input wicket:id="allowRef" type="checkbox" value="checked"/>
@@ -61,6 +63,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="ResourceAttributeEditor.label.limitations" /></label>
+            <i wicket:id="limitationsTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.limitations"/>
         </dt>
         <dd>
             <a wicket:id="buttonLimitations" class="btn btn-sm btn-primary" title="Edit">
@@ -75,6 +78,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="ResourceAttributeEditor.label.exclusiveStrong" /></label>
+                    <i wicket:id="exclusiveStrongTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.exclusiveStrong"/>
                 </dt>
                 <dd>
                     <input wicket:id="exclusiveStrong" type="checkbox" value="checked"/>
@@ -86,6 +90,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="ResourceAttributeEditor.label.tolerant" /></label>
+                    <i wicket:id="tolerantTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.tolerant"/>
                 </dt>
                 <dd>
                     <input wicket:id="tolerant" type="checkbox" value="checked"/>
@@ -98,6 +103,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="ResourceAttributeEditor.label.tolerantVP" /></label>
+            <i wicket:id="tolerantVPTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.tolerantVP"/>
         </dt>
         <div wicket:id="tolerantValuePattern" />
     </dl>
@@ -106,6 +112,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="ResourceAttributeEditor.label.intolerantVP" /></label>
+            <i wicket:id="intolerantVPTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.intolerantVP"/>
         </dt>
         <div wicket:id="intolerantValuePattern" />
     </dl>
@@ -113,6 +120,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="ResourceAttributeEditor.label.fetchStrategy" /></label>
+            <i wicket:id="fetchStrategyTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.fetchStrategy"/>
         </dt>
         <dd>
             <select wicket:id="fetchStrategy" class="form-control input-sm"></select>
@@ -122,6 +130,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="ResourceAttributeEditor.label.matchingRule" /></label>
+            <i wicket:id="matchingRuleTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.matchingRule"/>
         </dt>
         <dd>
             <select wicket:id="matchingRule" class="form-control input-sm"></select>
@@ -132,6 +141,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="ResourceAttributeEditor.label.outbound" /></label>
+            <i wicket:id="outboundTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.outbound"/>
         </dt>
         <dd class="cap-dl-multivalue">
             <div class="input-group">
@@ -149,6 +159,7 @@
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="ResourceAttributeEditor.label.inbound" /></label>
+            <i wicket:id="inboundTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.inbound"/>
         </dt>
         <div wicket:id="inbound" />
     </dl>

@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.form;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -26,6 +28,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.List;
 
@@ -36,23 +39,47 @@ public class DropDownFormGroup<T> extends SimplePanel<T> {
 
     private static final String ID_SELECT = "select";
     private static final String ID_SELECT_WRAPPER = "selectWrapper";
+    private static final String ID_LABEL_CONTAINER = "labelContainer";
     private static final String ID_LABEL = "label";
+    private static final String ID_TOOLTIP = "tooltip";
     private static final String ID_FEEDBACK = "feedback";
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
                              IModel<String> label, String labelSize, String textSize, boolean required) {
-        super(id, value);
-
-        initLayout(choices, renderer, label, labelSize, textSize, required);
+        this(id, value, choices, renderer, label, null, labelSize, textSize, required);
     }
 
-    private void initLayout(IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label,
+    public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
+                             IModel<String> label, String tooltipKey, String labelSize, String textSize, boolean required) {
+        super(id, value);
+
+        initLayout(choices, renderer, label, tooltipKey, labelSize, textSize, required);
+    }
+
+    private void initLayout(IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, final String tooltipKey,
                             String labelSize, String textSize, boolean required) {
+        WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+        add(labelContainer);
+
         Label l = new Label(ID_LABEL, label);
         if (StringUtils.isNotEmpty(labelSize)) {
-            l.add(AttributeAppender.prepend("class", labelSize));
+            labelContainer.add(AttributeAppender.prepend("class", labelSize));
         }
-        add(l);
+        labelContainer.add(l);
+
+        Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
+        tooltipLabel.add(new AttributeAppender("data-original-title", getString(tooltipKey)));
+        tooltipLabel.add(new InfoTooltipBehavior());
+        tooltipLabel.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return tooltipKey != null;
+            }
+        });
+        tooltipLabel.setOutputMarkupId(true);
+        tooltipLabel.setOutputMarkupPlaceholderTag(true);
+        labelContainer.add(tooltipLabel);
 
         WebMarkupContainer selectWrapper = new WebMarkupContainer(ID_SELECT_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {

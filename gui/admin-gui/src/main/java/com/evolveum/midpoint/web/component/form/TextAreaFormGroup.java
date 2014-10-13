@@ -17,15 +17,16 @@
 package com.evolveum.midpoint.web.component.form;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author lazyman
@@ -34,7 +35,9 @@ public class TextAreaFormGroup extends SimplePanel<String> {
 
     private static final String ID_TEXT = "text";
     private static final String ID_TEXT_WRAPPER = "textWrapper";
+    private static final String ID_LABEL_CONTAINER = "labelContainer";
     private static final String ID_LABEL = "label";
+    private static final String ID_TOOLTIP = "tooltip";
 
     private static final int DEFAULT_NUMBER_OF_ROWS = 2;
 
@@ -49,17 +52,39 @@ public class TextAreaFormGroup extends SimplePanel<String> {
 
     public TextAreaFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize,
                              boolean required, int rowNumber){
-        super(id, value);
-
-        initLayout(label, labelSize, textSize, required, rowNumber);
+        this(id, value, label, null, labelSize, textSize, required, rowNumber);
     }
 
-    private void initLayout(IModel<String> label, String labelSize, String textSize, boolean required, int rowNumber) {
+    public TextAreaFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, String labelSize, String textSize,
+                             boolean required, int rowNumber){
+        super(id, value);
+
+        initLayout(label, tooltipKey, labelSize, textSize, required, rowNumber);
+    }
+
+    private void initLayout(IModel<String> label, final String tooltipKey, String labelSize, String textSize, boolean required, int rowNumber) {
+        WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+        add(labelContainer);
+
         Label l = new Label(ID_LABEL, label);
         if (StringUtils.isNotEmpty(labelSize)) {
-            l.add(AttributeAppender.prepend("class", labelSize));
+            labelContainer.add(AttributeAppender.prepend("class", labelSize));
         }
-        add(l);
+        labelContainer.add(l);
+
+        Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
+        tooltipLabel.add(new AttributeAppender("data-original-title", getString(tooltipKey)));
+        tooltipLabel.add(new InfoTooltipBehavior());
+        tooltipLabel.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return tooltipKey != null;
+            }
+        });
+        tooltipLabel.setOutputMarkupId(true);
+        tooltipLabel.setOutputMarkupPlaceholderTag(true);
+        labelContainer.add(tooltipLabel);
 
         WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {
@@ -67,7 +92,7 @@ public class TextAreaFormGroup extends SimplePanel<String> {
         }
         add(textWrapper);
 
-        TextArea text = new TextArea(ID_TEXT, getModel());
+        TextArea text = new TextArea<>(ID_TEXT, getModel());
         text.add(new AttributeModifier("rows", rowNumber));
         text.setOutputMarkupId(true);
         text.setRequired(required);

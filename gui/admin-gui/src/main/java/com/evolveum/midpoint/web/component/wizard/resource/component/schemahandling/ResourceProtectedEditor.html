@@ -42,6 +42,7 @@
                         <dl class="dl-horizontal">
                             <dt>
                                 <label><wicket:message key="ResourceProtectedEditor.label.name" /></label>
+                                <i wicket:id="nameTooltip" wicket:message="title:SchemaHandlingStep.protected.tooltip.name"/>
                             </dt>
                             <dd>
                                 <input wicket:id="name" type="text" class="form-control input-sm" value="first"/>
@@ -51,13 +52,18 @@
                         <dl class="dl-horizontal">
                             <dt>
                                 <label><wicket:message key="ResourceProtectedEditor.label.uid" /></label>
+                                <i wicket:id="uidTooltip" wicket:message="title:SchemaHandlingStep.protected.tooltip.uid"/>
                             </dt>
                             <dd>
                                 <input wicket:id="uid" type="text" class="form-control input-sm" value=""/>
                             </dd>
                         </dl>
 
-                        <h4><wicket:message key="ResourceProtectedEditor.label.filter" /></h4>
+                        <h4>
+                            <wicket:message key="ResourceProtectedEditor.label.filter" />
+                            <i wicket:id="filterTooltip" wicket:message="title:SchemaHandlingStep.protected.tooltip.filter"/>
+                        </h4>
+
                         <div wicket:id="filterClause" />
                     </div>
                 </div>

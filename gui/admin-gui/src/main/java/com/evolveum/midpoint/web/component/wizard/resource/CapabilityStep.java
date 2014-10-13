@@ -30,9 +30,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.capability.*;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
@@ -44,6 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -93,6 +96,7 @@ public class CapabilityStep extends WizardStep {
     private static final String ID_CAPABILITY_DELETE = "capabilityDelete";
     private static final String ID_CAPABILITY_ADD = "capabilityAdd";
     private static final String ID_CAPABILITY_CONFIG = "capabilityConfig";
+    private static final String ID_TOOLTIP = "tooltip";
 
     private static final String DIALOG_SELECT_CAPABILITY = "capabilitySelectPopup";
 
@@ -131,29 +135,29 @@ public class CapabilityStep extends WizardStep {
             for(Object capability: objects){
                 JAXBElement cap = (JAXBElement)capability;
                 if(cap.getValue() instanceof ReadCapabilityType){
-                    capabilityList.add(new CapabilityDto((ReadCapabilityType)cap.getValue(), "Read", true));
+                    capabilityList.add(new CapabilityDto<>((ReadCapabilityType)cap.getValue(), "Read", true));
                 } else if(cap.getValue() instanceof UpdateCapabilityType){
-                    capabilityList.add(new CapabilityDto((UpdateCapabilityType)cap.getValue(), "Update", true));
+                    capabilityList.add(new CapabilityDto<>((UpdateCapabilityType)cap.getValue(), "Update", true));
                 } else if(cap.getValue() instanceof CreateCapabilityType){
-                    capabilityList.add(new CapabilityDto((CreateCapabilityType)cap.getValue(), "Create", true));
+                    capabilityList.add(new CapabilityDto<>((CreateCapabilityType)cap.getValue(), "Create", true));
                 } else if(cap.getValue() instanceof DeleteCapabilityType){
-                    capabilityList.add(new CapabilityDto((DeleteCapabilityType)cap.getValue(), "Delete", true));
+                    capabilityList.add(new CapabilityDto<>((DeleteCapabilityType)cap.getValue(), "Delete", true));
                 } else if(cap.getValue() instanceof LiveSyncCapabilityType){
-                    capabilityList.add(new CapabilityDto((LiveSyncCapabilityType)cap.getValue(), "Live Sync", true));
+                    capabilityList.add(new CapabilityDto<>((LiveSyncCapabilityType)cap.getValue(), "Live Sync", true));
                 } else if(cap.getValue() instanceof TestConnectionCapabilityType){
-                    capabilityList.add(new CapabilityDto((TestConnectionCapabilityType)cap.getValue(), "Test Connection", true));
+                    capabilityList.add(new CapabilityDto<>((TestConnectionCapabilityType)cap.getValue(), "Test Connection", true));
                 } else if(cap.getValue() instanceof ActivationCapabilityType){
-                    capabilityList.add(new CapabilityDto((ActivationCapabilityType)cap.getValue(), "Activation", true));
+                    capabilityList.add(new CapabilityDto<>((ActivationCapabilityType)cap.getValue(), "Activation", true));
                 } else if(cap.getValue() instanceof CredentialsCapabilityType){
-                    capabilityList.add(new CapabilityDto((CredentialsCapabilityType)cap.getValue(), "Credentials", true));
+                    capabilityList.add(new CapabilityDto<>((CredentialsCapabilityType)cap.getValue(), "Credentials", true));
                 } else if(cap.getValue() instanceof ScriptCapabilityType){
-                    capabilityList.add(new CapabilityDto((ScriptCapabilityType)cap.getValue(), "Script", true));
+                    capabilityList.add(new CapabilityDto<>((ScriptCapabilityType)cap.getValue(), "Script", true));
                 }
             }
 
         } catch (Exception e){
             LoggingUtils.logException(LOGGER, "Couldn't load capabilities", e);
-            getPageBase().error(getString("CapabilityStep.message.cantloadCaps") + e);
+            getPageBase().error(getString("CapabilityStep.message.cantLoadCaps") + e);
         }
 
         return capabilityList;
@@ -187,6 +191,20 @@ public class CapabilityStep extends WizardStep {
                 Label label = new Label(ID_CAPABILITY_NAME, new PropertyModel<>(dto, CapabilityDto.F_VALUE));
                 name.add(label);
                 capabilityRow.add(name);
+
+                Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
+                tooltipLabel.add(new AttributeAppender("data-original-title", getString(dto.getTooltipKey())));
+                tooltipLabel.add(new InfoTooltipBehavior());
+                tooltipLabel.add(new VisibleEnableBehaviour(){
+
+                    @Override
+                    public boolean isVisible() {
+                        return dto.getTooltipKey() != null;
+                    }
+                });
+                tooltipLabel.setOutputMarkupId(true);
+                tooltipLabel.setOutputMarkupPlaceholderTag(true);
+                name.add(tooltipLabel);
 
 
                 AjaxLink deleteLink = new AjaxLink(ID_CAPABILITY_DELETE) {

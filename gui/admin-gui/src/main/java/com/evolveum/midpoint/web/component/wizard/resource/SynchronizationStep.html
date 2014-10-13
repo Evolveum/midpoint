@@ -75,6 +75,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SynchronizationStep.label.kind" /></label>
+                    <i wicket:id="kindTooltip" wicket:message="title:SynchronizationStep.tooltip.kind"/>
                 </dt>
                 <dd>
                     <select wicket:id="editorKind" class="form-control input-sm"></select>
@@ -84,6 +85,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SynchronizationStep.label.intent" /></label>
+                    <i wicket:id="intentTooltip" wicket:message="title:SynchronizationStep.tooltip.intent"/>
                 </dt>
                 <dd>
                     <input wicket:id="editorIntent" type="text" class="form-control input-sm"/>
@@ -94,6 +96,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SynchronizationStep.label.objectClass" /></label>
+                    <i wicket:id="objectClassTooltip" wicket:message="title:SynchronizationStep.tooltip.objectClass"/>
                 </dt>
                 <div wicket:id="editorObjectClass" />
             </dl>
@@ -101,6 +104,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SynchronizationStep.label.focus" /></label>
+                    <i wicket:id="focusTooltip" wicket:message="title:SynchronizationStep.tooltip.focus"/>
                 </dt>
                 <dd>
                     <select wicket:id="editorFocus" class="form-control input-sm"></select>
@@ -110,6 +114,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SynchronizationStep.label.enabled" /></label>
+                    <i wicket:id="enabledTooltip" wicket:message="title:SynchronizationStep.tooltip.enabled"/>
                 </dt>
                 <dd>
                     <input wicket:id="editorEnabled" type="checkbox" value="checked"/>
@@ -122,6 +127,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SynchronizationStep.label.condition" /></label>
+                            <i wicket:id="conditionTooltip" wicket:message="title:SynchronizationStep.tooltip.condition"/>
                         </dt>
                         <dd>
                             <a wicket:id="editorConditionButton" class="btn btn-sm btn-primary" title="Edit">
@@ -135,6 +141,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SynchronizationStep.label.confirmation" /></label>
+                            <i wicket:id="confirmationTooltip" wicket:message="title:SynchronizationStep.tooltip.confirmation"/>
                         </dt>
                         <dd>
                             <a wicket:id="editorConfirmationButton" class="btn btn-sm btn-primary" title="Edit">
@@ -148,6 +155,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SynchronizationStep.label.objectTemplate" /></label>
+                    <i wicket:id="objectTemplateTooltip" wicket:message="title:SynchronizationStep.tooltip.objectTemplate"/>
                 </dt>
                 <dd>
                     <select wicket:id="editorObjectTemplate" class="form-control input-sm"></select>
@@ -160,6 +168,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SynchronizationStep.label.reconcile" /></label>
+                            <i wicket:id="reconcileTooltip" wicket:message="title:SynchronizationStep.tooltip.reconcile"/>
                         </dt>
                         <dd>
                             <input wicket:id="editorReconcile" type="checkbox" value="checked"/>
@@ -171,6 +180,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="SynchronizationStep.label.opportunistic" /></label>
+                            <i wicket:id="opportunisticTooltip" wicket:message="title:SynchronizationStep.tooltip.opportunistic"/>
                         </dt>
                         <dd>
                             <input wicket:id="editorOpportunistic" type="checkbox" value="checked"/>
@@ -183,6 +193,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SynchronizationStep.label.correlation" /></label>
+                    <i wicket:id="correlationTooltip" wicket:message="title:SynchronizationStep.tooltip.correlation"/>
                 </dt>
                 <div wicket:id="editorCorrelation" />
             </dl>
@@ -191,6 +202,7 @@
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SynchronizationStep.label.reaction" /></label>
+                    <i wicket:id="reactionTooltip" wicket:message="title:SynchronizationStep.tooltip.reaction"/>
                 </dt>
                 <div wicket:id="editorReaction" />
             </dl>

@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.form;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -25,6 +27,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author lazyman
@@ -33,22 +36,46 @@ public class TextFormGroup extends SimplePanel<String> {
 
     private static final String ID_TEXT = "text";
     private static final String ID_TEXT_WRAPPER = "textWrapper";
+    private static final String ID_LABEL_CONTAINER = "labelContainer";
     private static final String ID_LABEL = "label";
+    private static final String ID_TOOLTIP = "tooltip";
     private static final String ID_FEEDBACK = "feedback";
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize,
                          boolean required) {
-        super(id, value);
-
-        initLayout(label, labelSize, textSize, required);
+        this(id, value, label, null, labelSize, textSize, required);
     }
 
-    private void initLayout(IModel<String> label, String labelSize, String textSize, boolean required) {
+    public TextFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, String labelSize,
+                         String textSize, boolean required) {
+        super(id, value);
+
+        initLayout(label, tooltipKey, labelSize, textSize, required);
+    }
+
+    private void initLayout(IModel<String> label, final String tooltipKey, String labelSize, String textSize, boolean required) {
+        WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+        add(labelContainer);
+
         Label l = new Label(ID_LABEL, label);
         if (StringUtils.isNotEmpty(labelSize)) {
-            l.add(AttributeAppender.prepend("class", labelSize));
+            labelContainer.add(AttributeAppender.prepend("class", labelSize));
         }
-        add(l);
+        labelContainer.add(l);
+
+        Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
+        tooltipLabel.add(new AttributeAppender("data-original-title", getString(tooltipKey)));
+        tooltipLabel.add(new InfoTooltipBehavior());
+        tooltipLabel.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return tooltipKey != null;
+            }
+        });
+        tooltipLabel.setOutputMarkupId(true);
+        tooltipLabel.setOutputMarkupPlaceholderTag(true);
+        labelContainer.add(tooltipLabel);
 
         WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {

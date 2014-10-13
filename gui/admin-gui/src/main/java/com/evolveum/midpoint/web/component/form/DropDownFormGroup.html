@@ -17,7 +17,10 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <label class="control-label" wicket:id="label"/>
+    <span class="control-label" wicket:id="labelContainer">
+        <label wicket:id="label"/>
+        <i wicket:id="tooltip"/>
+    </span>
 
     <div wicket:id="selectWrapper">
         <select class="form-control input-sm" wicket:id="select" />

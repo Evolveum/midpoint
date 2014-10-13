@@ -28,13 +28,13 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -67,6 +67,10 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
     private static final String ID_BUTTON_UPDATE = "update";
     private static final String ID_LABEL_TYPE = "typeLabel";
     private static final String ID_LABEL_EXPRESSION = "expressionLabel";
+    private static final String ID_T_TYPE = "typeTooltip";
+    private static final String ID_T_LANGUAGE = "languageTooltip";
+    private static final String ID_T_POLICY = "policyRefTooltip";
+    private static final String ID_T_EXPRESSION = "expressionTooltip";
 
     private IModel<ExpressionTypeDto> model;
     private Map<String, String> policyMap = new HashMap<>();
@@ -200,6 +204,22 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
             }
         };
         add(update);
+
+        Label typeTooltip = new Label(ID_T_TYPE);
+        typeTooltip.add(new InfoTooltipBehavior());
+        add(typeTooltip);
+
+        Label languageTooltip = new Label(ID_T_LANGUAGE);
+        languageTooltip.add(new InfoTooltipBehavior());
+        languageContainer.add(languageTooltip);
+
+        Label policyTooltip = new Label(ID_T_POLICY);
+        policyTooltip.add(new InfoTooltipBehavior());
+        policyContainer.add(policyTooltip);
+
+        Label expressionTooltip = new Label(ID_T_EXPRESSION);
+        expressionTooltip.add(new InfoTooltipBehavior());
+        add(expressionTooltip);
     }
 
     private List<ObjectReferenceType> createPasswordPolicyList(){

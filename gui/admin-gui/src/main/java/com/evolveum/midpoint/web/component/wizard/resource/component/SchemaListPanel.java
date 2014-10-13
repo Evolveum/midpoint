@@ -19,9 +19,7 @@ package com.evolveum.midpoint.web.component.wizard.resource.component;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -39,6 +37,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDetail
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.AttributeModifier;
@@ -88,6 +87,11 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
     private static final String ID_DETAILS_NATIVE_OBJECT_CLASS = "nativeObjectClass";
     private static final String ID_DETAILS_DEFAULT = "isDefault";
     private static final String ID_DETAILS_KIND_DEFAULT = "isKindDefault";
+    private static final String ID_T_KIND = "kindTooltip";
+    private static final String ID_T_INTENT = "intentTooltip";
+    private static final String ID_T_NATIVE_OBJECT_CLASS = "nativeObjectClassTooltip";
+    private static final String ID_T_DEFAULT = "isDefaultTooltip";
+    private static final String ID_T_KIND_DEFAULT = "isKindDefaultTooltip";
 
     private IModel<List<ObjectClassDto>> allClasses;
     private LoadableModel<ObjectClassDetailsDto> detailsModel;
@@ -227,6 +231,26 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
         CheckBox idKindDefault = new CheckBox(ID_DETAILS_KIND_DEFAULT, new PropertyModel<Boolean>(detailsModel, ObjectClassDetailsDto.F_IS_KIND_DEFAULT));
         idKindDefault.setEnabled(false);
         detailsContainer.add(idKindDefault);
+
+        Label kindTooltip = new Label(ID_T_KIND);
+        kindTooltip.add(new InfoTooltipBehavior());
+        detailsContainer.add(kindTooltip);
+
+        Label intentTooltip = new Label(ID_T_INTENT);
+        intentTooltip.add(new InfoTooltipBehavior());
+        detailsContainer.add(intentTooltip);
+
+        Label nativeObjClassTooltip = new Label(ID_T_NATIVE_OBJECT_CLASS);
+        nativeObjClassTooltip.add(new InfoTooltipBehavior());
+        detailsContainer.add(nativeObjClassTooltip);
+
+        Label defaultTooltip = new Label(ID_T_DEFAULT);
+        defaultTooltip.add(new InfoTooltipBehavior());
+        detailsContainer.add(defaultTooltip);
+
+        Label kindDefaultTooltip = new Label(ID_T_KIND_DEFAULT);
+        kindDefaultTooltip.add(new InfoTooltipBehavior());
+        detailsContainer.add(kindDefaultTooltip);
     }
 
     private List<IColumn> initColumns() {

@@ -129,7 +129,7 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
                 new PropertyModel<SynchronizationActionTypeDto.HandlerUriActions>(model, SynchronizationActionTypeDto.F_HANDLER_URI),
                 WebMiscUtil.createReadonlyModelFromEnum(SynchronizationActionTypeDto.HandlerUriActions.class),
                 new EnumChoiceRenderer<SynchronizationActionTypeDto.HandlerUriActions>(this), createStringResource("SynchronizationActionEditorDialog.label.handlerUri"),
-                ID_LABEL_SIZE, ID_INPUT_SIZE, false){
+                "SynchronizationStep.action.tooltip.handlerUri", ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override
             protected DropDownChoice createDropDown(String id, IModel<List<SynchronizationActionTypeDto.HandlerUriActions>> choices,
@@ -144,7 +144,7 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
 
         DropDownFormGroup<BeforeAfterType> order = new DropDownFormGroup<BeforeAfterType>(ID_ORDER, new PropertyModel<BeforeAfterType>(model, SynchronizationActionTypeDto.F_ACTION_OBJECT + ".order"),
                 WebMiscUtil.createReadonlyModelFromEnum(BeforeAfterType.class), new EnumChoiceRenderer<BeforeAfterType>(this),
-                createStringResource("SynchronizationActionEditorDialog.label.order"), ID_LABEL_SIZE, ID_INPUT_SIZE, false){
+                createStringResource("SynchronizationActionEditorDialog.label.order"), "SynchronizationStep.action.tooltip.order", ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override
             protected DropDownChoice createDropDown(String id, IModel<List<BeforeAfterType>> choices, IChoiceRenderer<BeforeAfterType> renderer, boolean required){

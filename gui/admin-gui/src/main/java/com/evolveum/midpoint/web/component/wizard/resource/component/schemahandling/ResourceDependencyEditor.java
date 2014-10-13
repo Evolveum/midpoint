@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
@@ -73,16 +74,17 @@ public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTyp
     private static final String ID_REF = "resourceRef";
     private static final String ID_ADD_BUTTON = "addButton";
     private static final String ID_DELETE_BUTTON = "deleteDependency";
+    private static final String ID_T_ORDER = "orderTooltip";
+    private static final String ID_T_STRICTNESS = "strictnessTooltip";
+    private static final String ID_T_KIND = "kindTooltip";
+    private static final String ID_T_INTENT = "intentTooltip";
+    private static final String ID_T_RESOURCE_REF = "resourceRefTooltip";
 
     private ChangeState changeState = ChangeState.FIRST;
     private Map<String, String> resourceMap = new HashMap<>();
 
     public ResourceDependencyEditor(String id, IModel<List<ResourceObjectTypeDependencyType>> model){
         super(id, model);
-    }
-
-    public List<ResourceObjectTypeDependencyType> getDependencyList(){
-        return getModel().getObject();
     }
 
     @Override
@@ -189,6 +191,26 @@ public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTyp
                 });
                 resource.add(prepareAjaxOnComponentTagUpdateBehavior());
                 dependencyBody.add(resource);
+
+                Label orderTooltip = new Label(ID_T_ORDER);
+                orderTooltip.add(new InfoTooltipBehavior());
+                dependencyBody.add(orderTooltip);
+
+                Label strictnessTooltip = new Label(ID_T_STRICTNESS);
+                strictnessTooltip.add(new InfoTooltipBehavior());
+                dependencyBody.add(strictnessTooltip);
+
+                Label kindTooltip = new Label(ID_T_KIND);
+                kindTooltip.add(new InfoTooltipBehavior());
+                dependencyBody.add(kindTooltip);
+
+                Label intentTooltip = new Label(ID_T_INTENT);
+                intentTooltip.add(new InfoTooltipBehavior());
+                dependencyBody.add(intentTooltip);
+
+                Label resourceRefTooltip = new Label(ID_T_RESOURCE_REF);
+                resourceRefTooltip.add(new InfoTooltipBehavior());
+                dependencyBody.add(resourceRefTooltip);
             }
         };
         repeater.setOutputMarkupId(true);
