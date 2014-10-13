@@ -445,14 +445,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    //private Set<String> test = Collections.synchronizedSet(new HashSet<String>());
-
     private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
                                                            OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {
         String oid = null;
         Session session = null;
-        // it is needed to keep the original oid for example for import options. if we do not keep it
+        OrgClosureManager.Context closureContext = null;
+                // it is needed to keep the original oid for example for import options. if we do not keep it
         // and it was null it can bring some error because the oid is set when the object contains orgRef
         // or it is org. and by the import we do not know it so it will be trying to delete non-existing object
         String originalOid = object.getOid();
@@ -466,26 +465,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             session = beginTransaction();
 
-            OrgClosureManager.Context closureContext = getClosureManager().onBeginTransactionAdd(session, object, options.isOverwrite());
-            try {
-//                LOGGER.info("Entering critical section (oid = " + object.getOid() + ")");
-//                if (!test.isEmpty()) {
-//                    System.err.println("Test set is not empty: " + test);
-//                    throw new AssertionError("Look, test set is not empty: " + test);
-//                }
-//                test.add(Thread.currentThread().getName());
-                if (options.isOverwrite()) {
-                    oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
-                } else {
-                    oid = nonOverwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
-                }
-            } finally {
-//                test.remove(Thread.currentThread().getName());
-//                LOGGER.info("Leaving critical section (oid = " + object.getOid() + ")");
+            closureContext = getClosureManager().onBeginTransactionAdd(session, object, options.isOverwrite());
+
+            if (options.isOverwrite()) {
+                oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
+            } else {
+                oid = nonOverwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
             }
-            LOGGER.info("Before commit.");
             session.getTransaction().commit();
-            LOGGER.info("After commit.");
 
             LOGGER.trace("Saved object '{}' with oid '{}'", new Object[]{
                     object.getCompileTimeClass().getSimpleName(), oid});
@@ -495,6 +482,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (ConstraintViolationException ex) {
+            handleConstraintViolationException(session, ex, result);
             rollbackTransaction(session, ex, result, true);
 
             LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", ex);
@@ -517,7 +505,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } catch (DtoTranslationException | RuntimeException ex) {
             handleGeneralException(ex, session, result);
         } finally {
-            cleanupSessionAndResult(session, result);
+            cleanupClosureAndSessionAndResult(closureContext, session, result);
         }
 
         return oid;
@@ -670,10 +658,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
         Session session = null;
+        OrgClosureManager.Context closureContext = null;
         try {
             session = beginTransaction();
 
-            OrgClosureManager.Context closureContext = getClosureManager().onBeginTransactionDelete(session, type, oid);
+            closureContext = getClosureManager().onBeginTransactionDelete(session, type, oid);
 
             Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
             query.add(Restrictions.eq("oid", oid));
@@ -694,7 +683,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } catch (RuntimeException ex) {
             handleGeneralException(ex, session, result);
         } finally {
-            cleanupSessionAndResult(session, result);
+            cleanupClosureAndSessionAndResult(closureContext, session, result);
         }
     }
 
@@ -1006,10 +995,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         Session session = null;
+        OrgClosureManager.Context closureContext = null;
         try {
             session = beginTransaction();
 
-            OrgClosureManager.Context closureContext = getClosureManager().onBeginTransactionModify(session, type, oid, modifications);
+            closureContext = getClosureManager().onBeginTransactionModify(session, type, oid, modifications);
 
             // get user
             PrismObject<T> prismObject = getObject(session, type, oid, null, true);
@@ -1044,26 +1034,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (ConstraintViolationException ex) {
-
-            // BRUTAL HACK - in PostgreSQL, concurrent changes in parentRefOrg sometimes cause the following exception
-            // "duplicate key value violates unique constraint "m_reference_pkey". This is *not* a ObjectAlreadyExistsException,
-            // more likely it is a serialization-related one
-            if (ex.getSQLException() != null) {
-                LOGGER.debug("ConstraintViolationException = {}, getNextException = {}", ex, ex.getSQLException().getNextException());
-                String[] ok = new String[] {
-                        "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
-                        "duplicate key value violates unique constraint \"m_reference_pkey\""
-                };
-                if (ex.getSQLException().getNextException() != null && ex.getSQLException().getNextException().getMessage() != null) {
-                    String msg = ex.getSQLException().getNextException().getMessage();
-                    for (int i = 0; i < ok.length; i++) {
-                        if (msg.contains(ok[i])) {
-                            rollbackTransaction(session, ex, result, false);
-                            throw new SerializationRelatedException(ex);
-                        }
-                    }
-                }
-            }
+            handleConstraintViolationException(session, ex, result);
 
             rollbackTransaction(session, ex, result, true);
 
@@ -1079,8 +1050,42 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } catch (QueryException | DtoTranslationException | RuntimeException ex) {
             handleGeneralException(ex, session, result);
         } finally {
-            cleanupSessionAndResult(session, result);
+            cleanupClosureAndSessionAndResult(closureContext, session, result);
             LOGGER.trace("Session cleaned up.");
+        }
+    }
+
+    private void cleanupClosureAndSessionAndResult(final OrgClosureManager.Context closureContext, final Session session, final OperationResult result) {
+        if (closureContext != null) {
+            getClosureManager().cleanUpAfterOperation(closureContext, session);
+        }
+        cleanupSessionAndResult(session, result);
+    }
+
+    private void handleConstraintViolationException(Session session, ConstraintViolationException ex, OperationResult result) {
+
+        // BRUTAL HACK - in PostgreSQL, concurrent changes in parentRefOrg sometimes cause the following exception
+        // "duplicate key value violates unique constraint "XXXX". This is *not* an ObjectAlreadyExistsException,
+        // more likely it is a serialization-related one.
+        //
+        // TODO: somewhat generalize this approach - perhaps by retrying all operations not dealing with OID/name uniqueness
+
+        SQLException sqlException = findSqlException(ex);
+        if (sqlException != null) {
+            LOGGER.debug("ConstraintViolationException = {}, embedded SQL exception = {}", ex, sqlException.getNextException());
+            String[] ok = new String[] {
+                    "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
+                    "duplicate key value violates unique constraint \"m_reference_pkey\""
+            };
+            if (sqlException.getMessage() != null) {
+                String msg = sqlException.getMessage();
+                for (int i = 0; i < ok.length; i++) {
+                    if (msg.contains(ok[i])) {
+                        rollbackTransaction(session, ex, result, false);
+                        throw new SerializationRelatedException(ex);
+                    }
+                }
+            }
         }
     }
 
@@ -1318,6 +1323,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     public void repositorySelfTest(OperationResult parentResult) {
         // TODO add some SQL-specific self-test methods
         // No self-tests for now
+    }
+
+    @Override
+    public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult) {
+        getClosureManager().checkAndOrRebuild(this, true, repairIfNecessary, false, false, testResult);
     }
 
     @PostConstruct

@@ -256,10 +256,13 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             } catch (ObjectNotFoundException|SchemaException e) {
                 throw new AssertionError("Couldn't fetch " + oid, e);
             }
-            assertEquals("Unexpected # of parentRefOrgs in " + orgType, orgGraph.outgoingEdgesOf(oid).size(), orgType.getParentOrgRef().size());
+            assertTrue(orgGraph.vertexSet().contains(orgType.getOid()));
+
             Set<String> parentOidsInRepo = new HashSet<>();
             for (ObjectReferenceType ort : orgType.getParentOrgRef()) {
-                parentOidsInRepo.add(ort.getOid());
+                if (orgGraph.vertexSet().contains(ort.getOid())) {      // i.e. the parent does exist
+                    parentOidsInRepo.add(ort.getOid());
+                }
             }
             Set<String> parentOidsInGraph = new HashSet<>();
             for (DefaultEdge edge : orgGraph.outgoingEdgesOf(oid)) {
@@ -370,6 +373,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             registerObject(org.asObjectable(), false);
             orgsAtThisLevel.add(oid);
             objectCount++;
+            if (objectCount % 20 == 0) {
+                info(objectCount + " objects created");
+            }
 
             loadOrgStructure(level+1, oid, newOidPrefix, result);
         }
@@ -387,6 +393,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 allUsersCreated.add(user.asObjectable());
                 usersAtThisLevel.add(uoid);
                 objectCount++;
+                if (objectCount % 20 == 0) {
+                    info(objectCount + " objects created");
+                }
             }
         }
 

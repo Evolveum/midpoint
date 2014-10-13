@@ -24,6 +24,9 @@ import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -36,10 +39,19 @@ import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.jdbc.Work;
+import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.type.IntegerType;
+import org.hibernate.type.StringType;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
-import java.util.concurrent.Semaphore;
 
 /**
  * This class and its subclasses provides org. closure table handling.
@@ -63,8 +75,8 @@ public class OrgClosureManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgClosureManager.class);
 
-    private static boolean DUMP_TABLES = true;
-    private static final boolean COUNT_CLOSURE_RECORDS = true;
+    private static boolean DUMP_TABLES = false;
+    private static final boolean COUNT_CLOSURE_RECORDS = false;
     static final String CLOSURE_TABLE_NAME = "m_org_closure";
     public static final String TEMP_DELTA_TABLE_NAME_FOR_ORACLE = "m_org_closure_temp_delta";
 
@@ -113,13 +125,13 @@ public class OrgClosureManager {
 
         switch (operation) {
             case ADD:
-                handleAdd(oid, deltas, session);
+                handleAdd(oid, deltas, closureContext, session);
                 break;
             case DELETE:
-                handleDelete(oid, session);
+                handleDelete(oid, closureContext, session);
                 break;
             case MODIFY:
-                handleModify(oid, deltas, originalObject, session);
+                handleModify(oid, deltas, originalObject, closureContext, session);
         }
 
         long duration = System.currentTimeMillis() - time;
@@ -127,22 +139,83 @@ public class OrgClosureManager {
         lastOperationDuration = duration;
     }
 
-    private void lockClosureTableIfNeeded(Session session) {
-        if (!isH2()) {
+    /*
+     *  Note: the interface for onBeginTransactionXYZ is a bit different from the one used for updateOrgClosure.
+     *  For example, "overwriting ADD" is indicated as onBeginTransactionAdd(..., overwrite:=true) but as
+     *  updateOrgClosure(..., operation:=MODIFY). Also, onBeginTransactionXYZ gets raw data, while
+     *  updateOrgClosure gets data after some pre-processing (e.g. exctraction of parentOrgRef reference values).
+     *
+     *  This will be perhaps unified in the future.
+     */
+    public <T extends ObjectType> Context onBeginTransactionAdd(Session session, PrismObject<T> object, boolean overwrite) {
+        if (!isEnabled() || !(OrgType.class.isAssignableFrom(object.getCompileTimeClass()))) {
+            return null;
+        }
+        // we have to be ready for closure-related operation even if there are no known parents (because there may be orphans pointing to this org!)
+        return onBeginTransaction(session);
+    }
+
+    public <T extends ObjectType> Context onBeginTransactionModify(Session session, Class<T> type, String oid, Collection<? extends ItemDelta> modifications) {
+        if (!isEnabled()) {
+            return null;
+        }
+        if (!(OrgType.class.isAssignableFrom(type))) {
+            return null;
+        }
+        if (filterParentRefDeltas(modifications).isEmpty()) {
+            return null;
+        }
+        return onBeginTransaction(session);
+    }
+
+    public <T extends ObjectType> Context onBeginTransactionDelete(Session session, Class<T> type, String oid) {
+        if (!isEnabled() || !(OrgType.class.isAssignableFrom(type))) {
+            return null;
+        }
+        return onBeginTransaction(session);
+    }
+
+    private Context onBeginTransaction(Session session) {
+        // table locking
+        if (isH2() || isOracle() || isSQLServer()) {
+            lockClosureTable(session);
+        }
+        // other
+        Context ctx = new Context();
+        if (isH2()) {
+            ctx.temporaryTableName = generateDeltaTempTableName();
+            String createTableQueryText = "create temporary table " + ctx.temporaryTableName + " (\n" +
+                    "  descendant_oid VARCHAR(36) NOT NULL,\n" +
+                    "  ancestor_oid   VARCHAR(36) NOT NULL,\n" +
+                    "  val            INTEGER     NOT NULL,\n" +
+                    "  PRIMARY KEY (descendant_oid, ancestor_oid)\n" +
+                    ")";
+            long start = System.currentTimeMillis();
+            Query q = session.createSQLQuery(createTableQueryText);
+            q.executeUpdate();
+            LOGGER.trace("Temporary table {} created in {} ms", ctx.temporaryTableName, System.currentTimeMillis()-start);
+        }
+        return ctx;
+    }
+
+    // may cause implicit commit!!! (in H2)
+    public void cleanUpAfterOperation(Context closureContext, Session session) {
+        if (closureContext == null) {
             return;
         }
-
-        long start = System.currentTimeMillis();
-        LOGGER.trace("Locking closure table");
-        if (isH2()) {
-            Query q = session.createSQLQuery("SELECT * FROM " + CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
-            q.list();
+        if (closureContext.temporaryTableName == null) {
+            return;
         }
-        LOGGER.trace("...locked in {} ms", System.currentTimeMillis()-start);
-
+        if (isH2()) {
+            // beware, this does implicit commit!
+            Query dropQuery = session.createSQLQuery("drop table if exists " + closureContext.temporaryTableName);
+            dropQuery.executeUpdate();
+            closureContext.temporaryTableName = null;
+        }
     }
 
     public void initialize(SqlRepositoryServiceImpl service) {
+        OperationResult result = new OperationResult(OrgClosureManager.class.getName() + ".initialize");
         if (!isEnabled()) {
             return;
         }
@@ -151,26 +224,118 @@ public class OrgClosureManager {
             initializeOracleTemporaryTable(service);
         }
 
-        boolean check, rebuild;
-        switch (repoConfiguration.getOrgClosureStartupAction()) {
-            case NONE:
-                return;
-            case CHECK:
-                check = true;
-                rebuild = false;
-                break;
-            case REBUILD_IF_NEEDED:
-                check = true;
-                rebuild = true;
-                break;
-            case ALWAYS_REBUILD:
-                check = false;
-                rebuild = true;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid value: " + repoConfiguration.getOrgClosureStartupAction());
+        if (autoUpdateClosureTableStructure(service)) {
+            // need to rebuild the content of the closure table after re-creating it anew
+            checkAndOrRebuild(service, false, true, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
+        } else {
+            boolean check, rebuild;
+            switch (repoConfiguration.getOrgClosureStartupAction()) {
+                case NONE:
+                    return;
+                case CHECK:
+                    check = true;
+                    rebuild = false;
+                    break;
+                case REBUILD_IF_NEEDED:
+                    check = true;
+                    rebuild = true;
+                    break;
+                case ALWAYS_REBUILD:
+                    check = false;
+                    rebuild = true;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid value: " + repoConfiguration.getOrgClosureStartupAction());
+            }
+            checkAndOrRebuild(service, check, rebuild, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
         }
-        checkAndOrRebuild(service, check, rebuild, repoConfiguration.isStopOnOrgClosureStartupFailure());
+    }
+
+    // TEMPORARY and quite BRUTAL HACK
+    // Originally in midPoint 3.0, m_org_closure has 5 columns, a non-null ID among them.
+    // In 3.1, it has 3, and no ID. Unfortunately, hibernate's hbm2ddl tool does not automatically remove ID column,
+    // so people can expect quite hard-to-understand error messages when running midPoint after upgrade.
+    //
+    // This code removes and re-creates the m_org_closure table if hbm2ddl is set to "update".
+    //
+    // returns true if the table was re-created
+    private boolean autoUpdateClosureTableStructure(SqlRepositoryServiceImpl service) {
+
+        if (repoConfiguration.isSkipOrgClosureStructureCheck()) {
+            LOGGER.debug("Skipping org closure structure check.");
+            return false;
+        }
+
+        SessionFactory sf = service.getSessionFactory();
+        if (sf instanceof SessionFactoryImpl) {
+            SessionFactoryImpl sfi = ((SessionFactoryImpl) sf);
+            LOGGER.debug("SessionFactoryImpl.getSettings() = {}; auto update schema = {}", sfi.getSettings(), sfi.getSettings() != null ? sfi.getSettings().isAutoUpdateSchema() : null);
+            if (sfi.getSettings() != null && sfi.getSettings().isAutoUpdateSchema()) {
+
+                LOGGER.info("Checking the closure table structure.");
+
+                final Session session = service.getSessionFactory().openSession();
+                final Holder<Boolean> wrongNumberOfColumns = new Holder<>(false);
+                session.doWork(new Work() {
+                    @Override
+                    public void execute(Connection connection) throws SQLException {
+                        DatabaseMetaData meta = connection.getMetaData();
+                        if (meta == null) {
+                            LOGGER.warn("No database metadata found.");
+                        } else {
+                            ResultSet rsColumns = meta.getColumns(null, null, CLOSURE_TABLE_NAME, null);
+                            int columns = 0;
+                            while (rsColumns.next()) {
+                                LOGGER.debug("Column: {} {}", rsColumns.getString("TYPE_NAME"), rsColumns.getString("COLUMN_NAME"));
+                                columns++;
+                            }
+                            if (columns > 0) {
+                                LOGGER.info("There are {} columns in {} (obtained via DatabaseMetaData)", columns, CLOSURE_TABLE_NAME);
+                                if (columns != 3) {
+                                    wrongNumberOfColumns.setValue(true);
+                                }
+                                return;
+                            }
+                            // perhaps some problem here... let's try another way out
+                            try {
+                                Statement stmt = connection.createStatement();
+                                ResultSet rs = stmt.executeQuery("select * from " + CLOSURE_TABLE_NAME);
+                                int cols = rs.getMetaData().getColumnCount();
+                                if (cols > 0) {
+                                    LOGGER.info("There are {} columns in {} (obtained via resultSet.getMetaData())", cols, CLOSURE_TABLE_NAME);
+                                    if (cols != 3) {
+                                        wrongNumberOfColumns.setValue(true);
+                                    }
+                                } else {
+                                    LOGGER.warn("Couldn't determine the number of columns in {}. In case of problems, please fix your database structure manually using DB scripts in 'config' folder.", CLOSURE_TABLE_NAME);
+                                }
+                                rs.close();     // don't care about closing them in case of failure
+                                stmt.close();
+                            } catch (RuntimeException e) {
+                                LoggingUtils.logException(LOGGER, "Couldn't obtain the number of columns in {}. In case of problems running midPoint, please fix your database structure manually using DB scripts in 'config' folder.", e, CLOSURE_TABLE_NAME);
+                            }
+                        }
+                    }
+                });
+                if (wrongNumberOfColumns.getValue()) {
+                    session.getTransaction().begin();
+                    LOGGER.info("Wrong number of columns detected; dropping table " + CLOSURE_TABLE_NAME);
+                    Query q = session.createSQLQuery("drop table " + CLOSURE_TABLE_NAME);
+                    q.executeUpdate();
+                    session.getTransaction().commit();
+
+                    LOGGER.info("Calling hibernate hbm2ddl SchemaUpdate tool to create the table in the necessary form.");
+                    new SchemaUpdate(sfi.getServiceRegistry(), service.getSessionFactoryBean().getConfiguration()).execute(false, true);
+                    LOGGER.info("Done, table was (hopefully) created. If not, please fix your database structure manually using DB scripts in 'config' folder.");
+                    return true;
+                }
+            } else {
+                // auto schema update is disabled
+            }
+        } else {
+            LOGGER.warn("SessionFactory is not of type SessionFactoryImpl; it is {}", sf != null ? sf.getClass() : "null");
+        }
+        return false;
     }
 
     public boolean isEnabled() {
@@ -178,104 +343,208 @@ public class OrgClosureManager {
     }
 
     /**
-     * Does a basic consistency check by comparing whether are there any orgs without entries in closure
+     * Does a consistency check (either quick or thorough one) and rebuilds the closure table if necessary.
+     *
+     * Quick check is conducted by comparing whether are there any orgs without entries in closure
      * (the reverse direction is ensured via foreign keys in m_org_closure).
+     *
+     * Thorough check is conducted by recomputing the closure table.
      */
-    public void checkAndOrRebuild(SqlRepositoryServiceImpl service, boolean check, boolean rebuild, boolean stopOnFailure) {
+    public void checkAndOrRebuild(SqlRepositoryServiceImpl service, boolean check, boolean rebuild, boolean stopOnFailure, boolean quickCheckOnly, OperationResult result) {
+        LOGGER.info("Org closure check/rebuild request: check={}, rebuild={}", check?(quickCheckOnly?"quick":"thorough"):"none", rebuild);
+        if (!isEnabled()) {
+            result.recordWarning("Organizational closure processing is disabled.");
+            return;
+        }
+        if (!check && !rebuild) {
+            result.recordWarning("Neither 'check' nor 'rebuild' option was requested.");
+            return;         // nothing to do here
+        }
         Session session = service.getSessionFactory().openSession();
+        Context context = null;
+        boolean rebuilt = false;
         try {
-            boolean ok = false;
-            if (check) {
-                Query q = session.createSQLQuery(
-                        "select count(m_org.oid) as problems from m_org left join m_org_closure cl " +
-                                "on cl.descendant_oid = m_org.oid and cl.ancestor_oid = m_org.oid " +
-                                "where cl.descendant_oid is null").addScalar("problems", IntegerType.INSTANCE);
-                List problemsList = q.list();
-                if (problemsList == null || problemsList.size() != 1) {
-                    throw new IllegalStateException("Unexpected return value from the closure check query: " + problemsList + " (a 1-item list of Integer expected)");
-                }
-                int problems = (int) problemsList.get(0);
-                if (problems != 0) {
-                    LOGGER.warn("Content of M_ORG_CLOSURE table is not consistent with the content of M_ORG one. Missing OIDs: {}", problems);
-                    if (!rebuild && stopOnFailure) {
-                        throw new IllegalStateException("Content of M_ORG_CLOSURE table is not consistent with the content of M_ORG one. Missing OIDs: " + problems);
+            session.getTransaction().begin();
+            if (rebuild || (check && !quickCheckOnly)) {
+                // thorough check requires the temporary table as well
+                context = onBeginTransaction(session);
+            }
+
+            if (quickCheckOnly) {
+                boolean ok = false;
+                if (check) {
+                    int problems = quickCheck(session);
+                    if (problems != 0) {
+                        LOGGER.warn("Content of M_ORG_CLOSURE table is not consistent with the content of M_ORG one. Missing OIDs: {}", problems);
+                        if (!rebuild && stopOnFailure) {
+                            throw new IllegalStateException("Content of M_ORG_CLOSURE table is not consistent with the content of M_ORG one. Missing OIDs: " + problems);
+                        }
+                    } else {
+                        LOGGER.debug("Org closure quick test passed.");
+                        ok = true;
                     }
-                } else {
-                    LOGGER.debug("Org closure quick test passed.");
-                    ok = true;
+                }
+                if (!ok && rebuild) {
+                    rebuild(false, true, service, stopOnFailure, context, session, result);
+                    rebuilt = true;
+                }
+            } else {
+                // if the check has to be thorough
+                rebuild(check, rebuild, service, stopOnFailure, context, session, result);
+                rebuilt = rebuild;          // if we are here this means the CL was rebuilt if it was to be rebuilt
+                if (stopOnFailure && result.isError()) {
+                    throw new IllegalStateException(result.getMessage());
                 }
             }
-            if (!ok && rebuild) {
-                rebuild(service, stopOnFailure);
+
+            if (rebuilt) {
+                session.getTransaction().commit();
+                LOGGER.info("Recomputed org closure table was successfully committed into database.");
+            } else {
+                // if !rebuilt, we either didn't do any modifications (in quick check mode)
+                // or we did, but we want them to disappear (although this wish is a bit strange...)
+                session.getTransaction().rollback();
+            }
+        } catch (SchemaException|RuntimeException e) {
+            LoggingUtils.logException(LOGGER, "Exception during check and/or recomputation of closure table", e);
+            session.getTransaction().rollback();
+            if (stopOnFailure) {
+                if (e instanceof RuntimeException) {
+                    throw (RuntimeException) e;
+                } else {
+                    throw new IllegalStateException("Unexpected exception during check and/or recomputation of closure table: " + e.getMessage(), e);
+                }
             }
         } finally {
+            cleanUpAfterOperation(context, session);     // commits in case of H2!
             session.close();
         }
     }
+
     //endregion
 
-    //region Rebuilding org closure
-    private void rebuild(SqlRepositoryServiceImpl service, boolean stopOnFailure) {
-        OperationResult result = new OperationResult("rebuild");
+    //region Rebuilding or checking org closure
 
-        LOGGER.info("Rebuilding org closure table");
+    // we are already in the context of a transaction (and the org struct table is locked if possible)
+    // "check" here means "thorough check" (i.e. comparing with recomputed closure)
+    private void rebuild(boolean check, boolean rebuild, SqlRepositoryServiceImpl service, boolean stopOnFailure, final Context context, final Session session, OperationResult result) throws SchemaException {
 
-        final Session session = service.beginTransaction();
-        try {
-            Query deleteQuery = session.createSQLQuery("delete from " + CLOSURE_TABLE_NAME);
-            deleteQuery.executeUpdate();
-            LOGGER.trace("Closure table content deleted");
-
-            final int orgsTotal = service.countObjects(OrgType.class, new ObjectQuery(), result);
-            final MutableInt orgsProcessed = new MutableInt(0);
-
-            ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {
-                @Override
-                public boolean handle(PrismObject<OrgType> object, OperationResult parentResult) {
-                    LOGGER.trace("Processing {}", object);
-                    handleAdd(object.getOid(), getExistingParentOids(object), session);
-                    orgsProcessed.add(1);
-                    int currentState = orgsProcessed.intValue();
-                    if (currentState % 100 == 0) {
-                        LOGGER.info("{} organizations processed (out of {})", currentState, orgsTotal);
-                    }
-                    return true;
-                }
-            };
-            service.searchObjectsIterative(OrgType.class, new ObjectQuery(), handler, null, result);
-
-            session.getTransaction().commit();
-            LOGGER.info("Org closure table was successfully rebuilt; all {} organizations processed", orgsTotal);
-
-        } catch (SchemaException|RuntimeException e) {
-            session.getTransaction().rollback();
-            LoggingUtils.logException(LOGGER, "Rebuilding closure failed", e);
-            if (stopOnFailure) {
-                throw new SystemException("Rebuilding closure failed: " + e.getMessage(), e);
-            }
+        List existingEntries = null;
+        if (check) {
+            LOGGER.info("Reading from existing org closure table");
+            Query selectQuery = session.createSQLQuery("SELECT descendant_oid, ancestor_oid, val from " + CLOSURE_TABLE_NAME)
+                    .addScalar("descendant_oid", StringType.INSTANCE)
+                    .addScalar("ancestor_oid", StringType.INSTANCE)
+                    .addScalar("val", IntegerType.INSTANCE);
+            existingEntries = selectQuery.list();
+            LOGGER.info("{} entries read", existingEntries.size());
         }
+
+        LOGGER.info("Computing org closure table from scratch");
+
+        Query deleteQuery = session.createSQLQuery("delete from " + CLOSURE_TABLE_NAME);
+        deleteQuery.executeUpdate();
+        LOGGER.trace("Closure table content deleted");
+
+        final int orgsTotal = service.countObjects(OrgType.class, new ObjectQuery(), result);
+        final MutableInt orgsProcessed = new MutableInt(0);
+
+        ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {
+            @Override
+            public boolean handle(PrismObject<OrgType> object, OperationResult parentResult) {
+                LOGGER.trace("Processing {}", object);
+                handleAdd(object.getOid(), getParentOidsFromObject(object), context, session);
+                orgsProcessed.add(1);
+                int currentState = orgsProcessed.intValue();
+                if (currentState % 100 == 0) {
+                    LOGGER.info("{} organizations processed (out of {})", currentState, orgsTotal);
+                }
+                return true;
+            }
+        };
+        service.searchObjectsIterative(OrgType.class, new ObjectQuery(), handler, null, result);
+
+        LOGGER.info("Org closure table was successfully recomputed (not committed yet); all {} organizations processed", orgsTotal);
+
+        if (check) {
+            LOGGER.info("Reading from recomputed org closure table");
+            Query selectQuery = session.createSQLQuery("SELECT descendant_oid, ancestor_oid, val from " + CLOSURE_TABLE_NAME)
+                    .addScalar("descendant_oid", StringType.INSTANCE)
+                    .addScalar("ancestor_oid", StringType.INSTANCE)
+                    .addScalar("val", IntegerType.INSTANCE);
+            List recomputedEntries = selectQuery.list();
+            LOGGER.info("{} entries read", recomputedEntries.size());
+            compareOrgClosureTables(existingEntries, recomputedEntries, rebuild, result);
+        } else {
+            result.recordSuccess();
+        }
+    }
+
+    private void compareOrgClosureTables(List existingEntries, List recomputedEntries, boolean rebuild, OperationResult result) {
+        Set<List> existing = convertEntries(existingEntries);
+        Set<List> recomputed = convertEntries(recomputedEntries);
+        if (!existing.equals(recomputed)) {
+            String addendum;
+            OperationResultStatus status;
+            if (rebuild) {
+                status = OperationResultStatus.HANDLED_ERROR;
+                addendum = " The table has been recomputed and now it is OK.";
+            } else {
+                status = OperationResultStatus.FATAL_ERROR;
+                addendum = " Please recompute the table as soon as possible.";
+            }
+            String m = "Closure table is not consistent with the repository. Expected size: " + recomputed.size() + " actual size: " + existing.size() + "." + addendum;
+            result.recordStatus(status, m);
+            LOGGER.info(m);
+        } else {
+            String m = "Closure table is OK (" + existing.size() + " entries)";
+            result.recordStatus(OperationResultStatus.SUCCESS, m);
+            LOGGER.info(m);
+        }
+    }
+
+    private Set<List> convertEntries(List<Object[]> entries) {
+        Set<List> rv = new HashSet<>();
+        for (Object[] entry : entries) {
+            rv.add(Arrays.asList(entry));
+        }
+        return rv;
+    }
+
+    private int quickCheck(Session session) {
+        Query q = session.createSQLQuery(
+                "select count(m_org.oid) as problems from m_org left join m_org_closure cl " +
+                        "on cl.descendant_oid = m_org.oid and cl.ancestor_oid = m_org.oid " +
+                        "where cl.descendant_oid is null").addScalar("problems", IntegerType.INSTANCE);
+        List problemsList = q.list();
+        if (problemsList == null || problemsList.size() != 1) {
+            throw new IllegalStateException("Unexpected return value from the closure check query: " + problemsList + " (a 1-item list of Integer expected)");
+        }
+        return (int) problemsList.get(0);
     }
     //endregion
 
     //region Handling ADD operation
 
     // we can safely expect that the object didn't exist before (because the "overwriting add" is sent to us as MODIFY operation)
-    private void handleAdd(String oid, List<ReferenceDelta> deltas, Session session) {
-        handleAdd(oid, getParentOidsFromAddDeltas(deltas, null), session);
+    private void handleAdd(String oid, List<ReferenceDelta> deltas, Context context, Session session) {
+        handleAdd(oid, getParentOidsFromAddDeltas(deltas, null), context, session);
     }
 
     // parents may be non-existent at this point
-    private void handleAdd(String oid, Set<String> parents, Session session) {
+    private void handleAdd(String oid, Set<String> parents, Context context, Session session) {
         // adding self-record
         session.save(new ROrgClosure(oid, oid, 1));
         session.flush();
         session.clear();
 
         List<String> livingChildren = getChildren(oid, session);        // no need to check existence of these oids, as owner is a FK pointing to RObject in RParentRef
-        addChildrenEdges(oid, livingChildren, session);
+        LOGGER.trace("Living children = {}", livingChildren);
+        addChildrenEdges(oid, livingChildren, context, session);
 
         // all parents are "new", so we should just select which do really exist at this moment
         Collection<String> livingParents = retainExistingOids(parents, session);
+        LOGGER.trace("Living parents = {} (parents = {})", livingParents, parents);
 
         if (livingParents.size() <= 1 && (livingChildren == null || livingChildren.isEmpty())) {
             String parent;
@@ -286,15 +555,15 @@ public class OrgClosureManager {
             }
             addEdgeSimple(oid, parent, session);
         } else {
-            addParentEdges(oid, livingParents, session);
+            addParentEdges(oid, livingParents, context, session);
         }
     }
 
     // we expect that all livingChildren do exist and
     // that none of the links child->oid does exist yet
-    private void addChildrenEdges(String oid, List<String> livingChildren, Session session) {
+    private void addChildrenEdges(String oid, List<String> livingChildren, Context context, Session session) {
         List<Edge> edges = childrenToEdges(oid, livingChildren);
-        addIndependentEdges(edges, session);
+        addIndependentEdges(edges, context, session);
     }
 
     private List<Edge> childrenToEdges(String oid, List<String> livingChildren) {
@@ -307,9 +576,9 @@ public class OrgClosureManager {
 
     // we expect that all livingParents do exist and
     // that none of the links oid->parent does exist yet
-    private void addParentEdges(String oid, Collection<String> livingParents, Session session) {
+    private void addParentEdges(String oid, Collection<String> livingParents, Context context, Session session) {
         List<Edge> edges = parentsToEdges(oid, livingParents);
-        addIndependentEdges(edges, session);
+        addIndependentEdges(edges, context, session);
     }
 
     private List<Edge> parentsToEdges(String oid, Collection<String> parents) {
@@ -326,7 +595,7 @@ public class OrgClosureManager {
             long start = System.currentTimeMillis();
             Query addToClosureQuery = session.createSQLQuery(
                     "insert into "+ CLOSURE_TABLE_NAME +" (descendant_oid, ancestor_oid, val) " +
-                            "select :oid as descendant_oid, CL.ancestor_oid as ancestor_oid, 1 as val " +
+                            "select :oid as descendant_oid, CL.ancestor_oid as ancestor_oid, CL.val as val " +
                             "from "+ CLOSURE_TABLE_NAME +" CL " +
                             "where CL.descendant_oid = :parent");
             addToClosureQuery.setString("oid", oid);
@@ -343,14 +612,14 @@ public class OrgClosureManager {
     // IMPORTANT PRECONDITIONS:
     //  - all edges are "real", i.e. their tails and heads (as objects) do exist in repository
     //  - none of the edges does exist yet
-    private void addIndependentEdges(List<Edge> edges, Session session) {
+    private void addIndependentEdges(List<Edge> edges, Context context, Session session) {
 
         long start = System.currentTimeMillis();
         LOGGER.trace("===================== ADD INDEPENDENT EDGES: {} ================", edges);
 
         if (!edges.isEmpty()) {
             checkForCycles(edges, session);
-            String deltaTempTableName = computeDeltaTable(edges, session);
+            String deltaTempTableName = computeDeltaTable(edges, context, session);
             try {
                 int count;
 
@@ -444,7 +713,9 @@ public class OrgClosureManager {
     // (this would yield a cycle D->A->D in the graph)
     private void checkForCycles(List<Edge> edges, Session session) {
         String queryText = "select descendant_oid, ancestor_oid from " + CLOSURE_TABLE_NAME + " T where " + getWhereClauseForCycleCheck(edges);
-        Query query = session.createSQLQuery(queryText);
+        Query query = session.createSQLQuery(queryText)
+                .addScalar("descendant_oid", StringType.INSTANCE)
+                .addScalar("ancestor_oid", StringType.INSTANCE);
         long start = System.currentTimeMillis();
         List list = query.list();
         LOGGER.trace("Cycles checked in {} ms, {} conflicts found", System.currentTimeMillis()-start, list.size());
@@ -520,21 +791,21 @@ public class OrgClosureManager {
     //endregion
 
     //region Handling DELETE operation
-    private void handleDelete(String oid, Session session) {
+    private void handleDelete(String oid, Context context, Session session) {
 
         List<String> livingChildren = getChildren(oid, session);
-//        if (livingChildren.isEmpty()) {
-//            handleDeleteLeaf(oid, session);
-//            return;
-//        }
+        if (livingChildren.isEmpty()) {
+            handleDeleteLeaf(oid, session);
+            return;
+        }
 
         // delete all edges "<child> -> OID" from the closure
-        removeChildrenEdges(oid, livingChildren, session);
+        removeChildrenEdges(oid, livingChildren, context, session);
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'child' links.", livingChildren.size());
 
         // delete all edges "OID -> <parent>" from the closure
         List<String> livingParents = retainExistingOids(getParents(oid, session), session);
-        removeParentEdges(oid, livingParents, session);
+        removeParentEdges(oid, livingParents, context, session);
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'parent' links.", livingParents.size());
 
         // delete (OID, OID) record
@@ -554,23 +825,23 @@ public class OrgClosureManager {
         if (LOGGER.isTraceEnabled()) LOGGER.trace("DeleteLeaf: Removed {} records from closure table.", count);
     }
 
-    private void removeChildrenEdges(String oid, List<String> livingChildren, Session session) {
+    private void removeChildrenEdges(String oid, List<String> livingChildren, Context context, Session session) {
         List<Edge> edges = childrenToEdges(oid, livingChildren);
-        removeIndependentEdges(edges, session);
+        removeIndependentEdges(edges, context, session);
     }
 
-    private void removeParentEdges(String oid, Collection<String> parents, Session session) {
+    private void removeParentEdges(String oid, Collection<String> parents, Context context, Session session) {
         List<Edge> edges = parentsToEdges(oid, parents);
-        removeIndependentEdges(edges, session);
+        removeIndependentEdges(edges, context, session);
     }
 
-    private void removeIndependentEdges(List<Edge> edges, Session session) {
+    private void removeIndependentEdges(List<Edge> edges, Context context, Session session) {
 
         long start = System.currentTimeMillis();
         LOGGER.trace("===================== REMOVE INDEPENDENT EDGES: {} ================", edges);
 
         if (!edges.isEmpty()) {
-            String deltaTempTableName = computeDeltaTable(edges, session);
+            String deltaTempTableName = computeDeltaTable(edges, context, session);
             try {
                 int count;
 
@@ -650,7 +921,7 @@ public class OrgClosureManager {
     //region Handling MODIFY
 
     private void handleModify(String oid, Collection<? extends ItemDelta> modifications,
-                              PrismObject<? extends ObjectType> originalObject, Session session) {
+                              PrismObject<? extends ObjectType> originalObject, Context context, Session session) {
         if (modifications.isEmpty()) {
             return;
         }
@@ -663,16 +934,37 @@ public class OrgClosureManager {
 
         parentsToDelete.removeAll(parentsToAdd);            // if something is deleted and the re-added we can skip this operation
 
-        removeParentEdges(oid, livingParentsToDelete, session);
-        addParentEdges(oid, livingParentsToAdd, session);
+        removeParentEdges(oid, livingParentsToDelete, context, session);
+        addParentEdges(oid, livingParentsToAdd, context, session);
     }
 
     //endregion
 
     //region Misc
 
+    private void lockClosureTable(Session session) {
+        long start = System.currentTimeMillis();
+        LOGGER.trace("Locking closure table");
+        if (isH2()) {
+            Query q = session.createSQLQuery("SELECT * FROM " + CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
+            q.list();
+        } else if (isOracle()) {
+            Query q = session.createSQLQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
+            q.executeUpdate();
+        } else if (isPostgreSQL()) {
+            // currently not used
+            Query q = session.createSQLQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
+            q.executeUpdate();
+        } else if (isSQLServer()) {
+            Query q = session.createSQLQuery("SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
+            q.list();
+        }
+        LOGGER.trace("...locked in {} ms", System.currentTimeMillis()-start);
+
+    }
+
     // returns table name
-    private String computeDeltaTable(List<Edge> edges, Session session) {
+    private String computeDeltaTable(List<Edge> edges, Context context, Session session) {
 
         if (edges.isEmpty()) {
             throw new IllegalArgumentException("No edges to add/remove");
@@ -680,12 +972,12 @@ public class OrgClosureManager {
 
         String deltaTempTableName;
 
-        if (isOracle()) {
+        if (context.temporaryTableName != null) {
+            deltaTempTableName = context.temporaryTableName;                  // table was created on the beginning of trasaction
+        } else if (isOracle()) {
             deltaTempTableName = TEMP_DELTA_TABLE_NAME_FOR_ORACLE;            // table definition is global
         } else {
-            deltaTempTableName =
-                    (isSQLServer()?"##":"") +
-                            "m_org_closure_delta_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
+            deltaTempTableName = generateDeltaTempTableName();                // table will be created now
         }
 
         if (COUNT_CLOSURE_RECORDS && LOGGER.isTraceEnabled()) {
@@ -723,9 +1015,13 @@ public class OrgClosureManager {
             if (isPostgreSQL()) {
                 createTablePrefix = "create local temporary table " + deltaTempTableName + " on commit drop as ";
             } else if (isH2()) {
-                createTablePrefix = "create cached temporary table " + deltaTempTableName + " as ";
+                // todo skip if this is first in this transaction
+                Query q = session.createSQLQuery("delete from " + deltaTempTableName);
+                int c = q.executeUpdate();
+                LOGGER.trace("Deleted {} rows from temporary table {}", c, deltaTempTableName);
+                createTablePrefix = "insert into " + deltaTempTableName + " ";
             } else if (isMySQL()) {
-                createTablePrefix = "create temporary table " + deltaTempTableName + " as ";            // engine=memory is forbidden because of missing tansactionality (?)
+                createTablePrefix = "create temporary table " + deltaTempTableName + " engine=memory as ";            // engine=memory is questionable because of missing tansactionality (but the transactionality is needed in the main table, not the delta table...)
             } else if (isOracle()) {
                 // todo skip if this is first in this transaction
                 Query q = session.createSQLQuery("delete from " + deltaTempTableName);
@@ -762,6 +1058,14 @@ public class OrgClosureManager {
         return deltaTempTableName;
     }
 
+    private String generateDeltaTempTableName() {
+        String deltaTempTableName;
+        deltaTempTableName =
+                (isSQLServer()?"##":"") +
+                        "m_org_closure_delta_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
+        return deltaTempTableName;
+    }
+
     private String getWhereClause(List<Edge> edges) {
         StringBuilder whereClause = new StringBuilder();
         boolean first = true;
@@ -780,7 +1084,10 @@ public class OrgClosureManager {
     }
 
     private void dumpOrgClosureTypeTable(Session session, String tableName) {
-        Query q = session.createSQLQuery("select descendant_oid, ancestor_oid, val from " + tableName);
+        Query q = session.createSQLQuery("select descendant_oid, ancestor_oid, val from " + tableName)
+                .addScalar("descendant_oid", StringType.INSTANCE)
+                .addScalar("ancestor_oid", StringType.INSTANCE)
+                .addScalar("val", IntegerType.INSTANCE);
         List<Object[]> list = q.list();
         LOGGER.trace("{} ({} rows):", tableName, list.size());
         for (Object[] row : list) {
@@ -819,7 +1126,7 @@ public class OrgClosureManager {
         }
 
         for (ItemDelta delta : modifications) {
-            if (!ObjectType.F_PARENT_ORG_REF.equals(delta.getElementName())) {
+            if (!QNameUtil.match(ObjectType.F_PARENT_ORG_REF, delta.getElementName())) {            // TODO is this OK?
                 continue;
             }
             deltas.add((ReferenceDelta) delta);
@@ -833,7 +1140,7 @@ public class OrgClosureManager {
 
         Set<String> oids = new HashSet<>();
 
-        Set<String> existingOids = getExistingParentOids(originalObject);
+        Set<String> existingOids = getParentOidsFromObject(originalObject);
 
         for (ItemDelta delta : modifications) {
             if (delta.getValuesToDelete() == null) {
@@ -854,7 +1161,7 @@ public class OrgClosureManager {
     private Set<String> getParentOidsFromAddDeltas(Collection<? extends ItemDelta> modifications, PrismObject<? extends ObjectType> originalObject) {
         Set<String> oids = new HashSet<>();
 
-        Set<String> existingOids = getExistingParentOids(originalObject);
+        Set<String> existingOids = getParentOidsFromObject(originalObject);
 
         for (ItemDelta delta : modifications) {
             if (delta.getValuesToAdd() == null) {
@@ -871,7 +1178,7 @@ public class OrgClosureManager {
         return oids;
     }
 
-    private Set<String> getExistingParentOids(PrismObject<? extends ObjectType> originalObject) {
+    private Set<String> getParentOidsFromObject(PrismObject<? extends ObjectType> originalObject) {
         Set<String> retval = new HashSet<>();
         if (originalObject != null) {
             for (ObjectReferenceType ort : originalObject.asObjectable().getParentOrgRef()) {
@@ -939,18 +1246,6 @@ public class OrgClosureManager {
         return repoConfiguration.isUsingPostgreSQL();
     }
 
-    public <T extends ObjectType> Context onBeginTransactionAdd(Session session, PrismObject<T> object, boolean overwrite) {
-        return null;
-    }
-
-    public <T extends ObjectType> Context onBeginTransactionModify(Session session, Class<T> type, String oid, Collection<? extends ItemDelta> modifications) {
-        return null;
-    }
-
-    public <T extends ObjectType> Context onBeginTransactionDelete(Session session, Class<T> type, String oid) {
-        return null;
-    }
-
     //endregion
 
     //region Helper classes
@@ -1003,7 +1298,7 @@ public class OrgClosureManager {
 
     public static enum StartupAction {
 
-        NONE("none"), CHECK("check"), REBUILD_IF_NEEDED("rebuidIfNeeded"), ALWAYS_REBUILD("alwaysRebuild");
+        NONE("none"), CHECK("check"), REBUILD_IF_NEEDED("rebuildIfNeeded"), ALWAYS_REBUILD("alwaysRebuild");
 
         private String value;
 

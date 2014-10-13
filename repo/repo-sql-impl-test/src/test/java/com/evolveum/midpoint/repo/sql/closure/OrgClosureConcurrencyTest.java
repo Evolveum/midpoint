@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql.closure;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -50,15 +52,21 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgClosureConcurrencyTest.class);
 
-    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 5, 3, 3, 3, 0  };
-    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 2, 2, 3, 3  };
-    private static final int[] PARENTS_IN_LEVEL       = { 0, 2, 2, 3, 3  };
-//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 15, 20, 30  };
-//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 3, 15, 20, 30  };
-    private static final int[] LINK_ROUNDS_FOR_LEVELS = null;
-    //private static final int[] NODE_ROUNDS_FOR_LEVELS = { 3,  3,  3,  3  };           // small number of deletes
-    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 5, 15, 45, 100  };            // big number of deletes
-    public static final int THREADS = 7;
+    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 5, 3, 3, 3  };
+    private static final int[] USER_CHILDREN_IN_LEVEL = null;
+    private static final int[] PARENTS_IN_LEVEL       = { 0, 2, 2, 3  };
+    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 15, 20, 30  };
+//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 3,  3,  3,  3  };           // small number of deletes
+//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 3, 15, 20, 30  };           // average number of deletes
+    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 5, 15, 45, 100  };            // large number of deletes
+    public static final int THREADS = 4;
+
+    // very small scenario
+//    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 1  };
+//    private static final int[] USER_CHILDREN_IN_LEVEL = null;
+//    private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2  };
+//    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 1, 1    };
+//    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 2, 1    };
 
     private OrgClosureTestConfiguration configuration;
 
@@ -81,11 +89,10 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
 
     @Test(enabled = true) public void test100LoadOrgStructure() throws Exception { _test100LoadOrgStructure(); }
     @Test(enabled = true) public void test150CheckClosure() throws Exception { _test150CheckClosure(); }
-    @Test(enabled = false) public void test200AddRemoveLinksSeq() throws Exception { _test200AddRemoveLinksMT(false); }
-    @Test(enabled = false) public void test201AddRemoveLinksRandom() throws Exception { _test200AddRemoveLinksMT(true); }
+    @Test(enabled = true) public void test200AddRemoveLinksSeq() throws Exception { _test200AddRemoveLinksMT(false); }
+    @Test(enabled = true) public void test201AddRemoveLinksRandom() throws Exception { _test200AddRemoveLinksMT(true); }
     @Test(enabled = true) public void test300AddRemoveNodesSeq() throws Exception { _test300AddRemoveNodesMT(false); }
     @Test(enabled = true) public void test301AddRemoveNodesRandom() throws Exception { _test300AddRemoveNodesMT(true); }
-    //@Test(enabled = true) public void test310AddRemoveUsers() throws Exception { _test310AddRemoveUsersMT(); }
 
     /**
      * We randomly select a set of links to be removed.
@@ -156,10 +163,12 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                             }
                             LOGGER.info("Removing {}", edge);
                             removeEdge(edge);
-                            info(Thread.currentThread().getName() + " removed " + edge);
+                            int remaining;
                             synchronized (OrgClosureConcurrencyTest.this) {
                                 edgesToRemove.remove(edge);
+                                remaining = edgesToRemove.size();
                             }
+                            info(Thread.currentThread().getName() + " removed " + edge + "; remaining: " + remaining);
                         }
                     } catch (Throwable e) {
                         e.printStackTrace();
@@ -201,10 +210,12 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                             }
                             LOGGER.info("Adding {}", edge);
                             addEdge(edge);
-                            info(Thread.currentThread().getName() + " re-added " + edge);
+                            int remaining;
                             synchronized (OrgClosureConcurrencyTest.this) {
                                 edgesToAdd.remove(edge);
+                                remaining = edgesToAdd.size();
                             }
+                            info(Thread.currentThread().getName() + " re-added " + edge + "; remaining: " + remaining);
                         }
                     } catch (Throwable e) {
                         e.printStackTrace();
@@ -306,15 +317,18 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                                 break;
                             }
                             LOGGER.info("Removing {}", objectType);
+                            int remaining;
                             try {
                                 removeObject(objectType);
                                 synchronized (OrgClosureConcurrencyTest.this) {
                                     nodesToRemove.remove(objectType);
+                                    remaining = nodesToRemove.size();
                                 }
-                                info(Thread.currentThread().getName() + " removed " + objectType);
+                                info(Thread.currentThread().getName() + " removed " + objectType + "; remaining: " + remaining);
                             } catch (ObjectNotFoundException e) {
                                 // this is OK
                                 info(Thread.currentThread().getName() + ": " + objectType + " already deleted");
+                                Thread.sleep(100);      // give other threads a chance
                             }
                         }
                     } catch (Throwable e) {
@@ -342,9 +356,11 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             throw new AssertionError("Found exceptions: " + exceptions);
         }
 
+        rebuildGraph();
         checkClosure(orgGraph.vertexSet());
         info("Consistency after removing OK");
 
+        numberOfRunners = THREADS;
         for (int i = 0; i < numberOfRunners; i++) {
             Runnable runnable = new Runnable() {
                 @Override
@@ -358,13 +374,18 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                             LOGGER.info("Adding {}", objectType);
                             try {
                                 addObject(objectType.clone());
+//                                rebuildGraph();
+//                                checkClosure(orgGraph.vertexSet());
+                                int remaining;
                                 synchronized (OrgClosureConcurrencyTest.this) {
                                     nodesToAdd.remove(objectType);
+                                    remaining = nodesToAdd.size();
                                 }
-                                info(Thread.currentThread().getName() + " re-added " + objectType);
+                                info(Thread.currentThread().getName() + " re-added " + objectType + "; remaining: " + remaining);
                             } catch (ObjectAlreadyExistsException e) {
                                 // this is OK
                                 info(Thread.currentThread().getName() + ": " + objectType + " already exists");
+                                Thread.sleep(100);      // give other threads a chance
                             }
                         }
                     } catch (Throwable e) {
@@ -392,8 +413,39 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             throw new AssertionError("Found exceptions: " + exceptions);
         }
 
+        rebuildGraph();
         checkClosure(orgGraph.vertexSet());
         info("Consistency after re-adding OK");
+    }
+
+    private void rebuildGraph() {
+        OperationResult result = new OperationResult("dummy");
+        info("Graph before rebuilding: " + orgGraph.vertexSet().size() + " vertices, " + orgGraph.edgeSet().size() + " edges");
+        orgGraph.removeAllVertices(new HashSet<String>(orgGraph.vertexSet()));
+        List<PrismObject> objects = null;
+        try {
+            objects = (List) repositoryService.searchObjects(OrgType.class, new ObjectQuery(), null, result);
+        } catch (SchemaException e) {
+            throw new AssertionError(e);
+        }
+        for (PrismObject object : objects) {
+            String oid = object.getOid();
+            orgGraph.addVertex(oid);
+        }
+        for (PrismObject<ObjectType> object : objects) {
+            for (ObjectReferenceType ort : object.asObjectable().getParentOrgRef()) {
+                if (orgGraph.containsVertex(ort.getOid())) {
+                    String oid = object.getOid();
+                    try {
+                        orgGraph.addEdge(oid, ort.getOid());
+                    } catch (RuntimeException e) {
+                        System.err.println("Couldn't add edge " + oid + " -> " + ort.getOid() + " into the graph");
+                        throw e;
+                    }
+                }
+            }
+        }
+        info("Graph after rebuilding: "+orgGraph.vertexSet().size()+" vertices, "+orgGraph.edgeSet().size()+" edges");
     }
 
     private void generateNodesAtOneLevel(Set<ObjectType> nodesToRemove, Set<ObjectType> nodesToAdd,

@@ -202,7 +202,7 @@ public class SqlBaseService {
                 || sqlException.getErrorCode() == 3960;         // Snapshot isolation transaction aborted due to update conflict.
     }
 
-    private SQLException findSqlException(Throwable ex) {
+    protected SQLException findSqlException(Throwable ex) {
         while (ex != null) {
             if (ex instanceof SQLException) {
                 return (SQLException) ex;

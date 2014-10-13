@@ -69,6 +69,7 @@ public class SqlRepositoryConfiguration {
     //closure
     public static final String PROPERTY_IGNORE_ORG_CLOSURE = "ignoreOrgClosure";
     public static final String PROPERTY_ORG_CLOSURE_STARTUP_ACTION = "orgClosureStartupAction";
+    public static final String PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK = "skipOrgClosureStructureCheck";
     public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
 
     //embedded configuration
@@ -103,6 +104,7 @@ public class SqlRepositoryConfiguration {
 
     private boolean ignoreOrgClosure;
     private OrgClosureManager.StartupAction orgClosureStartupAction;
+    private boolean skipOrgClosureStructureCheck;
     private boolean stopOnOrgClosureStartupFailure;
 
     public SqlRepositoryConfiguration(Configuration configuration) {
@@ -140,6 +142,7 @@ public class SqlRepositoryConfiguration {
 
         setIgnoreOrgClosure(configuration.getBoolean(PROPERTY_IGNORE_ORG_CLOSURE, false));
         setOrgClosureStartupAction(configuration.getString(PROPERTY_ORG_CLOSURE_STARTUP_ACTION, OrgClosureManager.StartupAction.REBUILD_IF_NEEDED.toString()));
+        setSkipOrgClosureStructureCheck(configuration.getBoolean(PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK, false));
         setStopOnOrgClosureStartupFailure(configuration.getBoolean(PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE, true));
     }
 
@@ -540,5 +543,13 @@ public class SqlRepositoryConfiguration {
 
     public boolean isStopOnOrgClosureStartupFailure() {
         return stopOnOrgClosureStartupFailure;
+    }
+
+    public boolean isSkipOrgClosureStructureCheck() {
+        return skipOrgClosureStructureCheck;
+    }
+
+    public void setSkipOrgClosureStructureCheck(boolean skipOrgClosureStructureCheck) {
+        this.skipOrgClosureStructureCheck = skipOrgClosureStructureCheck;
     }
 }

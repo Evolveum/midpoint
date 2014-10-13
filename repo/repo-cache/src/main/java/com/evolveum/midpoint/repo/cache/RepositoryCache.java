@@ -299,6 +299,11 @@ public class RepositoryCache implements RepositoryService {
 		repository.repositorySelfTest(parentResult);
 	}
 
+    @Override
+    public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult) {
+        repository.testOrgClosureConsistency(repairIfNecessary, testResult);
+    }
+
     private <T extends ObjectType> void cacheObject(Map<String, PrismObject<ObjectType>> cache, PrismObject<T> object) {
 		if (cache != null) {
 			cache.put(object.getOid(), (PrismObject<ObjectType>) object.clone());

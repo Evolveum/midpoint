@@ -59,6 +59,7 @@ public class PageAbout extends PageAdminConfiguration {
 
     private static final String DOT_CLASS = PageAbout.class.getName() + ".";
     private static final String OPERATION_TEST_REPOSITORY = DOT_CLASS + "testRepository";
+    private static final String OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE = DOT_CLASS + "testRepositoryCheckOrgClosure";
     private static final String OPERATION_GET_REPO_DIAG = DOT_CLASS + "getRepoDiag";
 
     private static final String ID_REVISION = "revision";
@@ -66,6 +67,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_VALUE = "value";
     private static final String ID_LIST_SYSTEM_ITEMS = "listSystemItems";
     private static final String ID_TEST_REPOSITORY = "testRepository";
+    private static final String ID_TEST_REPOSITORY_CHECK_ORG_CLOSURE = "testRepositoryCheckOrgClosure";
     private static final String ID_TEST_PROVISIONING = "testProvisioning";
     private static final String ID_IMPLEMENTATION_SHORT_NAME = "implementationShortName";
     private static final String ID_IMPLEMENTATION_DESCRIPTION = "implementationDescription";
@@ -179,6 +181,16 @@ public class PageAbout extends PageAdminConfiguration {
         };
         add(testRepository);
 
+        AjaxButton testRepositoryCheckOrgClosure = new AjaxButton(ID_TEST_REPOSITORY_CHECK_ORG_CLOSURE,
+                createStringResource("PageAbout.button.testRepositoryCheckOrgClosure")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                testRepositoryCheckOrgClosurePerformed(target);
+            }
+        };
+        add(testRepositoryCheckOrgClosure);
+
         AjaxButton testProvisioning = new AjaxButton(ID_TEST_PROVISIONING,
                 createStringResource("PageAbout.button.testProvisioning")) {
 
@@ -229,6 +241,15 @@ public class PageAbout extends PageAdminConfiguration {
         Task task = createSimpleTask(OPERATION_TEST_REPOSITORY);
 
         OperationResult result = getModelDiagnosticService().repositorySelfTest(task);
+        showResult(result);
+
+        target.add(getFeedbackPanel());
+    }
+
+    private void testRepositoryCheckOrgClosurePerformed(AjaxRequestTarget target) {
+        Task task = createSimpleTask(OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE);
+
+        OperationResult result = getModelDiagnosticService().repositoryTestOrgClosureConsistency(task, true);
         showResult(result);
 
         target.add(getFeedbackPanel());
