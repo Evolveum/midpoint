@@ -1270,7 +1270,6 @@ public abstract class ShadowCache {
 		if (oldSecondaryIdentifiers.isEmpty()){
 			return;
 		}
-		LOGGER.info("force rename if needed");
 		ResourceAttributeContainer newSecondaryIdentifiers = ShadowUtil.getAttributesContainer(currentShadowType);
 		
 		//remember name before normalizing attributes

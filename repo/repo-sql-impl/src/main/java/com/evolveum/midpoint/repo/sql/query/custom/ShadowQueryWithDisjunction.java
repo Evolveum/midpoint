@@ -97,7 +97,6 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
             return null;
         }
 
-        LOGGER.info("create shadow disjunction parse");
         AndFilter andFilter = (AndFilter) objectQuery.getFilter();
 
         RefFilter refFilter = null;
@@ -201,7 +200,6 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
         cMain.setProjection(projections);
 
         cMain.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
-        LOGGER.info("Criteria: {}", cMain);
         return new RQueryCriteriaImpl(cMain);
     }
 
