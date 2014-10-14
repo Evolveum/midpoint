@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.commons.lang.Validate;
@@ -174,6 +175,11 @@ public class TextFormatter {
         StringBuilder retval = new StringBuilder();
         if (shadowType.getAttributes() != null) {
             formatContainerValue(retval, "", shadowType.getAttributes().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
+        }
+        if (shadowType.getAssociation() != null) {
+            for (ShadowAssociationType shadowAssociationType : shadowType.getAssociation()) {
+                formatContainerValue(retval, "", shadowAssociationType.asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
+            }
         }
         if (shadowType.getCredentials() != null) {
             formatContainerValue(retval, "", shadowType.getCredentials().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
