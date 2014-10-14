@@ -622,7 +622,7 @@ public class LensUtil {
 			accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
 		
 		} catch (ObjectNotFoundException ex){
-			if (accCtx.isDelete()){
+			if (accCtx.isDelete() || context.getFocusContext().isDelete()){
 				//this is OK, shadow was deleted, but we will continue in processing with old shadow..and set it as full so prevent from other full loading
 				accCtx.setFullShadow(true);
 			} else 

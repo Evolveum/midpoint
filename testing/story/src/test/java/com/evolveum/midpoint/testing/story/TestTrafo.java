@@ -731,6 +731,7 @@ public class TestTrafo extends AbstractStoryTest {
 
  		PrismProperty<Integer> generatedValue = userJack.findExtensionItem(TRAFO_EXTENSION_UID_QNAME);
  		assertNotNull("Generated id value must not be null", generatedValue);
+ 		assertFalse("Generated value must not be empty", generatedValue.isEmpty());
  		
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userJack, UserType.F_EMAIL_ADDRESS, "Jack.Sparrow@" + TRAFO_MAIL_DOMAIN);
@@ -748,7 +749,7 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertExecutionDeltas(0,3);
         dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // primary, link (2 deltas)
         dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class); // AD account
-        dummyAuditService.assertExecutionDeltas(1,3);
+        dummyAuditService.assertExecutionDeltas(1,2);
         dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class); // link
         dummyAuditService.asserHasDelta(1,ChangeType.ADD, ShadowType.class); // Mail account
         dummyAuditService.assertExecutionDeltas(2,2);

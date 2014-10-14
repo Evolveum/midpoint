@@ -407,20 +407,6 @@ public class DependencyProcessor {
 						|| strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 					if (wasProvisioned(dependencyAccountContext, context.getExecutionWave())) {
 						// everything OK
-//						if (ResourceTypeUtil.isForceLoadDependentShadow(dependency) && !dependencyAccountContext.isDelete()){
-//							LOGGER.info("FORCE TO LOAD FULL ACCOUNT " + dependencyAccountContext);
-//							try {
-//								LensUtil.loadFullAccount(context, dependencyAccountContext, provisioningService, result);
-//								dependencyAccountContext.setDoReconciliation(true);
-//								if (dependencyAccountContext.getExecutedDeltas() != null && !dependencyAccountContext.getExecutedDeltas().isEmpty()){
-//									context.resetProjectionWave();
-//								}
-//							} catch (ObjectNotFoundException | CommunicationException | SchemaException
-//									| ConfigurationException | SecurityViolationException e) {
-//								// this is not fatal error. we can continue without full account..the incosinstencies will be treaten later, by reconciliation
-//								LOGGER.warn("Could not load dependent shadow, continue with the shadow loaded before.");
-//							}
-//						}
 					} else {
 						// We do not want to throw exception here. That will stop entire projection.
 						// Let's just mark the projection as broken and skip it.

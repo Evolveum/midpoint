@@ -38,11 +38,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.sleepycat.je.rep.impl.RepGroupProtocol.Fail;
 
 /**
  * 
@@ -222,6 +224,13 @@ public class TestScience  extends AbstractStoryTest {
 		
 		IntegrationTestTools.display("Result: ", result);
 		AssertJUnit.assertTrue("Unexpected failure", result.isSuccess());
+		
+		try {
+			repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+			AssertJUnit.fail("Unexpected user jack. It must not exist.");
+		} catch (ObjectNotFoundException ex){
+			//this is OK
+		}
 		
 				
 	}
