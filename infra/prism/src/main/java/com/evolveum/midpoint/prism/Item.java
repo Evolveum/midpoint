@@ -25,8 +25,6 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
-import org.w3c.dom.Element;
-
 import javax.xml.namespace.QName;
 
 import java.io.Serializable;
@@ -619,19 +617,23 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     	return item;
     }
     
-    public void checkConsistence(boolean requireDefinitions) {
-    	checkConsistenceInternal(this, requireDefinitions, false);
+    public void checkConsistence(boolean requireDefinitions, ConsistencyCheckScope scope) {
+    	checkConsistenceInternal(this, requireDefinitions, false, scope);
     }
     
-    public void checkConsistence(boolean requireDefinitions, boolean prohibitRaw) {
-    	checkConsistenceInternal(this, requireDefinitions, prohibitRaw);
+    public void checkConsistence(boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
+    	checkConsistenceInternal(this, requireDefinitions, prohibitRaw, scope);
     }
     
     public void checkConsistence() {
-    	checkConsistenceInternal(this, false, false);
+    	checkConsistenceInternal(this, false, false, ConsistencyCheckScope.THOROUGH);
     }
-    
-    public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
+
+    public void checkConsistenceMandatory() {
+        checkConsistenceInternal(this, false, false, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
+    }
+
+    public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
     	ItemPath path = getPath();
     	if (elementName == null) {
     		throw new IllegalStateException("Item "+this+" has no name ("+path+" in "+rootItem+")");
@@ -657,7 +659,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     				throw new IllegalStateException("Wrong parent for value "+val+" in item "+this+" ("+path+" in "+rootItem+"), "+
     						"bad parent: " + val.getParent());
     			}
-    			val.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw);
+    			val.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw, scope);
     		}
     	}
     }

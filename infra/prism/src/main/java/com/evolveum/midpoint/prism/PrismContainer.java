@@ -615,17 +615,34 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 		
 	@Override
 	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions,
-			boolean prohibitRaw) {
-		// Containers that are from run-time schema cannot have compile-time class.
-		if (getDefinition() != null && !getDefinition().isRuntimeSchema()) {
-			if (getCompileTimeClass() == null) {
-				throw new IllegalStateException("No compile-time class in "+this+" ("+getPath()+" in "+rootItem+")");
-			}
-		}
-		super.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw);
+			boolean prohibitRaw, ConsistencyCheckScope scope) {
+        checkIds();
+        if (scope.isThorough()) {
+            // Containers that are from run-time schema cannot have compile-time class.
+            if (getDefinition() != null && !getDefinition().isRuntimeSchema()) {
+                if (getCompileTimeClass() == null) {
+                    throw new IllegalStateException("No compile-time class in "+this+" ("+getPath()+" in "+rootItem+")");
+                }
+            }
+        }
+		super.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw, scope);
 	}
 
-	@Override
+    private void checkIds() {
+        Set<Long> oidsUsed = new HashSet<>();
+        for (PrismContainerValue value : getValues()) {
+            Long id = value.getId();
+            if (id != null) {
+                if (oidsUsed.contains(id)) {
+                    throw new IllegalArgumentException("There are more container values with the id of " + id + " in " + getElementName());
+                } else {
+                    oidsUsed.add(id);
+                }
+            }
+        }
+    }
+
+    @Override
 	public void assertDefinitions(boolean tolarateRaw, String sourceDescription) throws SchemaException {
 		super.assertDefinitions(tolarateRaw, sourceDescription);
 		for (PrismContainerValue<V> val: getValues()) {
