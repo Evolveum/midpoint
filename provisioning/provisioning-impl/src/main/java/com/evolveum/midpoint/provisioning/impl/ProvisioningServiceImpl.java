@@ -265,6 +265,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				} catch (ObjectNotFoundException e) {
 					if (!GetOperationOptions.isAllowNotFound(rootOptions)){
 						recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+					} else{
+						result.muteLastSubresultError();
+						result.computeStatus();
 					}
 					throw e;
 				} catch (CommunicationException e) {
@@ -1475,6 +1478,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} catch (ObjectNotFoundException e) {
 			if (!GetOperationOptions.isAllowNotFound(options)){
 				recordFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);
+			} else {
+				result.muteLastSubresultError();
+				result.computeStatus();
 			}
 			throw e;
 		} catch (SchemaException ex) {

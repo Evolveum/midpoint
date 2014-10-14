@@ -162,7 +162,7 @@ public class ConsolidationProcessor {
     		LensProjectionContext projCtx, boolean addUnchangedValues, OperationResult result) 
             		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             		ConfigurationException, SecurityViolationException, PolicyViolationException {
-
+    	
     	// "Squeeze" all the relevant mappings into a data structure that we can process conveniently. We want to have all the
     	// (meta)data about relevant for a specific attribute in one data structure, not spread over several account constructions.
     	MappingExtractor<PrismPropertyValue<?>, F> attributeExtractor = new MappingExtractor<PrismPropertyValue<?>, F>() {

@@ -610,8 +610,11 @@ public class LensUtil {
 		LOGGER.trace("Loading full account {} from provisioning", accCtx);
 		
 		try{
+			GetOperationOptions getOptions = GetOperationOptions.createDoNotDiscovery();
+			getOptions.setAllowNotFound(true);
+			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
 			PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-					accCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
+					accCtx.getOid(), options,
 					null, result);
 			// TODO: use setLoadedObject() instead?
 			accCtx.setObjectCurrent(objectOld);
