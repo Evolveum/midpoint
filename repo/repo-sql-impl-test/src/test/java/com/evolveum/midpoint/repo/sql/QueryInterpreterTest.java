@@ -1104,10 +1104,12 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            DetachedCriteria detached = DetachedCriteria.forClass(ROrgClosure.class, "cl");
-            detached.setProjection(Projections.distinct(Projections.property("cl.descendantOid")));
-            detached.add(Restrictions.eq("cl.ancestorOid", "1234"));
-            detached.add(Restrictions.ne("cl.descendantOid", "1234"));
+            DetachedCriteria detached = DetachedCriteria.forClass(RParentOrgRef.class, "p");
+            detached.setProjection(Projections.distinct(Projections.property("p.ownerOid")));
+            detached.add(Property.forName("targetOid").in(
+                    DetachedCriteria.forClass(ROrgClosure.class, "cl")
+                            .setProjection(Projections.property("cl.descendantOid"))
+                            .add(Restrictions.eq("cl.ancestorOid", "1234"))));
 
             Criteria main = session.createCriteria(RUser.class, "u");
             String mainAlias = "u";
@@ -1129,7 +1131,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     Restrictions.eq("u.name.norm", "cpt jack sparrow")));
             c.add(Subqueries.propertyIn(mainAlias + ".oid", detached));
             main.add(c);
-
 
             main.addOrder(Order.asc("u.name.orig"));
 

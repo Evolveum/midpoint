@@ -564,6 +564,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             return;
         }
         String oid = objectType.getOid();
+        LOGGER.info("Registering {} into memory graph", oid);
         registerVertexIfNeeded(oid);
         for (ObjectReferenceType ort : objectType.getParentOrgRef()) {
             registerVertexIfNeeded(ort.getOid());
@@ -578,11 +579,13 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         if (registerChildrenLinks) {
             // let's check for existing children
             List<String> children = getOrgChildren(oid);
+            LOGGER.info("Registering children of {}: {} into memory graph", oid, children);
             for (String child : children) {
                 registerVertexIfNeeded(child);
                 orgGraph.addEdge(child, oid);
             }
         }
+        LOGGER.info("Registration of {} done.", oid);
     }
 
     private void registerVertexIfNeeded(String oid) {

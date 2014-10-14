@@ -328,7 +328,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                             } catch (ObjectNotFoundException e) {
                                 // this is OK
                                 info(Thread.currentThread().getName() + ": " + objectType + " already deleted");
-                                Thread.sleep(100);      // give other threads a chance
+                                Thread.sleep(300);      // give other threads a chance
                             }
                         }
                     } catch (Throwable e) {
@@ -385,7 +385,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
                             } catch (ObjectAlreadyExistsException e) {
                                 // this is OK
                                 info(Thread.currentThread().getName() + ": " + objectType + " already exists");
-                                Thread.sleep(100);      // give other threads a chance
+                                Thread.sleep(300);      // give other threads a chance
                             }
                         }
                     } catch (Throwable e) {
