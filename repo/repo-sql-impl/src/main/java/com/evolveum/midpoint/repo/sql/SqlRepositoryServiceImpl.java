@@ -423,6 +423,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (InternalsConfig.consistencyChecks) {
             object.checkConsistence();
+        } else {
+            object.checkConsistenceMandatory();
         }
 
         if (LOGGER.isTraceEnabled()) {
