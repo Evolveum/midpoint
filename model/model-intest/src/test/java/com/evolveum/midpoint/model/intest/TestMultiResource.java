@@ -1518,13 +1518,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertRecords(4);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0,3);
+        dummyAuditService.assertExecutionDeltas(0,1);
+        dummyAuditService.assertExecutionDeltas(1,2);
         dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(1,2);
+        dummyAuditService.assertExecutionDeltas(2,2);
         dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();        
@@ -1676,13 +1677,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertRecords(4);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0,3);
+        dummyAuditService.assertExecutionDeltas(0,1);
+        dummyAuditService.assertExecutionDeltas(1,2);
         dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(1,2);
+        dummyAuditService.assertExecutionDeltas(2,2);
         dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();        
