@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -588,7 +589,7 @@ public class ChangeExecutor {
         	return;
         }
         
-        if (consistencyChecks) objectDelta.checkConsistence();
+        objectDelta.checkConsistence(ConsistencyCheckScope.fromBoolean(consistencyChecks));
         
         // Other types than focus types may not be definition-complete (e.g. accounts and resources are completed in provisioning)
         if (FocusType.class.isAssignableFrom(objectDelta.getObjectTypeClass())) {

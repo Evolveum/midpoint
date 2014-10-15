@@ -620,7 +620,11 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     public void checkConsistence(boolean requireDefinitions, ConsistencyCheckScope scope) {
     	checkConsistenceInternal(this, requireDefinitions, false, scope);
     }
-    
+
+    public void checkConsistence(boolean requireDefinitions, boolean prohibitRaw) {
+        checkConsistenceInternal(this, requireDefinitions, prohibitRaw, ConsistencyCheckScope.THOROUGH);
+    }
+
     public void checkConsistence(boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
     	checkConsistenceInternal(this, requireDefinitions, prohibitRaw, scope);
     }
@@ -629,9 +633,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     	checkConsistenceInternal(this, false, false, ConsistencyCheckScope.THOROUGH);
     }
 
-    public void checkConsistenceMandatory() {
-        checkConsistenceInternal(this, false, false, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
+    public void checkConsistence(ConsistencyCheckScope scope) {
+        checkConsistenceInternal(this, false, false, scope);
     }
+
 
     public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
     	ItemPath path = getPath();

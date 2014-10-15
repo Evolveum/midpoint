@@ -765,7 +765,11 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
     	}
     }
 
-	public static void checkConsistence(Collection<? extends ItemDelta> deltas, ConsistencyCheckScope scope) {
+    public static void checkConsistence(Collection<? extends ItemDelta> deltas) {
+        checkConsistence(deltas, ConsistencyCheckScope.THOROUGH);
+    }
+
+    public static void checkConsistence(Collection<? extends ItemDelta> deltas, ConsistencyCheckScope scope) {
 		checkConsistence(deltas, false, false, scope);
 	}
 	

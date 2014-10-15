@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -86,7 +87,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 				continue;
 			}
 			try {
-				delta.checkConsistence(requireOid, true, true);
+				delta.checkConsistence(requireOid, true, true, ConsistencyCheckScope.THOROUGH);
 			} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException(e.getMessage()+"; in "+shortDesc+", wave "+wave, e);
 			} catch (IllegalStateException e) {

@@ -1145,7 +1145,15 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     }
         
     public void checkConsistence() {
-    	checkConsistence(true, false, false, ConsistencyCheckScope.THOROUGH);
+    	checkConsistence(ConsistencyCheckScope.THOROUGH);
+    }
+
+    public void checkConsistence(ConsistencyCheckScope scope) {
+        checkConsistence(true, false, false, scope);
+    }
+
+    public void checkConsistence(boolean requireOid, boolean requireDefinition, boolean prohibitRaw) {
+        checkConsistence(requireOid, requireDefinition, prohibitRaw, ConsistencyCheckScope.THOROUGH);
     }
     
     public void checkConsistence(boolean requireOid, boolean requireDefinition, boolean prohibitRaw, ConsistencyCheckScope scope) {

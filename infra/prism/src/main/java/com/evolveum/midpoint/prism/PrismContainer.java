@@ -168,6 +168,13 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         if (newValue.getPrismContext() == null && this.prismContext != null) {
             prismContext.adopt(newValue);
         }
+        if (newValue.getId() != null) {
+            for (PrismContainerValue existingValue : getValues()) {
+                if (existingValue.getId() != null && existingValue.getId().equals(newValue.getId())) {
+                    throw new IllegalStateException("Attempt to add a container value with an id that already exists: " + newValue.getId());
+                }
+            }
+        }
         return super.add(newValue);
     }
     

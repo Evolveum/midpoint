@@ -31,6 +31,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
 import org.testng.Assert;
@@ -356,7 +357,7 @@ public class TestRefinedSchema {
         String accString = PrismTestUtil.serializeObjectToString(accObjectType.asPrismObject());
         System.out.println("Result of JAXB marshalling:\n"+accString);
         
-        accObject.checkConsistence(true, true);
+        accObject.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
     }
     
 	private QName getAttrQName(PrismObject<ResourceType> resource, String localPart) {

@@ -422,9 +422,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         if (InternalsConfig.consistencyChecks) {
-            object.checkConsistence();
+            object.checkConsistence(ConsistencyCheckScope.THOROUGH);
         } else {
-            object.checkConsistenceMandatory();
+            object.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
         }
 
         if (LOGGER.isTraceEnabled()) {
@@ -1117,9 +1117,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         if (InternalsConfig.consistencyChecks) {
-            for (ItemDelta modification : modifications) {
-                modification.checkConsistence();
-            }
+            ItemDelta.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
+        } else {
+            ItemDelta.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
         }
 
         if (LOGGER.isTraceEnabled()) {
