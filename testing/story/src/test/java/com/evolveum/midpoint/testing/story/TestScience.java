@@ -29,10 +29,13 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -87,6 +90,10 @@ public class TestScience  extends AbstractStoryTest {
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_UNIX_DESCRIPTION_NAME = "Description";
 	
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_STATS_DESC_NAME = "Desc";
+	
+	private static final String NS_RESOURCE_INSTANCE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+	
+	private static final QName UNIX_INTERNAL_ID = new QName(NS_RESOURCE_INSTANCE, DummyAccount.ATTR_INTERNAL_ID);
 	
 	
 	protected static DummyResource dummyResourceUnix;
@@ -203,9 +210,15 @@ public class TestScience  extends AbstractStoryTest {
 		PrismObject<ShadowType> shadowOpenDj = provisioningService.getObject(ShadowType.class, accountOpenDjOid, null, task, result);
 		IntegrationTestTools.display("AD account: ", shadowOpenDj);
 		
-		PrismProperty<Integer> generatedValue = userJack.findExtensionItem(SCIENCE_EXTENSION_UID_QNAME);
- 		assertNotNull("Generated id value must not be null", generatedValue);
- 		assertFalse("Generated value must not be empty", generatedValue.isEmpty());
+		
+		//internalId on unix dummy resource and title on openDJ simulation must be the same
+		PrismProperty unixId = shadowUnix.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, UNIX_INTERNAL_ID));
+		PrismProperty openDjSyncedId = shadowOpenDj.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE_INSTANCE, "title")));
+		PrismAsserts.assertEquals("Unix id was not synced to the opendj properly.", String.valueOf(unixId.getAnyRealValue()), openDjSyncedId.getAnyRealValue());
+		
+//		PrismProperty<Integer> generatedValue = userJack.findExtensionItem(SCIENCE_EXTENSION_UID_QNAME);
+// 		assertNotNull("Generated id value must not be null", generatedValue);
+// 		assertFalse("Generated value must not be empty", generatedValue.isEmpty());
 		
 	}
 

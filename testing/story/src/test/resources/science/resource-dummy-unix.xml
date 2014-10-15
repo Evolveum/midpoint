@@ -147,10 +147,10 @@
             </inbound>
          </attribute>
          <dependency>
-            <resourceRef oid="10000000-0000-0000-0000-0000000100ad"/>
+            <resourceRef oid="10000000-0000-0000-0000-0000000001ad"/>
             <strictness>relaxed</strictness>
          </dependency>
-         
+          
          <activation>
             <administrativeStatus>
                <outbound/>
