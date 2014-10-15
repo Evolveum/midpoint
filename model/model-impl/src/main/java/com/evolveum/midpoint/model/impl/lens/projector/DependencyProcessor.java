@@ -207,6 +207,9 @@ public class DependencyProcessor {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("DEP(rev): {}", outDependency);
 				}
+				LOGGER.trace("projection context: {}", projectionContext );
+				LOGGER.trace("dependency source context: {}", dependencySourceContext);
+				LOGGER.trace("in dependency {} \nout dependency {}", inDependency, outDependency);
 			if (inDependency != null && isHigerOrder(outDependency, inDependency)) {
 				// There is incomming dependency. Deal only with dependencies of this order and lower
 				// otherwise we can end up in endless loop even for legal dependencies.
@@ -233,7 +236,9 @@ public class DependencyProcessor {
 			// Wave for this context was set during the run of this method (it was not set when we
 			// started, we checked at the beginning). Therefore this context must have been visited again.
 			// therefore there is a circular dependency. Therefore we need to create another context to split it.
-			resultAccountContext = createAnotherContext(context, projectionContext, determinedOrder);
+			if (!projectionContext.isDelete()){
+				resultAccountContext = createAnotherContext(context, projectionContext, determinedOrder);
+			}
 		}
 //			LOGGER.trace("Wave for {}: {}", resultAccountContext.getResourceAccountType(), wave);
 		resultAccountContext.setWave(determinedWave);
@@ -286,6 +291,19 @@ public class DependencyProcessor {
 			bo = 0;
 		}
 		return ao > bo;
+	}
+	
+	private boolean isLowerOrder(ResourceObjectTypeDependencyType a,
+			ResourceObjectTypeDependencyType b) {
+		Integer ao = a.getOrder();
+		Integer bo = b.getOrder();
+		if (ao == null) {
+			ao = 0;
+		}
+		if (bo == null) {
+			bo = 0;
+		}
+		return ao < bo;
 	}
 
 	/**

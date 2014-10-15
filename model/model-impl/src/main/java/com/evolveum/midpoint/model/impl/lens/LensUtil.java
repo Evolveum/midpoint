@@ -122,7 +122,7 @@ public class LensUtil {
             		new Object[]{activity, phase, context.dump(showTriples)});
         }
     }
-	
+
 	public static <F extends ObjectType> ResourceType getResource(LensContext<F> context,
 			String resourceOid, ProvisioningService provisioningService, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
@@ -607,7 +607,7 @@ public class LensUtil {
 				return;
 			}
 		}
-		LOGGER.trace("Loading full account {} from provisioning", accCtx);
+		LOGGER.trace("Loading full resource object {} from provisioning", accCtx);
 		
 		try{
 			GetOperationOptions getOptions = GetOperationOptions.createDoNotDiscovery();
@@ -622,7 +622,7 @@ public class LensUtil {
 			accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
 		
 		} catch (ObjectNotFoundException ex){
-			if (accCtx.isDelete() || context.getFocusContext().isDelete()){
+			if (accCtx.isDelete()){
 				//this is OK, shadow was deleted, but we will continue in processing with old shadow..and set it as full so prevent from other full loading
 				accCtx.setFullShadow(true);
 			} else 
@@ -633,7 +633,7 @@ public class LensUtil {
 
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Loaded full account:\n{}", accCtx.debugDump());
+			LOGGER.trace("Loaded full resource object:\n{}", accCtx.debugDump());
 		}
 	}
 
