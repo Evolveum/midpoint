@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -414,7 +415,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	
 	private void checkConsistence(ObjectDelta<O> delta, boolean requireOid, String contextDesc) {
 		try {
-			delta.checkConsistence(requireOid, true, true);
+			delta.checkConsistence(requireOid, true, true, ConsistencyCheckScope.THOROUGH);
 		} catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException(e.getMessage()+"; in "+contextDesc, e);
 		} catch (IllegalStateException e) {
@@ -432,7 +433,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	protected void checkConsistence(PrismObject<O> object, String elementDesc, String contextDesc) {
 		String desc = elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc);
     	try {
-    		object.checkConsistence(true);
+    		object.checkConsistence(true, ConsistencyCheckScope.THOROUGH);
     	} catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException(e.getMessage()+"; in "+desc, e);
 		} catch (IllegalStateException e) {

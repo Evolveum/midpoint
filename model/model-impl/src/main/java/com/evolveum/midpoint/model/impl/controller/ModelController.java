@@ -35,6 +35,7 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
@@ -1622,7 +1623,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 					tolerateRaw = true;
 				}
 			}
-			object.checkConsistence(true, !tolerateRaw);
+			object.checkConsistence(true, !tolerateRaw, ConsistencyCheckScope.THOROUGH);
 		} catch (RuntimeException e) {
 			result.recordFatalError(e);
 			throw e;

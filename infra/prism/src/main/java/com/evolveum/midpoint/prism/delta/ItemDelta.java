@@ -23,21 +23,7 @@ import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PathVisitable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -49,9 +35,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.apache.commons.lang.Validate;
 
 /**
  * @author Radovan Semancik
@@ -782,37 +765,45 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
     	}
     }
 
-	public static void checkConsistence(Collection<? extends ItemDelta> deltas) {
-		checkConsistence(deltas, false, false);
+    public static void checkConsistence(Collection<? extends ItemDelta> deltas) {
+        checkConsistence(deltas, ConsistencyCheckScope.THOROUGH);
+    }
+
+    public static void checkConsistence(Collection<? extends ItemDelta> deltas, ConsistencyCheckScope scope) {
+		checkConsistence(deltas, false, false, scope);
 	}
 	
-	public static void checkConsistence(Collection<? extends ItemDelta> deltas, boolean requireDefinition, boolean prohibitRaw) {
+	public static void checkConsistence(Collection<? extends ItemDelta> deltas, boolean requireDefinition, boolean prohibitRaw, ConsistencyCheckScope scope) {
 		for (ItemDelta<?> delta : deltas) {
-			delta.checkConsistence(requireDefinition, prohibitRaw);
+			delta.checkConsistence(requireDefinition, prohibitRaw, scope);
 		}
-	}
-	
-	public void checkConsistence() {
-		checkConsistence(false, false);
 	}
 
-	public void checkConsistence(boolean requireDefinition, boolean prohibitRaw) {
-		if (parentPath == null) {
+    public void checkConsistence() {
+        checkConsistence(ConsistencyCheckScope.THOROUGH);
+    }
+
+	public void checkConsistence(ConsistencyCheckScope scope) {
+		checkConsistence(false, false, scope);
+	}
+
+	public void checkConsistence(boolean requireDefinition, boolean prohibitRaw, ConsistencyCheckScope scope) {
+		if (scope.isThorough() && parentPath == null) {
 			throw new IllegalStateException("Null parent path in " + this);
 		}
-		if (requireDefinition && definition == null) {
+		if (scope.isThorough() && requireDefinition && definition == null) {
 			throw new IllegalStateException("Null definition in "+this);
 		}
-		if (valuesToReplace != null && (valuesToAdd != null || valuesToDelete != null)) {
+		if (scope.isThorough() && valuesToReplace != null && (valuesToAdd != null || valuesToDelete != null)) {
 			throw new IllegalStateException(
 					"The delta cannot be both 'replace' and 'add/delete' at the same time");
 		}
-		assertSetConsistence(valuesToReplace, "replace", requireDefinition, prohibitRaw);
-		assertSetConsistence(valuesToAdd, "add", requireDefinition, prohibitRaw);
-		assertSetConsistence(valuesToDelete, "delete", requireDefinition, prohibitRaw);
+		assertSetConsistence(valuesToReplace, "replace", requireDefinition, prohibitRaw, scope);
+		assertSetConsistence(valuesToAdd, "add", requireDefinition, prohibitRaw, scope);
+		assertSetConsistence(valuesToDelete, "delete", requireDefinition, prohibitRaw, scope);
 	}
 
-	private void assertSetConsistence(Collection<V> values, String type, boolean requireDefinitions, boolean prohibitRaw) {
+	private void assertSetConsistence(Collection<V> values, String type, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
 		if (values == null) {
 			return;
 		}
@@ -822,13 +813,15 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		// IllegalStateException("The "+type+" values set in "+this+" is not-null but it is empty");
 		// }
 		for (V val : values) {
-			if (val == null) {
-				throw new IllegalStateException("Null value in the " + type + " values set in " + this);
-			}
-			if (val.getParent() != this) {
-				throw new IllegalStateException("Wrong parent for " + val + " in " + type + " values set in " + this + ": " + val.getParent());
-			}
-			val.checkConsistenceInternal(this, requireDefinitions, prohibitRaw);
+            if (scope.isThorough()) {
+                if (val == null) {
+                    throw new IllegalStateException("Null value in the " + type + " values set in " + this);
+                }
+                if (val.getParent() != this) {
+                    throw new IllegalStateException("Wrong parent for " + val + " in " + type + " values set in " + this + ": " + val.getParent());
+                }
+            }
+            val.checkConsistenceInternal(this, requireDefinitions, prohibitRaw, scope);
 		}
 	}
 

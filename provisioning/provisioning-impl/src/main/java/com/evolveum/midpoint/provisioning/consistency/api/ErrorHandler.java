@@ -103,7 +103,7 @@ public abstract class ErrorHandler {
 		return attemptNumber;
 	}
 	
-	protected ResourceOperationDescription createOperationDescription(ShadowType shadowType, ResourceType resource, ObjectDelta delta, Task task, OperationResult result) {
+	protected ResourceOperationDescription createOperationDescription(ShadowType shadowType, Exception ex, ResourceType resource, ObjectDelta delta, Task task, OperationResult result) {
 		ResourceOperationDescription operationDescription = new ResourceOperationDescription();
 		operationDescription.setCurrentShadow(shadowType.asPrismObject());
 		if (resource != null){
@@ -113,7 +113,15 @@ public abstract class ErrorHandler {
 			operationDescription.setSourceChannel(task.getChannel());
 		}
 		operationDescription.setObjectDelta(delta);
-		operationDescription.setResult(result);
+
+        // fill-in the message if necessary
+        OperationResult storedResult = result != null ? result.clone() : new OperationResult("dummy");      // actually, the result shouldn't be null anyway
+        storedResult.computeStatusIfUnknown();
+        if (storedResult.getMessage() == null && ex != null) {
+            storedResult.recordStatus(storedResult.getStatus(), ex.getMessage(), ex);
+        }
+        operationDescription.setResult(storedResult);
+
 		return operationDescription;
 	}
 

@@ -76,7 +76,7 @@ public class SchemaExceptionHandler extends ErrorHandler{
 
 		if (op != FailedOperation.GET) {
 //			Task task = taskManager.createTaskInstance();
-			ResourceOperationDescription operationDescription = createOperationDescription(shadow,
+			ResourceOperationDescription operationDescription = createOperationDescription(shadow, ex,
 					shadow.getResource(), delta, task, parentResult);
 			changeNotificationDispatcher.notifyFailure(operationDescription, task, parentResult);
 		}

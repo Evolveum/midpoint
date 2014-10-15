@@ -751,7 +751,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	}
     	if (syncDelta != null) {
     		try {
-    			syncDelta.checkConsistence(true, true, true);
+    			syncDelta.checkConsistence(true, true, true, ConsistencyCheckScope.THOROUGH);
     		} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" sync delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 			} catch (IllegalStateException e) {

@@ -444,7 +444,7 @@ public class ObjectImporter {
 
             // now we check for raw data - their presence means e.g. that there is a connector property that is unknown in connector schema (applyDefinition does not scream in such a case!)
             try {
-                configurationContainer.checkConsistence(true, true);        // require definitions and prohibit raw
+                configurationContainer.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);        // require definitions and prohibit raw
             } catch (IllegalStateException e) {
                 // TODO do this error checking and reporting in a cleaner and more user-friendly way
                 result.recordFatalError("Configuration error in " + resource + " (probably incorrect connector property, see the following error): " + e.getMessage(), e);

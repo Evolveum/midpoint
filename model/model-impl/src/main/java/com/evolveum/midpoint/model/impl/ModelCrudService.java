@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
 import org.apache.commons.lang.StringUtils;
@@ -452,7 +453,7 @@ public class ModelCrudService {
 			return;
 		}
 
-		ItemDelta.checkConsistence(modifications);
+		ItemDelta.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
 		// TODO: check definitions, but tolerate missing definitions in <attributes>
 
 		OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);

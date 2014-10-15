@@ -35,6 +35,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.query.EqualFilter;
@@ -175,7 +176,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
         
-        userBarbossa.checkConsistence(true, true);
+        userBarbossa.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
                 
         assertSteadyResources();
 	}
@@ -361,7 +362,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
         
-        account.checkConsistence(true, true);
+        account.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
         
         IntegrationTestTools.assertAttribute(account, getAttributeQName(resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME), 
         		"The best pirate captain ever");

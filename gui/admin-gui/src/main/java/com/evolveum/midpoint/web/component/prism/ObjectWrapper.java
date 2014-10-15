@@ -667,7 +667,7 @@ public class ObjectWrapper implements Serializable, Revivable {
         Collections.sort(containers, new ItemWrapperComparator());
         
         if (InternalsConfig.consistencyChecks) {
-        	delta.checkConsistence(true, true, true);
+        	delta.checkConsistence(true, true, true, ConsistencyCheckScope.THOROUGH);
         }
 
 		return delta;

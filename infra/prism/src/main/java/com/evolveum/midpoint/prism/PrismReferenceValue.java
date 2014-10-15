@@ -248,7 +248,11 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 
 	@Override
-	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
+	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
+        if (!scope.isThorough()) {
+            return;
+        }
+
 		ItemPath myPath = getPath();
 
 		if (oid == null && object == null && filter == null) {
