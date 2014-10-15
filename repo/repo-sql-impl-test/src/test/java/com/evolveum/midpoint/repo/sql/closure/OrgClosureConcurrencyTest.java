@@ -61,6 +61,18 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
     private static final int[] NODE_ROUNDS_FOR_LEVELS = { 5, 15, 45, 100  };            // large number of deletes
     public static final int THREADS = 4;
 
+    /*
+     *  H2 seems to have a problem in that one of the worker threads freezes when running the following statement:
+     *
+     *  select distinct rparentorg0_.owner_oid as col_0_0_ from m_reference rparentorg0_
+     *      inner join m_object robject1_ on rparentorg0_.owner_oid=robject1_.oid where rparentorg0_.reference_type=0 and rparentorg0_.targetOid=? and robject1_.objectTypeClass=?
+     *
+     *  (selecting child nodes to be registered into orgGraph)
+     *
+     *  Dunno why. Let's use a timeout of 30 minutes so that the tests would not loop indefinitely.
+     */
+    public static final long TIMEOUT = 1800L*1000L;
+
     // very small scenario
 //    private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 1  };
 //    private static final int[] USER_CHILDREN_IN_LEVEL = null;
@@ -183,9 +195,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             t.start();
         }
 
-        while (!runners.isEmpty()) {
-            Thread.sleep(100);          // primitive way of waiting
-        }
+        waitForRunnersCompletion(runners);
 
         if (!edgesToRemove.isEmpty()) {
             throw new AssertionError("Edges to remove is not empty, see the console or log: " + edgesToRemove);
@@ -230,9 +240,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             t.start();
         }
 
-        while (!runners.isEmpty()) {
-            Thread.sleep(100);          // primitive way of waiting
-        }
+        waitForRunnersCompletion(runners);
 
         if (!edgesToAdd.isEmpty()) {
             throw new AssertionError("Edges to add is not empty, see the console or log: " + edgesToAdd);
@@ -245,6 +253,16 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         checkClosure(orgGraph.vertexSet());
 
         info("Consistency after re-adding OK");
+    }
+
+    private void waitForRunnersCompletion(List<Thread> runners) throws InterruptedException {
+        long start = System.currentTimeMillis();
+        while (!runners.isEmpty()) {
+            Thread.sleep(100);          // primitive way of waiting
+            if (System.currentTimeMillis()-start > TIMEOUT) {
+                throw new AssertionError("Test is running for too long. Probably caused by a locked-up thread. Runners = " + runners);
+            }
+        }
     }
 
     private synchronized <T> T getNext(Set<T> items, boolean random) {
@@ -344,9 +362,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             t.start();
         }
 
-        while (!runners.isEmpty()) {
-            Thread.sleep(100);          // primitive way of waiting
-        }
+        waitForRunnersCompletion(runners);
 
         if (!nodesToRemove.isEmpty()) {
             throw new AssertionError("Nodes to remove is not empty, see the console or log: " + nodesToRemove);
@@ -401,9 +417,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
             t.start();
         }
 
-        while (!runners.isEmpty()) {
-            Thread.sleep(100);          // primitive way of waiting
-        }
+        waitForRunnersCompletion(runners);
 
         if (!nodesToAdd.isEmpty()) {
             throw new AssertionError("Nodes to add is not empty, see the console or log: " + nodesToAdd);

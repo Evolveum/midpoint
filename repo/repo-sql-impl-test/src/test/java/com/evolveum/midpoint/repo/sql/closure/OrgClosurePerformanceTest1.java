@@ -27,13 +27,12 @@ import org.testng.annotations.Test;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgClosurePerformanceTest1 extends AbstractOrgClosureTest {
 
-    // relatively smaller graph (OrgClosure has cca 12K rows)
+    // relatively smaller graph
     private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 2, 3, 4, 5, 0};
-    private static final int[] USER_CHILDREN_IN_LEVEL = { 0, 1, 2, 3, 4, 5};
+    private static final int[] USER_CHILDREN_IN_LEVEL = null;
     private static final int[] PARENTS_IN_LEVEL       = { 0, 1, 2, 3, 3, 3};
     private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 5, 15,15,15,0 };
     private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 5, 15,15,15,0 };
-    private static final int[] USER_ROUNDS_FOR_LEVELS = { 0, 10,10,20,20,20};
 
     private OrgClosureTestConfiguration configuration;
 
