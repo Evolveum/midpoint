@@ -26,6 +26,20 @@
     <inducement>
     	<construction>
     		<resourceRef oid="14400000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+    		<attribute>
+					<ref>ri:description</ref>
+					<outbound>
+						<source>
+							<path>extension/trafo:uid</path>
+							<name>extensionUid</name>
+						</source>
+<!-- 						<expression> -->
+<!-- 							<script> -->
+<!-- 								<code>extensionUid</code> -->
+<!-- 							</script> -->
+<!-- 						</expression> -->
+					</outbound>
+				</attribute>
     	</construction>
     </inducement>
 </role>

@@ -1,0 +1,37 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="23d90f70-1924-419e-9beb-78a8bde6d261"
+      version="7">
+   <name>Stats</name>
+   <inducement id="1">
+      <construction>
+         <resourceRef oid="10000000-0000-0000-0000-0000000001ad" type="ResourceType"><!-- Active Directory OpenDJ simulation--></resourceRef>
+         <association>
+            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:groups</ref>
+            <tolerant>true</tolerant>
+            <outbound>
+               <expression>
+                  <associationTargetSearch>
+                     <filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                        <q:equal>
+                           <q:path>attributes/icsf:name</q:path>
+                           <q:value>CN=StatsUsers,OU=groups,DC=example,DC=com</q:value>
+                        </q:equal>
+                     </filter>
+                     <searchOnResource>true</searchOnResource>
+                  </associationTargetSearch>
+               </expression>
+            </outbound>
+         </association>
+      </construction>
+   </inducement>
+   <inducement id="2">
+      <construction>
+         <resourceRef oid="10000000-0000-0000-0000-0000000004ax" type="ResourceType"><!-- Resource Dummy Unix --></resourceRef>
+      </construction>
+   </inducement>
+   <inducement id="3">
+      <construction>
+         <resourceRef oid="10000000-0000-0000-0000-0000000005sa" type="ResourceType"><!-- Resource Dummy Stats --></resourceRef>
+      </construction>
+   </inducement>
+</role>

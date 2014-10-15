@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -458,8 +459,8 @@ public class DummyResource implements DebugDumpable {
 		
 		//this is "resource-generated" attribute (used to simulate resource which generate by default attributes which we need to sync)
 		if (generateDefaultValues){
-			int internalId = allObjects.size();
-			newObject.addAttributeValue(DummyAccount.ATTR_INTERNAL_ID, internalId++);
+//			int internalId = allObjects.size();
+			newObject.addAttributeValue(DummyAccount.ATTR_INTERNAL_ID, new Random().nextInt());
 		}
 		
 		

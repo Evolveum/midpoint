@@ -1,0 +1,4 @@
+dn: cn=StatsUsers,ou=groups,dc=example,dc=com
+cn: StatsUsers
+objectclass: top
+objectclass: groupOfUniqueNames

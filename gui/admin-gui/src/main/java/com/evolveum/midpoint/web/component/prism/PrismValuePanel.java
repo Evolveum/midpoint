@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xjc.AnyArrayList;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -33,9 +35,9 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.RoleApprovalFormType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
 import com.sun.org.apache.xerces.internal.dom.TextImpl;
+
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -57,6 +59,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -436,22 +439,51 @@ public class PrismValuePanel extends Panel {
             PrismObject<ShadowType> shadowPrism = (PrismObject<ShadowType>)property.getParent().getParent();
             ShadowType shadow = shadowPrism.asObjectable();
 
-            if(shadow.getAttributes() != null){
-                ShadowAttributesType attributes = shadow.getAttributes();
-                AnyArrayList attrs = (AnyArrayList)attributes.getAny();
-
-                for(Object o: attrs){
-                    ElementNSImpl element = (ElementNSImpl)o;
-                    sb.append(element.getLocalName() + ": ");
-                    sb.append(((TextImpl)element.getFirstChild()).getData() + "<br>");
-                }
+            Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadowPrism);
+            if (attributes == null || attributes.isEmpty()){
+            	return sb.toString();
             }
+            
+            for (ResourceAttribute<?> attr : attributes){
+            	for (Object realValue : attr.getRealValues()){
+            		sb.append(getAttributeName(attr));
+                	sb.append(":");
+            		sb.append(realValue);
+            		sb.append("<br>");
+            	}
+            }
+//            if(shadow.getAttributes() != null){
+//                ShadowAttributesType attributes = shadow.getAttributes();
+//                AnyArrayList attrs = (AnyArrayList)attributes.getAny();
+//
+//                for(Object o: attrs){
+//                    ElementNSImpl element = (ElementNSImpl)o;
+//                    sb.append(element.getLocalName() + ": ");
+//                    sb.append(((TextImpl)element.getFirstChild()).getData() + "<br>");
+//                }
+//            }
         }
 
         return sb.toString();
     }
 
-    private void addValue(AjaxRequestTarget target) {
+    private String getAttributeName(ResourceAttribute<?> attr) {
+		if (attr.getDisplayName() != null){
+			return attr.getDisplayName();
+		}
+		
+		if (attr.getNativeAttributeName() != null){
+			return attr.getNativeAttributeName();
+		}
+		
+		if (attr.getElementName() != null){
+			return attr.getElementName().getLocalPart();
+		}
+		
+		return null; //TODO: is this ok?? or better is exception or some default name??
+	}
+
+	private void addValue(AjaxRequestTarget target) {
         ValueWrapper wrapper = model.getObject();
         PropertyWrapper propertyWrapper = wrapper.getProperty();
         propertyWrapper.addValue();

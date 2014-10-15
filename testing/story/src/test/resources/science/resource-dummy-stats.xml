@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="10000000-0000-0000-0000-0000000005sa"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Dummy Stats</name>
+	<connectorRef type="c:ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>stats</icfi:instanceId>
+			<icfi:caseIgnoreId>true</icfi:caseIgnoreId>
+			<icfi:uidMode>uuid</icfi:uidMode>
+		</icfc:configurationProperties>
+		
+		<icfc:resultsHandlerConfiguration>
+ 			<icfc:enableFilteredResultsHandler>true</icfc:enableFilteredResultsHandler>  
+ 			<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter> 
+		</icfc:resultsHandlerConfiguration>
+
+	</connectorConfiguration>
+
+ <schemaHandling>
+      <objectType>
+         <intent>default</intent>
+         <displayName>Default Account</displayName>
+         <default>true</default>
+         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</objectClass>
+         <attribute>
+            <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">icfs:name</ref>
+            <displayName>Username</displayName>
+            <limitations>
+               <minOccurs>0</minOccurs>
+            </limitations>
+            <outbound>
+               <strength>weak</strength>
+               <source>
+                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">name</c:path>
+               </source>
+            </outbound>
+            <inbound>
+               <target>
+                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">name</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <attribute>
+            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:Desc</ref>
+            <outbound>
+               <strength>weak</strength>
+               <expression>
+                  <value>Created by midPoint</value>
+               </expression>
+            </outbound>
+         </attribute>
+         <dependency>
+            <resourceRef oid="10000000-0000-0000-0000-0000000004ax"/>
+            <strictness>relaxed</strictness>
+            <order>20</order>
+         </dependency>
+         
+      </objectType>
+   </schemaHandling>
+   <capabilities>
+      <cachingMetadata>
+         <retrievalTimestamp>2014-09-25T16:48:44.116+02:00</retrievalTimestamp>
+         <serialNumber>2f775cd4fc853ed-e27414e68419f226</serialNumber>
+      </cachingMetadata>
+      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+         <cap:testConnection/>
+         <cap:create/>
+         <cap:read/>
+         <cap:update/>
+         <cap:delete/>
+         <cap:script>
+            <cap:host>
+               <cap:type>connector</cap:type>
+            </cap:host>
+         </cap:script>
+      </native>
+   </capabilities>
+   <synchronization>
+      <objectSynchronization>
+         <enabled>true</enabled>
+         <correlation xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+            <q:description>
+	                    Correlation expression is a search query.
+	                    Following search queury will look for users that have "name"
+	                    equal to the "uid" attribute of the account. Simply speaking,
+	                    it will look for match in usernames in the IDM and the resource.
+	                    The correlation rule always looks for users, so it will not match
+	                    any other object type.
+			</q:description>
+            <q:equal>
+               <q:path>name</q:path>
+               <expression>
+                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">$shadow/attributes/icfs:name</c:path>
+               </expression>
+            </q:equal>
+         </correlation>
+         <reaction>
+            <situation>linked</situation>
+            <synchronize>true</synchronize>
+         </reaction>
+         <reaction>
+            <situation>unlinked</situation>
+            <synchronize>true</synchronize>
+            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+         </reaction>
+      </objectSynchronization>
+   </synchronization>
+    </resource>

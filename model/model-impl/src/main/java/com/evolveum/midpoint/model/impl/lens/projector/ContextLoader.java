@@ -896,6 +896,7 @@ public class ContextLoader {
 					projContext.setExists(true);
 					GetOperationOptions rootOptions = projContext.isDoReconciliation() ? 
 							GetOperationOptions.createDoNotDiscovery() : GetOperationOptions.createNoFetch();
+					rootOptions.setAllowNotFound(true);
 					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
 					try{
 						PrismObject<ShadowType> objectOld = provisioningService.getObject(
