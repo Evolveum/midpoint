@@ -734,4 +734,22 @@ public class OpenDJController extends AbstractResourceController {
 		return sb.toString();
 	}
 
+    public Collection<String> getGroupUniqueMembers(String groupDn) throws DirectoryException {
+        SearchResultEntry groupEntry = fetchEntry(groupDn);
+        if (groupEntry == null) {
+            throw new IllegalArgumentException(groupDn + " was not found");
+        }
+        return getAttributeValues(groupEntry, "uniqueMember");
+    }
+
+    /*
+        dn: <group>
+        changetype: modify
+        delete: uniqueMember
+        uniqueMember: <member>
+     */
+    public ChangeRecordEntry removeGroupUniqueMember(String groupDn, String memberDn) throws IOException, LDIFException {
+        String ldif = "dn: " + groupDn + "\nchangetype: modify\ndelete: uniqueMember\nuniqueMember: " + memberDn;
+        return executeLdifChange(ldif);
+    }
 }

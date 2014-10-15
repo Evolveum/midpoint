@@ -1256,31 +1256,35 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 
 	@Override
-	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
-		ItemPath myPath = getPath();
-		if (prohibitRaw && isRaw()) {
-			throw new IllegalStateException("Raw elements in container value "+this+" ("+myPath+" in "+rootItem+")");
-		}
-		if (items == null && !isRaw()) {
-			// This is normal empty container, isn't it?
-//			throw new IllegalStateException("Neither items nor raw elements specified in container value "+this+" ("+myPath+" in "+rootItem+")");
-		}
-		if (items != null && isRaw()) {
-			throw new IllegalStateException("Both items and raw elements specified in container value "+this+" ("+myPath+" in "+rootItem+")");
-		}
+	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
+        ItemPath myPath = getPath();
+        if (scope.isThorough()) {
+            if (prohibitRaw && isRaw()) {
+                throw new IllegalStateException("Raw elements in container value "+this+" ("+myPath+" in "+rootItem+")");
+            }
+            if (items == null && !isRaw()) {
+                // This is normal empty container, isn't it?
+//			    throw new IllegalStateException("Neither items nor raw elements specified in container value "+this+" ("+myPath+" in "+rootItem+")");
+            }
+            if (items != null && isRaw()) {
+                throw new IllegalStateException("Both items and raw elements specified in container value "+this+" ("+myPath+" in "+rootItem+")");
+            }
+        }
 		if (items != null) {
 			for (Item<?> item: items) {
-				if (item == null) {
-					throw new IllegalStateException("Null item in container value "+this+" ("+myPath+" in "+rootItem+")");
-				}
-				if (item.getParent() == null) {
-					throw new IllegalStateException("No parent for item "+item+" in container value "+this+" ("+myPath+" in "+rootItem+")");
-				}
-				if (item.getParent() != this) {
-					throw new IllegalStateException("Wrong parent for item "+item+" in container value "+this+" ("+myPath+" in "+rootItem+"), " +
-							"bad parent: "+ item.getParent());
-				}
-				item.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw);
+                if (scope.isThorough()) {
+                    if (item == null) {
+                        throw new IllegalStateException("Null item in container value "+this+" ("+myPath+" in "+rootItem+")");
+                    }
+                    if (item.getParent() == null) {
+                        throw new IllegalStateException("No parent for item "+item+" in container value "+this+" ("+myPath+" in "+rootItem+")");
+                    }
+                    if (item.getParent() != this) {
+                        throw new IllegalStateException("Wrong parent for item "+item+" in container value "+this+" ("+myPath+" in "+rootItem+"), " +
+                                "bad parent: "+ item.getParent());
+                    }
+                }
+				item.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw, scope);
 			}
 		}
 	}

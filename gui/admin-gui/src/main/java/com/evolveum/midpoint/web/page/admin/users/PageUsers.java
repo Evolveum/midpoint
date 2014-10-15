@@ -581,7 +581,7 @@ public class PageUsers extends PageAdminUsers {
                 ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, user.getOid(), getPrismContext());
                 Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
                 getModelService().executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, opResult);
-                opResult.recordSuccess();
+                opResult.computeStatusIfUnknown();
             } catch (Exception ex) {
                 opResult.recomputeStatus();
                 opResult.recordFatalError("Couldn't reconcile user " + userShortString + ".", ex);

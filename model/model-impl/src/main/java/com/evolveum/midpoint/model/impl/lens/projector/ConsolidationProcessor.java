@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -162,7 +163,7 @@ public class ConsolidationProcessor {
     		LensProjectionContext projCtx, boolean addUnchangedValues, OperationResult result) 
             		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             		ConfigurationException, SecurityViolationException, PolicyViolationException {
-
+    	
     	// "Squeeze" all the relevant mappings into a data structure that we can process conveniently. We want to have all the
     	// (meta)data about relevant for a specific attribute in one data structure, not spread over several account constructions.
     	MappingExtractor<PrismPropertyValue<?>, F> attributeExtractor = new MappingExtractor<PrismPropertyValue<?>, F>() {
@@ -183,6 +184,13 @@ public class ConsolidationProcessor {
     	Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> squeezedAssociations = 
     			sqeeze(projCtx, associationExtractor); 
     	projCtx.setSqueezedAssociations(squeezedAssociations);
+
+        // Association values in squeezed associations do not contain association name attribute.
+        // It is hacked-in later for use in this class, but not for other uses (e.g. in ReconciliationProcessor).
+        // So, we do it here - once and for all.
+        if (!squeezedAssociations.isEmpty()) {
+            fillInAssociationNames(squeezedAssociations);
+        }
     	
         ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
         ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.MODIFY, prismContext);
@@ -243,6 +251,23 @@ public class ConsolidationProcessor {
         }
         
         return objectDelta;
+    }
+
+    private void fillInAssociationNames(Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> squeezedAssociations) throws SchemaException {
+        PrismPropertyDefinition<QName> nameDefinition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(ShadowAssociationType.class)
+                .findPropertyDefinition(ShadowAssociationType.F_NAME);
+        for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> entry : squeezedAssociations.entrySet()) {
+            DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>> deltaSetTriple = entry.getValue();
+            for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>> ivwo : deltaSetTriple.getAllValues()) {
+                PrismContainerValue<ShadowAssociationType> value = ivwo.getItemValue();
+                if (value != null && value.findProperty(ShadowAssociationType.F_NAME) == null) {  // just for safety
+                    PrismProperty<QName> nameProperty = value.createProperty(nameDefinition);
+                    nameProperty.setRealValue(entry.getKey());
+                }
+            }
+        }
+        LOGGER.trace("Names for squeezed associations filled-in.");
     }
 
     private <T,V extends PrismValue> PropertyDelta<T> consolidateAttribute(RefinedObjectClassDefinition rOcDef,

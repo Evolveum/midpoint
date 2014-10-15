@@ -163,7 +163,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		}
 	}
 	
-	public abstract void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw);
+    public abstract void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope);
 		
 	/**
 	 * Returns true if this and other value represent the same value.

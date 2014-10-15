@@ -27,6 +27,7 @@ import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -482,7 +483,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected void assertObject(PrismObject<? extends ObjectType> object) {
-		object.checkConsistence(true, true);
+		object.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
 		assertTrue("Incomplete definition in "+object, object.hasCompleteDefinition());
 		assertFalse("No OID", StringUtils.isEmpty(object.getOid()));
 		assertNotNull("Null name in "+object, object.asObjectable().getName());

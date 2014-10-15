@@ -158,7 +158,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			
 //			task = taskManager.createTaskInstance();
 			delta = ObjectDelta.createAddDelta(shadow.asPrismObject());
-			operationDescription = createOperationDescription(shadow, resource, delta, task, operationResult);
+			operationDescription = createOperationDescription(shadow, ex, resource, delta, task, operationResult);
 			changeNotificationDispatcher.notifyInProgress(operationDescription, task, parentResult);
 			return shadow;
 		case MODIFY:
@@ -196,7 +196,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 									+ ", because resource is unreachable. Modifications will be applied when the resource goes online");
 //			task = taskManager.createTaskInstance();
 //			
-			operationDescription = createOperationDescription(shadow, shadow.getResource(), delta, task, operationResult);
+			operationDescription = createOperationDescription(shadow, ex, shadow.getResource(), delta, task, operationResult);
 			changeNotificationDispatcher.notifyInProgress(operationDescription, task, parentResult);
 			return shadow;
 		case DELETE:
@@ -217,7 +217,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 //			task = taskManager.createTaskInstance();
 //			task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 			delta = ObjectDelta.createDeleteDelta(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(), prismContext);
-			operationDescription = createOperationDescription(shadow, shadow.getResource(), delta, task, operationResult);
+			operationDescription = createOperationDescription(shadow, ex, shadow.getResource(), delta, task, operationResult);
 			changeNotificationDispatcher.notifyInProgress(operationDescription, task, parentResult);
 			return shadow;
 		case GET:

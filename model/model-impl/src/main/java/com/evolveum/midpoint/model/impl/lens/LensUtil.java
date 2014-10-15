@@ -122,7 +122,7 @@ public class LensUtil {
             		new Object[]{activity, phase, context.dump(showTriples)});
         }
     }
-	
+
 	public static <F extends ObjectType> ResourceType getResource(LensContext<F> context,
 			String resourceOid, ProvisioningService provisioningService, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
@@ -607,11 +607,14 @@ public class LensUtil {
 				return;
 			}
 		}
-		LOGGER.trace("Loading full account {} from provisioning", accCtx);
+		LOGGER.trace("Loading full resource object {} from provisioning", accCtx);
 		
 		try{
+			GetOperationOptions getOptions = GetOperationOptions.createDoNotDiscovery();
+			getOptions.setAllowNotFound(true);
+			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
 			PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-					accCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
+					accCtx.getOid(), options,
 					null, result);
 			// TODO: use setLoadedObject() instead?
 			accCtx.setObjectCurrent(objectOld);
@@ -630,7 +633,7 @@ public class LensUtil {
 
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Loaded full account:\n{}", accCtx.debugDump());
+			LOGGER.trace("Loaded full resource object:\n{}", accCtx.debugDump());
 		}
 	}
 

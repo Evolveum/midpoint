@@ -571,5 +571,26 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             close(session);
         }
     }
+
+    @Test
+    public void test110AddUserWithDuplicateAssignmentIds() throws Exception {
+        OperationResult result = new OperationResult("test110AddUserWithDuplicateAssignmentIds");
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "user-same-ids.xml"));
+
+        //create duplicate ids in assignment values
+        PrismContainer container = user.findContainer(UserType.F_ASSIGNMENT);
+        List<PrismContainerValue> values = (List<PrismContainerValue>) container.getValues();
+        values.get(0).setId(999L);      // setting it manually because object with duplicate IDs could not be parsed at all
+        values.get(1).setId(999L);
+        try {
+            String OID = repositoryService.addObject(user, null, result);
+            throw new AssertionError("Two container values with the same ID were accepted even they shouldn't be");
+        } catch (RuntimeException e) {
+            // this was expected
+        } catch (Exception e) {
+            throw new AssertionError("Two container values with the same ID resulted in unexpected exception", e);
+        }
+    }
+
 }
 

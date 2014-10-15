@@ -15,27 +15,7 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PartiallyResolvedItem;
-import com.evolveum.midpoint.prism.PathVisitable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -1165,41 +1145,53 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     }
         
     public void checkConsistence() {
-    	checkConsistence(true, false, false);
+    	checkConsistence(ConsistencyCheckScope.THOROUGH);
+    }
+
+    public void checkConsistence(ConsistencyCheckScope scope) {
+        checkConsistence(true, false, false, scope);
+    }
+
+    public void checkConsistence(boolean requireOid, boolean requireDefinition, boolean prohibitRaw) {
+        checkConsistence(requireOid, requireDefinition, prohibitRaw, ConsistencyCheckScope.THOROUGH);
     }
     
-    public void checkConsistence(boolean requireOid, boolean requireDefinition, boolean prohibitRaw) {
-    	if (prismContext == null) {
+    public void checkConsistence(boolean requireOid, boolean requireDefinition, boolean prohibitRaw, ConsistencyCheckScope scope) {
+    	if (scope.isThorough() && prismContext == null) {
     		throw new IllegalStateException("No prism context in "+this);
     	}
     	if (getChangeType() == ChangeType.ADD) {
-			if (getModifications() != null && !getModifications().isEmpty()) {
+			if (scope.isThorough() && getModifications() != null && !getModifications().isEmpty()) {
 				throw new IllegalStateException("Modifications present in ADD delta "+this);
 			}
 			if (getObjectToAdd() != null) {
-				getObjectToAdd().checkConsistence(requireDefinition, prohibitRaw);
+				getObjectToAdd().checkConsistence(requireDefinition, prohibitRaw, scope);
 			} else {
 				throw new IllegalStateException("User primary delta is ADD, but there is not object to add in "+this);
 			}
 		} else if (getChangeType() == ChangeType.MODIFY) {
-			checkIdentifierConsistence(requireOid);
-			if (getObjectToAdd() != null) {
-				throw new IllegalStateException("Object to add present in MODIFY delta "+this);
-			}
-			if (getModifications() == null) {
-				throw new IllegalStateException("Null modification in MODIFY delta "+this);
-			}
-			ItemDelta.checkConsistence(getModifications(), requireDefinition, prohibitRaw);
+            if (scope.isThorough()) {
+                checkIdentifierConsistence(requireOid);
+                if (getObjectToAdd() != null) {
+                    throw new IllegalStateException("Object to add present in MODIFY delta "+this);
+                }
+                if (getModifications() == null) {
+                    throw new IllegalStateException("Null modification in MODIFY delta "+this);
+                }
+            }
+			ItemDelta.checkConsistence(getModifications(), requireDefinition, prohibitRaw, scope);
 		} else if (getChangeType() == ChangeType.DELETE) {
-	    	if (requireOid && getOid() == null) {
-	    		throw new IllegalStateException("Null oid in delta "+this);
-	    	}
-			if (getObjectToAdd() != null) {
-				throw new IllegalStateException("Object to add present in DELETE delta "+this);
-			}
-			if (getModifications() != null && !getModifications().isEmpty()) {
-				throw new IllegalStateException("Modifications present in DELETE delta "+this);
-			}			
+            if (scope.isThorough()) {
+                if (requireOid && getOid() == null) {
+                    throw new IllegalStateException("Null oid in delta "+this);
+                }
+                if (getObjectToAdd() != null) {
+                    throw new IllegalStateException("Object to add present in DELETE delta "+this);
+                }
+                if (getModifications() != null && !getModifications().isEmpty()) {
+                    throw new IllegalStateException("Modifications present in DELETE delta "+this);
+                }
+            }
 		} else {
 			throw new IllegalStateException("Unknown change type "+getChangeType()+" in delta "+this);
 		}
