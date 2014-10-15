@@ -133,7 +133,8 @@ public class OrgFilter extends ObjectFilter {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("ORG: \n");
         if (isRoot()) {
-            sb.append(getOrgRef().debugDump(indent + 1)).append("ROOT\n");
+            DebugUtil.indentDebugDump(sb, indent + 1);
+            sb.append("ROOT\n");
         }
         if (getOrgRef() != null) {
             sb.append(getOrgRef().debugDump(indent + 1));
@@ -142,7 +143,6 @@ public class OrgFilter extends ObjectFilter {
             DebugUtil.indentDebugDump(sb, indent + 1);
             sb.append("null\n");
         }
-
         if (getScope() != null) {
             DebugUtil.indentDebugDump(sb, indent + 1);
             sb.append(getScope());
