@@ -25,6 +25,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestTrafo"/>
             <class name="com.evolveum.midpoint.testing.story.TestOrgSync"/>
             <class name="com.evolveum.midpoint.testing.story.TestVillage"/>
+            <class name="com.evolveum.midpoint.testing.story.TestScience"/>
         </classes>
     </test>
 </suite>

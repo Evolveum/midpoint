@@ -292,19 +292,6 @@ public class DependencyProcessor {
 		}
 		return ao > bo;
 	}
-	
-	private boolean isLowerOrder(ResourceObjectTypeDependencyType a,
-			ResourceObjectTypeDependencyType b) {
-		Integer ao = a.getOrder();
-		Integer bo = b.getOrder();
-		if (ao == null) {
-			ao = 0;
-		}
-		if (bo == null) {
-			bo = 0;
-		}
-		return ao < bo;
-	}
 
 	/**
 	 * Find context that has the closest order to the dependency.
