@@ -135,7 +135,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			LOGGER.trace("Shadow deleted from the repository. Inconsistencies are now removed.");
 			result.computeStatus();
 			delta = ObjectDelta.createDeleteDelta(shadow.getClass(), shadow.getOid(), prismContext);
-			ResourceOperationDescription operationDescritpion = createOperationDescription(shadow, shadow.getResource(), delta, task, result);
+			ResourceOperationDescription operationDescritpion = createOperationDescription(shadow, ex, shadow.getResource(), delta, task, result);
 			changeNotificationDispatcher.notifySuccess(operationDescritpion, task, result);
 			return shadow;
 		case MODIFY:

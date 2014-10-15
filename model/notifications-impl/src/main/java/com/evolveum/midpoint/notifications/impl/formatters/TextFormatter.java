@@ -176,17 +176,22 @@ public class TextFormatter {
         if (shadowType.getAttributes() != null) {
             formatContainerValue(retval, "", shadowType.getAttributes().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
         }
-        if (shadowType.getAssociation() != null) {
-            for (ShadowAssociationType shadowAssociationType : shadowType.getAssociation()) {
-                formatContainerValue(retval, "", shadowAssociationType.asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
-            }
-        }
         if (shadowType.getCredentials() != null) {
             formatContainerValue(retval, "", shadowType.getCredentials().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
         }
         if (shadowType.getActivation() != null) {
             formatContainerValue(retval, "", shadowType.getActivation().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
         }
+        if (shadowType.getAssociation() != null) {
+            boolean first = true;
+            for (ShadowAssociationType shadowAssociationType : shadowType.getAssociation()) {
+                if (first) retval.append("\n"); else first = false;
+                retval.append("Association:\n");
+                formatContainerValue(retval, "  ", shadowAssociationType.asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
+                retval.append("\n");
+            }
+        }
+
         return retval.toString();
     }
 
