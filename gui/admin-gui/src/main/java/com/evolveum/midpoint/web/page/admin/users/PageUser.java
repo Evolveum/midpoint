@@ -1360,6 +1360,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                     }
 
                     if (!delta.isEmpty()) {
+                        delta.revive(getPrismContext());
                         progressReporter.executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result, target);
                     } else {
                         result.recordSuccess();
@@ -1383,11 +1384,13 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                     Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 
                     if (!delta.isEmpty()) {
+                        delta.revive(getPrismContext());
                         deltas.add(delta);
                     }
                     for (ObjectDelta accDelta : accountDeltas) {
                         if (!accDelta.isEmpty()) {
-                            accDelta.setPrismContext(getPrismContext());
+                            //accDelta.setPrismContext(getPrismContext());
+                            accDelta.revive(getPrismContext());
                             deltas.add(accDelta);
                         }
                     }
@@ -1504,7 +1507,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             // }
             try {
                 ObjectDelta<UserType> forceDeleteDelta = getChange(userWrapper);
-                forceDeleteDelta.setPrismContext(getPrismContext());
+                forceDeleteDelta.revive(getPrismContext());
 
                 if (forceDeleteDelta != null && !forceDeleteDelta.isEmpty()) {
                     getModelService().executeChanges(WebMiscUtil.createDeltaCollection(forceDeleteDelta), options,
