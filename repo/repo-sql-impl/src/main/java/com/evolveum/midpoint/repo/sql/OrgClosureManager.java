@@ -613,93 +613,25 @@ public class OrgClosureManager {
     //  - all edges are "real", i.e. their tails and heads (as objects) do exist in repository
     //  - none of the edges does exist yet
     private void addIndependentEdges(List<Edge> edges, Context context, Session session) {
-
         long start = System.currentTimeMillis();
         LOGGER.trace("===================== ADD INDEPENDENT EDGES: {} ================", edges);
 
         if (!edges.isEmpty()) {
-            checkForCycles(edges, session);
-            String deltaTempTableName = computeDeltaTable(edges, context, session);
-            try {
-                int count;
-
-                if (isMySQL() || isOracle() || isSQLServer()) {
-
-                    long startUpsert = System.currentTimeMillis();
-                    String upsertQueryText;
-
-                    if (isMySQL()) {
-                        upsertQueryText = "insert into " + CLOSURE_TABLE_NAME + " (descendant_oid, ancestor_oid, val) " +
-                                "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta " +
-                                "on duplicate key update " + CLOSURE_TABLE_NAME + ".val = " + CLOSURE_TABLE_NAME + ".val + values(val)";
-                    } else if (isSQLServer()) {
-                        // TODO try if this one (without prefixes in INSERT clause does not work for Oracle)
-                        upsertQueryText = "merge into " + CLOSURE_TABLE_NAME + " closure " +
-                                "using (select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ") delta " +
-                                "on (closure.descendant_oid = delta.descendant_oid and closure.ancestor_oid = delta.ancestor_oid) " +
-                                "when matched then update set closure.val = closure.val + delta.val " +
-                                "when not matched then insert (descendant_oid, ancestor_oid, val) " +
-                                "values (delta.descendant_oid, delta.ancestor_oid, delta.val);";
-                    } else { // Oracle
-                        upsertQueryText = "merge into " + CLOSURE_TABLE_NAME + " closure " +
-                            "using (select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ") delta " +
-                            "on (closure.descendant_oid = delta.descendant_oid and closure.ancestor_oid = delta.ancestor_oid) " +
-                            "when matched then update set closure.val = closure.val + delta.val " +
-                            "when not matched then insert (closure.descendant_oid, closure.ancestor_oid, closure.val) " +
-                                "values (delta.descendant_oid, delta.ancestor_oid, delta.val)";
-                    }
-                    Query upsertQuery = session.createSQLQuery(upsertQueryText);
-                    int countUpsert = upsertQuery.executeUpdate();
-                    if (LOGGER.isTraceEnabled())
-                        LOGGER.trace("Added/updated {} records to closure table ({} ms)", countUpsert, System.currentTimeMillis() - startUpsert);
-                    if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
-
-                } else {    // separate update and insert
-
-                    long startUpdate = System.currentTimeMillis();
-                    String updateInClosureQueryText;
-                    if (isH2()) {
-                        updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
-                                "set val = val + (select val from " + deltaTempTableName + " td " +
-                                "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
-                                "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
-                    } else if (isPostgreSQL()) {
-                        updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
-                                "set val = val + (select val from " + deltaTempTableName + " td " +
-                                "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
-                                "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
-                    } else {
-                        throw new UnsupportedOperationException("implement other databases");
-                    }
-                    Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
-                    int countUpdate = updateInClosureQuery.executeUpdate();
-                    if (LOGGER.isTraceEnabled())
-                        LOGGER.trace("Updated {} records to closure table ({} ms)", countUpdate, System.currentTimeMillis() - startUpdate);
-
-                    if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
-
-                    long startAdd = System.currentTimeMillis();
-                    String addQuery =
-                            "insert into " + CLOSURE_TABLE_NAME + " (descendant_oid, ancestor_oid, val) " +
-                                    "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta ";
-                    if (countUpdate > 0) {
-                        if (isH2()) {
-                            addQuery += " where (descendant_oid, ancestor_oid) not in (select (descendant_oid, ancestor_oid) from " + CLOSURE_TABLE_NAME + ")";
-                        } else if (isPostgreSQL()) {
-                            addQuery += " where not exists (select 1 from " + CLOSURE_TABLE_NAME + " cl where cl.descendant_oid=delta.descendant_oid and cl.ancestor_oid=delta.ancestor_oid)";
-                        } else {
-                            throw new UnsupportedOperationException("implement other databases");
-                        }
-                    }
-                    Query addToClosureQuery = session.createSQLQuery(addQuery);
-                    count = addToClosureQuery.executeUpdate();
-                    if (LOGGER.isTraceEnabled())
-                        LOGGER.trace("Added {} records to closure table ({} ms)", count, System.currentTimeMillis() - startAdd);
-
-                    if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+            // for unknown reason, queries in the form of
+            // select t1.descendant_oid as descendant_oid, t2.ancestor_oid as ancestor_oid, sum(t1.val*t2.val) as val
+            // from m_org_closure t1, m_org_closure t2 where
+            //        (t1.ancestor_oid = 'o21101..-....-....-....-............' and t2.descendant_oid = 'o1101...-....-....-....-............')
+            //     or (t1.ancestor_oid = 'o21101..-....-....-....-............' and t2.descendant_oid = 'o2130...-....-....-....-............')
+            // group by t1.descendant_oid, t2.ancestor_oid
+            //
+            // take radically longer in H2 than queries without the disjunction (i.e. having only one "ancestor=X and descendant=Y" item)
+            // So, in H2, we insert the edges one-by-one
+            if (isH2()) {
+                for (Edge edge : edges) {
+                    addIndependentEdgesInternal(Arrays.asList(edge), context, session);
                 }
-            } finally {
-                dropDeltaTableIfNecessary(session, deltaTempTableName);
+            } else {
+                addIndependentEdgesInternal(edges, context, session);
             }
         }
 
@@ -707,6 +639,94 @@ public class OrgClosureManager {
         session.clear();
 
         LOGGER.trace("--------------------- DONE ADD EDGES: {} ({} ms) ----------------", edges, System.currentTimeMillis() - start);
+    }
+
+    private void addIndependentEdgesInternal(List<Edge> edges, Context context, Session session) {
+
+        checkForCycles(edges, session);
+        String deltaTempTableName = computeDeltaTable(edges, context, session);
+        try {
+            int count;
+
+            if (isMySQL() || isOracle() || isSQLServer()) {
+
+                long startUpsert = System.currentTimeMillis();
+                String upsertQueryText;
+
+                if (isMySQL()) {
+                    upsertQueryText = "insert into " + CLOSURE_TABLE_NAME + " (descendant_oid, ancestor_oid, val) " +
+                            "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta " +
+                            "on duplicate key update " + CLOSURE_TABLE_NAME + ".val = " + CLOSURE_TABLE_NAME + ".val + values(val)";
+                } else if (isSQLServer()) {
+                    // TODO try if this one (without prefixes in INSERT clause does not work for Oracle)
+                    upsertQueryText = "merge into " + CLOSURE_TABLE_NAME + " closure " +
+                            "using (select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ") delta " +
+                            "on (closure.descendant_oid = delta.descendant_oid and closure.ancestor_oid = delta.ancestor_oid) " +
+                            "when matched then update set closure.val = closure.val + delta.val " +
+                            "when not matched then insert (descendant_oid, ancestor_oid, val) " +
+                            "values (delta.descendant_oid, delta.ancestor_oid, delta.val);";
+                } else { // Oracle
+                    upsertQueryText = "merge into " + CLOSURE_TABLE_NAME + " closure " +
+                            "using (select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ") delta " +
+                            "on (closure.descendant_oid = delta.descendant_oid and closure.ancestor_oid = delta.ancestor_oid) " +
+                            "when matched then update set closure.val = closure.val + delta.val " +
+                            "when not matched then insert (closure.descendant_oid, closure.ancestor_oid, closure.val) " +
+                            "values (delta.descendant_oid, delta.ancestor_oid, delta.val)";
+                }
+                Query upsertQuery = session.createSQLQuery(upsertQueryText);
+                int countUpsert = upsertQuery.executeUpdate();
+                if (LOGGER.isTraceEnabled())
+                    LOGGER.trace("Added/updated {} records to closure table ({} ms)", countUpsert, System.currentTimeMillis() - startUpsert);
+                if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+
+            } else {    // separate update and insert
+
+                long startUpdate = System.currentTimeMillis();
+                String updateInClosureQueryText;
+                if (isH2()) {
+                    updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
+                            "set val = val + (select val from " + deltaTempTableName + " td " +
+                            "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
+                            "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
+                } else if (isPostgreSQL()) {
+                    updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
+                            "set val = val + (select val from " + deltaTempTableName + " td " +
+                            "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
+                            "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
+                } else {
+                    throw new UnsupportedOperationException("implement other databases");
+                }
+                Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
+                int countUpdate = updateInClosureQuery.executeUpdate();
+                if (LOGGER.isTraceEnabled())
+                    LOGGER.trace("Updated {} records to closure table ({} ms)", countUpdate, System.currentTimeMillis() - startUpdate);
+
+                if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+
+                long startAdd = System.currentTimeMillis();
+                String addQuery =
+                        "insert into " + CLOSURE_TABLE_NAME + " (descendant_oid, ancestor_oid, val) " +
+                                "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta ";
+                if (countUpdate > 0) {
+                    if (isH2()) {
+                        addQuery += " where (descendant_oid, ancestor_oid) not in (select (descendant_oid, ancestor_oid) from " + CLOSURE_TABLE_NAME + ")";
+                    } else if (isPostgreSQL()) {
+                        addQuery += " where not exists (select 1 from " + CLOSURE_TABLE_NAME + " cl where cl.descendant_oid=delta.descendant_oid and cl.ancestor_oid=delta.ancestor_oid)";
+                    } else {
+                        throw new UnsupportedOperationException("implement other databases");
+                    }
+                }
+                Query addToClosureQuery = session.createSQLQuery(addQuery);
+                count = addToClosureQuery.executeUpdate();
+                if (LOGGER.isTraceEnabled())
+                    LOGGER.trace("Added {} records to closure table ({} ms)", count, System.currentTimeMillis() - startAdd);
+
+                if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+            }
+        } finally {
+            dropDeltaTableIfNecessary(session, deltaTempTableName);
+        }
+
     }
 
     // Checks that there is no edge=(D,A) such that A->D exists in the transitive closure
@@ -772,7 +792,7 @@ public class OrgClosureManager {
 
     private void dropDeltaTableIfNecessary(Session session, String deltaTempTableName) {
         // postgresql deletes the table automatically on commit
-        // TODO what in case of H2?
+        // in H2 we delete the table after whole closure operation (after commit)
         if (isMySQL()) {
             Query dropQuery = session.createSQLQuery("drop temporary table " + deltaTempTableName);
             dropQuery.executeUpdate();
@@ -836,85 +856,96 @@ public class OrgClosureManager {
     }
 
     private void removeIndependentEdges(List<Edge> edges, Context context, Session session) {
-
         long start = System.currentTimeMillis();
         LOGGER.trace("===================== REMOVE INDEPENDENT EDGES: {} ================", edges);
 
         if (!edges.isEmpty()) {
-            String deltaTempTableName = computeDeltaTable(edges, context, session);
-            try {
-                int count;
-
-                String deleteFromClosureQueryText, updateInClosureQueryText;
-                if (isH2()) {
-                    // delete with join is not supported by H2
-                    // and the "postgresql/oracle version" does not work for some reasons
-                    deleteFromClosureQueryText = "delete from " + CLOSURE_TABLE_NAME + " cl " +
-                            "where exists (" +
-                            "select 0 from " + deltaTempTableName + " delta " +
-                            "where cl.descendant_oid = delta.descendant_oid and cl.ancestor_oid = delta.ancestor_oid and cl.val = delta.val)";
-                    updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
-                            "set val = val - (select val from " + deltaTempTableName + " td " +
-                            "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
-                            "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
-                } else if (isPostgreSQL() || isOracle()) {
-                    deleteFromClosureQueryText = "delete from " + CLOSURE_TABLE_NAME + " " +
-                            "where (descendant_oid, ancestor_oid, val) in " +
-                            "(select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ")";
-                    updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
-                            "set val = val - (select val from " + deltaTempTableName + " td " +
-                            "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
-                            "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
-                } else if (isSQLServer()) {
-                    // delete is the same as for MySQL
-                    deleteFromClosureQueryText = "delete " + CLOSURE_TABLE_NAME + " from " + CLOSURE_TABLE_NAME + " " +
-                            "inner join " + deltaTempTableName + " td on " +
-                            "td.descendant_oid = "+ CLOSURE_TABLE_NAME +".descendant_oid and td.ancestor_oid = "+ CLOSURE_TABLE_NAME +".ancestor_oid and "+
-                                "td.val = "+ CLOSURE_TABLE_NAME +".val";
-                    // update is also done via inner join (as in MySQL), but using slightly different syntax
-                    updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
-                            "set "+ CLOSURE_TABLE_NAME +".val = "+ CLOSURE_TABLE_NAME +".val - td.val " +
-                            "from "+ CLOSURE_TABLE_NAME + " " +
-                            "inner join " + deltaTempTableName + " td " +
-                            "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and " +
-                                    "td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid";
-                } else if (isMySQL()) {
-                    // http://stackoverflow.com/questions/652770/delete-with-join-in-mysql
-                    // TODO consider this for other databases as well
-                    deleteFromClosureQueryText = "delete " + CLOSURE_TABLE_NAME + " from " + CLOSURE_TABLE_NAME + " " +
-                            "inner join " + deltaTempTableName + " td on " +
-                            "td.descendant_oid = "+ CLOSURE_TABLE_NAME +".descendant_oid and td.ancestor_oid = "+ CLOSURE_TABLE_NAME +".ancestor_oid and "+
-                            "td.val = "+ CLOSURE_TABLE_NAME +".val";
-                    // it is not possible to use temporary table twice in a query
-                    // TODO consider using this in postgresql as well...
-                    updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME +
-                            " join " + deltaTempTableName + " td " +
-                            "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid " +
-                            "set "+ CLOSURE_TABLE_NAME +".val = "+ CLOSURE_TABLE_NAME +".val - td.val";
-                } else {
-                    throw new UnsupportedOperationException("implement other databases");
+            // for the reason for this decomposition, see addIndependentEdges
+            if (isH2()) {
+                for (Edge edge : edges) {
+                    removeIndependentEdgesInternal(Arrays.asList(edge), context, session);
                 }
-                long startDelete = System.currentTimeMillis();
-                Query deleteFromClosureQuery = session.createSQLQuery(deleteFromClosureQueryText);
-                count = deleteFromClosureQuery.executeUpdate();
-                if (LOGGER.isTraceEnabled())
-                    LOGGER.trace("Deleted {} records from closure table in {} ms", count, System.currentTimeMillis() - startDelete);
-                if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
-
-                long startUpdate = System.currentTimeMillis();
-                Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
-                count = updateInClosureQuery.executeUpdate();
-                if (LOGGER.isTraceEnabled())
-                    LOGGER.trace("Updated {} records in closure table in {} ms", count, System.currentTimeMillis() - startUpdate);
-                if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
-            } finally {
-                dropDeltaTableIfNecessary(session, deltaTempTableName);
+            } else {
+                removeIndependentEdgesInternal(edges, context, session);
             }
         }
         session.flush();
         session.clear();
 
         LOGGER.trace("--------------------- DONE REMOVE EDGES: {} ({} ms) ----------------", edges, System.currentTimeMillis()-start);
+    }
+
+    private void removeIndependentEdgesInternal(List<Edge> edges, Context context, Session session) {
+
+        String deltaTempTableName = computeDeltaTable(edges, context, session);
+        try {
+            int count;
+
+            String deleteFromClosureQueryText, updateInClosureQueryText;
+            if (isH2()) {
+                // delete with join is not supported by H2
+                // and the "postgresql/oracle version" does not work for some reasons
+                deleteFromClosureQueryText = "delete from " + CLOSURE_TABLE_NAME + " cl " +
+                        "where exists (" +
+                        "select 0 from " + deltaTempTableName + " delta " +
+                        "where cl.descendant_oid = delta.descendant_oid and cl.ancestor_oid = delta.ancestor_oid and cl.val = delta.val)";
+                updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
+                        "set val = val - (select val from " + deltaTempTableName + " td " +
+                        "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
+                        "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
+            } else if (isPostgreSQL() || isOracle()) {
+                deleteFromClosureQueryText = "delete from " + CLOSURE_TABLE_NAME + " " +
+                        "where (descendant_oid, ancestor_oid, val) in " +
+                        "(select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ")";
+                updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
+                        "set val = val - (select val from " + deltaTempTableName + " td " +
+                        "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
+                        "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
+            } else if (isSQLServer()) {
+                // delete is the same as for MySQL
+                deleteFromClosureQueryText = "delete " + CLOSURE_TABLE_NAME + " from " + CLOSURE_TABLE_NAME + " " +
+                        "inner join " + deltaTempTableName + " td on " +
+                        "td.descendant_oid = "+ CLOSURE_TABLE_NAME +".descendant_oid and td.ancestor_oid = "+ CLOSURE_TABLE_NAME +".ancestor_oid and "+
+                        "td.val = "+ CLOSURE_TABLE_NAME +".val";
+                // update is also done via inner join (as in MySQL), but using slightly different syntax
+                updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
+                        "set "+ CLOSURE_TABLE_NAME +".val = "+ CLOSURE_TABLE_NAME +".val - td.val " +
+                        "from "+ CLOSURE_TABLE_NAME + " " +
+                        "inner join " + deltaTempTableName + " td " +
+                        "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and " +
+                        "td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid";
+            } else if (isMySQL()) {
+                // http://stackoverflow.com/questions/652770/delete-with-join-in-mysql
+                // TODO consider this for other databases as well
+                deleteFromClosureQueryText = "delete " + CLOSURE_TABLE_NAME + " from " + CLOSURE_TABLE_NAME + " " +
+                        "inner join " + deltaTempTableName + " td on " +
+                        "td.descendant_oid = "+ CLOSURE_TABLE_NAME +".descendant_oid and td.ancestor_oid = "+ CLOSURE_TABLE_NAME +".ancestor_oid and "+
+                        "td.val = "+ CLOSURE_TABLE_NAME +".val";
+                // it is not possible to use temporary table twice in a query
+                // TODO consider using this in postgresql as well...
+                updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME +
+                        " join " + deltaTempTableName + " td " +
+                        "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid " +
+                        "set "+ CLOSURE_TABLE_NAME +".val = "+ CLOSURE_TABLE_NAME +".val - td.val";
+            } else {
+                throw new UnsupportedOperationException("implement other databases");
+            }
+            long startDelete = System.currentTimeMillis();
+            Query deleteFromClosureQuery = session.createSQLQuery(deleteFromClosureQueryText);
+            count = deleteFromClosureQuery.executeUpdate();
+            if (LOGGER.isTraceEnabled())
+                LOGGER.trace("Deleted {} records from closure table in {} ms", count, System.currentTimeMillis() - startDelete);
+            if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+
+            long startUpdate = System.currentTimeMillis();
+            Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
+            count = updateInClosureQuery.executeUpdate();
+            if (LOGGER.isTraceEnabled())
+                LOGGER.trace("Updated {} records in closure table in {} ms", count, System.currentTimeMillis() - startUpdate);
+            if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+        } finally {
+            dropDeltaTableIfNecessary(session, deltaTempTableName);
+        }
     }
     //endregion
 
