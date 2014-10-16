@@ -491,4 +491,20 @@ public interface RepositoryService {
 	 * without changing the result structure. It must not throw an exception in this case.
 	 */
     public void repositorySelfTest(OperationResult parentResult);
+
+    /**
+     * Checks a closure for consistency, repairing any problems found.
+     * This methods should never throw a (checked) exception. All the results
+     * should be in the returned result structure (including fatal errors).
+     *
+     * The current implementation expects closure to be of reasonable size - so
+     * it could be fetched into main memory as well as recomputed online
+     * (perhaps up to ~250K entries). In future, this method will be reimplemented.
+     *
+     * BEWARE, this method locks out the M_ORG_CLOSURE table, so org-related operations
+     * would wait until it completes.
+     *
+     * TODO this method is SQL service specific; it should be generalized/fixed somehow.
+     */
+    void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult);
 }

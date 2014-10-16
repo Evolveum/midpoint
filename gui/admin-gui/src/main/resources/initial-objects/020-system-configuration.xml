@@ -30,6 +30,14 @@
             <level>OFF</level>
             <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
         </classLogger>
+        <!-- Disabled because we treat locking-related exceptions in the repository.
+             Otherwise the log is filled-in with (innocent but ugly-looking) messages like
+             "ERROR (o.h.engine.jdbc.batch.internal.BatchingBatch): HHH000315: Exception executing batch [Deadlock detected.
+             The current transaction was rolled back." -->
+        <classLogger>
+            <level>OFF</level>
+            <package>org.hibernate.engine.jdbc.batch.internal.BatchingBatch</package>
+        </classLogger>
         <classLogger>
             <!-- disabled because of MID-1612, jasper library needs to be fixed -->
             <level>OFF</level>

@@ -66,6 +66,12 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING = "iterativeSearchByPaging";
     public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE = "iterativeSearchByPagingBatchSize";
 
+    //closure
+    public static final String PROPERTY_IGNORE_ORG_CLOSURE = "ignoreOrgClosure";
+    public static final String PROPERTY_ORG_CLOSURE_STARTUP_ACTION = "orgClosureStartupAction";
+    public static final String PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK = "skipOrgClosureStructureCheck";
+    public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
+
     //embedded configuration
     private boolean embedded;
     private boolean asServer;
@@ -95,6 +101,11 @@ public class SqlRepositoryConfiguration {
 
     private boolean iterativeSearchByPaging;
     private int iterativeSearchByPagingBatchSize;
+
+    private boolean ignoreOrgClosure;
+    private OrgClosureManager.StartupAction orgClosureStartupAction;
+    private boolean skipOrgClosureStructureCheck;
+    private boolean stopOnOrgClosureStartupFailure;
 
     public SqlRepositoryConfiguration(Configuration configuration) {
         setAsServer(configuration.getBoolean(PROPERTY_AS_SERVER, false));
@@ -128,6 +139,11 @@ public class SqlRepositoryConfiguration {
 
         setIterativeSearchByPaging(configuration.getBoolean(PROPERTY_ITERATIVE_SEARCH_BY_PAGING, iterativeSearchByPaging));
         setIterativeSearchByPagingBatchSize(configuration.getInt(PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE, iterativeSearchByPagingBatchSize));
+
+        setIgnoreOrgClosure(configuration.getBoolean(PROPERTY_IGNORE_ORG_CLOSURE, false));
+        setOrgClosureStartupAction(configuration.getString(PROPERTY_ORG_CLOSURE_STARTUP_ACTION, OrgClosureManager.StartupAction.REBUILD_IF_NEEDED.toString()));
+        setSkipOrgClosureStructureCheck(configuration.getBoolean(PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK, false));
+        setStopOnOrgClosureStartupFailure(configuration.getBoolean(PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE, true));
     }
 
     private void computeDefaultConcurrencyParameters() {
@@ -472,6 +488,22 @@ public class SqlRepositoryConfiguration {
         this.useZip = useZip;
     }
 
+    public boolean isIgnoreOrgClosure() {
+        return ignoreOrgClosure;
+    }
+
+    public void setIgnoreOrgClosure(boolean value) {
+        this.ignoreOrgClosure = value;
+    }
+
+    public OrgClosureManager.StartupAction getOrgClosureStartupAction() {
+        return orgClosureStartupAction;
+    }
+
+    public void setOrgClosureStartupAction(String orgClosureStartupAction) {
+        this.orgClosureStartupAction = OrgClosureManager.StartupAction.fromValue(orgClosureStartupAction);
+    }
+
     public boolean isUsingH2() {
         if (hibernateDialect == null) {
             return true;
@@ -503,5 +535,21 @@ public class SqlRepositoryConfiguration {
         }
 
         return false;
+    }
+
+    public void setStopOnOrgClosureStartupFailure(boolean stopOnOrgClosureStartupFailure) {
+        this.stopOnOrgClosureStartupFailure = stopOnOrgClosureStartupFailure;
+    }
+
+    public boolean isStopOnOrgClosureStartupFailure() {
+        return stopOnOrgClosureStartupFailure;
+    }
+
+    public boolean isSkipOrgClosureStructureCheck() {
+        return skipOrgClosureStructureCheck;
+    }
+
+    public void setSkipOrgClosureStructureCheck(boolean skipOrgClosureStructureCheck) {
+        this.skipOrgClosureStructureCheck = skipOrgClosureStructureCheck;
     }
 }

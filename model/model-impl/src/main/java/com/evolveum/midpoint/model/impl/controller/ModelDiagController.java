@@ -114,7 +114,15 @@ public class ModelDiagController implements ModelDiagnosticService {
 		return testResult;
 	}
 
-	@Override
+    @Override
+    public OperationResult repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary) {
+        OperationResult testResult = new OperationResult(REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY);
+        repositoryService.testOrgClosureConsistency(repairIfNecessary, testResult);
+        testResult.computeStatus();
+        return testResult;
+    }
+
+    @Override
 	public OperationResult provisioningSelfTest(Task task) {
 		OperationResult testResult = new OperationResult(PROVISIONING_SELF_TEST);
 		// Give provisioning chance to run its own self-test
