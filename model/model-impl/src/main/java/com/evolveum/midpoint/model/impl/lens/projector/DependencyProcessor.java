@@ -185,7 +185,12 @@ public class DependencyProcessor {
 			// Wave for this context was set during the run of this method (it was not set when we
 			// started, we checked at the beginning). Therefore this context must have been visited again.
 			// therefore there is a circular dependency. Therefore we need to create another context to split it.
-			resultAccountContext = createAnotherContext(context, projectionContext, determinedOrder);
+			ResourceShadowDiscriminator origDiscr = projectionContext.getResourceShadowDiscriminator();
+			ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.isThombstone());
+			discr.setOrder(determinedOrder);
+			if (!projectionContext.compareResourceShadowDiscriminator(discr, true)){
+				resultAccountContext = createAnotherContext(context, projectionContext, discr);
+			}
 		}
 //		LOGGER.trace("Wave for {}: {}", resultAccountContext.getResourceAccountType(), wave);
 		resultAccountContext.setWave(determinedWave);
@@ -326,15 +331,23 @@ public class DependencyProcessor {
 		return targetProjectionContext.compareResourceShadowDiscriminator(refDiscr, false);
 	}
 	
-	private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, 
-			LensProjectionContext origProjectionContext, int order) throws PolicyViolationException {
-		ResourceShadowDiscriminator origDiscr = origProjectionContext.getResourceShadowDiscriminator();
-		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.isThombstone());
-		discr.setOrder(order);
+	private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, LensProjectionContext origProjectionContext,
+			ResourceShadowDiscriminator discr) throws PolicyViolationException {
+		
+		
 		LensProjectionContext otherCtx = context.createProjectionContext(discr);
 		otherCtx.setResource(origProjectionContext.getResource());
 		// Force recon for the new context. This is a primitive way how to avoid phantom changes.
 		otherCtx.setDoReconciliation(true);
+		return otherCtx;
+	}
+	
+	private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, LensProjectionContext origProjectionContext,
+			int determinedOrder) throws PolicyViolationException {
+		ResourceShadowDiscriminator origDiscr = origProjectionContext.getResourceShadowDiscriminator();
+		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.isThombstone());
+		discr.setOrder(determinedOrder);
+		LensProjectionContext otherCtx = createAnotherContext(context, origProjectionContext, discr);
 		return otherCtx;
 	}
 	
