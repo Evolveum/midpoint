@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
+import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
@@ -40,6 +41,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -61,7 +63,8 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
     private static final Trace LOGGER = TraceManager.getTrace(ResourceAttributeEditor.class);
 
     private static final String ID_LABEL = "label";
-    private static final String ID_REFERENCE_FIELD = "referenceField";
+    private static final String ID_SCHEMA_REF_PANEL = "schemaRefPanel";
+    private static final String ID_NON_SCHEMA_REF_PANEL = "nonSchemaReferencePanel";
     private static final String ID_REFERENCE_SELECT = "referenceSelect";
     private static final String ID_REFERENCE_ALLOW = "allowRef";
     private static final String ID_DISPLAY_NAME = "displayName";
@@ -119,18 +122,37 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         });
         add(label);
 
-        TextField refField = new TextField<>(ID_REFERENCE_FIELD, new PropertyModel<String>(getModel(), "ref.localPart"));
-        refField.setOutputMarkupId(true);
-        refField.setOutputMarkupPlaceholderTag(true);
-        refField.add(new VisibleEnableBehaviour(){
+        QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_NON_SCHEMA_REF_PANEL, new PropertyModel<QName>(getModel(), "ref"));
+
+        nonSchemaRefPanel.setOutputMarkupId(true);
+        nonSchemaRefPanel.setOutputMarkupPlaceholderTag(true);
+        nonSchemaRefPanel.add(new VisibleEnableBehaviour(){
 
             @Override
             public boolean isVisible() {
                 return nonSchemaRefValueAllowed;
             }
+        });
+        add(nonSchemaRefPanel);
+
+        WebMarkupContainer schemaRefPanel = new WebMarkupContainer(ID_SCHEMA_REF_PANEL);
+        schemaRefPanel.setOutputMarkupId(true);
+        schemaRefPanel.setOutputMarkupPlaceholderTag(true);
+        schemaRefPanel.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return !nonSchemaRefValueAllowed;
+            }
 
         });
-        add(refField);
+        add(schemaRefPanel);
+
+        Label refTooltip = new Label(ID_T_REF);
+        refTooltip.add(new InfoTooltipBehavior());
+        refTooltip.setOutputMarkupId(true);
+        refTooltip.setOutputMarkupId(true);
+        schemaRefPanel.add(refTooltip);
 
         DropDownChoice refSelect = new DropDownChoice<>(ID_REFERENCE_SELECT, new PropertyModel<QName>(getModel(), "ref"),
                 new AbstractReadOnlyModel<List<QName>>() {
@@ -151,24 +173,18 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
                 return Integer.toString(index);
             }
         });
+        refSelect.setNullValid(false);
+
         refSelect.setOutputMarkupId(true);
         refSelect.setOutputMarkupPlaceholderTag(true);
-        refSelect.add(new VisibleEnableBehaviour(){
-
-            @Override
-            public boolean isVisible() {
-                return !nonSchemaRefValueAllowed;
-            }
-
-        });
-        add(refSelect);
+        schemaRefPanel.add(refSelect);
 
         CheckBox allowNonSchema = new CheckBox(ID_REFERENCE_ALLOW, new PropertyModel<Boolean>(this, "nonSchemaRefValueAllowed"));
         allowNonSchema.add(new AjaxFormComponentUpdatingBehavior("onchange") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                target.add(get(ID_REFERENCE_FIELD), get(ID_REFERENCE_SELECT));
+                target.add(get(ID_NON_SCHEMA_REF_PANEL), get(ID_SCHEMA_REF_PANEL));
             }
         });
         add(allowNonSchema);
@@ -288,10 +304,6 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         };
         inbound.setOutputMarkupId(true);
         add(inbound);
-
-        Label refTooltip = new Label(ID_T_REF);
-        refTooltip.add(new InfoTooltipBehavior());
-        add(refTooltip);
 
         Label allowTooltip = new Label(ID_T_ALLOW);
         allowTooltip.add(new InfoTooltipBehavior());
