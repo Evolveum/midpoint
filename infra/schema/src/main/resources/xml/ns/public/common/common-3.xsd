@@ -3528,7 +3528,7 @@
             <xsd:element name="ref" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the attribute (XSD element) or assciation that this
+                        Name of the attribute (XSD element) or association that this
                         definition describes. It must point to the
                         attribute in the resource schema that belongs to an
                         object class that is being described here.

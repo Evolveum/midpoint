@@ -115,16 +115,17 @@
             <div id="other" class="panel-collapse collapse">
                 <div class="panel-body">
 
-                    <dl class="dl-horizontal">
+                    <dl wicket:id="schemaRefPanel" class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.reference" /></label>
                             <i wicket:id="referenceTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.reference"/>
                         </dt>
                         <dd>
                             <select wicket:id="referenceSelect" class="form-control input-sm"></select>
-                            <input wicket:id="referenceField" type="text" class="form-control input-sm" value=""/>
                         </dd>
                     </dl>
+
+                    <div wicket:id="nonSchemaReferencePanel" />
 
                     <dl class="dl-horizontal">
                         <dt>
