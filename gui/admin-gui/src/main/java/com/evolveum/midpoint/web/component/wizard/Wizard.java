@@ -43,7 +43,17 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
                 return loadSteps();
             }
         };
-        WizardSteps steps = new WizardSteps(ID_STEPS, stepsModel);
+        WizardSteps steps = new WizardSteps(ID_STEPS, stepsModel){
+
+            @Override
+            public IWizardStep getActiveStep() {
+                if(Wizard.this.getModel() != null && Wizard.this.getModel().getObject() != null){
+                    return Wizard.this.getModel().getObject().getActiveStep();
+                }
+
+                return null;
+            }
+        };
         form.add(steps);
 
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
@@ -111,6 +121,7 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
         WizardSteps steps = (WizardSteps) get(createComponentPath(ID_FORM, ID_STEPS));
         IModel<List<WizardStepDto>> stepsModel = steps.getModel();
         stepsModel.getObject().get(index).setActive(true);
+        steps.updateModal();
     }
 
     @Override
@@ -129,4 +140,6 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
             }
         }
     }
+
+
 }
