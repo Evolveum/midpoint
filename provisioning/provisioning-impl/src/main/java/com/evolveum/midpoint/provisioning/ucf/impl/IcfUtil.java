@@ -25,6 +25,7 @@ import java.net.ConnectException;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.naming.NameAlreadyBoundException;
@@ -384,7 +385,11 @@ class IcfUtil {
 			Attribute attribute = ((AttributeFilter)filter).getAttribute();
 			sb.append(attribute.getName());
 			sb.append(": ");
-			sb.append(attribute.getValue());
+			List<Object> value = attribute.getValue();
+			sb.append(value);
+//			if (value != null && !value.isEmpty()) {
+//				sb.append(" :").append(attribute.getValue().iterator().next().getClass().getSimpleName());
+//			}
 			sb.append(")");
 		}
 		if (filter instanceof CompositeFilter) {

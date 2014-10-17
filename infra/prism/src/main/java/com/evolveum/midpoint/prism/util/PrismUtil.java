@@ -17,12 +17,14 @@ package com.evolveum.midpoint.prism.util;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -160,5 +162,14 @@ public class PrismUtil {
 		}
 	}
 
+	public static <T,X> PrismPropertyValue<X> convertPropertyValue(PrismPropertyValue<T> srcVal, PrismPropertyDefinition<T> srcDef, PrismPropertyDefinition<X> targetDef) {
+		if (targetDef.getTypeName().equals(srcDef.getTypeName())) {
+			return (PrismPropertyValue<X>) srcVal;
+		} else {
+			Class<X> expectedJavaType = XsdTypeMapper.toJavaType(targetDef.getTypeName());
+			X convertedRealValue = JavaTypeConverter.convert(expectedJavaType, srcVal.getValue());
+			return new PrismPropertyValue<X>(convertedRealValue);
+		}
+	}
 
 }

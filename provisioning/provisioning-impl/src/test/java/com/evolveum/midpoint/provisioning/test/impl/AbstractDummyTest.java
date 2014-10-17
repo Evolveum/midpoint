@@ -132,7 +132,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected static final String GROUP_PIRATES_OID = "c0c010c0-d34d-b44f-f11d-3332eeee0000";
 	protected static final String GROUP_PIRATES_NAME = "pirates";
 	
-	protected static final String PRIVILEGE_PILLAGE_FILENAME = TEST_DIR + "privilege-pillage.xml";
+	protected static final File PRIVILEGE_PILLAGE_FILE = new File (TEST_DIR, "privilege-pillage.xml");
 	protected static final String PRIVILEGE_PILLAGE_OID = "c0c010c0-d34d-b44f-f11d-3332eeff0000";
 	protected static final String PRIVILEGE_PILLAGE_NAME = "pillage";
 
