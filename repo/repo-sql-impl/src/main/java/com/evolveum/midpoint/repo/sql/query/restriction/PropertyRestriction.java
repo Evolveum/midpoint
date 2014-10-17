@@ -71,52 +71,12 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
             sb.append(alias);
             sb.append('.');
         }
-        sb.append(createPropertyNamePrefix(fullPath));
+        sb.append(createPropertyOrReferenceNamePrefix(fullPath));
         sb.append(propertyName);
 
         Object value = getValueFromFilter(filter, def);
 
         return createCriterion(sb.toString(), value, filter);
-    }
-
-    private String createPropertyNamePrefix(ItemPath path) throws QueryException {
-        StringBuilder sb = new StringBuilder();
-
-        EntityDefinition definition = findProperEntityDefinition(path);
-
-        List<ItemPathSegment> segments = path.getSegments();
-        for (ItemPathSegment segment : segments) {
-            QName qname = ItemPath.getName(segment);
-            if (ObjectType.F_METADATA.equals(qname)) {
-                continue;
-            }
-
-            // get entity query definition
-            Definition childDef = definition.findDefinition(qname, Definition.class);
-
-            //todo change this if instanceof and use DefinitionHandler [lazyman]
-            if (childDef instanceof EntityDefinition) {
-                EntityDefinition entityDef = (EntityDefinition) childDef;
-                if (entityDef.isEmbedded()) {
-                    // we don't create new sub criteria, just add dot with jpaName
-                    sb.append(entityDef.getJpaName());
-                    sb.append('.');
-                }
-                definition = entityDef;
-            } else if (childDef instanceof CollectionDefinition) {
-                Definition def = ((CollectionDefinition) childDef).getDefinition();
-                if (def instanceof EntityDefinition) {
-                    definition = (EntityDefinition) def;
-                }
-            } else if (childDef instanceof PropertyDefinition || childDef instanceof ReferenceDefinition) {
-                break;
-            } else {
-                throw new QueryException("Not implemented yet. Create property name prefix for segment '"
-                        + segment + "', path '" + path + "'.");
-            }
-        }
-
-        return sb.toString();
     }
 
     @Override
