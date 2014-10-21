@@ -2449,6 +2449,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
                 } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER
                         .equals(subelementName)) {
                     resultsHandlerConfiguration.setEnableFilteredResultsHandler(parseBoolean(prismProperty));
+                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_FILTERED_RESULTS_HANDLER_IN_VALIDATION_MODE
+                        .equals(subelementName)) {
+                    resultsHandlerConfiguration.setFilteredResultsHandlerInValidationMode(parseBoolean(prismProperty));
                 } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER
                         .equals(subelementName)) {
                     resultsHandlerConfiguration.setEnableCaseInsensitiveFilter(parseBoolean(prismProperty));
