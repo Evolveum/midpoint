@@ -821,7 +821,7 @@ public abstract class ShadowCache {
 						applyAttributesDefinition(repoShadow, resourceType);
 						
 						forceRenameIfNeeded(resourceShadow.asObjectable(), repoShadow.asObjectable(), objectClassDef, parentResult);
-						
+
 						resultShadow = completeShadow(connector, resourceShadow, repoShadow,
 								resourceType, objectClassDef, parentResult);
 
@@ -870,8 +870,11 @@ public abstract class ShadowCache {
 			}
 
 		};
+
+        boolean fetchAssociations = SelectorOptions.hasToLoadPath(ShadowType.F_ASSOCIATION, options);
 		
-		resouceObjectConverter.searchResourceObjects(connector, resourceType, objectClassDef, resultHandler, attributeQuery, parentResult);
+		resouceObjectConverter.searchResourceObjects(connector, resourceType, objectClassDef, resultHandler,
+                attributeQuery, fetchAssociations, parentResult);
 		
 	}
 	
@@ -1512,7 +1515,7 @@ public abstract class ShadowCache {
 		
 		PrismObject<ShadowType> resultShadow = repoShadow.clone();
 		boolean resultIsResourceShadowClone = false;
-		if (resultShadow == null) {
+		if (resultShadow == null) {         // todo how could this happen (see above)? [mederly]
 			resultShadow = resourceShadow.clone();
 			resultIsResourceShadowClone = true;
 		}

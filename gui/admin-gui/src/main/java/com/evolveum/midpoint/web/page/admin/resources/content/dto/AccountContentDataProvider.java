@@ -21,6 +21,9 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -102,7 +105,9 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
                 LOGGER.trace("Query filter:\n{}", query);
             }
 
-            List<PrismObject<ShadowType>> list = getModel().searchObjects(ShadowType.class, query, null, task, result);
+            Collection<SelectorOptions<GetOperationOptions>> options =
+                    SelectorOptions.createCollection(ShadowType.F_ASSOCIATION, GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
+            List<PrismObject<ShadowType>> list = getModel().searchObjects(ShadowType.class, query, options, task, result);
 
             AccountContentDto dto;
             for (PrismObject<ShadowType> object : list) {

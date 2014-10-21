@@ -134,7 +134,7 @@ class EntitlementConverter {
 		if (associationName == null) {
 			throw new SchemaException("No name in entitlement association "+assocDefType+" in "+resourceType);
 		}
-		
+
 		QName assocAttrName = assocDefType.getResourceObjectAssociationType().getAssociationAttribute();
 		if (assocAttrName == null) {
 			throw new SchemaException("No association attribute defined in entitlement association '"+associationName+"' in "+resourceType);
@@ -148,25 +148,26 @@ class EntitlementConverter {
 			// Nothing to do. No attribute to base the association on.
 			return;
 		}
-		
+
 		QName valueAttrName = assocDefType.getResourceObjectAssociationType().getValueAttribute();
 		if (valueAttrName == null) {
 			throw new SchemaException("No value attribute defined in entitlement association '"+associationName+"' in "+resourceType);
 		}
 		RefinedAttributeDefinition valueAttrDef = entitlementDef.findAttributeDefinition(valueAttrName);
-		ResourceAttribute<T> valueAttribute = valueAttrDef.instantiate();
-		
-		for (PrismPropertyValue<T> assocAttrPVal: assocAttr.getValues()) {
-			valueAttribute.add(assocAttrPVal.clone());
-		}
-		
-		PrismContainerValue<ShadowAssociationType> associationCVal = associationContainer.createNewValue();
-		associationCVal.asContainerable().setName(associationName);
-		ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
-				ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
-		associationCVal.add(identifiersContainer);
-		identifiersContainer.add(valueAttribute);
-	}
+
+        for (PrismPropertyValue<T> assocAttrPVal : assocAttr.getValues()) {
+
+            ResourceAttribute<T> valueAttribute = valueAttrDef.instantiate();
+            valueAttribute.add(assocAttrPVal.clone());
+
+            PrismContainerValue<ShadowAssociationType> associationCVal = associationContainer.createNewValue();
+            associationCVal.asContainerable().setName(associationName);
+            ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
+                    ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
+            associationCVal.add(identifiersContainer);
+            identifiersContainer.add(valueAttribute);
+        }
+    }
 	
 	private <S extends ShadowType,T> void postProcessEntitlementEntitlementToSubject(ConnectorInstance connector, 
 			ResourceType resourceType, final PrismObject<S> resourceObject, 
