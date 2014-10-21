@@ -43,8 +43,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
-
 import com.evolveum.midpoint.prism.query.OrFilter;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -2704,7 +2704,7 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		PrismObject<ShadowType> priv = prismContext.parseObject(new File(PRIVILEGE_PILLAGE_FILENAME));
+		PrismObject<ShadowType> priv = prismContext.parseObject(PRIVILEGE_PILLAGE_FILE);
 		priv.checkConsistence();
 
 		display("Adding priv", priv);
@@ -2733,10 +2733,11 @@ public class TestDummy extends AbstractDummyTest {
 		checkPrivPillage(privProvisioningType, result);
 		pillageIcfUid = getIcfUid(privProvisioningType);
 
-		// Check if the group was created in the dummy resource
+		// Check if the priv was created in the dummy resource
 
 		DummyPrivilege dummyPriv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("No dummy priv "+PRIVILEGE_PILLAGE_NAME, dummyPriv);
+		assertEquals("Wrong privilege power", (Integer)100, dummyPriv.getAttributeValue(DummyResourceContoller.DUMMY_PRIVILEGE_ATTRIBUTE_POWER, Integer.class));
 
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
@@ -2783,7 +2784,8 @@ public class TestDummy extends AbstractDummyTest {
 		PrismAsserts.assertEqualsPolyString("Name not equal.", PRIVILEGE_PILLAGE_NAME, shadow.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.getKind());
 		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
-		assertEquals("Unexpected number of attributes", 2, attributes.size());
+		assertEquals("Unexpected number of attributes", 3, attributes.size());
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_PRIVILEGE_ATTRIBUTE_POWER, 100);
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));

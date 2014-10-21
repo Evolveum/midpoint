@@ -27,5 +27,6 @@
 	<intent>privilege</intent>
 	<attributes>
 		<icfs:name>pillage</icfs:name>
+		<ri:power>100</ri:power>
 	</attributes>
 </account>

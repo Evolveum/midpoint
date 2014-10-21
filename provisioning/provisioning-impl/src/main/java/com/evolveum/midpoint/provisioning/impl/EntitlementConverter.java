@@ -46,6 +46,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -242,16 +243,17 @@ class EntitlementConverter {
 		
 	}
 
-	private <T> ObjectQuery createQuery(RefinedAssociationDefinition assocDefType, RefinedAttributeDefinition assocAttrDef, ResourceAttribute<T> valueAttr) throws SchemaException{
-		MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(assocDefType
-				.getResourceObjectAssociationType().getMatchingRule(), valueAttr.getDefinition()
-				.getTypeName());
-		PrismPropertyValue normalized = valueAttr.getValue();
+	private <TV,TA> ObjectQuery createQuery(RefinedAssociationDefinition assocDefType, RefinedAttributeDefinition assocAttrDef, ResourceAttribute<TV> valueAttr) throws SchemaException{
+		MatchingRule<TA> matchingRule = matchingRuleRegistry.getMatchingRule(assocDefType.getResourceObjectAssociationType().getMatchingRule(),
+				assocAttrDef.getTypeName());
+		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getValue(), valueAttr.getDefinition(), assocAttrDef);
+		PrismPropertyValue<TA> normalized = converted;
 		if (matchingRule != null) {
-			Object normalizedRealValue = matchingRule.normalize(valueAttr.getRealValue());
-			normalized = new PrismPropertyValue(normalizedRealValue);
+			TA normalizedRealValue = matchingRule.normalize(converted.getValue());
+			normalized = new PrismPropertyValue<TA>(normalizedRealValue);
 		}
-		
+		LOGGER.trace("Converted entitlement filter: {} ({}) def={}", 
+				new Object[]{normalized, normalized.getValue().getClass(), assocAttrDef});
 		ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, normalized);
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		return query;

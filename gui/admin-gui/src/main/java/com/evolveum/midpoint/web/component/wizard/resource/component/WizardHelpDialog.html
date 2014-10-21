@@ -13,15 +13,18 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div wicket:id="content" style="padding: 5px">
 
-<!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org">
-<wicket:panel>
-    <div wicket:id="helpModal" />
+        <label wicket:id="helpLabel" style="font-weight: normal"/>
 
-    <div class="wizard">
-        <a wicket:id="link"><span wicket:id="label"/></a>
-        <button wicket:id="help" style="float: right" class="btn btn-sm btn-primary"><span style="font-size: 1.5em" class="glyphicon glyphicon-question-sign"></span></button>
+        <div class="main-button-bar" style="padding-bottom: 0px">
+            <p align="center">
+                <a wicket:id="okButton" class="btn btn-primary btn-sm">
+                    <span><wicket:message key="WizardHelpDialog.button.ok" /></span>
+                </a>
+            </p>
+        </div>
+
     </div>
 </wicket:panel>
-</html>

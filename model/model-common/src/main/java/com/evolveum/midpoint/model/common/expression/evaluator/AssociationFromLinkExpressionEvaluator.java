@@ -64,6 +64,8 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
@@ -81,6 +83,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
  */
 public class AssociationFromLinkExpressionEvaluator 
 						implements ExpressionEvaluator<PrismContainerValue<ShadowAssociationType>> {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(AssociationFromLinkExpressionEvaluator.class);
 
 	private ShadowDiscriminatorExpressionEvaluatorType evaluatorType;
 	private PrismContainerDefinition<ShadowAssociationType> outputDefinition;
@@ -134,7 +138,15 @@ public class AssociationFromLinkExpressionEvaluator
 		String resourceOid = rAssocTargetDef.getResourceType().getOid();
 		Collection<SelectorOptions<GetOperationOptions>> options = null;
 		for (ObjectReferenceType linkRef: thisRole.getLinkRef()) {
-			ShadowType shadowType = objectResolver.resolve(linkRef, ShadowType.class, options, desc, params.getResult());
+			ShadowType shadowType;
+			try {
+				shadowType = objectResolver.resolve(linkRef, ShadowType.class, options, desc, params.getResult());
+			} catch (ObjectNotFoundException e) {
+				// Linked shadow not found. This may happen e.g. if the account is deleted and model haven't got
+				// the chance to react yet. Just ignore such shadow.
+				LOGGER.trace("Ignoring shadow "+linkRef.getOid()+" linked in "+thisRole+" because it no longer exists");
+				continue;
+			}
 			if (ShadowUtil.matches(shadowType, resourceOid, kind, intent)) {
 				PrismContainerValue<ShadowAssociationType> newValue = output.createNewValue();
 				ShadowAssociationType shadowAssociationType = newValue.asContainerable();
