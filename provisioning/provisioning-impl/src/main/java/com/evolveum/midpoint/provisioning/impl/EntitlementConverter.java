@@ -531,7 +531,7 @@ class EntitlementConverter {
 		}
 	}
 	
-	private <T> void collectEntitlementAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
+	private <TV,TA> void collectEntitlementAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
 			PrismContainerValue<ShadowAssociationType> associationCVal, RefinedObjectClassDefinition objectClassDefinition,
 			PrismObject<ShadowType> shadowBefore, PrismObject<ShadowType> shadowAfter, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType)
 					throws SchemaException {
@@ -609,13 +609,13 @@ class EntitlementConverter {
             }
         }
 
-		ResourceAttribute<T> valueAttr = ShadowUtil.getAttribute(shadow, valueAttrName);
+		ResourceAttribute<TV> valueAttr = ShadowUtil.getAttribute(shadow, valueAttrName);
 		if (valueAttr == null) {
 			// TODO: check schema and try to fetch full shadow if necessary
 			throw new SchemaException("No value attribute "+valueAttrName+" in shadow");
 		}
 
-		PropertyDelta<T> attributeDelta = null;
+		PropertyDelta<TA> attributeDelta = null;
 		for(Operation operation: operations) {
 			if (operation instanceof PropertyModificationOperation) {
 				PropertyModificationOperation propOp = (PropertyModificationOperation)operation;
@@ -630,13 +630,15 @@ class EntitlementConverter {
 			operations.add(attributeModification);
 		}
 		
+		PrismProperty<TA> changedAssocAttr = PrismUtil.convertProperty(valueAttr, assocAttrDef);
+		
 		if (modificationType == ModificationType.ADD) {
-			attributeDelta.addValuesToAdd(valueAttr.getClonedValues());
+			attributeDelta.addValuesToAdd(changedAssocAttr.getClonedValues());
 		} else if (modificationType == ModificationType.DELETE) {
-			attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
+			attributeDelta.addValuesToDelete(changedAssocAttr.getClonedValues());
 		} else if (modificationType == ModificationType.REPLACE) {
 			// TODO: check if already exists
-			attributeDelta.setValuesToReplace(valueAttr.getClonedValues());
+			attributeDelta.setValuesToReplace(changedAssocAttr.getClonedValues());
 		}
 	}
 
