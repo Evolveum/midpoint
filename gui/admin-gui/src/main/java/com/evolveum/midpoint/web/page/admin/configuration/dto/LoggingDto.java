@@ -32,7 +32,7 @@ public class LoggingDto implements Serializable {
     public static String F_APPENDERS = "appenders";
 
     public static final String LOGGER_PROFILING = "PROFILING";
-    public static final Map<String, LoggingComponentType> componentMap = new HashMap<String, LoggingComponentType>();
+    public static final Map<String, LoggingComponentType> componentMap = new HashMap<>();
 
     static {
         componentMap.put("com.evolveum.midpoint", LoggingComponentType.ALL);
@@ -51,13 +51,13 @@ public class LoggingDto implements Serializable {
     private LoggingLevelType rootLevel;
     private String rootAppender;
 
-    private List<LoggerConfiguration> loggers = new ArrayList<LoggerConfiguration>();
-    private List<FilterConfiguration> filters = new ArrayList<FilterConfiguration>();
+    private List<LoggerConfiguration> loggers = new ArrayList<>();
+    private List<FilterConfiguration> filters = new ArrayList<>();
 
     private ProfilingLevel profilingLevel;
     private String profilingAppender;
 
-    private List<AppenderConfiguration> appenders = new ArrayList<AppenderConfiguration>();
+    private List<AppenderConfiguration> appenders = new ArrayList<>();
 
     private boolean auditLog = false;
     private boolean auditDetails;
