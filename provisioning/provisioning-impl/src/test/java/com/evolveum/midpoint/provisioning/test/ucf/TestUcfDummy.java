@@ -407,7 +407,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testSearch");
 
 		// WHEN
-		cc.search(accountDefinition, new ObjectQuery(), handler, null, result);
+		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, result);
 
 		// THEN
 		assertEquals("Unexpected number of search results", 1, searchResults.size());
