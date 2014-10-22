@@ -486,7 +486,7 @@ public class PageAccounts extends PageAdminConfiguration {
             @Override
             protected Integer load() {
 //                ObjectFilter resourceFilter = createResourceQueryFilter();
-                ObjectFilter resourceFilter = createObjectQuery().getFilter();
+                ObjectFilter resourceFilter = createObjectQuery().getFilter();        // leads to invalid filters [e.g. AND(something,null)]
 
                 if (resourceFilter == null) {
                     return 0;
