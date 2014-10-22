@@ -869,11 +869,11 @@ public interface MidpointFunctions {
     // however, the syntax of orgType attribute is not standardized
     Collection<String> getOrgUnits(UserType user);
 
-    OrgType getOrgByOid(String oid) throws ObjectNotFoundException, SchemaException;
+    OrgType getOrgByOid(String oid) throws SchemaException;
 
-    OrgType getOrgByName(String name) throws ObjectNotFoundException, SchemaException;
+    OrgType getOrgByName(String name) throws SchemaException;
     
-    OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
 
     Collection<UserType> getManagersOfOrg(String orgOid) throws SchemaException;
 
