@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism.util;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.parser.DomParser;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;
@@ -35,6 +37,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -169,6 +172,20 @@ public class PrismUtil {
 			Class<X> expectedJavaType = XsdTypeMapper.toJavaType(targetDef.getTypeName());
 			X convertedRealValue = JavaTypeConverter.convert(expectedJavaType, srcVal.getValue());
 			return new PrismPropertyValue<X>(convertedRealValue);
+		}
+	}
+
+	public static <T,X> PrismProperty<X> convertProperty(PrismProperty<T> srcProp, PrismPropertyDefinition<X> targetDef) throws SchemaException {
+		if (targetDef.getTypeName().equals(srcProp.getDefinition().getTypeName())) {
+			return (PrismProperty<X>) srcProp;
+		} else {
+			PrismProperty<X> targetProp = targetDef.instantiate();
+			Class<X> expectedJavaType = XsdTypeMapper.toJavaType(targetDef.getTypeName());
+			for (PrismPropertyValue<T> srcPVal: srcProp.getValues()) {
+				X convertedRealValue = JavaTypeConverter.convert(expectedJavaType, srcPVal.getValue());
+				targetProp.add(new PrismPropertyValue<X>(convertedRealValue));
+			}
+			return targetProp;
 		}
 	}
 

@@ -72,10 +72,11 @@ It also contains inbound mappings and definition to enable synchronization.
 				<icfcldap:host>localhost</icfcldap:host>
 				<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 				<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
-				 <icfcldap:credentials>
-	                    <clearValue>secret</clearValue>
-	                </icfcldap:credentials>
-	            <icfcldap:passwordHashAlgorithm>SSHA</icfcldap:passwordHashAlgorithm>
+				<icfcldap:credentials>
+					<clearValue>secret</clearValue>
+	                	</icfcldap:credentials>
+				<icfcldap:passwordHashAlgorithm>SSHA</icfcldap:passwordHashAlgorithm>
+				<icfcldap:groupMemberAttribute>member</icfcldap:groupMemberAttribute>
 				<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 				<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 				<icfcldap:useBlocks>true</icfcldap:useBlocks>

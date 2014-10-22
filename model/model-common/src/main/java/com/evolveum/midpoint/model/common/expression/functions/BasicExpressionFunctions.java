@@ -342,6 +342,9 @@ public class BasicExpressionFunctions {
 	}
 	
 	public <T> T getIdentifierValue(ShadowType shadow) throws SchemaException {
+		if (shadow == null) {
+			return null;
+		}
 		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
 		if (identifiers.size() == 0) {
 			return null;
@@ -358,7 +361,28 @@ public class BasicExpressionFunctions {
 		}
 		return realValues.iterator().next();
 	}
-			
+
+	public <T> T getSecondaryIdentifierValue(ShadowType shadow) throws SchemaException {
+		if (shadow == null) {
+			return null;
+		}
+		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+		if (identifiers.size() == 0) {
+			return null;
+		}
+		if (identifiers.size() > 1) {
+			throw new SchemaException("More than one secondary idenfier in "+shadow);
+		}
+		Collection<T> realValues = (Collection<T>) identifiers.iterator().next().getRealValues();
+		if (realValues.size() == 0) {
+			return null;
+		}
+		if (realValues.size() > 1) {
+			throw new SchemaException("More than one secondary idenfier value in "+shadow);
+		}
+		return realValues.iterator().next();
+	}
+
 	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, PrismProperty attribute) throws NamingException {
 		return determineLdapSingleAttributeValue(dns, attributeName, attribute.getRealValues());
 	}

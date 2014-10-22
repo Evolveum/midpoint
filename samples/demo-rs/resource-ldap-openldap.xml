@@ -72,9 +72,11 @@ It also contains inbound mappings and definition to enable synchronization.
 			<icfcldap:host>localhost</icfcldap:host>
 			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 			<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
-			 <icfcldap:credentials>
-                    <clearValue>secret</clearValue>
-                </icfcldap:credentials>
+			<icfcldap:credentials>
+				<clearValue>secret</clearValue>
+			</icfcldap:credentials>
+			<icfcldap:passwordHashAlgorithm>SSHA</icfcldap:passwordHashAlgorithm>
+			<icfcldap:groupMemberAttribute>member</icfcldap:groupMemberAttribute>
 			<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 			<icfcldap:useBlocks>true</icfcldap:useBlocks>
@@ -254,6 +256,26 @@ It also contains inbound mappings and definition to enable synchronization.
 				</outbound>
 			</attribute>
 			
+	            <association>
+	            	<ref>ri:group</ref>
+	            	<displayName>LDAP Group Membership</displayName>
+	            	<kind>entitlement</kind>
+	            	<intent>ldapGroup</intent>
+	            	<direction>objectToSubject</direction>
+	            	<associationAttribute>ri:member</associationAttribute>
+	            	<valueAttribute>icfs:name</valueAttribute>
+	            </association>
+
+	            <association>
+	            	<ref>ri:customerProject</ref>
+	            	<displayName>Customer Project Group Membership</displayName>
+	            	<kind>entitlement</kind>
+	            	<intent>customerProject</intent>
+	            	<direction>objectToSubject</direction>
+	            	<associationAttribute>ri:member</associationAttribute>
+	            	<valueAttribute>icfs:name</valueAttribute>
+	            </association>
+
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>
@@ -291,6 +313,156 @@ It also contains inbound mappings and definition to enable synchronization.
             </credentials>
 
 		</objectType>
+
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>ldapGroup</intent>
+			<displayName>LDAP Group</displayName>
+			<objectClass>ri:CustomgroupOfNamesObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<source>
+						<path>$focus/name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+			                	import javax.naming.ldap.Rdn
+			                	import javax.naming.ldap.LdapName
+			                	
+			                	dn = new LdapName('ou=groups,dc=example,dc=com')
+			                	dn.add(new Rdn('cn', name.toString()))
+			                	return dn.toString()
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:cn</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$focus/name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+					<source>
+						<path>description</path>
+					</source>
+				</outbound>
+			</attribute>
+		</objectType>
+
+		<objectType>
+			<kind>generic</kind>
+			<intent>customer</intent>
+			<displayName>Customer</displayName>
+			<objectClass>ri:CustomorganizationalUnitObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<source>
+						<path>$focus/name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+			                	import javax.naming.ldap.Rdn
+			                	import javax.naming.ldap.LdapName
+			                	
+			                	dn = new LdapName('ou=customers,dc=example,dc=com')
+			                	dn.add(new Rdn('ou', name.toString()))
+			                	return dn.toString()
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:ou</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$focus/name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+					<source>
+						<path>description</path>
+					</source>
+				</outbound>
+			</attribute>
+		</objectType>
+
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>customerProject</intent>
+			<displayName>Customer Project Group</displayName>
+			<objectClass>ri:CustomgroupOfNamesObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<source>
+						<path>$focus/name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+			                	import javax.naming.ldap.Rdn
+			                	import javax.naming.ldap.LdapName
+			                	
+			                	dn = new LdapName('ou=customers,dc=example,dc=com')
+						customerName = midpoint.getParentOrgByOrgType(focus,'customer').getName().toString()
+						dn.add(new Rdn('ou', customerName))
+			                	dn.add(new Rdn('cn', name.toString()))
+			                	return dn.toString()
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:cn</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$focus/name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+					<source>
+						<path>description</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:member</ref>
+				<outbound>
+					<strength>weak</strength>
+					<expression>
+						<value>uid=nobody,dc=example,dc=com</value>
+					</expression>
+				</outbound>
+			</attribute>
+		</objectType>
+
 	</schemaHandling>
 
 <!--
@@ -306,7 +478,12 @@ It also contains inbound mappings and definition to enable synchronization.
     	</configured>
     </capabilities>
 -->
-        <!--
+ 
+	<consistency>
+		<avoidDuplicateValues>true</avoidDuplicateValues>
+	</consistency>
+
+       <!--
             Synchronization section describes the synchronization policy, timing,
             reactions and similar synchronization settings.
         -->

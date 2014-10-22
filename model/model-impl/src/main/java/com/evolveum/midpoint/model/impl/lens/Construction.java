@@ -310,9 +310,9 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		
 		if (refinedObjectClassDefinition == null) {
 			if (constructionType.getIntent() != null) {
-				throw new SchemaException("No account type '"+constructionType.getIntent()+"' found in "+ObjectTypeUtil.toShortString(getResource(result))+" as specified in account construction in "+ObjectTypeUtil.toShortString(source));
+				throw new SchemaException("No "+kind+" type '"+constructionType.getIntent()+"' found in "+getResource(result)+" as specified in construction in "+source);
 			} else {
-				throw new SchemaException("No default account type found in " + resource + " as specified in account construction in "+ObjectTypeUtil.toShortString(source));
+				throw new SchemaException("No default "+kind+" type found in " + resource + " as specified in construction in "+source);
 			}
 		}
 	}
