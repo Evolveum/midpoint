@@ -3318,9 +3318,55 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="pagedSearches" minOccurs="0" type="tns:ResourcePagedSearchConfigurationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to handle paged search for this account type.
+                        Although deals primarily with GUI issues, may be useful for other kinds of access as well.
+                        EXPERIMENTAL.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
+    <xsd:complexType name="ResourcePagedSearchConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to handle paged search for this account type.
+                Although deals primarily with GUI issues, may be useful for other kinds of access as well.
+
+                If not present, paged searches are not enabled for this resource/kind/intent/objectClass.
+
+                EXPERIMENTAL.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the paged search enabled? Default is TRUE (if the pagedSearchConfiguration is present).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultSortField" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If no sorting is specified by client (higher levels), use this field as the default.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultSortDirection" type="q:OrderDirectionType" minOccurs="0" >
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the defaultSortField is used, this element specified the sorting order
+                        (ascending is the default).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="ResourceConsistencyType">
         <xsd:annotation>
             <xsd:documentation>

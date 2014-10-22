@@ -236,7 +236,7 @@ class EntitlementConverter {
 				LOGGER.trace("Processed entitlement-to-subject association for account {}: query {}",
 						ShadowUtil.getHumanReadableName(resourceObject), query);
 			}
-			connector.search(entitlementDef, query, handler, attributesToReturn, parentResult);
+			connector.search(entitlementDef, query, handler, attributesToReturn, null, parentResult);
 		} catch (TunnelException e) {
 			throw (SchemaException)e.getCause();
 		}
@@ -432,7 +432,7 @@ class EntitlementConverter {
 			};
 			try {
 				LOGGER.trace("Searching for associations in deleted shadow, query: {}", query);
-				connector.search(entitlementOcDef, query, handler, attributesToReturn, parentResult);
+				connector.search(entitlementOcDef, query, handler, attributesToReturn, null, parentResult);
 			} catch (TunnelException e) {
 				throw (SchemaException)e.getCause();
 			} catch (GenericFrameworkException e) {

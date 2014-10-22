@@ -834,4 +834,21 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		}
 	}
 
+    public ResourcePagedSearchConfigurationType getPagedSearches() {
+        if (schemaHandlingObjectTypeDefinitionType != null) {
+            return schemaHandlingObjectTypeDefinitionType.getPagedSearches();
+        } else {
+            return null;
+        }
+    }
+
+    public boolean isPagedSearchEnabled() {
+        return schemaHandlingObjectTypeDefinitionType != null
+                && isPagedSearchEnabled(schemaHandlingObjectTypeDefinitionType.getPagedSearches());
+    }
+
+    public static boolean isPagedSearchEnabled(ResourcePagedSearchConfigurationType configuration) {
+        return configuration != null
+                && !Boolean.FALSE.equals(configuration.isEnabled());         // because default is TRUE (if whole element is defined)
+    }
 }

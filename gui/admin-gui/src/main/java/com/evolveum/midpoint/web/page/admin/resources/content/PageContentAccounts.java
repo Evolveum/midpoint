@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -228,7 +229,7 @@ public class PageContentAccounts extends PageAdminResources {
         add(mainForm);
 
         AccountContentDataProvider provider = new AccountContentDataProvider(this,
-                new PropertyModel<String>(resourceModel, "oid"), createObjectClassModel()) {
+                new PropertyModel<String>(resourceModel, "oid"), createObjectClassModel(), createUseConnectorPagingModel()) {
 
             @Override
             protected void addInlineMenuToDto(AccountContentDto dto) {
@@ -600,6 +601,21 @@ public class PageContentAccounts extends PageAdminResources {
         };
     }
 
+    private IModel<Boolean> createUseConnectorPagingModel() {
+        return new LoadableModel<Boolean>(false) {
+
+            @Override
+            protected Boolean load() {
+                try {
+                    return isUseConnectorPaging();
+                } catch (Exception ex) {
+                    throw new SystemException(ex.getMessage(), ex);
+                }
+            }
+        };
+    }
+
+
     private QName getObjectClassDefinition() throws SchemaException {
         ObjectClassComplexTypeDefinition def = getAccountDefinition();
         return def != null ? def.getTypeName() : null;
@@ -619,6 +635,26 @@ public class PageContentAccounts extends PageAdminResources {
         }
 
         return null;
+    }
+
+    private boolean isUseConnectorPaging() throws SchemaException {
+        MidPointApplication application = (MidPointApplication) getApplication();
+        PrismObject<ResourceType> resource = resourceModel.getObject();
+        RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource, application.getPrismContext());
+
+        // hacking this for now ... in future, we get the type definition (and maybe kind+intent) directly from GUI model
+        // TODO here we should deal with the situation that one object class is mentioned in different
+        // kind/intent sections -- we would want to avoid mentioning paged search information in all
+        // these sections
+        ObjectClassComplexTypeDefinition typeDefinition = getAccountDefinition();
+        if (typeDefinition == null) {
+            // should not occur
+            LOGGER.warn("ObjectClass definition couldn't be found");
+            return false;
+        }
+
+        RefinedObjectClassDefinition refinedObjectClassDefinition = resourceSchema.getRefinedDefinition(typeDefinition.getTypeName());
+        return refinedObjectClassDefinition.isPagedSearchEnabled();
     }
 
     private void showModalWindow(String id, AjaxRequestTarget target) {

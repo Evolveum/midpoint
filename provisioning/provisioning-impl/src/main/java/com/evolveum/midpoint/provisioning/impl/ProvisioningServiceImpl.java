@@ -22,8 +22,11 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,8 +34,6 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.monitor.InternalMonitor;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -40,11 +41,9 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ShadowCacheFactory.Mode;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -63,7 +62,6 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -71,7 +69,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
@@ -708,26 +705,48 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			return count;
 		}
 
-		final Holder<Integer> countHolder = new Holder<Integer>(0);
+        Validate.notNull(query, "Query cannot be null");
+        ResourceAndObjectClassFinder resourceAndObjectClassFinder = new ResourceAndObjectClassFinder(query.getFilter(), result).invoke();
+        QName objectClassName = resourceAndObjectClassFinder.getObjectClass();
+        ResourceType resourceType = resourceAndObjectClassFinder.getResource().asObjectable();
 
-		final ResultHandler<T> handler = new ResultHandler<T>() {
-			@Override
-			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-				int count = countHolder.getValue();
-				count++;
-				countHolder.setValue(count);
-				return true;
-			}
-		};
-		
-		
+        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+        if (refinedSchema == null) {
+            throw new ConfigurationException("No schema for "+resourceType);
+        }
+        final RefinedObjectClassDefinition objectClassDef = refinedSchema.getRefinedDefinition(objectClassName);
 
-		searchObjectsIterative(type, query, null, handler, result);
-		// TODO: better error handling
-		result.computeStatus();
-		result.cleanupResult();
-		return countHolder.getValue();
-	}
+        if (!objectClassDef.isPagedSearchEnabled()) {
+            // traditional way of counting objects (i.e. counting them one by one)
+            final Holder<Integer> countHolder = new Holder<Integer>(0);
+
+            final ResultHandler<T> handler = new ResultHandler<T>() {
+                @Override
+                public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+                    int count = countHolder.getValue();
+                    count++;
+                    countHolder.setValue(count);
+                    return true;
+                }
+            };
+
+            searchObjectsIterative(type, query, null, handler, result);
+            // TODO: better error handling
+            result.computeStatus();
+            result.cleanupResult();
+            return countHolder.getValue();
+        }
+
+        // counting objects using paged search
+        // TODO shouldn't this be moved into ShadowCache?
+        ConnectorInstance connector = getShadowCache(Mode.STANDARD).getConnectorInstance(resourceType, parentResult);
+        try {
+            ObjectQuery attributeQuery = getShadowCache(Mode.STANDARD).createAttributeQuery(query);
+            return connector.count(objectClassDef.getObjectClassDefinition(), attributeQuery, objectClassDef.getPagedSearches(), result);
+        } catch (GenericFrameworkException|UnsupportedOperationException e) {
+            throw new SystemException("Couldn't count objects on resource " + resourceType + ": " + e.getMessage(), e);
+        }
+    }
 
 	@SuppressWarnings("rawtypes")
 	@Override
@@ -1136,46 +1155,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			
 			return;
 		}
-		
-		String resourceOid = null;
-		QName objectClass = null;
 
-		if (filter instanceof AndFilter){
-			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
-			resourceOid = ProvisioningUtil.getResourceOidFromFilter(conditions);
-			objectClass = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_OBJECT_CLASS);
-		}
-		
-		LOGGER.trace("**PROVISIONING: Search objects on resource with oid {}", resourceOid);
-		
-		
-		if (resourceOid == null) {
-			IllegalArgumentException e = new IllegalArgumentException("Resource not defined in a search query");
-			recordFatalError(LOGGER, result, null, e);
-			throw e;
-		}
-		if (objectClass == null) {
-			IllegalArgumentException e = new IllegalArgumentException("Objectclass not defined in a search query");
-			recordFatalError(LOGGER, result, null, e);
-			throw e;
-		}
-
-		PrismObject<ResourceType> resource = null;
-		try {
-			// Don't use repository. Repository resource will not have properly
-			// set capabilities
-			resource = getObject(ResourceType.class, resourceOid, null, null, result);
-
-		} catch (ObjectNotFoundException e) {
-			recordFatalError(LOGGER, result, "Resource with oid " + resourceOid + "not found: " + e.getMessage(), e);
-			throw new ObjectNotFoundException(e.getMessage(), e);
-		} catch (ConfigurationException e) {
-			recordFatalError(LOGGER, result, "Configuration error regarding resource with oid " + resourceOid + ": " + e.getMessage(), e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			recordFatalError(LOGGER, result, "Security violation: " + e.getMessage(), e);
-			throw e;
-		}
+        ResourceAndObjectClassFinder resourceAndObjectClassFinder = new ResourceAndObjectClassFinder(filter, result).invoke();
+        QName objectClass = resourceAndObjectClassFinder.getObjectClass();
+        PrismObject<ResourceType> resource = resourceAndObjectClassFinder.getResource();
 
 		final ShadowHandler shadowHandler = new ShadowHandler() {
 
@@ -1268,16 +1251,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.cleanupResult();
 		}
 	}
-	
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.evolveum.midpoint.provisioning.api.ProvisioningService#discoverConnectors
-	 * (com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType,
-	 * com.evolveum.midpoint.common.result.OperationResult)
-	 */
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * com.evolveum.midpoint.provisioning.api.ProvisioningService#discoverConnectors
+     * (com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType,
+     * com.evolveum.midpoint.common.result.OperationResult)
+     */
 	@Override
 	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult)
 			throws CommunicationException {
@@ -1501,4 +1484,65 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 	}
 
+    private class ResourceAndObjectClassFinder {
+        private ObjectFilter filter;
+        private OperationResult result;
+        private QName objectClass;
+        private PrismObject<ResourceType> resource;
+
+        public ResourceAndObjectClassFinder(ObjectFilter filter, OperationResult result) {
+            this.filter = filter;
+            this.result = result;
+        }
+
+        public QName getObjectClass() {
+            return objectClass;
+        }
+
+        public PrismObject<ResourceType> getResource() {
+            return resource;
+        }
+
+        public ResourceAndObjectClassFinder invoke() throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+            String resourceOid = null;
+            objectClass = null;
+
+            if (filter instanceof AndFilter) {
+                List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
+                resourceOid = ProvisioningUtil.getResourceOidFromFilter(conditions);
+                objectClass = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_OBJECT_CLASS);
+            }
+
+            LOGGER.trace("**PROVISIONING: Search objects on resource with oid {}", resourceOid);
+
+            if (resourceOid == null) {
+                IllegalArgumentException e = new IllegalArgumentException("Resource not defined in a search query");
+                recordFatalError(LOGGER, result, null, e);
+                throw e;
+            }
+            if (objectClass == null) {
+                IllegalArgumentException e = new IllegalArgumentException("Objectclass not defined in a search query");
+                recordFatalError(LOGGER, result, null, e);
+                throw e;
+            }
+
+            resource = null;
+            try {
+                // Don't use repository. Repository resource will not have properly
+                // set capabilities
+                resource = getObject(ResourceType.class, resourceOid, null, null, result);
+
+            } catch (ObjectNotFoundException e) {
+                recordFatalError(LOGGER, result, "Resource with oid " + resourceOid + "not found: " + e.getMessage(), e);
+                throw new ObjectNotFoundException(e.getMessage(), e);
+            } catch (ConfigurationException e) {
+                recordFatalError(LOGGER, result, "Configuration error regarding resource with oid " + resourceOid + ": " + e.getMessage(), e);
+                throw e;
+            } catch (SecurityViolationException e) {
+                recordFatalError(LOGGER, result, "Security violation: " + e.getMessage(), e);
+                throw e;
+            }
+            return this;
+        }
+    }
 }

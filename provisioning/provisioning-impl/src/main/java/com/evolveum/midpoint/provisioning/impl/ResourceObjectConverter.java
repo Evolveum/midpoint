@@ -212,7 +212,7 @@ public class ResourceObjectConverter {
 				}
 			};
 			try {
-				connector.search(objectClassDefinition, query, handler, attributesToReturn, parentResult);
+				connector.search(objectClassDefinition, query, handler, attributesToReturn, null, parentResult);
 				if (shadowHolder.isEmpty()) {
 					throw new ObjectNotFoundException("No object found for secondary identifier "+secondaryIdentifier);
 				}
@@ -769,7 +769,7 @@ public class ResourceObjectConverter {
 		};
 		
 		try {
-			connector.search(objectClassDef, query, innerResultHandler, attributesToReturn, parentResult);
+			connector.search(objectClassDef, query, innerResultHandler, attributesToReturn, objectClassDef.getPagedSearches(), parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new SystemException("Generic error in the connector: " + e.getMessage(), e);
