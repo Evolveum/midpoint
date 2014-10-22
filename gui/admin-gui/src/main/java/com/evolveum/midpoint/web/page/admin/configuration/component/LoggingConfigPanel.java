@@ -42,6 +42,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.basic.Label;
@@ -132,7 +133,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 new PropertyModel<List<LoggerConfiguration>>(getModel(), "loggers"));
         TablePanel table = new TablePanel<>(ID_LOGGERS_TABLE, provider, initLoggerColumns());
         table.setOutputMarkupId(true);
-        table.setShowPaging(false);
+        table.setShowPaging(true);
         add(table);
 
         AjaxButton addStandardLogger = new AjaxButton(ID_BUTTON_ADD_STANDARD_LOGGER,
@@ -174,8 +175,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
             }
         };
         add(deleteLogger);
-
-        //initProfiling();
     }
 
     private void initRoot() {
@@ -259,6 +258,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         logger.setEditing(true);
         dto.getLoggers().add(logger);
 
+        TablePanel loggersTable = getLoggersTable();
+        adjustLoggersTablePage(loggersTable, dto);
         target.add(getLoggersTable());
     }
 
@@ -268,7 +269,9 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         logger.setEditing(true);
         dto.getLoggers().add(logger);
 
-        target.add(getLoggersTable());
+        TablePanel loggersTable = getLoggersTable();
+        adjustLoggersTablePage(loggersTable, dto);
+        target.add(loggersTable);
     }
 
     private void addClassLoggerPerformed(AjaxRequestTarget target) {
@@ -277,7 +280,19 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         logger.setEditing(true);
         dto.getLoggers().add(logger);
 
+        TablePanel loggersTable = getLoggersTable();
+        adjustLoggersTablePage(loggersTable, dto);
         target.add(getLoggersTable());
+    }
+
+    private void adjustLoggersTablePage(TablePanel loggersTable, LoggingDto dto){
+        if(loggersTable != null && dto.getLoggers().size() % 10 == 1 && dto.getLoggers().size() != 1){
+            DataTable table = loggersTable.getDataTable();
+
+            if(table != null){
+                table.setCurrentPage((long)(dto.getLoggers().size()/10));
+            }
+        }
     }
 
     private TablePanel getLoggersTable() {

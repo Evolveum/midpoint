@@ -30,7 +30,7 @@ public abstract class LoggerConfiguration extends Selectable implements Editable
 	
 	private boolean editing;
     private LoggingLevelType level;
-    private List<String> appenders = new ArrayList<String>();
+    private List<String> appenders = new ArrayList<>();
 
     public abstract String getName();
     public abstract void setName(String name);
