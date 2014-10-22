@@ -485,12 +485,13 @@ public class PageAccounts extends PageAdminConfiguration {
 
             @Override
             protected Integer load() {
-//                ObjectFilter resourceFilter = createResourceQueryFilter();
-                ObjectFilter resourceFilter = createObjectQuery().getFilter();        // leads to invalid filters [e.g. AND(something,null)]
+                ObjectFilter resourceFilter = createResourceQueryFilter();
 
                 if (resourceFilter == null) {
                     return 0;
                 }
+
+                ObjectFilter filter = createObjectQuery().getFilter();
 
                 Collection<SelectorOptions<GetOperationOptions>> options =
                         SelectorOptions.createCollection(GetOperationOptions.createRaw());
@@ -500,7 +501,7 @@ public class PageAccounts extends PageAdminConfiguration {
                     EqualFilter situationFilter = EqualFilter.createEqual(ShadowType.F_SYNCHRONIZATION_SITUATION, ShadowType.class,
                             getPrismContext(), null, situation);
 
-                    AndFilter andFilter = AndFilter.createAnd(resourceFilter, situationFilter);
+                    AndFilter andFilter = AndFilter.createAnd(filter, situationFilter);
                     ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
 
                     return getModelService().countObjects(ShadowType.class, query, options, task, result);
@@ -739,7 +740,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
         TablePanel table = getAccountsTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
-        provider.setQuery(ObjectQuery.createObjectQuery(createResourceQueryFilter()));
+        provider.setQuery(createObjectQuery());
         table.getDataTable().setCurrentPage(0);
 
         refreshEverything(target);
@@ -936,7 +937,9 @@ public class PageAccounts extends PageAdminConfiguration {
         AndFilter searchFilter;
         if(!filters.isEmpty()){
             searchFilter = AndFilter.createAnd(filters);
-            query.setFilter(AndFilter.createAnd(searchFilter, createResourceQueryFilter()));
+
+            ObjectFilter resourceFilter = createResourceQueryFilter();
+            query.setFilter(resourceFilter != null ? AndFilter.createAnd(searchFilter, resourceFilter) : searchFilter);
         } else {
             query.setFilter(createResourceQueryFilter());
         }
