@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -102,7 +101,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
                 //TODO - show user some error about not loading role tenants of OrgType
                 if(org == null){
-                    dto = new ObjectViewDto();
+                    dto = new ObjectViewDto(ObjectViewDto.BAD_OID);
                     dto.setType(OrgType.class);
                     return dto;
                 }
@@ -146,9 +145,14 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         }
 
         if(object instanceof RoleType){
-            if(tenantRef != null && tenantRef.getOid() != null){
-                builder.append(" - ").append(tenantRef.getName());
+            if(tenantRef != null){
+                if(ObjectViewDto.BAD_OID.equals(tenantRef.getOid())){
+                    builder.append(" - ").append("(tenant not found)");
+                } else if(tenantRef.getOid() != null){
+                    builder.append(" - ").append(tenantRef.getName());
+                }
             }
+
         }
 
         return builder.toString();
