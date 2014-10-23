@@ -71,6 +71,7 @@ import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -421,15 +422,28 @@ public class Clockwork {
 			}
     		ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
     		if (isSignificant(execDelta)) {
-    			LOGGER.trace("Context rot: projection {} rotten because of delta {}", projectionContext, execDelta);
-    			projectionContext.setFresh(false);
-    			projectionContext.setFullShadow(false);
-    			rot = true;
-    			// Propagate to higher-order projections
-    			for (LensProjectionContext relCtx: LensUtil.findRelatedContexts(context, projectionContext)) {
-    				relCtx.setFresh(false);
-    				relCtx.setFullShadow(false);
-    			}
+    			
+				// in this case we do not want to rot projection context. in the
+				// case the projection is rotten we can lost some information
+				// needed for inbound processing
+//    			if (execDelta.isAdd() && !LensUtil.hasDependentContext(context, projectionContext)){
+//    				projectionContext.setObjectOld(projectionContext.getObjectNew());
+//    				projectionContext.setObjectCurrent(projectionContext.getObjectNew());
+//    				projectionContext.setFullShadow(true);
+//    				LOGGER.trace("Context rot: projection {} NOT rotten because of ADD delta and no dependent context.", projectionContext);
+//    				continue;
+//    			}
+    			LOGGER.trace("Context rot: projection {} rotten because of delta {} and dependent context exists for this projection", projectionContext, execDelta);
+   				projectionContext.setFresh(false);
+      			projectionContext.setFullShadow(false);
+       			rot = true;
+       			// Propagate to higher-order projections
+       			for (LensProjectionContext relCtx: LensUtil.findRelatedContexts(context, projectionContext)) {
+       				relCtx.setFresh(false);
+       				relCtx.setFullShadow(false);
+      			}
+    			
+    			
 	        } else {
 	        	LOGGER.trace("Context rot: projection {} NOT rotten because no delta", projectionContext);
 	        }
@@ -444,6 +458,19 @@ public class Clockwork {
 	    		// It is OK to refresh focus all the time there was any change. This is cheap.
 	    		focusContext.setFresh(false);
     		}
+    		//remove secondary deltas from other than execution wave - we need to recompute them..
+    		ObjectDelta executionWaveDelta = focusContext.getSecondaryDeltas().get(context.getExecutionWave());
+    		focusContext.getSecondaryDeltas().retainAll(MiscUtil.createCollection(executionWaveDelta));
+//    		for (LensProjectionContext projCtx : context.getProjectionContexts()){
+//    			boolean reconcile = true;
+//    			for (LensObjectDeltaOperation lensDeltaOp : projCtx.getExecutedDeltas()){
+//    				if (lensDeltaOp.getExecutionResult().getStatus() != OperationResultStatus.SUCCESS){
+//    					reconcile = false;
+//    				}
+//    			}
+//    			projCtx.
+//    			projCtx.setDoReconciliation(true);
+//    		}
     	}
     	if (rot) {
     		context.setFresh(false);

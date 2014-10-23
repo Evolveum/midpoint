@@ -94,6 +94,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -761,6 +762,24 @@ public class LensUtil {
 			}
 		}
 		return false;
+	}
+	
+	public static <F extends ObjectType> boolean hasDependentContext(LensContext<F> context, 
+			LensProjectionContext targetProjectionContext) {
+		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+			for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
+				if (isDependencyTargetContext(projectionContext, targetProjectionContext, dependency)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static <F extends ObjectType> boolean isDependencyTargetContext(LensProjectionContext sourceProjContext, LensProjectionContext targetProjectionContext, ResourceObjectTypeDependencyType dependency) {
+		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency, 
+				sourceProjContext.getResource().getOid(), sourceProjContext.getKind());
+		return targetProjectionContext.compareResourceShadowDiscriminator(refDiscr, false);
 	}
 	
 	public static <F extends ObjectType> LensProjectionContext findLowerOrderContext(LensContext<F> context,

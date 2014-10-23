@@ -48,7 +48,6 @@
 			<icfi:instanceId>mail</icfi:instanceId>
 			<icfi:caseIgnoreId>true</icfi:caseIgnoreId>
 			<icfi:uidMode>uuid</icfi:uidMode>
-			<icfi:generateDefaultValues>true</icfi:generateDefaultValues>
 		</icfc:configurationProperties>
 		
 		<icfc:resultsHandlerConfiguration>

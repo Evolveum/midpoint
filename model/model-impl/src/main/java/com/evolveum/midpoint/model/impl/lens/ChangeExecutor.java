@@ -85,6 +85,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -150,7 +151,8 @@ public class ChangeExecutor {
     	
     	LensFocusContext<O> focusContext = syncContext.getFocusContext();
     	if (focusContext != null) {
-	        ObjectDelta<O> focusDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
+	        ObjectDelta<O> focusDelta = focusContext.getWaveExecutableDelta(syncContext.getExecutionWave());
+	        
 	        if (focusDelta != null) {
 	        	
 	        	ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
@@ -589,6 +591,12 @@ public class ChangeExecutor {
         	return;
         }
         
+//        removeExecutedItemDeltas(objectDelta, objectContext);
+        
+        if (objectDelta.isEmpty()){
+        	return;
+        }
+        
         objectDelta.checkConsistence(ConsistencyCheckScope.fromBoolean(consistencyChecks));
         
         // Other types than focus types may not be definition-complete (e.g. accounts and resources are completed in provisioning)
@@ -637,6 +645,34 @@ public class ChangeExecutor {
 	    	}
     	}
     }
+	
+	private <T extends ObjectType, F extends FocusType> void removeExecutedItemDeltas(
+			ObjectDelta<T> objectDelta, LensElementContext<T> objectContext) {
+		if (objectContext == null){
+			return;
+		}
+		
+		if (objectDelta == null || objectDelta.isEmpty()){
+			return;
+		}
+		
+		if (objectDelta.getModifications() == null || objectDelta.getModifications().isEmpty()){
+			return;
+		}
+		
+		List<LensObjectDeltaOperation<T>> executedDeltas = objectContext.getExecutedDeltas();
+		for (LensObjectDeltaOperation<T> executedDelta : executedDeltas){
+			ObjectDelta<T> executed = executedDelta.getObjectDelta();
+			Iterator<? extends ItemDelta> objectDeltaIterator = objectDelta.getModifications().iterator();
+			while (objectDeltaIterator.hasNext()){
+				ItemDelta d = objectDeltaIterator.next();
+				if (executed.containsModification(d) || d.isEmpty()){
+					objectDeltaIterator.remove();
+				}
+			}
+		}
+	}
+	
 	
 	private <T extends ObjectType, F extends FocusType> boolean alreadyExecuted(
 			ObjectDelta<T> objectDelta, LensElementContext<T> objectContext) {

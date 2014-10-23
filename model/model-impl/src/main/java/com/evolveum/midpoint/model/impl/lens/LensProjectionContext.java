@@ -54,6 +54,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -1161,8 +1162,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public void determineFullShadowFlag(OperationResultType fetchResult) {
         if (fetchResult != null
                 && (fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR
-                    || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)) {                 // todo what about other kinds of status? [e.g. in-progress]
-            setFullShadow(false);
+                    || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)
+                    && (getObjectAny().asObjectable().getFailedOperationType() == null || getObjectAny().asObjectable().getFailedOperationType() != FailedOperationTypeType.ADD)) {                 // todo what about other kinds of status? [e.g. in-progress]
+           	setFullShadow(false);
         } else {
             setFullShadow(true);
         }

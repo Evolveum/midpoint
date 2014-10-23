@@ -148,7 +148,7 @@
          </attribute>
          <dependency>
             <resourceRef oid="10000000-0000-0000-0000-0000000001ad"/>
-            <strictness>relaxed</strictness>
+            <strictness>strict</strictness>
          </dependency>
           
          <activation>
