@@ -78,17 +78,20 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 	}
 	
 	public ObjectQuery clone() {
-		ObjectQuery clone = new ObjectQuery();
+		ObjectQuery clone = cloneEmpty();
 		if (this.filter != null) {
 			clone.filter = this.filter.clone();
-		}
-		if (this.paging != null) {
-			clone.paging = this.paging.clone();
 		}
 		return clone;
 	}
 	
-	
+	public ObjectQuery cloneEmpty() {
+		ObjectQuery clone = new ObjectQuery();
+		if (this.paging != null) {
+			clone.paging = this.paging.clone();
+		}
+		return clone;
+	}	
 
 	@Override
 	public String debugDump() {

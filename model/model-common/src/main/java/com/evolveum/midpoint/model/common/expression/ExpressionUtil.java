@@ -377,8 +377,7 @@ public class ExpressionUtil {
 		
 		if (filter instanceof LogicalFilter) {
 			List<ObjectFilter> conditions = ((LogicalFilter) filter).getConditions();
-			LogicalFilter evaluatedFilter = (LogicalFilter) filter.clone();
-			evaluatedFilter.getConditions().clear();
+			LogicalFilter evaluatedFilter = ((LogicalFilter)filter).cloneEmpty();
 			for (ObjectFilter condition : conditions) {
 				ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(condition, variables, expressionFactory, prismContext, shortDesc, task, result);
 				evaluatedFilter.addCondition(evaluatedSubFilter);

@@ -50,6 +50,11 @@ public class NotFilter extends UnaryLogicalFilter {
 	}
 	
 	@Override
+	public NotFilter cloneEmpty() {
+		return new NotFilter();
+	}
+
+	@Override
 	public String debugDump() {
 		return debugDump(0);
 	}

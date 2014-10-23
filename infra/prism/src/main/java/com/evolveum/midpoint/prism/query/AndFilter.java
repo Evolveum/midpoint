@@ -34,7 +34,6 @@ public class AndFilter extends NaryLogicalFilter {
 
 	public AndFilter(List<ObjectFilter> condition) {
 		super(condition);
-
 	}
 	
 	public static AndFilter createAnd(ObjectFilter... conditions){
@@ -55,6 +54,11 @@ public class AndFilter extends NaryLogicalFilter {
 		return new AndFilter(getClonedConditions());
 	}
 	
+	@Override
+	public AndFilter cloneEmpty() {
+		return new AndFilter(new ArrayList<ObjectFilter>());
+	}
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);
