@@ -25,8 +25,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
-
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -1097,7 +1098,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ObjectFilter filter = null;
 		if (query != null) {
-			filter = query.getFilter();
+			filter = ObjectQueryUtil.simplify(query.getFilter());
+			query = query.cloneEmpty();
+			query.setFilter(filter);
+		}
+		
+		if (filter != null && filter instanceof NoneFilter) {
+			result.recordSuccessIfUnknown();
+			result.cleanupResult();
+			LOGGER.trace("Finished searching. Nothing to do. Filter is NONE");
+			return;
 		}
 		
 		if (!ShadowType.class.isAssignableFrom(type)) {

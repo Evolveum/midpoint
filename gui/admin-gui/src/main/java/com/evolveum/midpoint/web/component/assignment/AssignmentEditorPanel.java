@@ -160,7 +160,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         };
         headerRow.add(name);
 
-        Label nameLabel = new Label(ID_NAME_LABEL, new PropertyModel<String>(getModel(), AssignmentEditorDto.F_NAME));
+        Label nameLabel = new Label(ID_NAME_LABEL, createAssignmentNameLabelModel());
         name.add(nameLabel);
 
         Label activation = new Label(ID_ACTIVATION, createActivationModel());
@@ -182,6 +182,28 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         main.add(body);
 
         initBodyLayout(body);
+    }
+
+    private IModel<String> createAssignmentNameLabelModel(){
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                if(getModel() != null && getModel().getObject() != null){
+                    AssignmentEditorDto dto = getModelObject();
+
+                    if(dto.getName() != null){
+                        return dto.getName();
+                    }
+
+                    if(dto.getAltName() != null){
+                        return getString("AssignmentEditorPanel.name.focus");
+                    }
+                }
+
+                return getString("AssignmentEditorPanel.name.noTarget");
+            }
+        };
     }
 
     private IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
@@ -464,10 +486,15 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         }
 
         OperationResult result = new OperationResult(OPERATION_LOAD_ATTRIBUTES);
-        List<ACAttributeDto> attributes = new ArrayList<ACAttributeDto>();
+        List<ACAttributeDto> attributes = new ArrayList<>();
         try {
             ConstructionType construction = WebMiscUtil.getContainerValue(dto.getOldValue(),
                     AssignmentType.F_CONSTRUCTION, ConstructionType.class);
+
+            if(construction == null){
+                return attributes;
+            }
+
             PrismObject<ResourceType> resource = construction.getResource() != null
                     ? construction.getResource().asPrismObject() : null;
             if (resource == null) {

@@ -62,6 +62,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
+import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
@@ -352,7 +353,8 @@ public class ExpressionUtil {
 			return null;
 		}
 		ObjectQuery query = origQuery.clone();
-		evaluateFilterExpressionsInternal(query.getFilter(), variables, expressionFactory, prismContext, shortDesc, task, result);
+		ObjectFilter evaluatedFilter = evaluateFilterExpressionsInternal(query.getFilter(), variables, expressionFactory, prismContext, shortDesc, task, result);
+		query.setFilter(evaluatedFilter);
 		return query;
 	}
 	
@@ -363,39 +365,37 @@ public class ExpressionUtil {
 			return null;
 		}
 		
-		ObjectFilter filter = origFilter.clone();
-		
-		evaluateFilterExpressionsInternal(filter, variables, expressionFactory, prismContext, shortDesc, task, result);
-		
-		return filter;
+		return evaluateFilterExpressionsInternal(origFilter, variables, expressionFactory, prismContext, shortDesc, task, result);
 	}
 		
-	private static void evaluateFilterExpressionsInternal(ObjectFilter filter, ExpressionVariables variables, 
+	private static ObjectFilter evaluateFilterExpressionsInternal(ObjectFilter filter, ExpressionVariables variables, 
 			ExpressionFactory expressionFactory, PrismContext prismContext,
 			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		if (filter == null) {
-			return;
+			return null;
 		}
 		
 		if (filter instanceof LogicalFilter) {
 			List<ObjectFilter> conditions = ((LogicalFilter) filter).getConditions();
+			LogicalFilter evaluatedFilter = ((LogicalFilter)filter).cloneEmpty();
 			for (ObjectFilter condition : conditions) {
-				evaluateFilterExpressionsInternal(condition, variables, expressionFactory, prismContext, shortDesc, task, result);
+				ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(condition, variables, expressionFactory, prismContext, shortDesc, task, result);
+				evaluatedFilter.addCondition(evaluatedSubFilter);
 			}
-			return;
+			return evaluatedFilter;
+			
 		} else if (filter instanceof PropertyValueFilter) {
-
             PropertyValueFilter pvfilter = (PropertyValueFilter) filter;
 
             if (pvfilter.getValues() != null && !pvfilter.getValues().isEmpty()) {
                 // We have value. Nothing to evaluate.
-                return;
+                return pvfilter.clone();
             }
 
             ExpressionWrapper expressionWrapper = pvfilter.getExpression();
             if (expressionWrapper == null || expressionWrapper.getExpression() == null) {
                 LOGGER.warn("No valueExpression in filter in {}", shortDesc);
-                return;
+                return NoneFilter.createNone();
             }
             if (!(expressionWrapper.getExpression() instanceof ExpressionType)) {
                 throw new SchemaException("Unexpected expression type " + expressionWrapper.getExpression().getClass() + " in filter in " + shortDesc);
@@ -410,18 +410,22 @@ public class ExpressionUtil {
                 if (expressionResult == null || expressionResult.isEmpty()) {
                     LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
                             valueExpression);
-                    return;
+                    return NoneFilter.createNone();
                 }
                 // TODO: log more context
                 LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", new Object[] {
                         shortDesc, expressionResult });
-                if (filter instanceof EqualFilter) {
-                    ((EqualFilter) filter).setValue(expressionResult);
-                    pvfilter.setExpression(null);
+                
+                PropertyValueFilter evaluatedFilter = (PropertyValueFilter) pvfilter.clone();
+                if (evaluatedFilter instanceof EqualFilter) {
+                    ((EqualFilter) evaluatedFilter).setValue(expressionResult);
+                    evaluatedFilter.setExpression(null);
                 }
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Transformed filter to:\n{}", filter.debugDump());
+                    LOGGER.trace("Transformed filter to:\n{}", evaluatedFilter.debugDump());
                 }
+                return evaluatedFilter;
+                
             } catch (RuntimeException ex) {
                 LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
                 throw new SystemException("Couldn't evaluate expression" + valueExpression + ": "
@@ -446,25 +450,6 @@ public class ExpressionUtil {
         }
 		
 	}
-
-    // seems to be unused [mederly]
-//	public static ExpressionType createExpression(Element valueExpressionElement, PrismContext prismContext) throws SchemaException {
-//		ExpressionType valueExpression = null;
-//		try {
-//			valueExpression = prismContext.getJaxbDomHack().toJavaValue(
-//					valueExpressionElement, ExpressionType.class);
-//
-//			if (LOGGER.isTraceEnabled()) {
-//				LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
-//			}
-//		} catch (JAXBException ex) {
-//			LoggingUtils.logException(LOGGER, "Expression element couldn't be transformed.", ex);
-//			throw new SchemaException("Expression element couldn't be transformed: " + ex.getMessage(), ex);
-//		}
-//
-//		return valueExpression;
-//
-//	}
 
 	private static PrismPropertyValue evaluateExpression(ExpressionVariables variables, PrismContext prismContext,
 			ExpressionType expressionType, ObjectFilter filter, ExpressionFactory expressionFactory, 

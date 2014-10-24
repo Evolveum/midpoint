@@ -26,6 +26,8 @@ import java.io.Serializable;
  */
 public class ObjectViewDto<T extends ObjectType> implements Serializable {
 
+    public static final String BAD_OID = "==BAD_OID==";
+
     public static final String F_OID = "oid";
     public static final String F_NAME = "name";
     public static final String F_XML = "xml";
@@ -39,6 +41,10 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable {
     public ObjectViewDto() {
         this.name = null;
         this.oid = null;
+    }
+
+    public ObjectViewDto(String oid){
+        this.oid = oid;
     }
 
     public ObjectViewDto(String oid, String name){

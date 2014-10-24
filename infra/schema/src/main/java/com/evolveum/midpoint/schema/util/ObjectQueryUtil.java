@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
@@ -31,7 +34,9 @@ import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
@@ -264,4 +269,61 @@ public class ObjectQueryUtil {
 	public static boolean isNone(ObjectFilter filter) {
 		return filter != null && filter instanceof NoneFilter;
 	}
+
+	public static ObjectFilter simplify(ObjectFilter filter) {
+		if (filter instanceof AndFilter) {
+			List<ObjectFilter> conditions = ((AndFilter)filter).getConditions();
+			AndFilter simplifiedFilter = ((AndFilter)filter).cloneEmpty();
+			for (ObjectFilter subfilter: conditions) {
+				if (subfilter instanceof NoneFilter) {
+					// AND with "false"
+					return NoneFilter.createNone();
+				} else if (subfilter instanceof AllFilter) {
+					// AND with "true", just skip it
+				} else {
+					ObjectFilter simplifiedSubfilter = simplify(subfilter);
+					simplifiedFilter.addCondition(simplifiedSubfilter);
+				}
+			}
+			if (simplifiedFilter.isEmpty()) {
+				return AllFilter.createAll();
+			}
+			return simplifiedFilter;
+			
+		} else if (filter instanceof OrFilter) {
+			List<ObjectFilter> conditions = ((OrFilter)filter).getConditions();
+			OrFilter simplifiedFilter = ((OrFilter)filter).cloneEmpty();
+			for (ObjectFilter subfilter: conditions) {
+				if (subfilter instanceof NoneFilter) {
+					// OR with "false", just skip it
+				} else if (subfilter instanceof AllFilter) {
+					// OR with "true"
+					return AllFilter.createAll();
+				} else {
+					ObjectFilter simplifiedSubfilter = simplify(subfilter);
+					simplifiedFilter.addCondition(simplifiedSubfilter);
+				}
+			}
+			if (simplifiedFilter.isEmpty()) {
+				return AllFilter.createAll();
+			}
+			return simplifiedFilter;
+ 
+		} else if (filter instanceof NotFilter) {
+			ObjectFilter subfilter = ((NotFilter)filter).getFilter();
+			ObjectFilter simplifiedSubfilter = simplify(subfilter);
+			if (subfilter instanceof NoneFilter) {
+				return AllFilter.createAll();
+			} else if (subfilter instanceof AllFilter) {
+				return NoneFilter.createNone();
+			} else {
+				NotFilter simplifiedFilter = ((NotFilter)filter).cloneEmpty();
+				simplifiedFilter.setFilter(simplifiedSubfilter);
+				return simplifiedFilter;
+			}
+		} else {
+			// Cannot simplify
+			return filter.clone();
+		}
+ 	}
 }

@@ -77,6 +77,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -2411,6 +2412,14 @@ public class TestDummy extends AbstractDummyTest {
                 ACCOUNT_WILL_USERNAME);
     }
 
+    
+    @Test
+	public void test170SearchNone() throws Exception {
+		final String TEST_NAME = "test170SearchNone";
+		TestUtil.displayTestTile(TEST_NAME);
+		ObjectFilter attrFilter = NoneFilter.createNone();
+		testSeachIterative(TEST_NAME, attrFilter, null, true, true, false);
+	}
 
     protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, String attrName, T attrVal,
 			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountIds) throws Exception {

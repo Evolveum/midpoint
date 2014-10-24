@@ -44,7 +44,10 @@
 	                                </q:path>
 	                                <expression>
 	                                    <script>
-	                                        <code>'cn='+costCenter+',ou=groups,dc=example,dc=com'</code>
+	                                        <code>
+	                                        	if (costCenter == "-:-") { return null; }
+	                                        	'cn='+costCenter+',ou=groups,dc=example,dc=com'
+	                                        </code>
 	                                    </script>
 	                                </expression>
 	                            </q:equal>

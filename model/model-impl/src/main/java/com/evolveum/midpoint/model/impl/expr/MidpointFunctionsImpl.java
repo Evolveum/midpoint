@@ -184,17 +184,21 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public OrgType getOrgByOid(String oid) throws ObjectNotFoundException, SchemaException {
-        return repositoryService.getObject(OrgType.class, oid, null, new OperationResult("getOrgByOid")).asObjectable();
+    public OrgType getOrgByOid(String oid) throws SchemaException {
+    	try {
+    		return repositoryService.getObject(OrgType.class, oid, null, new OperationResult("getOrgByOid")).asObjectable();
+    	} catch (ObjectNotFoundException e) {
+    		return null;
+    	}
     }
 
     @Override
-    public OrgType getOrgByName(String name) throws ObjectNotFoundException, SchemaException {
+    public OrgType getOrgByName(String name) throws SchemaException {
         PolyString polyName = new PolyString(name);
         ObjectQuery q = ObjectQueryUtil.createNameQuery(polyName, prismContext);
         List<PrismObject<OrgType>> result = repositoryService.searchObjects(OrgType.class, q, null, new OperationResult("getOrgByName"));
         if (result.isEmpty()) {
-            throw new ObjectNotFoundException("No organizational unit with the name '" + name + "'", name);
+            return null;
         }
         if (result.size() > 1) {
             throw new IllegalStateException("More than one organizational unit with the name '" + name + "' (there are " + result.size() + " of them)");
@@ -203,10 +207,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-	public OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	public OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
     	List<ObjectReferenceType> parentOrgRefs = object.getParentOrgRef();
     	for (ObjectReferenceType parentOrgRef: parentOrgRefs) {
-    		OrgType parentOrg = getObject(OrgType.class, parentOrgRef.getOid());
+    		OrgType parentOrg;
+			try {
+				parentOrg = getObject(OrgType.class, parentOrgRef.getOid());
+			} catch (ObjectNotFoundException e) {
+				return null;
+			}
     		if (orgType == null || parentOrg.getOrgType().contains(orgType)) {
     			return parentOrg;
     		}
