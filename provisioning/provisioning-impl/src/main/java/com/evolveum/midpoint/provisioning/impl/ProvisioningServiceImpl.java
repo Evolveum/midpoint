@@ -1099,11 +1099,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		ObjectFilter filter = null;
 		if (query != null) {
 			filter = ObjectQueryUtil.simplify(query.getFilter());
+			query = query.cloneEmpty();
+			query.setFilter(filter);
 		}
-		query = query.cloneEmpty();
-		query.setFilter(filter);
 		
-		if (filter instanceof NoneFilter) {
+		if (filter != null && filter instanceof NoneFilter) {
 			result.recordSuccessIfUnknown();
 			result.cleanupResult();
 			LOGGER.trace("Finished searching. Nothing to do. Filter is NONE");
