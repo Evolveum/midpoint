@@ -39,6 +39,9 @@ public abstract class LogicalFilter extends ObjectFilter {
 	}
 	
 	public void addCondition(ObjectFilter condition) {
+		if (this.conditions == null) {
+			conditions = new ArrayList<ObjectFilter>();
+		}
 		this.conditions.add(condition);
 	}
 	

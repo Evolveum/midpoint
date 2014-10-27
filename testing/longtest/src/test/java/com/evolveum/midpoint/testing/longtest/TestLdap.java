@@ -25,6 +25,7 @@ import java.io.IOException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.mutable.MutableInt;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.SearchResultEntry;
@@ -38,9 +39,12 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -268,23 +272,54 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test800BigImport() throws Exception {
-		final String TEST_NAME = "test800BigImport";
+    public void test800BigLdapSearch() throws Exception {
+		final String TEST_NAME = "test800BigLdapSearch";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         
-        long ldapPopStart = System.currentTimeMillis();
+        loadEntries("a");
         
-        for(int i=0; i < NUM_LDAP_ENTRIES; i++) {
-        	String name = "user"+i;
-        	Entry entry = createEntry("u"+i, name);
-        	openDJController.addEntry(entry);
-        }
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
         
-        long ldapPopEnd = System.currentTimeMillis();
+        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_OPENDJ_OID, 
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), prismContext);
         
-        display("Loaded "+NUM_LDAP_ENTRIES+" LDAP entries in "+((ldapPopEnd-ldapPopStart)/1000)+" seconds");
+        final MutableInt count = new MutableInt(0);
+        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
+				count.increment();
+				display("Found",shadow);
+				return true;
+			}
+		};
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        assertEquals("Unexpected number of search results", NUM_LDAP_ENTRIES + 8, count.getValue());
+	}
+
+	@Test
+    public void test810BigImport() throws Exception {
+		final String TEST_NAME = "test810BigImport";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        
+        loadEntries("u");
         
         Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
@@ -307,9 +342,23 @@ public class TestLdap extends AbstractModelIntegrationTest {
         
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
-        assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES + 8, userCount);
+        assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
 	}
-	
+
+	private void loadEntries(String prefix) throws LDIFException, IOException {
+        long ldapPopStart = System.currentTimeMillis();
+        
+        for(int i=0; i < NUM_LDAP_ENTRIES; i++) {
+        	String name = "user"+i;
+        	Entry entry = createEntry(prefix+i, name);
+        	openDJController.addEntry(entry);
+        }
+        
+        long ldapPopEnd = System.currentTimeMillis();
+        
+        display("Loaded "+NUM_LDAP_ENTRIES+" LDAP entries in "+((ldapPopEnd-ldapPopStart)/1000)+" seconds");
+	}
+
 	private Entry createEntry(String uid, String name) throws IOException, LDIFException {
 		StringBuilder sb = new StringBuilder();
 		String dn = "uid="+uid+","+openDJController.getSuffixPeople();
