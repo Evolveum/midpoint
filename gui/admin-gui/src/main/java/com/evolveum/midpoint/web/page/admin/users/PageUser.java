@@ -820,6 +820,10 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             subResult.recordFatalError("Couldn't get assignment target ref.", ex);
         }
 
+        if(!subResult.isHandledError()){
+            showResult(subResult);
+        }
+
         return target;
     }
 
