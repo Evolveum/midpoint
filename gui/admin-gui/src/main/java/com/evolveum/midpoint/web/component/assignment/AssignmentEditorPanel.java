@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
@@ -106,6 +107,8 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private static final String ID_CONSTRUCTION_CONTAINER = "constructionContainer";
     private static final String ID_CONTAINER_TENANT_REF = "tenantRefContainer";
     private static final String ID_TENANT_CHOOSER = "tenantRefChooser";
+    private static final String ID_BUTTON_SHOW_MORE = "errorLink";
+    private static final String ID_ERROR_ICON = "errorIcon";
 
     private IModel<List<ACAttributeDto>> attributesModel;
 
@@ -151,6 +154,16 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 createImageTypeModel(new PropertyModel<AssignmentEditorDtoType>(getModel(), AssignmentEditorDto.F_TYPE))));
         headerRow.add(typeImage);
 
+        Label errorIcon = new Label(ID_ERROR_ICON);
+        errorIcon.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return !isTargetValid();
+            }
+        });
+        headerRow.add(errorIcon);
+
         AjaxLink name = new AjaxLink(ID_NAME) {
 
             @Override
@@ -159,6 +172,22 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
             }
         };
         headerRow.add(name);
+
+        AjaxLink errorLink = new AjaxLink(ID_BUTTON_SHOW_MORE) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showErrorPerformed(target);
+            }
+        };
+        errorLink.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return !isTargetValid();
+            }
+        });
+        headerRow.add(errorLink);
 
         Label nameLabel = new Label(ID_NAME_LABEL, createAssignmentNameLabelModel());
         name.add(nameLabel);
@@ -204,6 +233,19 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 return getString("AssignmentEditorPanel.name.noTarget");
             }
         };
+    }
+
+    private boolean isTargetValid(){
+
+        if(getModel() != null && getModel().getObject() != null){
+            AssignmentEditorDto dto = getModelObject();
+
+            if(dto.getName() == null && dto.getAltName() == null){
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
@@ -504,8 +546,14 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
             PrismContext prismContext = getPageBase().getPrismContext();
             RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
                     LayerType.PRESENTATION, prismContext);
-            PrismContainerDefinition definition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent())
-            		.toResourceAttributeContainerDefinition();
+            RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
+
+            if(objectClassDefinition == null){
+                return attributes;
+            }
+
+            PrismContainerDefinition definition = objectClassDefinition.toResourceAttributeContainerDefinition();
+
             if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Refined definition for {}\n{}", construction, definition.debugDump());
 			}
@@ -660,5 +708,10 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 return oid;
             }
         };
+    }
+
+    private void showErrorPerformed(AjaxRequestTarget target){
+        error(getString("AssignmentEditorPanel.targetError"));
+        target.add(getPageBase().getFeedbackPanel());
     }
 }
