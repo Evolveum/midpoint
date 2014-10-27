@@ -528,7 +528,7 @@ public class OrgClosureManager {
 
     // we can safely expect that the object didn't exist before (because the "overwriting add" is sent to us as MODIFY operation)
     private void handleAdd(String oid, List<ReferenceDelta> deltas, Context context, Session session) {
-        handleAdd(oid, getParentOidsFromAddDeltas(deltas, null), context, session);
+        handleAdd(oid, getParentOidsToAdd(deltas, null), context, session);
     }
 
     // parents may be non-existent at this point
@@ -957,8 +957,8 @@ public class OrgClosureManager {
             return;
         }
 
-        Set<String> parentsToDelete = getParentOidsFromDeleteDeltas(modifications, originalObject);
-        Set<String> parentsToAdd = getParentOidsFromAddDeltas(modifications, originalObject);
+        Set<String> parentsToDelete = getParentOidsToDelete(modifications, originalObject);
+        Set<String> parentsToAdd = getParentOidsToAdd(modifications, originalObject);
 
         Collection<String> livingParentsToDelete = retainExistingOids(parentsToDelete, session);
         Collection<String> livingParentsToAdd = retainExistingOids(parentsToAdd, session);
@@ -1151,6 +1151,7 @@ public class OrgClosureManager {
     }
 
     private List<ReferenceDelta> filterParentRefDeltas(Collection<? extends ItemDelta> modifications) {
+        boolean containsAdd = false, containsDelete = false, containsReplace = false;
         List<ReferenceDelta> deltas = new ArrayList<>();
         if (modifications == null) {
             return deltas;
@@ -1160,13 +1161,29 @@ public class OrgClosureManager {
             if (!QNameUtil.match(ObjectType.F_PARENT_ORG_REF, delta.getElementName())) {            // TODO is this OK?
                 continue;
             }
+            if (delta.isAdd()) {
+                containsAdd = true;
+            }
+            if (delta.isDelete()) {
+                containsDelete = true;
+            }
+            if (delta.isReplace()) {
+                if (containsReplace) {
+                    throw new IllegalStateException("Unsupported combination of parentOrgRef operations: more REPLACE ItemDeltas");
+                }
+                containsReplace = true;
+            }
             deltas.add((ReferenceDelta) delta);
+        }
+
+        if (containsReplace && (containsAdd || containsDelete)) {
+            throw new IllegalStateException("Unsupported combination of parentOrgRef operations: REPLACE with either ADD or DELETE");
         }
 
         return deltas;
     }
 
-    private Set<String> getParentOidsFromDeleteDeltas(Collection<? extends ItemDelta> modifications, PrismObject<? extends ObjectType> originalObject) {
+    private Set<String> getParentOidsToDelete(Collection<? extends ItemDelta> modifications, PrismObject<? extends ObjectType> originalObject) {
         Validate.notNull(originalObject);
 
         Set<String> oids = new HashSet<>();
@@ -1174,13 +1191,28 @@ public class OrgClosureManager {
         Set<String> existingOids = getParentOidsFromObject(originalObject);
 
         for (ItemDelta delta : modifications) {
-            if (delta.getValuesToDelete() == null) {
-                continue;
+            if (delta.getValuesToDelete() != null) {
+                for (PrismReferenceValue val : (Collection<PrismReferenceValue>) delta.getValuesToDelete()) {
+                    String oid = val.getOid();
+                    if (existingOids.contains(oid)) {           // if it's not there, we do not want to delete it!
+                        oids.add(oid);
+                    }
+                }
             }
-            for (PrismReferenceValue val : (Collection<PrismReferenceValue>) delta.getValuesToDelete()) {
-                String oid = val.getOid();
-                if (existingOids.contains(oid)) {           // if it's not there, we do not want to delete it!
-                    oids.add(oid);
+            if (delta.getValuesToReplace() != null) {
+                // at this point we can assume this is not mixed with DELETE or ADD deltas
+                // we mark all existing values not present in the new set as being removed!
+                oids = new HashSet<>();     // and we do this for the latest REPLACE ItemDelta
+                for (String existingOid : existingOids) {
+                    boolean found = false;
+                    for (PrismReferenceValue newVal : (Collection<PrismReferenceValue>) delta.getValuesToReplace()) {
+                        if (existingOid.equals(newVal.getOid())) {
+                            found = true; break;
+                        }
+                    }
+                    if (!found) {
+                        oids.add(existingOid);      // if existing OID was not found in values to REPLACE, it should be deleted
+                    }
                 }
             }
         }
@@ -1189,19 +1221,29 @@ public class OrgClosureManager {
     }
 
     // filters out those OIDs that are already present in originalObject (beware, it may be null)
-    private Set<String> getParentOidsFromAddDeltas(Collection<? extends ItemDelta> modifications, PrismObject<? extends ObjectType> originalObject) {
+    private Set<String> getParentOidsToAdd(Collection<? extends ItemDelta> modifications, PrismObject<? extends ObjectType> originalObject) {
         Set<String> oids = new HashSet<>();
 
         Set<String> existingOids = getParentOidsFromObject(originalObject);
 
         for (ItemDelta delta : modifications) {
-            if (delta.getValuesToAdd() == null) {
-                continue;
+            if (delta.getValuesToAdd() != null) {
+                for (PrismReferenceValue val : (Collection<PrismReferenceValue>) delta.getValuesToAdd()) {
+                    String oid = val.getOid();
+                    if (!existingOids.contains(oid)) {          // if it's already there, we don't want to add it
+                        oids.add(oid);
+                    }
+                }
             }
-            for (PrismReferenceValue val : (Collection<PrismReferenceValue>) delta.getValuesToAdd()) {
-                String oid = val.getOid();
-                if (!existingOids.contains(oid)) {          // if it's already there, we don't want to add it
-                    oids.add(oid);
+            if (delta.getValuesToReplace() != null) {
+                // at this point we can assume this is not mixed with DELETE or ADD deltas
+                // we mark all 'new' values in REPLACE delta not present in existing object as being added
+                oids = new HashSet<>();     // and we do this for the latest REPLACE ItemDelta
+                for (PrismReferenceValue val : (Collection<PrismReferenceValue>) delta.getValuesToReplace()) {
+                    String oid = val.getOid();
+                    if (!existingOids.contains(oid)) {          // if it's already there, we don't want to add it
+                        oids.add(oid);
+                    }
                 }
             }
         }
@@ -1215,10 +1257,10 @@ public class OrgClosureManager {
             for (ObjectReferenceType ort : originalObject.asObjectable().getParentOrgRef()) {
                 retval.add(ort.getOid());
             }
-            // is this really necessary?
-            for (OrgType org : originalObject.asObjectable().getParentOrg()) {
-                retval.add(org.getOid());
-            }
+//            // is this really necessary?  (no, and actually, it is harmful)
+//            for (OrgType org : originalObject.asObjectable().getParentOrg()) {
+//                retval.add(org.getOid());
+//            }
         }
         return retval;
     }
