@@ -17,6 +17,7 @@ package com.evolveum.midpoint.task.quartzimpl.cluster;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -36,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import java.util.List;
+
+import org.apache.commons.configuration.Configuration;
 
 /**
  * Responsible for keeping the cluster consistent.
@@ -270,8 +273,20 @@ public class ClusterManager {
 
             // we do not try to determine which one is "newer" - we simply use the one from repo
             if (!versionInRepo.equals(versionApplied)) {
-                LoggingConfigurationType loggingConfig = ProfilingConfigurationManager.checkSystemProfilingConfiguration(config);
-                LoggingConfigurationManager.configure(loggingConfig, versionInRepo, result);
+            	
+            	Configuration systemConfigFromFile = taskManager.getMidpointConfiguration().getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
+            	boolean skip = false;
+            	if (systemConfigFromFile != null && versionApplied == null) {
+            		skip = systemConfigFromFile.getBoolean(LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, false);
+            	}
+            	if (skip) {
+            		LOGGER.warn("Skipping application of repository logging configuration because {}=true (version={})", LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, versionInRepo);
+            		// But pretend that this was applied so the next update works normally
+            		LoggingConfigurationManager.setCurrentlyUsedVersion(versionInRepo);
+            	} else {
+	                LoggingConfigurationType loggingConfig = ProfilingConfigurationManager.checkSystemProfilingConfiguration(config);
+	                LoggingConfigurationManager.configure(loggingConfig, versionInRepo, result);
+            	}
             } else {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("System configuration change check: version in repo = version currently applied = {}", versionApplied);

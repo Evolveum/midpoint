@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.w3c.dom.Document;
 
 public interface MidpointConfiguration {
+	
+	public static final String SYSTEM_CONFIGURATION_SECTION = "midpoint.system";
 	
 	public String getMidpointHome();
 	
