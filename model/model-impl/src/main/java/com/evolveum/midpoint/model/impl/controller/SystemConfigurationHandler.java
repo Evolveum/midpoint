@@ -62,6 +62,7 @@ public class SystemConfigurationHandler implements ChangeHook {
     @Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
+    
     @Autowired(required = true)
     private MidpointConfiguration startupConfiguration;
 
