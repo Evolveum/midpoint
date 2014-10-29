@@ -163,6 +163,11 @@
 					<source>
 						<path>$user/organizationalUnit</path>
 					</source>
+<!-- 					<condition> -->
+<!-- 						<script> -->
+<!-- 							<code>organizationalUnit != null</code> -->
+<!-- 						</script> -->
+<!-- 					</condition> -->
 				</outbound>
 			</attribute>
 			<attribute>

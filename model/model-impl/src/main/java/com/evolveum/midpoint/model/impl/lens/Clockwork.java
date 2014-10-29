@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -459,22 +460,23 @@ public class Clockwork {
 	    		focusContext.setFresh(false);
     		}
     		//remove secondary deltas from other than execution wave - we need to recompute them..
-    		ObjectDelta executionWaveDelta = focusContext.getSecondaryDeltas().get(context.getExecutionWave());
-    		focusContext.getSecondaryDeltas().retainAll(MiscUtil.createCollection(executionWaveDelta));
-//    		for (LensProjectionContext projCtx : context.getProjectionContexts()){
-//    			boolean reconcile = true;
-//    			for (LensObjectDeltaOperation lensDeltaOp : projCtx.getExecutedDeltas()){
-//    				if (lensDeltaOp.getExecutionResult().getStatus() != OperationResultStatus.SUCCESS){
-//    					reconcile = false;
-//    				}
-//    			}
-//    			projCtx.
-//    			projCtx.setDoReconciliation(true);
-//    		}
+    		cleanUpSecondaryDeltas(context);
+    		
+    		
     	}
     	if (rot) {
     		context.setFresh(false);
     	}
+	}
+
+	private <F extends ObjectType> void cleanUpSecondaryDeltas(LensContext<F> context){
+		LensFocusContext focusContext = context.getFocusContext();
+		ObjectDelta executionWaveDelta = focusContext.getSecondaryDeltas().get(context.getExecutionWave());
+		if (context.getExecutionWave() == 0 && !LensUtil.isSyncChannel(context.getChannel()) && focusContext.getSecondaryDeltas().size() > 1) {
+			focusContext.getSecondaryDeltas().retainAll(MiscUtil.createCollection(executionWaveDelta, focusContext.getSecondaryDeltas().get(1)));
+		} else {
+			focusContext.getSecondaryDeltas().retainAll(MiscUtil.createCollection(executionWaveDelta));
+		}
 	}
 	
 	private <P extends ObjectType> boolean isSignificant(ObjectDelta<P> delta) {

@@ -280,17 +280,10 @@ if (basic.stringify(employeeType) == 'T' || basic.stringify(employeeType) == 'R'
 						</expression>
 					</outbound>
 					<inbound>
-						<condition>
-					        <script>
-					            <code>
-					            log.info("========^^^^input {}", input);
-					            input != null
-					            </code>
-					        </script>
-					    </condition>
 						<target>
 							<path>$user/extension/trafo:homedir</path>
 						</target>
+						
 					</inbound>
 				</attribute>
 				<attribute>
@@ -394,7 +387,7 @@ midPoint -->
             </resourceRef>
             <strictness>relaxed</strictness>
              <order>10</order>
-             <forceLoad>true</forceLoad>
+<!--              <forceLoad>true</forceLoad> -->
          </dependency>
 		<iteration>
 			<maxIterations>10</maxIterations>

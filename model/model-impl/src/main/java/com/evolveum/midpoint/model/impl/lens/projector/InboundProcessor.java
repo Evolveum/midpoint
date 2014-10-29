@@ -147,17 +147,6 @@ public class InboundProcessor {
             		LOGGER.trace("Skipping processing of inbound expressions for account {}: no reconciliation and no a priori delta and no dependent context", rat);
             		continue;
             	}
-//                LOGGER.trace("Processing inbound expressions for account {} starting", rat);
-
-//            	/ObjectDelta<ShadowType> accountDelta = accountContext.getDelta()
-            	if (isDeleteAccountDelta(accountContext)){
-            		 //we don't need to do inbound if account was deleted
-            		continue;
-            	}
-//                if (accountDelta != null && ChangeType.DELETE.equals(accountDelta.getChangeType())) {
-//                    //we don't need to do inbound if account was deleted
-//                    continue;
-//                }
 
                 RefinedObjectClassDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
                 if (accountDefinition == null) {
@@ -204,8 +193,10 @@ public class InboundProcessor {
             if (aPrioriDelta != null) {
                 accountAttributeDelta = aPrioriDelta.findPropertyDelta(new ItemPath(SchemaConstants.C_ATTRIBUTES), accountAttributeName);
                 if (accountAttributeDelta == null) {
+                	if (!accContext.isFullShadow()){
                     LOGGER.trace("Skipping inbound for {} in {}: Account a priori delta exists, but doesn't have change for processed property.",
                     		accountAttributeName, accContext.getResourceShadowDiscriminator());
+                	}
                     continue;
                 }
             }
@@ -254,7 +245,7 @@ public class InboundProcessor {
 	            	}
 	            	
 	                PropertyDelta<?> userPropertyDelta = null;
-	                if (aPrioriDelta != null) {
+	                if (aPrioriDelta != null && accountAttributeDelta != null) {
 	                    LOGGER.trace("Processing inbound from a priori delta.");
 	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
 	                    		focus, accountNew, accContext.getResource(), task, result);
@@ -306,6 +297,11 @@ public class InboundProcessor {
 	            }
             }
         }
+        
+        if (isDeleteAccountDelta(accContext)){
+//   		 we don't need to do inbound if account was deleted
+   		return;
+   	}
         processSpecialPropertyInbound(accountDefinition.getCredentialsInbound(), SchemaConstants.PATH_PASSWORD_VALUE,
         		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, task, now, result);
         
@@ -467,9 +463,7 @@ public class InboundProcessor {
 	        
     	} else { // tripple == null
     		
-    		PrismProperty existingItem = account.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
-//    		if (mapping.isSatisfyCondition() && accountAttributeDelta == null &&  (existingItem == null || existingItem.isEmpty())) {
-    			if (accountAttributeDelta == null){
+    			if (accountAttributeDelta == null && LensUtil.isSyncChannel(context.getChannel())){
     			// This is the case of "inbound reconciliation" which is quite special. The tripple returned null
     			// which means that there was nothing in the input and (unsurprisingly) no change. If the input was empty
     			// then we need to make sure that the output (focus property) is also empty. Otherwise we miss the

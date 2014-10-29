@@ -254,8 +254,10 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         assertLinks(userMancomb, 0);
         // Disabled by sync reaction
         assertAdministrativeStatusDisabled(userMancomb);
-        assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
-        assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
+        assertNull("Unexpected valid from in user", userMancomb.asObjectable().getActivation().getValidFrom());
+        assertNull("Unexpected valid to in user", userMancomb.asObjectable().getActivation().getValidTo());
+//        assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
+//        assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
         
         assertNoDummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         

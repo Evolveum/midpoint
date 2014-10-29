@@ -446,6 +446,14 @@ public class LensUtil {
         
     }
 	
+	public static boolean isSyncChannel(String channel){
+		if (channel == null){
+			return false;
+		}
+		
+		return (channel.equals(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI) || channel.equals(SchemaConstants.CHANGE_CHANNEL_RECON_URI));
+	}
+	
 	private static <V extends PrismValue> boolean hasValue(Item<V> item, ItemDelta<V> itemDelta) throws SchemaException {
 		if (item == null || item.isEmpty()) {
 			if (itemDelta != null && itemDelta.addsAnyValue()) {
