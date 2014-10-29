@@ -15,11 +15,11 @@
 	<org oid="00000000-9999-9999-0000-110000100000">
 		<name>ACME</name>
 		<parentOrgRef oid="00000000-9999-9999-0000-110000000000" type="c:OrgType"/>
-		<displayName>ACME, Inc.</displayName>
-		<identifier>C-ACME</identifier>
 		<assignment>
 			<targetRef oid="00000000-9999-9999-0000-110000000000" type="c:OrgType"/>
 		</assignment>
+		<displayName>ACME, Inc.</displayName>
+		<identifier>C-ACME</identifier>
 		<orgType>customer</orgType>
 	</org>
 
@@ -27,11 +27,11 @@
 		<name>AWDP</name>
 		<description>Expanding our secret world domination strategy.</description>
 		<parentOrgRef oid="00000000-9999-9999-0000-110000100000" type="c:OrgType"/>
-		<displayName>Advanced World Domination Program</displayName>
-		<identifier>C-ACME</identifier>
 		<assignment>
 			<targetRef oid="00000000-9999-9999-0000-110000100000" type="c:OrgType"/>
 		</assignment>
+		<displayName>Advanced World Domination Program</displayName>
+		<identifier>C-ACME</identifier>
 		<orgType>customer</orgType>
 	</org>
 
