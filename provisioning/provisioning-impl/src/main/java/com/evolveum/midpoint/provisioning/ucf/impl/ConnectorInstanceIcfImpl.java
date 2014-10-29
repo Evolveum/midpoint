@@ -30,9 +30,16 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DebugUtil;
 
-import org.apache.commons.codec.binary.Base64;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePagedSearchConfigurationType;
+import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -68,6 +75,8 @@ import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.ScriptContext;
+import org.identityconnectors.framework.common.objects.SearchResult;
+import org.identityconnectors.framework.common.objects.SortKey;
 import org.identityconnectors.framework.common.objects.SyncDelta;
 import org.identityconnectors.framework.common.objects.SyncDeltaType;
 import org.identityconnectors.framework.common.objects.SyncResultsHandler;
@@ -1804,11 +1813,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
-
 	@Override
-	public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
-			final ResultHandler<T> handler, AttributesToReturn attributesToReturn, OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, SchemaException {
+    public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
+                                              final ResultHandler<T> handler, AttributesToReturn attributesToReturn,
+                                              ResourcePagedSearchConfigurationType pagedSearchConfigurationType, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException {
 
 		// Result type for this operation
 		final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -1824,32 +1833,36 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType);
 		if (icfObjectClass == null) {
 			IllegalArgumentException ex = new IllegalArgumentException(
-					"Unable to detemine object class from QName " + objectClassDefinition
+					"Unable to determine object class from QName " + objectClassDefinition
 							+ " while attempting to search objects by "
 							+ ObjectTypeUtil.toShortString(connectorType));
-			result.recordFatalError("Unable to detemine object class", ex);
+			result.recordFatalError("Unable to determine object class", ex);
 			throw ex;
 		}
 		final PrismObjectDefinition<T> objectDefinition = toShadowDefinition(objectClassDefinition);
 
+        final boolean useConnectorPaging = RefinedObjectClassDefinition.isPagedSearchEnabled(pagedSearchConfigurationType);
+
+        final Holder<Integer> countHolder = new Holder<>(0);
 
 		ResultsHandler icfHandler = new ResultsHandler() {
-			int count = 0;
 			@Override
 			public boolean handle(ConnectorObject connectorObject) {
 				// Convert ICF-specific connector object to a generic
 				// ResourceObject
-				if (query != null && query.getPaging() != null && query.getPaging().getOffset() != null
-						&& query.getPaging().getMaxSize() != null) {
-					if (count < query.getPaging().getOffset()){
-						count++;
-						return true;
-					}
-					
-					if (count == (query.getPaging().getOffset() + query.getPaging().getMaxSize())) {
-						return false;
-				}
+                int count = countHolder.getValue();
+                countHolder.setValue(count+1);
+                if (!useConnectorPaging) {
+                    if (query != null && query.getPaging() != null && query.getPaging().getOffset() != null
+                            && query.getPaging().getMaxSize() != null) {
+                        if (count < query.getPaging().getOffset()) {
+                            return true;
+                        }
 
+                        if (count == (query.getPaging().getOffset() + query.getPaging().getMaxSize())) {
+                            return false;
+                        }
+                    }
 				}
 				PrismObject<T> resourceObject;
 				try {
@@ -1862,9 +1875,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				boolean cont = handler.handle(resourceObject);
 				if (!cont) {
 					result.recordPartialError("Stopped on request from the handler");
-
 				}
-				count++;
 				return cont;
 			}
 		};
@@ -1874,6 +1885,32 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (attributesToGet != null) {
 			optionsBuilder.setAttributesToGet(attributesToGet);
 		}
+        // preparing paging-related options
+        if (useConnectorPaging && query != null && query.getPaging() != null) {
+            ObjectPaging paging = query.getPaging();
+            if (paging.getOffset() != null) {
+                optionsBuilder.setPagedResultsOffset(paging.getOffset() + 1);       // ConnId API says the numbering starts at 1
+            }
+            if (paging.getMaxSize() != null) {
+                optionsBuilder.setPageSize(paging.getMaxSize());
+            }
+            QName orderBy;
+            boolean isAscending;
+            if (paging.getOrderBy() != null) {
+                orderBy = paging.getOrderBy();
+                if (SchemaConstants.C_NAME.equals(orderBy)) {
+                    orderBy = SchemaConstants.ICFS_NAME;
+                }
+                isAscending = paging.getDirection() != OrderDirection.DESCENDING;
+            } else {
+                orderBy = pagedSearchConfigurationType.getDefaultSortField();
+                isAscending = pagedSearchConfigurationType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
+            }
+            if (orderBy != null) {
+                String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(orderBy, getSchemaNamespace());
+                optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
+            }
+        }
 		OperationOptions options = optionsBuilder.build();
 
 		// Connector operation cannot create result for itself, so we need to
@@ -1884,19 +1921,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		try {
 
-			Filter filter = null;
-			if (query != null && query.getFilter() != null) {
-				// TODO : translation between connector filter and midpoint
-				// filter
-				FilterInterpreter interpreter = new FilterInterpreter(getSchemaNamespace());
-				LOGGER.trace("Start to convert filter: {}", query.getFilter().debugDump());
-				filter = interpreter.interpret(query.getFilter(), icfNameMapper);
+			Filter filter = convertFilterToIcf(query);
 
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("ICF filter: {}", IcfUtil.dump(filter));
-				}
-			}
-			
 			icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
 
 			icfResult.recordSuccess();
@@ -1930,7 +1956,127 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
-	// UTILITY METHODS
+    @Override
+    public int count(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
+                     ResourcePagedSearchConfigurationType pagedSearchConfigurationType, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException {
+
+        // Result type for this operation
+        final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
+                + ".count");
+        result.addParam("objectClass", objectClassDefinition);
+        result.addContext("connector", connectorType);
+
+        if (objectClassDefinition == null) {
+            result.recordFatalError("Object class not defined");
+            throw new IllegalArgumentException("objectClass not defined");
+        }
+
+        ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType);
+        if (icfObjectClass == null) {
+            IllegalArgumentException ex = new IllegalArgumentException(
+                    "Unable to determine object class from QName " + objectClassDefinition
+                            + " while attempting to search objects by "
+                            + ObjectTypeUtil.toShortString(connectorType));
+            result.recordFatalError("Unable to determine object class", ex);
+            throw ex;
+        }
+        final boolean useConnectorPaging = RefinedObjectClassDefinition.isPagedSearchEnabled(pagedSearchConfigurationType);
+        if (!useConnectorPaging) {
+            throw new UnsupportedOperationException("ConnectorInstanceIcfImpl.count operation is supported only in combination with connector-implemented paging");
+        }
+
+        OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+        optionsBuilder.setAttributesToGet(icfNameMapper.convertAttributeNameToIcf(SchemaConstantsGenerated.ICF_S_NAME, getSchemaNamespace()));
+        optionsBuilder.setPagedResultsOffset(1);
+        optionsBuilder.setPageSize(1);
+        if (pagedSearchConfigurationType.getDefaultSortField() != null) {
+            String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(pagedSearchConfigurationType.getDefaultSortField(), getSchemaNamespace());
+            boolean isAscending = pagedSearchConfigurationType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
+            optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
+        }
+        OperationOptions options = optionsBuilder.build();
+
+        // Connector operation cannot create result for itself, so we need to
+        // create result for it
+        OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".search");
+        icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
+        icfResult.addContext("connector", icfConnectorFacade.getClass());
+
+        int retval;
+
+        try {
+
+            Filter filter = convertFilterToIcf(query);
+            final Holder<Integer> fetched = new Holder<>(0);
+
+            ResultsHandler icfHandler = new ResultsHandler() {
+                @Override
+                public boolean handle(ConnectorObject connectorObject) {
+                    fetched.setValue(fetched.getValue()+1);         // actually, this should execute at most once
+                    return false;
+                }
+            };
+            SearchResult searchResult = icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
+
+            if (searchResult == null || searchResult.getRemainingPagedResults() == -1) {
+                throw new UnsupportedOperationException("Connector does not seem to support paged searches or does not provide object count information");
+            } else {
+                retval = fetched.getValue() + searchResult.getRemainingPagedResults();
+            }
+
+            icfResult.recordSuccess();
+        } catch (IntermediateException inex) {
+            SchemaException ex = (SchemaException) inex.getCause();
+            icfResult.recordFatalError(ex);
+            result.recordFatalError(ex);
+            throw ex;
+        } catch (UnsupportedOperationException uoe) {
+            icfResult.recordFatalError(uoe);
+            result.recordFatalError(uoe);
+            throw uoe;
+        } catch (Throwable ex) {
+            Throwable midpointEx = processIcfException(ex, this, icfResult);
+            result.computeStatus();
+            // Do some kind of acrobatics to do proper throwing of checked
+            // exception
+            if (midpointEx instanceof CommunicationException) {
+                throw (CommunicationException) midpointEx;
+            } else if (midpointEx instanceof GenericFrameworkException) {
+                throw (GenericFrameworkException) midpointEx;
+            } else if (midpointEx instanceof SchemaException) {
+                throw (SchemaException) midpointEx;
+            } else if (midpointEx instanceof RuntimeException) {
+                throw (RuntimeException) midpointEx;
+            } else if (midpointEx instanceof Error) {
+                throw (Error) midpointEx;
+            } else {
+                throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+            }
+        }
+
+        if (result.isUnknown()) {
+            result.recordSuccess();
+        }
+
+        return retval;
+    }
+
+    private Filter convertFilterToIcf(ObjectQuery query) throws SchemaException {
+        Filter filter = null;
+        if (query != null && query.getFilter() != null) {
+            FilterInterpreter interpreter = new FilterInterpreter(getSchemaNamespace());
+            LOGGER.trace("Start to convert filter: {}", query.getFilter().debugDump());
+            filter = interpreter.interpret(query.getFilter(), icfNameMapper);
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("ICF filter: {}", IcfUtil.dump(filter));
+            }
+        }
+        return filter;
+    }
+
+    // UTILITY METHODS
 
 	
 
@@ -2449,6 +2595,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
                 } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER
                         .equals(subelementName)) {
                     resultsHandlerConfiguration.setEnableFilteredResultsHandler(parseBoolean(prismProperty));
+                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_FILTERED_RESULTS_HANDLER_IN_VALIDATION_MODE
+                        .equals(subelementName)) {
+                    resultsHandlerConfiguration.setFilteredResultsHandlerInValidationMode(parseBoolean(prismProperty));
                 } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER
                         .equals(subelementName)) {
                     resultsHandlerConfiguration.setEnableCaseInsensitiveFilter(parseBoolean(prismProperty));

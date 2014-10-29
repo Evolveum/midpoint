@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -50,8 +49,10 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     public static final String F_ACTIVATION = "activation";
     public static final String F_RELATION = "relation";
     public static final String F_TENANT_REF = "tenantRef";
+    public static final String F_ALT_NAME = "altName";
 
     private String name;
+    private String altName;
     private AssignmentEditorDtoType type;
     private UserDtoStatus status;
     private AssignmentType oldAssignment;
@@ -88,6 +89,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         this.tenantRef = loadTenantReference(targetObject, assignment, pageBase);
 
         this.name = getNameForTargetObject(targetObject);
+        this.altName = getAlternativeName(assignment);
     }
 
     private ObjectViewDto loadTenantReference(ObjectType object, AssignmentType assignment, PageBase page){
@@ -102,7 +104,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
                 //TODO - show user some error about not loading role tenants of OrgType
                 if(org == null){
-                    dto = new ObjectViewDto();
+                    dto = new ObjectViewDto(ObjectViewDto.BAD_OID);
                     dto.setType(OrgType.class);
                     return dto;
                 }
@@ -146,12 +148,29 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         }
 
         if(object instanceof RoleType){
-            if(tenantRef != null && tenantRef.getOid() != null){
-                builder.append(" - ").append(tenantRef.getName());
+            if(tenantRef != null){
+                if(ObjectViewDto.BAD_OID.equals(tenantRef.getOid())){
+                    builder.append(" - ").append("(tenant not found)");
+                } else if(tenantRef.getOid() != null){
+                    builder.append(" - ").append(tenantRef.getName());
+                }
             }
+
         }
 
         return builder.toString();
+    }
+
+    private String getAlternativeName(AssignmentType assignment){
+        if(assignment == null){
+            return null;
+        }
+
+        if(assignment.getFocusMappings() != null){
+            return "(focus mapping)";
+        }
+
+        return null;
     }
 
     public List<ACAttributeDto> getAttributes() {
@@ -309,5 +328,51 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
     public void setTenantRef(ObjectViewDto<OrgType> tenantRef) {
         this.tenantRef = tenantRef;
+    }
+
+    public String getAltName() {
+        return altName;
+    }
+
+    public void setAltName(String altName) {
+        this.altName = altName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AssignmentEditorDto)) return false;
+
+        AssignmentEditorDto that = (AssignmentEditorDto) o;
+
+        if (minimized != that.minimized) return false;
+        if (showEmpty != that.showEmpty) return false;
+        if (altName != null ? !altName.equals(that.altName) : that.altName != null) return false;
+        if (attributes != null ? !attributes.equals(that.attributes) : that.attributes != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (newAssignment != null ? !newAssignment.equals(that.newAssignment) : that.newAssignment != null)
+            return false;
+        if (oldAssignment != null ? !oldAssignment.equals(that.oldAssignment) : that.oldAssignment != null)
+            return false;
+        if (status != that.status) return false;
+        if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) return false;
+        if (type != that.type) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (altName != null ? altName.hashCode() : 0);
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (oldAssignment != null ? oldAssignment.hashCode() : 0);
+        result = 31 * result + (tenantRef != null ? tenantRef.hashCode() : 0);
+        result = 31 * result + (showEmpty ? 1 : 0);
+        result = 31 * result + (minimized ? 1 : 0);
+        result = 31 * result + (newAssignment != null ? newAssignment.hashCode() : 0);
+        result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
+        return result;
     }
 }

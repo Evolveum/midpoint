@@ -43,8 +43,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
-
 import com.evolveum.midpoint.prism.query.OrFilter;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -77,6 +77,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -173,6 +174,7 @@ public class TestDummy extends AbstractDummyTest {
 	private String williamIcfUid;
 	protected String piratesIcfUid;
 	private String pillageIcfUid;
+    private String bargainIcfUid;
 	private String leChuckIcfUid;
 	private String blackbeardIcfUid;
 	private String drakeIcfUid;
@@ -2410,6 +2412,14 @@ public class TestDummy extends AbstractDummyTest {
                 ACCOUNT_WILL_USERNAME);
     }
 
+    
+    @Test
+	public void test170SearchNone() throws Exception {
+		final String TEST_NAME = "test170SearchNone";
+		TestUtil.displayTestTile(TEST_NAME);
+		ObjectFilter attrFilter = NoneFilter.createNone();
+		testSeachIterative(TEST_NAME, attrFilter, null, true, true, false);
+	}
 
     protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, String attrName, T attrVal,
 			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountIds) throws Exception {
@@ -2703,7 +2713,7 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		PrismObject<ShadowType> priv = prismContext.parseObject(new File(PRIVILEGE_PILLAGE_FILENAME));
+		PrismObject<ShadowType> priv = prismContext.parseObject(PRIVILEGE_PILLAGE_FILE);
 		priv.checkConsistence();
 
 		display("Adding priv", priv);
@@ -2732,10 +2742,11 @@ public class TestDummy extends AbstractDummyTest {
 		checkPrivPillage(privProvisioningType, result);
 		pillageIcfUid = getIcfUid(privProvisioningType);
 
-		// Check if the group was created in the dummy resource
+		// Check if the priv was created in the dummy resource
 
 		DummyPrivilege dummyPriv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("No dummy priv "+PRIVILEGE_PILLAGE_NAME, dummyPriv);
+		assertEquals("Wrong privilege power", (Integer)100, dummyPriv.getAttributeValue(DummyResourceContoller.DUMMY_PRIVILEGE_ATTRIBUTE_POWER, Integer.class));
 
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
@@ -2748,7 +2759,7 @@ public class TestDummy extends AbstractDummyTest {
 		checkConsistency(priv);
 		assertSteadyResource();
 	}
-	
+
 	@Test
 	public void test212GetPriv() throws Exception {
 		final String TEST_NAME = "test212GetPriv";
@@ -2782,13 +2793,81 @@ public class TestDummy extends AbstractDummyTest {
 		PrismAsserts.assertEqualsPolyString("Name not equal.", PRIVILEGE_PILLAGE_NAME, shadow.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.getKind());
 		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
-		assertEquals("Unexpected number of attributes", 2, attributes.size());
+		assertEquals("Unexpected number of attributes", 3, attributes.size());
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_PRIVILEGE_ATTRIBUTE_POWER, 100);
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
 	}
-	
-	@Test
+
+    @Test
+    public void test214AddPrivilegeBargain() throws Exception {
+        final String TEST_NAME = "test214AddPrivilegeBargain";
+        TestUtil.displayTestTile(TEST_NAME);
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        syncServiceMock.reset();
+
+        PrismObject<ShadowType> priv = prismContext.parseObject(new File(PRIVILEGE_BARGAIN_FILENAME));
+        priv.checkConsistence();
+
+        display("Adding priv", priv);
+
+        // WHEN
+        String addedObjectOid = provisioningService.addObject(priv, null, null, task, result);
+
+        // THEN
+        result.computeStatus();
+        display("add object result", result);
+        TestUtil.assertSuccess("addObject has failed (result)", result);
+        assertEquals(PRIVILEGE_BARGAIN_OID, addedObjectOid);
+
+        priv.checkConsistence();
+
+        ShadowType groupRepoType = repositoryService.getObject(ShadowType.class, PRIVILEGE_BARGAIN_OID, null, result)
+                .asObjectable();
+        PrismAsserts.assertEqualsPolyString("Name not equal.", PRIVILEGE_BARGAIN_NAME, groupRepoType.getName());
+        assertEquals("Wrong kind (repo)", ShadowKindType.ENTITLEMENT, groupRepoType.getKind());
+
+        syncServiceMock.assertNotifySuccessOnly();
+
+        ShadowType privProvisioningType = provisioningService.getObject(ShadowType.class,
+                PRIVILEGE_BARGAIN_OID, null, task, result).asObjectable();
+        display("priv from provisioning", privProvisioningType);
+        checkPrivBargain(privProvisioningType, result);
+        bargainIcfUid = getIcfUid(privProvisioningType);
+
+        // Check if the group was created in the dummy resource
+
+        DummyPrivilege dummyPriv = getDummyPrivilegeAssert(PRIVILEGE_BARGAIN_NAME, bargainIcfUid);
+        assertNotNull("No dummy priv "+PRIVILEGE_BARGAIN_NAME, dummyPriv);
+
+        // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
+        PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
+                addedObjectOid, null, result);
+        assertNotNull("Shadow was not created in the repository", shadowFromRepo);
+        display("Repository shadow", shadowFromRepo.debugDump());
+
+        ProvisioningTestUtil.checkRepoEntitlementShadow(shadowFromRepo);
+
+        checkConsistency(priv);
+        assertSteadyResource();
+    }
+
+    private void checkPrivBargain(ShadowType shadow, OperationResult result) {
+        checkEntitlementShadow(shadow, result, OBJECTCLAS_PRIVILEGE_LOCAL_NAME, true);
+        PrismAsserts.assertEqualsPolyString("Name not equal.", PRIVILEGE_BARGAIN_NAME, shadow.getName());
+        assertEquals("Wrong kind (provisioning)", ShadowKindType.ENTITLEMENT, shadow.getKind());
+        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
+        assertEquals("Unexpected number of attributes", 2, attributes.size());
+
+        assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+                shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+    }
+
+
+    @Test
 	public void test220EntitleAccountWillPirates() throws Exception {
 		final String TEST_NAME = "test220EntitleAccountWillPirates";
 		TestUtil.displayTestTile(TEST_NAME);
@@ -2901,8 +2980,56 @@ public class TestDummy extends AbstractDummyTest {
 		
 		assertSteadyResource();
 	}
-	
-	/**
+
+    @Test
+    public void test222bEntitleAccountWillBargain() throws Exception {
+        final String TEST_NAME = "test222bEntitleAccountWillBargain";
+        TestUtil.displayTestTile(TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+                + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        syncServiceMock.reset();
+
+        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
+                dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME),
+                PRIVILEGE_BARGAIN_OID, prismContext);
+        display("ObjectDelta", delta);
+        delta.checkConsistence();
+
+        // WHEN
+        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+                new OperationProvisioningScriptsType(), null, task, result);
+
+        // THEN
+        result.computeStatus();
+        display("modifyObject result", result);
+        TestUtil.assertSuccess(result);
+
+        DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+        assertNotNull("Account will is gone!", dummyAccount);
+        Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+        PrismAsserts.assertSets("account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME);
+
+        // Make sure that privilege object is still there
+        DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
+        assertNotNull("Privilege object (pillage) is gone!", priv);
+        DummyPrivilege priv2 = getDummyPrivilegeAssert(PRIVILEGE_BARGAIN_NAME, bargainIcfUid);
+        assertNotNull("Privilege object (bargain) is gone!", priv2);
+
+        delta.checkConsistence();
+
+        // Make sure that the groups is still there and will is a member
+        DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
+        assertMember(group, getWillRepoIcfName());
+
+        syncServiceMock.assertNotifySuccessOnly();
+
+        assertSteadyResource();
+    }
+
+    /**
 	 * Reads the will accounts, checks that both entitlements are there.
 	 */
 	@Test
@@ -2928,17 +3055,20 @@ public class TestDummy extends AbstractDummyTest {
 		
 		assertEntitlementGroup(account, GROUP_PIRATES_OID);
 		assertEntitlementPriv(account, PRIVILEGE_PILLAGE_OID);
-		
+        assertEntitlementPriv(account, PRIVILEGE_BARGAIN_OID);
+
 		// Just make sure nothing has changed
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
+		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME);
 		
 		// Make sure that privilege object is still there
 		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("Privilege object is gone!", priv);
-		
+        DummyPrivilege priv2 = getDummyPrivilegeAssert(PRIVILEGE_BARGAIN_NAME, bargainIcfUid);
+        assertNotNull("Privilege object (bargain) is gone!", priv2);
+
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, getWillRepoIcfName());
 		
@@ -2982,17 +3112,20 @@ public class TestDummy extends AbstractDummyTest {
 		assertEntitlementGroup(account, GROUP_PIRATES_OID);
 		assertEntitlementGroup(account, foolsShadow.getOid());
 		assertEntitlementPriv(account, PRIVILEGE_PILLAGE_OID);
-		
+        assertEntitlementPriv(account, PRIVILEGE_BARGAIN_OID);
+
 		// Just make sure nothing has changed
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
+		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME);
 		
 		// Make sure that privilege object is still there
 		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("Privilege object is gone!", priv);
-		
+        DummyPrivilege priv2 = getDummyPrivilegeAssert(PRIVILEGE_BARGAIN_NAME, bargainIcfUid);
+        assertNotNull("Privilege object (bargain) is gone!", priv2);
+
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, getWillRepoIcfName());
 		
@@ -3037,12 +3170,14 @@ public class TestDummy extends AbstractDummyTest {
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
+		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME);
 		
 		// Make sure that privilege object is still there
 		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("Privilege object is gone!", priv);
-		
+        DummyPrivilege priv2 = getDummyPrivilegeAssert(PRIVILEGE_BARGAIN_NAME, bargainIcfUid);
+        assertNotNull("Privilege object (bargain) is gone!", priv2);
+
 		syncServiceMock.assertNotifySuccessOnly();
 		assertSteadyResource();
 	}
@@ -3081,7 +3216,7 @@ public class TestDummy extends AbstractDummyTest {
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-		assertTrue("Unexpected account privileges: "+accountProvileges, accountProvileges == null || accountProvileges.isEmpty());
+        PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_BARGAIN_NAME);
 		
 		// Make sure that privilege object is still there
 		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
@@ -3090,8 +3225,54 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 		assertSteadyResource();
 	}
-	
-	/**
+
+    @Test
+    public void test229bDetitleAccountWillBargain() throws Exception {
+        final String TEST_NAME = "test229bDetitleAccountWillBargain";
+        TestUtil.displayTestTile(TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+                + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        syncServiceMock.reset();
+
+        ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
+                dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME),
+                PRIVILEGE_BARGAIN_OID, prismContext);
+        display("ObjectDelta", delta);
+        delta.checkConsistence();
+
+        // WHEN
+        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+                new OperationProvisioningScriptsType(), null, task, result);
+
+        // THEN
+        result.computeStatus();
+        display("modifyObject result", result);
+        TestUtil.assertSuccess(result);
+
+        delta.checkConsistence();
+        DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
+        assertNoMember(group, getWillRepoIcfName());
+
+        // Make sure that account is still there and it has the privilege
+        DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+        assertNotNull("Account will is gone!", dummyAccount);
+        Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+        assertTrue("There are still some privileges", accountProvileges == null || accountProvileges.isEmpty());
+
+        // Make sure that privilege object is still there
+        DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
+        assertNotNull("Privilege object is gone!", priv);
+        DummyPrivilege priv2 = getDummyPrivilegeAssert(PRIVILEGE_BARGAIN_NAME, bargainIcfUid);
+        assertNotNull("Privilege object (bargain) is gone!", priv);
+
+        syncServiceMock.assertNotifySuccessOnly();
+        assertSteadyResource();
+    }
+
+    /**
 	 * LeChuck has both group and priv entitlement. Let's add him together with these entitlements.
 	 */
 	@Test

@@ -21,7 +21,13 @@
             <div class="col-xs-10">
                 <input type="checkbox" wicket:id="selected"/>
                 <i wicket:id="typeImage"></i>
-                <a wicket:id="name"><span wicket:id="nameLabel"/></a>
+                <i class="fa fa-fw fa-exclamation-circle text-danger" wicket:id="errorIcon"></i>
+                <a wicket:id="name">
+                    <span wicket:id="nameLabel"/>
+                </a>
+                <a wicket:id="errorLink" style="font-size: 1em; font-weight: normal;">
+                    <span><wicket:message key="AssignmentEditorPanel.showMore" /></span>
+                </a>
                 <span wicket:id="activation"/>
             </div>
             <div class="col-xs-2 cog"/>

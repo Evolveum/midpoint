@@ -162,6 +162,10 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
             subResult.recordFatalError("Couldn't get assignment target ref.", ex);
         }
 
+        if(!subResult.isHandledError() && !subResult.isSuccess()){
+            getPageBase().showResultInSession(subResult);
+        }
+
         return target;
     }
 

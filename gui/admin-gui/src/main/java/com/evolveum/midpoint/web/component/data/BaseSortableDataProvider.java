@@ -58,15 +58,21 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     private boolean useCache;
 
     public BaseSortableDataProvider(Component component) {
-        this(component, false);
+        this(component, false, true);
     }
 
     public BaseSortableDataProvider(Component component, boolean useCache) {
+        this(component, useCache, true);
+    }
+
+    public BaseSortableDataProvider(Component component, boolean useCache, boolean useDefaultSortingField) {
         Validate.notNull(component, "Component must not be null.");
         this.component = component;
         this.useCache = useCache;
 
-        setSort("name", SortOrder.ASCENDING);
+        if (useDefaultSortingField) {
+            setSort("name", SortOrder.ASCENDING);
+        }
     }
 
     protected ModelService getModel() {
@@ -139,15 +145,19 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 
     protected ObjectPaging createPaging(long first, long count) {
         SortParam sortParam = getSort();
-        OrderDirection order;
-        if (sortParam.isAscending()) {
-            order = OrderDirection.ASCENDING;
-        } else {
-            order = OrderDirection.DESCENDING;
-        }
+        if (sortParam != null) {
+            OrderDirection order;
+            if (sortParam.isAscending()) {
+                order = OrderDirection.ASCENDING;
+            } else {
+                order = OrderDirection.DESCENDING;
+            }
 
-        return ObjectPaging.createPaging(WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count),
-                (String) sortParam.getProperty(), SchemaConstantsGenerated.NS_COMMON, order);
+            return ObjectPaging.createPaging(WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count),
+                    (String) sortParam.getProperty(), SchemaConstantsGenerated.NS_COMMON, order);
+        } else {
+            return ObjectPaging.createPaging(WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count));
+        }
     }
 
     public void clearCache() {

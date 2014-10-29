@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
@@ -867,9 +869,11 @@ public interface MidpointFunctions {
     // however, the syntax of orgType attribute is not standardized
     Collection<String> getOrgUnits(UserType user);
 
-    OrgType getOrgByOid(String oid) throws ObjectNotFoundException, SchemaException;
+    OrgType getOrgByOid(String oid) throws SchemaException;
 
-    OrgType getOrgByName(String name) throws ObjectNotFoundException, SchemaException;
+    OrgType getOrgByName(String name) throws SchemaException;
+    
+    OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
 
     Collection<UserType> getManagersOfOrg(String orgOid) throws SchemaException;
 
@@ -895,6 +899,12 @@ public interface MidpointFunctions {
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, ObjectType target);
 
+    ShadowType getLinkedShadow(FocusType focus, String resourceOid)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    
+    ShadowType getLinkedShadow(FocusType focus, ResourceType resource)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+
+    ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    
     /**
      * Returns aggregated delta that is to be executed on a given resource.
      * @param context model context

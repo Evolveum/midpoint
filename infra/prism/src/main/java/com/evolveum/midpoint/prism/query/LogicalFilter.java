@@ -39,12 +39,17 @@ public abstract class LogicalFilter extends ObjectFilter {
 	}
 	
 	public void addCondition(ObjectFilter condition) {
+		if (this.conditions == null) {
+			conditions = new ArrayList<ObjectFilter>();
+		}
 		this.conditions.add(condition);
 	}
 	
 	public boolean contains(ObjectFilter condition) {
 		return this.conditions.contains(condition);
 	}
+	
+	abstract public LogicalFilter cloneEmpty();
 	
 	protected List<ObjectFilter> getClonedConditions() {
 		if (conditions == null) {
@@ -55,6 +60,10 @@ public abstract class LogicalFilter extends ObjectFilter {
 			clonedConditions.add(connditio.clone());
 		}
 		return clonedConditions;
+	}
+	
+	public boolean isEmpty() {
+		return conditions == null || conditions.isEmpty();
 	}
 
 	@Override

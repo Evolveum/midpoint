@@ -223,4 +223,5 @@ public abstract class SchemaConstants {
     public static final QName APIT_ITEM_LIST = new QName(SchemaConstants.NS_API_TYPES, "itemList");
     public static final QName C_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
 
+    public static final QName C_NAME = new QName(SchemaConstants.NS_C, "name");
 }

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.query.restriction;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
@@ -26,9 +27,12 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
+import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query.definition.PropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.ReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
@@ -50,19 +54,53 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         return false;
     }
 
+    // modelled after PropertyRestriction.interpretInternal, with some differences
     @Override
     public Criterion interpretInternal(RefFilter filter) throws QueryException {
+
+        // let's check the value (null is not supported yet)
         List<? extends PrismValue> values = filter.getValues();
+        if (values.size() > 1) {
+            throw new QueryException("Ref filter '" + filter + "' contain more than one reference value (which is not supported for now).");
+        }
         PrismReferenceValue refValue = null;
         if (values != null && !values.isEmpty()) {
             refValue = (PrismReferenceValue) values.get(0);
         }
-
         if (refValue == null) {
             throw new QueryException("Ref filter '" + filter + "' doesn't contain reference value.");
         }
 
-        String prefix = createPropertyNamePrefix(filter);
+        QueryContext context = getContext();
+
+        ItemPath fullPath = filter.getFullPath();
+        // actually, we cannot look for ReferenceDefinition here, because e.g. linkRef has a CollectionDefinition
+        Definition def = findProperDefinition(fullPath, Definition.class);
+        if (def == null) {
+            throw new QueryException("Definition for " + fullPath + " couldn't be found.");
+        }
+
+        // ugly hacking, todo refactor!
+        StringBuilder sb = new StringBuilder();
+        if (def instanceof ReferenceDefinition) {
+            String alias = context.getAlias(filter.getParentPath());
+            if (StringUtils.isNotEmpty(alias)) {
+                sb.append(alias);
+                sb.append('.');
+            }
+            sb.append(createPropertyOrReferenceNamePrefix(filter.getPath()));          // i'm not sure about this [mederly]
+            String referenceName = def.getJpaName();
+            sb.append(referenceName);
+            sb.append(".");
+        } else {
+            String alias = context.getAlias(filter.getPath());
+            if (StringUtils.isNotEmpty(alias)) {
+                sb.append(alias);
+                sb.append('.');
+            }
+            sb.append(createPropertyOrReferenceNamePrefix(filter.getPath()));          // i'm not sure about this [mederly]
+        }
+        String prefix = sb.toString();
 
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TARGET_OID, refValue.getOid()));
@@ -84,49 +122,6 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
     @Override
     public ReferenceRestriction cloneInstance() {
         return new ReferenceRestriction();
-    }
-
-    private String createPropertyNamePrefix(RefFilter filter) throws QueryException {
-        QueryContext context = getContext();
-
-        ItemPath path = filter.getFullPath();
-
-        StringBuilder sb = new StringBuilder();
-        String alias = context.getAlias(path);
-        if (StringUtils.isNotEmpty(alias)) {
-            sb.append(alias);
-            sb.append('.');
-        }
-
-        List<Definition> definitions = createDefinitionPath(path);
-        ReferenceDefinition refDefinition = getReferenceDefinition(definitions, filter);
-        if (refDefinition.isEmbedded()) {
-            sb.append(refDefinition.getJpaName());
-            sb.append('.');
-        }
-
-        return sb.toString();
-    }
-
-    private ReferenceDefinition getReferenceDefinition(List<Definition> definitions, RefFilter filter)
-            throws QueryException {
-
-        if (definitions.isEmpty()) {
-            throw new QueryException("Can't find reference definition in empty definitions path, filter '"
-                    + filter + "'.");
-        }
-
-        Definition definition = definitions.get(definitions.size() - 1);
-        if (definition instanceof CollectionDefinition) {
-            CollectionDefinition colDef = (CollectionDefinition) definition;
-            definition = colDef.getDefinition();
-        }
-
-        if (!(definition instanceof ReferenceDefinition)) {
-            throw new QueryException("Definition '" + definition + "' is not reference definition.");
-        }
-
-        return (ReferenceDefinition) definition;
     }
 
     private Criterion handleEqOrNull(String propertyName, Object value) {

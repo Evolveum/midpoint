@@ -216,7 +216,10 @@ public class TestVillage extends AbstractStoryTest {
 	private static final String ACCOUNT_MANCOMB_USERNAME = "mancomb";
 	private static final String ACCOUNT_MANCOMB_FIST_NAME = "Mancomb";
 	private static final String ACCOUNT_MANCOMB_LAST_NAME = "Seepgood";
-
+	private static final String ACCOUNT_MANCOMB_LOC = "-";
+	private static final String ACCOUNT_MANCOMB_ORG = "-";
+	private static final String USER_MANCOMB_NAME = ACCOUNT_MANCOMB_FIST_NAME+"."+ACCOUNT_MANCOMB_LAST_NAME;
+	
 	private static final String ACCOUNT_COBB_USERNAME = "cobb";
 	private static final String ACCOUNT_COBB_FIST_NAME = "Cobb";
 	private static final String ACCOUNT_COBB_LAST_NAME = "Loom";
@@ -561,7 +564,7 @@ public class TestVillage extends AbstractStoryTest {
 	}
 	
 	/**
-	 * Wally has no org. Username without an org should be created.
+	 * Wally has no org. User without an org should be created.
 	 */
 	@Test
     public void test120AddSrcAccountWally() throws Exception {
@@ -582,13 +585,107 @@ public class TestVillage extends AbstractStoryTest {
         assertUserNoRole(userAfter, ACCOUNT_WALLY_FIST_NAME, ACCOUNT_WALLY_LAST_NAME, null);
         assertLocGov(userAfter, null, null);
 	}
+
+	@Test
+    public void test121WallyAssignBasicRole() throws Exception {
+		final String TEST_NAME = "test121WallyAssignBasicRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
+        
+        // WHEN
+        assignRole(user.getOid(), ROLE_BASIC_OID);
+        
+        // THEN
+        PrismObject<UserType> userAfter = getUser(user.getOid());
+        assertUserLdap(userAfter, ACCOUNT_WALLY_FIST_NAME, ACCOUNT_WALLY_LAST_NAME, null);
+        assertLocGov(userAfter, null, null);
+	}
+	
+	@Test
+    public void test122WallyUnAssignBasicRole() throws Exception {
+		final String TEST_NAME = "test122WallyUnAssignBasicRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
+        
+        // WHEN
+        unassignRole(user.getOid(), ROLE_BASIC_OID);
+        
+        // THEN
+        PrismObject<UserType> userAfter = getUser(user.getOid());
+        assertUserNoRole(userAfter, ACCOUNT_WALLY_FIST_NAME, ACCOUNT_WALLY_LAST_NAME, null);
+        assertLocGov(userAfter, null, null);
+	}
+
+	/**
+	 * Wally has no org. User without an org should be created.
+	 */
+	@Test
+    public void test130AddSrcAccountMancomb() throws Exception {
+		final String TEST_NAME = "test130AddSrcAccountMancomb";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_MANCOMB_USERNAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_MANCOMB_FIST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, ACCOUNT_MANCOMB_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, ACCOUNT_MANCOMB_LOC);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, ACCOUNT_MANCOMB_ORG);
+		
+        // WHEN
+        dummyResourceSrc.addAccount(newAccount);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        
+        // THEN
+        PrismObject<UserType> userAfter = findUserByUsername(USER_MANCOMB_NAME);
+        assertUserNoRole(userAfter, ACCOUNT_MANCOMB_FIST_NAME, ACCOUNT_MANCOMB_LAST_NAME, null);
+        assertLocGov(userAfter, ACCOUNT_MANCOMB_LOC, ACCOUNT_MANCOMB_ORG);
+	}
+
+	@Test
+    public void test131MancombAssignBasicRole() throws Exception {
+		final String TEST_NAME = "test131WallyAssignBasicRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        PrismObject<UserType> user = findUserByUsername(USER_MANCOMB_NAME);
+        
+        // WHEN
+        assignRole(user.getOid(), ROLE_BASIC_OID);
+        
+        // THEN
+        PrismObject<UserType> userAfter = getUser(user.getOid());
+        assertUserLdap(userAfter, ACCOUNT_MANCOMB_FIST_NAME, ACCOUNT_MANCOMB_LAST_NAME, null);
+        assertLocGov(userAfter, ACCOUNT_MANCOMB_LOC, ACCOUNT_MANCOMB_ORG);
+	}
+	
+	@Test
+    public void test132MancombUnAssignBasicRole() throws Exception {
+		final String TEST_NAME = "test132MancombUnAssignBasicRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        PrismObject<UserType> user = findUserByUsername(USER_MANCOMB_NAME);
+        
+        // WHEN
+        unassignRole(user.getOid(), ROLE_BASIC_OID);
+        
+        // THEN
+        PrismObject<UserType> userAfter = getUser(user.getOid());
+        assertUserNoRole(userAfter, ACCOUNT_MANCOMB_FIST_NAME, ACCOUNT_MANCOMB_LAST_NAME, null);
+        assertLocGov(userAfter, ACCOUNT_MANCOMB_LOC, ACCOUNT_MANCOMB_ORG);
+	}
+
 	
 	/**
 	 * Change of org should trigger rename
 	 */
 	@Test
-    public void test130ModifySrcAccountHermanReplaceOrg() throws Exception {
-		final String TEST_NAME = "test130ModifySrcAccountHermanReplaceOrg";
+    public void test150ModifySrcAccountHermanReplaceOrg() throws Exception {
+		final String TEST_NAME = "test150ModifySrcAccountHermanReplaceOrg";
         TestUtil.displayTestTile(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
@@ -611,8 +708,8 @@ public class TestVillage extends AbstractStoryTest {
 	 * Change of org should trigger rename
 	 */
 	@Test
-    public void test132ModifySrcAccountHermanDeleteOrg() throws Exception {
-		final String TEST_NAME = "test132ModifySrcAccountHermanDeleteOrg";
+    public void test152ModifySrcAccountHermanDeleteOrg() throws Exception {
+		final String TEST_NAME = "test152ModifySrcAccountHermanDeleteOrg";
         TestUtil.displayTestTile(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
@@ -776,7 +873,7 @@ public class TestVillage extends AbstractStoryTest {
 		} else {
 			assertEquals("Wrong costCenter in "+user, userType.getCostCenter(), expOrg+":"+expLoc);
 		}
-		if (expOrg != null) {
+		if (expOrg != null && !expOrg.equals("-")) {
 			PrismObject<OrgType> org = findObjectByName(OrgType.class, expOrg);
 			assertAssigned(user, org.getOid(), OrgType.COMPLEX_TYPE);
 			String orgId = org.asObjectable().getIdentifier();

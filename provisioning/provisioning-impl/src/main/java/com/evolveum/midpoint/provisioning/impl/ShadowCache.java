@@ -774,36 +774,7 @@ public abstract class ShadowCache {
 		// (we do not have raw/noFetch option)
 		InternalMonitor.recordShadowFetchOperation();
 		
-		ObjectFilter filter = null;
-		if (query != null) {
-			filter = query.getFilter();
-		}
-		ObjectQuery attributeQuery = null;
-		List<ObjectFilter> attributeFilter = new ArrayList<ObjectFilter>();
-		
-		if (filter instanceof AndFilter){
-			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
-			attributeFilter = getAttributeQuery(conditions);
-			if (attributeFilter.size() > 1){
-				attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
-			}
-			
-			if (attributeFilter.size() < 1){
-				LOGGER.trace("No attribute filter defined in the query.");
-			}
-			
-			if (attributeFilter.size() == 1){
-				attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.iterator().next());
-			}
-			
-		}
-		
-		if (query != null && query.getPaging() != null){
-			if (attributeQuery == null){
-				attributeQuery = new ObjectQuery();
-			}
-			attributeQuery.setPaging(query.getPaging());
-		}
+        ObjectQuery attributeQuery = createAttributeQuery(query);
 
 		final ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 
@@ -821,7 +792,7 @@ public abstract class ShadowCache {
 						applyAttributesDefinition(repoShadow, resourceType);
 						
 						forceRenameIfNeeded(resourceShadow.asObjectable(), repoShadow.asObjectable(), objectClassDef, parentResult);
-						
+
 						resultShadow = completeShadow(connector, resourceShadow, repoShadow,
 								resourceType, objectClassDef, parentResult);
 
@@ -870,12 +841,50 @@ public abstract class ShadowCache {
 			}
 
 		};
+
+        boolean fetchAssociations = SelectorOptions.hasToLoadPath(ShadowType.F_ASSOCIATION, options);
 		
-		resouceObjectConverter.searchResourceObjects(connector, resourceType, objectClassDef, resultHandler, attributeQuery, parentResult);
+		resouceObjectConverter.searchResourceObjects(connector, resourceType, objectClassDef, resultHandler,
+                attributeQuery, fetchAssociations, parentResult);
 		
 	}
-	
-	private void searchObjectsIterativeRepository(
+
+    ObjectQuery createAttributeQuery(ObjectQuery query) throws SchemaException {
+        ObjectFilter filter = null;
+        if (query != null) {
+            filter = query.getFilter();
+        }
+
+        ObjectQuery attributeQuery = null;
+        List<ObjectFilter> attributeFilter = new ArrayList<ObjectFilter>();
+
+        if (filter instanceof AndFilter){
+            List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
+            attributeFilter = getAttributeQuery(conditions);
+            if (attributeFilter.size() > 1){
+                attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
+            }
+
+            if (attributeFilter.size() < 1){
+                LOGGER.trace("No attribute filter defined in the query.");
+            }
+
+            if (attributeFilter.size() == 1){
+                attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.iterator().next());
+            }
+
+        }
+
+        if (query != null && query.getPaging() != null){
+            if (attributeQuery == null){
+                attributeQuery = new ObjectQuery();
+            }
+            attributeQuery.setPaging(query.getPaging());
+        }
+        return attributeQuery;
+    }
+
+    private void searchObjectsIterativeRepository(
 			RefinedObjectClassDefinition objectClassDef,
 			final ResourceType resourceType, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options,
@@ -1420,7 +1429,7 @@ public abstract class ShadowCache {
 		ShadowType shadowType = shadow.asObjectable();
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
 		if (refinedSchema == null) {
-			throw new ConfigurationException("No schema definied for "+resource);
+			throw new ConfigurationException("No schema defined for "+resource);
 		}
 		
 		
@@ -1512,7 +1521,7 @@ public abstract class ShadowCache {
 		
 		PrismObject<ShadowType> resultShadow = repoShadow.clone();
 		boolean resultIsResourceShadowClone = false;
-		if (resultShadow == null) {
+		if (resultShadow == null) {         // todo how could this happen (see above)? [mederly]
 			resultShadow = resourceShadow.clone();
 			resultIsResourceShadowClone = true;
 		}

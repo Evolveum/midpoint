@@ -462,8 +462,13 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
 
             if (def instanceof EntityDefinition) {
                 lastDefinition = (EntityDefinition) def;
-            } else {
-                lastDefinition = null;
+            } else if (def instanceof CollectionDefinition) {           // todo this seems logical but is it correct? [mederly]
+                def = ((CollectionDefinition) def).getDefinition();
+                if (def instanceof EntityDefinition) {
+                    lastDefinition = ((EntityDefinition) def);
+                } else {
+                    lastDefinition = null;
+                }
             }
         }
 
@@ -542,4 +547,45 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         throw new QueryException("Unknown enum value '" + schemaValue + "', which is type of '"
                 + schemaValue.getClass() + "'.");
     }
+
+    protected String createPropertyOrReferenceNamePrefix(ItemPath path) throws QueryException {
+        StringBuilder sb = new StringBuilder();
+
+        EntityDefinition definition = findProperEntityDefinition(path);
+
+        List<ItemPathSegment> segments = path.getSegments();
+        for (ItemPathSegment segment : segments) {
+            QName qname = ItemPath.getName(segment);
+            if (ObjectType.F_METADATA.equals(qname)) {          // todo not QNameUtil.match? [mederly]
+                continue;
+            }
+
+            // get entity query definition
+            Definition childDef = definition.findDefinition(qname, Definition.class);
+
+            //todo change this if instanceof and use DefinitionHandler [lazyman]
+            if (childDef instanceof EntityDefinition) {
+                EntityDefinition entityDef = (EntityDefinition) childDef;
+                if (entityDef.isEmbedded()) {
+                    // we don't create new sub criteria, just add dot with jpaName
+                    sb.append(entityDef.getJpaName());
+                    sb.append('.');
+                }
+                definition = entityDef;
+            } else if (childDef instanceof CollectionDefinition) {
+                Definition def = ((CollectionDefinition) childDef).getDefinition();
+                if (def instanceof EntityDefinition) {
+                    definition = (EntityDefinition) def;
+                }
+            } else if (childDef instanceof PropertyDefinition || childDef instanceof ReferenceDefinition) {
+                break;
+            } else {
+                throw new QueryException("Not implemented yet. Create property name prefix for segment '"
+                        + segment + "', path '" + path + "'.");
+            }
+        }
+
+        return sb.toString();
+    }
+
 }

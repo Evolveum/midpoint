@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -183,17 +184,21 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public OrgType getOrgByOid(String oid) throws ObjectNotFoundException, SchemaException {
-        return repositoryService.getObject(OrgType.class, oid, null, new OperationResult("getOrgByOid")).asObjectable();
+    public OrgType getOrgByOid(String oid) throws SchemaException {
+    	try {
+    		return repositoryService.getObject(OrgType.class, oid, null, new OperationResult("getOrgByOid")).asObjectable();
+    	} catch (ObjectNotFoundException e) {
+    		return null;
+    	}
     }
 
     @Override
-    public OrgType getOrgByName(String name) throws ObjectNotFoundException, SchemaException {
+    public OrgType getOrgByName(String name) throws SchemaException {
         PolyString polyName = new PolyString(name);
         ObjectQuery q = ObjectQueryUtil.createNameQuery(polyName, prismContext);
         List<PrismObject<OrgType>> result = repositoryService.searchObjects(OrgType.class, q, null, new OperationResult("getOrgByName"));
         if (result.isEmpty()) {
-            throw new ObjectNotFoundException("No organizational unit with the name '" + name + "'", name);
+            return null;
         }
         if (result.size() > 1) {
             throw new IllegalStateException("More than one organizational unit with the name '" + name + "' (there are " + result.size() + " of them)");
@@ -202,6 +207,23 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+	public OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+    	List<ObjectReferenceType> parentOrgRefs = object.getParentOrgRef();
+    	for (ObjectReferenceType parentOrgRef: parentOrgRefs) {
+    		OrgType parentOrg;
+			try {
+				parentOrg = getObject(OrgType.class, parentOrgRef.getOid());
+			} catch (ObjectNotFoundException e) {
+				return null;
+			}
+    		if (orgType == null || parentOrg.getOrgType().contains(orgType)) {
+    			return parentOrg;
+    		}
+    	}
+    	return null;
+	}
+
+	@Override
     public Collection<UserType> getManagersOfOrg(String orgOid) throws SchemaException {
         Set<UserType> retval = new HashSet<UserType>();
         OperationResult result = new OperationResult("getManagerOfOrg");
@@ -473,8 +495,58 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public boolean isDirectlyAssigned(ObjectType target) {
     	return isDirectlyAssigned(target.getOid());
     }
-        
-    public <T> int countAccounts(String resourceOid, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+    
+    @Override
+	public ShadowType getLinkedShadow(FocusType focus, ResourceType resource) throws SchemaException,
+			SecurityViolationException, CommunicationException, ConfigurationException {
+		return getLinkedShadow(focus, resource.getOid());
+	}
+
+	@Override
+	public ShadowType getLinkedShadow(FocusType focus, String resourceOid) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		if (focus == null) {
+			return null;
+		}
+		List<ObjectReferenceType> linkRefs = focus.getLinkRef();
+		for (ObjectReferenceType linkRef: linkRefs) {
+			ShadowType shadowType;
+			try {
+				shadowType = getObject(ShadowType.class, linkRef.getOid());
+			} catch (ObjectNotFoundException e) {
+				// Shadow is gone in the meantime. MidPoint will resolve that by itself.
+				// It is safe to ignore this error in this method.
+				LOGGER.trace("Ignoring shadow "+linkRef.getOid()+" linked in "+focus+" because it no longer exists");
+				continue;
+			}
+			if (shadowType.getResourceRef().getOid().equals(resourceOid)) {
+				return shadowType;
+			}
+		}
+		return null;
+    }
+    
+    @Override
+	public ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		List<ObjectReferenceType> linkRefs = focus.getLinkRef();
+		for (ObjectReferenceType linkRef: linkRefs) {
+			ShadowType shadowType;
+			try {
+				shadowType = getObject(ShadowType.class, linkRef.getOid());
+			} catch (ObjectNotFoundException e) {
+				// Shadow is gone in the meantime. MidPoint will resolve that by itself.
+				// It is safe to ignore this error in this method.
+				LOGGER.trace("Ignoring shadow "+linkRef.getOid()+" linked in "+focus+" because it no longer exists");
+				continue;
+			}
+			if (ShadowUtil.matches(shadowType, resourceOid, kind, intent)) {
+				return shadowType;
+			}
+		}
+		return null;
+	}
+
+	public <T> int countAccounts(String resourceOid, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
     	ResourceType resourceType = modelObjectResolver.getObjectSimple(ResourceType.class, resourceOid, null, null, result);
     	return countAccounts(resourceType, attributeName, attributeValue, result);

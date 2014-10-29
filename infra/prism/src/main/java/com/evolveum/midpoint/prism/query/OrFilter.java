@@ -51,6 +51,11 @@ public class OrFilter extends NaryLogicalFilter {
 	}
 	
 	@Override
+	public OrFilter cloneEmpty() {
+		return new OrFilter(new ArrayList<ObjectFilter>());
+	}
+
+	@Override
 	public String debugDump() {
 		return debugDump(0);
 	}

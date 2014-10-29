@@ -346,7 +346,7 @@ public abstract class DummyObject implements DebugDumpable {
 	}
 	
 	protected String toStringContent() {
-		return "username=" + name + ", attributes=" + attributes + ", enabled=" + enabled;
+		return "name=" + name + ", attributes=" + attributes + ", enabled=" + enabled;
 	}
 
 	@Override

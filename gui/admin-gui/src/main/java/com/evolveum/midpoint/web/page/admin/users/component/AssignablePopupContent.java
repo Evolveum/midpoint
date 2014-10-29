@@ -68,7 +68,7 @@ public class AssignablePopupContent extends BasePanel {
     public AssignablePopupContent(String id) {
         super(id, null);
 
-        searchModel = new LoadableModel<AssignmentSearchDto>(false) {
+        searchModel = new LoadableModel<AssignmentSearchDto>() {
 
             @Override
             protected AssignmentSearchDto load() {

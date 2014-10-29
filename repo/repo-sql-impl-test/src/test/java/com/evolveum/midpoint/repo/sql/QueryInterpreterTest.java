@@ -548,6 +548,42 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void queryUserAssignmentTargetRef() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RUser.class, "u");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("u", projections, false);
+            main.setProjection(projections);
+
+            Criteria a = main.createCriteria("assignments", "a", JoinType.LEFT_OUTER_JOIN);
+            Conjunction c0 = Restrictions.conjunction();
+            c0.add(Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS));
+            Conjunction c1 = Restrictions.conjunction();
+            c1.add(Restrictions.eq("a.targetRef.targetOid", "123"));
+            c1.add(Restrictions.eq("a.targetRef.type", RObjectType.ROLE));
+            c0.add(c1);
+            a.add(c0);
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            ObjectReferenceType ort = new ObjectReferenceType();
+            ort.setOid("123");
+            ort.setType(RoleType.COMPLEX_TYPE);
+            RefFilter filter = RefFilter.createReferenceEqual(
+                    new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
+                    UserType.class, prismContext, ort.asReferenceValue());
+            String real = getInterpretedQuery(session, UserType.class, ObjectQuery.createObjectQuery(filter));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+
+    @Test
     public void queryTrigger() throws Exception {
         final Date NOW = new Date();
 

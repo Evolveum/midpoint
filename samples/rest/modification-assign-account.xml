@@ -15,10 +15,9 @@
   ~ limitations under the License.
   -->
 
-<!-- Object modification description that is changing user "jack" by adding 
-	a new account -->
+<!-- Object modification description that is changing a user by adding a new account -->
 
-<objectDelta
+<objectModification
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
@@ -33,4 +32,4 @@
 				</c:construction>
 		</t:value>
 	</itemDelta>
-</objectDelta>
+</objectModification>

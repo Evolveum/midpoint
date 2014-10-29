@@ -598,7 +598,7 @@ public class SchemaHandlingStep extends WizardStep {
                 new PropertyModel<List<ResourceObjectTypeDependencyType>>(model, SchemaHandlingDto.F_SELECTED + ".dependency"));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer(), getPageBase().getFeedbackPanel());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void iterationEditPerformed(AjaxRequestTarget target){
@@ -606,7 +606,7 @@ public class SchemaHandlingStep extends WizardStep {
                 new PropertyModel<IterationSpecificationType>(model, SchemaHandlingDto.F_SELECTED + ".iteration"));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer(), getPageBase().getFeedbackPanel());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void protectedEditPerformed(AjaxRequestTarget target){
@@ -614,7 +614,7 @@ public class SchemaHandlingStep extends WizardStep {
                 new PropertyModel<List<ResourceObjectPatternType>>(model, SchemaHandlingDto.F_SELECTED + "._protected"));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer(), getPageBase().getFeedbackPanel());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void activationEditPerformed(AjaxRequestTarget target){
@@ -622,7 +622,7 @@ public class SchemaHandlingStep extends WizardStep {
                 new PropertyModel<ResourceActivationDefinitionType>(model, SchemaHandlingDto.F_SELECTED + ".activation"));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer(), getPageBase().getFeedbackPanel());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void credentialsEditPerformed(AjaxRequestTarget target){
@@ -630,20 +630,20 @@ public class SchemaHandlingStep extends WizardStep {
                 new PropertyModel<ResourceCredentialsDefinitionType>(model, SchemaHandlingDto.F_SELECTED + ".credentials"));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer(), getPageBase().getFeedbackPanel());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
     }
 
-    private void editAttributePerformed(AjaxRequestTarget target, ResourceAttributeDefinitionType object){
+    private void editAttributePerformed(AjaxRequestTarget target, final ResourceAttributeDefinitionType object){
         if(model.getObject().getSelected() != null && model.getObject().getSelected().getObjectClass() != null){
             WebMarkupContainer newContainer = new ResourceAttributeEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
                     model.getObject().getSelected(), resourceModel.getObject());
             getThirdRowContainer().replaceWith(newContainer);
 
-            target.add(getThirdRowContainer());
+            target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR));
         } else {
             warn(getString("SchemaHandlingStep.message.selectObjectClassAttr"));
             getThirdRowContainer().replaceWith(new WebMarkupContainer(ID_THIRD_ROW_CONTAINER));
-            target.add(getPageBase().getFeedbackPanel(), getThirdRowContainer());
+            target.add(getPageBase().getFeedbackPanel(), get(ID_OBJECT_TYPE_EDITOR), getThirdRowContainer());
         }
     }
 
@@ -653,11 +653,11 @@ public class SchemaHandlingStep extends WizardStep {
                     model.getObject().getSelected(), resourceModel.getObject());
             getThirdRowContainer().replaceWith(newContainer);
 
-            target.add(getThirdRowContainer(), getPageBase().getFeedbackPanel());
+            target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
         } else {
             warn(getString("SchemaHandlingStep.message.selectObjectClassAss"));
             getThirdRowContainer().replaceWith(new WebMarkupContainer(ID_THIRD_ROW_CONTAINER));
-            target.add(getPageBase().getFeedbackPanel(), getThirdRowContainer());
+            target.add(getPageBase().getFeedbackPanel(), get(ID_OBJECT_TYPE_EDITOR), getThirdRowContainer());
         }
     }
 
@@ -672,6 +672,8 @@ public class SchemaHandlingStep extends WizardStep {
         OperationResult result = new OperationResult(OPERATION_SAVE_SCHEMA_HANDLING);
         ModelService modelService = getPageBase().getModelService();
         ObjectDelta delta;
+
+        removeEmptyContainers(newResource);
 
         try{
             oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, getPageBase());
@@ -701,6 +703,15 @@ public class SchemaHandlingStep extends WizardStep {
     private void editObjectTypePerformed(AjaxRequestTarget target, ResourceObjectTypeDefinitionTypeDto objectType){
         resetSelected();
         objectType.setSelected(true);
+
+        if(objectType.getObjectType().getAssociation().isEmpty()){
+            objectType.getObjectType().getAssociation().add(new ResourceObjectAssociationType());
+        }
+
+        if(objectType.getObjectType().getAttribute().isEmpty()){
+            objectType.getObjectType().getAttribute().add(new ResourceAttributeDefinitionType());
+        }
+
         model.getObject().setSelected(objectType.getObjectType());
 
         insertEmptyThirdRow();
@@ -742,5 +753,42 @@ public class SchemaHandlingStep extends WizardStep {
         model.getObject().getObjectTypeList().add(dto);
         insertEmptyThirdRow();
         target.add(getObjectListTable(), getNavigator(), getObjectTypeEditor(), getThirdRowContainer());
+    }
+
+    private void removeEmptyContainers(PrismObject<ResourceType> resourcePrism){
+        if(resourcePrism == null){
+            return;
+        }
+
+        ResourceType resource = resourcePrism.asObjectable();
+
+        if(resource != null && resource.getSchemaHandling() != null){
+            SchemaHandlingType schemaHandling = resource.getSchemaHandling();
+
+            for(ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()){
+
+                //Clear obsolete containers from attributes
+                List<ResourceAttributeDefinitionType> newAttributeList = new ArrayList<>();
+                newAttributeList.addAll(objectType.getAttribute());
+                for(ResourceAttributeDefinitionType attribute: objectType.getAttribute()){
+                    if(attribute.getRef() == null){
+                        newAttributeList.remove(attribute);
+                    }
+                }
+                objectType.getAttribute().clear();
+                objectType.getAttribute().addAll(newAttributeList);
+
+                //Clear obsolete containers from associations
+                List<ResourceObjectAssociationType> newAssociationList = new ArrayList<>();
+                newAssociationList.addAll(objectType.getAssociation());
+                for(ResourceObjectAssociationType association: objectType.getAssociation()){
+                    if(association.getKind() == null){
+                        newAssociationList.remove(association);
+                    }
+                }
+                objectType.getAssociation().clear();
+                objectType.getAssociation().addAll(newAssociationList);
+            }
+        }
     }
 }

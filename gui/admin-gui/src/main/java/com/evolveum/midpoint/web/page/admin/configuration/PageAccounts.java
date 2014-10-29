@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -38,14 +39,17 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromFile;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AccountDetailsSearchDto;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -72,6 +76,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.file.File;
 import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.validation.IValidatable;
@@ -102,6 +107,7 @@ public class PageAccounts extends PageAdminConfiguration {
     private static final String OPERATION_GET_TOTALS = DOT_CLASS + "getTotals";
     private static final String OPERATION_GET_INTENTS = DOT_CLASS + "getResourceIntentList";
     private static final String OPERATION_GET_OBJECT_CLASS = DOT_CLASS + "getResourceObjectClassList";
+    private static final String OPERATION_LOAD_ACCOUNT_OWNER = DOT_CLASS + "loadAccountOwner";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_FORM_ACCOUNT = "accountForm";
@@ -135,7 +141,7 @@ public class PageAccounts extends PageAdminConfiguration {
     private LoadableModel<List<String>> filesModel;
     private IModel<AccountDetailsSearchDto> searchModel;
 
-    private IModel<ResourceItemDto> resourceModel = new Model<ResourceItemDto>();
+    private IModel<ResourceItemDto> resourceModel = new Model<>();
     private LoadableModel<Integer> totalModel;
     private LoadableModel<Integer> deletedModel;
     private LoadableModel<Integer> unmatchedModel;
@@ -195,7 +201,7 @@ public class PageAccounts extends PageAdminConfiguration {
         });
         add(searchForm);
 
-        DropDownChoice<ResourceItemDto> resources = new DropDownChoice<ResourceItemDto>(
+        DropDownChoice<ResourceItemDto> resources = new DropDownChoice<>(
                 ID_RESOURCES, resourceModel, resourcesModel,
                 new IChoiceRenderer<ResourceItemDto>() {
 
@@ -479,12 +485,13 @@ public class PageAccounts extends PageAdminConfiguration {
 
             @Override
             protected Integer load() {
-//                ObjectFilter resourceFilter = createResourceQueryFilter();
-                ObjectFilter resourceFilter = createObjectQuery().getFilter();
+                ObjectFilter resourceFilter = createResourceQueryFilter();
 
                 if (resourceFilter == null) {
                     return 0;
                 }
+
+                ObjectFilter filter = createObjectQuery().getFilter();
 
                 Collection<SelectorOptions<GetOperationOptions>> options =
                         SelectorOptions.createCollection(GetOperationOptions.createRaw());
@@ -494,7 +501,7 @@ public class PageAccounts extends PageAdminConfiguration {
                     EqualFilter situationFilter = EqualFilter.createEqual(ShadowType.F_SYNCHRONIZATION_SITUATION, ShadowType.class,
                             getPrismContext(), null, situation);
 
-                    AndFilter andFilter = AndFilter.createAnd(resourceFilter, situationFilter);
+                    AndFilter andFilter = AndFilter.createAnd(filter, situationFilter);
                     ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
 
                     return getModelService().countObjects(ShadowType.class, query, options, task, result);
@@ -520,11 +527,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
                         @Override
                         public boolean accept(java.io.File dir, String name) {
-                            if (name.endsWith("xml")) {
-                                return true;
-                            }
-
-                            return false;
+                            return name.endsWith("xml");
                         }
                     });
                 } catch (Exception ex) {
@@ -590,18 +593,37 @@ public class PageAccounts extends PageAdminConfiguration {
 
         columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.oid"),
                 SelectableBean.F_VALUE + ".oid"));
-        columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.name"),
+        columns.add(new PropertyColumn<>(createStringResource("PageAccounts.accounts.name"),
                 ShadowType.F_NAME.getLocalPart(), SelectableBean.F_VALUE + ".name"));
-        columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.kind"),
+        columns.add(new PropertyColumn<>(createStringResource("PageAccounts.accounts.kind"),
                 ShadowType.F_KIND.getLocalPart(), SelectableBean.F_VALUE + ".kind"));
-        columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.intent"),
+        columns.add(new PropertyColumn<>(createStringResource("PageAccounts.accounts.intent"),
                 ShadowType.F_INTENT.getLocalPart(), SelectableBean.F_VALUE + ".intent"));
         columns.add(new PropertyColumn<QName, String>(createStringResource("PageAccounts.accounts.objectClass"),
                 ShadowType.F_OBJECT_CLASS.getLocalPart(), SelectableBean.F_VALUE + ".objectClass.localPart"));
-        columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.synchronizationSituation"),
+        columns.add(new PropertyColumn<>(createStringResource("PageAccounts.accounts.synchronizationSituation"),
                 ShadowType.F_SYNCHRONIZATION_SITUATION.getLocalPart(), SelectableBean.F_VALUE + ".synchronizationSituation"));
-        columns.add(new PropertyColumn(createStringResource("PageAccounts.accounts.synchronizationTimestamp"),
+        columns.add(new PropertyColumn<>(createStringResource("PageAccounts.accounts.synchronizationTimestamp"),
                 ShadowType.F_SYNCHRONIZATION_TIMESTAMP.getLocalPart(), SelectableBean.F_VALUE + ".synchronizationTimestamp"));
+        columns.add(new LinkColumn<SelectableBean>(createStringResource("PageAccounts.accounts.owner")){
+
+            @Override
+            protected IModel<String> createLinkModel(final IModel<SelectableBean> rowModel){
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        UserType user = loadShadowOwner(rowModel);
+                        return WebMiscUtil.getName(user);
+                    }
+                };
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean> rowModel) {
+                ownerDetailsPerformed(target, rowModel);
+            }
+        });
 
         return columns;
     }
@@ -614,10 +636,8 @@ public class PageAccounts extends PageAdminConfiguration {
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
         String oid = dto.getOid();
         try {
-            RefFilter resourceRef = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
+            return RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
                     getPrismContext(), oid);
-
-            return resourceRef;
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't create query", ex);
             error("Couldn't create query, reason: " + ex.getMessage());
@@ -633,7 +653,7 @@ public class PageAccounts extends PageAdminConfiguration {
     }
 
     private List<ResourceItemDto> loadResources() {
-        List<ResourceItemDto> resources = new ArrayList<ResourceItemDto>();
+        List<ResourceItemDto> resources = new ArrayList<>();
 
         OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
         try {
@@ -720,7 +740,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
         TablePanel table = getAccountsTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
-        provider.setQuery(ObjectQuery.createObjectQuery(createResourceQueryFilter()));
+        provider.setQuery(createObjectQuery());
         table.getDataTable().setCurrentPage(0);
 
         refreshEverything(target);
@@ -917,7 +937,9 @@ public class PageAccounts extends PageAdminConfiguration {
         AndFilter searchFilter;
         if(!filters.isEmpty()){
             searchFilter = AndFilter.createAnd(filters);
-            query.setFilter(AndFilter.createAnd(searchFilter, createResourceQueryFilter()));
+
+            ObjectFilter resourceFilter = createResourceQueryFilter();
+            query.setFilter(resourceFilter != null ? AndFilter.createAnd(searchFilter, resourceFilter) : searchFilter);
         } else {
             query.setFilter(createResourceQueryFilter());
         }
@@ -943,5 +965,59 @@ public class PageAccounts extends PageAdminConfiguration {
         target.add(getTotalsPanel());
         target.add(getSearchPanel());
         target.add(getAccountsContainer());
+    }
+
+    private UserType loadShadowOwner(IModel<SelectableBean> model){
+        UserType user = null;
+
+        if(model == null || model.getObject() == null || model.getObject().getValue() == null){
+            return null;
+        }
+
+        ShadowType shadow = (ShadowType)model.getObject().getValue();
+        String shadowOid;
+        if(shadow != null){
+            shadowOid = shadow.getOid();
+        } else {
+            return null;
+        }
+
+        Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT_OWNER);
+        OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNT_OWNER);
+
+        try {
+            PrismObject<UserType> prismUser = getModelService().findShadowOwner(shadowOid, task, result);
+
+            if(prismUser != null){
+                user = prismUser.asObjectable();
+            }
+        } catch (ObjectNotFoundException exception){
+            //owner was not found, it's possible and it's ok on unlinked accounts
+        } catch (Exception ex){
+            result.recordFatalError(getString("PageAccounts.message.ownerNotFound", shadowOid), ex);
+            LoggingUtils.logException(LOGGER, "Could not load owner of account with oid: " + shadowOid, ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        if(WebMiscUtil.showResultInPage(result)){
+            showResultInSession(result);
+        }
+
+        return user;
+    }
+
+    private void ownerDetailsPerformed(AjaxRequestTarget target, IModel<SelectableBean> model){
+        UserType user = loadShadowOwner(model);
+
+        if(user == null){
+            error(getString("PageAccounts.message.cantShowOwner"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, user.getOid());
+        setResponsePage(PageUser.class, parameters);
     }
 }

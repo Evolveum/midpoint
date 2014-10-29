@@ -62,8 +62,11 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
 
                 if(dto.getName() != null)
                     return getModel().getObject().getName();
-                else
+                else if(ObjectViewDto.BAD_OID.equals(dto.getOid())){
+                    return createStringResource("chooseTypePanel.ObjectNameValue.badOid").getString();
+                } else {
                     return createStringResource("chooseTypePanel.ObjectNameValue.null").getString();
+                }
             }
         });
         name.setOutputMarkupId(true);

@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -44,7 +43,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -78,7 +76,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -100,7 +97,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisionin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIdentifiersType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
@@ -191,8 +187,17 @@ public class ResourceObjectConverter {
 			}
 			
 			final ResourceAttribute<?> finalSecondaryIdentifier = secondaryIdentifier;
-			
-			ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()), secondaryIdentifierDef, secondaryIdentifier.getValue());
+
+            List<PrismPropertyValue> secondaryIdentifierValues = (List) secondaryIdentifier.getValues();
+            PrismPropertyValue secondaryIdentifierValue;
+            if (secondaryIdentifierValues.size() > 1) {
+                throw new IllegalStateException("Secondary identifier has more than one value: " + secondaryIdentifier.getValues());
+            } else if (secondaryIdentifierValues.size() == 1) {
+                secondaryIdentifierValue = secondaryIdentifierValues.get(0);
+            } else {
+                secondaryIdentifierValue = null;
+            }
+			ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()), secondaryIdentifierDef, secondaryIdentifierValue);
 			ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 //			query.setFilter(filter);
 			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<PrismObject<ShadowType>>();
@@ -207,12 +212,12 @@ public class ResourceObjectConverter {
 				}
 			};
 			try {
-				connector.search(objectClassDefinition, query, handler, attributesToReturn, parentResult);
+				connector.search(objectClassDefinition, query, handler, attributesToReturn, null, parentResult);
 				if (shadowHolder.isEmpty()) {
 					throw new ObjectNotFoundException("No object found for secondary identifier "+secondaryIdentifier);
 				}
 				PrismObject<ShadowType> shadow = shadowHolder.getValue();
-				return postProcessResourceObjectRead(connector, resource, shadow, objectClassDefinition, parentResult);
+				return postProcessResourceObjectRead(connector, resource, shadow, objectClassDefinition, true, parentResult);
 			} catch (GenericFrameworkException e) {
 				throw new GenericConnectorException(e.getMessage(), e);
 			}
@@ -741,16 +746,17 @@ public class ResourceObjectConverter {
 
 	public void searchResourceObjects(final ConnectorInstance connector, 
 			final ResourceType resourceType, final RefinedObjectClassDefinition objectClassDef,
-			final ResultHandler<ShadowType> resultHandler, ObjectQuery query, final OperationResult parentResult) throws SchemaException,
+			final ResultHandler<ShadowType> resultHandler, ObjectQuery query, final boolean fetchAssociations,
+            final OperationResult parentResult) throws SchemaException,
 			CommunicationException, ObjectNotFoundException, ConfigurationException {
 		
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(objectClassDef, resourceType);
-		
+
 		ResultHandler<ShadowType> innerResultHandler = new ResultHandler<ShadowType>() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
 				try {
-					shadow = postProcessResourceObjectRead(connector, resourceType, shadow, objectClassDef, parentResult);
+					shadow = postProcessResourceObjectRead(connector, resourceType, shadow, objectClassDef, fetchAssociations, parentResult);
 				} catch (SchemaException e) {
 					throw new TunnelException(e);
 				} catch (CommunicationException e) {
@@ -763,7 +769,7 @@ public class ResourceObjectConverter {
 		};
 		
 		try {
-			connector.search(objectClassDef, query, innerResultHandler, attributesToReturn, parentResult);
+			connector.search(objectClassDef, query, innerResultHandler, attributesToReturn, objectClassDef.getPagedSearches(), parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new SystemException("Generic error in the connector: " + e.getMessage(), e);
@@ -834,7 +840,7 @@ public class ResourceObjectConverter {
 			
 			PrismObject<ShadowType> resourceObject = connector.fetchObject(ShadowType.class, objectClassDefinition, identifiers,
 					attributesToReturn, parentResult);
-			return postProcessResourceObjectRead(connector, resource, resourceObject, objectClassDefinition, parentResult);
+			return postProcessResourceObjectRead(connector, resource, resourceObject, objectClassDefinition, true, parentResult);   // todo consider whether it is always necessary to fetch the entitlements
 		} catch (ObjectNotFoundException e) {
 			parentResult.recordFatalError(
 					"Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
@@ -1213,7 +1219,7 @@ public class ResourceObjectConverter {
 				}
 			} else {
 				PrismObject<ShadowType> currentShadow = postProcessResourceObjectRead(connector, resource, change.getCurrentShadow(), 
-						objectClass, parentResult);
+						objectClass, true, parentResult);
 				change.setCurrentShadow(currentShadow);
 			}
 		}
@@ -1227,7 +1233,8 @@ public class ResourceObjectConverter {
 	 * Process simulated activation, credentials and other properties that are added to the object by midPoint. 
 	 */
 	private PrismObject<ShadowType> postProcessResourceObjectRead(ConnectorInstance connector, ResourceType resourceType,
-			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException {
+			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, boolean fetchAssociations,
+            OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException {
 		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
 		setProtectedFlag(resourceType, objectClassDefinition, resourceObject);
@@ -1249,7 +1256,9 @@ public class ResourceObjectConverter {
 		}
 		
 		// Entitlements
-		entitlementConverter.postProcessEntitlementsRead(connector, resourceType, resourceObject, objectClassDefinition, parentResult);
+        if (fetchAssociations) {
+            entitlementConverter.postProcessEntitlementsRead(connector, resourceType, resourceObject, objectClassDefinition, parentResult);
+        }
 		
 		return resourceObject;
 	}

@@ -96,7 +96,14 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 
 	}
 
-	public static RefFilter createReferenceEqual(ItemPath path, PrismContainerDefinition containerDef, String... oids) {
+    public static <O extends Objectable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
+                                                                        PrismReferenceValue... values) throws SchemaException {
+        PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
+        return createReferenceEqual(path, refDefinition, values);
+    }
+
+
+    public static RefFilter createReferenceEqual(ItemPath path, PrismContainerDefinition containerDef, String... oids) {
 		ItemDefinition itemDef = findItemDefinition(path, containerDef);
 		
 		if (!(itemDef instanceof PrismReferenceDefinition)){

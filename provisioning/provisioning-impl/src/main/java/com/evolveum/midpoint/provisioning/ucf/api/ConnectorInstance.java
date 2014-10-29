@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePagedSearchConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.util.Collection;
@@ -174,11 +175,34 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
 	 */
-	public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-			ResultHandler<T> handler, AttributesToReturn attributesToReturn, OperationResult parentResult) 
-			throws CommunicationException, GenericFrameworkException, SchemaException;
+    public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
+                                              ResultHandler<T> handler, AttributesToReturn attributesToReturn,
+                                              ResourcePagedSearchConfigurationType pagedSearchConfigurationType,
+                                              OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException;
 
-	/**
+    /**
+     * Counts objects on resource.
+     *
+     * This method will count objects on the resource by executing a paged search operation,
+     * returning the "estimated objects count" information.
+     *
+     * If paging is not available, it throws an exception.
+     *
+     * @param objectClassDefinition
+     * @param query
+     * @param pagedSearchConfigurationType
+     * @param parentResult
+     * @throws CommunicationException
+     * @throws SchemaException
+     * @throws java.lang.UnsupportedOperationException
+     */
+    public int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
+                     ResourcePagedSearchConfigurationType pagedSearchConfigurationType,
+                     OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException;
+
+    /**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
 	 * and what were not determined.
 	 * 

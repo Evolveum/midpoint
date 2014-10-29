@@ -18,7 +18,13 @@ package com.evolveum.midpoint.web.component.wizard;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.wizard.resource.component.WizardHelpDialog;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.wizard.IWizardStep;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -35,6 +41,8 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
 
     private static final String ID_LINK = "link";
     private static final String ID_LABEL = "label";
+    private static final String ID_BUTTON_HELP = "help";
+    private static final String ID_HELP_MODAL = "helpModal";
 
     public WizardSteps(String id, IModel<List<WizardStepDto>> model) {
         super(id, model);
@@ -48,14 +56,14 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
             protected void populateItem(ListItem<WizardStepDto> item) {
                 final WizardStepDto dto = item.getModelObject();
                 Label label = new Label(ID_LABEL, createLabelModel(dto.getName()));
-                label.setRenderBodyOnly(true);
                 item.add(label);
 
                 item.add(new VisibleEnableBehaviour() {
 
                     @Override
                     public boolean isEnabled() {
-                        return dto.isEnabled();
+//                        return dto.isEnabled();
+                        return true;
                     }
 
                     @Override
@@ -64,6 +72,7 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
                     }
                 });
 
+
                 item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
 
                     @Override
@@ -71,9 +80,42 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
                         return dto.isActive() ? "current" : null;
                     }
                 }));
+
+                item.add(new AjaxEventBehavior("onclick") {
+
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                        changeStepPerformed(target, dto);
+                    }
+                });
             }
         };
         add(link);
+
+        AjaxLink help = new AjaxLink(ID_BUTTON_HELP) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showHelpPerformed(target);
+            }
+        };
+        add(help);
+
+        initModals();
+    }
+
+    private void initModals(){
+        ModalWindow helpWindow = new WizardHelpDialog(ID_HELP_MODAL, getActiveStep());
+        add(helpWindow);
+    }
+
+    public void updateModal(){
+        WizardHelpDialog window = (WizardHelpDialog)get(ID_HELP_MODAL);
+
+        if(window != null){
+            AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class);
+            window.updateModal(target ,getActiveStep());
+        }
     }
 
     private IModel<String> createLabelModel(final String key) {
@@ -84,5 +126,16 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
                 return new StringResourceModel(key, getPage(), null, key).getString();
             }
         };
+    }
+
+    public void changeStepPerformed(AjaxRequestTarget target, WizardStepDto dto){}
+
+    private void showHelpPerformed(AjaxRequestTarget target){
+        WizardHelpDialog window = (WizardHelpDialog)get(ID_HELP_MODAL);
+        window.show(target);
+    }
+
+    public IWizardStep getActiveStep(){
+        return null;
     }
 }

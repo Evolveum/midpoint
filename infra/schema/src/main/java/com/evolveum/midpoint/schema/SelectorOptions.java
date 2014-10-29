@@ -157,15 +157,17 @@ public class SelectorOptions<T> implements Serializable {
             }
 
             RetrieveOption retrieveOption = option.getOptions().getRetrieve();
-            if (new ItemPath(UserType.F_JPEG_PHOTO).equivalent(path)) {
-                //user photo is not retrieved by default
-                switch (retrieveOption) {
-                    case INCLUDE:
-                        return true;
-                    case EXCLUDE:
-                    case DEFAULT:
-                    default:
-                        return false;
+            for (ItemPath notByDefault : PATHS_NOT_RETURNED_BY_DEFAULT) {
+                if (notByDefault.equivalent(path)) {
+                    //this one is not retrieved by default
+                    switch (retrieveOption) {
+                        case INCLUDE:
+                            return true;
+                        case EXCLUDE:
+                        case DEFAULT:
+                        default:
+                            return false;
+                    }
                 }
             }
 
