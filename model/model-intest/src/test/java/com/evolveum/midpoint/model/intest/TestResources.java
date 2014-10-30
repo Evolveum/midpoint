@@ -202,6 +202,18 @@ public class TestResources extends AbstractInitializedModelIntegrationTest {
 		assertConfigurationPropertyDefinition(configurationPropertiesContainerDefinition, 
 				"uselessString", DOMUtil.XSD_STRING, 0, 1, "UI_INSTANCE_USELESS_STRING", "UI_INSTANCE_USELESS_STRING_HELP");
 		
+		PrismContainer<Containerable> configurationPropertiesContainer = configurationContainer.findContainer(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+		assertNotNull("No container "+ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME, configurationPropertiesContainer);
+		
+		assertConfigurationPropertyDefinition(configurationPropertiesContainer, 
+				"uselessString", DOMUtil.XSD_STRING, 0, 1, "UI_INSTANCE_USELESS_STRING", "UI_INSTANCE_USELESS_STRING_HELP");
+
+		configurationPropertiesContainerDefinition = configurationPropertiesContainer.getDefinition();
+		assertNotNull("No container definition in "+configurationPropertiesContainer);
+		
+		assertConfigurationPropertyDefinition(configurationPropertiesContainerDefinition, 
+				"uselessString", DOMUtil.XSD_STRING, 0, 1, "UI_INSTANCE_USELESS_STRING", "UI_INSTANCE_USELESS_STRING_HELP");
+
 	}
 	
 	private void assertConfigurationPropertyDefinition(PrismContainerDefinition<Containerable> containerDefinition,
@@ -211,12 +223,21 @@ public class TestResources extends AbstractInitializedModelIntegrationTest {
 		assertConfigurationPropertyDefinition(propDef, expectedType, expectedMinOccurs, expectedMaxOccurs, expectedDisplayName, expectedHelp);
 	}
 
+	private void assertConfigurationPropertyDefinition(PrismContainer container,
+			String propertyLocalName, QName expectedType, int expectedMinOccurs, int expectedMaxOccurs, String expectedDisplayName, String expectedHelp) {
+		QName propName = new QName(container.getDefinition().getTypeName().getNamespaceURI(),propertyLocalName);
+		PrismProperty prop = container.findProperty(propName);
+		assertNotNull("No property "+propName, prop);
+		PrismPropertyDefinition propDef = prop.getDefinition();
+		assertNotNull("No definition for property "+prop, propDef);
+		assertConfigurationPropertyDefinition(propDef, expectedType, expectedMinOccurs, expectedMaxOccurs, expectedDisplayName, expectedHelp);
+	}
+
 	private void assertConfigurationPropertyDefinition(PrismPropertyDefinition propDef, QName expectedType,
 			int expectedMinOccurs, int expectedMaxOccurs, String expectedDisplayName, String expectedHelp) {
 		PrismAsserts.assertDefinition(propDef, propDef.getName(), expectedType, expectedMinOccurs, expectedMaxOccurs);
 		assertEquals("Wrong displayName in "+propDef.getName()+" definition", expectedDisplayName, propDef.getDisplayName());
 		assertEquals("Wrong help in "+propDef.getName()+" definition", expectedHelp, propDef.getHelp());
-		// TODO
 	}
 
 	private void assertResource(PrismObject<ResourceType> resource) throws JAXBException {

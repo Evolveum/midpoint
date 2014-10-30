@@ -48,6 +48,7 @@
 			<icfi:uselessGuardedString>
 				<clearValue>whatever</clearValue>
 			</icfi:uselessGuardedString>
+			<icfi:uselessString>USEless</icfi:uselessString>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
