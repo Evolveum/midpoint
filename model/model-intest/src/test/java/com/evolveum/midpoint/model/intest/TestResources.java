@@ -37,6 +37,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.sql.testing.CarefulAnt;
 import com.evolveum.midpoint.repo.sql.testing.ResourceCarefulAntUtil;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
@@ -193,9 +195,30 @@ public class TestResources extends AbstractInitializedModelIntegrationTest {
 		assertResource(resource);
 		PrismContainer<ConnectorConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = configurationContainer.getDefinition();
+		display("Dummy configuration container definition", configurationContainerDefinition);
+		PrismContainerDefinition<Containerable> configurationPropertiesContainerDefinition = configurationContainerDefinition.findContainerDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+		assertNotNull("No container definition for "+ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME, configurationPropertiesContainerDefinition);
+		
+		assertConfigurationPropertyDefinition(configurationPropertiesContainerDefinition, 
+				"uselessString", DOMUtil.XSD_STRING, 0, 1, "UI_INSTANCE_USELESS_STRING", "UI_INSTANCE_USELESS_STRING_HELP");
 		
 	}
 	
+	private void assertConfigurationPropertyDefinition(PrismContainerDefinition<Containerable> containerDefinition,
+			String propertyLocalName, QName expectedType, int expectedMinOccurs, int expectedMaxOccurs, String expectedDisplayName, String expectedHelp) {
+		QName propName = new QName(containerDefinition.getTypeName().getNamespaceURI(),propertyLocalName);
+		PrismPropertyDefinition propDef = containerDefinition.findPropertyDefinition(propName);
+		assertConfigurationPropertyDefinition(propDef, expectedType, expectedMinOccurs, expectedMaxOccurs, expectedDisplayName, expectedHelp);
+	}
+
+	private void assertConfigurationPropertyDefinition(PrismPropertyDefinition propDef, QName expectedType,
+			int expectedMinOccurs, int expectedMaxOccurs, String expectedDisplayName, String expectedHelp) {
+		PrismAsserts.assertDefinition(propDef, propDef.getName(), expectedType, expectedMinOccurs, expectedMaxOccurs);
+		assertEquals("Wrong displayName in "+propDef.getName()+" definition", expectedDisplayName, propDef.getDisplayName());
+		assertEquals("Wrong help in "+propDef.getName()+" definition", expectedHelp, propDef.getHelp());
+		// TODO
+	}
+
 	private void assertResource(PrismObject<ResourceType> resource) throws JAXBException {
 		display("Resource", resource);
 		display("Resource def", resource.getDefinition());
