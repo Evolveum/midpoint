@@ -57,6 +57,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -195,6 +196,12 @@ public class TestDummy extends AbstractDummyTest {
 		return DRAKE_USERNAME;
 	}
 	
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
+		InternalMonitor.setTraceConnectorOperation(true);
+	}
+
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
 		TestUtil.displayTestTile("test000Integrity");
@@ -3095,6 +3102,7 @@ public class TestDummy extends AbstractDummyTest {
 		groupFools.addMember(ACCOUNT_WILL_USERNAME);
 		
 		syncServiceMock.reset();
+		rememberConnectorOperationCount();
 
 		// WHEN
 		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
@@ -3105,6 +3113,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		display(result);
 		TestUtil.assertSuccess(result);
+		assertConnectorOperationIncrement(2);
 		
 		PrismObject<ShadowType> foolsShadow = findShadowByName(new QName(RESOURCE_DUMMY_NS, OBJECTCLAS_GROUP_LOCAL_NAME), "fools", resource, result);
 		assertNotNull("No shadow for group fools", foolsShadow);

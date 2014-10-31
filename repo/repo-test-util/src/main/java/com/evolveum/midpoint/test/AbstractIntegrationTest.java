@@ -130,6 +130,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	private long lastShadowFetchOperationCount = 0;
 	private long lastScriptCompileCount = 0;
 	private long lastScriptExecutionCount = 0;
+	private long lastConnectorOperationCount = 0;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -681,6 +682,22 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Unexpected increment in script execution count", (long)expectedIncrement, actualIncrement);
 		lastScriptExecutionCount = currentCount;
 	}
+	
+	
+	
+	protected void rememberConnectorOperationCount() {
+		lastConnectorOperationCount = InternalMonitor.getConnectorOperationCount();
+	}
+
+	protected void assertConnectorOperationIncrement(int expectedIncrement) {
+		long currentCount = InternalMonitor.getConnectorOperationCount();
+		long actualIncrement = currentCount - lastConnectorOperationCount;
+		assertEquals("Unexpected increment in connector operationCount count", (long)expectedIncrement, actualIncrement);
+		lastConnectorOperationCount = currentCount;
+	}
+	
+	
+	
 	
 	protected void rememberResourceCacheStats() {
 		lastResourceCacheStats  = InternalMonitor.getResourceCacheStats().clone();

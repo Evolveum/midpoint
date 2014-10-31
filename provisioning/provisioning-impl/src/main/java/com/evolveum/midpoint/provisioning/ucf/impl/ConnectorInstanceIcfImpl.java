@@ -30,16 +30,17 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DebugUtil;
-
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePagedSearchConfigurationType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -550,6 +551,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			// Fetch the schema from the connector (which actually gets that
 			// from the resource).
+			InternalMonitor.recordConnectorOperation("schema");
 			icfSchema = icfConnectorFacade.schema();
 
 			icfResult.recordSuccess();
@@ -808,6 +810,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		// Create capabilities from supported connector operations
 
+		InternalMonitor.recordConnectorOperation("getSupportedOperations");
 		Set<Class<? extends APIOperation>> supportedOperations = icfConnectorFacade.getSupportedOperations();
 		
 		LOGGER.trace("Connector supported operations: {}", supportedOperations);
@@ -1007,6 +1010,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		try {
 
 			// Invoke the ICF connector
+			InternalMonitor.recordConnectorOperation("getObject");
 			co = icfConnectorFacade.getObject(icfObjectClass, uid, options);
 
 			icfResult.recordSuccess();
@@ -1172,6 +1176,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		try {
 
 			// CALL THE ICF FRAMEWORK
+			InternalMonitor.recordConnectorOperation("create");
 			uid = icfConnectorFacade.create(objectClass, attributes, new OperationOptionsBuilder().build());
 
 		} catch (Throwable ex) {
@@ -1390,6 +1395,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							new Object[] { objClass, uid, dumpAttributes(attributes) });
 				}
 
+				InternalMonitor.recordConnectorOperation("addAttributeValues");
 				uid = icfConnectorFacade.addAttributeValues(objClass, uid, attributes, options);
 
 				icfResult.recordSuccess();
@@ -1469,6 +1475,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			try {
 				// Call ICF
+				InternalMonitor.recordConnectorOperation("update");
 				uid = icfConnectorFacade.update(objClass, uid, updateAttributes, options);
 
 				icfResult.recordSuccess();
@@ -1528,6 +1535,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							new Object[] { objClass, uid, dumpAttributes(attributes) });
 				}
 
+				InternalMonitor.recordConnectorOperation("removeAttributeValues");
 				uid = icfConnectorFacade.removeAttributeValues(objClass, uid, attributes, options);
 				icfResult.recordSuccess();
 			}
@@ -1621,6 +1629,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		try {
 
+			InternalMonitor.recordConnectorOperation("delete");
 			icfConnectorFacade.delete(objClass, uid, new OperationOptionsBuilder().build());
 			
 			icfResult.recordSuccess();
@@ -1675,6 +1684,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		SyncToken syncToken = null;
 		try {
+			InternalMonitor.recordConnectorOperation("getLatestSyncToken");
 			syncToken = icfConnectorFacade.getLatestSyncToken(icfObjectClass);
 			icfResult.recordSuccess();
 			icfResult.addReturn("syncToken", syncToken==null?null:String.valueOf(syncToken.getValue()));
@@ -1754,6 +1764,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		icfResult.addArbitraryObjectAsParam("syncHandler", syncHandler);
 
 		try {
+			InternalMonitor.recordConnectorOperation("sync");
 			icfConnectorFacade.sync(icfObjectClass, syncToken, syncHandler,
 					options);
 			icfResult.recordSuccess();
@@ -1800,6 +1811,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		connectionResult.addContext("connector", connectorType);
 
 		try {
+			InternalMonitor.recordConnectorOperation("test");
 			icfConnectorFacade.test();
 			connectionResult.recordSuccess();
 		} catch (UnsupportedOperationException ex) {
@@ -1923,6 +1935,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			Filter filter = convertFilterToIcf(query);
 
+			InternalMonitor.recordConnectorOperation("search");
 			icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
 
 			icfResult.recordSuccess();
@@ -2017,6 +2030,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
                     return false;
                 }
             };
+            InternalMonitor.recordConnectorOperation("search");
             SearchResult searchResult = icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
 
             if (searchResult == null || searchResult.getRemainingPagedResults() == -1) {
@@ -2343,8 +2357,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				LOGGER.trace("Running script ({})", icfOpName);
 				
 				if (scriptOperation.isConnectorHost()) {
+					InternalMonitor.recordConnectorOperation("runScriptOnConnector");
 					output = icfConnectorFacade.runScriptOnConnector(scriptContext, new OperationOptionsBuilder().build());
 				} else if (scriptOperation.isResourceHost()) {
+					InternalMonitor.recordConnectorOperation("runScriptOnResource");
 					output = icfConnectorFacade.runScriptOnResource(scriptContext, new OperationOptionsBuilder().build());
 				}
 				

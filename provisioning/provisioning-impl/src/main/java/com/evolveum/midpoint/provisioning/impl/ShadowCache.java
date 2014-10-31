@@ -927,34 +927,7 @@ public abstract class ShadowCache {
 					"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
 					SchemaDebugUtil.prettyPrint(resourceShadow));
 
-			
-			PrismObject<ShadowType> conflictingShadow = shadowManager.lookupShadowBySecondaryIdentifiers(resourceShadow, objectClassDef, resourceType, parentResult);
-			if (conflictingShadow != null){
-				applyAttributesDefinition(conflictingShadow, resourceType);
-				conflictingShadow = completeShadow(connector, resourceShadow, conflictingShadow, resourceType, objectClassDef, parentResult);
-				Task task = taskManager.createTaskInstance();
-				ResourceOperationDescription failureDescription = shadowManager.createResourceFailureDescription(conflictingShadow, resourceType, parentResult);
-				changeNotificationDispatcher.notifyFailure(failureDescription, task, parentResult);
-				shadowManager.deleteConflictedShadowFromRepo(conflictingShadow, parentResult);
-			}
-			// TODO: make sure that the resource object has appropriate definition (use objectClass and schema)
-			// The resource object obviously exists on the resource, but appropriate shadow does not exist in the
-			// repository we need to create the shadow to align repo state to the reality (resource)
-
-			try {
-
-				repoShadow = shadowManager.createRepositoryShadow(
-						resourceShadow, resourceType, objectClassDef);
-				String oid = repositoryService.addObject(repoShadow, null,
-						parentResult);
-				repoShadow.setOid(oid);
-				
-			} catch (ObjectAlreadyExistsException e) {
-				// This should not happen. We haven't supplied an OID so is should not conflict
-				LOGGER.error("Unexpected repository behavior: Object already exists: {}", e.getMessage(), e);
-				throw new SystemException("Unexpected repository behavior: Object already exists: "+e.getMessage(),e);
-			}
-
+			repoShadow = createShadowInRepository(connector, resourceShadow, objectClassDef, resourceType, parentResult);
 		} else {
 			LOGGER.trace("Found shadow object in the repository {}",
 					SchemaDebugUtil.prettyPrint(repoShadow));
@@ -962,7 +935,42 @@ public abstract class ShadowCache {
 		
 		return repoShadow;
 	}
-	
+
+	private PrismObject<ShadowType> createShadowInRepository(ConnectorInstance connector, PrismObject<ShadowType> resourceShadow,
+			RefinedObjectClassDefinition objectClassDef, ResourceType resourceType, OperationResult parentResult) 
+					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, GenericConnectorException {
+		
+		PrismObject<ShadowType> repoShadow;
+		PrismObject<ShadowType> conflictingShadow = shadowManager.lookupShadowBySecondaryIdentifiers(resourceShadow, objectClassDef, resourceType, parentResult);
+		if (conflictingShadow != null){
+			applyAttributesDefinition(conflictingShadow, resourceType);
+			conflictingShadow = completeShadow(connector, resourceShadow, conflictingShadow, resourceType, objectClassDef, parentResult);
+			Task task = taskManager.createTaskInstance();
+			ResourceOperationDescription failureDescription = shadowManager.createResourceFailureDescription(conflictingShadow, resourceType, parentResult);
+			changeNotificationDispatcher.notifyFailure(failureDescription, task, parentResult);
+			shadowManager.deleteConflictedShadowFromRepo(conflictingShadow, parentResult);
+		}
+		// TODO: make sure that the resource object has appropriate definition (use objectClass and schema)
+		// The resource object obviously exists on the resource, but appropriate shadow does not exist in the
+		// repository we need to create the shadow to align repo state to the reality (resource)
+
+		try {
+
+			repoShadow = shadowManager.createRepositoryShadow(
+					resourceShadow, resourceType, objectClassDef);
+			String oid = repositoryService.addObject(repoShadow, null,
+					parentResult);
+			repoShadow.setOid(oid);
+			
+		} catch (ObjectAlreadyExistsException e) {
+			// This should not happen. We haven't supplied an OID so is should not conflict
+			LOGGER.error("Unexpected repository behavior: Object already exists: {}", e.getMessage(), e);
+			throw new SystemException("Unexpected repository behavior: Object already exists: "+e.getMessage(),e);
+		}
+
+		return repoShadow;
+	}
+
 	private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> conditions) throws SchemaException{
 		
 		List<ObjectFilter> attributeFilter = new ArrayList<>();
@@ -1604,11 +1612,18 @@ public abstract class ShadowCache {
 					RefinedAssociationDefinition rEntitlementAssociation = objectClassDefinition.findEntitlementAssociation(associationName);
 					RefinedObjectClassDefinition entitlementObjectClassDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, rEntitlementAssociation.getIntents());
 					
+					PrismObject<ShadowType> entitlementRepoShadow;
 					PrismObject<ShadowType> entitlementShadow = (PrismObject<ShadowType>) identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
 					if (entitlementShadow == null) {
-						entitlementShadow = resouceObjectConverter.locateResourceObject(connector, resource, entitlementIdentifiers, entitlementObjectClassDef, parentResult); 
+						entitlementRepoShadow = shadowManager.lookupShadowInRepository(identifierContainer, entitlementObjectClassDef, resource,
+								parentResult);
+						if (entitlementRepoShadow == null) {
+							entitlementShadow = resouceObjectConverter.locateResourceObject(connector, resource, entitlementIdentifiers, entitlementObjectClassDef, parentResult); 
+							entitlementRepoShadow = createShadowInRepository(connector, entitlementShadow, entitlementObjectClassDef, resource, parentResult);
+						}
+					} else {
+						entitlementRepoShadow = lookupOrCreateShadowInRepository(connector, entitlementShadow, entitlementObjectClassDef, resource, parentResult);
 					}
-					PrismObject<ShadowType> entitlementRepoShadow = lookupOrCreateShadowInRepository(connector, entitlementShadow, entitlementObjectClassDef, resource, parentResult);
 					ObjectReferenceType shadowRefType = new ObjectReferenceType();
 					shadowRefType.setOid(entitlementRepoShadow.getOid());
 					shadowRefType.setType(ShadowType.COMPLEX_TYPE);
