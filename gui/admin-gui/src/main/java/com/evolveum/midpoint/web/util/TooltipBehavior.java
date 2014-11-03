@@ -55,12 +55,39 @@ public class TooltipBehavior extends Behavior {
         StringBuilder sb = new StringBuilder();
         sb.append("$('#");
         sb.append(component.getMarkupId());
-        sb.append("').tooltip({html:true});");
+        sb.append("').tooltip({html:true");
+
+        if(!isInsideModal()){
+            sb.append(", 'container':'body'");
+        } else {
+            sb.append(", 'container':'#");
+            sb.append(getModalContainer(component));
+            sb.append("'");
+        }
+
+        sb.append("});");
 
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
+    }
+
+    private String getModalContainer(Component component){
+        String id = component.getMarkupId();
+
+        if(component.getParent() != null){
+            Component parent = component.getParent();
+
+            id = parent.getParent() != null? parent.getParent().getMarkupId() : parent.getMarkupId();
+        }
+
+        return id;
     }
 
     public String getDataPlacement(){
         return "right";
     }
+
+    public boolean isInsideModal(){
+        return false;
+    }
+
 }
