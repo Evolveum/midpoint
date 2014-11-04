@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.client;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
@@ -42,6 +43,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.cxf.frontend.ClientProxy;
@@ -111,6 +113,23 @@ public class ModelClientUtil {
 		Element origElement = createTextElement(TYPES_POLYSTRING_ORIG, string, doc);
 		polyStringType.getContent().add(origElement);
 		return polyStringType;
+	}
+    
+	public static String getOrig(PolyStringType polyStringType) {
+		if (polyStringType == null) {
+			return null;
+		}
+		for (Object content: polyStringType.getContent()) {
+			if (content instanceof Element) {
+				Element element = (Element)content;
+				if (TYPES_POLYSTRING_ORIG.getLocalPart().equals(element.getLocalName())) {
+					return element.getTextContent();
+				}
+			} else if (content instanceof String) {
+				return (String)content;
+			}
+		}
+		return null;
 	}
 	
 	public static Element createTextElement(QName qname, String value, Document doc) {
