@@ -92,7 +92,7 @@ public class Main {
 	private static final String DEFAULT_ENDPOINT_URL = "http://localhost.:8080/midpoint/model/model-3";
 	
 	// Object OIDs
-	private static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-987987987988";
+	private static final String ROLE_PIRATE_OID = "2de6a600-636f-11e4-9cc7-3c970e467874";
 	private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
 
 	/**
@@ -105,34 +105,39 @@ public class Main {
 
 			SystemConfigurationType configurationType = getConfiguration(modelPort);
 			System.out.println("Got system configuration");
-			System.out.println(configurationType);
+//			System.out.println(configurationType);
 			
 			UserType userAdministrator = searchUserByName(modelPort, "administrator");
-			System.out.println("Got administrator user");
-			System.out.println(userAdministrator);
+			System.out.println("Got administrator user: "+userAdministrator.getOid());
+//			System.out.println(userAdministrator);
 			
 			RoleType sailorRole = searchRoleByName(modelPort, "Sailor");
 			System.out.println("Got Sailor role");
-			System.out.println(sailorRole);
+//			System.out.println(sailorRole);
 	
 			Collection<ResourceType> resources = listResources(modelPort);
-			System.out.println("Resources");
-			dump(resources);
+			System.out.println("Resources ("+resources.size()+")");
+//			dump(resources);
 
             Collection<UserType> users = listUsers(modelPort);
-            System.out.println("Users");
-            dump(users);
+            System.out.println("Users ("+users.size()+")");
+//            dump(users);
 
             Collection<TaskType> tasks = listTasks(modelPort);
-            System.out.println("Tasks");
-            dump(tasks);
-            System.out.println("Next scheduled times: ");
-            for (TaskType taskType : tasks) {
-                System.out.println(" - " + getOrig(taskType.getName()) + ": " + taskType.getNextRunStartTimestamp());
-            }
+            System.out.println("Tasks ("+tasks.size()+")");
+//            dump(tasks);
+//            System.out.println("Next scheduled times: ");
+//            for (TaskType taskType : tasks) {
+//                System.out.println(" - " + getOrig(taskType.getName()) + ": " + taskType.getNextRunStartTimestamp());
+//            }
 
             String userGuybrushoid = createUserGuybrush(modelPort, sailorRole);
 			System.out.println("Created user guybrush, OID: "+userGuybrushoid);
+			
+			UserType userGuybrush = getUser(modelPort, userGuybrushoid);
+			System.out.println("Fetched user guybrush:");
+//			System.out.println(userGuybrush);
+			System.out.println("Users fullName: " + ModelClientUtil.getOrig(userGuybrush.getFullName()));
 			
 			String userLeChuckOid = createUserFromSystemResource(modelPort, "user-lechuck.xml");
 			System.out.println("Created user lechuck, OID: "+userLeChuckOid);
@@ -150,8 +155,8 @@ public class Main {
 			System.out.println("Unassigned roles");
 			
 			Collection<RoleType> roles = listRequestableRoles(modelPort);
-			System.out.println("Found requestable roles");
-			System.out.println(roles);
+			System.out.println("Found "+roles.size()+" requestable roles");
+//			System.out.println(roles);
 			
 			// Uncomment the following lines if you want to see what midPoint really did
 			// ... because deleting the user will delete also all the traces (except logs and audit of course).
@@ -207,7 +212,19 @@ public class Main {
 		
 		return (SystemConfigurationType) objectHolder.value;
 	}
-	
+
+    private static UserType getUser(ModelPortType modelPort, String oid) throws FaultMessage {
+
+		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
+		
+		modelPort.getObject(ModelClientUtil.getTypeQName(UserType.class), oid, options,
+				objectHolder, resultHolder);
+		
+		return (UserType) objectHolder.value;
+	}
+
 	private static Collection<ResourceType> listResources(ModelPortType modelPort) throws SAXException, IOException, FaultMessage {
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
         Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
@@ -560,8 +577,8 @@ public class Main {
 		WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(outProps);
 		cxfEndpoint.getOutInterceptors().add(wssOut);
         // enable the following to get client-side logging of outgoing requests and incoming responses
-        //cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
-        //cxfEndpoint.getInInterceptors().add(new LoggingInInterceptor());
+        cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
+        cxfEndpoint.getInInterceptors().add(new LoggingInInterceptor());
 
 		return modelPort;
 	}
