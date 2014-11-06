@@ -25,7 +25,7 @@
         <xsd:documentation>
             Common Prism annotations used in various XSD schemas.
 
-			Version: 3.0
+            Version: 3.0.1
             Default prefix: a
         </xsd:documentation>
     </xsd:annotation>

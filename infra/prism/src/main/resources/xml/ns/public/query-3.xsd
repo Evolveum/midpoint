@@ -32,7 +32,7 @@
         <xsd:documentation>
             TODO
             
-            Version: 3.0-SNAPSHOT
+            Version: 3.0.1
             Recommended namespace prefix: q
         </xsd:documentation>
     </xsd:annotation>

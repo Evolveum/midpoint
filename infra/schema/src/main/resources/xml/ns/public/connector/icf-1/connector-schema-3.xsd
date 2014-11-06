@@ -33,7 +33,7 @@
 			for resource configuration. The definition of "configuration" element will most likely
 			refer to the data types and elements used in this schema definition.
  			
- 			Version: 2.0
+ 			Version: 3.0.1
             Recommended namespace prefix: icfc
         </xsd:documentation>
     </xsd:annotation>
