@@ -254,10 +254,10 @@ public class SchemaHandlingStep extends WizardStep {
         navigator.setOutputMarkupId(true);
         add(navigator);
 
-        AjaxLink add = new AjaxLink(ID_BUTTON_ADD_OBJECT_TYPE) {
+        AjaxSubmitLink add = new AjaxSubmitLink(ID_BUTTON_ADD_OBJECT_TYPE) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 addObjectTypePerformed(target);
             }
         };
