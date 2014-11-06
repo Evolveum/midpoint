@@ -170,34 +170,10 @@ public class Main {
 		}
 	}
 
-    // TODO move to ModelClientUtil
-    private static String getOrig(PolyStringType polyStringType) {
-        if (polyStringType == null) {
-            return null;
-        }
-        StringBuilder sb = new StringBuilder();
-        for (Object o : polyStringType.getContent()) {
-            if (o instanceof String) {
-                sb.append(o);
-            } else if (o instanceof Element) {
-                Element e = (Element) o;
-                if ("orig".equals(e.getLocalName())) {
-                    return e.getTextContent();
-                }
-            } else if (o instanceof JAXBElement) {
-                JAXBElement je = (JAXBElement) o;
-                if ("orig".equals(je.getName().getLocalPart())) {
-                    return (String) je.getValue();
-                }
-            }
-        }
-        return sb.toString();
-    }
-
     private static void dump(Collection<? extends ObjectType> objects) {
         System.out.println("Objects returned: " + objects.size());
         for (ObjectType objectType : objects) {
-            System.out.println(" - " + getOrig(objectType.getName()) + ": " + objectType);
+            System.out.println(" - " + ModelClientUtil.getOrig(objectType.getName()) + ": " + objectType);
         }
     }
 
