@@ -110,27 +110,32 @@ public class ModelClientUtil {
 
     public static PolyStringType createPolyStringType(String string, Document doc) {
 		PolyStringType polyStringType = new PolyStringType();
-		Element origElement = createTextElement(TYPES_POLYSTRING_ORIG, string, doc);
-		polyStringType.getContent().add(origElement);
+		polyStringType.getContent().add(string);
 		return polyStringType;
 	}
     
-	public static String getOrig(PolyStringType polyStringType) {
-		if (polyStringType == null) {
-			return null;
-		}
-		for (Object content: polyStringType.getContent()) {
-			if (content instanceof Element) {
-				Element element = (Element)content;
-				if (TYPES_POLYSTRING_ORIG.getLocalPart().equals(element.getLocalName())) {
-					return element.getTextContent();
-				}
-			} else if (content instanceof String) {
-				return (String)content;
-			}
-		}
-		return null;
-	}
+    public static String getOrig(PolyStringType polyStringType) {
+        if (polyStringType == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Object o : polyStringType.getContent()) {
+            if (o instanceof String) {
+                sb.append(o);
+            } else if (o instanceof Element) {
+                Element e = (Element) o;
+                if ("orig".equals(e.getLocalName())) {
+                    return e.getTextContent();
+                }
+            } else if (o instanceof JAXBElement) {
+                JAXBElement je = (JAXBElement) o;
+                if ("orig".equals(je.getName().getLocalPart())) {
+                    return (String) je.getValue();
+                }
+            }
+        }
+        return sb.toString();
+    }
 	
 	public static Element createTextElement(QName qname, String value, Document doc) {
 		Element element = doc.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
