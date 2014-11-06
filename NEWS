@@ -1,5 +1,5 @@
-midPoint 3.0 "Newton"
----------------------
+midPoint 3.0.1 "Newton" update 1
+--------------------------------
 
 * Generic synchronization: synchronize almost any type of object to the resource
 * Entitlement management support allows management of resource groups, privileges and roles in a native and convenient way.
