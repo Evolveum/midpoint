@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>model</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.1-SNAPSHOT</version>
+		<version>3.0.1</version>
 	</parent>
 	<organization>
 		<name>Evolveum</name>
@@ -50,17 +50,17 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
-			<version>3.1-SNAPSHOT</version>
+			<version>3.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>security-api</artifactId>
-			<version>3.1-SNAPSHOT</version>
+			<version>3.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>3.1-SNAPSHOT</version>
+			<version>3.0.1</version>
 			<scope>test</scope>
 		</dependency>
         <dependency>
@@ -70,7 +70,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>audit-api</artifactId>
-			<version>3.1-SNAPSHOT</version>
+			<version>3.0.1</version>
 		</dependency>
 	</dependencies>
 </project>

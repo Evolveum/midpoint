@@ -21,11 +21,11 @@
     <groupId>com.evolveum.midpoint.gui</groupId>
     <artifactId>admin-gui-tr-TR</artifactId>
     <packaging>jar</packaging>
-    <version>3.1-SNAPSHOT</version>
+    <version>3.0.1</version>
     <parent>
         <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.1-SNAPSHOT</version>
+        <version>3.0.1</version>
     </parent>
     <build>
         <resources>
@@ -39,7 +39,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>3.1-SNAPSHOT</version>
+            <version>3.0.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

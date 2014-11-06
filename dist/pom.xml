@@ -24,7 +24,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.1-SNAPSHOT</version>
+        <version>3.0.1</version>
         <relativePath>../build-system/pom.xml</relativePath>
     </parent>
     <organization>
@@ -51,20 +51,20 @@
    		<dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
-            <version>3.1-SNAPSHOT</version>
+            <version>3.0.1</version>
             <type>war</type>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>repo-ninja</artifactId>
-            <version>3.1-SNAPSHOT</version>
+            <version>3.0.1</version>
             <type>zip</type>
             <classifier>bin</classifier>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>repo-ninja</artifactId>
-            <version>3.1-SNAPSHOT</version>
+            <version>3.0.1</version>
         </dependency>
     </dependencies>
     <build>
@@ -85,14 +85,14 @@
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
                                     <artifactId>prism</artifactId>
-                                    <version>3.1-SNAPSHOT</version>
+                                    <version>3.0.1</version>
                                     <type>jar</type>
                                     <catalog>META-INF/catalog-runtime.xml</catalog>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
                                     <artifactId>schema</artifactId>
-                                    <version>3.1-SNAPSHOT</version>
+                                    <version>3.0.1</version>
                                     <type>jar</type>
                                     <catalog>META-INF/jax-ws-catalog.xml</catalog>
                                 </artifactItem>
