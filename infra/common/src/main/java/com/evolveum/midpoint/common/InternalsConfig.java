@@ -21,9 +21,9 @@ package com.evolveum.midpoint.common;
  */
 public class InternalsConfig {
 	
-	public static boolean consistencyChecks = true;
+	public static boolean consistencyChecks = false;
 	
-	public static boolean encryptionChecks = true;
+	public static boolean encryptionChecks = false;
 	
 	// We don't want this to be on by default. It will ruin the ability to explicitly import
 	// non-encrypted value to repo.
