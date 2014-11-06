@@ -471,6 +471,14 @@ public final class WebMiscUtil {
         return result.isSuccess() || result.isHandledError();
     }
 
+    public static boolean isSuccessOrHandledErrorOrInProgress(OperationResult result) {
+        if (result == null) {
+            return false;
+        }
+
+        return result.isSuccess() || result.isHandledError() || result.isInProgress();
+    }
+
     public static String createUserIcon(PrismObject<UserType> object) {
         UserType user = object.asObjectable();
 

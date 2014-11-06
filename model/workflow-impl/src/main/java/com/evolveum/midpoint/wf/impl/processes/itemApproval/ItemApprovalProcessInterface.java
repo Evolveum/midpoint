@@ -52,6 +52,7 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
     public void prepareStartInstruction(JobCreationInstruction instruction, ApprovalRequest approvalRequest, String approvalTaskName) {
         instruction.setProcessDefinitionKey(PROCESS_DEFINITION_KEY);
         instruction.setSimple(false);
+        instruction.setSendStartConfirmation(true);
         instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
         instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, approvalTaskName);
         instruction.setProcessInterfaceBean(this);

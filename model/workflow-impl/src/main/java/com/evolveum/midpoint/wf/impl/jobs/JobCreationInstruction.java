@@ -79,6 +79,11 @@ public class JobCreationInstruction implements DebugDumpable {
     private boolean noProcess;                          // should the job provide no wf process (only direct execution of model operation)?
 
     private boolean simple;                             // is workflow task simple? (i.e. such that requires periodic watching of its state)
+    private boolean sendStartConfirmation = true;       // should we send explicit "process started" event when the process was started by midPoint?
+                                                        // for listener-enabled processes this can be misleading, because "process started" event could come
+                                                        // after "process finished" one (for immediately-finishing processes)
+                                                        //
+                                                        // unfortunately, it seems we have to live with this (unless we define a "process started" listener)
 
     private boolean createTaskAsSuspended;                // should the task be created in SUSPENDED state?
     private boolean createTaskAsWaiting;                  // should the task be created in WAITING state?
@@ -146,6 +151,14 @@ public class JobCreationInstruction implements DebugDumpable {
 
     public void setSimple(boolean simple) {
         this.simple = simple;
+    }
+
+    public boolean isSendStartConfirmation() {
+        return sendStartConfirmation;
+    }
+
+    public void setSendStartConfirmation(boolean sendStartConfirmation) {
+        this.sendStartConfirmation = sendStartConfirmation;
     }
 
     public void setProcessDefinitionKey(String name) {

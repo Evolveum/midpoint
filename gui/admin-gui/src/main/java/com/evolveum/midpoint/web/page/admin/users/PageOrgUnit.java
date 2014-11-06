@@ -706,7 +706,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
     }
 
     public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
-        if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressReporter.isAllSuccess() && WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressReporter.isAllSuccess() && WebMiscUtil.isSuccessOrHandledErrorOrInProgress(result)) {
             showResultInSession(result);
             setResponsePage(PageOrgTree.class);
         } else {

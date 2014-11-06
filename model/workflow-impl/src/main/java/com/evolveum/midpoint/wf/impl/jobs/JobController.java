@@ -280,7 +280,7 @@ public class JobController {
         StartProcessCommand spc = new StartProcessCommand();
         spc.setTaskOid(task.getOid());
         spc.setProcessName(instruction.getProcessDefinitionKey());
-        spc.setSendStartConfirmation(true);     // we always want to get start confirmation
+        spc.setSendStartConfirmation(instruction.isSendStartConfirmation());
         spc.setVariablesFrom(instruction.getProcessVariables());
         spc.setProcessOwner(task.getOwner().getOid());
 
@@ -321,7 +321,7 @@ public class JobController {
         if (message instanceof ProcessEvent) {
             Task task1 = getTaskFromEvent((ProcessEvent) message, task, result);
             if (asynchronous && task1.getExecutionStatus() != TaskExecutionStatus.WAITING) {
-                LOGGER.trace("Asynchronous message received in a state different from WAITING ({}), ignoring it. Task = {}", task1.getExecutionStatus(), task1);
+                LOGGER.trace("Asynchronous message received in a state different from WAITING (actual state: {}), ignoring it. Task = {}", task1.getExecutionStatus(), task1);
             } else {
                 processProcessEvent((ProcessEvent) message, task1, result);
             }
