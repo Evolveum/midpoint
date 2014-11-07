@@ -355,6 +355,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		// Create definition of "configurationProperties" type
 		// (CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME)
+		int displayOrder = 1;
 		for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
 			ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
 
@@ -370,12 +371,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else {
 				propertyDefinifion.setMaxOccurs(1);
 			}
-			if (icfProperty.isRequired()) {
+			if (icfProperty.isRequired() && icfProperty.getValue() == null) {
+				// If ICF says that the property is required it may not be in fact really required if it also has a default value
 				propertyDefinifion.setMinOccurs(1);
 			} else {
 				propertyDefinifion.setMinOccurs(0);
 			}
-
+			propertyDefinifion.setDisplayOrder(displayOrder);
+			displayOrder++;
 		}
 
 		// Create common ICF configuration property containers as a references

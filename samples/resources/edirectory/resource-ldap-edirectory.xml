@@ -58,6 +58,10 @@
 				<icfcldap:useBlocks>true</icfcldap:useBlocks>
 				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
 			</icfc:configurationProperties>
+
+			<icfc:resultsHandlerConfiguration>
+	                	<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+			</icfc:resultsHandlerConfiguration>
 		</connectorConfiguration>
 
 	    <schema>
@@ -78,6 +82,9 @@
 				<attribute>
 					<ref>icfs:name</ref>
 					<displayName>Distinguished Name</displayName>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
 					<matchingRule>mr:stringIgnoreCase</matchingRule>
 					<outbound>
 						<source>
@@ -104,6 +111,9 @@
 				</attribute>
 				<attribute>
 					<ref>ri:cn</ref>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
 					<outbound>
 						<source>
 							<path>fullName</path>
@@ -112,6 +122,9 @@
 				</attribute>
 				<attribute>
 					<ref>ri:sn</ref>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
 					<outbound>
 						<source>
 							<path>familyName</path>
