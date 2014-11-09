@@ -5532,6 +5532,18 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
+                    <xsd:element name="displayName" type="t:PolyStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	Human-readable name of the connector. It may be quite long, container national characters
+                            	and there is no uniqueness requirement.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>Display Name</a:displayName>
+		                    	<a:displayOrder>100</a:displayOrder>
+		                    </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="framework" type="xsd:anyURI">
                         <xsd:annotation>
                             <xsd:documentation>
