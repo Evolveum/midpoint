@@ -25,8 +25,6 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import net.sf.jasperreports.engine.JRDataSource;
-import net.sf.jasperreports.engine.JRDataSourceProvider;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExporterParameter;
 import net.sf.jasperreports.engine.JRParameter;
@@ -202,6 +200,8 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
     		
     		ReportType reportType = ReportUtils.getReport(task.getObjectOid(), subResult, modelService);
     		
+//    		reportType.get
+    		
     		PrismSchema reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);
     		PrismContainer<Containerable> parameterConfiguration = ReportUtils.getParametersContainer(reportType, reportSchema);    		
 
@@ -212,6 +212,10 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
     		
     		Map<String, Object> parameters = ReportUtils.getReportParameters(reportType, parameterConfiguration, reportSchema, subResult);
     		params.putAll(parameters);
+    		 params.put(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION, modelService);
+    		  params.put(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, prismContext);
+    		  params.put(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER, taskManager);
+//    		  params.put(JRParameter.REPORT_DATA_SOURCE, taskManager);
     		LOGGER.trace("create report params : {}", parameters);
     		
     		OperationResult subreportResult = opResult.createSubresult("get report subreport");
@@ -235,28 +239,28 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
     		{	     
     			params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
     		}
-    		if (reportType.getDataSource() != null)
-    		{
-    			LOGGER.trace("create report datasource provider : {}", reportType);
-        		
-    			JRDataSourceProvider dsrp = null;
-    			Class<?> dataSourceProviderClass = Class.forName(reportType.getDataSource().getProviderClass());
-    			if (BooleanUtils.isTrue(reportType.getDataSource().isSpringBean()))
-    			{
-    				dsrp = (JRDataSourceProvider)context.getBean(dataSourceProviderClass);
-    			} else {
-    				dsrp = (JRDataSourceProvider)dataSourceProviderClass.newInstance();
-    			}
-    			JRDataSource dataSource = null;
-    			if (dsrp instanceof ConfigurableDSProvider)
-    			{
-    				dataSource = ((ConfigurableDSProvider)dsrp).create(jasperReport, params);
-    			}else {
-    				dataSource = dsrp.create(jasperReport);
-    			}
-    			// skusit vopchat provider
-    			params.put(JRParameter.REPORT_DATA_SOURCE, dataSource);
-    		}	
+//    		if (reportType.getDataSource() != null)
+//    		{
+//    			LOGGER.trace("create report datasource provider : {}", reportType);
+//        		
+//    			JRDataSourceProvider dsrp = null;
+//    			Class<?> dataSourceProviderClass = Class.forName(reportType.getDataSource().getProviderClass());
+//    			if (BooleanUtils.isTrue(reportType.getDataSource().isSpringBean()))
+//    			{
+//    				dsrp = (JRDataSourceProvider)context.getBean(dataSourceProviderClass);
+//    			} else {
+//    				dsrp = (JRDataSourceProvider)dataSourceProviderClass.newInstance();
+//    			}
+//    			JRDataSource dataSource = null;
+//    			if (dsrp instanceof ConfigurableDSProvider)
+//    			{
+//    				dataSource = ((ConfigurableDSProvider)dsrp).create(jasperReport, params);
+//    			}else {
+//    				dataSource = dsrp.create(jasperReport);
+//    			}
+//    			// skusit vopchat provider
+//    			params.put(JRParameter.REPORT_DATA_SOURCE, dataSource);
+//    		}	
     		
     		LOGGER.trace("All Report parameters : {}", params);
     		

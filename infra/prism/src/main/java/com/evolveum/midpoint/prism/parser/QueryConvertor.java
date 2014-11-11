@@ -297,6 +297,7 @@ public class QueryConvertor {
 			throw new SchemaException("Cannot convert query, because query does not contain property path.");
 		}
 		QName itemName = ItemPath.getName(itemPath.last());
+		
 		XNode valueXnode = xmap.get(KEY_FILTER_EQUAL_VALUE);
 		
 		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd, prismContext);
@@ -337,14 +338,16 @@ public class QueryConvertor {
 
 	}
 	
+	
 	private static TypeFilter parseTypeFilter(XNode xnode, PrismContainerDefinition pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
 		MapXNode xmap = toMap(xnode);
 		QName type = xmap.getParsedPrimitiveValue(KEY_FILTER_TYPE_TYPE, DOMUtil.XSD_QNAME);
 		
 		XNode subXFilter = xmap.get(KEY_FILTER_TYPE_FILTER);
 		ObjectFilter subFilter = null; 
+		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
 		if (subXFilter != null) {
-			subFilter = parseFilter(subXFilter, prismContext);
+			subFilter = parseFilter((MapXNode) subXFilter, def);
 		}
 
         if (preliminaryParsingOnly) {
@@ -381,6 +384,7 @@ public class QueryConvertor {
 			}
 		}
 
+		
 		XNode valueXnode = xmap.get(KEY_FILTER_EQUAL_VALUE);
 		
 		Item<?> item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
@@ -416,6 +420,7 @@ public class QueryConvertor {
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
 		QName itemName = ItemPath.getName(itemPath.last());
+		
 		
 		XNode valueXnode = xmap.get(KEY_FILTER_EQUAL_VALUE);
 		

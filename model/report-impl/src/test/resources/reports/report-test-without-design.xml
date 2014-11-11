@@ -26,10 +26,6 @@
 	<orientation>landscape</orientation>
 	<export>csv</export>
 	 <!-- datasource sample, provider instance is obtained from spring context -->
-    <dataSource>
-        <providerClass>com.evolveum.midpoint.report.impl.DataSourceReportProvider</providerClass>
-        <springBean>true</springBean>
-    </dataSource>
 	<field>
 		<nameReport>name</nameReport>
 		<nameHeader>Name</nameHeader>

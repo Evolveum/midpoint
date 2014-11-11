@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
+import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JRStyle;
 import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -48,8 +49,10 @@ import net.sf.jasperreports.engine.type.PositionTypeEnum;
 import net.sf.jasperreports.engine.type.SplitTypeEnum;
 import net.sf.jasperreports.engine.type.VerticalAlignEnum;
 import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
+import net.sf.jasperreports.engine.util.JRReportUtils;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import net.sf.jasperreports.engine.xml.JRXmlTemplateLoader;
+import net.sf.jasperreports.olap.JRMondrianQueryExecuterFactory;
 
 import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Element;
@@ -191,7 +194,8 @@ public class ReportUtils {
 		
 		PrismContainer<Containerable> configuration = reportType.asPrismObject().findContainer(ReportType.F_CONFIGURATION);
 		if (configuration == null) {
-			throw new SchemaException("No configuration container in " + reportType);
+			return null;
+//			throw new SchemaException("No configuration container in " + reportType);
 		}
 		
 		LOGGER.trace("Parameters container : {}", configuration.debugDump());
@@ -765,8 +769,13 @@ public class ReportUtils {
 			for(PrismProperty<?> parameterConfig : parameterConfiguration.getValue().getProperties())
 			{
 				JRDesignParameter parameter = createParameter(parameterConfig, reportSchema);
-				jasperDesign.addParameter(parameter);	
+				jasperDesign.addParameter(parameter);
+				
 			}
+//			jasperDesign.setLanguage(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION);
+//			jasperDesign.setProperty(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, parameterConfiguration.getPrismContext());
+//			jasperDesign.addParameter(parameter);
+//			.PARAMETER_MIDPOINT_CONNECTION, model);
 		}	 
 		//Template Style or Styles
 		if (getParameter(PARAMETER_TEMPLATE_STYLES, parameterConfiguration, reportSchema.getNamespace()) != null)
