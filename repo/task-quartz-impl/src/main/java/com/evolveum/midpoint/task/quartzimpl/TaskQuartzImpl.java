@@ -15,47 +15,89 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import java.util.*;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.LightweightIdentifier;
+import com.evolveum.midpoint.task.api.LightweightTaskHandler;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
+import com.evolveum.midpoint.task.api.TaskRecurrence;
+import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.TaskWaitingReason;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksByPollingTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang.StringUtils;
-
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStack;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStackEntry;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Future;
 
 /**
  * Implementation of a Task.
  * 
  * @see TaskManagerQuartzImpl
+ *
+ * Target state (not quite reached as for now): Functionality present in Task is related to the
+ * data structure describing the task itself, i.e. to the embedded TaskType prism and accompanying data.
+ * Everything related to the management of tasks is put into TaskManagerQuartzImpl and its helper classes.
  * 
  * @author Radovan Semancik
  * @author Pavol Mederly
@@ -66,14 +108,17 @@ public class TaskQuartzImpl implements Task {
     public static final String DOT_INTERFACE = Task.class.getName() + ".";
 
     private TaskBinding DEFAULT_BINDING_TYPE = TaskBinding.TIGHT;
-    private static final Integer DEFAULT_SUBTASKS_WAIT_INTERVAL = 30;
     private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
 
     private PrismObject<TaskType> taskPrism;
 
     private PrismObject<UserType> requestee;                                  // temporary information
 
-    // private Set<Task> subtasks = new HashSet<Task>();          // relevant only for transient tasks, currently not used
+	/**
+	 * Lightweight asynchronous subtasks.
+	 * Each task here is a LAT, i.e. transient and with assigned lightweight handler.
+	 */
+    private Set<TaskQuartzImpl> lightweightAsynchronousSubtasks = new HashSet<>();
 
     /*
      * Task result is stored here as well as in task prism.
@@ -88,17 +133,38 @@ public class TaskQuartzImpl implements Task {
      * Note that this means that we SHOULD NOT get operation result from the prism - we should
      * use task.getResult() instead!
      */
-
 	private OperationResult taskResult;
 
+    /**
+     * Is the task handler allowed to run, or should it stop as soon as possible?
+     */
 	private volatile boolean canRun;
 
     private TaskManagerQuartzImpl taskManager;
     private RepositoryService repositoryService;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
+    /**
+     * The code that should be run for asynchronous transient tasks.
+     * (As opposed to asynchronous persistent tasks, where the handler is specified
+     * via Handler URI in task prism object.)
+     */
+    private LightweightTaskHandler lightweightTaskHandler;
 
+	/**
+	 * Future representing executing (or submitted-to-execution) lightweight task handler.
+	 */
+	private Future lightweightHandlerFuture;
 
+	/**
+	 * An indication whether lighweight hander is currently executing or not.
+	 * Used for waiting upon its completion (because java.util.concurrent facilities are not able
+	 * to show this for cancelled/interrupted tasks).
+	 */
+	private volatile boolean lightweightHandlerExecuting;
+
+	private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
+
+	//region Constructors
     /**
 	 * Note: This constructor assumes that the task is transient.
 	 * @param taskManager
@@ -141,7 +207,7 @@ public class TaskQuartzImpl implements Task {
      *
      * @param taskPrism
      */
-    void replaceTaskPrism(PrismObject<TaskType> taskPrism) {
+    private void replaceTaskPrism(PrismObject<TaskType> taskPrism) {
         this.taskPrism = taskPrism;
         updateTaskResult();
         setDefaults();
@@ -175,39 +241,31 @@ public class TaskQuartzImpl implements Task {
         }
         taskResult = OperationResult.createOperationResult(resultInPrism);
     }
+    //endregion
 
-    // called after getObject (within getTask or refresh)
-//	void initializeFromRepo(OperationResult initResult) throws SchemaException {
-//		resolveOwnerRef(initResult);
-//	}
-	
-	@Override
 	public PrismObject<TaskType> getTaskPrismObject() {
-				
+
 		if (taskResult != null) {
 			taskPrism.asObjectable().setResult(taskResult.createOperationResultType());
             taskPrism.asObjectable().setResultStatus(taskResult.getStatus().createStatusType());
-		}				
-		
+		}
+
 		return taskPrism;
 	}
 
 	RepositoryService getRepositoryService() {
 		return repositoryService;
 	}
-	
+
 	void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
 	}
-	
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.Task#isAsynchronous()
-	 */
+
 	@Override
 	public boolean isAsynchronous() {
-		// This is very simple now. It may complicate later.
-		return (getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT);
+		return getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT
+                || isLightweightAsynchronousTask();     // note: if it has lightweight task handler, it must be transient
 	}
 
 	private boolean recreateQuartzTrigger = false;          // whether to recreate quartz trigger on next savePendingModifications and/or synchronizeWithQuartz
@@ -221,14 +279,14 @@ public class TaskQuartzImpl implements Task {
     }
 
     private Collection<ItemDelta<?>> pendingModifications = null;
-	
+
 	public void addPendingModification(ItemDelta<?> delta) {
 		if (pendingModifications == null) {
-			pendingModifications = new ArrayList<ItemDelta<?>>();
+			pendingModifications = new ArrayList<>();
         }
 		pendingModifications.add(delta);
 	}
-	
+
 	@Override
 	public void savePendingModifications(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -406,8 +464,12 @@ public class TaskQuartzImpl implements Task {
             throw new SystemException(ex);
         }
 	}
-	
-	public void setResultTransient(OperationResult result) {
+
+    public void updateStoredTaskResult() throws SchemaException, ObjectNotFoundException {
+        setResultImmediate(getResult(), new OperationResult("dummy"));
+    }
+
+    public void setResultTransient(OperationResult result) {
 		this.taskResult = result;
         this.taskPrism.asObjectable().setResult(result.createOperationResultType());
         setResultStatusTypeTransient(result != null ? result.getStatus().createStatusType() : null);
@@ -723,7 +785,7 @@ public class TaskQuartzImpl implements Task {
             this.setRecreateQuartzTrigger(true);
 		} else {
 			//setHandlerUri(null);                                                  // we want the last handler to remain set so the task can be revived
-			taskManager.closeTaskWithoutSavingState(this, parentResult);			// if there are no more handlers, let us close this task
+			taskManager.closeTaskWithoutSavingState(this, parentResult);			// as there are no more handlers, let us close this task
 		}
         try {
 		    savePendingModifications(parentResult);
@@ -735,7 +797,7 @@ public class TaskQuartzImpl implements Task {
 		LOGGER.trace("finishHandler: new current handler uri = {}, new number of handlers = {}", getHandlerUri(), getHandlersCount());
 	}
 
-    private void checkDependentTasksOnClose(OperationResult result) throws SchemaException, ObjectNotFoundException {
+    void checkDependentTasksOnClose(OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (getExecutionStatus() != TaskExecutionStatus.CLOSED) {
             return;
@@ -905,7 +967,7 @@ public class TaskQuartzImpl implements Task {
 		processModificationBatched(setExecutionStatusAndPrepareDelta(value));
 	}
 
-	private PropertyDelta<?> setExecutionStatusAndPrepareDelta(TaskExecutionStatus value) {
+    private PropertyDelta<?> setExecutionStatusAndPrepareDelta(TaskExecutionStatus value) {
 		setExecutionStatusTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_EXECUTION_STATUS, value.toTaskType()) : null;
@@ -2124,10 +2186,21 @@ public class TaskQuartzImpl implements Task {
 			result.recordFatalError("Schema error", ex);
 			throw ex;			
 		}
-        taskManager.updateTaskInstance(this, repoObj, result);
+        updateTaskInstance(repoObj, result);
 		result.recordSuccess();
 	}
-	
+
+    private void updateTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "updateTaskInstance");
+        result.addArbitraryObjectAsParam("task", this);
+        result.addParam("taskPrism", taskPrism);
+
+        replaceTaskPrism(taskPrism);
+        resolveOwnerRef(result);
+        result.recordSuccessIfUnknown();
+    }
+
+
 //	public void modify(Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 //		throw new UnsupportedOperationException("Generic task modification is not supported. Please use concrete setter methods to modify a task");
 //		PropertyDelta.applyTo(modifications, taskPrism);
@@ -2146,7 +2219,7 @@ public class TaskQuartzImpl implements Task {
 	 * If called e.g. on a Task just retrieved from the repository, it will have no effect whatsoever.
 	 */
 
-	public void signalShutdown() {
+	public void unsetCanRun() {
 		LOGGER.trace("canRun set to false for task " + this + " (" + System.identityHashCode(this) + ")");
 		canRun = false;
 	}
@@ -2156,7 +2229,7 @@ public class TaskQuartzImpl implements Task {
 		return canRun;
 	}
 
-    // checks latest start time (useful for recurring tightly coupled tasks
+    // checks latest start time (useful for recurring tightly coupled tasks)
     public boolean stillCanStart() {
         if (getSchedule() != null && getSchedule().getLatestStartTime() != null) {
             long lst = getSchedule().getLatestStartTime().toGregorianCalendar().getTimeInMillis();
@@ -2211,25 +2284,30 @@ public class TaskQuartzImpl implements Task {
     @Override
     public Task createSubtask() {
 
-        if (isTransient()) {
-            throw new IllegalStateException("Only persistent tasks can have subtasks (as for now)");
-        }
         TaskQuartzImpl sub = (TaskQuartzImpl) taskManager.createTaskInstance();
         sub.setParent(this.getTaskIdentifier());
         sub.setOwner(this.getOwner());
+
+//        taskManager.registerTransientSubtask(sub, this);
 
         LOGGER.trace("New subtask " + sub.getTaskIdentifier() + " has been created.");
         return sub;
     }
 
-    @Deprecated
     @Override
+    public Task createSubtask(LightweightTaskHandler handler) {
+		TaskQuartzImpl sub = ((TaskQuartzImpl) createSubtask());
+        sub.setLightweightTaskHandler(handler);
+		lightweightAsynchronousSubtasks.add(sub);
+        return sub;
+    }
+
+    @Deprecated
     public TaskRunResult waitForSubtasks(Integer interval, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         return waitForSubtasks(interval, null, parentResult);
     }
 
     @Deprecated
-    @Override
     public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?>> extensionDeltas, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "waitForSubtasks");
@@ -2245,7 +2323,7 @@ public class TaskQuartzImpl implements Task {
         if (interval != null) {
             schedule.setInterval(interval);
         } else {
-            schedule.setInterval(DEFAULT_SUBTASKS_WAIT_INTERVAL);
+            schedule.setInterval(30);
         }
         pushHandlerUri(WaitForSubtasksByPollingTaskHandler.HANDLER_URI, schedule, null, extensionDeltas);
         setBinding(TaskBinding.LOOSE);
@@ -2253,6 +2331,30 @@ public class TaskQuartzImpl implements Task {
 
         return trr;
     }
+
+//    @Override
+//    public boolean waitForTransientSubtasks(long timeout, OperationResult parentResult) {
+//        long endTime = System.currentTimeMillis() + timeout;
+//        for (Task t : transientSubtasks) {
+//            TaskQuartzImpl tqi = (TaskQuartzImpl) t;
+//            if (!tqi.lightweightTaskHandlerFinished()) {
+//                long wait = endTime - System.currentTimeMillis();
+//                if (wait <= 0) {
+//                    return false;
+//                }
+//                try {
+//                    tqi.threadForLightweightTaskHandler.join(wait);
+//                } catch (InterruptedException e) {
+//                    return false;
+//                }
+//                if (tqi.threadForLightweightTaskHandler.isAlive()) {
+//                    return false;
+//                }
+//            }
+//        }
+//        LOGGER.trace("All transient subtasks finished for task {}", this);
+//        return true;
+//    }
 
     public List<PrismObject<TaskType>> listSubtasksRaw(OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listSubtasksRaw");
@@ -2348,4 +2450,61 @@ public class TaskQuartzImpl implements Task {
     public void pushWaitForTasksHandlerUri() {
         pushHandlerUri(WaitForTasksTaskHandler.HANDLER_URI, new ScheduleType(), null);
     }
+
+    public void setLightweightTaskHandler(LightweightTaskHandler lightweightTaskHandler) {
+        this.lightweightTaskHandler = lightweightTaskHandler;
+    }
+
+    @Override
+    public LightweightTaskHandler getLightweightTaskHandler() {
+        return lightweightTaskHandler;
+    }
+
+    @Override
+    public boolean isLightweightAsynchronousTask() {
+        return lightweightTaskHandler != null;
+    }
+
+	void setLightweightHandlerFuture(Future lightweightHandlerFuture) {
+		this.lightweightHandlerFuture = lightweightHandlerFuture;
+	}
+
+	public Future getLightweightHandlerFuture() {
+		return lightweightHandlerFuture;
+	}
+
+	@Override
+	public Set<? extends Task> getLightweightAsynchronousSubtasks() {
+		return Collections.unmodifiableSet(lightweightAsynchronousSubtasks);
+	}
+
+	@Override
+	public Set<? extends Task> getRunningLightweightAsynchronousSubtasks() {
+		Set<Task> retval = new HashSet<>();
+		for (Task subtask : getLightweightAsynchronousSubtasks()) {
+			if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE && subtask.lightweightHandlerStartRequested()) {
+				retval.add(subtask);
+			}
+		}
+		return Collections.unmodifiableSet(retval);
+	}
+
+	@Override
+	public boolean lightweightHandlerStartRequested() {
+		return lightweightHandlerFuture != null;
+	}
+
+	// just a shortcut
+	@Override
+	public void startLightweightHandler() {
+		taskManager.startLightweightTask(this);
+	}
+
+	public void setLightweightHandlerExecuting(boolean lightweightHandlerExecuting) {
+		this.lightweightHandlerExecuting = lightweightHandlerExecuting;
+	}
+
+	public boolean isLightweightHandlerExecuting() {
+		return lightweightHandlerExecuting;
+	}
 }

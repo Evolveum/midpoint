@@ -36,6 +36,9 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.Future;
+
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
 
@@ -43,7 +46,7 @@ public class JobExecutor implements InterruptableJob {
     private static final String DOT_CLASS = JobExecutor.class.getName() + ".";
 
     /*
-     * Ugly hack - this class is instantiated not by Spring but explicity by Quartz.
+     * Ugly hack - this class is instantiated not by Spring but explicitly by Quartz.
      */
 	public static void setTaskManagerQuartzImpl(TaskManagerQuartzImpl tmqi) {
 		taskManagerImpl = tmqi;
@@ -170,6 +173,8 @@ public class JobExecutor implements InterruptableJob {
 			}
 		
 		} finally {
+            waitForTransientChildren(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
+
             taskManagerImpl.unregisterRunningTask(task);
             executingThread = null;
 
@@ -182,6 +187,44 @@ public class JobExecutor implements InterruptableJob {
 		}
 
 	}
+
+    private void waitForTransientChildren(OperationResult result) {
+        for (Task subtask : task.getLightweightAsynchronousSubtasks()) {
+            Future future = null;
+            synchronized (subtask) {
+                if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+                    future = ((TaskQuartzImpl) subtask).getLightweightHandlerFuture();
+                    if (future == null) {
+                        LOGGER.trace("Lightweight task handler for subtask {} has not started yet; closing the task.", subtask);
+                        closeTask(task, result);
+                    }
+                }
+            }
+            if (future != null) {
+                // this executes outside synchronized region, because it could take a long time
+                LOGGER.debug("Waiting for subtask {} to complete.", subtask);
+                try {
+                    future.get();
+                } catch (CancellationException e) {
+                    // the Future was cancelled; however, the run() method may be still executing
+                    // we want to be sure it is already done
+                    while (((TaskQuartzImpl) subtask).isLightweightHandlerExecuting()) {
+                        LOGGER.debug("Subtask {} was cancelled, waiting for its real completion.", subtask);
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e1) {
+                            LOGGER.warn("Waiting for subtask {} completion interrupted.", subtask);
+                            break;
+                        }
+                    }
+                } catch (Throwable t) {
+                    LoggingUtils.logException(LOGGER, "Exception while waiting for subtask {} to complete.", t, subtask);
+                    result.recordWarning("Got exception while waiting for subtask " + subtask + " to complete: " + t.getMessage(), t);
+                }
+                LOGGER.debug("Waiting for subtask {} done.", subtask);
+            }
+        }
+    }
 
     // returns true if the execution of the task should continue
     private boolean processTaskRecovery(OperationResult executionResult) {
@@ -283,7 +326,7 @@ public class JobExecutor implements InterruptableJob {
 			TaskRunResult runResult = null;
 
 			recordCycleRunStart(executionResult, handler);
-            runResult = executeHandler(handler);        // exceptions thrown by handler are handled in this method
+            runResult = executeHandler(handler, executionResult);        // exceptions thrown by handler are handled in executeHandler()
 
             // we should record finish-related information before dealing with (potential) task closure/restart
             // so we place this method call before the following block
@@ -347,7 +390,7 @@ mainCycle:
                 TaskRunResult runResult;
                 try {
 				    recordCycleRunStart(executionResult, handler);
-				    runResult = executeHandler(handler);
+				    runResult = executeHandler(handler, executionResult);
 				    boolean canContinue = recordCycleRunFinish(runResult, handler, executionResult);
                     if (!canContinue) { // in case of task disappeared
                         break;
@@ -460,7 +503,7 @@ mainCycle:
 		}
 	}
 	
-    private TaskRunResult executeHandler(TaskHandler handler) {
+    private TaskRunResult executeHandler(TaskHandler handler, OperationResult executionResult) {
 
     	TaskRunResult runResult;
     	try {
@@ -473,14 +516,16 @@ mainCycle:
     		runResult = handler.run(task);
     		if (runResult == null) {				// Obviously an error in task handler
                 LOGGER.error("Unable to record run finish: task returned null result");
-				return createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
-			} else {
-    		    return runResult;
-            }
+				runResult = createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
+			}
     	} catch (Throwable t) {
 			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", new Object[] { t.getClass().getName(), t.getMessage(), task, t});
-            return createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
+            runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
     	}
+
+        waitForTransientChildren(executionResult);
+
+        return runResult;
 	}
 
     private TaskRunResult createFailureTaskRunResult(String message, Throwable t) {
@@ -562,19 +607,48 @@ mainCycle:
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
 		LOGGER.trace("Trying to shut down the task " + task + ", executing in thread " + executingThread);
+
+        boolean interruptsAlways = taskManagerImpl.getConfiguration().getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS;
+        boolean interruptsMaybe = taskManagerImpl.getConfiguration().getUseThreadInterrupt() != UseThreadInterrupt.NEVER;
         if (task != null) {
-		    task.signalShutdown();
-		    if (taskManagerImpl.getConfiguration().getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS) {
-                sendThreadInterrupt();
+            synchronized (task) {
+                task.unsetCanRun();
+                for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+                    TaskQuartzImpl subtaskq = (TaskQuartzImpl) subtask;
+                    subtaskq.unsetCanRun();
+                    // if we want to cancel the Future using interrupts, we have to do it now
+                    // because after calling cancel(false) subsequent calls to cancel(true) have no effect whatsoever
+                    subtaskq.getLightweightHandlerFuture().cancel(interruptsMaybe);
+                }
+            }
+		    if (interruptsAlways) {
+                sendThreadInterrupt(false);         // subtasks were interrupted by their futures
             }
         }
 	}
 
     public void sendThreadInterrupt() {
+        sendThreadInterrupt(true);
+    }
+
+    public void sendThreadInterrupt(boolean alsoSubtasks) {
         if (executingThread != null) {			// in case this method would be (mistakenly?) called after the execution is over
             LOGGER.trace("Calling Thread.interrupt on thread {}.", executingThread);
             executingThread.interrupt();
             LOGGER.trace("Thread.interrupt was called on thread {}.", executingThread);
         }
+        if (alsoSubtasks) {
+            synchronized (task) {
+                for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+                    LOGGER.trace("Calling Future.cancel(mayInterruptIfRunning:=true) on a future for LAT subtask {}", subtask);
+                    ((TaskQuartzImpl) subtask).getLightweightHandlerFuture().cancel(true);
+                }
+            }
+        }
+    }
+
+    // should be used only for testing
+    public Thread getExecutingThread() {
+        return executingThread;
     }
 }

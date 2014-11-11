@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.LightweightTaskHandler;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -50,6 +51,7 @@ import javax.xml.namespace.QName;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -486,20 +488,25 @@ public class SimpleTaskAdapter implements Task {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-    @Deprecated
     @Override
-    public TaskRunResult waitForSubtasks(Integer interval, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    public Task createSubtask(LightweightTaskHandler handler) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-    @Deprecated
-    @Override
-    public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?>> extensionDeltas,
-                                         OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        throw new UnsupportedOperationException("not implemented yet.");
-    }
+//    @Deprecated
+//    @Override
+//    public TaskRunResult waitForSubtasks(Integer interval, OperationResult parentResult)
+//            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+//        throw new UnsupportedOperationException("not implemented yet.");
+//    }
+//
+//    @Deprecated
+//    @Override
+//    public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?>> extensionDeltas,
+//                                         OperationResult parentResult)
+//            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+//        throw new UnsupportedOperationException("not implemented yet.");
+//    }
 
     @Override
     public String getParent() {
@@ -611,6 +618,37 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public Collection<ItemDelta<?>> getPendingModifications() {
         throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+
+    @Override
+    public LightweightTaskHandler getLightweightTaskHandler() {
+        return null;
+    }
+
+    @Override
+    public boolean isLightweightAsynchronousTask() {
+        return false;
+    }
+
+    @Override
+    public Set<? extends Task> getLightweightAsynchronousSubtasks() {
+        return null;
+    }
+
+    @Override
+    public Set<? extends Task> getRunningLightweightAsynchronousSubtasks() {
+        return null;
+    }
+
+    @Override
+    public boolean lightweightHandlerStartRequested() {
+        return false;
+    }
+
+    @Override
+    public void startLightweightHandler() {
+
     }
 
     @Override
