@@ -356,6 +356,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		for (int i = 0; i < threadsCount; i++) {
 			Task subtask = coordinatorTask.createSubtask(new WorkerHandler());
+			subtask.setCategory(coordinatorTask.getCategory());
+			subtask.setResult(new OperationResult(taskOperationPrefix + ".executeWorker", OperationResultStatus.IN_PROGRESS, null));
 			subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);
 			subtask.startLightweightHandler();
 			LOGGER.trace("Worker subtask {} created", subtask);

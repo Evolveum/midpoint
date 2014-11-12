@@ -2361,6 +2361,10 @@ public class TaskQuartzImpl implements Task {
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
+		if (!isPersistent()) {
+			return new ArrayList<>(0);
+		}
+
         ObjectFilter filter = null;
 //        try {
             filter = EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, taskManager.getPrismContext(), null, getTaskIdentifier());
@@ -2403,7 +2407,12 @@ public class TaskQuartzImpl implements Task {
     }
 
     private List<Task> listSubtasksInternal(OperationResult result) throws SchemaException {
-        return taskManager.resolveTasksFromTaskTypes(listSubtasksRaw(result), result);
+		List<Task> retval = new ArrayList<>();
+		// persistent subtasks
+        retval.addAll(taskManager.resolveTasksFromTaskTypes(listSubtasksRaw(result), result));
+		// transient asynchronous subtasks - must be taken from the running task instance!
+		retval.addAll(taskManager.getTransientSubtasks(this));
+		return retval;
     }
 
     @Override

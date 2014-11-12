@@ -284,25 +284,8 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 			// if we are parsed, things are much simpler
 			clone = new PrimitiveXNode(CloneUtil.clone(getValue()));
 		} else {
-			// !!! DANGEROUS. UGLY HACKING. !!!
-			//
-			// ValueParser declares it is serializable, but in reality it depends e.g. on the DOM implementation in use.
-			// And JSON parser is not serializable at all.
 			clone = new PrimitiveXNode();
-			if (valueParser instanceof Serializable || valueParser instanceof Cloneable) {
-				try {
-					clone.valueParser = CloneUtil.clone(valueParser);
-				} catch (Throwable t) {
-					// Nasty "solution". Actually, by not cloning value parser we will probably not do much harm, but one never knows.
-					// TODO consider eliminating this hack.
-					LoggingUtils.logException(LOGGER, "Error when cloning value parser - using original, uncloned value: {}", t, valueParser);
-					clone.valueParser = valueParser;
-					//throw t;          // useful when testing, not for production
-				}
-			} else {
-				LOGGER.warn("Parser of type {} cannot be cloned; proceeding with original uncloned value.", valueParser!=null?valueParser.getClass():"(null)");
-				clone.valueParser = valueParser;
-			}
+			clone.valueParser = valueParser;			// for the time being we simply don't clone the valueParser
 		}
 
 		clone.isAttribute = this.isAttribute;

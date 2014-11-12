@@ -89,6 +89,7 @@ public class TaskDto extends Selectable {
     public static final String F_DRY_RUN = "dryRun";
     public static final String F_KIND = "kind";
     public static final String F_INTENT = "intent";
+    public static final String F_WORKER_THREADS = "workerThreads";
     public static final String F_RESOURCE_REFERENCE = "resourceRef";
 
     private List<String> handlerUriList;
@@ -133,6 +134,8 @@ public class TaskDto extends Selectable {
     private ShadowKindType kind;
     private String intent;
 
+    private Integer workerThreads;
+
     private TaskType taskType;
 
     //region Construction
@@ -160,7 +163,7 @@ public class TaskDto extends Selectable {
         fillInWorkflowAttributes(taskType);
         thisOpResult.computeStatusIfUnknown();
 
-        //dryRun, intent and kind
+        //dryRun, intent, kind, workerThreads
         fillFromExtension(taskType);
     }
 
@@ -194,6 +197,11 @@ public class TaskDto extends Selectable {
         PrismProperty<String> intentItem = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_INTENT);
         if(intentItem != null && intentItem.getRealValue() != null){
             intent = intentItem.getRealValue();
+        }
+
+        PrismProperty<Integer> workerThreadsItem = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
+        if(workerThreadsItem != null) {
+            workerThreads = workerThreadsItem.getRealValue();
         }
     }
 
@@ -728,8 +736,14 @@ public class TaskDto extends Selectable {
         return intent;
     }
 
+    public Integer getWorkerThreads() { return workerThreads; }
+
     public void setIntent(String intent) {
         this.intent = intent;
+    }
+
+    public void setWorkerThreads(Integer workerThreads) {
+        this.workerThreads = workerThreads;
     }
 
     public TaskType getTaskType() {

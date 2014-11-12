@@ -962,14 +962,15 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         for (Task subtask : subtasks) {
 
-            addTransientTaskInformation(subtask.getTaskPrismObject(),
-                    clusterStatusInformation,
-                    retrieveNextRunStartTime,
-                    retrieveNodeAsObserved,
-                    result);
+            if (subtask.isPersistent()) {
+                addTransientTaskInformation(subtask.getTaskPrismObject(),
+                        clusterStatusInformation,
+                        retrieveNextRunStartTime,
+                        retrieveNodeAsObserved,
+                        result);
 
-            fillInSubtasks(subtask, clusterStatusInformation, options, result);
-
+                fillInSubtasks(subtask, clusterStatusInformation, options, result);
+            }
             TaskType subTaskType = subtask.getTaskPrismObject().asObjectable();
             task.getTaskPrismObject().asObjectable().getSubtask().add(subTaskType);
         }
@@ -1112,6 +1113,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     private TaskType addTransientTaskInformation(PrismObject<TaskType> taskInRepository, ClusterStatusInformation clusterStatusInformation, boolean retrieveNextRunStartTime, boolean retrieveNodeAsObserved, OperationResult result) {
+
+        Validate.notNull(taskInRepository.getOid(), "Task OID is null");
         TaskType taskInResult = taskInRepository.asObjectable();
         if (clusterStatusInformation != null && retrieveNodeAsObserved) {
             NodeType runsAt = clusterStatusInformation.findNodeInfoForTask(taskInResult.getOid());
@@ -1770,6 +1773,15 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         synchronized (locallyRunningTaskInstancesMap) {    // must be synchronized while iterating over it (addAll)
             return new HashMap<String,TaskQuartzImpl>(locallyRunningTaskInstancesMap);
         }
+    }
+
+    public Collection<Task> getTransientSubtasks(TaskQuartzImpl task) {
+        List<Task> retval = new ArrayList<>();
+        Task runningInstance = locallyRunningTaskInstancesMap.get(task.getTaskIdentifier());
+        if (runningInstance != null) {
+            retval.addAll(runningInstance.getLightweightAsynchronousSubtasks());
+        }
+        return retval;
     }
 
     //endregion
