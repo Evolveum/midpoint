@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -38,10 +39,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.ConnectorHostType
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -67,7 +65,6 @@ public class NameStep extends WizardStep {
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_LOCATION = "location";
     private static final String ID_CONNECTOR_TYPE = "connectorType";
-    private static final String ID_CONNECTOR_VERSION = "connectorVersion";
 
     private static final ConnectorHostType NOT_USED_HOST = new ConnectorHostType();
 
@@ -368,9 +365,8 @@ public class NameStep extends WizardStep {
         PageBase page = (PageBase) getPage();
 
         DropDownFormGroup type = (DropDownFormGroup) get(ID_CONNECTOR_TYPE);
-        DropDownFormGroup version = (DropDownFormGroup) get(ID_CONNECTOR_VERSION);
 
-        target.add(type.getInput(), version.getInput(), page.getFeedbackPanel());
+        target.add(type.getInput(), page.getFeedbackPanel());
     }
 
     private void discoverConnectors(ConnectorHostType host) {
@@ -394,11 +390,29 @@ public class NameStep extends WizardStep {
     public void applyState() {
         PageBase page = (PageBase) getPage();
         OperationResult result = new OperationResult(OPERATION_SAVE_RESOURCE);
+
         try {
             PrismObject<ResourceType> resource = resourceModel.getObject();
             resource.findOrCreateContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
             resource.findOrCreateContainer(new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES));
             page.getPrismContext().adopt(resource);
+
+            DropDownFormGroup connectorTypeDropDown = ((DropDownFormGroup)get(ID_CONNECTOR_TYPE));
+            if(connectorTypeDropDown != null && connectorTypeDropDown.getInput() != null){
+
+                if(connectorTypeDropDown.getInput().getModelObject() != null){
+                    PrismObject<ConnectorType> connectorTypeReference = (PrismObject<ConnectorType>)connectorTypeDropDown.getInput().getModel().getObject();
+                    PrismReference ref = resource.findOrCreateReference(ResourceType.F_CONNECTOR_REF);
+
+                    if(connectorTypeReference == null){
+                        resource.removeReference(ResourceType.F_CONNECTOR_REF);
+                    } else {
+                        PrismReferenceValue val = new PrismReferenceValue();
+                        val.setObject(connectorTypeReference);
+                        ref.replace(val);
+                    }
+                }
+            }
 
             ObjectDelta delta;
             if (StringUtils.isNotEmpty(resource.getOid())) {
