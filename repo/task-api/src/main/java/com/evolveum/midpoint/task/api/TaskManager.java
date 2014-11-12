@@ -99,6 +99,8 @@ public interface TaskManager {
      */
     <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult) throws SchemaException;
 
+    void waitForTransientChildren(Task task, OperationResult result);
+
     /**
      * TODO
      *

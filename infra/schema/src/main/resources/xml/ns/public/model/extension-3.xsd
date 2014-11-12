@@ -97,6 +97,22 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="workerThreads" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                Handlers of search-iterative type (subclasses of AbstractSearchIterativeTaskHandler) can execute
+                their duties using multiple worker threads. This feature is enabled by specifying this property
+                in task extension. If not specified or specified as 0, traditional behavior (one-threaded)
+                is applied. If specified as a value of 1, one master and one worker thread is created
+                (not really useful for production).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="objectclass" type="xsd:QName">
         <xsd:annotation>
             <xsd:documentation>

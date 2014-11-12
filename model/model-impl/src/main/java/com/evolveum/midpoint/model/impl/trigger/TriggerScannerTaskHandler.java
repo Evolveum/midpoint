@@ -28,8 +28,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerTaskHandler;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -47,7 +45,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
@@ -120,14 +117,14 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	}
 	
 	@Override
-	protected AbstractScannerResultHandler<ObjectType> createHandler(TaskRunResult runResult, final Task task,
+	protected AbstractScannerResultHandler<ObjectType> createHandler(TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) {
 		
 		AbstractScannerResultHandler<ObjectType> handler = new AbstractScannerResultHandler<ObjectType>(
-				task, TriggerScannerTaskHandler.class.getName(), "trigger", "trigger task") {
+				coordinatorTask, TriggerScannerTaskHandler.class.getName(), "trigger", "trigger task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<ObjectType> object, OperationResult result) throws CommonException {
-				fireTriggers(this, object, task, result);
+			protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult result) throws CommonException {
+				fireTriggers(this, object, workerTask, result);
 				return true;
 			}
 		};

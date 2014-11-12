@@ -172,20 +172,20 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     }
 
 	@Override
-	protected SynchronizeAccountResultHandler createHandler(TaskRunResult runResult, Task task,
+	protected SynchronizeAccountResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) {
 		
-		ResourceType resource = resolveObjectRef(ResourceType.class, runResult, task, opResult);
+		ResourceType resource = resolveObjectRef(ResourceType.class, runResult, coordinatorTask, opResult);
 		if (resource == null) {
 			return null;
 		}
 		
-        return createHandler(resource, null, runResult, task, opResult);
+        return createHandler(resource, null, runResult, coordinatorTask, opResult);
 	}
 
     // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
 	private SynchronizeAccountResultHandler createHandler(ResourceType resource, PrismObject<ShadowType> shadowToImport,
-                                                          TaskRunResult runResult, Task task, OperationResult opResult) {
+                                                          TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
 		
 		RefinedResourceSchema refinedSchema;
         try {
@@ -205,7 +205,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         if (shadowToImport != null) {
             objectClass = Utils.determineObjectClass(refinedSchema, shadowToImport);
         } else {
-            objectClass = Utils.determineObjectClass(refinedSchema, task);
+            objectClass = Utils.determineObjectClass(refinedSchema, coordinatorTask);
         }
         if (objectClass == null) {
             LOGGER.error("Import: No objectclass specified and no default can be determined.");
@@ -216,8 +216,8 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         
         LOGGER.info("Start executing import from resource {}, importing object class {}", resource, objectClass.getTypeName());
 		
-		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, "import", 
-        		task, changeNotificationDispatcher);
+		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, "import",
+                coordinatorTask, changeNotificationDispatcher, taskManager);
         handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         handler.setForceAdd(true);
         handler.setStopOnError(false);

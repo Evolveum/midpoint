@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Classes implementing this interface are used to handle iterative results.
  *
- * It is only used to handle iterative search results now. It may be resused for
+ * It is only used to handle iterative search results now. It may be reused for
  * other purposes as well.
  * 
  * @author Radovan Semancik

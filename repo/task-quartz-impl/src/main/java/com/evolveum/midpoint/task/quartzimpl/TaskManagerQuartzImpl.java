@@ -64,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.Validate;
@@ -76,6 +77,8 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -92,6 +95,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -839,7 +843,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             Runnable r = new Runnable() {
                 @Override
                 public void run() {
-                    LOGGER.debug("Lightweight task handler starting execution; task = {}", task);
+                    LOGGER.debug("Lightweight task handler shell starting execution; task = {}", task);
+
+                    // Setup Spring Security context
+                    securityEnforcer.setupPreAuthenticatedSecurityContext(task.getOwner());
+
                     try {
                         task.setLightweightHandlerExecuting(true);
                         lightweightTaskHandler.run(task);
@@ -848,7 +856,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                     } finally {
                         task.setLightweightHandlerExecuting(false);
                     }
-                    LOGGER.debug("Lightweight task handler finishing; task = {}", task);
+                    LOGGER.debug("Lightweight task handler shell finishing; task = {}", task);
                     try {
                         // TODO what about concurrency here??!
                         closeTask(task, task.getResult());
@@ -863,11 +871,38 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
             Future future = lightweightHandlersExecutor.submit(r);
             task.setLightweightHandlerFuture(future);
-            LOGGER.debug("Lightweight task handler started; task = {}", task);
+            LOGGER.debug("Lightweight task handler submitted to start; task = {}", task);
         }
     }
 
-
+    @Override
+    public void waitForTransientChildren(Task task, OperationResult result) {
+        for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+            Future future = ((TaskQuartzImpl) subtask).getLightweightHandlerFuture();
+            if (future != null) {       // should always be
+                LOGGER.debug("Waiting for subtask {} to complete.", subtask);
+                try {
+                    future.get();
+                } catch (CancellationException e) {
+                    // the Future was cancelled; however, the run() method may be still executing
+                    // we want to be sure it is already done
+                    while (((TaskQuartzImpl) subtask).isLightweightHandlerExecuting()) {
+                        LOGGER.debug("Subtask {} was cancelled, waiting for its real completion.", subtask);
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e1) {
+                            LOGGER.warn("Waiting for subtask {} completion interrupted.", subtask);
+                            break;
+                        }
+                    }
+                } catch (Throwable t) {
+                    LoggingUtils.logException(LOGGER, "Exception while waiting for subtask {} to complete.", t, subtask);
+                    result.recordWarning("Got exception while waiting for subtask " + subtask + " to complete: " + t.getMessage(), t);
+                }
+                LOGGER.debug("Waiting for subtask {} done.", subtask);
+            }
+        }
+    }
 
     //endregion
 

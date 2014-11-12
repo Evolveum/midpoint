@@ -286,7 +286,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		PrismProperty<ShadowKindType> kind = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_KIND);
 		if (kind != null && !kind.isEmpty()){
 			ShadowKindType kindValue = kind.getRealValue();
-			if (!synchronizationPolicy.getKind().equals(kindValue)){
+			ShadowKindType policyKind = synchronizationPolicy.getKind();
+			if (policyKind == null) {
+				policyKind = ShadowKindType.ACCOUNT;			// TODO is this ok? [med]
+			}
+			if (!policyKind.equals(kindValue)){
 				return false;
 			}
 		}

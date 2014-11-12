@@ -173,7 +173,7 @@ public class JobExecutor implements InterruptableJob {
 			}
 		
 		} finally {
-            waitForTransientChildren(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
+            waitForTransientChildrenAndCloseThem(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
 
             taskManagerImpl.unregisterRunningTask(task);
             executingThread = null;
@@ -188,40 +188,16 @@ public class JobExecutor implements InterruptableJob {
 
 	}
 
-    private void waitForTransientChildren(OperationResult result) {
+    private void waitForTransientChildrenAndCloseThem(OperationResult result) {
+        taskManagerImpl.waitForTransientChildren(task, result);
+
+        // at this moment, there should be no executing child tasks... we just clean-up all runnables that had not started
         for (Task subtask : task.getLightweightAsynchronousSubtasks()) {
-            Future future = null;
-            synchronized (subtask) {
-                if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
-                    future = ((TaskQuartzImpl) subtask).getLightweightHandlerFuture();
-                    if (future == null) {
-                        LOGGER.trace("Lightweight task handler for subtask {} has not started yet; closing the task.", subtask);
-                        closeTask(task, result);
-                    }
+            if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+                if (((TaskQuartzImpl) subtask).getLightweightHandlerFuture() == null) {
+                    LOGGER.trace("Lightweight task handler for subtask {} has not started yet; closing the task.", subtask);
+                    closeTask(task, result);
                 }
-            }
-            if (future != null) {
-                // this executes outside synchronized region, because it could take a long time
-                LOGGER.debug("Waiting for subtask {} to complete.", subtask);
-                try {
-                    future.get();
-                } catch (CancellationException e) {
-                    // the Future was cancelled; however, the run() method may be still executing
-                    // we want to be sure it is already done
-                    while (((TaskQuartzImpl) subtask).isLightweightHandlerExecuting()) {
-                        LOGGER.debug("Subtask {} was cancelled, waiting for its real completion.", subtask);
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException e1) {
-                            LOGGER.warn("Waiting for subtask {} completion interrupted.", subtask);
-                            break;
-                        }
-                    }
-                } catch (Throwable t) {
-                    LoggingUtils.logException(LOGGER, "Exception while waiting for subtask {} to complete.", t, subtask);
-                    result.recordWarning("Got exception while waiting for subtask " + subtask + " to complete: " + t.getMessage(), t);
-                }
-                LOGGER.debug("Waiting for subtask {} done.", subtask);
             }
         }
     }
@@ -523,7 +499,7 @@ mainCycle:
             runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
     	}
 
-        waitForTransientChildren(executionResult);
+        waitForTransientChildrenAndCloseThem(executionResult);
 
         return runResult;
 	}
