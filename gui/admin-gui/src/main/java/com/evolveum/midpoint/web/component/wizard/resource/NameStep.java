@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -393,9 +392,10 @@ public class NameStep extends WizardStep {
 
         try {
             PrismObject<ResourceType> resource = resourceModel.getObject();
-            resource.findOrCreateContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-            resource.findOrCreateContainer(new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES));
             page.getPrismContext().adopt(resource);
+            resource.findOrCreateContainer(ResourceType.F_CONNECTOR_CONFIGURATION)
+                    .findOrCreateContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES)
+                    .createNewValue();
 
             DropDownFormGroup connectorTypeDropDown = ((DropDownFormGroup)get(ID_CONNECTOR_TYPE));
             if(connectorTypeDropDown != null && connectorTypeDropDown.getInput() != null){

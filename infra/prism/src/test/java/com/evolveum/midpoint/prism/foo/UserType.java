@@ -69,7 +69,13 @@ import javax.xml.namespace.QName;
     "locality",
     "assignment",
     "activation",
-    "specialWithInternalizedName"
+    "specialWithInternalizedName",
+    "singleActivation", 
+    "multiActivation",
+    "multiActivationCopy",
+    "singleConstruction",
+    "multiConstruction",
+    "multiConstructionCopy"
 })
 public class UserType
     extends ObjectType
@@ -87,6 +93,12 @@ public class UserType
 	public final static QName F_LOCALITY = new QName(NS_FOO, "locality");
 	public final static QName F_ACCOUNT_REF = new QName(NS_FOO, "accountRef");
     public final static QName F_SPECIAL = new QName(NS_FOO, "special");
+    public final static QName F_SINGLE_ACTIVATION = new QName(NS_FOO, "singleActivation");
+    public final static QName F_MULTI_ACTIVATION = new QName(NS_FOO, "multiActivation");
+    public final static QName F_MULTI_ACTIVATION_COPY = new QName(NS_FOO, "multiActivationCopy");
+    public final static QName F_SINGLE_CONSTRUCTION = new QName(NS_FOO, "singleConstruction");
+    public final static QName F_MULTI_CONSTRUCTION = new QName(NS_FOO, "multiConstruction");
+    public final static QName F_MULTI_CONSTRUCTION_COPY = new QName(NS_FOO, "multiConstructionCopy");
 
     private final static long serialVersionUID = 201202081233L;
     @XmlElement(required = true)
@@ -99,6 +111,13 @@ public class UserType
     protected String locality;
     protected List<AssignmentType> assignment;
     protected ActivationType activation;
+    protected ActivationType singleActivation;
+    protected List<ActivationType> multiActivation;
+    protected List<ActivationType> multiActivationCopy;
+    protected AccountConstructionType singleConstruction;
+    protected List<AccountConstructionType> multiConstruction;
+    protected List<AccountConstructionType> multiConstructionCopy;
+    
     @XmlElement(name = "special")
     protected String specialWithInternalizedName;               // internal name here differs from the one in serialized form
 
@@ -286,5 +305,53 @@ public class UserType
 
     public void setSpecialWithInternalizedName(String specialWithInternalizedName) {
         this.specialWithInternalizedName = specialWithInternalizedName;
+    }
+
+    public ActivationType getSingleActivation() {
+        return singleActivation;
+    }
+
+    public void setSingleActivation(ActivationType singleActivation) {
+        this.singleActivation = singleActivation;
+    }
+
+    public List<ActivationType> getMultiActivation() {
+        return multiActivation;
+    }
+
+    public void setMultiActivation(List<ActivationType> multiActivation) {
+        this.multiActivation = multiActivation;
+    }
+
+    public List<ActivationType> getMultiActivationCopy() {
+        return multiActivationCopy;
+    }
+
+    public void setMultiActivationCopy(List<ActivationType> multiActivationCopy) {
+        this.multiActivationCopy = multiActivationCopy;
+    }
+
+    public AccountConstructionType getSingleConstruction() {
+        return singleConstruction;
+    }
+
+    public void setSingleConstruction(AccountConstructionType singleConstruction) {
+        this.singleConstruction = singleConstruction;
+    }
+
+    public List<AccountConstructionType> getMultiConstruction() {
+        return multiConstruction;
+    }
+
+    public void setMultiConstruction(List<AccountConstructionType> multiConstruction) {
+        this.multiConstruction = multiConstruction;
+    }
+
+    public List<AccountConstructionType> getMultiConstructionCopy() {
+        return multiConstructionCopy;
+    }
+
+    public void setMultiConstructionCopy(List<AccountConstructionType> multiConstructionCopy) {
+        this.multiConstructionCopy = multiConstructionCopy;
     }
 }
