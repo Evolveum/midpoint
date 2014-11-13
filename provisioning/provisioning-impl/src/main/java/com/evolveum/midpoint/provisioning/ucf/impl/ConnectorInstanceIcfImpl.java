@@ -2448,8 +2448,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME));
 		}
 
-		int numConfingProperties = transformConnectorConfiguration(configProps,
-				configurationPropertiesContainer, connectorConfNs);
+		transformConnectorConfiguration(configProps, configurationPropertiesContainer, connectorConfNs);
 
 		PrismContainer connectorPoolContainer = configuration.findContainer(new QName(
 				ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION,
@@ -2475,23 +2474,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         ResultsHandlerConfiguration resultsHandlerConfiguration = apiConfig.getResultsHandlerConfiguration();
         transformResultsHandlerConfiguration(resultsHandlerConfiguration, resultsHandlerConfigurationContainer);
 
-		if (numConfingProperties == 0) {
-			throw new SchemaException("No configuration properties found. Wrong namespace? (expected: "
-					+ connectorConfNs + ")");
-		}
-
 	}
 
-	private int transformConnectorConfiguration(ConfigurationProperties configProps,
+	private void transformConnectorConfiguration(ConfigurationProperties configProps,
 			PrismContainer<?> configurationPropertiesContainer, String connectorConfNs)
-			throws ConfigurationException {
-
-		int numConfingProperties = 0;
+			throws ConfigurationException, SchemaException {
 
 		if (configurationPropertiesContainer == null || configurationPropertiesContainer.getValue() == null) {
-			LOGGER.warn("No configuration properties in connectorType.getOid()");
-			return numConfingProperties;
+			throw new SchemaException("No configuration properties container in " + connectorType);
 		}
+
+		int numConfingProperties = 0;
+		List<QName> wrongNamespaceProperties = new ArrayList<>();
 
 		for (PrismProperty prismProperty : configurationPropertiesContainer.getValue().getProperties()) {
 			QName propertyQName = prismProperty.getElementName();
@@ -2500,8 +2494,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// namespace.
 			if (propertyQName.getNamespaceURI() == null
 					|| !propertyQName.getNamespaceURI().equals(connectorConfNs)) {
-				LOGGER.warn("Found element with a wrong namespace ({}) in connector OID={}",
-						propertyQName.getNamespaceURI(), connectorType.getOid());
+				LOGGER.warn("Found element with a wrong namespace ({}) in {}",
+						propertyQName.getNamespaceURI(), connectorType);
+				wrongNamespaceProperties.add(propertyQName);
 			} else {
 
 				numConfingProperties++;
@@ -2528,7 +2523,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 			}
 		}
-		return numConfingProperties;
+		// empty configuration is OK e.g. when creating a new resource using wizard
+		if (numConfingProperties == 0 && !wrongNamespaceProperties.isEmpty()) {
+			throw new SchemaException("No configuration properties found. Wrong namespace? (expected: "
+					+ connectorConfNs + ", present e.g. " + wrongNamespaceProperties.get(0) + ")");
+		}
 	}
 
 	private void transformConnectorPoolConfiguration(ObjectPoolConfiguration connectorPoolConfiguration,

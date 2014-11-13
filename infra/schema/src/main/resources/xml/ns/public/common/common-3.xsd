@@ -4175,7 +4175,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Collection of resource capabilities. Each element in this collection defines a specific resource
-                capability. Stardard midpoint capabilities are defined in a separate namespace. But that is not
+                capability. Standard midpoint capabilities are defined in a separate namespace. But that is not
                 a closed set. Resource may also specify additional capabilities. If the code that is processing
                 capabilities encounters unknown capability it must ignore it.
             </xsd:documentation>
