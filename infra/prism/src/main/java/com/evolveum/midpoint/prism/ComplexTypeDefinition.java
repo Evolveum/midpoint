@@ -194,8 +194,12 @@ public class ComplexTypeDefinition extends Definition {
     public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(ItemPath path) {
     	return findItemDefinition(path, PrismContainerDefinition.class);
     }
-    
+
 	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
+		return findItemDefinition(name, clazz, false);
+	}
+
+	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz, boolean caseInsensitive) {
         if (clazz == null) {
             throw new IllegalArgumentException("type not specified while searching for " + name + " in " + this);
         }
@@ -204,7 +208,7 @@ public class ComplexTypeDefinition extends Definition {
         }
 
         for (ItemDefinition def : getDefinitions()) {
-            if (isItemValid(def, name, clazz)) {
+            if (isItemValid(def, name, clazz, caseInsensitive)) {
                 return (T) def;
             }
         }
@@ -227,11 +231,11 @@ public class ComplexTypeDefinition extends Definition {
         return null;
     }
 	
-	private <T extends ItemDefinition> boolean isItemValid(ItemDefinition def, QName name, Class<T> clazz) {
+	private <T extends ItemDefinition> boolean isItemValid(ItemDefinition def, QName name, Class<T> clazz, boolean caseInsensitive) {
 		if (def == null) {
     		return false;
     	}
-    	return def.isValidFor(name, clazz);
+    	return def.isValidFor(name, clazz, caseInsensitive);
 	}
 	
 	/**

@@ -46,6 +46,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean caseIgnoreValues = false;
     private boolean generateDefaultValues = false;
     private boolean tolerateDuplicateValues = true;
+	private boolean varyLetterCase = false;
     private String uselessString;
     private GuardedString uselessGuardedString;
 
@@ -224,6 +225,16 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setUselessGuardedString(GuardedString uselessGuardedString) {
 		this.uselessGuardedString = uselessGuardedString;
+	}
+
+	@ConfigurationProperty(displayMessageKey = "UI_VARY_LETTER_CASE",
+			helpMessageKey = "UI_VARY_LETTER_CASE_HELP")
+	public boolean isVaryLetterCase() {
+		return varyLetterCase;
+	}
+
+	public void setVaryLetterCase(boolean value) {
+		this.varyLetterCase = value;
 	}
 	
 	/**

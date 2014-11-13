@@ -187,11 +187,13 @@ public class IcfConvertor {
 			}
 
 			QName qname = icfNameMapper.convertAttributeNameToQName(icfAttr.getName(), resourceSchemaNamespace);
-			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname);
+			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, true);       // TODO configure whether we want the case insensitivity!
 
 			if (attributeDefinition == null) {
 				throw new SchemaException("Unknown attribute "+qname+" in definition of object class "+attributesContainerDefinition.getTypeName()+". Original ICF name: "+icfAttr.getName(), qname);
 			}
+
+			qname = attributeDefinition.getName();			// normalized version
 
 			ResourceAttribute<Object> resourceAttribute = attributeDefinition.instantiate(qname);
 

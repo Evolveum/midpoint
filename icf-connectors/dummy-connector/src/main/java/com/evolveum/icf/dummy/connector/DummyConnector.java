@@ -15,7 +15,6 @@
  */
 package com.evolveum.icf.dummy.connector;
 
-import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
@@ -50,10 +49,8 @@ import org.identityconnectors.framework.common.objects.SyncDeltaBuilder;
 import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.framework.common.objects.filter.AbstractFilterTranslator;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
-import org.identityconnectors.framework.spi.AttributeNormalizer;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.ConnectorClass;
@@ -79,7 +76,6 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.icf.dummy.connector.Utils;
 
 /**
  * Connector for the Dummy Resource.
@@ -145,7 +141,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         resource.setEnforceUniqueName(this.configuration.isEnforceUniqueName());
         resource.setTolerateDuplicateValues(this.configuration.getTolerateDuplicateValues());
         resource.setGenerateDefaultValues(this.configuration.isGenerateDefaultValues());
-        
+
         resource.setUselessString(this.configuration.getUselessString());
         GuardedString uselessGuardedString = this.configuration.getUselessGuardedString();
         if (uselessGuardedString == null) {
@@ -1051,6 +1047,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 				}
 			}
 			Set<Object> values = dummyObject.getAttributeValues(name, Object.class);
+			if (configuration.isVaryLetterCase()) {
+				name = varyLetterCase(name);
+			}
 			builder.addAttribute(name, values);
 		}
 		
@@ -1072,7 +1071,21 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		
 		return builder;
    }
-    
+
+	private String varyLetterCase(String name) {
+		StringBuilder sb = new StringBuilder(name.length());
+		for (char c : name.toCharArray()) {
+			double a = Math.random();
+			if (a < 0.4) {
+				c = Character.toLowerCase(c);
+			} else if (a > 0.7) {
+				c = Character.toUpperCase(c);
+			}
+			sb.append(c);
+		}
+		return sb.toString();
+	}
+
 	private Long convertToLong(Date date) {
 		if (date == null) {
 			return null;
