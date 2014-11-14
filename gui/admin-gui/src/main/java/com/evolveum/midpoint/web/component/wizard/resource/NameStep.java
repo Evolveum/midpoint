@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -389,6 +391,7 @@ public class NameStep extends WizardStep {
     public void applyState() {
         PageBase page = (PageBase) getPage();
         OperationResult result = new OperationResult(OPERATION_SAVE_RESOURCE);
+        boolean newResource;
 
         try {
             PrismObject<ResourceType> resource = resourceModel.getObject();
@@ -414,8 +417,14 @@ public class NameStep extends WizardStep {
                 }
             }
 
+            if(StringUtils.isNotEmpty(resource.getOid())){
+                newResource = false;
+            } else {
+                newResource = true;
+            }
+
             ObjectDelta delta;
-            if (StringUtils.isNotEmpty(resource.getOid())) {
+            if (!newResource) {
                 PrismObject<ResourceType> oldResource = WebModelUtils.loadObject(ResourceType.class, resource.getOid(),
                         result, page);
 
@@ -426,8 +435,15 @@ public class NameStep extends WizardStep {
 
             WebModelUtils.save(delta, ModelExecuteOptions.createRaw(), result, page);
 
-            resource = WebModelUtils.loadObject(ResourceType.class, delta.getOid(), result, page);
+            if(!newResource){
+                resource = WebModelUtils.loadObject(ResourceType.class, delta.getOid(), result, page);
+            } else {
+                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+                resource = WebModelUtils.loadObject(ResourceType.class, delta.getOid(), options ,result, page);
+            }
+
             resourceModel.setObject(resource);
+
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't save resource", ex);
             result.recordFatalError("Couldn't save resource, reason: " + ex.getMessage(), ex);
