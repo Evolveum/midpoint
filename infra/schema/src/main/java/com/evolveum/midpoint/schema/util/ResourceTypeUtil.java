@@ -469,4 +469,15 @@ public class ResourceTypeUtil {
 		}
 		return resource.getConsistency().isAvoidDuplicateValues();
 	}
+
+	public static boolean isCaseIgnoreAttributeNames(ResourceType resource) {
+		if (resource.getConsistency() == null) {
+			return false;
+		}
+		if (resource.getConsistency().isCaseIgnoreAttributeNames() == null) {
+			return false;
+		}
+		return resource.getConsistency().isCaseIgnoreAttributeNames();
+	}
+
 }

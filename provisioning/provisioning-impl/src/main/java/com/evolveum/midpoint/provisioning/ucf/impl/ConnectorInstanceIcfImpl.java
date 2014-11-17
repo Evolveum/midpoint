@@ -32,7 +32,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -205,6 +204,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private Collection<Object> capabilities = null;
 	private PrismSchema connectorSchema;
 	private String description;
+	private boolean caseIgnoreAttributeNames = false;
 
 	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
 			String schemaNamespace, PrismSchema connectorSchema, Protector protector,
@@ -447,7 +447,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, OperationResult parentResult) throws CommunicationException,
+	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ConfigurationException {
 
 		// Result type for this operation
@@ -464,6 +464,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		this.resourceSchema = resourceSchema;
 		this.capabilities = capabilities;
+		this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
 
 		if (resourceSchema == null || capabilities == null) {
 			try {
@@ -974,7 +975,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		PrismObjectDefinition<T> shadowDefinition = toShadowDefinition(objectClassDefinition);
-		PrismObject<T> shadow = icfConvertor.convertToResourceObject(co, shadowDefinition, false);
+		PrismObject<T> shadow = icfConvertor.convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames);
 
 		result.recordSuccess();
 		return shadow;
@@ -1831,7 +1832,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	@Override
     public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
                                               final ResultHandler<T> handler, AttributesToReturn attributesToReturn,
-                                              ResourcePagedSearchConfigurationType pagedSearchConfigurationType, OperationResult parentResult)
+                                              ResourcePagedSearchConfigurationType pagedSearchConfigurationType,
+											  OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException {
 
 		// Result type for this operation
@@ -1881,7 +1883,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 				PrismObject<T> resourceObject;
 				try {
-					resourceObject = icfConvertor.convertToResourceObject(connectorObject, objectDefinition, false);
+					resourceObject = icfConvertor.convertToResourceObject(connectorObject, objectDefinition, false, caseIgnoreAttributeNames);
 				} catch (SchemaException e) {
 					throw new IntermediateException(e);
 				}
@@ -2196,7 +2198,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private <T extends ShadowType> List<Change<T>> getChangesFromSyncDeltas(ObjectClass objClass, Collection<SyncDelta> icfDeltas, PrismSchema schema,
-			OperationResult parentResult) throws SchemaException, GenericFrameworkException {
+																			OperationResult parentResult)
+			throws SchemaException, GenericFrameworkException {
 		List<Change<T>> changeList = new ArrayList<Change<T>>();
 
 		Validate.notNull(icfDeltas, "Sync result must not be null.");
@@ -2230,7 +2233,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				
 				LOGGER.trace("START creating delta of type CREATE_OR_UPDATE");
 				PrismObject<ShadowType> currentShadow = icfConvertor.convertToResourceObject(icfDelta.getObject(),
-						objectDefinition, false);
+						objectDefinition, false, caseIgnoreAttributeNames);
 
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Got current shadow: {}", currentShadow.debugDump());

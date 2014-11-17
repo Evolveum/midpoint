@@ -101,7 +101,7 @@ public class IcfConvertor {
 	 * @throws SchemaException
 	 */
 	<T extends ShadowType> PrismObject<T> convertToResourceObject(ConnectorObject co,
-			PrismObjectDefinition<T> objectDefinition, boolean full) throws SchemaException {
+			PrismObjectDefinition<T> objectDefinition, boolean full, boolean caseIgnoreAttributeNames) throws SchemaException {
 
 		PrismObject<T> shadowPrism = null;
 		if (objectDefinition != null) {
@@ -187,13 +187,15 @@ public class IcfConvertor {
 			}
 
 			QName qname = icfNameMapper.convertAttributeNameToQName(icfAttr.getName(), resourceSchemaNamespace);
-			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, true);       // TODO configure whether we want the case insensitivity!
+			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
 
 			if (attributeDefinition == null) {
 				throw new SchemaException("Unknown attribute "+qname+" in definition of object class "+attributesContainerDefinition.getTypeName()+". Original ICF name: "+icfAttr.getName(), qname);
 			}
 
-			qname = attributeDefinition.getName();			// normalized version
+			if (caseIgnoreAttributeNames) {
+				qname = attributeDefinition.getName();            // normalized version
+			}
 
 			ResourceAttribute<Object> resourceAttribute = attributeDefinition.instantiate(qname);
 

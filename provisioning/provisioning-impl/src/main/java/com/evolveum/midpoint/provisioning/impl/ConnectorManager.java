@@ -158,7 +158,7 @@ public class ConnectorManager {
 			ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
 			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
 			
-			connector.initialize(resourceSchema, capabilities, result);
+			connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(resourceType), result);
 			
 			InternalMonitor.recordConnectorInstanceInitialization();
 			

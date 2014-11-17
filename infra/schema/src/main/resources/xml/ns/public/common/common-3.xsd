@@ -3370,8 +3370,8 @@
     <xsd:complexType name="ResourceConsistencyType">
         <xsd:annotation>
             <xsd:documentation>
-                Configuration of consistency mechanisms. This may include configurqation of high-level
-                operation retries and similar technical condifiguration.
+                Configuration of consistency mechanisms. This may include configuration of high-level
+                operation retries and similar technical configuration.
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
@@ -3379,6 +3379,14 @@
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="avoidDuplicateValues" type="xsd:boolean" minOccurs="0" default="false"/>
+            <xsd:element name="caseIgnoreAttributeNames" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should we ignore casing of names of attributes retrieved from the connector?
+                        If yes, we normalize any attribute names with regard to the resource schema.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         	<xsd:element name="postpone" type="xsd:boolean" minOccurs="0" default="true"/>
         	<xsd:element name="discovery" type="xsd:boolean" minOccurs="0" default="true"/>
             <!-- TODO -->

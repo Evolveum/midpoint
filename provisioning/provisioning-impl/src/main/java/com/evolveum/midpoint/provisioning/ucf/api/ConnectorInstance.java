@@ -78,7 +78,7 @@ public interface ConnectorInstance {
 	/**
 	 * Get necessary information from the remote system.
 	 * 
-	 * This method will initialized the configured connector. It may contact the remote system in order to do so,
+	 * This method will initialize the configured connector. It may contact the remote system in order to do so,
 	 * e.g. to download the schema. It will the cache the information inside connector instance until this method
 	 * is called again. It must be called after configure() and before any other method that is accessing the
 	 * resource.
@@ -86,12 +86,14 @@ public interface ConnectorInstance {
 	 * If resource schema and capabilities are already cached by midPoint they may be passed to the connector instance.
 	 * Otherwise the instance may need to fetch them from the resource which may be less efficient.
 	 * 
+	 *
+	 * @param caseIgnoreAttributeNames
 	 * @param parentResult
 	 * @throws CommunicationException
 	 * @throws GenericFrameworkException
 	 * @throws ConfigurationException 
 	 */
-	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, OperationResult parentResult)  
+	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ConfigurationException;
 	
 	/**

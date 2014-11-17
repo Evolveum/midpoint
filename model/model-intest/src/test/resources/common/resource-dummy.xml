@@ -570,6 +570,7 @@ end
 	
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
+		<caseIgnoreAttributeNames>true</caseIgnoreAttributeNames>
 	</consistency>
 	
 	<synchronization>
