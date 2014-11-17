@@ -3244,6 +3244,9 @@
                 element to make the implementation
                 (JAXB marshall/unmarshall) easier.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
@@ -3259,6 +3262,9 @@
                 that can be used for creating accounts, entitlements and possible other concepts.
                 This is abstract supertype for other types. 
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"/>
@@ -3318,52 +3324,37 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="pagedSearches" minOccurs="0" type="tns:ResourcePagedSearchConfigurationType">
+            <xsd:element name="pagedSearches" minOccurs="0" type="xsd:anyType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How to handle paged search for this account type.
-                        Although deals primarily with GUI issues, may be useful for other kinds of access as well.
-                        EXPERIMENTAL.
+                        Placeholder for old-style specification of paged searches.
+                        Kept here just to avoid parsing errors when reading the configuration.
+                        DEPRECATED. The value is ignored.
+                        TODO remove before release
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:rawType/>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
+            <xsd:element name="configuredCapabilities" type="c:CapabilityCollectionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The configured capabilities of the resource specific to this object type.
 
-    <xsd:complexType name="ResourcePagedSearchConfigurationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                How to handle paged search for this account type.
-                Although deals primarily with GUI issues, may be useful for other kinds of access as well.
+                        This part contains "tweaks" of the native capabilities.
+                        Some of the native capabilities may be turned off, other capabilities may be simulated.
 
-                If not present, paged searches are not enabled for this resource/kind/intent/objectClass.
+                        If this element is not present at all then the native+configured capabilities
+                        at the resource level are applied.
 
-                EXPERIMENTAL.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Is the paged search enabled? Default is TRUE (if the pagedSearchConfiguration is present).
+                        BEWARE: Currently, only pagedSearch capability is expected here.
+                        Other capabilities listed in this section are ignored.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="defaultSortField" type="xsd:QName" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If no sorting is specified by client (higher levels), use this field as the default.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="defaultSortDirection" type="q:OrderDirectionType" minOccurs="0" >
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If the defaultSortField is used, this element specified the sorting order
-                        (ascending is the default).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+
         </xsd:sequence>
     </xsd:complexType>
 
@@ -4148,7 +4139,7 @@
             <xsd:element name="native" type="c:CapabilityCollectionType" minOccurs="0" maxOccurs="1">
             	<xsd:annotation>
             		<xsd:documentation>
-            			The capabilities nativelly supported by the connector without any simulation or any
+            			The capabilities natively supported by the connector without any simulation or any
                         other workaround. It is stored in the repository as a cache of the real capabilities
                         (connector can always produce the capabilities if the resource is online).
                         If this element is not present then the data were not yet retrieved from the resource.

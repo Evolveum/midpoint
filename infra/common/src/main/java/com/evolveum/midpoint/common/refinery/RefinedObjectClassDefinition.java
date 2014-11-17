@@ -16,21 +16,12 @@
 package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -42,7 +33,10 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import javax.xml.namespace.QName;
@@ -56,6 +50,8 @@ import java.util.*;
  * @author semancik
  */
 public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefinition implements DebugDumpable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(RefinedObjectClassDefinition.class);
 
     private String intent;
     private String displayName;
@@ -399,8 +395,11 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     	String intent = entTypeDefType.getIntent();
 		RefinedObjectClassDefinition rObjectClassDef = parseRefinedObjectClass(entTypeDefType, 
 				resourceType, rSchema, prismContext, kind, intent, kind.value(), kind.value() + " type definition '"+intent+"' in " + contextDescription);
+
+        if (entTypeDefType.getPagedSearches() != null) {
+            LOGGER.warn("PagedSearches element is no more supported and is ignored. Use PagedSearchCapabilityType instead. In {}", resourceType);
+        }
 		return rObjectClassDef;
-				
 	}
 
 	private static void parseProtected(RefinedObjectClassDefinition rAccountDef, ResourceObjectTypeDefinitionType accountTypeDefType) throws SchemaException {
@@ -834,21 +833,11 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		}
 	}
 
-    public ResourcePagedSearchConfigurationType getPagedSearches() {
-        if (schemaHandlingObjectTypeDefinitionType != null) {
-            return schemaHandlingObjectTypeDefinitionType.getPagedSearches();
-        } else {
-            return null;
-        }
+    public PagedSearchCapabilityType getPagedSearches() {
+        return ResourceTypeUtil.getEffectiveCapability(resourceType, schemaHandlingObjectTypeDefinitionType, PagedSearchCapabilityType.class);
     }
 
     public boolean isPagedSearchEnabled() {
-        return schemaHandlingObjectTypeDefinitionType != null
-                && isPagedSearchEnabled(schemaHandlingObjectTypeDefinitionType.getPagedSearches());
-    }
-
-    public static boolean isPagedSearchEnabled(ResourcePagedSearchConfigurationType configuration) {
-        return configuration != null
-                && !Boolean.FALSE.equals(configuration.isEnabled());         // because default is TRUE (if whole element is defined)
+        return getPagedSearches() != null;          // null means nothing or disabled
     }
 }

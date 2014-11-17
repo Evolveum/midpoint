@@ -37,7 +37,7 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePagedSearchConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 
 import org.apache.commons.lang.StringUtils;
@@ -1832,8 +1832,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	@Override
     public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
                                               final ResultHandler<T> handler, AttributesToReturn attributesToReturn,
-                                              ResourcePagedSearchConfigurationType pagedSearchConfigurationType,
-											  OperationResult parentResult)
+                                              PagedSearchCapabilityType pagedSearchCapabilityType, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException {
 
 		// Result type for this operation
@@ -1858,7 +1857,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		final PrismObjectDefinition<T> objectDefinition = toShadowDefinition(objectClassDefinition);
 
-        final boolean useConnectorPaging = RefinedObjectClassDefinition.isPagedSearchEnabled(pagedSearchConfigurationType);
+        final boolean useConnectorPaging = pagedSearchCapabilityType != null;
 
         final Holder<Integer> countHolder = new Holder<>(0);
 
@@ -1920,8 +1919,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
                 }
                 isAscending = paging.getDirection() != OrderDirection.DESCENDING;
             } else {
-                orderBy = pagedSearchConfigurationType.getDefaultSortField();
-                isAscending = pagedSearchConfigurationType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
+                orderBy = pagedSearchCapabilityType.getDefaultSortField();
+                isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
             }
             if (orderBy != null) {
                 String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(orderBy, getSchemaNamespace());
@@ -1976,7 +1975,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
     @Override
     public int count(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
-                     ResourcePagedSearchConfigurationType pagedSearchConfigurationType, OperationResult parentResult)
+                     PagedSearchCapabilityType pagedSearchCapabilityType, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException {
 
         // Result type for this operation
@@ -1999,7 +1998,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
             result.recordFatalError("Unable to determine object class", ex);
             throw ex;
         }
-        final boolean useConnectorPaging = RefinedObjectClassDefinition.isPagedSearchEnabled(pagedSearchConfigurationType);
+        final boolean useConnectorPaging = pagedSearchCapabilityType != null;
         if (!useConnectorPaging) {
             throw new UnsupportedOperationException("ConnectorInstanceIcfImpl.count operation is supported only in combination with connector-implemented paging");
         }
@@ -2008,9 +2007,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         optionsBuilder.setAttributesToGet(icfNameMapper.convertAttributeNameToIcf(SchemaConstantsGenerated.ICF_S_NAME, getSchemaNamespace()));
         optionsBuilder.setPagedResultsOffset(1);
         optionsBuilder.setPageSize(1);
-        if (pagedSearchConfigurationType.getDefaultSortField() != null) {
-            String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(pagedSearchConfigurationType.getDefaultSortField(), getSchemaNamespace());
-            boolean isAscending = pagedSearchConfigurationType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
+        if (pagedSearchCapabilityType.getDefaultSortField() != null) {
+            String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(pagedSearchCapabilityType.getDefaultSortField(), getSchemaNamespace());
+            boolean isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
             optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
         }
         OperationOptions options = optionsBuilder.build();

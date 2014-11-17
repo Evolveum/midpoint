@@ -22,12 +22,11 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePagedSearchConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 
 import java.util.Collection;
 import java.util.List;
@@ -179,7 +178,7 @@ public interface ConnectorInstance {
 	 */
     public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
                                               ResultHandler<T> handler, AttributesToReturn attributesToReturn,
-                                              ResourcePagedSearchConfigurationType pagedSearchConfigurationType,
+                                              PagedSearchCapabilityType pagedSearchConfigurationType,
                                               OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException;
 
@@ -200,7 +199,7 @@ public interface ConnectorInstance {
      * @throws java.lang.UnsupportedOperationException
      */
     public int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-                     ResourcePagedSearchConfigurationType pagedSearchConfigurationType,
+                     PagedSearchCapabilityType pagedSearchConfigurationType,
                      OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException;
 
