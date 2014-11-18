@@ -1255,6 +1255,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
+	// TODO [med] beware, this method does not obey its contract specified in the interface
+	// (1) currently it does not return all the changes, only the 'side effect' changes
+	// (2) it throws exceptions even if some of the changes were made
+	// (3) among identifiers, only the UID value is updated on object rename
+	//     (other identifiers are ignored on input and output of this method)
+
 	@Override
 	public Set<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass,
 			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
@@ -1276,6 +1282,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
 		
 		Uid uid = getUid(identifiers);
+		if (uid == null) {
+			throw new IllegalArgumentException("No UID in identifiers: " + identifiers);
+		}
 		String originalUid = uid.getUidValue();
 
 		Collection<ResourceAttribute<?>> addValues = new HashSet<ResourceAttribute<?>>();
@@ -1576,13 +1585,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		result.computeStatus();
 
-		Set<PropertyModificationOperation> sideEffectChanges = new HashSet<PropertyModificationOperation>();
+		Set<PropertyModificationOperation> sideEffectChanges = new HashSet<>();
 		if (!originalUid.equals(uid.getUidValue())) {
 			// UID was changed during the operation, this is most likely a
 			// rename
 			PropertyDelta<String> uidDelta = createUidDelta(uid, getUidDefinition(identifiers));
 			PropertyModificationOperation uidMod = new PropertyModificationOperation(uidDelta);
 			sideEffectChanges.add(uidMod);
+
+			replaceUidValue(identifiers, uid);
 		}
 		return sideEffectChanges;
 	}
@@ -2114,6 +2125,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}
 		return null;
+	}
+
+	private void replaceUidValue(Collection<? extends ResourceAttribute<?>> identifiers, Uid newUid) {
+		for (ResourceAttribute<?> attr : identifiers) {
+			if (attr.getElementName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
+				attr.setValue(new PrismPropertyValue(newUid.getUidValue()));			// expecting the UID property is of type String
+				return;
+			}
+		}
+		throw new IllegalStateException("No UID attribute in " + identifiers);
 	}
 
 	private ResourceAttributeDefinition getUidDefinition(Collection<? extends ResourceAttribute<?>> identifiers) {

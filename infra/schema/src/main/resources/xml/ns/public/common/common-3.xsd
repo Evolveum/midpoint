@@ -3585,7 +3585,7 @@
             <xsd:element name="limitations" type="tns:PropertyLimitationsType" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
-            			Limits the usage of the attribute, e.g. whether it may is read-only, read write or entirelly ignored.
+            			Limits the usage of the attribute, e.g. whether it may is read-only, read write or entirely ignored.
             			The limitations may apply to several system layers, therefore this element may be repeated several times.
             			But it there may be only one instance for each layer.
             		</xsd:documentation>
@@ -3612,6 +3612,33 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="modificationPriority" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Modification priority of this item. Items with specified priorities are modified in order that
+                        follows these priorities: these with lower numbers are modified first, these with higher numbers
+                        next, and items with unspecified priorities are modified last. Each priority level gets its own
+                        modify operation (or operations, if required by ICF limitations).
+
+                        Currently this field is supported only for attributes, even it is present on associations as well.
+
+                        (It is envisioned that 'addingPriority' could be created as well in the future; it would concern
+                        creating new objects. In that case, attributes with numerically lowest adding priority would be
+                        used to create an object, and other attributes would be set via MODIFY operation, again,
+                        according to their priorities.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- <xsd:element name="volatile" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates if the attribute value can change externally, as a side effect of changing other attributes.
+                        E.g. when changing recipientType in MS Exchange connector, EmailAddresses could be changed as a result
+                        of applying an address policy.
+                        TODO TODO TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element> -->
             <xsd:element name="secondaryIdentifier" type="xsd:boolean" minOccurs="0">
             <xsd:annotation>
             		<xsd:documentation>

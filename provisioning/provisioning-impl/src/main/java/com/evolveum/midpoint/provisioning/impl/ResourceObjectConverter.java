@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -469,7 +470,7 @@ public class ResourceObjectConverter {
         
         if (isRename(operations)){
 			Collection<PropertyModificationOperation> renameOperations = distillRenameDeltas(itemDeltas, shadowAfter, objectClassDefinition);
-			LOGGER.trace("Determinig rename operation {}", renameOperations);
+			LOGGER.trace("Determining rename operation {}", renameOperations);
 			sideEffectChanges.addAll(renameOperations);
 		}
 
@@ -483,10 +484,11 @@ public class ResourceObjectConverter {
 	private Collection<PropertyModificationOperation> executeModify(ConnectorInstance connector, ResourceType resource, PrismObject<ShadowType> currentShadow, 
 			RefinedObjectClassDefinition objectClassDefinition, Collection<? extends ResourceAttribute<?>> identifiers, 
 					Collection<Operation> operations, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
-		Collection<PropertyModificationOperation> sideEffectChanges = null;
+		Collection<PropertyModificationOperation> sideEffectChanges = new HashSet<>();
 
 		if (operations.isEmpty()){
 			LOGGER.trace("No modifications for connector object. Skipping modification.");
+			// TODO [mederly] shouldn't "return new HashSet<>()" be here?
 		}
 		
 		// Invoke ICF
@@ -537,13 +539,16 @@ public class ResourceObjectConverter {
 			if (!ResourceTypeUtil.hasUpdateCapability(resource)){
 				throw new UnsupportedOperationException("Resource does not support 'update' operation");
 			}
+
+			Collection<ResourceAttribute<?>> identifiersWorkingCopy = cloneIdentifiers(identifiers);			// because identifiers can be modified e.g. on rename operation
+			List<Collection<Operation>> operationsWaves = sortOperationsIntoWaves(operations, objectClassDefinition);
+			for (Collection<Operation> operationsWave : operationsWaves) {
+				sideEffectChanges.addAll(connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, parentResult));
+				// we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
+			}
 			
-			sideEffectChanges = connector.modifyObject(objectClassDefinition, identifiers, operations,
-					parentResult);
-			
-			
-		LOGGER.debug("PROVISIONING MODIFY successful, side-effect changes {}",
-				SchemaDebugUtil.debugDump(sideEffectChanges));
+			LOGGER.debug("PROVISIONING MODIFY successful, side-effect changes {}",
+					SchemaDebugUtil.debugDump(sideEffectChanges));
 
 		} catch (ObjectNotFoundException ex) {
 			parentResult.recordFatalError("Object to modify not found: " + ex.getMessage(), ex);
@@ -574,7 +579,53 @@ public class ResourceObjectConverter {
 		
 		return sideEffectChanges;
 	}
-	
+
+	private List<Collection<Operation>> sortOperationsIntoWaves(Collection<Operation> operations, RefinedObjectClassDefinition objectClassDefinition) {
+		TreeMap<Integer,Collection<Operation>> waves = new TreeMap<>();	// operations indexed by priority
+		List<Operation> others = new ArrayList<>();					// operations executed at the end (either non-priority ones or non-attribute modifications)
+		for (Operation operation : operations) {
+			if (operation instanceof PropertyModificationOperation) {
+				PropertyModificationOperation propertyModificationOperation = (PropertyModificationOperation) operation;
+				PropertyDelta propertyDelta = propertyModificationOperation.getPropertyDelta();
+				if (new ItemPath(ShadowType.F_ATTRIBUTES).equals(propertyDelta.getParentPath())) {
+					QName attributeName = propertyDelta.getElementName();
+					RefinedAttributeDefinition rad = objectClassDefinition.findAttributeDefinition(attributeName);
+					if (rad.getModificationPriority() != null) {
+						putIntoWaves(waves, rad.getModificationPriority(), operation);
+						continue;
+					}
+				}
+			}
+			others.add(operation);
+		}
+		// computing the return value
+		List<Collection<Operation>> retval = new ArrayList<>(waves.size()+1);
+		Map.Entry<Integer,Collection<Operation>> entry = waves.firstEntry();
+		while (entry != null) {
+			retval.add(entry.getValue());
+			entry = waves.higherEntry(entry.getKey());
+		}
+		retval.add(others);
+		return retval;
+	}
+
+	private void putIntoWaves(Map<Integer, Collection<Operation>> waves, Integer key, Operation operation) {
+		Collection<Operation> wave = waves.get(key);
+		if (wave == null) {
+			wave = new ArrayList<>();
+			waves.put(key, wave);
+		}
+		wave.add(operation);
+	}
+
+	private Collection<ResourceAttribute<?>> cloneIdentifiers(Collection<? extends ResourceAttribute<?>> identifiers) {
+		Collection<ResourceAttribute<?>> retval = new HashSet<>(identifiers.size());
+		for (ResourceAttribute<?> identifier : identifiers) {
+			retval.add(identifier.clone());
+		}
+		return retval;
+	}
+
 	private <T> PropertyDelta<T> narrowPropertyDelta(PropertyDelta<T> propertyDelta,
 			PrismObject<ShadowType> currentShadow) throws SchemaException {
 		MatchingRule<T> matchingRule = null;

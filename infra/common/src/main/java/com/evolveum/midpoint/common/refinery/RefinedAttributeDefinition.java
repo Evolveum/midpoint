@@ -57,6 +57,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private List<MappingType> inboundMappingTypes;
     private Map<LayerType,PropertyLimitations> limitationsMap = new HashMap<LayerType, PropertyLimitations>();
     private QName matchingRuleQName = null;
+    private Integer modificationPriority;
 
     protected RefinedAttributeDefinition(ResourceAttributeDefinition attrDef, PrismContext prismContext) {
         super(attrDef.getName(), attrDef.getTypeName(), prismContext);
@@ -310,14 +311,14 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 		
 	}
 
-	static RefinedAttributeDefinition parse(ResourceAttributeDefinition schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
-    		ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext, 
+    static RefinedAttributeDefinition parse(ResourceAttributeDefinition schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
+                                            ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext,
                                             String contextDescription) throws SchemaException {
 
         RefinedAttributeDefinition rAttrDef = new RefinedAttributeDefinition(schemaAttrDef, prismContext);
 
         if (schemaHandlingAttrDefType != null && schemaHandlingAttrDefType.getDisplayName() != null) {
-	            rAttrDef.setDisplayName(schemaHandlingAttrDefType.getDisplayName());
+            rAttrDef.setDisplayName(schemaHandlingAttrDefType.getDisplayName());
         } else {
             if (schemaAttrDef.getDisplayName() != null) {
                 rAttrDef.setDisplayName(schemaAttrDef.getDisplayName());
@@ -325,10 +326,10 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         }
 
         if (schemaHandlingAttrDefType != null) {
-        	rAttrDef.fetchStrategy = schemaHandlingAttrDefType.getFetchStrategy();
-        	rAttrDef.matchingRuleQName = schemaHandlingAttrDefType.getMatchingRule();
+            rAttrDef.fetchStrategy = schemaHandlingAttrDefType.getFetchStrategy();
+            rAttrDef.matchingRuleQName = schemaHandlingAttrDefType.getMatchingRule();
         }
-        
+
         PropertyLimitations schemaLimitations = getOrCreateLimitations(rAttrDef.limitationsMap, LayerType.SCHEMA);
         schemaLimitations.setMinOccurs(schemaAttrDef.getMinOccurs());
         schemaLimitations.setMaxOccurs(schemaAttrDef.getMaxOccurs());
@@ -336,31 +337,31 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         schemaLimitations.getAccess().setAdd(schemaAttrDef.canAdd());
         schemaLimitations.getAccess().setModify(schemaAttrDef.canModify());
         schemaLimitations.getAccess().setRead(schemaAttrDef.canRead());
-        
-       
-        if (schemaHandlingAttrDefType != null) {
-        	
-        	if (schemaHandlingAttrDefType.getDescription() != null) {
-            	rAttrDef.setDescription(schemaHandlingAttrDefType.getDescription());
-        	}
 
-        	if (schemaHandlingAttrDefType.isTolerant() == null) {
-        		rAttrDef.tolerant = true;
-        	} else {
-        		rAttrDef.tolerant = schemaHandlingAttrDefType.isTolerant();
-        	}
-        	
-        	if (schemaHandlingAttrDefType.isSecondaryIdentifier() == null){
-        		rAttrDef.secondaryIdentifier = false;
-        	} else {
-        		rAttrDef.secondaryIdentifier = schemaHandlingAttrDefType.isSecondaryIdentifier();
-        	}
-        	
-        	rAttrDef.tolerantValuePattern = schemaHandlingAttrDefType.getTolerantValuePattern();
-        	rAttrDef.intolerantValuePattern = schemaHandlingAttrDefType.getIntolerantValuePattern();
-        	
-        	rAttrDef.isExclusiveStrong = BooleanUtils.isTrue(schemaHandlingAttrDefType.isExclusiveStrong());
-        	
+
+        if (schemaHandlingAttrDefType != null) {
+
+            if (schemaHandlingAttrDefType.getDescription() != null) {
+                rAttrDef.setDescription(schemaHandlingAttrDefType.getDescription());
+            }
+
+            if (schemaHandlingAttrDefType.isTolerant() == null) {
+                rAttrDef.tolerant = true;
+            } else {
+                rAttrDef.tolerant = schemaHandlingAttrDefType.isTolerant();
+            }
+
+            if (schemaHandlingAttrDefType.isSecondaryIdentifier() == null) {
+                rAttrDef.secondaryIdentifier = false;
+            } else {
+                rAttrDef.secondaryIdentifier = schemaHandlingAttrDefType.isSecondaryIdentifier();
+            }
+
+            rAttrDef.tolerantValuePattern = schemaHandlingAttrDefType.getTolerantValuePattern();
+            rAttrDef.intolerantValuePattern = schemaHandlingAttrDefType.getIntolerantValuePattern();
+
+            rAttrDef.isExclusiveStrong = BooleanUtils.isTrue(schemaHandlingAttrDefType.isExclusiveStrong());
+
             if (schemaHandlingAttrDefType.getOutbound() != null) {
                 rAttrDef.setOutboundMappingType(schemaHandlingAttrDefType.getOutbound());
             }
@@ -368,34 +369,35 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
             if (schemaHandlingAttrDefType.getInbound() != null) {
                 rAttrDef.setInboundMappingTypes(schemaHandlingAttrDefType.getInbound());
             }
-                    
+
+            rAttrDef.setModificationPriority(schemaHandlingAttrDefType.getModificationPriority());
         }
 
         PropertyLimitations previousLimitations = null;
-        for (LayerType layer: LayerType.values()) {
-        	PropertyLimitations limitations = getOrCreateLimitations(rAttrDef.limitationsMap, layer);
-        	if (previousLimitations != null) {
-        		limitations.setMinOccurs(previousLimitations.getMinOccurs());
-        		limitations.setMaxOccurs(previousLimitations.getMaxOccurs());
-        		limitations.setIgnore(previousLimitations.isIgnore());
-        		limitations.getAccess().setAdd(previousLimitations.getAccess().isAdd());
-        		limitations.getAccess().setRead(previousLimitations.getAccess().isRead());
-        		limitations.getAccess().setModify(previousLimitations.getAccess().isModify());
-        	}
-        	previousLimitations = limitations;
-        	if (schemaHandlingAttrDefType != null) {
-        		if (layer != LayerType.SCHEMA) {
-        			// SCHEMA is a pseudo-layer. It cannot be overriden ... unless specified explicitly
-	        		PropertyLimitationsType genericLimitationsType = getLimitationsType(schemaHandlingAttrDefType.getLimitations(), null);
-	        		if (genericLimitationsType != null) {
-	        			applyLimitationsType(limitations, genericLimitationsType);
-	        		}
-        		}
-        		PropertyLimitationsType layerLimitationsType = getLimitationsType(schemaHandlingAttrDefType.getLimitations(), layer);
-        		if (layerLimitationsType != null) {
-        			applyLimitationsType(limitations, layerLimitationsType);
-        		}
-        	}
+        for (LayerType layer : LayerType.values()) {
+            PropertyLimitations limitations = getOrCreateLimitations(rAttrDef.limitationsMap, layer);
+            if (previousLimitations != null) {
+                limitations.setMinOccurs(previousLimitations.getMinOccurs());
+                limitations.setMaxOccurs(previousLimitations.getMaxOccurs());
+                limitations.setIgnore(previousLimitations.isIgnore());
+                limitations.getAccess().setAdd(previousLimitations.getAccess().isAdd());
+                limitations.getAccess().setRead(previousLimitations.getAccess().isRead());
+                limitations.getAccess().setModify(previousLimitations.getAccess().isModify());
+            }
+            previousLimitations = limitations;
+            if (schemaHandlingAttrDefType != null) {
+                if (layer != LayerType.SCHEMA) {
+                    // SCHEMA is a pseudo-layer. It cannot be overriden ... unless specified explicitly
+                    PropertyLimitationsType genericLimitationsType = getLimitationsType(schemaHandlingAttrDefType.getLimitations(), null);
+                    if (genericLimitationsType != null) {
+                        applyLimitationsType(limitations, genericLimitationsType);
+                    }
+                }
+                PropertyLimitationsType layerLimitationsType = getLimitationsType(schemaHandlingAttrDefType.getLimitations(), layer);
+                if (layerLimitationsType != null) {
+                    applyLimitationsType(limitations, layerLimitationsType);
+                }
+            }
         }
 
         return rAttrDef;
@@ -524,4 +526,11 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 		return sb.toString();
 	}
 
+    public void setModificationPriority(Integer modificationPriority) {
+        this.modificationPriority = modificationPriority;
+    }
+
+    public Integer getModificationPriority() {
+        return modificationPriority;
+    }
 }

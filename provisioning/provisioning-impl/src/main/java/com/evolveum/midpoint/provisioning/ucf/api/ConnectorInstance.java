@@ -243,7 +243,7 @@ public interface ConnectorInstance {
 	 * E.g. in case of connect timeout or connection refused. Timeout during operation should not cause the
 	 * exception as something might have been done already. 
 	 * 
-	 * @param identifiers
+	 * @param identifiers The set of identifiers. Their values may change as a result of the operation, e.g. when the resource object is renamed.
 	 * @param changes
 	 * @throws CommunicationException
 	 * @throws SchemaException 
