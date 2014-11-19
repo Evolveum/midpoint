@@ -861,4 +861,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 	}
 
+	// objectClassName may be null
+	protected RefinedAttributeDefinition getAttributeDefinition(ResourceType resourceType,
+																ShadowKindType kind,
+																QName objectClassName,
+																String attributeLocalName) throws SchemaException {
+		RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+		RefinedObjectClassDefinition refinedObjectClassDefinition =
+				refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClassName);
+		return refinedObjectClassDefinition.findAttributeDefinition(attributeLocalName);
+	}
+
 }

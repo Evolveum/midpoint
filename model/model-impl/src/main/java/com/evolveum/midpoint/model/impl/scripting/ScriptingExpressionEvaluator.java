@@ -221,7 +221,9 @@ public class ScriptingExpressionEvaluator {
         if (executor == null) {
             throw new IllegalStateException("Unsupported action type: " + command.getType());
         } else {
-            return executor.execute(command, input, context, result);
+            Data retval = executor.execute(command, input, context, result);
+            result.summarize();
+            return retval;
         }
     }
 

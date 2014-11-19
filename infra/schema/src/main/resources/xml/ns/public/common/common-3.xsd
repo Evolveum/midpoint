@@ -3349,7 +3349,7 @@
                         If this element is not present at all then the native+configured capabilities
                         at the resource level are applied.
 
-                        BEWARE: Currently, only pagedSearch capability is expected here.
+                        BEWARE: Currently, only pagedSearch and addRemoveAttributeValues capability is expected here.
                         Other capabilities listed in this section are ignored.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -3629,16 +3629,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- <xsd:element name="volatile" type="xsd:boolean" minOccurs="0" default="false">
+            <xsd:element name="readReplaceMode" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Indicates if the attribute value can change externally, as a side effect of changing other attributes.
-                        E.g. when changing recipientType in MS Exchange connector, EmailAddresses could be changed as a result
-                        of applying an address policy.
-                        TODO TODO TODO
+                        Modifications to this attribute are executed in REPLACE form only. I.e. if ADD or DELETE VALUE is
+                        requested, midPoint will fetch the object state, compute the expected result and write it to the
+                        resource object via REPLACE VALUE operation. This works around some weird connector behavior.
+
+                        BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
+
+                        EXPERIMENTAL. May change in near future.
                     </xsd:documentation>
                 </xsd:annotation>
-            </xsd:element> -->
+            </xsd:element>
             <xsd:element name="secondaryIdentifier" type="xsd:boolean" minOccurs="0">
             <xsd:annotation>
             		<xsd:documentation>

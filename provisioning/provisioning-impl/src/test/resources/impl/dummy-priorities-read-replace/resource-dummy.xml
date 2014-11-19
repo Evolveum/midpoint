@@ -58,11 +58,13 @@
 				<ref>ri:weapon</ref>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<modificationPriority>0</modificationPriority>
+				<readReplaceMode>true</readReplaceMode>
 			</attribute>
 			<attribute>
 				<ref>ri:loot</ref>
 				<fetchStrategy>explicit</fetchStrategy>
 				<modificationPriority>1</modificationPriority>
+				<readReplaceMode>true</readReplaceMode>
 			</attribute>
 			<attribute>
 				<ref>ri:ship</ref>
@@ -83,6 +85,7 @@
 						<modify>true</modify>
 					</access>
 				</limitations>
+				<readReplaceMode>true</readReplaceMode>
 			</attribute>
 			<attribute>
 				<ref>ri:quote</ref>
@@ -93,6 +96,7 @@
 						<modify>false</modify>
 					</access>
 				</limitations>
+				<readReplaceMode>true</readReplaceMode>
 			</attribute>
 			<attribute>
 				<ref>ri:gossip</ref>

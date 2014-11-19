@@ -451,6 +451,24 @@
 
 	<xsd:element name="pagedSearch" type="tns:PagedSearchCapabilityType"/>
 
+	<xsd:complexType name="AddRemoveAttributeValuesCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Indication that ADD and REMOVE of attribute values is reliably supported.
+				If this capability is not present or disabled, READ+REPLACE mode is assumed.
+				(Can be overriden at the level of individual attributes via readReplaceMode property.)
+
+				BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType"/>
+
 </xsd:schema>
 
 

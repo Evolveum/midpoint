@@ -58,6 +58,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private Map<LayerType,PropertyLimitations> limitationsMap = new HashMap<LayerType, PropertyLimitations>();
     private QName matchingRuleQName = null;
     private Integer modificationPriority;
+    private Boolean readReplaceMode;
 
     protected RefinedAttributeDefinition(ResourceAttributeDefinition attrDef, PrismContext prismContext) {
         super(attrDef.getName(), attrDef.getTypeName(), prismContext);
@@ -311,6 +312,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 		
 	}
 
+    // schemaHandlingAttrDefType may be null if we are parsing from schema only
     static RefinedAttributeDefinition parse(ResourceAttributeDefinition schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
                                             ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext,
                                             String contextDescription) throws SchemaException {
@@ -337,7 +339,6 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         schemaLimitations.getAccess().setAdd(schemaAttrDef.canAdd());
         schemaLimitations.getAccess().setModify(schemaAttrDef.canModify());
         schemaLimitations.getAccess().setRead(schemaAttrDef.canRead());
-
 
         if (schemaHandlingAttrDefType != null) {
 
@@ -371,6 +372,8 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
             }
 
             rAttrDef.setModificationPriority(schemaHandlingAttrDefType.getModificationPriority());
+
+            rAttrDef.setReadReplaceMode(schemaHandlingAttrDefType.isReadReplaceMode());            // may be null at this point
         }
 
         PropertyLimitations previousLimitations = null;
@@ -532,5 +535,13 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 
     public Integer getModificationPriority() {
         return modificationPriority;
+    }
+
+    public Boolean isReadReplaceMode() {
+        return readReplaceMode;
+    }
+
+    public void setReadReplaceMode(Boolean readReplaceMode) {
+        this.readReplaceMode = readReplaceMode;
     }
 }

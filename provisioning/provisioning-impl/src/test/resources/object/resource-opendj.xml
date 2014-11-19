@@ -109,6 +109,10 @@
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:GroupObjectClass</objectClass>
+			<attribute>
+				<ref>ri:uniqueMember</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
         </objectType>
                 
 	</schemaHandling>

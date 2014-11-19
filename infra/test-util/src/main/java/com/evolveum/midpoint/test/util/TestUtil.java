@@ -443,21 +443,24 @@ public class TestUtil {
 		return null;
 	}
 
-	public static List<OperationResult> selectSubresults(OperationResult result, String operationName) {
+	public static List<OperationResult> selectSubresults(OperationResult result, String... operationNames) {
 		List<OperationResult> retval = new ArrayList<>();
-		selectSubresultsInternal(retval, result, operationName);
+		selectSubresultsInternal(retval, result, operationNames);
 		return retval;
 	}
 
-	private static void selectSubresultsInternal(List<OperationResult> retval, OperationResult result, String operationName) {
+	private static void selectSubresultsInternal(List<OperationResult> retval, OperationResult result, String... operationNames) {
 		if (result == null) {
 			return;			// should not occur actually
 		}
-		if (operationName.equals(result.getOperation())) {
-			retval.add(result);
+		for (int i = 0; i < operationNames.length; i++) {
+			if (operationNames[i].equals(result.getOperation())) {
+				retval.add(result);
+				break;
+			}
 		}
 		for (OperationResult subresult : result.getSubresults()) {
-			selectSubresultsInternal(retval, subresult, operationName);
+			selectSubresultsInternal(retval, subresult, operationNames);
 		}
 	}
 

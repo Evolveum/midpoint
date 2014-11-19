@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -435,9 +436,9 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return resourceObjectPattern;
 	}
 
-	static RefinedObjectClassDefinition parse(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
-            RefinedResourceSchema rSchema,
-            PrismContext prismContext, String contextDescription) throws SchemaException {
+	static RefinedObjectClassDefinition parseFromSchema(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
+                                                        RefinedResourceSchema rSchema,
+                                                        PrismContext prismContext, String contextDescription) throws SchemaException {
 
         RefinedObjectClassDefinition rAccountDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
 
@@ -466,7 +467,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         for (ResourceAttributeDefinition attrDef : objectClassDef.getAttributeDefinitions()) {
             String attrContextDescription = accountTypeName + ", in " + contextDescription;
 
-            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(attrDef, null, objectClassDef, prismContext, 
+            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(attrDef, null, objectClassDef, prismContext,
             		attrContextDescription);
             rAccountDef.processIdentifiers(rAttrDef, objectClassDef);
 
@@ -485,7 +486,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			ResourceType resourceType, RefinedResourceSchema rSchema, PrismContext prismContext,
 			ShadowKindType kind, String intent, String typeDesc, String contextDescription) throws SchemaException {
 		
-		ObjectClassComplexTypeDefinition objectClassDef = null;
+		ObjectClassComplexTypeDefinition objectClassDef;
         if (schemaHandlingObjDefType.getObjectClass() != null) {
             QName objectClass = schemaHandlingObjDefType.getObjectClass();
             objectClassDef = rSchema.getOriginalResourceSchema().findObjectClassDefinition(objectClass);
@@ -536,7 +537,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
             // the shadows will still have that attributes and we will need their type definition to work
             // well with them. They may also be mandatory. We cannot pretend that they do not exist.
 
-            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(road, attrDefType, objectClassDef, 
+            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(road, attrDefType, objectClassDef,
             		prismContext, "in "+typeDesc+" type " + intent + ", in " + contextDescription);
             rOcDef.processIdentifiers(rAttrDef, objectClassDef);
 
@@ -839,5 +840,9 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
     public boolean isPagedSearchEnabled() {
         return getPagedSearches() != null;          // null means nothing or disabled
+    }
+
+    public CapabilityType getEffectiveCapability(Class<? extends CapabilityType> capabilityClass) {
+        return ResourceTypeUtil.getEffectiveCapability(resourceType, schemaHandlingObjectTypeDefinitionType, capabilityClass);
     }
 }

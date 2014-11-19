@@ -45,6 +45,7 @@ public class MatchingRuleRegistry {
 		}
 	}
 
+	// if typeQName is null, we skip the rule-type correspondence test
 	public <T> MatchingRule<T> getMatchingRule(QName ruleName, QName typeQName) throws SchemaException {
 		if (ruleName == null) {
 			return (MatchingRule<T>) defaultMatchingRule;
@@ -60,7 +61,7 @@ public class MatchingRuleRegistry {
 				throw new SchemaException("Unknown matching rule for name " + ruleName);
 			}
 		}
-		if (!matchingRule.isSupported(typeQName)) {
+		if (typeQName != null && !matchingRule.isSupported(typeQName)) {
 			throw new SchemaException("Matching rule "+ruleName+" does not support type "+typeQName);
 		}
 		return matchingRule;

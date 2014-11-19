@@ -69,7 +69,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	super(propertyPath, propertyDefinition, prismContext);
     }
     
-    PrismPropertyDefinition getPropertyDefinition() {
+    public PrismPropertyDefinition getPropertyDefinition() {
 		return (PrismPropertyDefinition) super.getDefinition();
 	}
 
@@ -134,7 +134,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		copyValues(clone);
 		return clone;
 	}
-	
+
 	protected void copyValues(PropertyDelta<T> clone) {
 		super.copyValues(clone);
 	}

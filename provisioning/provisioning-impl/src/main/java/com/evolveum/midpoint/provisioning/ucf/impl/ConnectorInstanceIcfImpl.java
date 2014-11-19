@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 
@@ -750,7 +751,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		}
 
-		capabilities = new ArrayList<Object>();
+		capabilities = new ArrayList<>();
+
+		// This is the default for all resources.
+		// (Currently there is no way how to obtain it from the connector.)
+		// It can be disabled manually.
+		AddRemoveAttributeValuesCapabilityType addRemove = new AddRemoveAttributeValuesCapabilityType();
+		capabilities.add(capabilityObjectFactory.createAddRemoveAttributeValues(addRemove));
 		
 		ActivationCapabilityType capAct = null;
 
@@ -1535,7 +1542,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							+ ex.getMessage(), ex);
 				}
 				OperationOptions options = new OperationOptionsBuilder().build();
-				icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".update");
+				icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".removeAttributeValues");
 				icfResult.addParam("objectClass", objectClass);
 				icfResult.addParam("uid", uid.getUidValue());
 				icfResult.addArbitraryCollectionAsParam("attributes", attributes);
