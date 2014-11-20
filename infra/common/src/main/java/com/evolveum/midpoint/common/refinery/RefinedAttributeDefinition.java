@@ -498,6 +498,12 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         if (getInboundMappingTypes() != null) {
             sb.append(",IN");
         }
+        if (Boolean.TRUE.equals(getReadReplaceMode())) {
+            sb.append(",R+E");
+        }
+        if (getModificationPriority() != null) {
+            sb.append(",P").append(getModificationPriority());
+        }
 		return sb.toString();
 	}
     
@@ -537,7 +543,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         return modificationPriority;
     }
 
-    public Boolean isReadReplaceMode() {
+    public Boolean getReadReplaceMode() {           // "get" instead of "is" because it may be null
         return readReplaceMode;
     }
 

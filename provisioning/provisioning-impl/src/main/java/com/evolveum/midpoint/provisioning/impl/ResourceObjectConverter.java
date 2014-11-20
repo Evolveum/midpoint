@@ -450,6 +450,7 @@ public class ResourceObjectConverter {
 //			PrismObject<ShadowType> currentShadow = null;
 			if (ResourceTypeUtil.isAvoidDuplicateValues(resource) || isRename(operations)) {
 				// We need to filter out the deltas that add duplicate values or remove values that are not there
+				LOGGER.trace("Fetching shadow for duplicate filtering and/or rename processing");
 				shadow = getShadowToFilterDuplicates(connector, resource, objectClassDefinition, identifiers, operations, true, parentResult);      // yes, we need associations here
 				shadowBefore = shadow.clone();
 			}
@@ -500,6 +501,7 @@ public class ResourceObjectConverter {
 			if (ResourceTypeUtil.isAvoidDuplicateValues(resource)){
 
 				if (currentShadow == null) {
+					LOGGER.trace("Fetching shadow for duplicate filtering");
 					currentShadow = getShadowToFilterDuplicates(connector, resource, objectClassDefinition, identifiers, operations, false, parentResult);
 				}
 				
@@ -543,18 +545,23 @@ public class ResourceObjectConverter {
 
 			Collection<ResourceAttribute<?>> identifiersWorkingCopy = cloneIdentifiers(identifiers);			// because identifiers can be modified e.g. on rename operation
 			List<Collection<Operation>> operationsWaves = sortOperationsIntoWaves(operations, objectClassDefinition);
+			LOGGER.trace("Operation waves: {}", operationsWaves.size());
 			for (Collection<Operation> operationsWave : operationsWaves) {
 				Collection<RefinedAttributeDefinition> readReplaceAttributes = determineReadReplace(operationsWave, objectClassDefinition);
+				LOGGER.trace("Read+Replace attributes: {}", readReplaceAttributes);
 				if (!readReplaceAttributes.isEmpty()) {
 					AttributesToReturn attributesToReturn = new AttributesToReturn();
 					attributesToReturn.setReturnDefaultAttributes(false);
 					attributesToReturn.setAttributesToReturn(readReplaceAttributes);
 					// TODO eliminate this fetch if this is first wave and there are no explicitly requested attributes
 					// but make sure currentShadow contains all required attributes
+					LOGGER.trace("Fetching object because of READ+REPLACE mode");
 					currentShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiersWorkingCopy, attributesToReturn, false, parentResult);
 					operationsWave = convertToReplace(operationsWave, currentShadow, objectClassDefinition);
 				}
-				sideEffectChanges.addAll(connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, parentResult));
+				Collection<PropertyModificationOperation> sideEffects =
+						connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, parentResult);
+				sideEffectChanges.addAll(sideEffects);
 				// we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
 			}
 
@@ -613,16 +620,19 @@ public class ResourceObjectConverter {
 		Collection<RefinedAttributeDefinition> retval = new ArrayList<>();
 		for (Operation operation : operations) {
 			RefinedAttributeDefinition rad = getRefinedAttributeDefinitionIfApplicable(operation, objectClassDefinition);
-			if (rad != null && isReadReplaceMode(rad, objectClassDefinition)) {
-				retval.add(rad);
+			if (rad != null && isReadReplaceMode(rad, objectClassDefinition) && operation instanceof PropertyModificationOperation) {		// third condition is just to be sure
+				PropertyDelta propertyDelta = ((PropertyModificationOperation) operation).getPropertyDelta();
+				if (propertyDelta.isAdd() || propertyDelta.isDelete()) {
+					retval.add(rad);		// REPLACE operations are not needed to be converted to READ+REPLACE
+				}
 			}
 		}
 		return retval;
 	}
 
 	private boolean isReadReplaceMode(RefinedAttributeDefinition rad, RefinedObjectClassDefinition objectClassDefinition) {
-		if (rad.isReadReplaceMode() != null) {
-			return rad.isReadReplaceMode();
+		if (rad.getReadReplaceMode() != null) {
+			return rad.getReadReplaceMode();
 		}
 		// READ+REPLACE mode is if addRemoveAttributeCapability is NOT present
 		return objectClassDefinition.getEffectiveCapability(AddRemoveAttributeValuesCapabilityType.class) == null;
@@ -631,7 +641,7 @@ public class ResourceObjectConverter {
 	private RefinedAttributeDefinition getRefinedAttributeDefinitionIfApplicable(Operation operation, RefinedObjectClassDefinition objectClassDefinition) {
 		if (operation instanceof PropertyModificationOperation) {
 			PropertyDelta propertyDelta = ((PropertyModificationOperation) operation).getPropertyDelta();
-			if (new ItemPath(ShadowType.F_ATTRIBUTES).equals(propertyDelta.getParentPath())) {
+			if (isAttributeDelta(propertyDelta)) {
 				QName attributeName = propertyDelta.getElementName();
 				return objectClassDefinition.findAttributeDefinition(attributeName);
 			}
@@ -647,7 +657,7 @@ public class ResourceObjectConverter {
 		for (Operation operation : operations) {
 			if (operation instanceof PropertyModificationOperation) {
 				PropertyDelta propertyDelta = ((PropertyModificationOperation) operation).getPropertyDelta();
-				if (new ItemPath(ShadowType.F_ATTRIBUTES).equals(propertyDelta.getParentPath())) {
+				if (isAttributeDelta(propertyDelta)) {
 					QName attributeName = propertyDelta.getElementName();
 					RefinedAttributeDefinition rad = objectClassDefinition.findAttributeDefinition(attributeName);
 					if (isReadReplaceMode(rad, objectClassDefinition) && (propertyDelta.isAdd() || propertyDelta.isDelete())) {
@@ -794,7 +804,7 @@ public class ResourceObjectConverter {
 				continue;
 			}
 			
-			if (((PropertyModificationOperation)op).getPropertyDelta().getPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
+			if (((PropertyModificationOperation)op).getPropertyDelta().getPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
 				return true;
 			}
 		}
@@ -807,7 +817,7 @@ public class ResourceObjectConverter {
 			return false;
 		}
 		
-		if (itemDelta.getPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
+		if (itemDelta.getPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
 			return true;
 		}
 		return false;
@@ -1330,7 +1340,7 @@ public class ResourceObjectConverter {
 	private boolean hasChangesOnResource(
 			Collection<? extends ItemDelta> itemDeltas) {
 		for (ItemDelta itemDelta : itemDeltas) {
-			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
+			if (isAttributeDelta(itemDelta) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
 				return true;
 			} else if (SchemaConstants.PATH_ACTIVATION.equivalent(itemDelta.getParentPath())){
 				return true;
@@ -1349,7 +1359,7 @@ public class ResourceObjectConverter {
 			operations = new ArrayList<Operation>();
 		}
 		for (ItemDelta itemDelta : objectChange) {
-			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
+			if (isAttributeDelta(itemDelta) || SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
 				if (itemDelta instanceof PropertyDelta) {
 					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
 							(PropertyDelta) itemDelta);
@@ -1378,7 +1388,11 @@ public class ResourceObjectConverter {
 			
 		}
 	}
-		
+
+	private boolean isAttributeDelta(ItemDelta itemDelta) {
+		return new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath());
+	}
+
 	public List<Change<ShadowType>> fetchChanges(ConnectorInstance connector, ResourceType resource,
 			RefinedObjectClassDefinition objectClass, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws SchemaException,
