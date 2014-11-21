@@ -2254,6 +2254,29 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				changeList.add(change);
 				LOGGER.trace("END creating delta of type DELETE");
 
+			} else if (SyncDeltaType.CREATE.equals(icfDelta.getDeltaType())) {
+				PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
+				LOGGER.trace("Object definition: {}", objectDefinition);
+				
+				LOGGER.trace("START creating delta of type CREATE");
+				PrismObject<ShadowType> currentShadow = icfConvertor.convertToResourceObject(icfDelta.getObject(),
+						objectDefinition, false, caseIgnoreAttributeNames);
+
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Got current shadow: {}", currentShadow.debugDump());
+				}
+
+				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(currentShadow);
+				
+				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(
+						ShadowType.class, ChangeType.ADD, prismContext);
+				objectDelta.setObjectToAdd(currentShadow);
+
+				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
+				change.setObjectClassDefinition(objClassDefinition);
+				changeList.add(change);
+				LOGGER.trace("END creating delta of type CREATE");
+
 			} else if (SyncDeltaType.CREATE_OR_UPDATE.equals(icfDelta.getDeltaType())) {
 				PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
 				LOGGER.trace("Object definition: {}", objectDefinition);
@@ -2272,7 +2295,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				change.setObjectClassDefinition(objClassDefinition);
 				changeList.add(change);
 				LOGGER.trace("END creating delta of type CREATE_OR_UPDATE");
-
+				
 			} else {
 				throw new GenericFrameworkException("Unexpected sync delta type " + icfDelta.getDeltaType());
 			}

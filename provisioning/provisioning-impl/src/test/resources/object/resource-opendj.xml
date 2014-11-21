@@ -23,7 +23,8 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 								  
 	<name>Embedded Test OpenDJ</name>
 	<!-- NOTE: The connector OID will get dynamically replaced in the integration tests -->
@@ -39,7 +40,7 @@
 <!-- 			<icfcldap:credentials>secret></icfcldap:credentials> -->
 			<icfcldap:useBlocks>true</icfcldap:useBlocks>
 			<icfcldap:usePagedResultControl>false</icfcldap:usePagedResultControl>
-			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
 			<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
 		</icfc:configurationProperties>
 		
@@ -104,9 +105,11 @@
        			<!-- WilDCapiTaLIzaTioN makes sure that this is matched case-insensitive -->
 				<icfs:name>uid=cAlyPSo,ou=PeoPle,DC=example,dc=COM</icfs:name>
 			</protected>
-			<pagedSearches>
-			    <defaultSortField>ri:entryUUID</defaultSortField>
-			</pagedSearches>
+			<configuredCapabilities>
+				<cap:pagedSearch>
+					<cap:defaultSortField>ri:uid</cap:defaultSortField>
+				</cap:pagedSearch>
+			</configuredCapabilities>
         </objectType>
         
         <objectType>
@@ -122,7 +125,7 @@
                 
 	</schemaHandling>
 	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+	<capabilities>
 		<configured>
 			<cap:activation>
 				<cap:status>

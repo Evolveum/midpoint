@@ -1360,7 +1360,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals("Unexpected number of search results", 5, searchResults.size());
 		PrismObject<ShadowType> searchResult = searchResults.get(0);
 		assertShadow(searchResult);
-		assertEquals("Unexpected search result object name", "xx", searchResult.asObjectable().getName().getOrig());
+		assertEquals("Unexpected search result object name", "uid=cook,ou=People,dc=example,dc=com", searchResult.asObjectable().getName().getOrig());
 	}
 	
 	/**
