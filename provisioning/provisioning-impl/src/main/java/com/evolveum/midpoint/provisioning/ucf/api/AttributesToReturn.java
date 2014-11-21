@@ -26,7 +26,8 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
  */
 public class AttributesToReturn implements Serializable {
 	private static final long serialVersionUID = 157146351122133667L;
-	
+
+	// TODO consider adding "fetchEntitlements" flag here
 	private boolean returnDefaultAttributes = true;
 	private boolean returnPasswordExplicit = false;
 	private boolean returnAdministrativeStatusExplicit = false;

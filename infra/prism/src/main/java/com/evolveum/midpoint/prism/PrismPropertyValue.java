@@ -41,6 +41,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 
 import org.w3c.dom.Element;
 
@@ -162,7 +163,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	@Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		if (definition != null && rawElement !=null) {
-			value = parseRawElementToNewRealValue(this, (PrismPropertyDefinition) definition);
+			value = (T) parseRawElementToNewRealValue(this, (PrismPropertyDefinition) definition);
 			rawElement = null;
 		}
 	}
@@ -316,6 +317,15 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		return false;
 	}
 
+	public static boolean containsValue(Collection<PrismPropertyValue> collection, PrismPropertyValue value, Comparator comparator) {
+		for (PrismPropertyValue<?> colVal: collection) {
+			if (comparator.compare(colVal, value) == 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static <T> Collection<PrismPropertyValue<T>> createCollection(Collection<T> realValueCollection) {
 		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<PrismPropertyValue<T>>(realValueCollection.size());
 		for (T realValue: realValueCollection) {
@@ -340,7 +350,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	 */
 	private PrismPropertyValue<T> parseRawElementToNewValue(PrismPropertyValue<T> origValue, PrismPropertyValue<T> definitionSource) throws SchemaException {
 		if (definitionSource.getParent() != null && definitionSource.getParent().getDefinition() != null) {
-			T parsedRealValue = parseRawElementToNewRealValue(origValue,
+			T parsedRealValue = (T) parseRawElementToNewRealValue(origValue,
 					(PrismPropertyDefinition) definitionSource.getParent().getDefinition());
 			PrismPropertyValue<T> newPVal = new PrismPropertyValue<T>(parsedRealValue);
 			return newPVal;

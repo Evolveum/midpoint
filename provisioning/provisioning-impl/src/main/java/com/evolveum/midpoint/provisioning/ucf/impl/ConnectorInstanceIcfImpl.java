@@ -37,7 +37,8 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePagedSearchConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 
 import org.apache.commons.lang.StringUtils;
@@ -750,7 +751,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		}
 
-		capabilities = new ArrayList<Object>();
+		capabilities = new ArrayList<>();
+
+		// This is the default for all resources.
+		// (Currently there is no way how to obtain it from the connector.)
+		// It can be disabled manually.
+		AddRemoveAttributeValuesCapabilityType addRemove = new AddRemoveAttributeValuesCapabilityType();
+		capabilities.add(capabilityObjectFactory.createAddRemoveAttributeValues(addRemove));
 		
 		ActivationCapabilityType capAct = null;
 
@@ -1255,6 +1262,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
+	// TODO [med] beware, this method does not obey its contract specified in the interface
+	// (1) currently it does not return all the changes, only the 'side effect' changes
+	// (2) it throws exceptions even if some of the changes were made
+	// (3) among identifiers, only the UID value is updated on object rename
+	//     (other identifiers are ignored on input and output of this method)
+
 	@Override
 	public Set<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass,
 			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
@@ -1276,6 +1289,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
 		
 		Uid uid = getUid(identifiers);
+		if (uid == null) {
+			throw new IllegalArgumentException("No UID in identifiers: " + identifiers);
+		}
 		String originalUid = uid.getUidValue();
 
 		Collection<ResourceAttribute<?>> addValues = new HashSet<ResourceAttribute<?>>();
@@ -1526,7 +1542,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							+ ex.getMessage(), ex);
 				}
 				OperationOptions options = new OperationOptionsBuilder().build();
-				icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".update");
+				icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".removeAttributeValues");
 				icfResult.addParam("objectClass", objectClass);
 				icfResult.addParam("uid", uid.getUidValue());
 				icfResult.addArbitraryCollectionAsParam("attributes", attributes);
@@ -1576,13 +1592,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		result.computeStatus();
 
-		Set<PropertyModificationOperation> sideEffectChanges = new HashSet<PropertyModificationOperation>();
+		Set<PropertyModificationOperation> sideEffectChanges = new HashSet<>();
 		if (!originalUid.equals(uid.getUidValue())) {
 			// UID was changed during the operation, this is most likely a
 			// rename
 			PropertyDelta<String> uidDelta = createUidDelta(uid, getUidDefinition(identifiers));
 			PropertyModificationOperation uidMod = new PropertyModificationOperation(uidDelta);
 			sideEffectChanges.add(uidMod);
+
+			replaceUidValue(identifiers, uid);
 		}
 		return sideEffectChanges;
 	}
@@ -1832,8 +1850,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	@Override
     public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
                                               final ResultHandler<T> handler, AttributesToReturn attributesToReturn,
-                                              ResourcePagedSearchConfigurationType pagedSearchConfigurationType,
-											  OperationResult parentResult)
+                                              PagedSearchCapabilityType pagedSearchCapabilityType, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException {
 
 		// Result type for this operation
@@ -1858,7 +1875,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		final PrismObjectDefinition<T> objectDefinition = toShadowDefinition(objectClassDefinition);
 
-        final boolean useConnectorPaging = RefinedObjectClassDefinition.isPagedSearchEnabled(pagedSearchConfigurationType);
+        final boolean useConnectorPaging = pagedSearchCapabilityType != null;
 
         final Holder<Integer> countHolder = new Holder<>(0);
 
@@ -1920,8 +1937,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
                 }
                 isAscending = paging.getDirection() != OrderDirection.DESCENDING;
             } else {
-                orderBy = pagedSearchConfigurationType.getDefaultSortField();
-                isAscending = pagedSearchConfigurationType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
+                orderBy = pagedSearchCapabilityType.getDefaultSortField();
+                isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
             }
             if (orderBy != null) {
                 String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(orderBy, getSchemaNamespace());
@@ -1976,7 +1993,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
     @Override
     public int count(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
-                     ResourcePagedSearchConfigurationType pagedSearchConfigurationType, OperationResult parentResult)
+                     PagedSearchCapabilityType pagedSearchCapabilityType, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException {
 
         // Result type for this operation
@@ -1999,7 +2016,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
             result.recordFatalError("Unable to determine object class", ex);
             throw ex;
         }
-        final boolean useConnectorPaging = RefinedObjectClassDefinition.isPagedSearchEnabled(pagedSearchConfigurationType);
+        final boolean useConnectorPaging = pagedSearchCapabilityType != null;
         if (!useConnectorPaging) {
             throw new UnsupportedOperationException("ConnectorInstanceIcfImpl.count operation is supported only in combination with connector-implemented paging");
         }
@@ -2008,9 +2025,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         optionsBuilder.setAttributesToGet(icfNameMapper.convertAttributeNameToIcf(SchemaConstantsGenerated.ICF_S_NAME, getSchemaNamespace()));
         optionsBuilder.setPagedResultsOffset(1);
         optionsBuilder.setPageSize(1);
-        if (pagedSearchConfigurationType.getDefaultSortField() != null) {
-            String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(pagedSearchConfigurationType.getDefaultSortField(), getSchemaNamespace());
-            boolean isAscending = pagedSearchConfigurationType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
+        if (pagedSearchCapabilityType.getDefaultSortField() != null) {
+            String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(pagedSearchCapabilityType.getDefaultSortField(), getSchemaNamespace());
+            boolean isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
             optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
         }
         OperationOptions options = optionsBuilder.build();
@@ -2115,6 +2132,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}
 		return null;
+	}
+
+	private void replaceUidValue(Collection<? extends ResourceAttribute<?>> identifiers, Uid newUid) {
+		for (ResourceAttribute<?> attr : identifiers) {
+			if (attr.getElementName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
+				attr.setValue(new PrismPropertyValue(newUid.getUidValue()));			// expecting the UID property is of type String
+				return;
+			}
+		}
+		throw new IllegalStateException("No UID attribute in " + identifiers);
 	}
 
 	private ResourceAttributeDefinition getUidDefinition(Collection<? extends ResourceAttribute<?>> identifiers) {

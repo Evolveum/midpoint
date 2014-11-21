@@ -157,7 +157,7 @@ public abstract class DummyObject implements DebugDumpable {
 			currentValues.clear();
 		}
 		currentValues.addAll(values);
-		checkSchema(name, values, "relace");
+		checkSchema(name, values, "replace");
 		recordModify();
 	}
 	

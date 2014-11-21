@@ -261,8 +261,14 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		ContainerDelta<T> delta = new ContainerDelta<T>(containerPath, containerDefinition, objectDefinition.getPrismContext());
 		return delta;
 	}
-    
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(QName containerName, 
+
+	public static <T extends Containerable> ContainerDelta<T> createDelta(QName containerName, PrismContainerDefinition<T> containerDefinition) {
+		ContainerDelta<T> delta = new ContainerDelta<T>(new ItemPath(containerName), containerDefinition, containerDefinition.getPrismContext());
+		return delta;
+	}
+
+
+	public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(QName containerName,
     		Class<O> type, PrismContext prismContext, T containerable) throws SchemaException {
     	return createModificationAdd(new ItemPath(containerName), type, prismContext, containerable);
     }
@@ -331,7 +337,26 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
     	return delta;
     }
 
-    @Override
+	// cValue should be parent-less
+	public static <T extends Containerable> ContainerDelta<T> createModificationReplace(QName containerName, PrismContainerDefinition containerDefinition, PrismContainerValue<T> cValue) throws SchemaException {
+		ContainerDelta<T> delta = createDelta(containerName, containerDefinition);
+		delta.setValuesToReplace(cValue);
+		return delta;
+	}
+
+	// cValues should be parent-less
+	public static Collection<? extends ItemDelta> createModificationReplaceContainerCollection(QName containerName,
+																							   PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues) {
+		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+		ContainerDelta delta = createDelta(containerName, objectDefinition.findContainerDefinition(containerName));
+		delta.setValuesToReplace(cValues);
+		((Collection)modifications).add(delta);
+		return modifications;
+	}
+
+
+
+	@Override
     protected void dumpValues(StringBuilder sb, String label, Collection<PrismContainerValue<V>> values, int indent) {
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);

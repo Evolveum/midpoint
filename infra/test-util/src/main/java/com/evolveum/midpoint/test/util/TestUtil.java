@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -441,5 +442,26 @@ public class TestUtil {
 		}
 		return null;
 	}
-	
+
+	public static List<OperationResult> selectSubresults(OperationResult result, String... operationNames) {
+		List<OperationResult> retval = new ArrayList<>();
+		selectSubresultsInternal(retval, result, operationNames);
+		return retval;
+	}
+
+	private static void selectSubresultsInternal(List<OperationResult> retval, OperationResult result, String... operationNames) {
+		if (result == null) {
+			return;			// should not occur actually
+		}
+		for (int i = 0; i < operationNames.length; i++) {
+			if (operationNames[i].equals(result.getOperation())) {
+				retval.add(result);
+				break;
+			}
+		}
+		for (OperationResult subresult : result.getSubresults()) {
+			selectSubresultsInternal(retval, subresult, operationNames);
+		}
+	}
+
 }

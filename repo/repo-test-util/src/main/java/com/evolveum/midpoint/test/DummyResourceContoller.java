@@ -207,7 +207,17 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertExtendedSchema();
 		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeWeaponQName());
 	}
-	
+
+	public QName getAttributeLootQName() {
+		assertExtendedSchema();
+		return new QName(getNamespace(), DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
+	}
+
+	public ItemPath getAttributeLootPath() {
+		assertExtendedSchema();
+		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeLootQName());
+	}
+
 	private void assertExtendedSchema() {
 		assert isExtendedSchema : "Resource "+resource+" does not have extended schema yet an extedned attribute was requested";
 	}

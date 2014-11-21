@@ -42,6 +42,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -900,7 +901,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				"test016addAccountDirrectAlreadyExists");
 		Task task = taskManager.createTaskInstance();
 
-		SchemaHandlingType oldSchemaHandlig = resourceTypeOpenDjrepo
+		SchemaHandlingType oldSchemaHandling = resourceTypeOpenDjrepo
 				.getSchemaHandling();
 		SynchronizationType oldSynchronization = resourceTypeOpenDjrepo
 				.getSynchronization();
@@ -1014,11 +1015,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //			assertEquals("Expected partial error. ", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
 			
 			// return the previous changes of resource back
-			Collection<? extends ItemDelta> schemaHandlingDelta = PropertyDelta
-					.createModificationReplacePropertyCollection(
+			Collection<? extends ItemDelta> schemaHandlingDelta = ContainerDelta
+					.createModificationReplaceContainerCollection(
 							ResourceType.F_SCHEMA_HANDLING,
 							resourceTypeOpenDjrepo.asPrismObject()
-									.getDefinition(), oldSchemaHandlig);
+									.getDefinition(), oldSchemaHandling.asPrismContainerValue().clone());
 			PropertyDelta syncDelta = PropertyDelta
 					.createModificationReplaceProperty(
 							ResourceType.F_SYNCHRONIZATION,

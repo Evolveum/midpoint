@@ -30,6 +30,7 @@ public class MatchingRuleRegistryFactory {
 		registry.registerMatchingRule(new PolyStringStrictMatchingRule());
 		registry.registerMatchingRule(new PolyStringOrigMatchingRule());
 		registry.registerMatchingRule(new PolyStringNormMatchingRule());
+		registry.registerMatchingRule(new ExchangeEmailAddressesMatchingRule());
 		
 		return registry;
 	}
