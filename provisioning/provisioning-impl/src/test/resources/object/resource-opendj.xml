@@ -37,6 +37,8 @@
 			<icfcldap:principal>cn=directory manager</icfcldap:principal>
 			<icfcldap:credentials><t:clearValue>secret</t:clearValue></icfcldap:credentials>
 <!-- 			<icfcldap:credentials>secret></icfcldap:credentials> -->
+			<icfcldap:useBlocks>true</icfcldap:useBlocks>
+			<icfcldap:usePagedResultControl>false</icfcldap:usePagedResultControl>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 			<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
 		</icfc:configurationProperties>
@@ -67,7 +69,7 @@
 			</icfc:timeouts>
 			
 			<icfc:resultsHandlerConfiguration>
-				<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+				<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
 			</icfc:resultsHandlerConfiguration>
 
 	</connectorConfiguration>
@@ -101,7 +103,10 @@
        		<protected>
        			<!-- WilDCapiTaLIzaTioN makes sure that this is matched case-insensitive -->
 				<icfs:name>uid=cAlyPSo,ou=PeoPle,DC=example,dc=COM</icfs:name>
-			</protected>	
+			</protected>
+			<pagedSearches>
+			    <defaultSortField>ri:entryUUID</defaultSortField>
+			</pagedSearches>
         </objectType>
         
         <objectType>
