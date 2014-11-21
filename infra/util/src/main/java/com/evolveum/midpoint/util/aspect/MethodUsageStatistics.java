@@ -20,6 +20,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,10 +39,8 @@ import java.util.List;
  * */
 public class MethodUsageStatistics {
 
-    /* LOGGER */
     private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
 
-    /* Attributes - member */
     private long min = Long.MAX_VALUE;
     private long max = 0;
     private long mean = 0;
@@ -49,11 +48,8 @@ public class MethodUsageStatistics {
     private long usageCount = 1;
     private long currentTopTenMin = Long.MAX_VALUE;
     private String subsystem;
-    private List<ProfilingDataLog> slowestMethodList = new ArrayList<ProfilingDataLog>();
+    private List<ProfilingDataLog> slowestMethodList = Collections.synchronizedList(new ArrayList<ProfilingDataLog>());
 
-    /*
-    *   Constructor
-    * */
     public MethodUsageStatistics(ProfilingDataLog logEvent, String subsystem){
         long estTime = logEvent.getEstimatedTime();
 
@@ -64,9 +60,8 @@ public class MethodUsageStatistics {
         this.subsystem = subsystem;
         this.mean = estTime;
 
-    }   //MethodUsageStatistics
+    }
 
-    /* GETTERS AND SETTERS */
     public long getProcessTimeMean() {
         return processTimeMean;
     }
@@ -131,7 +126,6 @@ public class MethodUsageStatistics {
         this.slowestMethodList = slowestMethodList;
     }
 
-    /* BEHAVIOR */
     public synchronized void update(ProfilingDataLog logEvent){
         long currentEst = logEvent.getEstimatedTime();
 
@@ -144,25 +138,16 @@ public class MethodUsageStatistics {
         calculateMeanIterative(currentEst);
         usageCount++;
 
-    }   //update
+    }
 
-    /*
-    *   Calculate mean iterative
-    * */
     private void calculateMeanIterative(long currentEst){
         this.mean += (currentEst - this.mean)/this.usageCount;
     }
 
-    /*
-    *   Updates the list holding processing est time values
-    * */
     public void updateProcessTimeList(long est){
         this.processTimeMean += (est - this.processTimeMean)/this.usageCount;
     }
 
-    /*
-    *   Appends method usage statistics to log file
-    * */
     public void appendToLogger(){
         ProfilingDataLog log = this.slowestMethodList.get(0);
 
@@ -173,12 +158,8 @@ public class MethodUsageStatistics {
         for(ProfilingDataLog l: this.slowestMethodList)
             l.appendToLogger();
 
-    }   //appendToLogger
+    }
 
-    /* STATIC HELPER METHODS */
-    /*
-    *   Formats execution time
-    * */
     private static String formatExecutionTime(long est){
         StringBuilder sb = new StringBuilder();
 
@@ -195,6 +176,5 @@ public class MethodUsageStatistics {
         sb.append(" ms.");
 
         return sb.toString();
-    }   //formatExecutionTime
-
+    }
 }
