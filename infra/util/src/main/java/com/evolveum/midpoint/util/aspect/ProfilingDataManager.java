@@ -221,7 +221,7 @@ public class ProfilingDataManager {
         return (long)(minutes*60*1000);
     }
 
-    private void updateOverallStatistics(Map<String, MethodUsageStatistics> logMap, ProfilingDataLog eventLog, String key, String subsystem){
+    private synchronized void updateOverallStatistics(Map<String, MethodUsageStatistics> logMap, ProfilingDataLog eventLog, String key, String subsystem){
         if(!logMap.containsKey(key)){
             eventLog.setArgs(prepareArguments(eventLog.args));
             logMap.put(key, new MethodUsageStatistics(eventLog, subsystem));
@@ -280,7 +280,7 @@ public class ProfilingDataManager {
         return new ProfilingDataLog(className, methodName, eTime, timestamp, args);
     }
 
-    private static List<ProfilingDataLog> sort(List<ProfilingDataLog> list){
+    private synchronized static List<ProfilingDataLog> sort(List<ProfilingDataLog> list){
         Collections.sort(list, arrayComparator);
         return list;
     }
