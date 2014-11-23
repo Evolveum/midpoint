@@ -74,6 +74,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -1358,9 +1359,16 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("Search resutls", searchResults);
 		
 		assertEquals("Unexpected number of search results", 5, searchResults.size());
-		PrismObject<ShadowType> searchResult = searchResults.get(0);
-		assertShadow(searchResult);
-		assertEquals("Unexpected search result object name", "uid=cook,ou=People,dc=example,dc=com", searchResult.asObjectable().getName().getOrig());
+		String expectedUids[] = new String[] { "hbarbossa", "idm", "jbeckett", "jbond", "jgibbs" };
+		int i = 0;
+		for (PrismObject<ShadowType> searchResult: searchResults) {
+			assertShadow(searchResult);
+			ResourceAttribute<String> uidAttr = ShadowUtil.getAttribute(searchResult, new QName(RESOURCE_NS, "uid"));
+			String uid = uidAttr.getRealValues().iterator().next();
+			display("found uid", uid);
+			assertEquals("Wrong uid (index "+i+")", expectedUids[i], uid);
+			i++;
+		}
 	}
 	
 	/**

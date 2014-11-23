@@ -116,20 +116,18 @@ member: uid=cptjack, ou=People, dc=example,dc=com
 member: uid=will, ou=People, dc=example,dc=com
 description: Arrrrr!
 
-dn: ou=Administrators, dc=example,dc=com
+dn: ou=Administrators,dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
 ou: Administrators
 
-dn: uid=idm, ou=Administrators,dc=example,dc=com
+dn: cn=idm,ou=Administrators,dc=example,dc=com
 objectclass: top
 objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-uid: idm
-cn: IDM Administrator
+cn: idm
 sn: IDM Administrator
 description: Special LDAP acccount used by the IDM
   to access the LDAP data.
 ou: Administrators
 userPassword: secret
+
