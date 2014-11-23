@@ -2239,7 +2239,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				ObjectClassComplexTypeDefinition objClassDefinition = (ObjectClassComplexTypeDefinition) schema
 				.findComplexTypeDefinition(objectClass);
 
-			if (SyncDeltaType.DELETE.equals(icfDelta.getDeltaType())) {
+			SyncDeltaType icfDeltaType = icfDelta.getDeltaType();
+			if (SyncDeltaType.DELETE.equals(icfDeltaType)) {
 				LOGGER.trace("START creating delta of type DELETE");
 				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(
 						ShadowType.class, ChangeType.DELETE, prismContext);
@@ -2254,7 +2255,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				changeList.add(change);
 				LOGGER.trace("END creating delta of type DELETE");
 
-			} else if (SyncDeltaType.CREATE.equals(icfDelta.getDeltaType())) {
+			} else if (SyncDeltaType.CREATE.equals(icfDeltaType)) {
 				PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
 				LOGGER.trace("Object definition: {}", objectDefinition);
 				
@@ -2277,11 +2278,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				changeList.add(change);
 				LOGGER.trace("END creating delta of type CREATE");
 
-			} else if (SyncDeltaType.CREATE_OR_UPDATE.equals(icfDelta.getDeltaType())) {
+			} else if (SyncDeltaType.CREATE_OR_UPDATE.equals(icfDeltaType) || 
+					SyncDeltaType.UPDATE.equals(icfDeltaType)) {
 				PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(objClassDefinition);
 				LOGGER.trace("Object definition: {}", objectDefinition);
 				
-				LOGGER.trace("START creating delta of type CREATE_OR_UPDATE");
+				LOGGER.trace("START creating delta of type {}", icfDeltaType);
 				PrismObject<ShadowType> currentShadow = icfConvertor.convertToResourceObject(icfDelta.getObject(),
 						objectDefinition, false, caseIgnoreAttributeNames);
 
@@ -2294,10 +2296,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				Change change = new Change(identifiers, currentShadow, getToken(icfDelta.getToken()));
 				change.setObjectClassDefinition(objClassDefinition);
 				changeList.add(change);
-				LOGGER.trace("END creating delta of type CREATE_OR_UPDATE");
+				LOGGER.trace("END creating delta of type {}", icfDeltaType);
 				
 			} else {
-				throw new GenericFrameworkException("Unexpected sync delta type " + icfDelta.getDeltaType());
+				throw new GenericFrameworkException("Unexpected sync delta type " + icfDeltaType);
 			}
 
 		}
