@@ -215,8 +215,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-            <groupId>org.forgerock.openicf.connectors</groupId>
-            <artifactId>csvfile-connector</artifactId>
+            <groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-csvfile</artifactId>
             <scope>test</scope>
         </dependency>
 		<dependency>

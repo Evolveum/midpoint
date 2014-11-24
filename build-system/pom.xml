@@ -392,20 +392,14 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.forgerock.openicf.connectors</groupId>
-                <artifactId>csvfile-connector</artifactId>
-                <version>1.1.1.0.em80</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.forgerock.openicf.framework</groupId>
-                        <artifactId>connector-framework</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>com.evolveum.polygon</groupId>
+                <artifactId>connector-csvfile</artifactId>
+                <version>1.4.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>1.4.1.0-SNAPSHOT</version>
+                <version>1.4.0.1-SNAPSHOT</version>
             </dependency>
             <!-- End connectors -->
             <dependency>
