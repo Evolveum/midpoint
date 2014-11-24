@@ -21,8 +21,12 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.provisioning.cache.ProvisioningCache;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -330,7 +334,56 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-    private void recordProgress(Task task, long progress, OperationResult opResult) {
+	/**
+	 * Launch an import. Calling this method will start import in a new
+	 * thread, possibly on a different node.
+	 */
+	public void launch(ResourceType resource, QName objectclass, Task task, OperationResult parentResult) {
+
+		LOGGER.info("Launching reconciliation for resource {} as asynchronous task", ObjectTypeUtil.toShortString(resource));
+
+		OperationResult result = parentResult.createSubresult(ReconciliationTaskHandler.class.getName() + ".launch");
+		result.addParam("resource", resource);
+		result.addParam("objectclass", objectclass);
+		// TODO
+
+		// Set handler URI so we will be called back
+		task.setHandlerUri(HANDLER_URI);
+
+		// Readable task name
+		PolyStringType polyString = new PolyStringType("Reconciling " + resource.getName());
+		task.setName(polyString);
+
+		// Set reference to the resource
+		task.setObjectRef(ObjectTypeUtil.createObjectRef(resource));
+
+		try {
+			task.setExtensionPropertyValue(ModelConstants.OBJECTCLASS_PROPERTY_NAME, objectclass);
+			task.savePendingModifications(result);		// just to be sure (if the task was already persistent)
+		} catch (ObjectNotFoundException e) {
+			LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
+			result.recordFatalError("Task object not found", e);
+			throw new IllegalStateException("Task object not found, expecting it to exist", e);
+		} catch (ObjectAlreadyExistsException e) {
+			LOGGER.error("Task object wasn't updated (task {})", task, e);
+			result.recordFatalError("Task object wasn't updated", e);
+			throw new IllegalStateException("Task object wasn't updated", e);
+		} catch (SchemaException e) {
+			LOGGER.error("Error dealing with schema (task {})", task, e);
+			result.recordFatalError("Error dealing with schema", e);
+			throw new IllegalStateException("Error dealing with schema", e);
+		}
+
+		// Switch task to background. This will start new thread and call
+		// the run(task) method.
+		// Note: the thread may be actually started on a different node
+		taskManager.switchToBackground(task, result);
+		result.computeStatus("Reconciliation launch failed");
+
+		LOGGER.trace("Reconciliation for resource {} switched to background, control thread returning with task {}", ObjectTypeUtil.toShortString(resource), task);
+	}
+
+	private void recordProgress(Task task, long progress, OperationResult opResult) {
         try {
             task.setProgressImmediate(progress, opResult);
         } catch (ObjectNotFoundException e) {             // these exceptions are of so little probability and harmless, so we just log them and do not report higher
@@ -340,10 +393,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
         }
     }
 
+	// TODO do this only each N seconds (as in AbstractSearchIterativeResultHandler)
     private void incrementAndRecordProgress(Task task, OperationResult opResult) {
         recordProgress(task, task.getProgress() + 1, opResult);
     }
-
 
     private void processInterruption(TaskRunResult runResult, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
         opResult.recordPartialError("Interrupted");
@@ -413,7 +466,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
                 message += "; was interrupted during processing.";
             }
 			if (handler.getProgress() > 0) {
-				message += " Average time for one object: " + handler.getAverageTime() + " milliseconds.";
+				message += " Average time for one object: " + handler.getAverageTime() + " ms (wall clock time average: " + handler.getWallAverageTime() + " ms).";
 			}
 
 			OperationResultStatus resultStatus = OperationResultStatus.SUCCESS;
@@ -421,6 +474,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				resultStatus = OperationResultStatus.PARTIAL_ERROR;
 			}
 			opResult.recordStatus(resultStatus, message);
+			LOGGER.info("Finished resource part of {} reconciliation: {}", resource, message);
 			
 			reconResult.setResourceReconCount(handler.getProgress());
 			reconResult.setResourceReconErrors(handler.getErrors());

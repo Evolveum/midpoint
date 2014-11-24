@@ -24,11 +24,9 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.identityconnectors.framework.spi.operations.CreateOp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -36,7 +34,6 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -77,7 +74,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -115,7 +111,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
@@ -724,7 +719,8 @@ public abstract class ShadowCache {
 	}
 
 	public void searchObjectsIterative(final QName objectClassName, final ResourceType resourceType,
-			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler, final OperationResult parentResult)
+			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
+			boolean readFromRepository, final OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
@@ -735,7 +731,7 @@ public abstract class ShadowCache {
 				resourceType);
 
 		searchObjectsIterativeInternal(objectClassName, resourceType, query, options, handler,
-				true, parentResult);
+				readFromRepository, parentResult);
 
 	}
 

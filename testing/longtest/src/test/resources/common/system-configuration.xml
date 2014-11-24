@@ -30,10 +30,10 @@
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.notifications</c:package>
         </c:classLogger>
-		<c:classLogger>
+		<!--<c:classLogger>
 			<c:level>TRACE</c:level>
 			<c:package>PROFILING</c:package>
-		</c:classLogger>
+		</c:classLogger>-->
 		<appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
             <fileName>target/test.log</fileName>
@@ -140,6 +140,7 @@
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>
     </notificationConfiguration>
+	<!--
 	<c:profilingConfiguration>
 		<enabled>true</enabled>
 		<requestFilter>true</requestFilter>
@@ -153,5 +154,5 @@
 		<taskManager>false</taskManager>
 		<workflow>false</workflow>
 	</c:profilingConfiguration>
-
+	-->
 </systemConfiguration>

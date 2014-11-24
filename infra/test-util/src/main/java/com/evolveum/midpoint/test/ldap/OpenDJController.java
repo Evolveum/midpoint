@@ -664,6 +664,21 @@ public class OpenDJController extends AbstractResourceController {
         addEntry(ldifEntry);
         return ldifEntry;
 	}
+
+	public List<Entry> addEntriesFromLdifFile(String filename) throws IOException, LDIFException {
+		List<Entry> retval = new ArrayList<>();
+		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
+		LDIFReader ldifReader = new LDIFReader(importConfig);
+		for (;;) {
+			Entry ldifEntry = ldifReader.readEntry();
+			if (ldifEntry == null) {
+				break;
+			}
+			addEntry(ldifEntry);
+			retval.add(ldifEntry);
+		}
+		return retval;
+	}
 	
 	public void addEntry(Entry ldapEntry) {
 		 AddOperation addOperation = getInternalConnection().processAdd(ldapEntry);
