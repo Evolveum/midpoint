@@ -403,15 +403,9 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.forgerock.openicf.connectors</groupId>
-                <artifactId>ldap-connector</artifactId>
+                <groupId>com.evolveum.polygon</groupId>
+                <artifactId>connector-ldap</artifactId>
                 <version>1.4.1.0-SNAPSHOT</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.forgerock.openicf.framework</groupId>
-                        <artifactId>connector-framework</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <!-- End connectors -->
             <dependency>

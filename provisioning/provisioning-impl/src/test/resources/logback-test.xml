@@ -32,6 +32,7 @@
          the tests. If there is any bug in ConnId logging this should reveal it. -->
     <logger name="org.identityconnectors" level="TRACE" />
     
+    <logger name="com.evolveum.polygon" level="TRACE" />
     <logger name="com.evolveum.icf" level="TRACE" />
     <logger name="org.forgerock.openicf" level="TRACE" />
 	<logger name="PROFILING" level="TRACE" />

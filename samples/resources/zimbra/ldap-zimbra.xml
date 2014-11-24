@@ -40,7 +40,7 @@
         </connectorRef>
 	<connectorConfiguration>
 		<icfc:configurationProperties
-			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector">
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
 			<icfcldap:port>389</icfcldap:port>
 			<icfcldap:host>hermes.evolveum.com</icfcldap:host>
 			<icfcldap:baseContexts>dc=evolveum,dc=com</icfcldap:baseContexts>

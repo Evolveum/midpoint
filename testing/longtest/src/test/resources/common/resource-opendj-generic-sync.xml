@@ -41,7 +41,7 @@
 	<connectorConfiguration xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector">
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
 		<icfc:configurationProperties>
 			<icfcldap:port>10389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
