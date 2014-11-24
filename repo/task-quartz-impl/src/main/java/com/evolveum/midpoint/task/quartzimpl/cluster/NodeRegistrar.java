@@ -86,7 +86,7 @@ public class NodeRegistrar {
 
         LOGGER.info("Registering this node in the repository as " + node.getNodeIdentifier() + " at " + node.getHostname() + ":" + node.getJmxPort());
 
-        List<PrismObject<NodeType>> nodes = null;
+        List<PrismObject<NodeType>> nodes;
         try {
             nodes = findNodesWithGivenName(result, node.getName());
         } catch (SchemaException e) {

@@ -82,6 +82,7 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -723,7 +724,7 @@ public abstract class ShadowCache {
 
 	}
 
-	public void searchObjectsIterative(final QName objectClassName, final ResourceType resourceType,
+	public SearchResultMetadata searchObjectsIterative(final QName objectClassName, final ResourceType resourceType,
 			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler, final OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
@@ -734,12 +735,12 @@ public abstract class ShadowCache {
 		LOGGER.trace("Searching objects iterative with object class {}, resource: {}.", objectClassName,
 				resourceType);
 
-		searchObjectsIterativeInternal(objectClassName, resourceType, query, options, handler,
+		return searchObjectsIterativeInternal(objectClassName, resourceType, query, options, handler,
 				true, parentResult);
 
 	}
 
-	private void searchObjectsIterativeInternal(QName objectClassName,
+	private SearchResultMetadata searchObjectsIterativeInternal(QName objectClassName,
 			final ResourceType resourceType, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
 			final boolean readFromRepository, final OperationResult parentResult) throws SchemaException,
@@ -766,8 +767,7 @@ public abstract class ShadowCache {
 		
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 		if (GetOperationOptions.isNoFetch(rootOptions)) {
-			searchObjectsIterativeRepository(objectClassDef, resourceType, query, options, handler, parentResult);
-			return;
+			return searchObjectsIterativeRepository(objectClassDef, resourceType, query, options, handler, parentResult);
 		}
 		
 		// We need to record the fetch down here. Now it is certain that we are going to fetch from resource
@@ -844,7 +844,7 @@ public abstract class ShadowCache {
 
         boolean fetchAssociations = SelectorOptions.hasToLoadPath(ShadowType.F_ASSOCIATION, options);
 		
-		resouceObjectConverter.searchResourceObjects(connector, resourceType, objectClassDef, resultHandler,
+		return resouceObjectConverter.searchResourceObjects(connector, resourceType, objectClassDef, resultHandler,
                 attributeQuery, fetchAssociations, parentResult);
 		
 	}
@@ -884,7 +884,7 @@ public abstract class ShadowCache {
         return attributeQuery;
     }
 
-    private void searchObjectsIterativeRepository(
+    private SearchResultMetadata searchObjectsIterativeRepository(
 			RefinedObjectClassDefinition objectClassDef,
 			final ResourceType resourceType, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options,
@@ -912,8 +912,7 @@ public abstract class ShadowCache {
 			}
 		};
 		
-		shadowManager.searchObjectsIterativeRepository(objectClassDef, resourceType, query, options, repoHandler, parentResult);
-		
+		return shadowManager.searchObjectsIterativeRepository(objectClassDef, resourceType, query, options, repoHandler, parentResult);
 	}
 
 	private PrismObject<ShadowType> lookupOrCreateShadowInRepository(ConnectorInstance connector, PrismObject<ShadowType> resourceShadow,

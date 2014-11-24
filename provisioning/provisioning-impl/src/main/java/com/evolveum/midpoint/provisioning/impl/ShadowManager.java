@@ -56,6 +56,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -511,7 +512,7 @@ public class ShadowManager {
 		return query;
 	}
 	
-	public void searchObjectsIterativeRepository(
+	public SearchResultMetadata searchObjectsIterativeRepository(
 			RefinedObjectClassDefinition objectClassDef,
 			final ResourceType resourceType, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options,
@@ -520,8 +521,7 @@ public class ShadowManager {
 		ObjectQuery repoQuery = query.clone();
 		processQueryMatchingRules(repoQuery, objectClassDef);
 		
-		repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, parentResult);
-		
+		return repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, parentResult);
 	}
 
 	/**

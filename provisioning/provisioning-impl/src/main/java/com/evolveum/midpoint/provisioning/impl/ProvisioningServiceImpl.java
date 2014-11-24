@@ -53,6 +53,8 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -533,7 +535,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 	
 	@Override
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
+	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
 			ConfigurationException, SecurityViolationException {
 
@@ -542,11 +544,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		final List<PrismObject<T>> objListType = new ArrayList<PrismObject<T>>();
+		final SearchResultList<PrismObject<T>> objListType = new SearchResultList(new ArrayList<PrismObject<T>>());
 		
+		SearchResultMetadata metadata;
 		try {
 			if (!ShadowType.class.isAssignableFrom(type)) {
-				List<PrismObject<T>> objects = searchRepoObjects(type, query, result);
+				SearchResultList<PrismObject<T>> objects = searchRepoObjects(type, query, result);
 				result.computeStatus();
 				result.recordSuccessIfUnknown();
 				result.cleanupResult();
@@ -561,7 +564,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				}
 			};
 		
-			searchObjectsIterative(type, query, options, handler, result);
+			metadata = searchObjectsIterative(type, query, options, handler, result);
 			
 		} catch (ConfigurationException e) {
 			recordFatalError(LOGGER, result, "Could not search objects: configuration problem: " + e.getMessage(), e);
@@ -586,12 +589,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.computeStatus();
 		result.cleanupResult();
 		validateObjects(objListType);
+		objListType.setMetadata(metadata);
 		return objListType;
 	}
 
 
 	@SuppressWarnings("unchecked")
-	private <T extends ObjectType> List<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query, OperationResult result) throws SchemaException {
+	private <T extends ObjectType> SearchResultList<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query, OperationResult result) throws SchemaException {
 
 		List<PrismObject<T>> repoObjects = null;
 
@@ -599,7 +603,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		repoObjects = getCacheRepositoryService().searchObjects(type, query, null, result);
 
-		List<PrismObject<T>> newObjListType = new ArrayList<PrismObject<T>>();
+		SearchResultList<PrismObject<T>> newObjListType = new SearchResultList(new ArrayList<PrismObject<T>>());
 		for (PrismObject<T> repoObject : repoObjects) {
 			OperationResult objResult = new OperationResult(ProvisioningService.class.getName()
 					+ ".searchObjects.object");
@@ -1075,7 +1079,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public <T extends ObjectType> void searchObjectsIterative(final Class<T> type, ObjectQuery query, 
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(final Class<T> type, ObjectQuery query, 
 			Collection<SelectorOptions<GetOperationOptions>> options, 
 			final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -1107,7 +1111,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.recordSuccessIfUnknown();
 			result.cleanupResult();
 			LOGGER.trace("Finished searching. Nothing to do. Filter is NONE");
-			return;
+			SearchResultMetadata metadata = new SearchResultMetadata();
+			metadata.setApproxNumberOfAllResults(0);
+			return metadata;
 		}
 		
 		if (!ShadowType.class.isAssignableFrom(type)) {
@@ -1147,9 +1153,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				}
 			};
 			
+			SearchResultMetadata metadata = null;
 			try {
 				
-				getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, null, result);
+				metadata = getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, null, result);
 				
 				result.computeStatus();
 				result.recordSuccessIfUnknown();
@@ -1163,7 +1170,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				recordFatalError(LOGGER, result, null, e);
 			}
 			
-			return;
+			return metadata;
 		}
 
         ResourceAndObjectClassFinder resourceAndObjectClassFinder = new ResourceAndObjectClassFinder(filter, result).invoke();
@@ -1235,8 +1242,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
+		SearchResultMetadata metadata;
 		try {
-			getShadowCache(Mode.STANDARD).searchObjectsIterative(objectClass,
+			metadata = getShadowCache(Mode.STANDARD).searchObjectsIterative(objectClass,
 				resource.asObjectable(), query, options, shadowHandler, result);
 			result.computeStatus();
 		} catch (ConfigurationException e) {
@@ -1260,6 +1268,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} finally {
 			result.cleanupResult();
 		}
+		
+		return metadata;
 	}
 
 

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
@@ -363,7 +364,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			QName propXsdType = icfTypeToXsdType(icfProperty.getType(), icfProperty.isConfidential());
 			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", new Object[] { this,
 					icfPropertyName, icfProperty.getType(), propXsdType });
-			PrismPropertyDefinition propertyDefinifion = configPropertiesTypeDef.createPropertyDefinition(
+			PrismPropertyDefinition<?> propertyDefinifion = configPropertiesTypeDef.createPropertyDefinition(
 					icfPropertyName, propXsdType);
 			propertyDefinifion.setDisplayName(icfProperty.getDisplayName(null));
 			propertyDefinifion.setHelp(icfProperty.getHelpMessage(null));
@@ -1848,7 +1849,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-    public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
+    public <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
                                               final ResultHandler<T> handler, AttributesToReturn attributesToReturn,
                                               PagedSearchCapabilityType pagedSearchCapabilityType, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException {
@@ -1953,12 +1954,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
 		icfResult.addContext("connector", icfConnectorFacade.getClass());
 
+		SearchResult icfSearchResult;
 		try {
 
 			Filter filter = convertFilterToIcf(query);
 
 			InternalMonitor.recordConnectorOperation("search");
-			icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
+			icfSearchResult = icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
 
 			icfResult.recordSuccess();
 		} catch (IntermediateException inex) {
@@ -1985,10 +1987,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
 		}
+		
+		SearchResultMetadata metadata = null;
+		if (icfSearchResult != null) {
+			metadata = new SearchResultMetadata();
+			metadata.setPagingCookie(icfSearchResult.getPagedResultsCookie());
+			if (icfSearchResult.getRemainingPagedResults() >= 0) {
+				metadata.setApproxNumberOfAllResults(icfSearchResult.getRemainingPagedResults());
+			}
+		}
 
 		if (result.isUnknown()) {
 			result.recordSuccess();
 		}
+		
+		return metadata;
 	}
 
     @Override
