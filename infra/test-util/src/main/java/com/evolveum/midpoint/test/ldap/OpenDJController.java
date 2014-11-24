@@ -752,4 +752,23 @@ public class OpenDJController extends AbstractResourceController {
         String ldif = "dn: " + groupDn + "\nchangetype: modify\ndelete: uniqueMember\nuniqueMember: " + memberDn;
         return executeLdifChange(ldif);
     }
+
+	public ChangeRecordEntry addGroupUniqueMember(String groupDn, String memberDn) throws IOException, LDIFException {
+		String ldif = "dn: " + groupDn + "\nchangetype: modify\nadd: uniqueMember\nuniqueMember: " + memberDn;
+		return executeLdifChange(ldif);
+	}
+
+	public ChangeRecordEntry addGroupUniqueMembers(String groupDn, List<String> memberDns) throws IOException, LDIFException {
+		if (memberDns.isEmpty()) {
+			return null; // garbage in garbage out, sorry
+		}
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("dn: ").append(groupDn).append("\nchangetype: modify\nadd: uniqueMember");
+		for (String memberDn : memberDns) {
+			sb.append("\nuniqueMember: ").append(memberDn);
+		}
+		return executeLdifChange(sb.toString());
+	}
+
 }
