@@ -175,10 +175,11 @@
 			<build>
 				<plugins>
 					<plugin>
-					  <artifactId>maven-surefire-plugin</artifactId>
-					  <configuration>
-					    <skip>false</skip>
-					  </configuration>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<skip>false</skip>
+							<argLine>-XX:MaxPermSize=256m</argLine>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>

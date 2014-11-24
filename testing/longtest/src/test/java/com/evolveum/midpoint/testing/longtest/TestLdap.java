@@ -24,13 +24,20 @@ import java.io.IOException;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LoggingConfigurationManager;
+import com.evolveum.midpoint.common.ProfilingConfigurationManager;
+import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.mutable.MutableInt;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -102,12 +109,15 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	private static final String ACCOUNT_CHARLES_NAME = "charles";
 	
 	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 1600;
+	private static final int NUM_LDAP_ENTRIES = 50;
 
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 	
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
+
+    @Autowired
+    private ReconciliationTaskHandler reconciliationTaskHandler;
 	
     @Override
     protected void startResources() throws Exception {
@@ -125,13 +135,18 @@ public class TestLdap extends AbstractModelIntegrationTest {
 		modelService.postInit(initResult);
 		
 		// System Configuration
+        PrismObject<SystemConfigurationType> config;
 		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
+			config = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
-		
+
+        LoggingConfigurationManager.configure(
+                ProfilingConfigurationManager.checkSystemProfilingConfiguration(config),
+                config.asObjectable().getVersion(), initResult);
+
 		// administrator
 		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
@@ -273,7 +288,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         assertNoOpenDjAccount(ACCOUNT_LECHUCK_NAME);
 	}
 	
-	@Test
+	@Test(enabled = false)
     public void test800BigLdapSearch() throws Exception {
 		final String TEST_NAME = "test800BigLdapSearch";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -329,6 +344,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
+        //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
         modelService.importFromResource(RESOURCE_OPENDJ_OID, 
         		new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
         
@@ -347,7 +363,45 @@ public class TestLdap extends AbstractModelIntegrationTest {
         assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
 	}
 
-	private void loadEntries(String prefix) throws LDIFException, IOException {
+    @Test
+    public void test820BigReconciliation() throws Exception {
+        final String TEST_NAME = "test820BigReconciliation";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+
+//        System.out.println("openDJController.isRunning = " + openDJController.isRunning());
+//        OperationResult testResult = modelService.testResource(RESOURCE_OPENDJ_OID, task);
+//        System.out.println("Test resource result = " + testResult.debugDump());
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
+
+        ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
+        reconciliationTaskHandler.launch(resource,
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+//        OperationResult subresult = result.getLastSubresult();
+//        TestUtil.assertInProgress("reconciliation launch result", subresult);
+
+        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+
+        int userCount = modelService.countObjects(UserType.class, null, null, task, result);
+        display("Users", userCount);
+        assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
+    }
+
+    private void loadEntries(String prefix) throws LDIFException, IOException {
         long ldapPopStart = System.currentTimeMillis();
         
         for(int i=0; i < NUM_LDAP_ENTRIES; i++) {
