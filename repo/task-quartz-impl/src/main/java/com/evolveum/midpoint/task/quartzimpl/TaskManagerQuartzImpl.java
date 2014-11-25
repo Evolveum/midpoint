@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -977,7 +978,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type,
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type,
                                                                      ObjectQuery query,
                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
                                                                      OperationResult parentResult) throws SchemaException {
@@ -989,9 +990,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
         if (TaskType.class.isAssignableFrom(type)) {
-            return (List<PrismObject<T>>) (List) searchTasks(query, options, result);       // todo replace cast to <List> after change to java7
+            return (SearchResultList<PrismObject<T>>) (SearchResultList) searchTasks(query, options, result);       // todo replace cast to <List> after change to java7
         } else if (NodeType.class.isAssignableFrom(type)) {
-            return (List<PrismObject<T>>) (List) searchNodes(query, options, result);
+            return (SearchResultList<PrismObject<T>>) (SearchResultList) searchNodes(query, options, result);
         } else {
             throw new IllegalArgumentException("Unsupported object type: " + type);
         }
@@ -1024,7 +1025,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 //        return repositoryService.countObjects(NodeType.class, query, result);
 //    }
 
-    private List<PrismObject<NodeType>> searchNodes(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+    private SearchResultList<PrismObject<NodeType>> searchNodes(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
         ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, NodeType.class, true, result);
 
@@ -1062,7 +1063,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
         LOGGER.trace("searchNodes returning {}", list);
         result.computeStatus();
-        return list;
+        return new SearchResultList(list);
     }
 
     private ClusterStatusInformation getClusterStatusInformation(Collection<SelectorOptions<GetOperationOptions>> options, Class<? extends ObjectType> objectClass, boolean allowCached, OperationResult result) {
@@ -1088,7 +1089,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
     }
 
-    public List<PrismObject<TaskType>> searchTasks(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+    public SearchResultList<PrismObject<TaskType>> searchTasks(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
         ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, TaskType.class, true, result); // returns null if noFetch is set
 
@@ -1109,7 +1110,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             retval.add(taskInResult.asPrismObject());
         }
         result.computeStatus();
-        return retval;
+        return new SearchResultList(retval);
     }
 
     private TaskType addTransientTaskInformation(PrismObject<TaskType> taskInRepository, ClusterStatusInformation clusterStatusInformation, boolean retrieveNextRunStartTime, boolean retrieveNodeAsObserved, OperationResult result) {

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -173,10 +174,11 @@ public interface ConnectorInstance {
 	 *  
 	 * @param objectClass
 	 * @param handler
+	 * @return 
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
 	 */
-    public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
+    public <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
                                               ResultHandler<T> handler, AttributesToReturn attributesToReturn,
                                               PagedSearchCapabilityType pagedSearchConfigurationType,
                                               OperationResult parentResult)

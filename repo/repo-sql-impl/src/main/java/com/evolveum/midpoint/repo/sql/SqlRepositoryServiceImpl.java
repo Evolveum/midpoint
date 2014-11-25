@@ -759,7 +759,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
                                                                      OperationResult result) throws SchemaException {
         Validate.notNull(type, "Object type must not be null.");
@@ -777,7 +777,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         	filter = ObjectQueryUtil.simplify(filter);
         	if (filter instanceof NoneFilter) {
         		subResult.recordSuccess();
-        		return new ArrayList<PrismObject<T>>(0);
+        		return new SearchResultList(new ArrayList<PrismObject<T>>(0));
         	}
         	query = query.cloneEmpty();
         	query.setFilter(filter);
@@ -824,7 +824,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <T extends ObjectType> List<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
+    private <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
                                                                              Collection<SelectorOptions<GetOperationOptions>> options,
                                                                              OperationResult result) throws SchemaException {
         List<PrismObject<T>> list = new ArrayList<>();
@@ -849,7 +849,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             cleanupSessionAndResult(session, result);
         }
 
-        return list;
+        return new SearchResultList(list);
     }
 
     /**
@@ -1426,7 +1426,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      * com.evolveum.midpoint.schema.result.OperationResult)
      */
     @Override
-    public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+    public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
                                                               ResultHandler<T> handler,
                                                               Collection<SelectorOptions<GetOperationOptions>> options,
                                                               OperationResult result) throws SchemaException {
@@ -1445,7 +1445,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         	filter = ObjectQueryUtil.simplify(filter);
         	if (filter instanceof NoneFilter) {
         		subResult.recordSuccess();
-        		return;
+        		return null;
         	}
         	query = query.cloneEmpty();
         	query.setFilter(filter);
@@ -1453,7 +1453,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (getConfiguration().isIterativeSearchByPaging()) {
             searchObjectsIterativeByPaging(type, query, handler, options, subResult);
-            return;
+            return null;
         }
 
 //        turned off until resolved 'unfinished operation' warning
@@ -1466,7 +1466,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             while (true) {
                 try {
                     searchObjectsIterativeAttempt(type, query, handler, options, subResult);
-                    return;
+                    return null;
                 } catch (RuntimeException ex) {
                     attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
 //                    pm.registerOperationNewTrial(opHandle, attempt);
