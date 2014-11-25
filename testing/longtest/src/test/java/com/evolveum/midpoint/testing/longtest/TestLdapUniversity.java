@@ -173,8 +173,8 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         display("Users", userCount);
         assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES+1, userCount);
 
-        assertUser("u0", task, result);
-        assertUser("u1", task, result);
+        assertUser("e0", task, result);
+        assertUser("e1(u1)", task, result);
 	}
 
     private void createUsers(String prefix, OperationResult result) throws ObjectAlreadyExistsException, SchemaException {
@@ -198,7 +198,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
     }
 
     private void assertUser(String name, Task task, OperationResult result) throws com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SchemaException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException {
-        UserType user = findUserByUsername("u1").asObjectable();
+        UserType user = findUserByUsername(name).asObjectable();
         display("user " + name, user.asPrismObject());
 
         //assertEquals("Wrong number of assignments", 4, user.getAssignment().size());

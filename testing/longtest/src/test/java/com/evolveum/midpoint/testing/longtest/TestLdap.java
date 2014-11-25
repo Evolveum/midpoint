@@ -109,7 +109,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	private static final String ACCOUNT_CHARLES_NAME = "charles";
 	
 	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 50;
+	private static final int NUM_LDAP_ENTRIES = 1600;
 
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 	
@@ -143,9 +143,10 @@ public class TestLdap extends AbstractModelIntegrationTest {
 					"looks like the previous test haven't cleaned it up", e);
 		}
 
-        LoggingConfigurationManager.configure(
-                ProfilingConfigurationManager.checkSystemProfilingConfiguration(config),
-                config.asObjectable().getVersion(), initResult);
+        // to get profiling facilities (until better API is available)
+//        LoggingConfigurationManager.configure(
+//                ProfilingConfigurationManager.checkSystemProfilingConfiguration(config),
+//                config.asObjectable().getVersion(), initResult);
 
 		// administrator
 		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);

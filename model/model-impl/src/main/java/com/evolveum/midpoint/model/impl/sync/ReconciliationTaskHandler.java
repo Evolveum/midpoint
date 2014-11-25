@@ -23,7 +23,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.provisioning.cache.ProvisioningCache;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;

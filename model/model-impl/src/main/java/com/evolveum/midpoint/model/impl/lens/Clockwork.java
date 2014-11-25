@@ -399,13 +399,16 @@ public class Clockwork {
 			return;
 		}
 		
-		changeExecutor.executeChanges(context, task, result);
-		
+		boolean restartRequested = changeExecutor.executeChanges(context, task, result);
+
 		audit(context, AuditEventStage.EXECUTION, task, result);
 		
 		rotContext(context);
-		
-		context.incrementExecutionWave();
+
+		if (!restartRequested) {
+			// TODO what if restart is requested indefinitely?
+			context.incrementExecutionWave();
+		}
 		
 		LensUtil.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
 	}

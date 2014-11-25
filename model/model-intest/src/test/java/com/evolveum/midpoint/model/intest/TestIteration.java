@@ -107,7 +107,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	
 	private static final String USER_DEWATT_NAME = "dewatt";
 	private static final String ACCOUNT_DEWATT_NAME = "DeWatt";
-	
+
+	private static final String USER_LARGO_NAME = "largo";
+	private static final String ACCOUNT_LARGO_NAME = "largo";
+	public static final String ACCOUNT_LARGO_DUMMY_USERNAME = "largo";
+
 	private static final String DESCRIPTION_RUM = "Where's the rum?";
 
 	private static final String USER_JACK_RENAMED_NAME = "cptjack";
@@ -181,7 +185,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		dummyResourceCtlMagenta.setResource(resourceDummyMagenta);
 		
 		addObject(USER_TEMPLATE_ITERATION_FILE);
-		
+
+		addObject(USER_LARGO_FILE);
+
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 	}
 
@@ -439,7 +445,63 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionSuccess();
 	}
 
-	
+	@Test
+	public void test240LargoAssignAccountDummyConflictingNoShadow() throws Exception {
+		final String TEST_NAME = "test240LargoAssignAccountDummyConflictingNoShadow";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		dummyAuditService.clear();
+
+		// Make sure there is a conflicting account and NO shadow for it
+		DummyAccount account = new DummyAccount(ACCOUNT_LARGO_DUMMY_USERNAME);
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Largo Pinky");
+		dummyResourcePink.addAccount(account);
+
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_LARGO_OID, RESOURCE_DUMMY_PINK_OID, null, true);
+		deltas.add(accountAssignmentUserDelta);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userLargo = getUser(USER_LARGO_OID);
+		display("User after change execution", userLargo);
+		assertUserLargo(userLargo);
+		String accountOid = getSingleLinkOid(userLargo);
+
+		// Check shadow
+		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+		assertAccountShadowRepo(accountShadow, accountOid, "largo1", resourceDummyPinkType);
+
+		// Check account
+		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+		assertAccountShadowModel(accountModel, accountOid, "largo1", resourceDummyPinkType);
+
+		// Check account in dummy resource
+		assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, "largo1", null, true);
+
+		// Check audit
+		// USER Largo MODIFY(add-assignment):   request + execution (focus(assignment) + account/failed) + execution (focus(linkRef) / account/OK)
+		display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(3);
+		dummyAuditService.assertSimpleRecordSanity();
+		dummyAuditService.assertAnyRequestDeltas();
+		dummyAuditService.assertExecutionDeltas(2);
+		dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+		dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+		dummyAuditService.assertExecutionSuccess();
+	}
+
 	@Test
     public void test300JackAssignAccountDummyVioletConflicting() throws Exception {
 		final String TEST_NAME = "test300JackAssignAccountDummyVioletConflicting";
@@ -1499,7 +1561,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertUserNick(ACCOUNT_MILLONARIO_USERNAME, RON_FULLNAME, RON_FULLNAME, "Northern Peru");
 		assertNoUserNick(ACCOUNT_MILLONARIO_USERNAME, RUM_FULLNAME, RUM_FULLNAME+iterationTokenMillonario);
 	}
-	
+
+	private void assertUserLargo(PrismObject<UserType> userLargo) {
+		assertUser(userLargo, USER_LARGO_OID, USER_LARGO_NAME, null, "Largo", "LaGrande", null);
+	}
+
 	private void assertUserNick(String accountName, String accountFullName, String expectedUserName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		assertUserNick(accountName, accountFullName, expectedUserName, null);
 	}

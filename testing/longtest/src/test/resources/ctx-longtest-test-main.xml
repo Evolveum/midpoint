@@ -37,7 +37,6 @@
     <import resource="ctx-model.xml"/>
     <import resource="ctx-model-test.xml"/>
     <import resource="ctx-provisioning.xml"/>
-    <import resource="ctx-provisioning-cache.xml"/>
     <import resource="ctx-common.xml"/>
     <import resource="ctx-longtest-test.xml"/>
     <import resource="ctx-task.xml"/>

@@ -140,7 +140,8 @@ public class ChangeExecutor {
     	shadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
     }
 
-    public <O extends ObjectType> void executeChanges(LensContext<O> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
+	// returns true if current operation has to be restarted, see ObjectAlreadyExistsException handling (TODO specify more exactly)
+    public <O extends ObjectType> boolean executeChanges(LensContext<O> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	
     	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE);
@@ -203,6 +204,8 @@ public class ChangeExecutor {
     	// PROJECTIONS
 
         syncContext.checkAbortRequested();
+
+		boolean restartRequested = false;
     	
         for (LensProjectionContext accCtx : syncContext.getProjectionContexts()) {
         	if (accCtx.getWave() != syncContext.getExecutionWave()) {
@@ -300,7 +303,8 @@ public class ChangeExecutor {
 				// but we need to set some result
 				subResult.recordSuccess();
 				subResult.muteLastSubresultError();
-				continue;
+				restartRequested = true;
+				break;		// we will process remaining projections when retrying the wave
 			} catch (CommunicationException e) {
 				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
@@ -325,6 +329,7 @@ public class ChangeExecutor {
         
         // Result computation here needs to be slightly different
         result.computeStatusComposite();
+		return restartRequested;
 
     }
 
