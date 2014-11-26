@@ -48,6 +48,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType> implements ResultHandler<O> {
 
 	public static final int WORKER_THREAD_WAIT_FOR_REQUEST = 500;
+	public static final long PROGRESS_UPDATE_INTERVAL = 3000L;
+
 	private final TaskManager taskManager;
 	private Task coordinatorTask;
 	private String taskOperationPrefix;
@@ -60,6 +62,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	private boolean logObjectProgress;
 	private BlockingQueue<ProcessingRequest> requestQueue;
 	private AtomicBoolean stopRequestedByAnyWorker = new AtomicBoolean(false);
+	private final long startTime;
+	private AtomicLong progressLastUpdated = new AtomicLong();
 
 	private OperationResult collectedResults;
 
@@ -75,6 +79,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		this.contextDesc = contextDesc;
 		this.taskManager = taskManager;
 		stopOnError = true;
+		startTime = System.currentTimeMillis();
 	}
 
 	protected String getProcessShortName() {
@@ -175,6 +180,16 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 	}
 
+	public Float getWallAverageTime() {
+		long count = getProgress();
+		if (count > 0) {
+			long total = System.currentTimeMillis() - startTime;
+			return (float) total / (float) count;
+		} else {
+			return null;
+		}
+	}
+
 	public void waitForCompletion(OperationResult opResult) {
 		taskManager.waitForTransientChildren(coordinatorTask, opResult);
 	}
@@ -263,18 +278,21 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
-			try {
-				coordinatorTask.setProgressImmediate(progress, result);              // this is necessary for the progress to be immediately available in GUI
-			} catch (ObjectNotFoundException|SchemaException|RuntimeException e) {
-				LoggingUtils.logException(LOGGER, "Couldn't record progress for task {}", e, coordinatorTask);
+			if (shouldReportProgress()) {
+				try {
+					coordinatorTask.setProgressImmediate(progress, result);              // this is necessary for the progress to be immediately available in GUI
+				} catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
+					LoggingUtils.logException(LOGGER, "Couldn't record progress for task {}", e, coordinatorTask);
+				}
 			}
 
 			if (logObjectProgress) {
 				if (LOGGER.isInfoEnabled()) {
-					LOGGER.info("{} object {} {} done with status {} (this one: {} ms, avg: {} ms)", new Object[]{
+					LOGGER.info("{} object {} {} done with status {} (this one: {} ms, avg: {} ms) (total progress: {}, wall clock avg: {} ms)", new Object[]{
 							getProcessShortNameCapitalized(), object,
 							getContextDesc(), result.getStatus(),
-							duration, total/progress});
+							duration, total/progress, progress,
+							(System.currentTimeMillis()-this.startTime)/progress});
 				}
 			}
 
@@ -288,6 +306,17 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		if (!cont) {
 			stopRequestedByAnyWorker.set(true);
+		}
+	}
+
+	private boolean shouldReportProgress() {
+		long curr = System.currentTimeMillis();
+		long lastUpdate = progressLastUpdated.get();
+		if (curr >= lastUpdate + PROGRESS_UPDATE_INTERVAL) {
+			progressLastUpdated.set(curr);						// it is possible that 2 threads enter this section at once, but never mind
+			return true;
+		} else {
+			return false;
 		}
 	}
 

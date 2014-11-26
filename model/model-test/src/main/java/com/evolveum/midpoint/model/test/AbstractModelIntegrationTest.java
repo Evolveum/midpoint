@@ -1680,6 +1680,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			@Override
 			public boolean check() throws Exception {
 				task.refresh(waitResult);
+				waitResult.summarize();
 //				Task freshTask = taskManager.getTask(task.getOid(), waitResult);
 				OperationResult result = task.getResult();
 				if (verbose) display("Check result", result);

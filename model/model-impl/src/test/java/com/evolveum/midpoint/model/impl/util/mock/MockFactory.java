@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.model.impl.util.mock;
 
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import org.mockito.Mockito;
 
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
-import com.evolveum.midpoint.provisioning.api.SynchronizationProcessManager;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import static org.mockito.Mockito.withSettings;
 
 /**
  * 
@@ -30,11 +30,11 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 public class MockFactory {
 
 	public static ProvisioningService createProvisioningPortType() {
-		return Mockito.mock(ProvisioningService.class);
+		return Mockito.mock(ProvisioningService.class, withSettings().defaultAnswer(new MidpointDefaultAnswer()));
 	}
 
 	public static RepositoryService createRepositoryPortType() {
-		return Mockito.mock(RepositoryService.class);
+		return Mockito.mock(RepositoryService.class, withSettings().defaultAnswer(new MidpointDefaultAnswer()));
 	}
 	
 	public static ChangeNotificationDispatcher createChangeNotificationDispatcher() {

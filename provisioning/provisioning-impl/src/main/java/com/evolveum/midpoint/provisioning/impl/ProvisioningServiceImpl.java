@@ -25,11 +25,14 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 
+import com.evolveum.midpoint.schema.RetrieveOption;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.InternalsConfig;
@@ -94,6 +97,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author Radovan Semancik
  */
 @Service(value = "provisioningService")
+@Primary
 public class ProvisioningServiceImpl implements ProvisioningService {
 	
 	@Autowired(required = true)
@@ -735,7 +739,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
                 }
             };
 
-            searchObjectsIterative(type, query, null, handler, result);
+			Collection<SelectorOptions<GetOperationOptions>> options =
+					SelectorOptions.createCollection(new ItemPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
+            searchObjectsIterativeInternal(type, query, options, handler, false, result);
             // TODO: better error handling
             result.computeStatus();
             result.cleanupResult();
@@ -1076,12 +1082,21 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.cleanupResult();
 	}
 
-
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(final Class<T> type, ObjectQuery query, 
 			Collection<SelectorOptions<GetOperationOptions>> options, 
 			final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException,
+				ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return searchObjectsIterativeInternal(type, query, options, handler, true, parentResult);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterativeInternal(final Class<T> type, ObjectQuery query,
+																	  Collection<SelectorOptions<GetOperationOptions>> options,
+																	  final ResultHandler<T> handler,
+																	  boolean readFromRepository,
+																	  final OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -1245,7 +1260,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		SearchResultMetadata metadata;
 		try {
 			metadata = getShadowCache(Mode.STANDARD).searchObjectsIterative(objectClass,
-				resource.asObjectable(), query, options, shadowHandler, result);
+				resource.asObjectable(), query, options, shadowHandler, readFromRepository, result);
 			result.computeStatus();
 		} catch (ConfigurationException e) {
 			recordFatalError(LOGGER, result, null, e);

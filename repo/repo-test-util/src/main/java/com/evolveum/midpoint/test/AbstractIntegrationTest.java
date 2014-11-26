@@ -116,6 +116,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected static final String DEFAULT_INTENT = "default";
 	
 	protected static final String OPENDJ_PEOPLE_SUFFIX = "ou=people,dc=example,dc=com";
+	protected static final String OPENDJ_GROUPS_SUFFIX = "ou=groups,dc=example,dc=com";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
 	
