@@ -481,8 +481,8 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.forgerock.openicf.connectors</groupId>
-            <artifactId>databasetable-connector</artifactId>
+        	<groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-databasetable</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>

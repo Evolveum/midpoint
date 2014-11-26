@@ -44,7 +44,7 @@
 	<connectorConfiguration>
 
 		<icfc:configurationProperties
-				xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.databasetable-connector/org.identityconnectors.databasetable.DatabaseTableConnector">
+				xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
 			<icscdbtable:port>5432</icscdbtable:port>
 			<icscdbtable:host>localhost</icscdbtable:host>
 			<icscdbtable:user>addressbook</icscdbtable:user>
