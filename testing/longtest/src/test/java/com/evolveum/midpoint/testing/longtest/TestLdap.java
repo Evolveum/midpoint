@@ -289,7 +289,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         assertNoOpenDjAccount(ACCOUNT_LECHUCK_NAME);
 	}
 	
-	@Test(enabled = false)
+	@Test
     public void test800BigLdapSearch() throws Exception {
 		final String TEST_NAME = "test800BigLdapSearch";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -413,7 +413,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         
         long ldapPopEnd = System.currentTimeMillis();
         
-        display("Loaded "+NUM_LDAP_ENTRIES+" LDAP entries in "+((ldapPopEnd-ldapPopStart)/1000)+" seconds");
+        display("Loaded "+NUM_LDAP_ENTRIES+" LDAP entries (prefix "+prefix+") in "+((ldapPopEnd-ldapPopStart)/1000)+" seconds");
 	}
 
 	private Entry createEntry(String uid, String name) throws IOException, LDIFException {
