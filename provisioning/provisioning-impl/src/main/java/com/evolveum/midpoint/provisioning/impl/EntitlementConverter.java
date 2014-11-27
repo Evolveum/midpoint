@@ -22,7 +22,6 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,7 +57,6 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -351,10 +349,9 @@ class EntitlementConverter {
 				LOGGER.trace("Ignoring subject-to-object association in deleted shadow");
 				continue;
 			}
-			if (assocDefType.getResourceObjectAssociationType().isExplicitReferentialIntegrity() != null
-					&& !assocDefType.getResourceObjectAssociationType().isExplicitReferentialIntegrity()) {
+			if (!assocDefType.requiresExplicitReferentialIntegrity()) {
 				// Referential integrity not required for this one
-				LOGGER.trace("Ignoring association in deleted shadow because it has explicit referential integrity turned off");
+				LOGGER.trace("Ignoring association in deleted shadow because it does not require explicit referential integrity assurance");
 				continue;
 			}
 			QName associationName = assocDefType.getName();
@@ -601,11 +598,12 @@ class EntitlementConverter {
         if (modificationType != ModificationType.DELETE) {
             shadow = shadowAfter;
         } else {
-            if (BooleanUtils.isFalse(assocDefType.getResourceObjectAssociationType().isExplicitReferentialIntegrity())) {
-                // i.e. resource has ref integrity by itself
-                shadow = shadowAfter;
+            if (assocDefType.requiresExplicitReferentialIntegrity()) {
+				// we must ensure the referential integrity
+				shadow = shadowBefore;
             } else {
-                shadow = shadowBefore;
+				// i.e. resource has ref integrity assured by itself
+				shadow = shadowAfter;
             }
         }
 

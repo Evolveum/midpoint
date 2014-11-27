@@ -274,8 +274,10 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 							throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
 						} catch (ObjectAlreadyExistsException e) {
 							throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+						} catch (SchemaViolationException e) {
+							throw new org.identityconnectors.framework.common.exceptions.ConnectorException("Schema exception: " + e.getMessage(), e);
 						}
-		        		// We need to change the returned uid here (only if the mode is not set to UUID)
+						// We need to change the returned uid here (only if the mode is not set to UUID)
 						if (!(configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID))){
 							uid = new Uid(newName);
 						}
