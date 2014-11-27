@@ -30,6 +30,8 @@ import java.util.TreeMap;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 
@@ -892,10 +894,28 @@ public class ResourceObjectConverter {
 					LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change.");
 					continue;
 				}
-				
-				associationDelta.addValuesToDelete(association.getClonedValues());	
-				associationDelta.addValuesToAdd(association.getClonedValues());
-				entitlementConverter.collectEntitlementsAsObjectOperation(roMap, associationDelta, objectClassDefinition, shadowBefore, shadowAfter, rSchema, resource);
+
+				// Delete + re-add association values that should ensure correct functioning in case of rename
+				// This has to be done only for associations that require explicit referential integrity.
+				// For these that do not, it is harmful (), so it must be skipped.
+				for (PrismContainerValue<ShadowAssociationType> associationValue : association.getValues()) {
+					QName associationName = associationValue.asContainerable().getName();
+					if (associationName == null) {
+						throw new IllegalStateException("No association name in " + associationValue);
+					}
+					LOGGER.trace("Processing association {} on rename", associationName);
+					RefinedAssociationDefinition associationDefinition = objectClassDefinition.findAssociation(associationName);
+					if (associationDefinition == null) {
+						throw new IllegalStateException("No association definition for " + associationValue);
+					}
+					if (associationDefinition.requiresExplicitReferentialIntegrity()) {
+						associationDelta.addValuesToDelete(associationValue.clone());
+						associationDelta.addValuesToAdd(associationValue.clone());
+					}
+				}
+				if (!associationDelta.isEmpty()) {
+					entitlementConverter.collectEntitlementsAsObjectOperation(roMap, associationDelta, objectClassDefinition, shadowBefore, shadowAfter, rSchema, resource);
+				}
 				
 //				shadowAfter.findOrCreateContainer(ShadowType.F_ASSOCIATION).addAll((Collection) association.getClonedValues());
 //				entitlementConverter.processEntitlementsAdd(resource, shadowAfter, objectClassDefinition);

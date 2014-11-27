@@ -47,6 +47,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean generateDefaultValues = false;
     private boolean tolerateDuplicateValues = true;
 	private boolean varyLetterCase = false;
+	private boolean referentialIntegrity = false;
     private String uselessString;
     private GuardedString uselessGuardedString;
 
@@ -236,7 +237,17 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setVaryLetterCase(boolean value) {
 		this.varyLetterCase = value;
 	}
-	
+
+	@ConfigurationProperty(displayMessageKey = "UI_REFERENTIAL_INTEGRITY",
+			helpMessageKey = "UI_REFERENTIAL_INTEGRITY_HELP")
+	public boolean isReferentialIntegrity() {
+		return referentialIntegrity;
+	}
+
+	public void setReferentialIntegrity(boolean referentialIntegrity) {
+		this.referentialIntegrity = referentialIntegrity;
+	}
+
 	/**
      * {@inheritDoc}
      */

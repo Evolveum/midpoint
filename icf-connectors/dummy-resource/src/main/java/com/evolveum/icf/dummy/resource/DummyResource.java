@@ -642,8 +642,14 @@ public class DummyResource implements DebugDumpable {
 		deleteObjectByName(DummyAccount.class, accounts, id);
 	}
 
-	public void renameAccount(String id, String oldUsername, String newUsername) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+	public void renameAccount(String id, String oldUsername, String newUsername) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
 		renameObject(DummyAccount.class, accounts, id, oldUsername, newUsername);
+		for (DummyGroup group : groups.values()) {
+			if (group.containsMember(oldUsername)) {
+				group.removeMember(oldUsername);
+				group.addMember(newUsername);
+			}
+		}
 	}
 	
 	public String addGroup(DummyGroup newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
