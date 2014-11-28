@@ -20,14 +20,9 @@ import com.evolveum.midpoint.util.aspect.MethodUsageStatistics;
 import com.evolveum.midpoint.util.aspect.PerformanceStatistics;
 import com.evolveum.midpoint.util.aspect.ProfilingDataLog;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.annotations.Test;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.testng.AssertJUnit.*;
@@ -37,15 +32,6 @@ import static org.testng.AssertJUnit.*;
  *  @author shood
  * */
 public class ProfilingTest {
-
-    public static final String SUBSYSTEM_REPOSITORY = "REPOSITORY";
-    public static final String SUBSYSTEM_TASKMANAGER = "TASKMANAGER";
-    public static final String SUBSYSTEM_PROVISIONING = "PROVISIONING";
-    public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "RESOURCEOBJECTCHANGELISTENER";
-    public static final String SUBSYSTEM_MODEL = "MODEL";
-    public static final String SUBSYSTEM_UCF = "UCF";
-    public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
-    public static final String SUBSYSTEM_WEB = "WEB";
 
     public static final Integer TEST_MINUTE_DUMP_INTERVAL = 5;
     public static final String REQUEST_FILTER_TEST_URI = "URI";
@@ -69,15 +55,15 @@ public class ProfilingTest {
 
     @Test
     public void prof_02_profManagerConfigurationTest(){
-        Map<String, Boolean> profMap = new HashMap<String, Boolean>();
-        profMap.put(SUBSYSTEM_MODEL, true);
-        profMap.put(SUBSYSTEM_PROVISIONING, false);
-        profMap.put(SUBSYSTEM_REPOSITORY, false);
-        profMap.put(SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, false);
-        profMap.put(SUBSYSTEM_TASKMANAGER, false);
-        profMap.put(SUBSYSTEM_UCF, false);
-        profMap.put(SUBSYSTEM_WORKFLOW, false);
-        profMap.put(SUBSYSTEM_WEB, false);
+        Map<ProfilingDataManager.Subsystem, Boolean> profMap = new HashMap<>();
+        profMap.put(ProfilingDataManager.Subsystem.MODEL, true);
+        profMap.put(ProfilingDataManager.Subsystem.PROVISIONING, false);
+        profMap.put(ProfilingDataManager.Subsystem.REPOSITORY, false);
+        profMap.put(ProfilingDataManager.Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER, false);
+        profMap.put(ProfilingDataManager.Subsystem.TASK_MANAGER, false);
+        profMap.put(ProfilingDataManager.Subsystem.UCF, false);
+        profMap.put(ProfilingDataManager.Subsystem.WORKFLOW, false);
+        profMap.put(ProfilingDataManager.Subsystem.WEB, false);
 
         ProfilingDataManager.getInstance().configureProfilingDataManager(profMap, TEST_MINUTE_DUMP_INTERVAL, true, false, false);
 
@@ -166,17 +152,15 @@ public class ProfilingTest {
 
     @Test
     public void prof_05_subsystemProfilingTest(){
-
-        //First, we configure profiling manager
-        Map<String, Boolean> confMap = new HashMap<String, Boolean>();
-        confMap.put(SUBSYSTEM_MODEL, true);
-        confMap.put(SUBSYSTEM_REPOSITORY, true);
-        confMap.put(SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, false);
-        confMap.put(SUBSYSTEM_WEB, false);
-        confMap.put(SUBSYSTEM_WORKFLOW, false);
-        confMap.put(SUBSYSTEM_PROVISIONING, false);
-        confMap.put(SUBSYSTEM_UCF, false);
-        confMap.put(SUBSYSTEM_TASKMANAGER, false);
+        Map<ProfilingDataManager.Subsystem, Boolean> confMap = new HashMap<>();
+        confMap.put(ProfilingDataManager.Subsystem.MODEL, true);
+        confMap.put(ProfilingDataManager.Subsystem.REPOSITORY, true);
+        confMap.put(ProfilingDataManager.Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER, false);
+        confMap.put(ProfilingDataManager.Subsystem.WEB, false);
+        confMap.put(ProfilingDataManager.Subsystem.WORKFLOW, false);
+        confMap.put(ProfilingDataManager.Subsystem.PROVISIONING, false);
+        confMap.put(ProfilingDataManager.Subsystem.UCF, false);
+        confMap.put(ProfilingDataManager.Subsystem.TASK_MANAGER, false);
 
         ProfilingDataManager.getInstance().configureProfilingDataManager(confMap, 10, true, false, false);
 
@@ -185,17 +169,16 @@ public class ProfilingTest {
 
         //6 prof. events are created, there should be 2 keys in HashMap
         Long startTime = System.nanoTime();
-        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1","2","3"}, SUBSYSTEM_MODEL, System.currentTimeMillis(),startTime);
-        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1","2","3"}, SUBSYSTEM_MODEL, System.currentTimeMillis(),startTime);
-        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1","2","3"}, SUBSYSTEM_MODEL, System.currentTimeMillis(),startTime);
-        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1","2","3"}, SUBSYSTEM_REPOSITORY, System.currentTimeMillis(),startTime);
-        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1","2","3"}, SUBSYSTEM_REPOSITORY, System.currentTimeMillis(),startTime);
-        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1","2","3"}, SUBSYSTEM_REPOSITORY, System.currentTimeMillis(),startTime);
+        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1","2","3"}, ProfilingDataManager.Subsystem.MODEL, System.currentTimeMillis(),startTime);
+        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1","2","3"}, ProfilingDataManager.Subsystem.MODEL, System.currentTimeMillis(),startTime);
+        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1","2","3"}, ProfilingDataManager.Subsystem.MODEL, System.currentTimeMillis(),startTime);
+        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1","2","3"}, ProfilingDataManager.Subsystem.REPOSITORY, System.currentTimeMillis(),startTime);
+        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1","2","3"}, ProfilingDataManager.Subsystem.REPOSITORY, System.currentTimeMillis(),startTime);
+        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1","2","3"}, ProfilingDataManager.Subsystem.REPOSITORY, System.currentTimeMillis(),startTime);
 
         Map<String, MethodUsageStatistics> perfMap = manager.getPerformanceMap();
 
         //Now we test the results
         assertSame(2, perfMap.keySet().size());
     }
-
 }
