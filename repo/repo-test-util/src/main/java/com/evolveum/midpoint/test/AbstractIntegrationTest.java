@@ -497,9 +497,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		
 	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName, String location) {
 		assertObject(user);
-		assertEquals("Wrong "+user+" OID (prism)", oid, user.getOid());
 		UserType userType = user.asObjectable();
-		assertEquals("Wrong "+user+" OID (jaxb)", oid, userType.getOid());
+		if (oid != null) {
+			assertEquals("Wrong " + user + " OID (prism)", oid, user.getOid());
+			assertEquals("Wrong " + user + " OID (jaxb)", oid, userType.getOid());
+		}
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" name", name, userType.getName());
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" fullName", fullName, userType.getFullName());
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" givenName", givenName, userType.getGivenName());

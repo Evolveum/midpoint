@@ -80,4 +80,16 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
         retval.setAudited(jaxb.isAudited());
         return retval;
     }
+
+	public LensObjectDeltaOperation<T> clone() {
+		LensObjectDeltaOperation<T> clone = new LensObjectDeltaOperation<T>();
+		super.copyToClone(clone);
+		copyToClone(clone);
+		return clone;
+	}
+
+	protected void copyToClone(LensObjectDeltaOperation<T> clone) {
+		clone.audited = this.audited;
+	}
+
 }

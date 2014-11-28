@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -92,7 +95,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_MAGENTA_OID = "10000000-0000-0000-0000-00000000a304";
 	protected static final String RESOURCE_DUMMY_MAGENTA_NAME = "magenta";
 	protected static final String RESOURCE_DUMMY_MAGENTA_NAMESPACE = MidPointConstants.NS_RI;
-	
+
+	protected static final File RESOURCE_DUMMY_FUCHSIA_FILE = new File(TEST_DIR, "resource-dummy-fuchsia.xml");
+	protected static final String RESOURCE_DUMMY_FUCHSIA_OID = "10000000-0000-0000-0000-0000000dd204";
+	protected static final String RESOURCE_DUMMY_FUCHSIA_NAME = "fuchsia";
+	protected static final String RESOURCE_DUMMY_FUCHSIA_NAMESPACE = MidPointConstants.NS_RI;
+
 	protected static final File TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_FILE = new File(TEST_DIR, "task-dumy-dark-violet-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID = "10000000-0000-0000-5555-555500da0204";
 	
@@ -127,7 +135,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	private static final String ACCOUNT_MILLONARIO_USERNAME = "millonario";
 	private static final String RUM_FULLNAME = "Rum";
 	private static final String RON_FULLNAME = "Ron";
-	
+
+	private static final File USER_JUPITER_FILE = new File(TEST_DIR, "user-jupiter.xml");
+	private static final String USER_JUPITER_NAME = "jupiter";
+	private static final String ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME = "Jupiter Jones";
+
+	protected String jupiterUserOid;
+
 	protected static DummyResource dummyResourcePink;
 	protected static DummyResourceContoller dummyResourceCtlPink;
 	protected ResourceType resourceDummyPinkType;
@@ -147,7 +161,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	protected static DummyResourceContoller dummyResourceCtlMagenta;
 	protected ResourceType resourceDummyMagentaType;
 	protected PrismObject<ResourceType> resourceDummyMagenta;
-	
+
+	protected static DummyResource dummyResourceFuchsia;
+	protected static DummyResourceContoller dummyResourceCtlFuchsia;
+	protected ResourceType resourceDummyFuchsiaType;
+	protected PrismObject<ResourceType> resourceDummyFuchsia;
+
 	String iterationTokenDiplomatico;
 	String iterationTokenMillonario;
 	
@@ -183,7 +202,14 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		resourceDummyMagenta = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_MAGENTA_FILE, RESOURCE_DUMMY_MAGENTA_OID, initTask, initResult); 
 		resourceDummyMagentaType = resourceDummyMagenta.asObjectable();
 		dummyResourceCtlMagenta.setResource(resourceDummyMagenta);
-		
+
+		dummyResourceCtlFuchsia = DummyResourceContoller.create(RESOURCE_DUMMY_FUCHSIA_NAME, resourceDummyFuchsia);
+		dummyResourceCtlFuchsia.extendSchemaAd();
+		dummyResourceFuchsia = dummyResourceCtlFuchsia.getDummyResource();
+		resourceDummyFuchsia = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FUCHSIA_FILE, RESOURCE_DUMMY_FUCHSIA_OID, initTask, initResult);
+		resourceDummyFuchsiaType = resourceDummyFuchsia.asObjectable();
+		dummyResourceCtlFuchsia.setResource(resourceDummyFuchsia);
+
 		addObject(USER_TEMPLATE_ITERATION_FILE);
 
 		addObject(USER_LARGO_FILE);
@@ -500,6 +526,272 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
 		dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
 		dummyAuditService.assertExecutionSuccess();
+	}
+
+	/**
+	 * Doing the same as test240 (conflict without pre-existing shadow -> surprising the model with AlreadyExists,
+	 * causing re-running given wave in model. But this time doing this on resource that has synchronization
+	 * defined (fuchsia).
+	 *
+	 * test260: first case - existing account corresponds to user being created
+	 *
+	 * 1) manually create account Jupiter Jones (no shadow!), description = "jupiter"
+	 * 2) create user Jupiter Jones (name = jupiter)
+	 *
+	 * Create account operation should fail, account should be synchronized back to repo (creating the user!), and
+	 * model should clean it up somehow...
+	 */
+	@Test
+	public void test260JupiterConflictNoShadowSyncBack() throws Exception {
+		final String TEST_NAME = "test260JupiterConflictNoShadowSyncBack";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		dummyAuditService.clear();
+
+		// Make sure there is a conflicting account and NO shadow for it
+		DummyAccount account = new DummyAccount(ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME);		// Jupiter Jones
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, USER_JUPITER_NAME);				// jupiter
+		dummyResourceFuchsia.addAccount(account);
+
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+		PrismObject<UserType> userJupiter = PrismTestUtil.parseObject(USER_JUPITER_FILE);
+		deltas.add(ObjectDelta.createAddDelta(userJupiter));
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userJupiterAfter = findUserByUsername(USER_JUPITER_NAME);		// jupiter
+		display("User after change execution", userJupiterAfter);
+		assertUserJupiter(userJupiterAfter);
+		jupiterUserOid = userJupiterAfter.getOid();
+		String accountOid = getSingleLinkOid(userJupiterAfter);
+
+		// Check shadow
+		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+		display("Account shadow from repo", accountShadow);
+		assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, resourceDummyFuchsiaType);
+
+		// Check account
+		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+		assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, resourceDummyFuchsiaType);
+
+		// Check account in dummy resource (actually, the fullname attribute does not exist but it's OK)
+		assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, null, true);
+
+		// TODO Check audit
+		display("Audit", dummyAuditService);
+//		dummyAuditService.assertRecords(3);
+//		dummyAuditService.assertSimpleRecordSanity();
+//		dummyAuditService.assertAnyRequestDeltas();
+//		dummyAuditService.assertExecutionDeltas(2);
+//		dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+//		dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+//		dummyAuditService.assertExecutionSuccess();
+	}
+
+	// remove the assignment, shadow and account to prepare for following tests
+	@Test
+	public void test262JupiterCleanup() throws Exception {
+		final String TEST_NAME = "test262JupiterCleanup";
+		cleanUpJupiter(TEST_NAME);
+	}
+
+	protected void cleanUpJupiter(String TEST_NAME) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		dummyAuditService.clear();
+
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+		deltas.add(createAccountAssignmentUserDelta(jupiterUserOid, RESOURCE_DUMMY_FUCHSIA_OID, "default", false));
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userJupiterAfter = findUserByUsername(USER_JUPITER_NAME);		// jupiter
+		display("User after change execution", userJupiterAfter);
+		assertUserJupiter(userJupiterAfter);
+
+		assertEquals("Unexpected number of linkRefs", 0, userJupiterAfter.asObjectable().getLinkRef().size());
+		assertNull("Unexpected account for jupiter", getDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME));
+
+		// TODO Check audit
+		display("Audit", dummyAuditService);
+//		dummyAuditService.assertRecords(3);
+//		dummyAuditService.assertSimpleRecordSanity();
+//		dummyAuditService.assertAnyRequestDeltas();
+//		dummyAuditService.assertExecutionDeltas(2);
+//		dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+//		dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+//		dummyAuditService.assertExecutionSuccess();
+	}
+
+	/**
+	 * Doing the same as test260. But this time assigns the account in separate step.
+	 */
+	@Test
+	public void test264JupiterConflictNoShadowSyncBackSeparate() throws Exception {
+		final String TEST_NAME = "test264JupiterConflictNoShadowSyncBackSeparate";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		dummyAuditService.clear();
+
+		// Make sure there is a conflicting account and NO shadow for it
+		DummyAccount account = new DummyAccount(ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME);		// Jupiter Jones
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, USER_JUPITER_NAME);				// jupiter
+		dummyResourceFuchsia.addAccount(account);
+
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+		deltas.add(createAccountAssignmentUserDelta(jupiterUserOid, RESOURCE_DUMMY_FUCHSIA_OID, "default", true));
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userJupiterAfter = findUserByUsername(USER_JUPITER_NAME);		// jupiter
+		display("User after change execution", userJupiterAfter);
+		assertUserJupiter(userJupiterAfter);
+		jupiterUserOid = userJupiterAfter.getOid();
+		String accountOid = getSingleLinkOid(userJupiterAfter);
+
+		// Check shadow
+		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+		display("Account shadow from repo", accountShadow);
+		assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, resourceDummyFuchsiaType);
+
+		// Check account
+		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+		assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, resourceDummyFuchsiaType);
+
+		// Check account in dummy resource (actually, the fullname attribute does not exist but it's OK)
+		assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, null, true);
+
+		// TODO Check audit
+		display("Audit", dummyAuditService);
+//		dummyAuditService.assertRecords(3);
+//		dummyAuditService.assertSimpleRecordSanity();
+//		dummyAuditService.assertAnyRequestDeltas();
+//		dummyAuditService.assertExecutionDeltas(2);
+//		dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+//		dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+//		dummyAuditService.assertExecutionSuccess();
+	}
+
+	// remove the assignment, shadow and account to prepare for following tests
+	@Test
+	public void test266JupiterCleanupAgain() throws Exception {
+		final String TEST_NAME = "test266JupiterCleanupAgain";
+		cleanUpJupiter(TEST_NAME);
+	}
+
+	/**
+	 * Doing the same as test264, but the conflicting account does not belong to the user being created
+	 * (and causes another user to be added).
+	 */
+	@Test
+	public void test270JupiterConflictOtherNoShadowSyncBack() throws Exception {
+		final String TEST_NAME = "test270JupiterConflictOtherNoShadowSyncBack";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		dummyAuditService.clear();
+
+		// Make sure there is a conflicting account and NO shadow for it
+		DummyAccount account = new DummyAccount(ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME);		// Jupiter Jones
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, "jupiter0");		// different from our jupiter
+		dummyResourceFuchsia.addAccount(account);
+
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+		deltas.add(createAccountAssignmentUserDelta(jupiterUserOid, RESOURCE_DUMMY_FUCHSIA_OID, "default", true));
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userJupiterAfter = findUserByUsername(USER_JUPITER_NAME);		// jupiter
+		display("User after change execution", userJupiterAfter);
+		assertUserJupiter(userJupiterAfter);
+		jupiterUserOid = userJupiterAfter.getOid();
+		String accountOid = getSingleLinkOid(userJupiterAfter);
+
+		// Check shadow & account
+		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+		display("Account shadow from repo", accountShadow);
+		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+		display("Account shadow from model", accountModel);
+
+		assertAccountShadowRepo(accountShadow, accountOid, "Jupiter Jones1", resourceDummyFuchsiaType);
+		assertAccountShadowModel(accountModel, accountOid, "Jupiter Jones1", resourceDummyFuchsiaType);
+
+		// Check account in dummy resource (actually, the fullname attribute does not exist but it's OK)
+		assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, "Jupiter Jones1", null, true);
+
+		// Now check the other (newly created) user, jupiter0
+		PrismObject<UserType> userJupiter0 = findUserByUsername("jupiter0");
+		display("Newly created jupiter0 user", userJupiter0);
+		assertUser(userJupiter0, null, "jupiter0", "Jupiter Jones", null, null, null);
+		String accountOidJ0 = getSingleLinkOid(userJupiter0);
+
+		// Check shadow
+		PrismObject<ShadowType> accountShadowJ0 = repositoryService.getObject(ShadowType.class, accountOidJ0, null, result);
+		display("Account shadow from repo (jupiter0)", accountShadowJ0);
+		assertAccountShadowRepo(accountShadowJ0, accountOidJ0, "Jupiter Jones", resourceDummyFuchsiaType);
+
+		// Check account
+		PrismObject<ShadowType> accountModelJ0 = modelService.getObject(ShadowType.class, accountOidJ0, null, task, result);
+		assertAccountShadowModel(accountModelJ0, accountOidJ0, "Jupiter Jones", resourceDummyFuchsiaType);
+
+		// Check account in dummy resource (actually, the fullname attribute does not exist but it's OK)
+		assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, "Jupiter Jones", null, true);
+
+		// TODO Check audit
+		display("Audit", dummyAuditService);
+//		dummyAuditService.assertRecords(3);
+//		dummyAuditService.assertSimpleRecordSanity();
+//		dummyAuditService.assertAnyRequestDeltas();
+//		dummyAuditService.assertExecutionDeltas(2);
+//		dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+//		dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+//		dummyAuditService.assertExecutionSuccess();
+	}
+
+	private void assertUserJupiter(PrismObject<UserType> user) {
+		assertUser(user, null, USER_JUPITER_NAME, "Jupiter Jones", "Jupiter", "Jones", null);
 	}
 
 	@Test
