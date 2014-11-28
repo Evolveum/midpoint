@@ -149,12 +149,23 @@ public class Clockwork {
 		this.debugListener = debugListener;
 	}
 
+	private static final int MAX_CLICKS = 1000;
+
 	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (InternalsConfig.consistencyChecks) {
 			context.checkConsistence();
 		}
+
+		int clicked = 0;
 		
 		while (context.getState() != ModelState.FINAL) {
+
+			// TODO implement in model context (as transient or even non-transient attribute) to allow for checking in more complex scenarios
+			if (clicked >= MAX_CLICKS) {
+				throw new IllegalStateException("Model operation took too many clicks (limit is " + MAX_CLICKS + "). Is there a cycle?");
+			}
+			clicked++;
+
             HookOperationMode mode = click(context, task, result);
 
             if (mode == HookOperationMode.BACKGROUND) {
