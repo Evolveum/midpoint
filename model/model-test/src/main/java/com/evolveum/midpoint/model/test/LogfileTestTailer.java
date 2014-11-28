@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.util.aspect.MidpointAspect;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -258,8 +259,8 @@ public class LogfileTestTailer {
 	 * Log all levels in all subsystems.
 	 */
 	public void log() {
-		for (String subsystemName: MidpointAspect.SUBSYSTEMS) {
-			logAllLevels(LOGGER, subsystemName);
+		for (ProfilingDataManager.Subsystem subsystem: ProfilingDataManager.subsystems) {
+			logAllLevels(LOGGER, subsystem.name());
 		}
 		logAllLevels(LOGGER, null);
 	}

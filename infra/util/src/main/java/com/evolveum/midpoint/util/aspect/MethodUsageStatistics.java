@@ -47,10 +47,10 @@ public class MethodUsageStatistics {
     private long processTimeMean = 0;
     private long usageCount = 1;
     private long currentTopTenMin = Long.MAX_VALUE;
-    private String subsystem;
+    private ProfilingDataManager.Subsystem subsystem;
     private List<ProfilingDataLog> slowestMethodList = Collections.synchronizedList(new ArrayList<ProfilingDataLog>());
 
-    public MethodUsageStatistics(ProfilingDataLog logEvent, String subsystem){
+    public MethodUsageStatistics(ProfilingDataLog logEvent, ProfilingDataManager.Subsystem subsystem){
         long estTime = logEvent.getEstimatedTime();
 
         this.min = estTime;
@@ -70,11 +70,11 @@ public class MethodUsageStatistics {
         this.processTimeMean = processTimeMean;
     }
 
-    public String getSubsystem() {
+    public ProfilingDataManager.Subsystem getSubsystem() {
         return subsystem;
     }
 
-    public void setSubsystem(String subsystem) {
+    public void setSubsystem(ProfilingDataManager.Subsystem subsystem) {
         this.subsystem = subsystem;
     }
 
@@ -148,16 +148,22 @@ public class MethodUsageStatistics {
         this.processTimeMean += (est - this.processTimeMean)/this.usageCount;
     }
 
-    public void appendToLogger(){
+    public void appendToLogger(boolean afterTest){
         ProfilingDataLog log = this.slowestMethodList.get(0);
 
-        LOGGER.debug("{}->{}: CALLS: {} MAX: {} MIN: {} MEAN: {} PROCESS_TIME_MEAN: {}",
-                new Object[]{log.getClassName(), log.getMethodName(), usageCount, formatExecutionTime(max), formatExecutionTime(min), formatExecutionTime(this.mean),
-                formatExecutionTime(processTimeMean)});
+        if(afterTest){
+            LOGGER.info("{}->{}: CALLS: {} MAX: {} MIN: {} MEAN: {} PROCESS_TIME_MEAN: {}",
+                    new Object[]{log.getClassName(), log.getMethodName(), usageCount, formatExecutionTime(max), formatExecutionTime(min), formatExecutionTime(this.mean),
+                            formatExecutionTime(processTimeMean)});
+        } else {
+            LOGGER.debug("{}->{}: CALLS: {} MAX: {} MIN: {} MEAN: {} PROCESS_TIME_MEAN: {}",
+                    new Object[]{log.getClassName(), log.getMethodName(), usageCount, formatExecutionTime(max), formatExecutionTime(min), formatExecutionTime(this.mean),
+                            formatExecutionTime(processTimeMean)});
+        }
+
 
         for(ProfilingDataLog l: this.slowestMethodList)
-            l.appendToLogger();
-
+            l.appendToLogger(afterTest);
     }
 
     private static String formatExecutionTime(long est){
