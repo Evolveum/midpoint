@@ -1,0 +1,3 @@
+find . -name "test.log" -exec cat {} \; | grep org.hibernate.SQL | grep -v ": $" | wc -l
+master:                             254277
+long(default,aspectj,extratest):    155507
