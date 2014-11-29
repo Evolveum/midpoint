@@ -42,6 +42,9 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.util.HashSet;
@@ -53,10 +56,9 @@ import java.util.Set;
 @JaxbType(type = AssignmentType.class)
 @Entity
 @IdClass(RContainerId.class)
-@org.hibernate.annotations.Table(appliesTo = "m_assignment",
-        indexes = {@Index(name = "iAssignmentAdministrative", columnNames = "administrativeStatus"),
-                @Index(name = "iAssignmentEffective", columnNames = "effectiveStatus")})
-@ForeignKey(name = "fk_assignment")
+@Table(name = "m_assignment", indexes = {
+        @Index(name = "iAssignmentAdministrative", columnList = "administrativeStatus"),
+        @Index(name = "iAssignmentEffective", columnList = "effectiveStatus")})
 public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     public static final String F_OWNER = "owner";
@@ -100,9 +102,9 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @Id
-    @ForeignKey(name = "fk_assignment_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinTable(foreignKey = @ForeignKey(name = "fk_assignment_owner"))
     public RObject getOwner() {
         return owner;
     }
@@ -140,12 +142,12 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
     @OneToOne(optional = true, orphanRemoval = true)
-    @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    @JoinColumns({
+    @JoinColumns(value = {
             @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
             @JoinColumn(name = "extId", referencedColumnName = "owner_id")
     })
+//    , foreignKey = @ForeignKey(name = "none"))
     public RAssignmentExtension getExtension() {
         return extension;
     }
@@ -162,8 +164,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "=" + RACreateApproverRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+//    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     public Set<RAssignmentReference> getCreateApproverRef() {
         if (createApproverRef == null) {
             createApproverRef = new HashSet<>();
@@ -191,7 +193,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "=" + RAModifyApproverRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
+//    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAssignmentReference> getModifyApproverRef() {
         if (modifyApproverRef == null) {

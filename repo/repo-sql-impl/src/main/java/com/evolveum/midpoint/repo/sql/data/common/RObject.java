@@ -37,7 +37,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
@@ -46,9 +45,10 @@ import org.hibernate.annotations.NamedQuery;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
@@ -78,11 +78,11 @@ import java.util.Set;
         @NamedQuery(name = "isAnySubordinateAttempt.moreLowerOids", query = "select count(*) from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid in (:dOids)"),
 })
 @Entity
-@Table(name = "m_object")
-@org.hibernate.annotations.Table(appliesTo = "m_object",
-        indexes = {@Index(name = "iObjectNameOrig", columnNames = "name_orig"),
-                @Index(name = "iObjectNameNorm", columnNames = "name_norm")})
-@ForeignKey(name = "fk_object")
+@Table(name = "m_object", indexes = {
+        @Index(name = "iObjectNameOrig", columnList = "name_orig"),
+        @Index(name = "iObjectNameNorm", columnList = "name_norm"),
+        @Index(name = "iObjectTypeClass", columnList = "objectTypeClass"),
+        @Index(name = "iObjectCreateTimestamp", columnList = "createTimestamp")})
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, Serializable {
 
@@ -136,7 +136,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return name;
     }
 
-    @ForeignKey(name = "none")
+//    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @OneToMany(mappedBy = RTrigger.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RTrigger> getTrigger() {
@@ -184,7 +184,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RCreateApproverRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
+//    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getCreateApproverRef() {
         if (createApproverRef == null) {
@@ -197,7 +197,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return createChannel;
     }
 
-    @Index(name = "iObjectCreateTimestamp")
     public XMLGregorianCalendar getCreateTimestamp() {
         return createTimestamp;
     }
@@ -214,7 +213,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RModifyApproverRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
+//    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getModifyApproverRef() {
         if (modifyApproverRef == null) {
@@ -233,7 +232,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-//    @Cascade({PERSIST, REMOVE, REFRESH, DELETE, SAVE_UPDATE, REPLICATE, LOCK, DETACH})
     public Set<ROExtLong> getLongs() {
         if (longs == null) {
             longs = new HashSet<>();
@@ -312,7 +310,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return polysCount;
     }
 
-    @Index(name = "iObjectTypeClass")
     @Enumerated
     public RObjectType getObjectTypeClass() {
         return objectTypeClass;
@@ -553,12 +550,12 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         Set<RAnyValue> values = new HashSet<RAnyValue>();
         try {
             List<Item<?>> items = containerValue.getItems();
-			//TODO: is this ehought??should we try items without definitions??
+            //TODO: is this ehought??should we try items without definitions??
             if (items != null) {
-				for (Item item : items) {
-					values.addAll(converter.convertToRValue(item, false));
-				}
-			}
+                for (Item item : items) {
+                    values.addAll(converter.convertToRValue(item, false));
+                }
+            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
