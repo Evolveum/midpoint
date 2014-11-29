@@ -147,6 +147,7 @@ public class PageResourceWizard extends PageAdminResources {
         wizardModel.add(new SynchronizationStep(model));
 
         Wizard wizard = new Wizard(ID_WIZARD, new Model(wizardModel));
+        wizard.setOutputMarkupId(true);
         add(wizard);
     }
 }

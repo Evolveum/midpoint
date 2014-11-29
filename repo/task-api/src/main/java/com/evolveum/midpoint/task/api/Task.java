@@ -17,6 +17,7 @@ package com.evolveum.midpoint.task.api;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -37,7 +38,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * The instances must be able to serialize the state to the repository object (TaskType) when needed.
  * 
  * The task implementation should be simple Java objects (POJOs). They are created also for a synchronous tasks, which means
- * they are created frequently. We want a low overhead for task management until the task is made asynchronous.
+ * they are created frequently. We want a low overhead for task management until the task is made persistent.
  * 
  * API for modifying task properties works like this: 
  * 
@@ -168,7 +169,7 @@ public interface Task extends DebugDumpable {
 
     /**
      * Sets task execution status. Can be used only for transient tasks (for safety reasons).
-     * However, it is better to use concrete methods (makeWaiting, makeRunnable, ...).
+     * However, it is better to use specific state-changing methods (makeWaiting, makeRunnable, ...).
      *
      * @see TaskExecutionStatus
      *
@@ -246,8 +247,8 @@ public interface Task extends DebugDumpable {
      * it knows that there is no point in waiting for the task result. It can just display appropriate
      * message to the user (e.g. "please come back later") and return control back to the web container.
      *
-     * Although currently asynchronous means the same as persistent, in future there may be e.g.
-     * asynchronous tasks that are not stored in the repository.
+     * Usually, asynchronous means the same as persistent. However, there can are lightweight tasks
+     * that are asynchronous but not stored in repository.
      *
      * @return true if the task is asynchronous.
      */
@@ -751,15 +752,22 @@ public interface Task extends DebugDumpable {
     // ===================================================================== Working with subtasks and dependent tasks
 
     /**
-     * Creates a subtask.
-     *
-     * Currently, the parent has to be a persistent task. However, the subtask is always created as a transient task.
+     * Creates a transient subtask.
      *
      * Owner is inherited from parent task to subtask.
      *
      * @return
      */
     Task createSubtask();
+
+    /**
+     * Creates a transient subtask, ready to execute a given LightweightTaskHandler.
+     *
+     * Owner is inherited from parent task to subtask.
+     *
+     * @return
+     */
+    Task createSubtask(LightweightTaskHandler handler);
 
     /**
      * Returns the identifier of the task's parent (or null of there is no parent task).
@@ -849,33 +857,6 @@ public interface Task extends DebugDumpable {
      */
     void pushWaitForTasksHandlerUri();
 
-    /**
-     * For historic reasons, there is also other way of waiting for subtasks (NOT for explicit prerequisite tasks,
-     * at this moment). It is implemented by special task handler (WaitForSubtasksPollingTaskHandler) which
-     * periodically tests for the completion of this tasks' children.
-     *
-     * This method transfers control to that polling task handler.
-     *
-     * IT SHOULD BE USED ONLY FROM (ANOTHER) TASK HANDLER when it decides that it needs to wait for subtasks.
-     *
-     * DEPRECATED: try to use 'passive' waiting for subtasks, as described above.
-     *
-     * @param interval how often (in seconds) to check for children
-     * @return a TaskRunResult that should the task handler immediately return (in order to activate newly created
-     *         'waiting' task handler).
-     *
-     * @see com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksByPollingTaskHandler
-     */
-    @Deprecated
-    TaskRunResult waitForSubtasks(Integer interval, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
-
-    /**
-     * As above, but provides a list of extension items to be passed to the task handler.
-     */
-    @Deprecated
-    TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?>> extensionDeltas, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
-
-
     // ====================================================================================== Supplementary information
 
     /**
@@ -936,4 +917,19 @@ public interface Task extends DebugDumpable {
      */
     Collection<ItemDelta<?>> getPendingModifications();
 
+    LightweightTaskHandler getLightweightTaskHandler();
+
+    boolean isLightweightAsynchronousTask();
+
+    Set<? extends Task> getLightweightAsynchronousSubtasks();
+
+    Set<? extends Task> getRunningLightweightAsynchronousSubtasks();
+
+    boolean lightweightHandlerStartRequested();
+
+    /**
+     * Starts execution of a transient task carrying a LightweightTaskHandler.
+     * (just a shortcut to analogous call in TaskManager)
+     */
+    void startLightweightHandler();
 }

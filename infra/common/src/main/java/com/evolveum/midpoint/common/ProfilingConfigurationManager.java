@@ -36,15 +36,6 @@ public class ProfilingConfigurationManager {
     private static final String SUBSYSTEM_PROFILING_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
     private static final String APPENDER_IDM_PROFILE = "IDM-PROFILE_LOG";
 
-    public static final String SUBSYSTEM_REPOSITORY = "REPOSITORY";
-    public static final String SUBSYSTEM_TASK_MANAGER = "TASKMANAGER";
-    public static final String SUBSYSTEM_PROVISIONING = "PROVISIONING";
-    public static final String SUBSYSTEM_RESOURCE_OBJECT_CHANGE_LISTENER = "RESOURCEOBJECTCHANGELISTENER";
-    public static final String SUBSYSTEM_MODEL = "MODEL";
-    public static final String SUBSYSTEM_UCF = "UCF";
-    public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
-    public static final String SUBSYSTEM_WEB = "WEB";
-
     /**
      *  In this method, we perform the check of systemConfiguration object, searching for any changes
      *  related to profilingConfiguration
@@ -95,20 +86,20 @@ public class ProfilingConfigurationManager {
     private static boolean applySubsystemProfiling(SystemConfigurationType systemConfig){
         ProfilingConfigurationType profilingConfig = systemConfig.getProfilingConfiguration();
 
-        Map<String, Boolean> profiledSubsystems = new HashMap<>();
+        Map<ProfilingDataManager.Subsystem, Boolean> profiledSubsystems = new HashMap<>();
         int dumpInterval = 0;
         boolean subSystemProfiling = false;
         boolean performanceProfiling;
         boolean requestProfiling;
 
-        profiledSubsystems.put(SUBSYSTEM_PROVISIONING, checkXsdBooleanValue(profilingConfig.isProvisioning()));
-        profiledSubsystems.put(SUBSYSTEM_REPOSITORY, checkXsdBooleanValue(profilingConfig.isRepository()));
-        profiledSubsystems.put(SUBSYSTEM_RESOURCE_OBJECT_CHANGE_LISTENER, checkXsdBooleanValue(profilingConfig.isResourceObjectChangeListener()));
-        profiledSubsystems.put(SUBSYSTEM_TASK_MANAGER, checkXsdBooleanValue(profilingConfig.isTaskManager()));
-        profiledSubsystems.put(SUBSYSTEM_UCF, checkXsdBooleanValue(profilingConfig.isUcf()));
-        profiledSubsystems.put(SUBSYSTEM_MODEL, checkXsdBooleanValue(profilingConfig.isModel()));
-        profiledSubsystems.put(SUBSYSTEM_WORKFLOW, checkXsdBooleanValue(profilingConfig.isWorkflow()));
-        profiledSubsystems.put(SUBSYSTEM_WEB, checkXsdBooleanValue(profilingConfig.isRequestFilter()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.PROVISIONING, checkXsdBooleanValue(profilingConfig.isProvisioning()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.REPOSITORY, checkXsdBooleanValue(profilingConfig.isRepository()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER, checkXsdBooleanValue(profilingConfig.isResourceObjectChangeListener()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.TASK_MANAGER, checkXsdBooleanValue(profilingConfig.isTaskManager()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.UCF, checkXsdBooleanValue(profilingConfig.isUcf()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.MODEL, checkXsdBooleanValue(profilingConfig.isModel()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.WORKFLOW, checkXsdBooleanValue(profilingConfig.isWorkflow()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.WEB, checkXsdBooleanValue(profilingConfig.isRequestFilter()));
 
         for(Boolean b: profiledSubsystems.values()){
             if(b != null && b){

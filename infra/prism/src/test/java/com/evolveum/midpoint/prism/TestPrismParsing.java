@@ -382,7 +382,7 @@ public abstract class TestPrismParsing {
 		user.checkConsistence();
 		assertUserJackContent(user);
 		assertUserExtensionAdhoc(user);
-		assertVisitor(user, 42);
+		assertVisitor(user, 58);
 	}
 	
 

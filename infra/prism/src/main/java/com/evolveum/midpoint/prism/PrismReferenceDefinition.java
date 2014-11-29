@@ -87,13 +87,18 @@ public class PrismReferenceDefinition extends ItemDefinition {
 
 	@Override
 	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
+		return isValidFor(elementQName, clazz, false);
+	}
+
+	@Override
+	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz, boolean caseInsensitive) {
 		if (!clazz.isAssignableFrom(this.getClass())) {
     		return false;
     	}
-        if (QNameUtil.match(elementQName, getName())) {
+        if (QNameUtil.match(elementQName, getName(), caseInsensitive)) {
         	return true;
         }
-        if (QNameUtil.match(elementQName, getCompositeObjectElementName())) {
+        if (QNameUtil.match(elementQName, getCompositeObjectElementName(), caseInsensitive)) {
         	return true;
         }
         return false;

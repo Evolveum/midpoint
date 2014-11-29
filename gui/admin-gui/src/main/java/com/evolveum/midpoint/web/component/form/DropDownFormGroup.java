@@ -46,18 +46,18 @@ public class DropDownFormGroup<T> extends SimplePanel<T> {
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
                              IModel<String> label, String labelSize, String textSize, boolean required) {
-        this(id, value, choices, renderer, label, null, labelSize, textSize, required);
+        this(id, value, choices, renderer, label, null, false, labelSize, textSize, required);
     }
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
-                             IModel<String> label, String tooltipKey, String labelSize, String textSize, boolean required) {
+                             IModel<String> label, String tooltipKey, boolean isTooltipInModal,  String labelSize, String textSize, boolean required) {
         super(id, value);
 
-        initLayout(choices, renderer, label, tooltipKey, labelSize, textSize, required);
+        initLayout(choices, renderer, label, tooltipKey, isTooltipInModal, labelSize, textSize, required);
     }
 
     private void initLayout(IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, final String tooltipKey,
-                            String labelSize, String textSize, boolean required) {
+                            boolean isTooltipInModal, String labelSize, String textSize, boolean required) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
 
@@ -69,7 +69,7 @@ public class DropDownFormGroup<T> extends SimplePanel<T> {
 
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
         tooltipLabel.add(new AttributeAppender("data-original-title", getString(tooltipKey)));
-        tooltipLabel.add(new InfoTooltipBehavior());
+        tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
         tooltipLabel.add(new VisibleEnableBehaviour(){
 
             @Override

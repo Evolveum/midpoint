@@ -52,17 +52,18 @@ public class TextAreaFormGroup extends SimplePanel<String> {
 
     public TextAreaFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize,
                              boolean required, int rowNumber){
-        this(id, value, label, null, labelSize, textSize, required, rowNumber);
+        this(id, value, label, null, false, labelSize, textSize, required, rowNumber);
     }
 
-    public TextAreaFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, String labelSize, String textSize,
-                             boolean required, int rowNumber){
+    public TextAreaFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey,
+                             boolean isTooltipInModal, String labelSize, String textSize, boolean required, int rowNumber){
         super(id, value);
 
-        initLayout(label, tooltipKey, labelSize, textSize, required, rowNumber);
+        initLayout(label, tooltipKey, isTooltipInModal, labelSize, textSize, required, rowNumber);
     }
 
-    private void initLayout(IModel<String> label, final String tooltipKey, String labelSize, String textSize, boolean required, int rowNumber) {
+    private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelSize,
+                            String textSize, boolean required, int rowNumber) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
 
@@ -74,7 +75,7 @@ public class TextAreaFormGroup extends SimplePanel<String> {
 
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
         tooltipLabel.add(new AttributeAppender("data-original-title", getString(tooltipKey)));
-        tooltipLabel.add(new InfoTooltipBehavior());
+        tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
         tooltipLabel.add(new VisibleEnableBehaviour(){
 
             @Override

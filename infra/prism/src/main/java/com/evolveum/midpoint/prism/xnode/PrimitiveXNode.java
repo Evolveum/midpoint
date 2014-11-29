@@ -19,6 +19,11 @@ import java.io.Serializable;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.Visitor;
@@ -30,6 +35,8 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class PrimitiveXNode<T> extends XNode implements Serializable {
+
+	private static final Trace LOGGER = TraceManager.getTrace(PrimitiveXNode.class);
 	
 	private T value;
 	private ValueParser<T> valueParser;
@@ -268,5 +275,21 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
             objectToHash = getStringValue();
         }
         return objectToHash != null ? objectToHash.hashCode() : 0;
+	}
+
+	PrimitiveXNode cloneInternal() {
+
+		PrimitiveXNode clone;
+		if (value != null) {
+			// if we are parsed, things are much simpler
+			clone = new PrimitiveXNode(CloneUtil.clone(getValue()));
+		} else {
+			clone = new PrimitiveXNode();
+			clone.valueParser = valueParser;			// for the time being we simply don't clone the valueParser
+		}
+
+		clone.isAttribute = this.isAttribute;
+		clone.copyCommonAttributesFrom(this);
+		return clone;
 	}
 }

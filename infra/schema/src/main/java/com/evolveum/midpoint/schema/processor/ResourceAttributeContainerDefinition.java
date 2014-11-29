@@ -314,13 +314,17 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 //	}
 
 	public ResourceAttributeDefinition findAttributeDefinition(QName elementQName) {
-		return findItemDefinition(elementQName, ResourceAttributeDefinition.class);
+		return findAttributeDefinition(elementQName, false);
+	}
+
+	public ResourceAttributeDefinition findAttributeDefinition(QName elementQName, boolean caseInsensitive) {
+		return findItemDefinition(elementQName, ResourceAttributeDefinition.class, caseInsensitive);
 	}
 	
 	public ResourceAttributeDefinition findAttributeDefinition(ItemPath elementPath) {
 		return findItemDefinition(elementPath, ResourceAttributeDefinition.class);
 	}
-	
+
 	public ResourceAttributeDefinition findAttributeDefinition(String elementLocalname) {
 		QName elementQName = new QName(getName().getNamespaceURI(),elementLocalname);
 		return findAttributeDefinition(elementQName);

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,7 @@ import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -147,12 +149,23 @@ public class Clockwork {
 		this.debugListener = debugListener;
 	}
 
+	private static final int MAX_CLICKS = 1000;
+
 	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (InternalsConfig.consistencyChecks) {
 			context.checkConsistence();
 		}
+
+		int clicked = 0;
 		
 		while (context.getState() != ModelState.FINAL) {
+
+			// TODO implement in model context (as transient or even non-transient attribute) to allow for checking in more complex scenarios
+			if (clicked >= MAX_CLICKS) {
+				throw new IllegalStateException("Model operation took too many clicks (limit is " + MAX_CLICKS + "). Is there a cycle?");
+			}
+			clicked++;
+
             HookOperationMode mode = click(context, task, result);
 
             if (mode == HookOperationMode.BACKGROUND) {
@@ -397,13 +410,16 @@ public class Clockwork {
 			return;
 		}
 		
-		changeExecutor.executeChanges(context, task, result);
-		
+		boolean restartRequested = changeExecutor.executeChanges(context, task, result);
+
 		audit(context, AuditEventStage.EXECUTION, task, result);
 		
 		rotContext(context);
-		
-		context.incrementExecutionWave();
+
+		if (!restartRequested) {
+			// TODO what if restart is requested indefinitely?
+			context.incrementExecutionWave();
+		}
 		
 		LensUtil.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
 	}
@@ -421,15 +437,28 @@ public class Clockwork {
 			}
     		ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
     		if (isSignificant(execDelta)) {
-    			LOGGER.trace("Context rot: projection {} rotten because of delta {}", projectionContext, execDelta);
-    			projectionContext.setFresh(false);
-    			projectionContext.setFullShadow(false);
-    			rot = true;
-    			// Propagate to higher-order projections
-    			for (LensProjectionContext relCtx: LensUtil.findRelatedContexts(context, projectionContext)) {
-    				relCtx.setFresh(false);
-    				relCtx.setFullShadow(false);
-    			}
+    			
+				// in this case we do not want to rot projection context. in the
+				// case the projection is rotten we can lost some information
+				// needed for inbound processing
+//    			if (execDelta.isAdd() && !LensUtil.hasDependentContext(context, projectionContext)){
+//    				projectionContext.setObjectOld(projectionContext.getObjectNew());
+//    				projectionContext.setObjectCurrent(projectionContext.getObjectNew());
+//    				projectionContext.setFullShadow(true);
+//    				LOGGER.trace("Context rot: projection {} NOT rotten because of ADD delta and no dependent context.", projectionContext);
+//    				continue;
+//    			}
+    			LOGGER.trace("Context rot: projection {} rotten because of delta {} and dependent context exists for this projection", projectionContext, execDelta);
+   				projectionContext.setFresh(false);
+      			projectionContext.setFullShadow(false);
+       			rot = true;
+       			// Propagate to higher-order projections
+       			for (LensProjectionContext relCtx: LensUtil.findRelatedContexts(context, projectionContext)) {
+       				relCtx.setFresh(false);
+       				relCtx.setFullShadow(false);
+      			}
+    			
+    			
 	        } else {
 	        	LOGGER.trace("Context rot: projection {} NOT rotten because no delta", projectionContext);
 	        }
@@ -444,10 +473,24 @@ public class Clockwork {
 	    		// It is OK to refresh focus all the time there was any change. This is cheap.
 	    		focusContext.setFresh(false);
     		}
+    		//remove secondary deltas from other than execution wave - we need to recompute them..
+    		cleanUpSecondaryDeltas(context);
+    		
+    		
     	}
     	if (rot) {
     		context.setFresh(false);
     	}
+	}
+
+	private <F extends ObjectType> void cleanUpSecondaryDeltas(LensContext<F> context){
+		LensFocusContext focusContext = context.getFocusContext();
+		ObjectDelta executionWaveDelta = focusContext.getSecondaryDeltas().get(context.getExecutionWave());
+		if (context.getExecutionWave() == 0 && !LensUtil.isSyncChannel(context.getChannel()) && focusContext.getSecondaryDeltas().size() > 1) {
+			focusContext.getSecondaryDeltas().retainAll(MiscUtil.createCollection(executionWaveDelta, focusContext.getSecondaryDeltas().get(1)));
+		} else {
+			focusContext.getSecondaryDeltas().retainAll(MiscUtil.createCollection(executionWaveDelta));
+		}
 	}
 	
 	private <P extends ObjectType> boolean isSignificant(ObjectDelta<P> delta) {

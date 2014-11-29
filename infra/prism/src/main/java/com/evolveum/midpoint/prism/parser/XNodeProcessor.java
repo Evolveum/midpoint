@@ -254,6 +254,7 @@ public class XNodeProcessor {
 			PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)xnode;
 			if (xprim.isEmpty()) {
 				PrismContainer<C> container = containerDef.instantiate(elementName);
+                container.createNewValue();         // empty primitive node corresponds actually to empty container VALUE, not empty (value-less) container ITEM
 				return container;
 			} else {
 				throw new IllegalArgumentException("Cannot parse container from (non-empty) "+xnode);
@@ -275,9 +276,19 @@ public class XNodeProcessor {
 			throws SchemaException {
 		if (xnode instanceof MapXNode) {
 			return parsePrismContainerValueFromMap((MapXNode)xnode, containerDef, null);
-		} else {
-			throw new IllegalArgumentException("Cannot parse container value from "+xnode);
-		}
+		} else if (xnode instanceof PrimitiveXNode) {
+            PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)xnode;
+            if (xprim.isEmpty()) {
+                PrismContainer<C> container = containerDef.instantiate();
+                PrismContainerValue pcv = container.createNewValue();
+                pcv.setParent(null);
+                return pcv;
+            } else {
+                throw new IllegalArgumentException("Cannot parse container value from (non-empty) "+xnode);
+            }
+        } else {
+            throw new IllegalArgumentException("Cannot parse container value from "+xnode);
+        }
 	}
 
 	private <C extends Containerable> PrismContainerValue<C> parsePrismContainerValueFromMap(MapXNode xmap, PrismContainerDefinition<C> containerDef,

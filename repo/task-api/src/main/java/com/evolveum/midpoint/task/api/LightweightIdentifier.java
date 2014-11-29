@@ -16,8 +16,15 @@
 package com.evolveum.midpoint.task.api;
 
 /**
- * @author semancik
+ * Lightweight identifier is a "reasonable unique" identifier that is very cheap
+ * to create. While objects have OID, creating a unique OID means communication
+ * with the repository. This quite expensive and therefore it is unsuitable
+ * for more purposes, such as creating identifiers for tasks or audit records.
+ * Lightweight identifiers are used instead.
  *
+ * @see https://wiki.evolveum.com/display/midPoint/Lightweight+Identifier
+ *
+ * @author semancik
  */
 public class LightweightIdentifier {
 	

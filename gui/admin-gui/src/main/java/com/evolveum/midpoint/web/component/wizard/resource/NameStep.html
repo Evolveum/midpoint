@@ -17,9 +17,20 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="form-group" wicket:id="name"/>
-    <div class="form-group" wicket:id="description"/>
-    <div class="form-group" wicket:id="location"/>
-    <div class="form-group" wicket:id="connectorType"/>
+
+    <div>
+        <div style="float: right; position: relative">
+            <span style="display: inline-block; width: 300px;"><wicket:message key="NameStep.arrowToTurotialText" /></span>
+            <i style="display: inline-block; font-size: 7em; color: #428bca" class="fa fa-long-arrow-up"></i>
+        </div>
+
+        <div>
+            <div class="form-group" wicket:id="name"/>
+            <div class="form-group" wicket:id="description"/>
+            <div class="form-group" wicket:id="location"/>
+            <div class="form-group" wicket:id="connectorType"/>
+        </div>
+    </div>
+
 </wicket:panel>
 </html>

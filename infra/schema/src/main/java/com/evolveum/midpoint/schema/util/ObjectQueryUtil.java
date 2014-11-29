@@ -271,6 +271,9 @@ public class ObjectQueryUtil {
 	}
 
 	public static ObjectFilter simplify(ObjectFilter filter) {
+		if (filter == null) {
+			return null;
+		}
 		if (filter instanceof AndFilter) {
 			List<ObjectFilter> conditions = ((AndFilter)filter).getConditions();
 			AndFilter simplifiedFilter = ((AndFilter)filter).cloneEmpty();

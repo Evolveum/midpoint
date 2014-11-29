@@ -29,6 +29,7 @@
     <additionalName>Jackie</additionalName>
     <honorificPrefix>Cpt.</honorificPrefix>
     <telephoneNumber>555-1234</telephoneNumber>
+<!--     <employeeType>T</employeeType> -->
 
     <credentials>
         <password>

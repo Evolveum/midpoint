@@ -144,14 +144,14 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	}
 	
 	@Override
-	protected AbstractScannerResultHandler<UserType> createHandler(TaskRunResult runResult, final Task task,
+	protected AbstractScannerResultHandler<UserType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
 		
 		AbstractScannerResultHandler<UserType> handler = new AbstractScannerResultHandler<UserType>(
-				task, FocusValidityScannerTaskHandler.class.getName(), "recompute", "recompute task") {
+				coordinatorTask, FocusValidityScannerTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<UserType> user, OperationResult result) throws CommonException {
-				recomputeUser(user, task, result);
+			protected boolean handleObject(PrismObject<UserType> user, Task workerTask, OperationResult result) throws CommonException {
+				recomputeUser(user, workerTask, result);
 				return true;
 			}
 		};
@@ -159,14 +159,14 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		return handler;
 	}
 
-	private void recomputeUser(PrismObject<UserType> user, Task task, OperationResult result) throws SchemaException, 
+	private void recomputeUser(PrismObject<UserType> user, Task workerTask, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Recomputing user {}", user);
 
-		LensContext<UserType> syncContext = contextFactory.createRecomputeContext(user, task, result);
+		LensContext<UserType> syncContext = contextFactory.createRecomputeContext(user, workerTask, result);
 		LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.debugDump());
-		clockwork.run(syncContext, task, result);
+		clockwork.run(syncContext, workerTask, result);
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
 	}
 	

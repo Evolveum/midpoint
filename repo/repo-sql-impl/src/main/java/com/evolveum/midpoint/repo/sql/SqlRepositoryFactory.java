@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -33,6 +34,7 @@ import org.hibernate.dialect.H2Dialect;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
@@ -263,9 +265,12 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         try {
             ss = new ServerSocket(port);
             ss.setReuseAddress(true);
-        } catch (Exception e) {
+        } catch (BindException e) {
             throw new RepositoryServiceFactoryException("Configured port (" + port + ") for H2 already in use.", e);
-        } finally {
+        } catch (IOException e) {
+        	LOGGER.error("Reported IO error, while binding ServerSocket to port "+port+" used to test availability " +
+                    "of port for H2 Server", e);
+		} finally {
             try {
                 if (ss != null) {
                     ss.close();

@@ -85,6 +85,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -139,7 +140,8 @@ public class ChangeExecutor {
     	shadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
     }
 
-    public <O extends ObjectType> void executeChanges(LensContext<O> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
+	// returns true if current operation has to be restarted, see ObjectAlreadyExistsException handling (TODO specify more exactly)
+    public <O extends ObjectType> boolean executeChanges(LensContext<O> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	
     	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE);
@@ -150,7 +152,8 @@ public class ChangeExecutor {
     	
     	LensFocusContext<O> focusContext = syncContext.getFocusContext();
     	if (focusContext != null) {
-	        ObjectDelta<O> focusDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
+	        ObjectDelta<O> focusDelta = focusContext.getWaveExecutableDelta(syncContext.getExecutionWave());
+	        
 	        if (focusDelta != null) {
 	        	
 	        	ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
@@ -201,6 +204,8 @@ public class ChangeExecutor {
     	// PROJECTIONS
 
         syncContext.checkAbortRequested();
+
+		boolean restartRequested = false;
     	
         for (LensProjectionContext accCtx : syncContext.getProjectionContexts()) {
         	if (accCtx.getWave() != syncContext.getExecutionWave()) {
@@ -298,7 +303,8 @@ public class ChangeExecutor {
 				// but we need to set some result
 				subResult.recordSuccess();
 				subResult.muteLastSubresultError();
-				continue;
+				restartRequested = true;
+				break;		// we will process remaining projections when retrying the wave
 			} catch (CommunicationException e) {
 				recordProjectionExecutionException(e, accCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 				continue;
@@ -323,6 +329,7 @@ public class ChangeExecutor {
         
         // Result computation here needs to be slightly different
         result.computeStatusComposite();
+		return restartRequested;
 
     }
 
@@ -583,8 +590,13 @@ public class ChangeExecutor {
         if (objectDelta.getOid() == null) {
         	objectDelta.setOid(objectContext.getOid());
         }
-        
-        if (alreadyExecuted(objectDelta, objectContext)) {
+
+		objectDelta = computeDeltaToExecute(objectDelta, objectContext);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("computeDeltaToExecute returned:\n{}", objectDelta!=null ? objectDelta.debugDump() : "(null)");
+		}
+
+		if (objectDelta == null || objectDelta.isEmpty()) {
         	LOGGER.debug("Skipping execution of delta because it was already executed: {}", objectContext);
         	return;
         }
@@ -638,6 +650,34 @@ public class ChangeExecutor {
     	}
     }
 	
+	private <T extends ObjectType, F extends FocusType> void removeExecutedItemDeltas(
+			ObjectDelta<T> objectDelta, LensElementContext<T> objectContext) {
+		if (objectContext == null){
+			return;
+		}
+		
+		if (objectDelta == null || objectDelta.isEmpty()){
+			return;
+		}
+		
+		if (objectDelta.getModifications() == null || objectDelta.getModifications().isEmpty()){
+			return;
+		}
+		
+		List<LensObjectDeltaOperation<T>> executedDeltas = objectContext.getExecutedDeltas();
+		for (LensObjectDeltaOperation<T> executedDelta : executedDeltas){
+			ObjectDelta<T> executed = executedDelta.getObjectDelta();
+			Iterator<? extends ItemDelta> objectDeltaIterator = objectDelta.getModifications().iterator();
+			while (objectDeltaIterator.hasNext()){
+				ItemDelta d = objectDeltaIterator.next();
+				if (executed.containsModification(d) || d.isEmpty()){
+					objectDeltaIterator.remove();
+				}
+			}
+		}
+	}
+	
+	// TODO beware - what if the delta was executed but not successfully?
 	private <T extends ObjectType, F extends FocusType> boolean alreadyExecuted(
 			ObjectDelta<T> objectDelta, LensElementContext<T> objectContext) {
 		if (objectContext == null) {
@@ -649,7 +689,126 @@ public class ChangeExecutor {
 		}
 		return ObjectDeltaOperation.containsDelta(objectContext.getExecutedDeltas(), objectDelta);
 	}
-	
+
+	/**
+	 * Computes delta to execute, given a list of already executes deltas. See below.
+	 */
+	private <T extends ObjectType> ObjectDelta<T> computeDeltaToExecute(
+			ObjectDelta<T> objectDelta, LensElementContext<T> objectContext) {
+		if (objectContext == null) {
+			return objectDelta;
+		}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Computing delta to execute from delta:\n{}\nGiven these executed deltas:\n{}",
+					objectDelta.debugDump(), DebugUtil.debugDump(objectContext.getExecutedDeltas()));
+		}
+		List<LensObjectDeltaOperation<T>> executedDeltas = objectContext.getExecutedDeltas();
+		return computeDiffDelta(executedDeltas, objectDelta);
+	}
+
+	/**
+	 * Compute a "difference delta" - given that executedDeltas were executed, and objectDelta is about to be executed;
+	 * eliminates parts that have already been done. It is meant as a kind of optimization (for MODIFY deltas) and
+	 * error avoidance (for ADD deltas).
+	 *
+	 * Explanation for ADD deltas: there are situations where an execution wave is restarted - when unexpected AlreadyExistsException
+	 * is reported from provisioning. However, in such cases, duplicate ADD Focus deltas were generated. So we (TEMPORARILY!) decided
+	 * to filter them out here.
+	 *
+	 * Unfortunately, this mechanism is not well-defined, and seems to work more "by accident" than "by design".
+	 * It should be replaced with something more serious. Perhaps by re-reading current focus state when repeating a wave?
+	 *
+	 * Anyway, currently it treats only two cases:
+	 * 1) if the objectDelta is present in the list of executed deltas
+	 * 2) if the objectDelta is ADD, and another ADD delta is there (then the difference is computed)
+	 *
+	 */
+	private <T extends ObjectType> ObjectDelta<T> computeDiffDelta(List<? extends ObjectDeltaOperation<T>> executedDeltas, ObjectDelta<T> objectDelta) {
+		if (executedDeltas == null || executedDeltas.isEmpty()) {
+			return objectDelta;
+		}
+
+		ObjectDeltaOperation<T> lastRelated = findLastRelatedDelta(executedDeltas, objectDelta);		// any delta related to our OID, not ending with fatal error
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("findLastRelatedDelta returned:\n{}", objectDelta.debugDump());
+		}
+		if (lastRelated == null) {
+			return objectDelta;			// nothing found, let us apply our delta
+		}
+		if (lastRelated.getExecutionResult().isSuccess() && lastRelated.containsDelta(objectDelta)) {
+			return null;				// case 1 - exact match found with SUCCESS result, let's skip the processing of our delta
+		}
+		if (!objectDelta.isAdd()) {
+			return objectDelta;			// MODIFY or DELETE delta - we may safely apply it (not 100% sure about DELETE case)
+		}
+		// determine if we got case 2
+		if (lastRelated.getObjectDelta().isDelete()) {
+			return objectDelta;			// we can (and should) apply the ADD delta as a whole, because the object was deleted
+		}
+		// let us treat the most simple case here - meaning we have existing ADD delta and nothing more
+		// TODO add more sophistication if needed
+		if (!lastRelated.getObjectDelta().isAdd()) {
+			return objectDelta;			// this will probably fail, but ...
+		}
+		// at this point we know that ADD was more-or-less successfully executed, so let's compute the difference, creating a MODIFY delta
+		PrismObject<T> alreadyAdded = lastRelated.getObjectDelta().getObjectToAdd();
+		PrismObject<T> toBeAddedNow = objectDelta.getObjectToAdd();
+		return alreadyAdded.diff(toBeAddedNow);
+	}
+
+	private <T extends ObjectType> ObjectDeltaOperation<T> findLastRelatedDelta(List<? extends ObjectDeltaOperation<T>> executedDeltas, ObjectDelta<T> objectDelta) {
+		for (int i = executedDeltas.size()-1; i >= 0; i--) {
+			ObjectDeltaOperation<T> currentOdo = executedDeltas.get(i);
+			if (!currentOdo.getExecutionResult().isFatalError()) {
+				ObjectDelta<T> current = currentOdo.getObjectDelta();
+
+				if (current.equals(objectDelta)) {
+					return currentOdo;
+				}
+
+				String oid1 = current.isAdd() ? current.getObjectToAdd().getOid() : current.getOid();
+				String oid2 = objectDelta.isAdd() ? objectDelta.getObjectToAdd().getOid() : objectDelta.getOid();
+				if (oid1 != null && oid2 != null) {
+					if (oid1.equals(oid2)) {
+						return currentOdo;
+					}
+					continue;
+				}
+				// ADD-MODIFY and ADD-DELETE combinations lead to applying whole delta (as a result of computeDiffDelta)
+				// so we can be lazy and check only ADD-ADD combinations here...
+				if (!current.isAdd() || !objectDelta.isAdd()) {
+					continue;
+				}
+				// we simply check the type (for focus objects) and resource+kind+intent (for shadows)
+				PrismObject<T> currentObject = current.getObjectToAdd();
+				PrismObject<T> objectTypeToAdd = objectDelta.getObjectToAdd();
+				Class currentObjectClass = currentObject.getCompileTimeClass();
+				Class objectTypeToAddClass = objectTypeToAdd.getCompileTimeClass();
+				if (currentObjectClass == null || !currentObjectClass.equals(objectTypeToAddClass)) {
+					continue;
+				}
+				if (FocusType.class.isAssignableFrom(currentObjectClass)) {
+					return currentOdo;        // we suppose there is only one delta of Focus class
+				}
+				// Shadow deltas have to be matched exactly... because "ADD largo" and "ADD largo1" are two different deltas
+				// And, this is not a big problem, because ADD conflicts are treated by provisioning
+				// Again, all this stuff is highly temporary and has to be thrown away as soon as possible!!!
+				continue;
+//				if (ShadowType.class.equals(currentObjectClass)) {
+//					ShadowType currentShadow = (ShadowType) currentObject.asObjectable();
+//					ShadowType shadowToAdd = (ShadowType) objectTypeToAdd.asObjectable();
+//					if (currentShadow.getResourceRef() != null && shadowToAdd.getResourceRef() != null &&
+//							currentShadow.getResourceRef().getOid().equals(shadowToAdd.getResourceRef().getOid()) &&
+//							currentShadow.getKind() == shadowToAdd.getKind() && // TODO default kind handling
+//							currentShadow.getIntent() != null && currentShadow.getIntent().equals(shadowToAdd.getIntent())) { // TODO default intent handling
+//						return currentOdo;
+//					}
+//				}
+			}
+		}
+		return null;
+	}
+
 	private ProvisioningOperationOptions copyFromModelOptions(ModelExecuteOptions options) {
 		ProvisioningOperationOptions provisioningOptions = new ProvisioningOperationOptions();
 		if (options == null){

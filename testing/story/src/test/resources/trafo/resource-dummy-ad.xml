@@ -283,6 +283,7 @@ if (basic.stringify(employeeType) == 'T' || basic.stringify(employeeType) == 'R'
 						<target>
 							<path>$user/extension/trafo:homedir</path>
 						</target>
+						
 					</inbound>
 				</attribute>
 				<attribute>
@@ -386,7 +387,7 @@ midPoint -->
             </resourceRef>
             <strictness>relaxed</strictness>
              <order>10</order>
-             <forceLoad>true</forceLoad>
+<!--              <forceLoad>true</forceLoad> -->
          </dependency>
 		<iteration>
 			<maxIterations>10</maxIterations>

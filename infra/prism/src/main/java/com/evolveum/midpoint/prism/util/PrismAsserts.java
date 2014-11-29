@@ -289,9 +289,11 @@ public class PrismAsserts {
 	// MISC asserts
 	
 	public static void assertParentConsistency(PrismContainerValue<?> pval) {
-		for (Item<?> item: pval.getItems()) {
-			assert item.getParent() == pval : "Wrong parent in "+item;
-			assertParentConsistency(item);
+		if (pval.getItems() != null) {
+			for (Item<?> item : pval.getItems()) {
+				assert item.getParent() == pval : "Wrong parent in " + item;
+				assertParentConsistency(item);
+			}
 		}
 	}
 

@@ -32,7 +32,6 @@ import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -362,8 +361,8 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 		for(ObjectClassComplexTypeDefinition objectClassDef: rSchema.getOriginalResourceSchema().getObjectClassDefinitions()) {
 			if (objectClassDef.getKind() == ShadowKindType.ACCOUNT) {
 				QName objectClassname = objectClassDef.getTypeName();
-				RefinedObjectClassDefinition rAccountDef = RefinedObjectClassDefinition.parse(objectClassDef, resourceType, rSchema, prismContext, 
-						"object class "+objectClassname+" (interpreted as account type definition), in "+contextDescription);
+				RefinedObjectClassDefinition rAccountDef = RefinedObjectClassDefinition.parseFromSchema(objectClassDef, resourceType, rSchema, prismContext,
+						"object class " + objectClassname + " (interpreted as account type definition), in " + contextDescription);
 				
 				if (rAccountDef.isDefault()) {
 					if (rAccountDefDefault == null) {

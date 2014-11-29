@@ -244,7 +244,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			LOGGER.trace("Connector object: {}", ObjectTypeUtil.dump(connectorType));
 			LOGGER.trace("Connector host object: {}", ObjectTypeUtil.dump(connectorType.getConnectorHost()));
 			throw new ObjectNotFoundException("The classes (JAR) of " + ObjectTypeUtil.toShortString(connectorType)
-					+ " were not found by the ICF framework; connector type=" + connectorType.getConnectorType() + ", version="+connectorType.getConnectorVersion());
+					+ " were not found by the ICF framework; bundle="+connectorType.getConnectorBundle()+" connector type=" + connectorType.getConnectorType() + ", version="+connectorType.getConnectorVersion());
 		}
 
 		PrismSchema connectorSchema = getConnectorSchema(connectorType, namespace);
@@ -589,7 +589,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			}
 		} catch (Exception ex) {
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()}, ex);
+				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage(), ex});
 			} else {
 				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()});
 			}

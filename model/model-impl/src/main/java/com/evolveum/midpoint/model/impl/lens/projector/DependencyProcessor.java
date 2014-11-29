@@ -212,9 +212,6 @@ public class DependencyProcessor {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("DEP(rev): {}", outDependency);
 				}
-				LOGGER.trace("projection context: {}", projectionContext );
-				LOGGER.trace("dependency source context: {}", dependencySourceContext);
-				LOGGER.trace("in dependency {} \nout dependency {}", inDependency, outDependency);
 			if (inDependency != null && isHigerOrder(outDependency, inDependency)) {
 				// There is incomming dependency. Deal only with dependencies of this order and lower
 				// otherwise we can end up in endless loop even for legal dependencies.
@@ -255,7 +252,7 @@ public class DependencyProcessor {
 		Collection<DependencyAndSource> deps = new ArrayList<>();
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
-				if (isDependencyTargetContext(projectionContext, targetProjectionContext, dependency)) {
+				if (LensUtil.isDependencyTargetContext(projectionContext, targetProjectionContext, dependency)) {
 					DependencyAndSource ds = new DependencyAndSource();
 					ds.dependency = dependency;
 					ds.sourceProjectionContext = projectionContext;
@@ -325,11 +322,11 @@ public class DependencyProcessor {
 		return selected;
 	}
 	
-	private <F extends ObjectType> boolean isDependencyTargetContext(LensProjectionContext sourceProjContext, LensProjectionContext targetProjectionContext, ResourceObjectTypeDependencyType dependency) {
-		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency, 
-				sourceProjContext.getResource().getOid(), sourceProjContext.getKind());
-		return targetProjectionContext.compareResourceShadowDiscriminator(refDiscr, false);
-	}
+//	private <F extends ObjectType> boolean isDependencyTargetContext(LensProjectionContext sourceProjContext, LensProjectionContext targetProjectionContext, ResourceObjectTypeDependencyType dependency) {
+//		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency, 
+//				sourceProjContext.getResource().getOid(), sourceProjContext.getKind());
+//		return targetProjectionContext.compareResourceShadowDiscriminator(refDiscr, false);
+//	}
 	
 	private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, LensProjectionContext origProjectionContext,
 			ResourceShadowDiscriminator discr) throws PolicyViolationException {

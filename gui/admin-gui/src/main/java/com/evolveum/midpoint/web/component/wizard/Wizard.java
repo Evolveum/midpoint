@@ -2,12 +2,10 @@ package com.evolveum.midpoint.web.component.wizard;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.wizard.resource.SynchronizationStep;
+import com.evolveum.midpoint.web.component.wizard.resource.*;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import org.apache.wicket.extensions.wizard.IWizard;
-import org.apache.wicket.extensions.wizard.IWizardModel;
-import org.apache.wicket.extensions.wizard.IWizardModelListener;
-import org.apache.wicket.extensions.wizard.IWizardStep;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.wizard.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -52,6 +50,11 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
                 }
 
                 return null;
+            }
+
+            @Override
+            public void changeStepPerformed(AjaxRequestTarget target, WizardStepDto dto) {
+                changeStep(target, dto);
             }
         };
         form.add(steps);
@@ -101,6 +104,10 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
 
     @Override
     public void onActiveStepChanged(IWizardStep newStep) {
+        if(newStep == null){
+            return;
+        }
+
         Form form = (Form) get(ID_FORM);
         form.replace(newStep.getView(ID_VIEW, this, this));
         form.replace(newStep.getHeader(ID_HEADER, this, this));
@@ -141,5 +148,61 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
         }
     }
 
+    private void changeStep(AjaxRequestTarget target, WizardStepDto dto){
+        IWizardStep newStep = null;
+        Iterator<IWizardStep> iterator = getWizardModel().stepIterator();
 
+        if(dto != null){
+            if("Resource basics".equals(dto.getName())){
+                while(iterator.hasNext()){
+                    IWizardStep step = iterator.next();
+                    if(step instanceof NameStep){
+                        newStep = step;
+                    }
+                }
+            } else if("Configuration".equals(dto.getName())){
+                while(iterator.hasNext()){
+                    IWizardStep step = iterator.next();
+                    if(step instanceof ConfigurationStep){
+                        newStep = step;
+                    }
+                }
+            } else if("Schema".equals(dto.getName())){
+                while(iterator.hasNext()){
+                    IWizardStep step = iterator.next();
+                    if(step instanceof SchemaStep){
+                        newStep = step;
+                    }
+                }
+            } else if("Schema handling".equals(dto.getName())){
+                while(iterator.hasNext()){
+                    IWizardStep step = iterator.next();
+                    if(step instanceof SchemaHandlingStep){
+                        newStep = step;
+                    }
+                }
+            } else if("Capabilities".equals(dto.getName())){
+                while(iterator.hasNext()){
+                    IWizardStep step = iterator.next();
+                    if(step instanceof CapabilityStep){
+                        newStep = step;
+                    }
+                }
+            } else if("Synchronization".equals(dto.getName())){
+                while(iterator.hasNext()){
+                    IWizardStep step = iterator.next();
+                    if(step instanceof SynchronizationStep){
+                        newStep = step;
+                    }
+                }
+            }
+        }
+
+        Wizard.this.onActiveStepChanged(newStep);
+        WizardModel model = (WizardModel) getWizardModel();
+        model.setActiveStep(newStep);
+        getWizardModel().getActiveStep().applyState();
+
+        target.add(this);
+    }
 }

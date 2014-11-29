@@ -17,8 +17,6 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
@@ -28,13 +26,11 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -64,15 +60,14 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	private ObjectClassComplexTypeDefinition objectClass;
 	private QName sourceChannel;
 	private boolean forceAdd;
-    private Task task;
 
 	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClass,
-			String processShortName, Task task, ResourceObjectChangeListener objectChangeListener) {
-		super(task, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource);
+			String processShortName, Task coordinatorTask, ResourceObjectChangeListener objectChangeListener,
+			TaskManager taskManager) {
+		super(coordinatorTask, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource, taskManager);
 		this.objectChangeListener = objectChangeListener;
 		this.resource = resource;
 		this.objectClass = objectClass;
-        this.task = task;
 		forceAdd = false;
 	}
 
@@ -110,7 +105,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	 * .midpoint.xml.ns._public.common.common_1.ObjectType)
 	 */
 	@Override
-	protected boolean handleObject(PrismObject<ShadowType> accountShadow, OperationResult result) {
+	protected boolean handleObject(PrismObject<ShadowType> accountShadow, Task workerTask, OperationResult result) {
 				
 		ShadowType newShadowType = accountShadow.asObjectable();
 		if (newShadowType.isProtectedObject() != null && newShadowType.isProtectedObject()) {
@@ -170,11 +165,11 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		}
 		
 		// Invoke the change notification
-        Utils.clearRequestee(getTask());
-        objectChangeListener.notifyChange(change, getTask(), result);
+        Utils.clearRequestee(workerTask);
+        objectChangeListener.notifyChange(change, workerTask, result);
         
         // No exception thrown here. The error is indicated in the result. Will be processed by superclass.
         
-		return task.canRun();
+		return workerTask.canRun();
 	}
 }

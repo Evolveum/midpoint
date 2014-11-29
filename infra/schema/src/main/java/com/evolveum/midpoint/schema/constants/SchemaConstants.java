@@ -173,6 +173,7 @@ public abstract class SchemaConstants {
 	public static final String MODEL_DISABLE_REASON_MAPPED = QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "mapped"));
 	
     public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
+	public static final QName MODEL_EXTENSION_WORKER_THREADS = new QName(NS_MODEL_EXTENSION, "workerThreads");
 
     public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
 	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";

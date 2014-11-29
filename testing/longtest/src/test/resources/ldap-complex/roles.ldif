@@ -1,0 +1,17 @@
+dn: cn=Judges,ou=groups,dc=example,dc=com
+objectclass: top
+objectclass: groupOfUniqueNames
+cn: Judges
+ou: groups
+
+dn: cn=Captains,ou=groups,dc=example,dc=com
+objectclass: top
+objectclass: groupOfUniqueNames
+cn: Captains
+ou: groups
+
+dn: cn=Sailors,ou=groups,dc=example,dc=com
+objectclass: top
+objectclass: groupOfUniqueNames
+cn: Sailors
+ou: groups

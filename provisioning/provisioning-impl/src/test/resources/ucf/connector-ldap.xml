@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@
 	<name>ICF org.identityconnectors.ldap.LdapConnector</name>
 	<framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
 	<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-	<connectorVersion>1.1.1.em262</connectorVersion>
-	<connectorBundle>org.forgerock.openicf.connectors.ldap-connector</connectorBundle>
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector</namespace>
+	<connectorVersion>1.4.0.1-SNAPSHOT</connectorVersion>
+	<connectorBundle>com.evolveum.polygon.connector-ldap</connectorBundle>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector</namespace>
 	<schema>
 		<!-- This is fake -->
 	</schema>

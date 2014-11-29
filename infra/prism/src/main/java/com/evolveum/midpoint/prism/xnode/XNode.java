@@ -144,32 +144,41 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	public XNode cloneTransformKeys(Transformer<QName,QName> keyTransformer) {
 		return cloneTransformKeys(keyTransformer, this);
 	}
-	
-	private <X extends XNode> X cloneTransformKeys(Transformer<QName,QName> keyTransformer, X xnode) {
+
+	private static <X extends XNode> X cloneTransformKeys(Transformer<QName,QName> keyTransformer, X xnode) {
+		XNode xclone;
 		if (xnode instanceof PrimitiveXNode<?>) {
-			return xnode;
+			return (X) ((PrimitiveXNode) xnode).cloneInternal();
 		} else if (xnode instanceof MapXNode) {
 			MapXNode xmap = (MapXNode)xnode;
-			MapXNode xclone = new MapXNode();
+			xclone = new MapXNode();
 			for (Entry<QName,XNode> entry: xmap.entrySet()) {
 				QName key = entry.getKey();
 				QName newKey = keyTransformer != null ? keyTransformer.transform(key) : key;
 				if (newKey != null) {
 					XNode value = entry.getValue();
 					XNode newValue = cloneTransformKeys(keyTransformer, value);
-					xclone.put(newKey, newValue);
+					((MapXNode) xclone).put(newKey, newValue);
 				}
 			}
-			return (X) xclone;
 		} else if (xnode instanceof ListXNode) {
-			ListXNode xclone = new ListXNode();
+			xclone = new ListXNode();
 			for (XNode xsubnode: ((ListXNode)xnode)) {
-				xclone.add(cloneTransformKeys(keyTransformer, xsubnode));
+				((ListXNode) xclone).add(cloneTransformKeys(keyTransformer, xsubnode));
 			}
-			return (X) xclone;
 		} else {
 			throw new IllegalArgumentException("Unknown xnode "+xnode);
 		}
+		xclone.copyCommonAttributesFrom(xnode);
+		return (X) xclone;
+	}
+
+	// filling-in other properties (we skip parent and origin-related things)
+	protected void copyCommonAttributesFrom(XNode xnode) {
+		explicitTypeDeclaration = xnode.explicitTypeDeclaration;
+		setTypeQName(xnode.getTypeQName());
+		setComment(xnode.getComment());
+		setMaxOccurs(xnode.getMaxOccurs());
 	}
 
 	@Override

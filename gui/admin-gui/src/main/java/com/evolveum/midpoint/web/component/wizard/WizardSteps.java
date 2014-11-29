@@ -62,7 +62,6 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
 
                     @Override
                     public boolean isEnabled() {
-//                        return dto.isEnabled();
                         return true;
                     }
 

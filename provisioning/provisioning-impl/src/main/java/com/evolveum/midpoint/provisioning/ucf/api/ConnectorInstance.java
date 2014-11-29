@@ -20,14 +20,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePagedSearchConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 
 import java.util.Collection;
 import java.util.List;
@@ -78,7 +78,7 @@ public interface ConnectorInstance {
 	/**
 	 * Get necessary information from the remote system.
 	 * 
-	 * This method will initialized the configured connector. It may contact the remote system in order to do so,
+	 * This method will initialize the configured connector. It may contact the remote system in order to do so,
 	 * e.g. to download the schema. It will the cache the information inside connector instance until this method
 	 * is called again. It must be called after configure() and before any other method that is accessing the
 	 * resource.
@@ -86,12 +86,14 @@ public interface ConnectorInstance {
 	 * If resource schema and capabilities are already cached by midPoint they may be passed to the connector instance.
 	 * Otherwise the instance may need to fetch them from the resource which may be less efficient.
 	 * 
+	 *
+	 * @param caseIgnoreAttributeNames
 	 * @param parentResult
 	 * @throws CommunicationException
 	 * @throws GenericFrameworkException
 	 * @throws ConfigurationException 
 	 */
-	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, OperationResult parentResult)  
+	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ConfigurationException;
 	
 	/**
@@ -172,12 +174,13 @@ public interface ConnectorInstance {
 	 *  
 	 * @param objectClass
 	 * @param handler
+	 * @return 
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
 	 */
-    public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
+    public <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
                                               ResultHandler<T> handler, AttributesToReturn attributesToReturn,
-                                              ResourcePagedSearchConfigurationType pagedSearchConfigurationType,
+                                              PagedSearchCapabilityType pagedSearchConfigurationType,
                                               OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException;
 
@@ -198,7 +201,7 @@ public interface ConnectorInstance {
      * @throws java.lang.UnsupportedOperationException
      */
     public int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-                     ResourcePagedSearchConfigurationType pagedSearchConfigurationType,
+                     PagedSearchCapabilityType pagedSearchConfigurationType,
                      OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException;
 
@@ -242,7 +245,7 @@ public interface ConnectorInstance {
 	 * E.g. in case of connect timeout or connection refused. Timeout during operation should not cause the
 	 * exception as something might have been done already. 
 	 * 
-	 * @param identifiers
+	 * @param identifiers The set of identifiers. Their values may change as a result of the operation, e.g. when the resource object is renamed.
 	 * @param changes
 	 * @throws CommunicationException
 	 * @throws SchemaException 

@@ -48,7 +48,6 @@
 			<icfi:instanceId>mail</icfi:instanceId>
 			<icfi:caseIgnoreId>true</icfi:caseIgnoreId>
 			<icfi:uidMode>uuid</icfi:uidMode>
-			<icfi:generateDefaultValues>true</icfi:generateDefaultValues>
 		</icfc:configurationProperties>
 		
 		<icfc:resultsHandlerConfiguration>
@@ -300,6 +299,7 @@ else return 'c:\\install\\test-id-folder\\' + basic.norm(tmpGivenNameInitial + b
 			</expression>
                     </outbound>
                     <inbound><!-- As the "update=false" is specified above, this will not be updated -->
+			
 			<expression>
 				<script>
 					<code>

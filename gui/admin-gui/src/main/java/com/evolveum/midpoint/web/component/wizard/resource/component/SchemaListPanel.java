@@ -357,12 +357,13 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
 
     private RefinedResourceSchema loadResourceSchema() {
         PrismObject<ResourceType> resource = getModel().getObject();
-        Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
-        if (xsdSchema == null) {
-            return null;
-        }
 
         try {
+            Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
+            if (xsdSchema == null) {
+                return null;
+            }
+
             return RefinedResourceSchema.getRefinedSchema(getModel().getObject(), getPageBase().getPrismContext());
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't parse resource schema.", ex);

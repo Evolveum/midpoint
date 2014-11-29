@@ -45,7 +45,7 @@
         <commons.io.version>2.0.1</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
         <commons.cli>1.2</commons.cli>
-        <cxf.version>3.0.1.e2</cxf.version>
+        <cxf.version>3.0.1.e3</cxf.version>
         <cxf-xjc.version>3.0.1</cxf-xjc.version>
         <dbunit.version>2.4.7</dbunit.version>
         <jaxb-api.version>2.2.9</jaxb-api.version>
@@ -53,7 +53,7 @@
         <jaxb-xjc.version>2.2.10-b140310.1920</jaxb-xjc.version>
         <junit.version>4.8.2</junit.version>
         <opendj.version>2.4.3</opendj.version>
-        <mockito.version>1.8.5</mockito.version>
+        <mockito.version>1.10.8</mockito.version>
         <quartz.version>2.1.3</quartz.version>
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.6.4</slf4j.version>
@@ -259,8 +259,8 @@
             </dependency>
             <dependency>
                 <groupId>net.sf.saxon</groupId>
-                <artifactId>saxonhe</artifactId>
-                <version>9.3.1</version>
+                <artifactId>Saxon-HE</artifactId>
+                <version>9.5.1-6</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -381,37 +381,19 @@
                 <version>${connid.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.forgerock.openicf.connectors</groupId>
-                <artifactId>databasetable-connector</artifactId>
-                <version>1.1.0.em12</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.forgerock.openicf.framework</groupId>
-                        <artifactId>connector-framework</artifactId>
-                    </exclusion>
-                </exclusions>
+            	<groupId>com.evolveum.polygon</groupId>
+                <artifactId>connector-databasetable</artifactId>
+                <version>1.4.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>org.forgerock.openicf.connectors</groupId>
-                <artifactId>csvfile-connector</artifactId>
-                <version>1.1.1.0.em80</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.forgerock.openicf.framework</groupId>
-                        <artifactId>connector-framework</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>com.evolveum.polygon</groupId>
+                <artifactId>connector-csvfile</artifactId>
+                <version>1.4.0.1-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>org.forgerock.openicf.connectors</groupId>
-                <artifactId>ldap-connector</artifactId>
-                <version>1.1.1.em262</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.forgerock.openicf.framework</groupId>
-                        <artifactId>connector-framework</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>com.evolveum.polygon</groupId>
+                <artifactId>connector-ldap</artifactId>
+                <version>1.4.0.1-SNAPSHOT</version>
             </dependency>
             <!-- End connectors -->
             <dependency>

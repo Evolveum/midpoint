@@ -506,7 +506,9 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
     }
 
     public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
-        if (!executeOptionsModel.getObject().isKeepDisplayingResults() && progressReporter.isAllSuccess() && WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!executeOptionsModel.getObject().isKeepDisplayingResults() &&
+                progressReporter.isAllSuccess() &&
+                WebMiscUtil.isSuccessOrHandledErrorOrInProgress(result)) {
             showResultInSession(result);
             setResponsePage(PageRoles.class);
         } else {

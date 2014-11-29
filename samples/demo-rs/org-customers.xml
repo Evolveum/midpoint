@@ -1,0 +1,38 @@
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  -->
+
+<objects xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+	<org oid="00000000-9999-9999-0000-110000000000">
+		<name>CUSTOMERS</name>
+    		<displayName>Customers</displayName>
+	</org>
+
+	<org oid="00000000-9999-9999-0000-110000100000">
+		<name>ACME</name>
+		<parentOrgRef oid="00000000-9999-9999-0000-110000000000" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-9999-9999-0000-110000000000" type="c:OrgType"/>
+		</assignment>
+		<displayName>ACME, Inc.</displayName>
+		<identifier>C-ACME</identifier>
+		<orgType>customer</orgType>
+	</org>
+
+	<org oid="00000000-9999-9999-0000-110000100001">
+		<name>AWDP</name>
+		<description>Expanding our secret world domination strategy.</description>
+		<parentOrgRef oid="00000000-9999-9999-0000-110000100000" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-9999-9999-0000-110000100000" type="c:OrgType"/>
+		</assignment>
+		<displayName>Advanced World Domination Program</displayName>
+		<identifier>C-ACME</identifier>
+		<orgType>customer</orgType>
+	</org>
+
+</objects>

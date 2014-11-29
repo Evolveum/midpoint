@@ -60,8 +60,8 @@ public final class DescriptorLoader {
     public void loadData(MidPointApplication application) {
         LOGGER.info("Loading data from descriptor files.");
 
-        String baseFileName = "WEB-INF/descriptor.xml";
-        String customFileName = "WEB-INF/classes/descriptor.xml";
+        String baseFileName = "/WEB-INF/descriptor.xml";
+        String customFileName = "/WEB-INF/classes/descriptor.xml";
 
         try (InputStream baseInput = application.getServletContext().getResourceAsStream(baseFileName);
              InputStream customInput = application.getServletContext().getResourceAsStream(customFileName)) {

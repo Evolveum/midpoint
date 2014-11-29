@@ -41,16 +41,22 @@ public class ProfilingDataManager {
 
     private static final int DEFAULT_DUMP_INTERVAL = 30;
     private static final int DEFAULT_PERF_DUMP_INTERVAL = 10;
-    private static final byte TOP_TEN_METHOD_NUMBER = 5;
+    private static byte TOP_TEN_METHOD_NUMBER = 5;
 
-    public static final String SUBSYSTEM_REPOSITORY = "REPOSITORY";
-    public static final String SUBSYSTEM_TASK_MANAGER = "TASKMANAGER";
-    public static final String SUBSYSTEM_PROVISIONING = "PROVISIONING";
-    public static final String SUBSYSTEM_RESOURCE_OBJECT_CHANGE_LISTENER = "RESOURCEOBJECTCHANGELISTENER";
-    public static final String SUBSYSTEM_MODEL = "MODEL";
-    public static final String SUBSYSTEM_UCF = "UCF";
-    public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
-    public static final String SUBSYSTEM_WEB = "WEB";
+    private static boolean profilingTest = false;
+
+    public static enum Subsystem{
+        REPOSITORY,
+        TASK_MANAGER,
+        PROVISIONING,
+        RESOURCE_OBJECT_CHANGE_LISTENER,
+        MODEL,
+        UCF,
+        WORKFLOW,
+        WEB
+    }
+
+    public static final List<Subsystem> subsystems = Arrays.asList(Subsystem.values());
 
     public static final String INDENT_STRING = " ";
     private static final String ARGS_NULL = "NULL";
@@ -93,10 +99,10 @@ public class ProfilingDataManager {
         this.minuteDumpInterval = dumpInterval;
         lastDumpTimestamp = System.currentTimeMillis();
         lastPerformanceDumpTimestamp = System.currentTimeMillis();
-
     }
 
-    public void configureProfilingDataManager(Map<String, Boolean> profiledSubsystems, Integer dumpInterval, boolean subsystemProfilingActive, boolean performance, boolean request){
+    public void configureProfilingDataManager(Map<Subsystem, Boolean> profiledSubsystems, Integer dumpInterval,
+                                              boolean subsystemProfilingActive, boolean performance, boolean request){
 
         isPerformanceProfiled = performance;
 
@@ -113,36 +119,44 @@ public class ProfilingDataManager {
             minuteDumpInterval = dumpInterval;
         }
 
+        profilingTest = false;
         profilingDataManager = new ProfilingDataManager(minuteDumpInterval, performance);
-
     }
 
-    public void applyGranularityFilterOnEnd(String className, String methodName, Object[] args, String subsystem, long startTime, long processingStartTime){
+    public void configureProfilingDataManagerForTest(Map<Subsystem, Boolean> subsystems, boolean performance){
+        subsystemConfiguration(subsystems);
+
+        TOP_TEN_METHOD_NUMBER = 10;
+        profilingDataManager = new ProfilingDataManager(30, performance);
+        profilingTest = true;
+    }
+
+    public void applyGranularityFilterOnEnd(String className, String methodName, Object[] args, Subsystem subsystem, long startTime, long processingStartTime){
 
         ProfilingDataLog profilingEvent;
         profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
         String key = prepareKey(profilingEvent);
 
-        if(isRepositoryProfiled && SUBSYSTEM_REPOSITORY.equals(subsystem)){
-            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_REPOSITORY);
+        if(isRepositoryProfiled && Subsystem.REPOSITORY.equals(subsystem)){
+            updateOverallStatistics(performanceMap, profilingEvent, key,  Subsystem.REPOSITORY);
 
-        } else if(isModelProfiled && SUBSYSTEM_MODEL.equals(subsystem)){
-            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_MODEL);
+        } else if(isModelProfiled && Subsystem.MODEL.equals(subsystem)){
+            updateOverallStatistics(performanceMap, profilingEvent, key, Subsystem.MODEL);
 
-        } else if (isProvisioningProfiled && SUBSYSTEM_PROVISIONING.equals(subsystem)){
-            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_PROVISIONING);
+        } else if (isProvisioningProfiled && Subsystem.PROVISIONING.equals(subsystem)){
+            updateOverallStatistics(performanceMap, profilingEvent, key, Subsystem.PROVISIONING);
 
-        } else if (isTaskManagerProfiled && SUBSYSTEM_TASK_MANAGER.equals(subsystem)){
-            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_TASK_MANAGER);
+        } else if (isTaskManagerProfiled && Subsystem.TASK_MANAGER.equals(subsystem)){
+            updateOverallStatistics(performanceMap, profilingEvent, key, Subsystem.TASK_MANAGER);
 
-        } else if (isUcfProfiled && SUBSYSTEM_UCF.equals(subsystem)){
-            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_UCF);
+        } else if (isUcfProfiled && Subsystem.UCF.equals(subsystem)){
+            updateOverallStatistics(performanceMap, profilingEvent, key, Subsystem.UCF);
 
-        } else if(isResourceObjectChangeListenerProfiled && SUBSYSTEM_RESOURCE_OBJECT_CHANGE_LISTENER.equals(subsystem)){
-            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_RESOURCE_OBJECT_CHANGE_LISTENER);
+        } else if(isResourceObjectChangeListenerProfiled && Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER.equals(subsystem)){
+            updateOverallStatistics(performanceMap, profilingEvent, key, Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER);
 
-        } else if(isWorkflowProfiled && SUBSYSTEM_WORKFLOW.equals(subsystem)){
-            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_WORKFLOW);
+        } else if(isWorkflowProfiled && Subsystem.WORKFLOW.equals(subsystem)){
+            updateOverallStatistics(performanceMap, profilingEvent, key, Subsystem.WORKFLOW);
         }
 
         Long processingEstTime = System.nanoTime() - processingStartTime;
@@ -158,7 +172,7 @@ public class ProfilingDataManager {
 
     public void prepareRequestProfilingEvent(ProfilingDataLog requestEvent){
         String key = requestEvent.getClassName();
-        updateOverallStatistics(performanceMap, requestEvent, key, SUBSYSTEM_WEB);
+        updateOverallStatistics(performanceMap, requestEvent, key, Subsystem.WEB);
     }
 
     private String prepareKey(ProfilingDataLog log){
@@ -170,37 +184,16 @@ public class ProfilingDataManager {
     }
 
     public synchronized void dumpToLog(){
+        if(profilingTest){
+            return;
+        }
 
         long currentTime = System.currentTimeMillis();
 
         if(currentTime >= (lastDumpTimestamp + minutesToMillis(minuteDumpInterval))){
             if(LOGGER.isDebugEnabled()){
 
-                //Print everything
-                if(isModelProfiled){
-                    printMap(performanceMap, SUBSYSTEM_MODEL);
-                }
-                if(isProvisioningProfiled) {
-                    printMap(performanceMap, SUBSYSTEM_PROVISIONING);
-                }
-                if(isRepositoryProfiled)  {
-                    printMap(performanceMap, SUBSYSTEM_REPOSITORY);
-                }
-                if(isTaskManagerProfiled) {
-                    printMap(performanceMap, SUBSYSTEM_TASK_MANAGER);
-                }
-                if(isUcfProfiled) {
-                    printMap(performanceMap, SUBSYSTEM_UCF);
-                }
-                if(isWorkflowProfiled){
-                    printMap(performanceMap, SUBSYSTEM_WORKFLOW);
-                }
-                if(isResourceObjectChangeListenerProfiled) {
-                    printMap(performanceMap, SUBSYSTEM_RESOURCE_OBJECT_CHANGE_LISTENER);
-                }
-                if(isWebProfiled){
-                    printMap(performanceMap, SUBSYSTEM_WEB);
-                }
+                printEverything(false);
 
                 //Set next dump cycle
                 lastDumpTimestamp = System.currentTimeMillis();
@@ -217,11 +210,38 @@ public class ProfilingDataManager {
         }
     }
 
+    public void printEverything(boolean afterTest){
+        if(isModelProfiled){
+            printMap(performanceMap, Subsystem.MODEL, afterTest);
+        }
+        if(isProvisioningProfiled) {
+            printMap(performanceMap, Subsystem.PROVISIONING, afterTest);
+        }
+        if(isRepositoryProfiled)  {
+            printMap(performanceMap, Subsystem.REPOSITORY, afterTest);
+        }
+        if(isTaskManagerProfiled) {
+            printMap(performanceMap, Subsystem.TASK_MANAGER, afterTest);
+        }
+        if(isUcfProfiled) {
+            printMap(performanceMap, Subsystem.UCF, afterTest);
+        }
+        if(isWorkflowProfiled){
+            printMap(performanceMap, Subsystem.WORKFLOW, afterTest);
+        }
+        if(isResourceObjectChangeListenerProfiled) {
+            printMap(performanceMap, Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER, afterTest);
+        }
+        if(isWebProfiled){
+            printMap(performanceMap, Subsystem.WEB, afterTest);
+        }
+    }
+
     private static long minutesToMillis(int minutes){
         return (long)(minutes*60*1000);
     }
 
-    private void updateOverallStatistics(Map<String, MethodUsageStatistics> logMap, ProfilingDataLog eventLog, String key, String subsystem){
+    private synchronized void updateOverallStatistics(Map<String, MethodUsageStatistics> logMap, ProfilingDataLog eventLog, String key, Subsystem subsystem){
         if(!logMap.containsKey(key)){
             eventLog.setArgs(prepareArguments(eventLog.args));
             logMap.put(key, new MethodUsageStatistics(eventLog, subsystem));
@@ -247,26 +267,32 @@ public class ProfilingDataManager {
         }
     }
 
-    private static void printMap(Map<String, MethodUsageStatistics> logMap, String subsystem){
+    private static void printMap(Map<String, MethodUsageStatistics> logMap, Subsystem subsystem, boolean afterTest){
 
         for(String key: logMap.keySet()){
             if(logMap.get(key) != null && subsystem.equals(logMap.get(key).getSubsystem())){
-                logMap.get(key).appendToLogger();
+                logMap.get(key).appendToLogger(afterTest);
             }
         }
     }
 
-    public void subsystemConfiguration(Map<String, Boolean> subsystems){
+    public void subsystemConfiguration(Map<Subsystem, Boolean> subsystems){
+        isModelProfiled = isSubsystemProfiled(Subsystem.MODEL, subsystems);
+        isProvisioningProfiled = isSubsystemProfiled(Subsystem.PROVISIONING, subsystems);
+        isRepositoryProfiled = isSubsystemProfiled(Subsystem.REPOSITORY, subsystems);
+        isResourceObjectChangeListenerProfiled = isSubsystemProfiled(Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER, subsystems);
+        isTaskManagerProfiled = isSubsystemProfiled(Subsystem.TASK_MANAGER, subsystems);
+        isUcfProfiled = isSubsystemProfiled(Subsystem.UCF, subsystems);
+        isWorkflowProfiled = isSubsystemProfiled(Subsystem.WORKFLOW, subsystems);
+        isWebProfiled = isSubsystemProfiled(Subsystem.WEB, subsystems);
+    }
 
-        isModelProfiled = subsystems.get(SUBSYSTEM_MODEL);
-        isProvisioningProfiled = subsystems.get(SUBSYSTEM_PROVISIONING);
-        isRepositoryProfiled = subsystems.get(SUBSYSTEM_REPOSITORY);
-        isResourceObjectChangeListenerProfiled = subsystems.get(SUBSYSTEM_RESOURCE_OBJECT_CHANGE_LISTENER);
-        isTaskManagerProfiled = subsystems.get(SUBSYSTEM_TASK_MANAGER);
-        isUcfProfiled = subsystems.get(SUBSYSTEM_UCF);
-        isWorkflowProfiled = subsystems.get(SUBSYSTEM_WORKFLOW);
-        isWebProfiled = subsystems.get(SUBSYSTEM_WEB);
+    private boolean isSubsystemProfiled(Subsystem subsystem, Map<Subsystem, Boolean> map){
+        if(map.get(subsystem) != null && map.get(subsystem)){
+            return true;
+        }
 
+        return false;
     }
 
     private void cleanEverything(){
@@ -280,7 +306,7 @@ public class ProfilingDataManager {
         return new ProfilingDataLog(className, methodName, eTime, timestamp, args);
     }
 
-    private static List<ProfilingDataLog> sort(List<ProfilingDataLog> list){
+    private synchronized static List<ProfilingDataLog> sort(List<ProfilingDataLog> list){
         Collections.sort(list, arrayComparator);
         return list;
     }
@@ -311,7 +337,7 @@ public class ProfilingDataManager {
         if(args == null || args.length == 0)
             return new String[]{ARGS_EMPTY};
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         for(Object o: args){
             if(o == null)
@@ -323,5 +349,21 @@ public class ProfilingDataManager {
         }
 
         return new String[]{sb.toString()};
+    }
+
+    public void appendProfilingToTest(){
+        MidpointAspect.activateSubsystemProfiling();
+    }
+
+    public void stopProfilingAfterTest(){
+        MidpointAspect.deactivateSubsystemProfiling();
+    }
+
+    public void printMapAfterTest(){
+        printEverything(true);
+    }
+
+    public Map<String, MethodUsageStatistics> getProfilingData(){
+        return performanceMap;
     }
 }

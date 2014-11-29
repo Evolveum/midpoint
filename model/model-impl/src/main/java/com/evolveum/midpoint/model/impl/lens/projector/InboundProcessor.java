@@ -143,21 +143,10 @@ public class InboundProcessor {
             	
             	ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, accountContext);
             	
-            	if (!accountContext.isDoReconciliation() && aPrioriDelta == null) {
-            		LOGGER.trace("Skipping processing of inbound expressions for account {}: no reconciliation and no a priori delta", rat);
+            	if (!accountContext.isDoReconciliation() && aPrioriDelta == null && !LensUtil.hasDependentContext(context, accountContext) && !accountContext.isFullShadow()) {
+            		LOGGER.trace("Skipping processing of inbound expressions for account {}: no reconciliation and no a priori delta and no dependent context", rat);
             		continue;
             	}
-//                LOGGER.trace("Processing inbound expressions for account {} starting", rat);
-
-//            	/ObjectDelta<ShadowType> accountDelta = accountContext.getDelta()
-            	if (isDeleteAccountDelta(accountContext)){
-            		 //we don't need to do inbound if account was deleted
-            		continue;
-            	}
-//                if (accountDelta != null && ChangeType.DELETE.equals(accountDelta.getChangeType())) {
-//                    //we don't need to do inbound if account was deleted
-//                    continue;
-//                }
 
                 RefinedObjectClassDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
                 if (accountDefinition == null) {
@@ -204,8 +193,10 @@ public class InboundProcessor {
             if (aPrioriDelta != null) {
                 accountAttributeDelta = aPrioriDelta.findPropertyDelta(new ItemPath(SchemaConstants.C_ATTRIBUTES), accountAttributeName);
                 if (accountAttributeDelta == null) {
+                	if (!accContext.isFullShadow()){
                     LOGGER.trace("Skipping inbound for {} in {}: Account a priori delta exists, but doesn't have change for processed property.",
                     		accountAttributeName, accContext.getResourceShadowDiscriminator());
+                	}
                     continue;
                 }
             }
@@ -246,17 +237,25 @@ public class InboundProcessor {
 	            	//  * if we do NOT have a delta then we will proceed in absolute mode. In that mode we will apply the
 	            	//    mappings to the absolute projection state that we got from provisioning. This is a kind of "inbound reconciliation".
 	            	
+	            	PrismObject<F> focus = null;
+	            	if (context.getFocusContext().getObjectCurrent() != null){
+	            		focus = context.getFocusContext().getObjectCurrent();
+	            	} else {
+	            		focus = context.getFocusContext().getObjectNew();
+	            	}
+	            	
 	                PropertyDelta<?> userPropertyDelta = null;
-	                if (aPrioriDelta != null) {
+	                if (aPrioriDelta != null && accountAttributeDelta != null) {
 	                    LOGGER.trace("Processing inbound from a priori delta.");
 	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
-	                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), task, result);
+	                    		focus, accountNew, accContext.getResource(), task, result);
 	                } else if (accountCurrent != null) {
 	                	if (!accContext.isFullShadow()) {
 	                		LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", accContext.getOid());      // todo change to trace level eventually
                             Throwable failure = null;
                             try {
                                 LensUtil.loadFullAccount(context, accContext, provisioningService, result);
+                                accountCurrent = accContext.getObjectCurrent(); 
                             } catch (ObjectNotFoundException e) {
                                 failure = e;
                             } catch (SecurityViolationException e) {
@@ -285,7 +284,7 @@ public class InboundProcessor {
 	                    LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
 	                    PrismProperty<?> oldAccountProperty = accountCurrent.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
 	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
-	                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), task, result);
+	                    		focus, accountNew, accContext.getResource(), task, result);
 	                }
 	
 	                if (userPropertyDelta != null && !userPropertyDelta.isEmpty()) {
@@ -298,6 +297,11 @@ public class InboundProcessor {
 	            }
             }
         }
+        
+        if (isDeleteAccountDelta(accContext)){
+//   		 we don't need to do inbound if account was deleted
+   		return;
+   	}
         processSpecialPropertyInbound(accountDefinition.getCredentialsInbound(), SchemaConstants.PATH_PASSWORD_VALUE,
         		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, task, now, result);
         
@@ -388,6 +392,7 @@ public class InboundProcessor {
         PropertyDelta<U> outputUserPropertydelta = new PropertyDelta<U>(targetFocusPropertyPath, targetPropertyDef, prismContext);
     	
         LensUtil.evaluateMapping(mapping, context, task, result);
+        
     	
     	PrismValueDeltaSetTriple<PrismPropertyValue<U>> triple = mapping.getOutputTriple();
     	// Meaning of the resulting triple:
@@ -458,8 +463,7 @@ public class InboundProcessor {
 	        
     	} else { // tripple == null
     		
-    		if (accountAttributeDelta == null) {
-    			
+    			if (accountAttributeDelta == null && LensUtil.isSyncChannel(context.getChannel())){
     			// This is the case of "inbound reconciliation" which is quite special. The tripple returned null
     			// which means that there was nothing in the input and (unsurprisingly) no change. If the input was empty
     			// then we need to make sure that the output (focus property) is also empty. Otherwise we miss the
@@ -651,7 +655,9 @@ public class InboundProcessor {
 		        PropertyDelta<?> delta = targetPropertyNew.diff(result);
 		        if (delta != null && !delta.isEmpty()) {
 		        	delta.setParentPath(sourcePath.allExceptLast());
-		        	context.getFocusContext().swallowToProjectionWaveSecondaryDelta(delta);
+		        	if (!context.getFocusContext().alreadyHasDelta(delta)){
+		        		context.getFocusContext().swallowToProjectionWaveSecondaryDelta(delta);
+		        	}
 		        }
 
 			}

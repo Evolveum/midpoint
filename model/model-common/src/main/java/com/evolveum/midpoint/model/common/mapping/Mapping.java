@@ -535,6 +535,15 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		}
 	}
 	
+	public boolean isSatisfyCondition(){
+		boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
+		boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
+		
+		boolean conditionOutputNew = computeConditionResult(conditionOutputTriple.getNonNegativeValues());
+		boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
+		return (conditionResultOld || conditionResultNew);
+	}
+	
 	private void traceEvaluationStart() {
 		if (profiling) {
 			evaluationStartTime = System.currentTimeMillis();

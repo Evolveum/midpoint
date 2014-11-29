@@ -134,7 +134,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 		
 		// TODO: error handling
 		//do not merge deltas when complete postponed operation is set to false, because it can cause some unexpected behavior..
-		if (options != null && options.getCompletePostponed() != null && !ProvisioningOperationOptions.isCompletePostponed(options)){
+		if (!ProvisioningOperationOptions.isCompletePostponed(options)){
 			return modifications;
 		}
 		

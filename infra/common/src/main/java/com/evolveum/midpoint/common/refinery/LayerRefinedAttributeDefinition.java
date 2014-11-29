@@ -349,11 +349,14 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 
 	@Override
 	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
-		return refinedAttributeDefinition.isValidFor(elementQName, clazz);
+		return isValidFor(elementQName, clazz, false);
 	}
 
-	
-	
+	@Override
+	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz, boolean caseInsensitive) {
+		return refinedAttributeDefinition.isValidFor(elementQName, clazz, caseInsensitive);
+	}
+
 	public Boolean getReturnedByDefault() {
 		return refinedAttributeDefinition.getReturnedByDefault();
 	}

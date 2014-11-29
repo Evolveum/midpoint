@@ -21,6 +21,7 @@ import cern.colt.matrix.impl.SparseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.jet.math.Functions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -294,23 +295,46 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         return query.list();
     }
 
-    protected void removeObjectParent(ObjectType object, ObjectReferenceType parentOrgRef, OperationResult opResult) throws Exception {
+    protected void removeObjectParent(ObjectType object, ObjectReferenceType parentOrgRef, boolean useReplace, OperationResult opResult) throws Exception {
         List<ItemDelta> modifications = new ArrayList<>();
-        PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
-        ItemDelta removeParent = ReferenceDelta.createModificationDelete(object.getClass(), OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
-        modifications.add(removeParent);
+        if (!useReplace) {          // standard case
+            PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
+            ItemDelta removeParent = ReferenceDelta.createModificationDelete(object.getClass(), OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
+            modifications.add(removeParent);
+        } else {                    // using REPLACE modification
+            List<PrismReferenceValue> newValues = new ArrayList<>();
+            for (ObjectReferenceType ort : object.getParentOrgRef()) {
+                if (!ort.getOid().equals(parentOrgRef.getOid())) {
+                    newValues.add(ort.asReferenceValue().clone());
+                }
+            }
+            PrismObjectDefinition objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(object.getClass());
+            ItemDelta replaceParent = ReferenceDelta.createModificationReplace(new ItemPath(OrgType.F_PARENT_ORG_REF), objectDefinition, newValues);
+            modifications.add(replaceParent);
+        }
         repositoryService.modifyObject(object.getClass(), object.getOid(), modifications, opResult);
         if (object instanceof OrgType) {
-            orgGraph.removeEdge(object.getOid(), existingValue.getOid());
+            orgGraph.removeEdge(object.getOid(), parentOrgRef.getOid());
         }
     }
 
     // TODO generalzie to addObjectParent
-    protected void addOrgParent(OrgType org, ObjectReferenceType parentOrgRef, OperationResult opResult) throws Exception {
+    protected void addOrgParent(OrgType org, ObjectReferenceType parentOrgRef, boolean useReplace, OperationResult opResult) throws Exception {
         List<ItemDelta> modifications = new ArrayList<>();
         PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
-        ItemDelta readdParent = ReferenceDelta.createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
-        modifications.add(readdParent);
+        ItemDelta itemDelta;
+        if (!useReplace) {
+            itemDelta = ReferenceDelta.createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
+        } else {
+            List<PrismReferenceValue> newValues = new ArrayList<>();
+            for (ObjectReferenceType ort : org.getParentOrgRef()) {
+                newValues.add(ort.asReferenceValue().clone());
+            }
+            newValues.add(existingValue.clone());
+            PrismObjectDefinition objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class);
+            itemDelta = ReferenceDelta.createModificationReplace(new ItemPath(OrgType.F_PARENT_ORG_REF), objectDefinition, newValues);
+        }
+        modifications.add(itemDelta);
         repositoryService.modifyObject(OrgType.class, org.getOid(), modifications, opResult);
         orgGraph.addEdge(org.getOid(), existingValue.getOid());
     }
@@ -821,7 +845,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         System.out.println("Adding link " + childOid + " -> " + parentOid);
         long start = System.currentTimeMillis();
         if (child instanceof OrgType) {
-            addOrgParent((OrgType) child, parentOrgRef, opResult);
+            addOrgParent((OrgType) child, parentOrgRef, false, opResult);
         } else {
             addUserParent((UserType) child, parentOrgRef, opResult);
         }
@@ -847,7 +871,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         }
         assertNotNull(parentOid + " is not a parent of " + childOid, parentOrgRef);
         long start = System.currentTimeMillis();
-        removeObjectParent(child, parentOrgRef, opResult);
+        removeObjectParent(child, parentOrgRef, false, opResult);
         long timeAddition = System.currentTimeMillis() - start;
         System.out.println(" ... done in " + timeAddition + " ms" + getNetDurationMessage());
 
@@ -859,6 +883,10 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected void _test200AddRemoveLinks() throws Exception {
+        _test200AddRemoveLinks(false);
+    }
+
+    protected void _test200AddRemoveLinks(boolean useReplace) throws Exception {
         OperationResult opResult = new OperationResult("===[ addRemoveLinks ]===");
 
         int totalRounds = 0;
@@ -886,22 +914,24 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 int i = (int) Math.floor(Math.random() * org.getParentOrgRef().size());
                 ObjectReferenceType parentOrgRef = org.getParentOrgRef().get(i);
 
-                System.out.println("Removing parent from org #" + totalRounds + "(" + level + "/" + round + "): " + org.getOid() + ", parent: " + parentOrgRef.getOid());
+                info("Removing parent from org #" + totalRounds + "(" + level + "/" + round + "): "
+                        + org.getOid() + ", parent: " + parentOrgRef.getOid()
+                        + (useReplace ? " using replace" : ""));
                 long start = System.currentTimeMillis();
-                removeObjectParent(org, parentOrgRef, opResult);
+                removeObjectParent(org, parentOrgRef, useReplace, opResult);
                 long timeRemoval = System.currentTimeMillis() - start;
-                System.out.println(" ... done in " + timeRemoval + " ms " + getNetDurationMessage());
+                info(" ... done in " + timeRemoval + " ms " + getNetDurationMessage());
                 stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks", level, false, getNetDuration());
                 totalTimeLinkRemovals += getNetDuration();
 
                 checkClosure(getVertices());
 
                 // addition
-                System.out.println("Re-adding parent for org #" + totalRounds);
+                info("Re-adding parent for org #" + totalRounds + (useReplace ? " using replace" : ""));
                 start = System.currentTimeMillis();
-                addOrgParent(org, parentOrgRef, opResult);
+                addOrgParent(org, parentOrgRef, useReplace, opResult);
                 long timeAddition = System.currentTimeMillis() - start;
-                System.out.println(" ... done in " + timeAddition + " ms " + getNetDurationMessage());
+                info(" ... done in " + timeAddition + " ms " + getNetDurationMessage());
                 stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks", level, true, getNetDuration());
 
                 checkClosure(getVertices());

@@ -85,17 +85,36 @@ public class QNameUtil {
 	 * Matching with considering wildcard namespace (null).
 	 */
 	public static boolean match(QName a, QName b) {
+		return match(a, b, false);
+	}
+
+	// case insensitive is related to local parts
+	public static boolean match(QName a, QName b, boolean caseInsensitive) {
 		if (a == null && b == null) {
 			return true;
 		}
 		if (a == null || b == null) {
 			return false;
 		}
-		if (StringUtils.isBlank(a.getNamespaceURI()) || StringUtils.isBlank(b.getNamespaceURI())) {
-			return a.getLocalPart().equals(b.getLocalPart());
+		if (!caseInsensitive) {
+			// traditional comparison
+			if (StringUtils.isBlank(a.getNamespaceURI()) || StringUtils.isBlank(b.getNamespaceURI())) {
+				return a.getLocalPart().equals(b.getLocalPart());
+			} else {
+				return a.equals(b);
+			}
 		} else {
-			return a.equals(b);
+			// relaxed (case-insensitive) one
+			if (!a.getLocalPart().equalsIgnoreCase(b.getLocalPart())) {
+				return false;
+			}
+			if (StringUtils.isBlank(a.getNamespaceURI()) || StringUtils.isBlank(b.getNamespaceURI())) {
+				return true;
+			} else {
+				return a.getNamespaceURI().equals(b.getNamespaceURI());
+			}
 		}
+
 	}
 	
 	public static QName resolveNs(QName a, Collection<QName> col){

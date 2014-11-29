@@ -29,6 +29,7 @@ public class TestConstants {
     public static final String ROLE_R4_OID = "00000001-d34d-b33f-f00d-000000000004";
     public static final String USER_BILL_FILENAME = AbstractIntegrationTest.COMMON_DIR_PATH + "/user-bill.xml";
     public static final String USER_BILL_OID = "c0c010c0-d34d-b33f-f00d-11111111111a";
+    public static final String ROLE_R10_OID = "00000001-d34d-b33f-f00d-000000000010";
 
     public static final String R1BOSS_OID = "00000000-d34d-b33f-f00d-111111111111";
     public static final String R2BOSS_OID = "00000000-d34d-b33f-f00d-111111111112";

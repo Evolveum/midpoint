@@ -216,9 +216,9 @@ public class TestScience  extends AbstractStoryTest {
 		PrismProperty openDjSyncedId = shadowOpenDj.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE_INSTANCE, "title")));
 		PrismAsserts.assertEquals("Unix id was not synced to the opendj properly.", String.valueOf(unixId.getAnyRealValue()), openDjSyncedId.getAnyRealValue());
 		
-//		PrismProperty<Integer> generatedValue = userJack.findExtensionItem(SCIENCE_EXTENSION_UID_QNAME);
-// 		assertNotNull("Generated id value must not be null", generatedValue);
-// 		assertFalse("Generated value must not be empty", generatedValue.isEmpty());
+		PrismProperty<Integer> generatedValue = userJack.findExtensionItem(SCIENCE_EXTENSION_UID_QNAME);
+ 		assertNotNull("Generated id value must not be null", generatedValue);
+ 		assertFalse("Generated value must not be empty", generatedValue.isEmpty());
 		
 	}
 

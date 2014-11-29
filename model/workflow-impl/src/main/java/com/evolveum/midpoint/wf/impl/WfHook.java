@@ -153,7 +153,14 @@ public class WfHook implements ChangeHook {
                 }
             }
         } finally {
-            context.reportProgress(new ProgressInformation(WORKFLOWS, result));
+            if (result.isInProgress()) {
+                // a bit of hack: IN_PROGRESS for workflows actually means "success"
+                OperationResult r = result.clone();
+                r.recordSuccess();
+                context.reportProgress(new ProgressInformation(WORKFLOWS, r));
+            } else {
+                context.reportProgress(new ProgressInformation(WORKFLOWS, result));
+            }
         }
 
         LOGGER.trace("No change processor caught this request, returning the FOREGROUND flag.");

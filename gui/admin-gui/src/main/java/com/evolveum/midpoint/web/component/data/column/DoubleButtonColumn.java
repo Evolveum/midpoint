@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.web.component.data.DoubleButtonPanel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;

@@ -17,12 +17,15 @@ package com.evolveum.midpoint.model.test;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,6 +35,7 @@ import java.util.regex.Pattern;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.util.aspect.MidpointAspect;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -49,7 +53,8 @@ public class LogfileTestTailer {
 	public static final String LEVEL_INFO = "INFO";
 	public static final String LEVEL_DEBUG = "DEBUG";
 	public static final String LEVEL_TRACE = "TRACE";
-	
+
+	// see also the 'optimization' at the beginning of processLogLine() - interfering with these patterns
 	private static final Pattern markerPattern = Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\S+\\s+"+MARKER+"\\s+(\\w+).*");
 	private static final Pattern markerPatternPrefix = Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\S+\\s+.*"+MARKER+"\\s+(\\w+).*");
 	public static final Pattern auditPattern = 
@@ -60,7 +65,7 @@ public class LogfileTestTailer {
 	
 	final static Trace LOGGER = TraceManager.getTrace(LogfileTestTailer.class);
 	
-	private FileReader fileReader;
+	private Reader fileReader;
 	private BufferedReader reader;
 	private boolean seenMarker;
 	private Set<String> loggedMarkers;
@@ -78,11 +83,16 @@ public class LogfileTestTailer {
 	public LogfileTestTailer(boolean skipCurrentContent) throws IOException {
 		reset();
 		File file = new File(LOG_FILENAME);
-		fileReader = new FileReader(file);
-		reader = new BufferedReader(fileReader);
+
+		// doing skipping on FileInputStream instead of BufferedReader, hoping it is faster
+		// as the sequential scanning of the file is eliminated
+		FileInputStream fileInputStream = new FileInputStream(file);
 		if (skipCurrentContent) {
-			reader.skip(file.length());
+			long skipped = fileInputStream.skip(file.length());
+			LOGGER.info("Skipped = {}", skipped);
 		}
+		fileReader = new InputStreamReader(fileInputStream);
+		reader = new BufferedReader(fileReader);
 	}
 	
 	public boolean isAllowPrefix() {
@@ -127,11 +137,15 @@ public class LogfileTestTailer {
 		    if (line == null) {
 		    	break;
 		    }
-		    processLogLine(line);
+			processLogLine(line);
 		}
 	}
 
 	private void processLogLine(String line) {
+
+		if (line.length() > 0 && Character.isWhitespace(line.charAt(0))) {
+			return;			// ugly hack: getting rid of long 'continuation' lines that are not matched by any patterns but terribly slow down the processing
+		}
 		
 		// Match marker
 		Pattern pattern = markerPattern;
@@ -245,8 +259,8 @@ public class LogfileTestTailer {
 	 * Log all levels in all subsystems.
 	 */
 	public void log() {
-		for (String subsystemName: MidpointAspect.SUBSYSTEMS) {
-			logAllLevels(LOGGER, subsystemName);
+		for (ProfilingDataManager.Subsystem subsystem: ProfilingDataManager.subsystems) {
+			logAllLevels(LOGGER, subsystem.name());
 		}
 		logAllLevels(LOGGER, null);
 	}

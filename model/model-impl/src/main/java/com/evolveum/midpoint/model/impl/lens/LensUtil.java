@@ -94,6 +94,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -445,6 +446,14 @@ public class LensUtil {
         
     }
 	
+	public static boolean isSyncChannel(String channel){
+		if (channel == null){
+			return false;
+		}
+		
+		return (channel.equals(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI) || channel.equals(SchemaConstants.CHANGE_CHANNEL_RECON_URI));
+	}
+	
 	private static <V extends PrismValue> boolean hasValue(Item<V> item, ItemDelta<V> itemDelta) throws SchemaException {
 		if (item == null || item.isEmpty()) {
 			if (itemDelta != null && itemDelta.addsAnyValue()) {
@@ -761,6 +770,24 @@ public class LensUtil {
 			}
 		}
 		return false;
+	}
+	
+	public static <F extends ObjectType> boolean hasDependentContext(LensContext<F> context, 
+			LensProjectionContext targetProjectionContext) {
+		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+			for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
+				if (isDependencyTargetContext(projectionContext, targetProjectionContext, dependency)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static <F extends ObjectType> boolean isDependencyTargetContext(LensProjectionContext sourceProjContext, LensProjectionContext targetProjectionContext, ResourceObjectTypeDependencyType dependency) {
+		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency, 
+				sourceProjContext.getResource().getOid(), sourceProjContext.getKind());
+		return targetProjectionContext.compareResourceShadowDiscriminator(refDiscr, false);
 	}
 	
 	public static <F extends ObjectType> LensProjectionContext findLowerOrderContext(LensContext<F> context,

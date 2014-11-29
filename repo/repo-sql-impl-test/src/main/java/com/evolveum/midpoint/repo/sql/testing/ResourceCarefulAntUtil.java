@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -71,8 +72,9 @@ public class ResourceCarefulAntUtil {
 			@Override
 			public ItemDelta<?> createDelta(int iteration) throws SchemaException {
 				schemaHandling = createNewSchemaHandling(resourceFile, iteration, prismContext);
-				return PropertyDelta.createModificationReplaceProperty(ResourceType.F_SCHEMA_HANDLING,
-						resourceDef, schemaHandling);
+				return ContainerDelta.createModificationReplace(ResourceType.F_SCHEMA_HANDLING,
+						prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(SchemaHandlingType.class),
+						schemaHandling.asPrismContainerValue().clone());
 			}	
 			@Override
 			public void assertModification(PrismObject<ResourceType> resource, int iteration) {

@@ -266,6 +266,7 @@ public class MiscUtil {
     public static java.util.Date asDate(int year, int month, int date, int hrs, int min, int sec) {
     	Calendar cal = Calendar.getInstance();
     	cal.set(year, month - 1, date, hrs, min, sec);
+		cal.set(Calendar.MILLISECOND, 0);
     	return cal.getTime();
     }
     
