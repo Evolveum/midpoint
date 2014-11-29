@@ -27,7 +27,6 @@ import org.apache.commons.lang.Validate;
 import org.quartz.*;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -35,9 +34,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.Future;
 
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
@@ -298,7 +294,6 @@ public class JobExecutor implements InterruptableJob {
 
 		try {
 			
-			RepositoryCache.enter();
 			TaskRunResult runResult = null;
 
 			recordCycleRunStart(executionResult, handler);
@@ -337,8 +332,6 @@ public class JobExecutor implements InterruptableJob {
 		} catch (Throwable t) {
 			LoggingUtils.logException(LOGGER, "An exception occurred during processing of task {}", t, task);
 			//throw new JobExecutionException("An exception occurred during processing of task " + task, t);
-		} finally {
-			RepositoryCache.exit();
 		}
 	}
 	
@@ -361,18 +354,12 @@ mainCycle:
 				
 				LOGGER.trace("CycleRunner loop: start");
 
-				RepositoryCache.enter();
-
                 TaskRunResult runResult;
-                try {
-				    recordCycleRunStart(executionResult, handler);
-				    runResult = executeHandler(handler, executionResult);
-				    boolean canContinue = recordCycleRunFinish(runResult, handler, executionResult);
-                    if (!canContinue) { // in case of task disappeared
-                        break;
-                    }
-                } finally {
-    				RepositoryCache.exit();
+                recordCycleRunStart(executionResult, handler);
+                runResult = executeHandler(handler, executionResult);
+                boolean canContinue = recordCycleRunFinish(runResult, handler, executionResult);
+                if (!canContinue) { // in case of task disappeared
+                    break;
                 }
 
                 // let us treat various exit situations here...
