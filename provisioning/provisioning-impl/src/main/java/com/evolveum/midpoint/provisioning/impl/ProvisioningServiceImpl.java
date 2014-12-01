@@ -27,8 +27,8 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-
 import com.evolveum.midpoint.schema.RetrieveOption;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -85,6 +85,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisionin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 
 /**
  * Implementation of provisioning service.
@@ -697,7 +699,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 
-	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
+	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
@@ -721,42 +723,106 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
         if (refinedSchema == null) {
-            throw new ConfigurationException("No schema for "+resourceType);
+            ConfigurationException e = new ConfigurationException("No schema for "+resourceType);
+            result.recordFatalError(e);
+            throw e;
         }
         final RefinedObjectClassDefinition objectClassDef = refinedSchema.getRefinedDefinition(objectClassName);
 
-        if (!objectClassDef.isPagedSearchEnabled()) {
-            // traditional way of counting objects (i.e. counting them one by one)
-            final Holder<Integer> countHolder = new Holder<Integer>(0);
-
-            final ResultHandler<T> handler = new ResultHandler<T>() {
-                @Override
-                public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-                    int count = countHolder.getValue();
-                    count++;
-                    countHolder.setValue(count);
-                    return true;
+        CountObjectsCapabilityType countObjectsCapabilityType = objectClassDef.getEffectiveCapability(CountObjectsCapabilityType.class);
+        if (countObjectsCapabilityType == null) {
+        	// Unable to count. Return null which means "I do not know"
+        	result.recordNotApplicableIfUnknown();
+    		return null;
+        } else {
+        	CountObjectsSimulateType simulate = countObjectsCapabilityType.getSimulate();
+        	if (simulate == null) {
+        		// We have native capability
+        		
+        		// TODO shouldn't this be moved into ShadowCache?
+                ConnectorInstance connector = getShadowCache(Mode.STANDARD).getConnectorInstance(resourceType, parentResult);
+                try {
+                    ObjectQuery attributeQuery = getShadowCache(Mode.STANDARD).createAttributeQuery(query);
+                    int count;
+                    try {
+                    	count = connector.count(objectClassDef.getObjectClassDefinition(), attributeQuery, objectClassDef.getPagedSearches(), result);
+                    } catch (CommunicationException | GenericFrameworkException| SchemaException | UnsupportedOperationException e) {
+                    	result.recordFatalError(e);
+                        throw e;
+                    }
+                    result.computeStatus();
+    	            result.cleanupResult();
+    	            return count;
+                } catch (GenericFrameworkException|UnsupportedOperationException e) {
+                    SystemException ex = new SystemException("Couldn't count objects on resource " + resourceType + ": " + e.getMessage(), e);
+                    result.recordFatalError(ex);
+                    throw ex;
                 }
-            };
-
-			Collection<SelectorOptions<GetOperationOptions>> options =
-					SelectorOptions.createCollection(new ItemPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
-            searchObjectsIterativeInternal(type, query, options, handler, false, result);
-            // TODO: better error handling
-            result.computeStatus();
-            result.cleanupResult();
-            return countHolder.getValue();
+                
+        	} else if (simulate == CountObjectsSimulateType.PAGED_SEARCH_ESTIMATE) {
+        		
+        		if (!objectClassDef.isPagedSearchEnabled()) {
+        			throw new ConfigurationException("Configured count object capability to be simulated using a paged search but paged search capability is not present");
+        		}
+        		
+        		final Holder<Integer> countHolder = new Holder<Integer>(0);
+        		
+	            final ResultHandler<T> handler = new ResultHandler<T>() {
+	                @Override
+	                public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+	                    int count = countHolder.getValue();
+	                    count++;
+	                    countHolder.setValue(count);
+	                    return true;
+	                }
+	            };
+	
+	            query = query.clone();
+	            ObjectPaging paging = ObjectPaging.createEmptyPaging();
+	            paging.setMaxSize(1);
+				query.setPaging(paging);
+				Collection<SelectorOptions<GetOperationOptions>> options =
+						SelectorOptions.createCollection(new ItemPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
+				SearchResultMetadata resultMetadata;
+				try {
+					resultMetadata = searchObjectsIterativeInternal(type, query, options, handler, false, result);
+				} catch (SchemaException | ObjectNotFoundException | ConfigurationException | SecurityViolationException e) {
+					result.recordFatalError(e);
+                    throw e;
+				}
+	            result.computeStatus();
+	            result.cleanupResult();
+	            
+        		return resultMetadata.getApproxNumberOfAllResults();
+                
+        	} else if (simulate == CountObjectsSimulateType.SEQUENTIAL_SEARCH) {
+        		
+        		// traditional way of counting objects (i.e. counting them one by one)
+	            final Holder<Integer> countHolder = new Holder<Integer>(0);
+	
+	            final ResultHandler<T> handler = new ResultHandler<T>() {
+	                @Override
+	                public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+	                    int count = countHolder.getValue();
+	                    count++;
+	                    countHolder.setValue(count);
+	                    return true;
+	                }
+	            };
+	
+				Collection<SelectorOptions<GetOperationOptions>> options =
+						SelectorOptions.createCollection(new ItemPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
+	            searchObjectsIterativeInternal(type, query, options, handler, false, result);
+	            // TODO: better error handling
+	            result.computeStatus();
+	            result.cleanupResult();
+	            return countHolder.getValue();
+        		
+        	} else {
+        		throw new IllegalArgumentException("Unknown count capability simulate type "+simulate);
+        	}
         }
-
-        // counting objects using paged search
-        // TODO shouldn't this be moved into ShadowCache?
-        ConnectorInstance connector = getShadowCache(Mode.STANDARD).getConnectorInstance(resourceType, parentResult);
-        try {
-            ObjectQuery attributeQuery = getShadowCache(Mode.STANDARD).createAttributeQuery(query);
-            return connector.count(objectClassDef.getObjectClassDefinition(), attributeQuery, objectClassDef.getPagedSearches(), result);
-        } catch (GenericFrameworkException|UnsupportedOperationException e) {
-            throw new SystemException("Couldn't count objects on resource " + resourceType + ": " + e.getMessage(), e);
-        }
+                
     }
 
 	@SuppressWarnings("rawtypes")

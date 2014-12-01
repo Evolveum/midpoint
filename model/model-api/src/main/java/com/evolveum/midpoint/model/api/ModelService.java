@@ -445,7 +445,7 @@ public interface ModelService {
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return number of objects of specified type that match search criteria (subject
-	 *         to paging)
+	 *         to paging). May return null if the number of objects is not known.
 	 * 
 	 * @throws SchemaException
 	 *             unknown property used in search query
@@ -461,7 +461,7 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
-	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+	<T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult) 
             		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
 

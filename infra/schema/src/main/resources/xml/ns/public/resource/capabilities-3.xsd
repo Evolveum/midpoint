@@ -451,6 +451,66 @@
 
 	<xsd:element name="pagedSearch" type="tns:PagedSearchCapabilityType"/>
 
+	<xsd:complexType name="CountObjectsCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Ability to efficiently count objects.
+				Although deals primarily with GUI issues, may be useful for other kinds of access as well.
+				EXPERIMENTAL.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+				<xsd:sequence>
+					<xsd:element name="simulate" type="tns:CountObjectsSimulateType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Strategy to simulate count operation using a different operation.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:element name="countObjects" type="tns:CountObjectsCapabilityType"/>
+	
+	<xsd:simpleType name="CountObjectsSimulateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Strategy to simulate count operation using a different operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="pagedSearchEstimate">
+                <xsd:annotation>
+		            <xsd:documentation>
+		                Try a paged search with the page of one. Use the approximate number of entries
+		                returned in search metadata as count approximation.
+		            </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PAGED_SEARCH_ESTIMATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="sequentialSearch">
+                <xsd:annotation>
+		            <xsd:documentation>
+		                Execute the actual search and sequentially count the entries.
+		                WARNING: this may be very inefficient.
+		            </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SEQUENTIAL_SEARCH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
+
 	<xsd:complexType name="AddRemoveAttributeValuesCapabilityType">
 		<xsd:annotation>
 			<xsd:documentation>

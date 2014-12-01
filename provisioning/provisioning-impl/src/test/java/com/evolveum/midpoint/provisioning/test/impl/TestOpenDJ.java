@@ -1371,6 +1371,27 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		}
 	}
 	
+	@Test
+	public void test250CountObjects() throws Exception {
+		final String TEST_NAME = "test250CountObjects";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
+                QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+
+		// WHEN
+		Integer count = provisioningService.countObjects(ShadowType.class, query, result);
+		
+		// THEN
+		result.computeStatus();
+		assertSuccess(result);
+		
+		assertEquals("Unexpected number of search results", (Integer)14, count);
+	}
+	
 	/**
 	 * The exception comes from the resource. There is no shadow for this object.
 	 */
