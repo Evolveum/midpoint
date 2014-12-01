@@ -1200,7 +1200,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             throws SchemaException {
 
         PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-        generator.generate(prismObject);
+        IdGeneratorResult generatorResult = generator.generate(prismObject);
 
         T object = prismObject.asObjectable();
 
@@ -1208,8 +1208,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(object.getClass());
         try {
             rObject = clazz.newInstance();
-            Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
-            method.invoke(clazz, object, rObject, getPrismContext());
+            Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz,
+                    PrismContext.class, IdGeneratorResult.class);
+            method.invoke(clazz, object, rObject, getPrismContext(), generatorResult);
         } catch (Exception ex) {
             String message = ex.getMessage();
             if (StringUtils.isEmpty(message) && ex.getCause() != null) {

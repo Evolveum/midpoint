@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -74,8 +75,9 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
     }
 
     public static void copyFromJAXB(SystemConfigurationType jaxb, RSystemConfiguration repo,
-                                    PrismContext prismContext) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+                                    PrismContext prismContext, IdGeneratorResult generatorResult)
+            throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
     }

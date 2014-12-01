@@ -16,16 +16,28 @@ import java.util.*;
  */
 public class PrismIdentifierGenerator {
 
-    public void generate(PrismObject object) {
+    /**
+     * Method inserts id for prism container values, which didn't have ids,
+     * also returns all container values which has generated id
+     *
+     * @param object
+     * @return
+     */
+    public IdGeneratorResult generate(PrismObject object) {
+        IdGeneratorResult result = new IdGeneratorResult();
         if (StringUtils.isEmpty(object.getOid())) {
             String oid = UUID.randomUUID().toString();
             object.setOid(oid);
+
+            result.setGeneratedOid(true);
         }
 
-        generateIdForObject(object);
+        generateIdForObject(object, result, result.isGeneratedOid());
+
+        return result;
     }
 
-    private void generateIdForObject(PrismObject object) {
+    private void generateIdForObject(PrismObject object, IdGeneratorResult result, boolean generatedOid) {
         if (object == null) {
             return;
         }
@@ -52,6 +64,10 @@ public class PrismIdentifierGenerator {
 
             for (PrismContainerValue val : (List<PrismContainerValue>) c.getValues()) {
                 if (val.getId() != null) {
+                    if (generatedOid) {
+                        result.getValues().add(val);
+                    }
+
                     continue;
                 }
 
@@ -61,6 +77,8 @@ public class PrismIdentifierGenerator {
 
                 val.setId(nextId);
                 usedIds.add(nextId);
+
+                result.getValues().add(val);
             }
         }
     }

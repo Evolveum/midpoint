@@ -30,9 +30,7 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -84,9 +82,11 @@ import java.util.Set;
         @Index(name = "iObjectTypeClass", columnList = "objectTypeClass"),
         @Index(name = "iObjectCreateTimestamp", columnList = "createTimestamp")})
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, Serializable {
+public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, EntityState, Serializable {
 
     public static final String F_OBJECT_TYPE_CLASS = "objectTypeClass";
+
+    private Boolean trans;
 
     private String oid;
     private int version;
@@ -124,8 +124,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private Set<ROExtPolyString> polys;
 
     @Id
-    @GeneratedValue(generator = "ContainerOidGenerator")
-    @GenericGenerator(name = "ContainerOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ObjectOidGenerator")
+    @GeneratedValue(generator = "ObjectOidGenerator")
+    @GenericGenerator(name = "ObjectOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ObjectOidGenerator")
     @Column(name = "oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
     public String getOid() {
         return oid;
@@ -136,7 +136,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return name;
     }
 
-//    @JoinTable(foreignKey = @ForeignKey(name = "none"))
+    //    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @OneToMany(mappedBy = RTrigger.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RTrigger> getTrigger() {
@@ -313,6 +313,16 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @Enumerated
     public RObjectType getObjectTypeClass() {
         return objectTypeClass;
+    }
+
+    @Transient
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     public void setObjectTypeClass(RObjectType objectTypeClass) {
@@ -502,14 +512,17 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         }
     }
 
-    public static <T extends ObjectType> void copyFromJAXB(ObjectType jaxb, RObject<T> repo, PrismContext prismContext)
+    public static <T extends ObjectType> void copyFromJAXB(ObjectType jaxb, RObject<T> repo, PrismContext prismContext,
+                                                           IdGeneratorResult generatorResult)
             throws DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
+        repo.setTransient(generatorResult.isGeneratedOid());
+        repo.setOid(jaxb.getOid());
+
         repo.setObjectTypeClass(RObjectType.getType(ClassMapper.getHQLTypeClass(jaxb.getClass())));
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setOid(jaxb.getOid());
 
         String strVersion = jaxb.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(jaxb
@@ -520,8 +533,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
                 repo, RReferenceOwner.OBJECT_PARENT_ORG));
 
         for (TriggerType trigger : jaxb.getTrigger()) {
-            RTrigger rTrigger = new RTrigger(repo);
-            RTrigger.copyFromJAXB(trigger, rTrigger, jaxb, prismContext);
+            RTrigger rTrigger = new RTrigger(null);
+            RTrigger.copyFromJAXB(trigger, rTrigger, jaxb, prismContext, generatorResult);
 
             repo.getTrigger().add(rTrigger);
         }

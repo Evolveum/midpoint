@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RResourceAdministrativeS
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RResourceApproverRef;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -142,9 +143,10 @@ public class RResource extends RObject<ResourceType> {
         return result;
     }
 
-    public static void copyFromJAXB(ResourceType jaxb, RResource repo, PrismContext prismContext)
+    public static void copyFromJAXB(ResourceType jaxb, RResource repo, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult)
             throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setConnectorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorRef(), prismContext));

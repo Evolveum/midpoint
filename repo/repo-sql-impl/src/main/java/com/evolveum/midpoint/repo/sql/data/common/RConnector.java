@@ -20,18 +20,17 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
-
 import java.util.Collection;
 import java.util.Set;
 
@@ -151,9 +150,9 @@ public class RConnector extends RObject<ConnectorType> {
         return result;
     }
 
-    public static void copyFromJAXB(ConnectorType jaxb, RConnector repo, PrismContext prismContext) throws
-            DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+    public static void copyFromJAXB(ConnectorType jaxb, RConnector repo, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setConnectorBundle(jaxb.getConnectorBundle());

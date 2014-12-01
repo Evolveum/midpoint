@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -31,6 +30,7 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,7 +42,6 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
 import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -69,6 +68,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     public static final String F_ASSIGNMENT_OWNER = "assignmentOwner";
 
     private static final Trace LOGGER = TraceManager.getTrace(RAssignment.class);
+
+    private Boolean trans;
 
     private RObject owner;
     private String ownerOid;
@@ -210,6 +211,17 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return modifyTimestamp;
     }
 
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
+    }
+
     public void setOwner(RObject owner) {
         this.owner = owner;
     }
@@ -315,10 +327,12 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return result;
     }
 
-    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, PrismContext prismContext)
-            throws DtoTranslationException {
+    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
+
+        repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
 
         repo.setOwnerOid(parent.getOid());
         repo.setId(RUtil.toShort(jaxb.getId()));

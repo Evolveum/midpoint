@@ -5,6 +5,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROrientationType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -107,10 +108,11 @@ public class RReport extends RObject<ReportType> {
         return result;
     }
 
-    public static void copyFromJAXB(ReportType jaxb, RReport repo, PrismContext prismContext)
+    public static void copyFromJAXB(ReportType jaxb, RReport repo, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult)
             throws DtoTranslationException {
 
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setOrientation(RUtil.getRepoEnumValue(jaxb.getOrientation(), ROrientationType.class));

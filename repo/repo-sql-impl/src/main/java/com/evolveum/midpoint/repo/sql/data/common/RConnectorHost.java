@@ -25,6 +25,7 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
@@ -43,6 +44,7 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+
 /**
  * @author lazyman
  */
@@ -104,9 +106,9 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
         return result;
     }
 
-    public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHost repo, PrismContext prismContext) throws
-            DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+    public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHost repo, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setHostname(jaxb.getHostname());
