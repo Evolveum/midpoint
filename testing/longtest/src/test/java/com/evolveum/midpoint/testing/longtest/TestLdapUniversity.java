@@ -86,7 +86,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 	
 	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 500;
+	private static final int NUM_LDAP_ENTRIES = 100;
 
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 	
@@ -152,7 +152,9 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
         loadEntries("u");
         createUsers("u", result);
-        
+
+        display("e0", findUserByUsername("e0"));
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
@@ -164,7 +166,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
         
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
+        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000, 6000L);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -173,7 +175,10 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         display("Users", userCount);
         assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES+1, userCount);
 
-        assertUser("e0", task, result);
+        display("e0(u0)", findUserByUsername("e0(u0)"));
+        display("e1(u1)", findUserByUsername("e1(u1)"));
+
+        assertUser("e0(u0)", task, result);
         assertUser("e1(u1)", task, result);
 	}
 
@@ -194,6 +199,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
                 display("Created "+(i+1)+" users in "+((System.currentTimeMillis()-start))+" seconds, continuing...");
             }
         }
+        display("Created "+NUM_LDAP_ENTRIES+" users in "+((System.currentTimeMillis()-start))+" seconds.");
 
     }
 

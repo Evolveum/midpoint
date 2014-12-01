@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.util;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
@@ -247,6 +248,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		try {
 
+			RepositoryCache.enter();
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("{} starting for {} {}",new Object[] {
 						getProcessShortNameCapitalized(), object, getContextDesc()});
@@ -272,6 +275,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		} catch (CommonException|RuntimeException e) {
 			cont = processError(object, e, result);
 		} finally {
+			RepositoryCache.exit();
+
 			long duration = System.currentTimeMillis()-startTime;
 			long total = totalTimeProcessing.addAndGet(duration);
 			int progress = objectsProcessed.incrementAndGet();

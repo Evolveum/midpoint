@@ -649,7 +649,7 @@ public class ChangeExecutor {
 	    	}
     	}
     }
-	
+
 	private <T extends ObjectType, F extends FocusType> void removeExecutedItemDeltas(
 			ObjectDelta<T> objectDelta, LensElementContext<T> objectContext) {
 		if (objectContext == null){
@@ -691,6 +691,20 @@ public class ChangeExecutor {
 	}
 
 	/**
+	 * Was this object already added? (temporary method, should be removed soon)
+	 */
+	private <T extends ObjectType> boolean wasAdded(List<LensObjectDeltaOperation<T>> executedOperations, String oid) {
+		for (LensObjectDeltaOperation operation : executedOperations) {
+			if (operation.getObjectDelta().isAdd() &&
+					oid.equals(operation.getObjectDelta().getOid()) &&
+					!operation.getExecutionResult().isFatalError()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Computes delta to execute, given a list of already executes deltas. See below.
 	 */
 	private <T extends ObjectType> ObjectDelta<T> computeDeltaToExecute(
@@ -717,6 +731,9 @@ public class ChangeExecutor {
 	 *
 	 * Unfortunately, this mechanism is not well-defined, and seems to work more "by accident" than "by design".
 	 * It should be replaced with something more serious. Perhaps by re-reading current focus state when repeating a wave?
+	 * Actually, it is a supplement for rewriting ADD->MODIFY deltas in LensElementContext.getFixedPrimaryDelta.
+	 * That method converts primary deltas (and as far as I know, that is the only place where this problem should occur).
+	 * Nevertheless, for historical and safety reasons I keep also the processing in this method.
 	 *
 	 * Anyway, currently it treats only two cases:
 	 * 1) if the objectDelta is present in the list of executed deltas
@@ -730,7 +747,7 @@ public class ChangeExecutor {
 
 		ObjectDeltaOperation<T> lastRelated = findLastRelatedDelta(executedDeltas, objectDelta);		// any delta related to our OID, not ending with fatal error
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("findLastRelatedDelta returned:\n{}", objectDelta.debugDump());
+			LOGGER.trace("findLastRelatedDelta returned:\n{}", lastRelated!=null ? lastRelated.debugDump() : "(null)");
 		}
 		if (lastRelated == null) {
 			return objectDelta;			// nothing found, let us apply our delta

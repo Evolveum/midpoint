@@ -140,8 +140,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             // counting objects can be within try-catch block, because the handling is similar to handling errors within searchIterative
             Long expectedTotal = null;
             if (countObjectsOnStart) {
-                expectedTotal = (long) modelObjectResolver.countObjects(type, query, opResult);
+                Integer expectedTotalInt = modelObjectResolver.countObjects(type, query, opResult);
                 LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
+                if (expectedTotalInt != null) {
+                    expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
+                }
             }
 
             runResult.setProgress(0);
