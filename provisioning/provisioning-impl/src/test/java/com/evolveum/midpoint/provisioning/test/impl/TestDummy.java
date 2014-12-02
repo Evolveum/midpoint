@@ -1411,7 +1411,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("All shadows query", query);
 
 		// WHEN
-		int count = provisioningService.countObjects(ShadowType.class, query, result);
+		Integer count = provisioningService.countObjects(ShadowType.class, query, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1420,7 +1420,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		display("Found " + count + " shadows");
 
-		assertEquals("Wrong number of results", 4, count);
+		assertEquals("Wrong number of results", null, count);
 		
 		assertSteadyResource();
 	}
