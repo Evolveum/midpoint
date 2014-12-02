@@ -41,12 +41,12 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 
 	@Override
 	public String getStartSystemCommand() {
-		return getScriptDirectoryName()+"/openldap start";
+		return getScriptDirectoryName()+"/openldap-start";
 	}
 
 	@Override
 	public String getStopSystemCommand() {
-		return getScriptDirectoryName()+"/openldap stop";
+		return getScriptDirectoryName()+"/openldap-stop";
 	}
 	
 	
