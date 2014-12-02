@@ -35,6 +35,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -462,6 +465,23 @@ public class TestUtil {
 		for (OperationResult subresult : result.getSubresults()) {
 			selectSubresultsInternal(retval, subresult, operationNames);
 		}
+	}
+
+	public static String execSystemCommand(String command) throws IOException, InterruptedException {
+		Runtime runtime = Runtime.getRuntime();
+		LOGGER.debug("Executing system command: {}", command);
+		Process process = runtime.exec(command);
+		process.waitFor();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+		StringBuilder output = new StringBuilder();
+		String line = null;
+		while ((line = reader.readLine()) != null) {
+			output.append(line);
+		}
+		reader.close();
+		String outstring = output.toString();
+		LOGGER.debug("Command output:\n{}",outstring);
+		return outstring;
 	}
 
 }

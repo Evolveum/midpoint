@@ -182,9 +182,10 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	 */
 	@Test
 	public void test003Connection() throws Exception {
-		TestUtil.displayTestTile("test003Connection");
+		final String TEST_NAME = "test003Connection";
+		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test003Connection");
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"."+TEST_NAME);
 		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
 		assertNotNull("No connector ref OID",resourceTypeBefore.getConnectorRef().getOid());

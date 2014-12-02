@@ -83,9 +83,8 @@ It also contains inbound mappings and definition to enable synchronization.
 				<icfcldap:useBlocks>true</icfcldap:useBlocks>
 				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
 			</icfc:configurationProperties>
-			
 			<icfc:resultsHandlerConfiguration>
-	                	<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+				<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
 			</icfc:resultsHandlerConfiguration>
 		</connectorConfiguration>
        
