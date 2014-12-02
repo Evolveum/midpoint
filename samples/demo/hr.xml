@@ -34,7 +34,7 @@
             <filter>
                 <q:equal>
 					<q:path>c:connectorType</q:path>
-                    <q:value>org.forgerock.openicf.csvfile.CSVFileConnector</q:value>
+                    <q:value>com.evolveum.polygon.csvfile.CSVFileConnector</q:value>
                 </q:equal>
             </filter>
         </connectorRef>
