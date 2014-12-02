@@ -20,7 +20,7 @@
 
 This file is an example of Resource definition. It defines an LDAP resource
 using an Identity Connector Framework LDAP connector. It contains configuration
-for use with OpenLDAP servers.
+for use with 389 Directory Servers.
 
 This is "Medium difficulty" resource definition.
 It contains outbound mappings to correctly populate new accounts.
@@ -41,19 +41,19 @@ It also contains inbound mappings and definition to enable synchronization.
          xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 
 		 
-    <resource oid="d0811790-1d80-11e4-86b2-3c970e467874">
+    <resource oid="b61f63ae-7661-11e4-98b9-001e8c717e5b">
 
         <!-- Resource name. It will be displayed in GUI.  -->
         <name>OpenLDAP</name>
 
         <description>
             LDAP resource using a ConnId LDAP connector. It contains configuration
-            for use with OpenLDAP servers.
+            for use with 389 Directory Servers.
         </description>
 
         <connectorRef type="ConnectorType">
             <description>
-                Reference to the OpenICF LDAP connector. This is dynamic reference, it will be translated to
+                Reference to the Polygon LDAP connector. This is dynamic reference, it will be translated to
                 OID during import.
             </description>
             <filter>
@@ -72,16 +72,14 @@ It also contains inbound mappings and definition to enable synchronization.
 				<icfcldap:port>389</icfcldap:port>
 				<icfcldap:host>localhost</icfcldap:host>
 				<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-				<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
+				<icfcldap:principal>cn=idm,ou=Special Users,dc=example,dc=com</icfcldap:principal>
 				<icfcldap:credentials>
-					<clearValue>secret</clearValue>
-	                	</icfcldap:credentials>
-				<icfcldap:passwordHashAlgorithm>SSHA</icfcldap:passwordHashAlgorithm>
-				<icfcldap:groupMemberAttribute>member</icfcldap:groupMemberAttribute>
-				<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
+					<clearValue>secret123</clearValue>
+	            </icfcldap:credentials>
+				<icfcldap:modifiersNamesToFilterOut>cn=idm,ou=Special Users,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 				<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-				<icfcldap:useBlocks>true</icfcldap:useBlocks>
-				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+				<icfcldap:uidAttribute>nsUniqueId</icfcldap:uidAttribute>
+				<icfcldap:accountOperationalAttributes>nsAccountLock</icfcldap:accountOperationalAttributes>
 			</icfc:configurationProperties>
 			
 			<icfc:resultsHandlerConfiguration>
@@ -358,16 +356,11 @@ It also contains inbound mappings and definition to enable synchronization.
 					</source>
 				</outbound>
 			</attribute>
-			<configuredCapabilities>
-				<cap:pagedSearch>
-					<cap:defaultSortField>ri:uid</cap:defaultSortField>
-				</cap:pagedSearch>
-			</configuredCapabilities>
 		</objectType>
 	</schemaHandling>
 
 <!--
-    <capabilities>
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
     	<configured>
             <cap:activation>
                 <cap:status>
