@@ -8,7 +8,7 @@ CREATE TABLE Users (
 	organization	VARCHAR(255),
 	password	VARCHAR(255),
 	disabled	BOOLEAN DEFAULT false,
-	timestamp	TIMESTAMP
+	timestamp	TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
 CREATE TABLE Groups (
@@ -23,3 +23,12 @@ CREATE TABLE Organizations (
 	description	VARCHAR(255)
 );
 
+CREATE OR REPLACE FUNCTION update_timestamp_column()	
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.timestamp = now();
+    RETURN NEW;	
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_account_timestamp BEFORE UPDATE ON Users FOR EACH ROW EXECUTE PROCEDURE  update_timestamp_column();

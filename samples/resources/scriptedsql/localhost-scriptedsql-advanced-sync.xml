@@ -37,7 +37,7 @@
 			<filter>
 				<q:equal>
 					<q:path>c:connectorType</q:path>
-					<q:value>org.forgerock.openicf.scriptedsql.ScriptedSQLConnector</q:value>
+					<q:value>org.forgerock.openicf.connectors.scriptedsql.ScriptedSQLConnector</q:value>
 				</q:equal>
 			</filter>
 		</connectorRef>
@@ -46,35 +46,35 @@
              such as hostnames and passwords -->
 		<c:connectorConfiguration>
 
-			<!-- Configuration specific for the DBTable connector -->
+			<!-- Configuration specific for the ScriptedSQL connector -->
 			<icfc:configurationProperties
-			   xmlns:icscscriptedsql="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.scriptedsql/org.forgerock.openicf.scriptedsql.ScriptedSQLConnector">
-				<icscscriptedsql:port>3306</icscscriptedsql:port>
+			xmlns:icscscriptedsql="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.scriptedsql-connector/org.forgerock.openicf.connectors.scriptedsql.ScriptedSQLConnector">
+				<icscscriptedsql:port>5432</icscscriptedsql:port>
 				<icscscriptedsql:quoting></icscscriptedsql:quoting>
 				<icscscriptedsql:host>localhost</icscscriptedsql:host>
 				<icscscriptedsql:user>mdp_scriptedsql</icscscriptedsql:user>
-				<icscscriptedsql:password><clearValue>secret</clearValue></icscscriptedsql:password>
+				<icscscriptedsql:password><clearValue>password</clearValue></icscscriptedsql:password>
 				<icscscriptedsql:database>mdp_scriptedsql</icscscriptedsql:database>
 				<icscscriptedsql:clearTextPasswordToScript>true</icscscriptedsql:clearTextPasswordToScript>
 				<icscscriptedsql:scriptingLanguage>GROOVY</icscscriptedsql:scriptingLanguage>
 
-				<icscscriptedsql:createScriptFileName>/opt/midpoint-configuration/icf-connectors/CreateScript.groovy</icscscriptedsql:createScriptFileName>
-				<icscscriptedsql:updateScriptFileName>/opt/midpoint-configuration/icf-connectors/UpdateScript.groovy</icscscriptedsql:updateScriptFileName>
-				<icscscriptedsql:deleteScriptFileName>/opt/midpoint-configuration/icf-connectors/DeleteScript.groovy</icscscriptedsql:deleteScriptFileName>
-				<icscscriptedsql:searchScriptFileName>/opt/midpoint-configuration/icf-connectors/SearchScript.groovy</icscscriptedsql:searchScriptFileName>
-				<icscscriptedsql:testScriptFileName>/opt/midpoint-configuration/icf-connectors/TestScript.groovy</icscscriptedsql:testScriptFileName>
-				<icscscriptedsql:syncScriptFileName>/opt/midpoint-configuration/icf-connectors/SyncScript.groovy</icscscriptedsql:syncScriptFileName>
+				<icscscriptedsql:createScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/CreateScript.groovy</icscscriptedsql:createScriptFileName>
+				<icscscriptedsql:updateScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/UpdateScript.groovy</icscscriptedsql:updateScriptFileName>
+				<icscscriptedsql:deleteScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/DeleteScript.groovy</icscscriptedsql:deleteScriptFileName>
+				<icscscriptedsql:schemaScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/SchemaScript.groovy</icscscriptedsql:schemaScriptFileName>
+				<icscscriptedsql:searchScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/SearchScript.groovy</icscscriptedsql:searchScriptFileName>
+				<icscscriptedsql:testScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/TestScript.groovy</icscscriptedsql:testScriptFileName>
+				<icscscriptedsql:syncScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/SyncScript.groovy</icscscriptedsql:syncScriptFileName>
 
 				<icscscriptedsql:validConnectionQuery></icscscriptedsql:validConnectionQuery>
 				<icscscriptedsql:jndiProperties></icscscriptedsql:jndiProperties>
 
-				<icscscriptedsql:jdbcDriver>com.mysql.jdbc.Driver</icscscriptedsql:jdbcDriver>
-				<icscscriptedsql:jdbcUrlTemplate>jdbc:mysql://%h:%p/%d?useUnicode=true&amp;characterEncoding=utf8&amp;connectionCollation=utf8_bin</icscscriptedsql:jdbcUrlTemplate>
+				<icscscriptedsql:jdbcDriver>org.postgresql.Driver</icscscriptedsql:jdbcDriver>
+				<icscscriptedsql:jdbcUrlTemplate>jdbc:postgresql://%h:%p/%d</icscscriptedsql:jdbcUrlTemplate>
 				<icscscriptedsql:enableEmptyString>true</icscscriptedsql:enableEmptyString>
 				<icscscriptedsql:rethrowAllSQLExceptions>true</icscscriptedsql:rethrowAllSQLExceptions>
-				<icscscriptedsql:nativeTimestamps>false</icscscriptedsql:nativeTimestamps>
+				<icscscriptedsql:nativeTimestamps>true</icscscriptedsql:nativeTimestamps>
 				<icscscriptedsql:allNative>false</icscscriptedsql:allNative>
-				<!--<icscscriptedsql:changeLogColumn>timestamp</icscscriptedsql:changeLogColumn>-->
 				<icscscriptedsql:datasource></icscscriptedsql:datasource>
 			</icfc:configurationProperties>
 
@@ -203,9 +203,8 @@
 				<activation>
 					<administrativeStatus>
 						<outbound/>
-						<inbound>
-							<strength>weak</strength>
-						</inbound>
+						<inbound/>
+							<!--<strength>weak</strength>-->
 					</administrativeStatus>
 				</activation>
 				<credentials>
@@ -272,12 +271,7 @@
 				</reaction>
 				<reaction>
 					<situation>unmatched</situation>
-					<!-- Reference to the User Template is here. If the user would be
-	                         created as a result of this action, it will be created according
-	                         to this template. -->
-					<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
 					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
-					<!--	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
 				</reaction>
 			</objectSynchronization>
 		</synchronization>
