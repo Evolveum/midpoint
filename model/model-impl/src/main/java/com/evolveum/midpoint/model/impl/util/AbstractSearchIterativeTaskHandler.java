@@ -149,7 +149,9 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
             runResult.setProgress(0);
             coordinatorTask.setProgress(0);
-            coordinatorTask.setExpectedTotal(expectedTotal);
+            if (expectedTotal != null) {
+                coordinatorTask.setExpectedTotal(expectedTotal);
+            }
             try {
                 coordinatorTask.savePendingModifications(opResult);
             } catch (ObjectAlreadyExistsException e) {      // other exceptions are handled in the outer try block
