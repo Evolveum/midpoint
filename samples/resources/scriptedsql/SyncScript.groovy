@@ -66,7 +66,7 @@ else if (action.equalsIgnoreCase("SYNC")) {
     }
 
     sql.eachRow("select * from Users where timestamp > ${tstamp}",
-        {result.add([operation:"CREATE_OR_UPDATE", uid:it.uid, token:it.timestamp.getTime(), attributes:[firstname:it.firstname, lastname:it.lastname, email:it.email]])}
+        {result.add([operation:"CREATE_OR_UPDATE", uid:it.uid, token:it.timestamp.getTime(), attributes:[firstname:it.firstname, lastname:it.lastname, fullname:it.fullname, organization:it.organization, email:it.email]])}
     )
     log.ok("Sync script: found "+result.size()+" events to sync")
     return result;
