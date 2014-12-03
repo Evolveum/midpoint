@@ -74,9 +74,8 @@
 				<icscscriptedsql:jdbcUrlTemplate>jdbc:postgresql://%h:%p/%d</icscscriptedsql:jdbcUrlTemplate>
 				<icscscriptedsql:enableEmptyString>true</icscscriptedsql:enableEmptyString>
 				<icscscriptedsql:rethrowAllSQLExceptions>true</icscscriptedsql:rethrowAllSQLExceptions>
-				<icscscriptedsql:nativeTimestamps>false</icscscriptedsql:nativeTimestamps>
+				<icscscriptedsql:nativeTimestamps>true</icscscriptedsql:nativeTimestamps>
 				<icscscriptedsql:allNative>false</icscscriptedsql:allNative>
-				<!--<icscscriptedsql:changeLogColumn>timestamp</icscscriptedsql:changeLogColumn>-->
 				<icscscriptedsql:datasource></icscscriptedsql:datasource>
 			</icfc:configurationProperties>
 

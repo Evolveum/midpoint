@@ -57,6 +57,7 @@
 				<icscscriptedsql:database>mdp_scriptedsql</icscscriptedsql:database>
 				<icscscriptedsql:clearTextPasswordToScript>true</icscscriptedsql:clearTextPasswordToScript>
 				<icscscriptedsql:scriptingLanguage>GROOVY</icscscriptedsql:scriptingLanguage>
+				<icscscriptedsql:reloadScriptOnExecution>true</icscscriptedsql:reloadScriptOnExecution>
 
 				<icscscriptedsql:createScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/CreateScript.groovy</icscscriptedsql:createScriptFileName>
 				<icscscriptedsql:updateScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/UpdateScript.groovy</icscscriptedsql:updateScriptFileName>
