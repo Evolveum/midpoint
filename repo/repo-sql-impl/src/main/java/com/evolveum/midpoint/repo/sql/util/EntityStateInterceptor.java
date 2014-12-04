@@ -1,13 +1,10 @@
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RUserPhoto;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAExtValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtValue;
-import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
 import org.hibernate.EmptyInterceptor;
 
@@ -19,7 +16,7 @@ public class EntityStateInterceptor extends EmptyInterceptor {
     @Override
     public Boolean isTransient(Object entity) {
         if (entity instanceof EntityState) {
-            return ((EntityState) entity).isTransient();
+            return isTransient((EntityState) entity);
         }
 
         if (entity instanceof RObjectReference) {

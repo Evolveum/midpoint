@@ -6,7 +6,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.cxf.common.util.StringUtils;
 
 import java.util.*;
@@ -16,6 +15,8 @@ import java.util.*;
  */
 public class PrismIdentifierGenerator {
 
+    public static enum Operation {ADD, ADD_WITH_OVERWRITE, MODIFY}
+
     /**
      * Method inserts id for prism container values, which didn't have ids,
      * also returns all container values which has generated id
@@ -23,8 +24,11 @@ public class PrismIdentifierGenerator {
      * @param object
      * @return
      */
-    public IdGeneratorResult generate(PrismObject object) {
+    public IdGeneratorResult generate(PrismObject object, Operation operation) {
         IdGeneratorResult result = new IdGeneratorResult();
+        boolean adding = Operation.ADD.equals(operation);
+        result.setGeneratedOid(adding);
+
         if (StringUtils.isEmpty(object.getOid())) {
             String oid = UUID.randomUUID().toString();
             object.setOid(oid);
@@ -32,12 +36,12 @@ public class PrismIdentifierGenerator {
             result.setGeneratedOid(true);
         }
 
-        generateIdForObject(object, result, result.isGeneratedOid());
+        generateIdForObject(object, result, operation);
 
         return result;
     }
 
-    private void generateIdForObject(PrismObject object, IdGeneratorResult result, boolean generatedOid) {
+    private void generateIdForObject(PrismObject object, IdGeneratorResult result, Operation operation) {
         if (object == null) {
             return;
         }
@@ -64,10 +68,9 @@ public class PrismIdentifierGenerator {
 
             for (PrismContainerValue val : (List<PrismContainerValue>) c.getValues()) {
                 if (val.getId() != null) {
-                    if (generatedOid) {
+                    if (Operation.ADD.equals(operation)) {
                         result.getValues().add(val);
                     }
-
                     continue;
                 }
 
@@ -78,7 +81,9 @@ public class PrismIdentifierGenerator {
                 val.setId(nextId);
                 usedIds.add(nextId);
 
-                result.getValues().add(val);
+                if (!Operation.ADD_WITH_OVERWRITE.equals(operation)) {
+                    result.getValues().add(val);
+                }
             }
         }
     }

@@ -464,7 +464,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             LOGGER.trace("Translating JAXB to data type.");
-            RObject rObject = createDataObjectFromJAXB(object, true);
+            PrismIdentifierGenerator.Operation operation = options.isOverwrite() ?
+                    PrismIdentifierGenerator.Operation.ADD_WITH_OVERWRITE :
+                    PrismIdentifierGenerator.Operation.ADD;
+
+            RObject rObject = createDataObjectFromJAXB(object, operation);
 
             session = beginTransaction();
 
@@ -1042,7 +1046,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
             // merge and update user
             LOGGER.trace("Translating JAXB to data type.");
-            RObject rObject = createDataObjectFromJAXB(prismObject, false);
+            RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
             rObject.setVersion(rObject.getVersion() + 1);
 
             updateFullObject(rObject, prismObject);
@@ -1196,11 +1200,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject, boolean add)
+    private <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject,
+                                                                    PrismIdentifierGenerator.Operation operation)
             throws SchemaException {
 
         PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-        IdGeneratorResult generatorResult = generator.generate(prismObject);
+        IdGeneratorResult generatorResult = generator.generate(prismObject, operation);
 
         T object = prismObject.asObjectable();
 
