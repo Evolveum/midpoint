@@ -803,7 +803,7 @@ public class PageAccounts extends PageAdminConfiguration {
         }
 
         filesModel.reset();
-        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_FILES_CONTAINER)));
+        target.add(getFeedbackPanel(), get(createComponentPath(ID_FORM_ACCOUNT, ID_FILES_CONTAINER)));
     }
 
     private Writer createWriter(String fileName) throws IOException {
@@ -858,7 +858,8 @@ public class PageAccounts extends PageAdminConfiguration {
         }
 
         filesModel.reset();
-        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_FILES_CONTAINER)));
+        success(getString("PageAccounts.message.success.clearExport"));
+        target.add(getFeedbackPanel(), get(createComponentPath(ID_FORM_ACCOUNT, ID_FILES_CONTAINER)));
     }
 
     private void downloadPerformed(AjaxRequestTarget target, String fileName,
