@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
@@ -260,7 +262,7 @@ public interface RepositoryService {
 	 *             unknown property used in search query
 	 */
 
-	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query,
+	public <T extends ObjectType> SearchResultList<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException;
 
@@ -295,7 +297,7 @@ public interface RepositoryService {
 	 *             unknown property used in search query
 	 */
 
-	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
 			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException;
 
@@ -491,4 +493,20 @@ public interface RepositoryService {
 	 * without changing the result structure. It must not throw an exception in this case.
 	 */
     public void repositorySelfTest(OperationResult parentResult);
+
+    /**
+     * Checks a closure for consistency, repairing any problems found.
+     * This methods should never throw a (checked) exception. All the results
+     * should be in the returned result structure (including fatal errors).
+     *
+     * The current implementation expects closure to be of reasonable size - so
+     * it could be fetched into main memory as well as recomputed online
+     * (perhaps up to ~250K entries). In future, this method will be reimplemented.
+     *
+     * BEWARE, this method locks out the M_ORG_CLOSURE table, so org-related operations
+     * would wait until it completes.
+     *
+     * TODO this method is SQL service specific; it should be generalized/fixed somehow.
+     */
+    void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult);
 }

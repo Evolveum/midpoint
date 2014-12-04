@@ -102,8 +102,8 @@ private Filter interpretOr(Filter orF, List<Filter> filters){
 			return orF;
 		}
 		
-		orF = FilterBuilder.and(orF, filters.get(0));
-		orF = interpretAnd(orF, filters.subList(1, filters.size()));	
+		orF = FilterBuilder.or(orF, filters.get(0));
+		orF = interpretOr(orF, filters.subList(1, filters.size()));	
 		return orF;
 	}
 

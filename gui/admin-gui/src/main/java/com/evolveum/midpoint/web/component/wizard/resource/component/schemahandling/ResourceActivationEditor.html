@@ -17,6 +17,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+    <div wicket:id="mappingEditor" />
 
     <h3><wicket:message key="ResourceActivationEditor.label" /></h3>
 
@@ -24,7 +25,10 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne"><wicket:message key="ResourceActivationEditor.label.existence" /></a>
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                        <wicket:message key="ResourceActivationEditor.label.existence" />
+                        <button type="button" class="close"><span aria-hidden="true">&#8628;</span><span class="sr-only">Expand</span></button>
+                    </a>
                 </h4>
             </div>
 
@@ -34,6 +38,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceActivationEditor.label.fetchStrategy" /></label>
+                            <i wicket:id="existenceFetchStrategyTooltip" wicket:message="title:SchemaHandlingStep.activation.tooltip.fetchStrategy"/>
                         </dt>
                         <dd>
                             <select wicket:id="existenceFetchStrategy" class="form-control input-sm"></select>
@@ -44,6 +49,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceActivationEditor.label.outbound" /></label>
+                            <i wicket:id="existenceOutboundTooltip" wicket:message="title:SchemaHandlingStep.activation.tooltip.outbound"/>
                         </dt>
                         <div wicket:id="existenceOutbound" />
                     </dl>
@@ -52,6 +58,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceActivationEditor.label.inbound" /></label>
+                            <i wicket:id="existenceInboundTooltip" wicket:message="title:SchemaHandlingStep.activation.tooltip.inbound"/>
                         </dt>
                         <div wicket:id="existenceInbound" />
                     </dl>
@@ -62,7 +69,10 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo"><wicket:message key="ResourceActivationEditor.label.administrativeStatus" /></a>
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+                        <wicket:message key="ResourceActivationEditor.label.administrativeStatus" />
+                        <button type="button" class="close"><span aria-hidden="true">&#8628;</span><span class="sr-only">Expand</span></button>
+                    </a>
                 </h4>
             </div>
 
@@ -72,6 +82,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceActivationEditor.label.fetchStrategy" /></label>
+                            <i wicket:id="admStatusFetchStrategyTooltip" wicket:message="title:SchemaHandlingStep.activation.tooltip.fetchStrategy"/>
                         </dt>
                         <dd>
                             <select wicket:id="admStatusFetchStrategy" class="form-control input-sm"></select>
@@ -82,6 +93,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceActivationEditor.label.outbound" /></label>
+                            <i wicket:id="admStatusOutboundTooltip" wicket:message="title:SchemaHandlingStep.activation.tooltip.outbound"/>
                         </dt>
                         <div wicket:id="admStatusOutbound" />
                     </dl>
@@ -90,6 +102,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceActivationEditor.label.inbound" /></label>
+                            <i wicket:id="admStatusInboundTooltip" wicket:message="title:SchemaHandlingStep.activation.tooltip.inbound"/>
                         </dt>
                         <div wicket:id="admStatusInbound" />
                     </dl>
@@ -101,7 +114,10 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree"><wicket:message key="ResourceActivationEditor.label.validFrom" /></a>
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+                        <wicket:message key="ResourceActivationEditor.label.validFrom" />
+                        <button type="button" class="close"><span aria-hidden="true">&#8628;</span><span class="sr-only">Expand</span></button>
+                    </a>
                 </h4>
             </div>
 
@@ -111,6 +127,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceActivationEditor.label.fetchStrategy" /></label>
+                            <i wicket:id="validFromFetchStrategyTooltip" wicket:message="title:SchemaHandlingStep.activation.tooltip.fetchStrategy"/>
                         </dt>
                         <dd>
                             <select wicket:id="validFromFetchStrategy" class="form-control input-sm"></select>
@@ -121,6 +138,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceActivationEditor.label.outbound" /></label>
+                            <i wicket:id="validFromOutboundTooltip" wicket:message="title:SchemaHandlingStep.activation.tooltip.outbound"/>
                         </dt>
                         <div wicket:id="validFromOutbound" />
                     </dl>
@@ -129,6 +147,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceActivationEditor.label.inbound" /></label>
+                            <i wicket:id="validFromInboundTooltip" wicket:message="title:SchemaHandlingStep.activation.tooltip.inbound"/>
                         </dt>
                         <div wicket:id="validFromInbound" />
                     </dl>
@@ -140,7 +159,10 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseFour"><wicket:message key="ResourceActivationEditor.label.validTo" /></a>
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseFour">
+                        <wicket:message key="ResourceActivationEditor.label.validTo" />
+                        <button type="button" class="close"><span aria-hidden="true">&#8628;</span><span class="sr-only">Expand</span></button>
+                    </a>
                 </h4>
             </div>
 
@@ -150,6 +172,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceActivationEditor.label.fetchStrategy" /></label>
+                            <i wicket:id="validToFetchStrategyTooltip" wicket:message="title:SchemaHandlingStep.activation.tooltip.fetchStrategy"/>
                         </dt>
                         <dd>
                             <select wicket:id="validToFetchStrategy" class="form-control input-sm"></select>
@@ -160,6 +183,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceActivationEditor.label.outbound" /></label>
+                            <i wicket:id="validToOutboundTooltip" wicket:message="title:SchemaHandlingStep.activation.tooltip.outbound"/>
                         </dt>
                         <div wicket:id="validToOutbound" />
                     </dl>
@@ -168,6 +192,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceActivationEditor.label.inbound" /></label>
+                            <i wicket:id="validToInboundTooltip" wicket:message="title:SchemaHandlingStep.activation.tooltip.inbound"/>
                         </dt>
                         <div wicket:id="validToInbound" />
                     </dl>

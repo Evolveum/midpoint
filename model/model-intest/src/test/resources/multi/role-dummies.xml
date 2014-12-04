@@ -52,6 +52,14 @@
 					</expression>
 				</outbound>
             </attribute>
+<!--             <attribute> -->
+<!--                 <ref>ri:ship</ref> -->
+<!--                 <outbound> -->
+<!--                 	<source> -->
+<!-- 						<path>$user/organizationalUnit</path> -->
+<!-- 					</source> -->
+<!-- 				</outbound> -->
+<!--             </attribute> -->
     	</construction>
     </inducement>
     <inducement>

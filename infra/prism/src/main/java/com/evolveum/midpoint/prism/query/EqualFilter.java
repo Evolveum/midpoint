@@ -224,7 +224,7 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
 		Item filterItem = getFilterItem();
 		if (!super.match(object, matchingRuleRegistry)){
 			return false;

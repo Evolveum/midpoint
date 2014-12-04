@@ -571,10 +571,14 @@ public class FocusProcessor {
 		PropertyDelta<ActivationStatusType> effectiveStatusDelta 
 				= effectiveStatusDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
 		effectiveStatusDelta.setValueToReplace(new PrismPropertyValue<ActivationStatusType>(effectiveStatusNew, OriginType.USER_POLICY, null));
-		focusContext.swallowToProjectionWaveSecondaryDelta(effectiveStatusDelta);
+		if (!focusContext.alreadyHasDelta(effectiveStatusDelta)){
+			focusContext.swallowToProjectionWaveSecondaryDelta(effectiveStatusDelta);
+		}
 		
 		PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(effectiveStatusNew, now, activationDefinition, OriginType.USER_POLICY);
-		focusContext.swallowToProjectionWaveSecondaryDelta(timestampDelta);
+		if (!focusContext.alreadyHasDelta(timestampDelta)){
+			focusContext.swallowToProjectionWaveSecondaryDelta(timestampDelta);
+		}
 	}
 	
 	

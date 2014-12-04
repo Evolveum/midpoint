@@ -64,6 +64,18 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.javabits.jgrapht</groupId>
+            <artifactId>jgrapht-core</artifactId>
+            <version>0.9.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>colt</groupId>
+            <artifactId>colt</artifactId>
+            <version>1.2.0</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -91,6 +103,25 @@
                                     <artifactId>util</artifactId>
                                 </aspectLibrary>
                             </aspectLibraries>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>dbtest</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <suiteXmlFiles>
+                                <suiteXmlFile>testng.xml</suiteXmlFile>
+                                <suiteXmlFile>testng-db-specific.xml</suiteXmlFile>
+                            </suiteXmlFiles>
                         </configuration>
                     </plugin>
                 </plugins>

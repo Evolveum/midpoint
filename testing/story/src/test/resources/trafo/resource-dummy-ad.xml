@@ -283,6 +283,7 @@ if (basic.stringify(employeeType) == 'T' || basic.stringify(employeeType) == 'R'
 						<target>
 							<path>$user/extension/trafo:homedir</path>
 						</target>
+						
 					</inbound>
 				</attribute>
 				<attribute>
@@ -313,20 +314,29 @@ if (basic.stringify(employeeType) == 'T' || basic.stringify(employeeType) == 'R'
 						</target>
 					</inbound>
 				</attribute>
-				<attribute>
-					<ref>ri:description</ref>
-					<outbound>
-						<source>
-							<path>$user/title</path>
-						</source>
-					</outbound>
-					<inbound>
-						<strength>weak</strength>
-						<target>
-							<path>$user/title</path>
-						</target>
-					</inbound>
-				</attribute>
+<!-- 				<attribute> -->
+<!-- 					<ref>ri:description</ref> -->
+<!-- 					<outbound> -->
+<!-- 						<source> -->
+<!-- 							<path>$user/title</path> -->
+<!-- 						</source> -->
+<!-- 						<source> -->
+<!-- 							<path>extension/trafo:uid</path> -->
+<!-- 							<name>extensionUid</name> -->
+<!-- 						</source> -->
+<!-- 						<expression> -->
+<!-- 							<script> -->
+<!-- 								<code>extensionUid</code> -->
+<!-- 							</script> -->
+<!-- 						</expression> -->
+<!-- 					</outbound> -->
+<!-- 					<inbound> -->
+<!-- 						<strength>weak</strength> -->
+<!-- 						<target> -->
+<!-- 							<path>$user/title</path> -->
+<!-- 						</target> -->
+<!-- 					</inbound> -->
+<!-- 				</attribute> -->
 				<!-- This attribute must be set to
 other than "false". We will set it to "true" to expire the password
 immediately (after create). Note there is no "initial" attribute, because the
@@ -377,6 +387,7 @@ midPoint -->
             </resourceRef>
             <strictness>relaxed</strictness>
              <order>10</order>
+<!--              <forceLoad>true</forceLoad> -->
          </dependency>
 		<iteration>
 			<maxIterations>10</maxIterations>

@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  * @author Pavol Mederly
  *
  */
+@Deprecated
 public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(WaitForSubtasksByPollingTaskHandler.class);

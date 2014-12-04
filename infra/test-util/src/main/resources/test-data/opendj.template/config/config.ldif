@@ -1822,7 +1822,7 @@ dn: cn=UID Unique Attribute,cn=Plugins,cn=config
 objectClass: ds-cfg-unique-attribute-plugin
 objectClass: ds-cfg-plugin
 objectClass: top
-ds-cfg-enabled: false
+ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.plugins.UniqueAttributePlugin
 ds-cfg-plugin-type: preOperationAdd
 ds-cfg-plugin-type: preOperationModify

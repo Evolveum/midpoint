@@ -127,6 +127,7 @@ public class TestTrafo extends AbstractStoryTest {
 	public static final String NS_TRAFO_EXT = "http://midpoint.evolveum.com/xml/ns/story/trafo/ext";
 	private static final File TRAFO_SCHEMA_EXTENSION_FILE = new File(TEST_DIR, "extension.xsd");
 	private static final QName TRAFO_EXTENSION_HOMEDIR_QNAME = new QName(NS_TRAFO_EXT, "homedir");
+	private static final QName TRAFO_EXTENSION_UID_QNAME = new QName(NS_TRAFO_EXT, "uid");
 	private static final ItemPath TRAFO_EXTENSION_HOMEDIR_PATH = new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME);
 	
 	private static final String TRAFO_MAIL_DOMAIN = "trafo.xx";
@@ -232,6 +233,7 @@ public class TestTrafo extends AbstractStoryTest {
 		dummyResourceCtlAd.setResource(resourceDummyAd);
 		
 		dummyResourceCtlMail = DummyResourceContoller.create(RESOURCE_DUMMY_MAIL_ID, resourceDummyMail);
+		dummyResourceCtlMail.populateWithDefaultSchema();
 		DummyObjectClass dummyAdAccountObjectClass = dummyResourceCtlMail.getDummyResource().getAccountObjectClass();
 		dummyResourceCtlMail.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MAIL_FIRST_NAME_NAME, String.class, false, false);
 		dummyResourceCtlMail.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MAIL_LAST_NAME_NAME, String.class, false, false);
@@ -505,6 +507,7 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertExecutionDeltas(0,3);
         dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
         // Inbound
         dummyAuditService.assertExecutionDeltas(1,1);
         dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
@@ -692,6 +695,7 @@ public class TestTrafo extends AbstractStoryTest {
  		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_JACK_AD_DN, 
  				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_TELEPHONE_NUMBER_NAME, "555-1234");
  		
+ 		
  		// MAIL ACCOUNT
  		
  		// Check shadow
@@ -724,12 +728,12 @@ public class TestTrafo extends AbstractStoryTest {
  				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_MAIL_FILE_NAME_NAME, "mail\\"+USER_JACK_USERNAME);
  		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_JACK_MAIL_USERNAME, 
  				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_MAIL_DOMAIN_NAME, "TRAFO");
-        
+ 		
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userJack, UserType.F_EMAIL_ADDRESS, "Jack.Sparrow@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userJack, 
  				new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
-        
+ 		
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(4);
@@ -858,8 +862,8 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertExecutionDeltas(1,2);
         dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class); // link
         dummyAuditService.asserHasDelta(1,ChangeType.ADD, ShadowType.class); // Mail account
-        dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
+        dummyAuditService.assertExecutionDeltas(2,1);
+//        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
         dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -1224,7 +1228,7 @@ public class TestTrafo extends AbstractStoryTest {
         
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertRecords(5);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,2);
@@ -1237,8 +1241,8 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertExecutionDeltas(2,2);
         dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
         dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account (mail change compued from outboud)
-//        dummyAuditService.assertExecutionDeltas(3,1);
-//        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
+        dummyAuditService.assertExecutionDeltas(3,1);
+        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -1348,7 +1352,7 @@ public class TestTrafo extends AbstractStoryTest {
         
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertRecords(5);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,2);
@@ -1361,8 +1365,8 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertExecutionDeltas(2,2);
         dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
         dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account (mail change compued from outboud)
-//        dummyAuditService.assertExecutionDeltas(3,1);
-//        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
+        dummyAuditService.assertExecutionDeltas(3,1);
+        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
         dummyAuditService.assertExecutionSuccess();
 	}
 

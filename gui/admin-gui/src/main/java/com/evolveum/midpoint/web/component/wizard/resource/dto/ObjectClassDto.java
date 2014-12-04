@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import org.apache.commons.lang.StringUtils;
@@ -30,29 +31,29 @@ public class ObjectClassDto extends Selectable implements Comparable<ObjectClass
 
     public static final String F_NAME = "name";
 
-    private ObjectClassComplexTypeDefinition definition;
+    private RefinedObjectClassDefinition refinedDefinition;
 
-    public ObjectClassDto(ObjectClassComplexTypeDefinition definition) {
-        Validate.notNull(definition, "Object class complex type definition must not be null.");
-        this.definition = definition;
+    public ObjectClassDto(RefinedObjectClassDefinition definition){
+        Validate.notNull(definition, "Refined object class definition must not be null.");
+        this.refinedDefinition = definition;
     }
 
     public String getName() {
         StringBuilder builder = new StringBuilder();
-        if (StringUtils.isNotEmpty(definition.getDisplayName())) {
-            builder.append(definition.getDisplayName());
+        if (StringUtils.isNotEmpty(refinedDefinition.getDisplayName())) {
+            builder.append(refinedDefinition.getDisplayName());
             builder.append(", ");
         }
 
-        if (definition.getTypeName() != null) {
-            builder.append(definition.getTypeName().getLocalPart());
+        if (refinedDefinition.getTypeName() != null) {
+            builder.append(refinedDefinition.getTypeName().getLocalPart());
         }
 
         return builder.toString().trim();
     }
 
-    public ObjectClassComplexTypeDefinition getDefinition() {
-        return definition;
+    public RefinedObjectClassDefinition getDefinition() {
+        return refinedDefinition;
     }
 
     @Override
@@ -62,5 +63,23 @@ public class ObjectClassDto extends Selectable implements Comparable<ObjectClass
         }
 
         return String.CASE_INSENSITIVE_ORDER.compare(getName(), o.getName());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ObjectClassDto)) return false;
+
+        ObjectClassDto that = (ObjectClassDto) o;
+
+        if (refinedDefinition != null ? !refinedDefinition.equals(that.refinedDefinition) : that.refinedDefinition != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return refinedDefinition != null ? refinedDefinition.hashCode() : 0;
     }
 }

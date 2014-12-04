@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -91,18 +91,6 @@
             </testResource>
         </testResources>
     </build>
-    <repositories>
-        <repository> 
-                <id>wicket-tree</id> 
-                <name>Wicket-tree Repository</name> 
-                <url>http://wicket-tree.googlecode.com/svn/repo</url> 
-        </repository>
-        <repository> 
-                <id>wicket-dnd</id> 
-                <name>Wicket-dnd Repository</name> 
-                <url>http://wicket-dnd.googlecode.com/svn/repo</url> 
-        </repository>
-    </repositories>
     <dependencies>
         <!-- WRO4J-->
         <dependency>
@@ -202,16 +190,21 @@
             <artifactId>admin-gui-en-US</artifactId>
             <version>3.1-SNAPSHOT</version>
         </dependency>
-           <dependency>
+	    <dependency>
+            <groupId>com.evolveum.midpoint.gui</groupId>
+            <artifactId>admin-gui-sk-SK</artifactId>
+            <version>3.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui-tr-TR</artifactId>
             <version>3.1-SNAPSHOT</version>
         </dependency>
-	    <!--<dependency>-->
-            <!--<groupId>com.evolveum.midpoint.gui</groupId>-->
-            <!--<artifactId>admin-gui-sk-SK</artifactId>-->
-            <!--<version>2.3-SNAPSHOT</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.evolveum.midpoint.gui</groupId>
+            <artifactId>admin-gui-es-ES</artifactId>
+            <version>3.1-SNAPSHOT</version>
+        </dependency>
 
         <!-- JDBC DRIVERS -->
         <dependency>
@@ -483,18 +476,18 @@
 
         <!-- Dependencies to connectors, just to add to good place in WAR -->
         <dependency>
-            <groupId>org.forgerock.openicf.connectors</groupId>
-            <artifactId>ldap-connector</artifactId>
+			<groupId>com.evolveum.polygon</groupId>
+			<artifactId>connector-ldap</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.forgerock.openicf.connectors</groupId>
-            <artifactId>databasetable-connector</artifactId>
+        	<groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-databasetable</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.forgerock.openicf.connectors</groupId>
-            <artifactId>csvfile-connector</artifactId>
+            <groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-csvfile</artifactId>
             <scope>runtime</scope>
         </dependency>
         <!-- end connectors -->

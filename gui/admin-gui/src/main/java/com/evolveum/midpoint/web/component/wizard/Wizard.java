@@ -2,14 +2,13 @@ package com.evolveum.midpoint.web.component.wizard;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import org.apache.wicket.extensions.wizard.IWizard;
-import org.apache.wicket.extensions.wizard.IWizardModel;
-import org.apache.wicket.extensions.wizard.IWizardModelListener;
-import org.apache.wicket.extensions.wizard.IWizardStep;
+import com.evolveum.midpoint.web.component.wizard.resource.*;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.wizard.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -42,7 +41,22 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
                 return loadSteps();
             }
         };
-        WizardSteps steps = new WizardSteps(ID_STEPS, stepsModel);
+        WizardSteps steps = new WizardSteps(ID_STEPS, stepsModel){
+
+            @Override
+            public IWizardStep getActiveStep() {
+                if(Wizard.this.getModel() != null && Wizard.this.getModel().getObject() != null){
+                    return Wizard.this.getModel().getObject().getActiveStep();
+                }
+
+                return null;
+            }
+
+            @Override
+            public void changeStepPerformed(AjaxRequestTarget target, WizardStepDto dto) {
+                changeStep(target, dto);
+            }
+        };
         form.add(steps);
 
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
@@ -60,7 +74,7 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
     }
 
     private List<WizardStepDto> loadSteps() {
-        List<WizardStepDto> steps = new ArrayList<WizardStepDto>();
+        List<WizardStepDto> steps = new ArrayList<>();
 
         IWizardModel model = getWizardModel();
         Iterator<IWizardStep> iterator = model.stepIterator();
@@ -90,6 +104,10 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
 
     @Override
     public void onActiveStepChanged(IWizardStep newStep) {
+        if(newStep == null){
+            return;
+        }
+
         Form form = (Form) get(ID_FORM);
         form.replace(newStep.getView(ID_VIEW, this, this));
         form.replace(newStep.getHeader(ID_HEADER, this, this));
@@ -110,13 +128,81 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
         WizardSteps steps = (WizardSteps) get(createComponentPath(ID_FORM, ID_STEPS));
         IModel<List<WizardStepDto>> stepsModel = steps.getModel();
         stepsModel.getObject().get(index).setActive(true);
+        steps.updateModal();
     }
 
     @Override
     public void onCancel() {
+        setResponsePage(PageResources.class);
+        warn(getString("Wizard.message.cancel"));
     }
 
     @Override
     public void onFinish() {
+        if(getModel() != null && getModel().getObject() != null){
+            IWizardStep activeStep = getModel().getObject().getActiveStep();
+
+            if(activeStep != null && activeStep instanceof SynchronizationStep){
+                activeStep.applyState();
+            }
+        }
+    }
+
+    private void changeStep(AjaxRequestTarget target, WizardStepDto dto){
+        IWizardStep newStep = null;
+        Iterator<IWizardStep> iterator = getWizardModel().stepIterator();
+
+        if(dto != null){
+            if("Resource basics".equals(dto.getName())){
+                while(iterator.hasNext()){
+                    IWizardStep step = iterator.next();
+                    if(step instanceof NameStep){
+                        newStep = step;
+                    }
+                }
+            } else if("Configuration".equals(dto.getName())){
+                while(iterator.hasNext()){
+                    IWizardStep step = iterator.next();
+                    if(step instanceof ConfigurationStep){
+                        newStep = step;
+                    }
+                }
+            } else if("Schema".equals(dto.getName())){
+                while(iterator.hasNext()){
+                    IWizardStep step = iterator.next();
+                    if(step instanceof SchemaStep){
+                        newStep = step;
+                    }
+                }
+            } else if("Schema handling".equals(dto.getName())){
+                while(iterator.hasNext()){
+                    IWizardStep step = iterator.next();
+                    if(step instanceof SchemaHandlingStep){
+                        newStep = step;
+                    }
+                }
+            } else if("Capabilities".equals(dto.getName())){
+                while(iterator.hasNext()){
+                    IWizardStep step = iterator.next();
+                    if(step instanceof CapabilityStep){
+                        newStep = step;
+                    }
+                }
+            } else if("Synchronization".equals(dto.getName())){
+                while(iterator.hasNext()){
+                    IWizardStep step = iterator.next();
+                    if(step instanceof SynchronizationStep){
+                        newStep = step;
+                    }
+                }
+            }
+        }
+
+        Wizard.this.onActiveStepChanged(newStep);
+        WizardModel model = (WizardModel) getWizardModel();
+        model.setActiveStep(newStep);
+        getWizardModel().getActiveStep().applyState();
+
+        target.add(this);
     }
 }

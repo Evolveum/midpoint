@@ -129,17 +129,17 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				subResult.muteError();
 			}
 			cacheRepositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);
-			parentResult.recordHandledError("Account was not found on the "
+			parentResult.recordHandledError("Object was not found on the "
 							+ ObjectTypeUtil.toShortString(shadow.getResource())
 							+ ". Shadow deleted from the repository to equalize the state on the resource and in the repository.");
 			LOGGER.trace("Shadow deleted from the repository. Inconsistencies are now removed.");
 			result.computeStatus();
 			delta = ObjectDelta.createDeleteDelta(shadow.getClass(), shadow.getOid(), prismContext);
-			ResourceOperationDescription operationDescritpion = createOperationDescription(shadow, shadow.getResource(), delta, task, result);
+			ResourceOperationDescription operationDescritpion = createOperationDescription(shadow, ex, shadow.getResource(), delta, task, result);
 			changeNotificationDispatcher.notifySuccess(operationDescritpion, task, result);
 			return shadow;
 		case MODIFY:
-			LOGGER.trace("Starting discovery to find out if the account should exist or not.");
+			LOGGER.trace("Starting discovery to find out if the object should exist or not.");
 			OperationResult handleErrorResult = result.createSubresult("Discovery for situation: Object not found on the " + ObjectTypeUtil.toShortString(shadow.getResource()));
 			
 			ObjectDeltaType shadowModifications = shadow.getObjectChange();
@@ -170,14 +170,14 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			}
 			
 			if (oid != null ) {
-				LOGGER.trace("Modifying re-created account according to given changes.");
+				LOGGER.trace("Modifying re-created object according to given changes.");
 				try {
 					ProvisioningOperationOptions options = new ProvisioningOperationOptions();
 					options.setCompletePostponed(false);
 					provisioningService.modifyObject(ShadowType.class, oid, modifications, null, options, task, 
 							result);
 					parentResult.recordHandledError(
-							"Account was recreated and modifications were applied to newly created account.");
+							"Object was recreated and modifications were applied to newly created object.");
 				} catch (ObjectNotFoundException e) {
 					parentResult.recordHandledError(
 							"Modifications were not applied, because shadow was deleted by discovery. Repository state were refreshed and unused shadow was deleted.");
@@ -186,7 +186,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				
 			} else{
 				parentResult.recordHandledError(
-						"Account was deleted by discovery. Modification were not applied.");
+						"Object was deleted by discovery. Modification were not applied.");
 			}
 		
 //				LOGGER.trace("Shadow was probably unlinked from the user, so the discovery decided that the account should not exist. Deleting also unused shadow from the repo.");
@@ -250,13 +250,17 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				subResult.muteError();
 			}
 			if (oid != null) {
-				PrismObject prismShadow = provisioningService.getObject(shadow.getClass(), oid, null, task, result);
+                PrismObject prismShadow;
+                try {
+				    prismShadow = provisioningService.getObject(shadow.getClass(), oid, null, task, result);
+                } finally {
+                    result.computeStatus();
+                }
 				shadow = (T) prismShadow.asObjectable();
-				parentResult.recordHandledError("Account was re-created by the discovery.");
-				result.computeStatus();
+				parentResult.recordHandledError("Object was re-created by the discovery.");
 				return shadow;
 			} else {
-				parentResult.recordHandledError("Account was deleted by the discovery and the invalid link was removed from the user.");
+				parentResult.recordHandledError("Object was deleted by the discovery and the invalid link was removed from the user.");
 				result.computeStatus();
 				throw new ObjectNotFoundException(ex.getMessage(), ex);
 			}

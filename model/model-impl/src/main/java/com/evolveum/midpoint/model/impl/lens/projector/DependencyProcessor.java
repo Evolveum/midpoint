@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -64,6 +66,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class DependencyProcessor {
 		
 	private static final Trace LOGGER = TraceManager.getTrace(DependencyProcessor.class);
+	
+	@Autowired
+    private ProvisioningService provisioningService;
 	
 	public <F extends ObjectType> void resetWaves(LensContext<F> context) throws PolicyViolationException {
 	}
@@ -180,7 +185,12 @@ public class DependencyProcessor {
 			// Wave for this context was set during the run of this method (it was not set when we
 			// started, we checked at the beginning). Therefore this context must have been visited again.
 			// therefore there is a circular dependency. Therefore we need to create another context to split it.
-			resultAccountContext = createAnotherContext(context, projectionContext, determinedOrder);
+			ResourceShadowDiscriminator origDiscr = projectionContext.getResourceShadowDiscriminator();
+			ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.isThombstone());
+			discr.setOrder(determinedOrder);
+			if (!projectionContext.compareResourceShadowDiscriminator(discr, true)){
+				resultAccountContext = createAnotherContext(context, projectionContext, discr);
+			}
 		}
 //		LOGGER.trace("Wave for {}: {}", resultAccountContext.getResourceAccountType(), wave);
 		resultAccountContext.setWave(determinedWave);
@@ -228,7 +238,9 @@ public class DependencyProcessor {
 			// Wave for this context was set during the run of this method (it was not set when we
 			// started, we checked at the beginning). Therefore this context must have been visited again.
 			// therefore there is a circular dependency. Therefore we need to create another context to split it.
-			resultAccountContext = createAnotherContext(context, projectionContext, determinedOrder);
+			if (!projectionContext.isDelete()){
+				resultAccountContext = createAnotherContext(context, projectionContext, determinedOrder);
+			}
 		}
 //			LOGGER.trace("Wave for {}: {}", resultAccountContext.getResourceAccountType(), wave);
 		resultAccountContext.setWave(determinedWave);
@@ -240,7 +252,7 @@ public class DependencyProcessor {
 		Collection<DependencyAndSource> deps = new ArrayList<>();
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
-				if (isDependencyTargetContext(projectionContext, targetProjectionContext, dependency)) {
+				if (LensUtil.isDependencyTargetContext(projectionContext, targetProjectionContext, dependency)) {
 					DependencyAndSource ds = new DependencyAndSource();
 					ds.dependency = dependency;
 					ds.sourceProjectionContext = projectionContext;
@@ -310,21 +322,29 @@ public class DependencyProcessor {
 		return selected;
 	}
 	
-	private <F extends ObjectType> boolean isDependencyTargetContext(LensProjectionContext sourceProjContext, LensProjectionContext targetProjectionContext, ResourceObjectTypeDependencyType dependency) {
-		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency, 
-				sourceProjContext.getResource().getOid(), sourceProjContext.getKind());
-		return targetProjectionContext.compareResourceShadowDiscriminator(refDiscr, false);
-	}
+//	private <F extends ObjectType> boolean isDependencyTargetContext(LensProjectionContext sourceProjContext, LensProjectionContext targetProjectionContext, ResourceObjectTypeDependencyType dependency) {
+//		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency, 
+//				sourceProjContext.getResource().getOid(), sourceProjContext.getKind());
+//		return targetProjectionContext.compareResourceShadowDiscriminator(refDiscr, false);
+//	}
 	
-	private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, 
-			LensProjectionContext origProjectionContext, int order) throws PolicyViolationException {
-		ResourceShadowDiscriminator origDiscr = origProjectionContext.getResourceShadowDiscriminator();
-		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.isThombstone());
-		discr.setOrder(order);
+	private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, LensProjectionContext origProjectionContext,
+			ResourceShadowDiscriminator discr) throws PolicyViolationException {
+		
+		
 		LensProjectionContext otherCtx = context.createProjectionContext(discr);
 		otherCtx.setResource(origProjectionContext.getResource());
 		// Force recon for the new context. This is a primitive way how to avoid phantom changes.
 		otherCtx.setDoReconciliation(true);
+		return otherCtx;
+	}
+	
+	private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, LensProjectionContext origProjectionContext,
+			int determinedOrder) throws PolicyViolationException {
+		ResourceShadowDiscriminator origDiscr = origProjectionContext.getResourceShadowDiscriminator();
+		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.isThombstone());
+		discr.setOrder(determinedOrder);
+		LensProjectionContext otherCtx = createAnotherContext(context, origProjectionContext, discr);
 		return otherCtx;
 	}
 	
@@ -333,7 +353,7 @@ public class DependencyProcessor {
 	 * and stuff like that. 
 	 */
 	public <F extends ObjectType> boolean checkDependencies(LensContext<F> context, 
-    		LensProjectionContext projContext) throws PolicyViolationException {
+    		LensProjectionContext projContext, OperationResult result) throws PolicyViolationException {
 		if (projContext.isDelete()) {
 			// It is OK if we depend on something that is not there if we are being removed ... for now
 			return true;
@@ -421,14 +441,53 @@ public class DependencyProcessor {
 		return true;
 	}
 	
+	public <F extends ObjectType> void preprocessDependencies(LensContext<F> context){
+		
+		//in the first wave we do not have enougth information to preprocess connetxts
+		if (context.getExecutionWave() == 0){
+			return;
+		}
+		
+		for (LensProjectionContext projContext : context.getProjectionContexts()){
+			if (!projContext.isCanProject()){
+				continue;
+			}
+		
+			for (ResourceObjectTypeDependencyType dependency: projContext.getDependencies()) {
+				ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency, 
+						projContext.getResource().getOid(), projContext.getKind());
+				LOGGER.trace("LOOKING FOR {}", refRat);
+				LensProjectionContext dependencyAccountContext = context.findProjectionContext(refRat);
+				ResourceObjectTypeDependencyStrictnessType strictness = ResourceTypeUtil.getDependencyStrictness(dependency);
+				if (dependencyAccountContext != null){
+					if (!dependencyAccountContext.isCanProject()){
+						continue;
+					}
+					// We have the context of the object that we depend on. We need to check if it was provisioned.
+					if (strictness == ResourceObjectTypeDependencyStrictnessType.STRICT
+							|| strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+						if (wasExecuted(dependencyAccountContext)) {
+							// everything OK
+							if (ResourceTypeUtil.isForceLoadDependentShadow(dependency) && !dependencyAccountContext.isDelete()){
+								dependencyAccountContext.setDoReconciliation(true);
+								projContext.setDoReconciliation(true);
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
+	
 	/**
 	 * Finally checks for all the dependencies. Some dependencies cannot be checked during wave computations as
 	 * we might not have all activation decisions yet. 
 	 */
-	public <F extends ObjectType> void checkDependenciesFinal(LensContext<F> context) throws PolicyViolationException {
+	public <F extends ObjectType> void checkDependenciesFinal(LensContext<F> context, OperationResult result) throws PolicyViolationException {
 		
 		for (LensProjectionContext accountContext: context.getProjectionContexts()) {
-			checkDependencies(context, accountContext);
+			checkDependencies(context, accountContext, result);
 		}
 		
 		for (LensProjectionContext accountContext: context.getProjectionContexts()) {
@@ -445,7 +504,9 @@ public class DependencyProcessor {
 						continue;
 					}
 					for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
-						if (dependency.getResourceRef().getOid().equals(accountContext.getResource().getOid())) {
+                        String dependencyResourceOid = dependency.getResourceRef() != null ?
+                                dependency.getResourceRef().getOid() : projectionContext.getResource().getOid();
+						if (dependencyResourceOid.equals(accountContext.getResource().getOid())) {
 							// Someone depends on us
 							if (ResourceTypeUtil.getDependencyStrictness(dependency) == ResourceObjectTypeDependencyStrictnessType.STRICT) {
 								throw new PolicyViolationException("Cannot remove "+accountContext.getHumanReadableName()
@@ -469,14 +530,18 @@ public class DependencyProcessor {
 				|| accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 			return false;
 		}
+		
+		
 		PrismObject<ShadowType> objectCurrent = accountContext.getObjectCurrent();
 		if (objectCurrent != null && objectCurrent.asObjectable().getFailedOperationType() != null) {
 			// There is unfinished operation in the shadow. We cannot continue.
 			return false;
-		}
+		}		
+		
 		if (accountContext.isExists()) {
 			return true;
 		}
+		
 		if (accountContext.isAdd()) {
 			List<LensObjectDeltaOperation<ShadowType>> executedDeltas = accountContext.getExecutedDeltas();
 			if (executedDeltas == null || executedDeltas.isEmpty()) {
@@ -490,7 +555,23 @@ public class DependencyProcessor {
 			}
 			return true;
 		}
+		
 		return false;
+	}
+	
+	private boolean wasExecuted(LensProjectionContext accountContext){
+		if (accountContext.isAdd()) {
+			
+			if (accountContext.getOid() == null){
+				return false;
+			}
+			
+			List<LensObjectDeltaOperation<ShadowType>> executedDeltas = accountContext.getExecutedDeltas();
+			if (executedDeltas == null || executedDeltas.isEmpty()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	class DependencyAndSource {

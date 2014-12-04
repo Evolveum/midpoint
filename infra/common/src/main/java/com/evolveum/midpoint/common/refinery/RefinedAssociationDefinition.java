@@ -77,4 +77,7 @@ public class RefinedAssociationDefinition implements Serializable {
         return BooleanUtils.isNotFalse(resourceObjectAssociationType.isTolerant());
     }
 
+	public boolean requiresExplicitReferentialIntegrity() {
+		return !BooleanUtils.isFalse(getResourceObjectAssociationType().isExplicitReferentialIntegrity());	// because default is TRUE
+	}
 }

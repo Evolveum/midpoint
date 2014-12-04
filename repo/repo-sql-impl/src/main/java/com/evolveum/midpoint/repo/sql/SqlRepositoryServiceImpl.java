@@ -35,13 +35,12 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
-import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -51,18 +50,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import java.lang.reflect.Method;
@@ -89,17 +86,18 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private static final String DETAILS_HIBERNATE_DIALECT = "hibernateDialect";
     private static final String DETAILS_HIBERNATE_HBM_2_DDL = "hibernateHbm2ddl";
 
-    private OrgClosureManager orgClosureManager;
+    private OrgClosureManager closureManager;
 
     public SqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
     }
 
-    private OrgClosureManager getOrgClosureManager() {
-        if (orgClosureManager == null) {
-            orgClosureManager = new OrgClosureManager(getConfiguration());
+    // public because of testing
+    public OrgClosureManager getClosureManager() {
+        if (closureManager == null) {
+            closureManager = new OrgClosureManager(getConfiguration());
         }
-        return orgClosureManager;
+        return closureManager;
     }
 
     private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid,
@@ -422,7 +420,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         if (InternalsConfig.consistencyChecks) {
-            object.checkConsistence();
+            object.checkConsistence(ConsistencyCheckScope.THOROUGH);
+        } else {
+            object.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
         }
 
         if (LOGGER.isTraceEnabled()) {
@@ -453,12 +453,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             throws ObjectAlreadyExistsException, SchemaException {
         String oid = null;
         Session session = null;
-        // it is needed to keep the original oid for example for import options. if we do not keep it
+        OrgClosureManager.Context closureContext = null;
+                // it is needed to keep the original oid for example for import options. if we do not keep it
         // and it was null it can bring some error because the oid is set when the object contains orgRef
         // or it is org. and by the import we do not know it so it will be trying to delete non-existing object
         String originalOid = object.getOid();
         try {
-            ObjectType objectType = object.asObjectable();
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Object\n{}", new Object[]{object.debugDump()});
             }
@@ -467,10 +467,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             RObject rObject = createDataObjectFromJAXB(object, true);
 
             session = beginTransaction();
+
+            closureContext = getClosureManager().onBeginTransactionAdd(session, object, options.isOverwrite());
+
             if (options.isOverwrite()) {
-                oid = overwriteAddObjectAttempt(object, objectType, rObject, originalOid, session);
+                oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
             } else {
-                oid = nonOverwriteAddObjectAttempt(object, objectType, rObject, originalOid, session);
+                oid = nonOverwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
             }
             session.getTransaction().commit();
 
@@ -482,6 +485,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (ConstraintViolationException ex) {
+            handleConstraintViolationException(session, ex, result);
             rollbackTransaction(session, ex, result, true);
 
             LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", ex);
@@ -504,22 +508,23 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } catch (DtoTranslationException | RuntimeException ex) {
             handleGeneralException(ex, session, result);
         } finally {
-            cleanupSessionAndResult(session, result);
+            cleanupClosureAndSessionAndResult(closureContext, session, result);
         }
 
         return oid;
     }
 
-    private <T extends ObjectType> String overwriteAddObjectAttempt(PrismObject<T> object, ObjectType objectType,
-                                                                    RObject rObject, String originalOid,
-                                                                    Session session)
+    private <T extends ObjectType> String overwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
+                                                                    String originalOid, Session session, OrgClosureManager.Context closureContext)
             throws ObjectAlreadyExistsException, SchemaException, DtoTranslationException {
+
+        PrismObject<T> oldObject = null;
 
         //check if object already exists, find differences and increment version if necessary
         Collection<? extends ItemDelta> modifications = null;
         if (originalOid != null) {
             try {
-                PrismObject<T> oldObject = getObject(session, object.getCompileTimeClass(), originalOid, null, true);
+                oldObject = getObject(session, object.getCompileTimeClass(), originalOid, null, true);
                 ObjectDelta<T> delta = object.diff(oldObject);
                 modifications = delta.getModifications();
 
@@ -537,26 +542,19 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         updateFullObject(rObject, object);
         RObject merged = (RObject) session.merge(rObject);
-        //todo finish orgClosureManager
-//        orgClosureManager.updateOrgClosure(modifications, session, merged.getOid(), object.getCompileTimeClass(),
-//                OrgClosureManager.Operation.ADD);
+        //add and maybe modify
 
-        //update org. unit hierarchy based on modifications
-        if (modifications == null || modifications.isEmpty()) {
-            //we're not overwriting object - we fill new hierarchy
-            if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
-                long time = System.currentTimeMillis();
-                LOGGER.trace("Org. structure closure table update started.");
-                objectType.setOid(merged.getOid());
-                fillHierarchy(merged, session, true);
-                LOGGER.trace("Org. structure closure table update finished ({} ms).",
-                        new Object[]{(System.currentTimeMillis() - time)});
+        if (getClosureManager().isEnabled()) {
+            OrgClosureManager.Operation operation;
+            if (modifications == null) {
+                operation = OrgClosureManager.Operation.ADD;
+                modifications = createAddParentRefDelta(object);
+            } else {
+                operation = OrgClosureManager.Operation.MODIFY;
             }
-        } else {
-            //we have to recompute actual hierarchy because we've changed object
-            recomputeHierarchy(merged, session, modifications);
+            getClosureManager().updateOrgClosure(oldObject, modifications, session, merged.getOid(), object.getCompileTimeClass(),
+                    operation, closureContext);
         }
-
         return merged.getOid();
     }
 
@@ -579,9 +577,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         LOGGER.debug("Updating full object xml column finish.");
     }
 
-    private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, ObjectType objectType,
-                                                                       RObject rObject, String originalOid,
-                                                                       Session session)
+    private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
+                                                                       String originalOid, Session session, OrgClosureManager.Context closureContext)
             throws ObjectAlreadyExistsException, SchemaException, DtoTranslationException {
 
         // check name uniqueness (by type)
@@ -605,107 +602,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         LOGGER.trace("Saving object (non overwrite).");
         String oid = (String) session.save(rObject);
 
-        //todo finish orgClosureManager
-        //Collection<ReferenceDelta> modifications = createAddParentRefDelta(object);
-        //orgClosureManager.updateOrgClosure(modifications, session, oid, object.getCompileTimeClass(),
-        //        OrgClosureManager.Operation.ADD);
-
-
-        if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
-            long time = System.currentTimeMillis();
-            LOGGER.trace("Org. structure closure table update started.");
-            objectType.setOid(oid);
-            fillHierarchy(rObject, session, true);
-            LOGGER.trace("Org. structure closure table update finished ({} ms).",
-                    new Object[]{(System.currentTimeMillis() - time)});
+        if (getClosureManager().isEnabled()) {
+            Collection<ReferenceDelta> modifications = createAddParentRefDelta(object);
+            getClosureManager().updateOrgClosure(null, modifications, session, oid, object.getCompileTimeClass(),
+                    OrgClosureManager.Operation.ADD, closureContext);
         }
 
         return oid;
-    }
-
-    private boolean existOrgCLosure(Session session, String ancestorOid, String descendantOid, int depth) {
-        // if not exist pair with same depth, then create else nothing do
-        Query qExistClosure = session.getNamedQuery("existOrgClosure");
-        qExistClosure.setParameter("ancestorOid", ancestorOid);
-        qExistClosure.setParameter("descendantOid", descendantOid);
-        qExistClosure.setParameter("depth", depth);
-
-        return (Long) qExistClosure.uniqueResult() != 0;
-
-    }
-
-    private boolean existIncorrect(Session session, String ancestorOid, String descendantOid) {
-        // if not exist pair with same depth, then create else nothing do
-        Query qExistIncorrect = session.getNamedQuery("existIncorrect");
-        qExistIncorrect.setParameter("ancestorOid", ancestorOid);
-        qExistIncorrect.setParameter("descendantOid", descendantOid);
-
-        return (Long) qExistIncorrect.uniqueResult() != 0;
-    }
-
-    private <T extends ObjectType> void fillHierarchy(RObject<T> rOrg, Session session, boolean withIncorrect)
-            throws SchemaException {
-
-        if (!existOrgCLosure(session, rOrg.getOid(), rOrg.getOid(), 0)) {
-            ROrgClosure closure = new ROrgClosure(rOrg, rOrg, 0);
-            session.save(closure);
-        }
-
-        for (RObjectReference orgRef : rOrg.getParentOrgRef()) {
-            fillTransitiveHierarchy(rOrg, orgRef.getTargetOid(), session, withIncorrect);
-        }
-
-        if (withIncorrect) {
-            Query qIncorrect = session.getNamedQuery("fillHierarchy");
-            qIncorrect.setString("oid", rOrg.getOid());
-
-            List<ROrgIncorrect> orgIncorrect = qIncorrect.list();
-            for (ROrgIncorrect orgInc : orgIncorrect) {
-                Query qObject = session.createQuery("from RObject where oid = :oid");
-                qObject.setString("oid", orgInc.getDescendantOid());
-                RObject rObjectI = (RObject) qObject.uniqueResult();
-                if (rObjectI != null) {
-                    fillTransitiveHierarchy(rObjectI, rOrg.getOid(), session, !withIncorrect);
-                    session.delete(orgInc);
-                }
-            }
-        }
-    }
-
-    private <T extends ObjectType> void fillTransitiveHierarchy(
-            RObject descendant, String ancestorOid, Session session,
-            boolean withIncorrect) throws SchemaException {
-
-        Criteria cOrgClosure = session.createCriteria(ROrgClosure.class)
-                .createCriteria("descendant", "desc")
-                .setFetchMode("descendant", FetchMode.JOIN)
-                .add(Restrictions.eq("oid", ancestorOid));
-
-        List<ROrgClosure> orgClosure = cOrgClosure.list();
-
-        if (orgClosure.size() > 0) {
-            for (ROrgClosure o : orgClosure) {
-                String anc = "null";
-                if (o != null && o.getAncestor() != null) {
-                    anc = o.getAncestor().getOid();
-                }
-                LOGGER.trace(
-                        "adding {}\t{}\t{}",
-                        new Object[]{anc, descendant == null ? null : descendant.getOid(), o.getDepth() + 1});
-
-                boolean existClosure = existOrgCLosure(session, o.getAncestor().getOid(),
-                        descendant.getOid(), o.getDepth() + 1);
-                if (!existClosure)
-                    session.save(new ROrgClosure(o.getAncestor(), descendant, o.getDepth() + 1));
-            }
-        } else if (withIncorrect) {
-            boolean existIncorrect = existIncorrect(session, ancestorOid, descendant.getOid());
-            if (!existIncorrect) {
-                LOGGER.trace("adding incorrect {}\t{}", new Object[]{ancestorOid,
-                        descendant.getOid()});
-                session.save(new ROrgIncorrect(ancestorOid, descendant.getOid()));
-            }
-        }
     }
 
     @Override
@@ -744,7 +647,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> List<ReferenceDelta> createAddParentRefDelta(PrismObject<T> object) {
         PrismReference parentOrgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
-        if (parentOrgRef == null) {
+        if (parentOrgRef == null || parentOrgRef.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -755,36 +658,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return Arrays.asList(delta);
     }
 
-    private <T extends ObjectType> List<ReferenceDelta> createDeleteParentRefDelta(Class<T> type, String oid,
-                                                                                   Session session) {
-        Query query = session.createQuery("from RParentOrgRef as r where r.ownerOid = :oid");
-        query.setString("oid", oid);
-
-        List<RObjectReference> references = query.list();
-        if (references == null || references.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        List<PrismReferenceValue> values = new ArrayList<>();
-        for (RObjectReference ref : references) {
-            ObjectReferenceType refType = new ObjectReferenceType();
-            RObjectReference.copyToJAXB(ref, refType, getPrismContext());
-
-            values.add(refType.asReferenceValue());
-        }
-
-        PrismObjectDefinition def = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-        ReferenceDelta delta = ReferenceDelta.createModificationDelete(new ItemPath(ObjectType.F_PARENT_ORG_REF),
-                def, values);
-
-        return Arrays.asList(delta);
-    }
-
     private <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
         Session session = null;
+        OrgClosureManager.Context closureContext = null;
         try {
             session = beginTransaction();
+
+            closureContext = getClosureManager().onBeginTransactionDelete(session, type, oid);
 
             Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
             query.add(Restrictions.eq("oid", oid));
@@ -794,69 +675,19 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         + "' was not found.", null, oid);
             }
 
-            List<RObject> objectsToRecompute = null;
-            if (type.isAssignableFrom(OrgType.class)) {
-                objectsToRecompute = deleteTransitiveHierarchy(object, session);
-            }
+            getClosureManager().updateOrgClosure(null, null, session, oid, type, OrgClosureManager.Operation.DELETE, closureContext);
 
             session.delete(object);
-
-            if (objectsToRecompute != null) {
-                recompute(objectsToRecompute, session);
-            }
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session, ex, result, true);
             throw ex;
-        } catch (SchemaException | DtoTranslationException | RuntimeException ex) {
+        } catch (RuntimeException ex) {
             handleGeneralException(ex, session, result);
         } finally {
-            cleanupSessionAndResult(session, result);
+            cleanupClosureAndSessionAndResult(closureContext, session, result);
         }
-    }
-
-
-    private void recompute(List<RObject> objectsToRecompute, Session session)
-            throws SchemaException, DtoTranslationException {
-
-        LOGGER.trace("Recomputing organization structure closure table after delete.");
-
-        for (RObject object : objectsToRecompute) {
-            Criteria query = session.createCriteria(ClassMapper
-                    .getHQLTypeClass(object.toJAXB(getPrismContext(), null)
-                            .getClass()));
-
-            // RObject.toJAXB will be deprecated and this query can't be replaced by:
-            // Criteria query = session.createCriteria(object.getClass());
-            // Because this will cause deadlock. It's the same query without unnecessary object loading, fuck. [lazyman]
-
-            query.add(Restrictions.eq("oid", object.getOid()));
-            RObject obj = (RObject) query.uniqueResult();
-            if (obj == null) {
-                // object not found..probably it was just deleted.
-                continue;
-            }
-            deleteAncestors(object, session);
-            fillHierarchy(object, session, false);
-        }
-        LOGGER.trace("Closure table for organization structure recomputed.");
-    }
-
-
-    private void deleteAncestors(RObject object, Session session) {
-        Criteria criteria = session.createCriteria(ROrgClosure.class);
-        criteria.add(Restrictions.eq("descendant", object));
-        List<ROrgClosure> objectsToDelete = criteria.list();
-
-        for (ROrgClosure objectToDelete : objectsToDelete) {
-            session.delete(objectToDelete);
-        }
-
-//        Query query = session.createQuery("delete from ROrgClosure as c where c.descendantOid = :dOid");
-//        query.setParameter("dOid", object.getOid());
-//
-//        query.executeUpdate();
     }
 
     @Override
@@ -872,6 +703,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         OperationResult subResult = result.createMinorSubresult(COUNT_OBJECTS);
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
+        
+        if (query != null) {
+        	ObjectFilter filter = query.getFilter();
+        	filter = ObjectQueryUtil.simplify(filter);
+        	if (filter instanceof NoneFilter) {
+        		subResult.recordSuccess();
+        		return 0;
+        	}
+        	query = query.cloneEmpty();
+        	query.setFilter(filter);
+        }
 
         final String operation = "counting";
         int attempt = 1;
@@ -917,7 +759,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
                                                                      OperationResult result) throws SchemaException {
         Validate.notNull(type, "Object type must not be null.");
@@ -929,6 +771,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
         // subResult.addParam("paging", paging);
+        
+        if (query != null) {
+        	ObjectFilter filter = query.getFilter();
+        	filter = ObjectQueryUtil.simplify(filter);
+        	if (filter instanceof NoneFilter) {
+        		subResult.recordSuccess();
+        		return new SearchResultList(new ArrayList<PrismObject<T>>(0));
+        	}
+        	query = query.cloneEmpty();
+        	query.setFilter(filter);
+        }
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart("searchObjects");
@@ -971,7 +824,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <T extends ObjectType> List<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
+    private <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
                                                                              Collection<SelectorOptions<GetOperationOptions>> options,
                                                                              OperationResult result) throws SchemaException {
         List<PrismObject<T>> list = new ArrayList<>();
@@ -996,7 +849,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             cleanupSessionAndResult(session, result);
         }
 
-        return list;
+        return new SearchResultList(list);
     }
 
     /**
@@ -1018,7 +871,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (UserType.class.equals(prismObject.getCompileTimeClass())) {
             if (SelectorOptions.hasToLoadPath(UserType.F_JPEG_PHOTO, options)) {
                 //todo improve, use user.hasPhoto flag and take options into account [lazyman]
-                //call this only when options contains INCLUDE user/jpegPhoto
+                //this is called only when options contains INCLUDE user/jpegPhoto
                 Query query = session.getNamedQuery("get.userPhoto");
                 query.setString("oid", prismObject.getOid());
                 byte[] photo = (byte[]) query.uniqueResult();
@@ -1115,9 +968,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         if (InternalsConfig.consistencyChecks) {
-            for (ItemDelta modification : modifications) {
-                modification.checkConsistence();
-            }
+            ItemDelta.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
+        } else {
+            ItemDelta.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
         }
 
         if (LOGGER.isTraceEnabled()) {
@@ -1160,21 +1013,28 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
                                                             Collection<? extends ItemDelta> modifications,
                                                             OperationResult result) throws ObjectNotFoundException,
-            SchemaException, ObjectAlreadyExistsException {
+            SchemaException, ObjectAlreadyExistsException, SerializationRelatedException {
         LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Modifications:\n{}", new Object[]{DebugUtil.debugDump(modifications)});
         }
 
         Session session = null;
+        OrgClosureManager.Context closureContext = null;
         try {
             session = beginTransaction();
+
+            closureContext = getClosureManager().onBeginTransactionModify(session, type, oid, modifications);
 
             // get user
             PrismObject<T> prismObject = getObject(session, type, oid, null, true);
             // apply diff
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.debugDump()});
+            }
+            PrismObject<T> originalObject = null;
+            if (getClosureManager().isEnabled()) {
+                originalObject = prismObject.clone();
             }
             ItemDelta.applyTo(modifications, prismObject);
             if (LOGGER.isTraceEnabled()) {
@@ -1188,10 +1048,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             updateFullObject(rObject, prismObject);
             session.merge(rObject);
 
-            //todo finish orgClosureManager
-            //orgClosureManager.updateOrgClosure(modifications, session, oid, type, OrgClosureManager.Operation.MODIFY);
-
-            recomputeHierarchy(rObject, session, modifications);
+            if (getClosureManager().isEnabled()) {
+                getClosureManager().updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
+            }
 
             LOGGER.trace("Before commit...");
             session.getTransaction().commit();
@@ -1200,6 +1059,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (ConstraintViolationException ex) {
+            handleConstraintViolationException(session, ex, result);
+
             rollbackTransaction(session, ex, result, true);
 
             LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", ex);
@@ -1214,127 +1075,43 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } catch (QueryException | DtoTranslationException | RuntimeException ex) {
             handleGeneralException(ex, session, result);
         } finally {
-            cleanupSessionAndResult(session, result);
+            cleanupClosureAndSessionAndResult(closureContext, session, result);
             LOGGER.trace("Session cleaned up.");
         }
     }
 
-    private <T extends ObjectType> void recomputeHierarchy(
-            RObject<T> rObjectToModify, Session session,
-            Collection<? extends ItemDelta> modifications)
-            throws SchemaException, DtoTranslationException {
+    private void cleanupClosureAndSessionAndResult(final OrgClosureManager.Context closureContext, final Session session, final OperationResult result) {
+        if (closureContext != null) {
+            getClosureManager().cleanUpAfterOperation(closureContext, session);
+        }
+        cleanupSessionAndResult(session, result);
+    }
 
-        for (ItemDelta delta : modifications) {
-            if (!QNameUtil.match(delta.getElementName(), OrgType.F_PARENT_ORG_REF)) continue;
+    private void handleConstraintViolationException(Session session, ConstraintViolationException ex, OperationResult result) {
 
-            // if modification is one of the modify or delete, delete old
-            // record in org closure table and in the next step fill the
-            // closure table with the new records
-            if (delta.isReplace() || delta.isDelete()) {
-                for (Object orgRefDValue : delta.getValuesToDelete()) {
-                    if (!(orgRefDValue instanceof PrismReferenceValue))
-                        throw new SchemaException("Couldn't modify organization structure hierarchy (adding new " +
-                                "records). Expected instance of prism reference value but got " + orgRefDValue);
+        // BRUTAL HACK - in PostgreSQL, concurrent changes in parentRefOrg sometimes cause the following exception
+        // "duplicate key value violates unique constraint "XXXX". This is *not* an ObjectAlreadyExistsException,
+        // more likely it is a serialization-related one.
+        //
+        // TODO: somewhat generalize this approach - perhaps by retrying all operations not dealing with OID/name uniqueness
 
-                    if (rObjectToModify.getClass().isAssignableFrom(ROrg.class)) {
-                        List<RObject> objectsToRecompute = deleteTransitiveHierarchy(rObjectToModify, session);
-                        refillHierarchy(rObjectToModify, objectsToRecompute, session);
-                    } else {
-                        deleteHierarchy(rObjectToModify, session);
-                        if (rObjectToModify.getParentOrgRef() != null
-                                && !rObjectToModify.getParentOrgRef().isEmpty()) {
-                            for (RObjectReference orgRef : rObjectToModify.getParentOrgRef()) {
-                                fillTransitiveHierarchy(rObjectToModify, orgRef.getTargetOid(), session, true);
-                            }
-                        }
+        SQLException sqlException = findSqlException(ex);
+        if (sqlException != null) {
+            LOGGER.debug("ConstraintViolationException = {}, embedded SQL exception = {}", ex, sqlException.getNextException());
+            String[] ok = new String[] {
+                    "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
+                    "duplicate key value violates unique constraint \"m_reference_pkey\""
+            };
+            if (sqlException.getMessage() != null) {
+                String msg = sqlException.getMessage();
+                for (int i = 0; i < ok.length; i++) {
+                    if (msg.contains(ok[i])) {
+                        rollbackTransaction(session, ex, result, false);
+                        throw new SerializationRelatedException(ex);
                     }
                 }
-            } else if (delta.isAdd()) {
-                // fill closure table with new transitive relations
-                for (Object orgRefDValue : delta.getValuesToAdd()) {
-                    if (!(orgRefDValue instanceof PrismReferenceValue)) {
-                        throw new SchemaException(
-                                "Couldn't modify organization structure hierarchy (adding new records). Expected " +
-                                        "instance of prism reference value but got " + orgRefDValue
-                        );
-                    }
-
-                    PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
-
-                    LOGGER.trace("filling transitive hierarchy for descendant {}, ref {}",
-                            new Object[]{rObjectToModify.getOid(), value.getOid()});
-                    // todo remove
-                    fillTransitiveHierarchy(rObjectToModify, value.getOid(), session, true);
-                }
             }
         }
-    }
-
-
-    private List<RObject> deleteTransitiveHierarchy(RObject rObjectToModify,
-                                                    Session session) throws SchemaException, DtoTranslationException {
-
-        Criteria cDescendant = session.createCriteria(ROrgClosure.class)
-                .setProjection(Projections.property("descendant"))
-                .add(Restrictions.eq("ancestor", rObjectToModify));
-
-        Criteria cAncestor = session.createCriteria(ROrgClosure.class)
-                .setProjection(Projections.property("ancestor"))
-                .createCriteria("ancestor", "anc")
-                .add(Restrictions.and(Restrictions.eq("this.descendant",
-                        rObjectToModify), Restrictions.not(Restrictions.eq(
-                        "anc.oid", rObjectToModify.getOid()))));
-
-        Criteria cOrgClosure = session.createCriteria(ROrgClosure.class);
-
-        List<RObject> ocAncestor = cAncestor.list();
-        List<RObject> ocDescendant = cDescendant.list();
-
-        if (ocAncestor != null && !ocAncestor.isEmpty()) {
-            cOrgClosure.add(Restrictions.in("ancestor", ocAncestor));
-        } else {
-            LOGGER.trace("No ancestors for object: {}", rObjectToModify.getOid());
-        }
-
-        if (ocDescendant != null && !ocDescendant.isEmpty()) {
-            cOrgClosure.add(Restrictions.in("descendant", ocDescendant));
-        } else {
-            LOGGER.trace("No descendants for object: {}", rObjectToModify.getOid());
-        }
-
-        List<ROrgClosure> orgClosure = cOrgClosure.list();
-
-        for (ROrgClosure o : orgClosure) {
-            if (LOGGER.isTraceEnabled()) {
-                RObject ancestor = o.getAncestor();
-                RObject descendant = o.getDescendant();
-                LOGGER.trace("deleting from hierarchy: A:{} D:{} depth:{}",
-                        new Object[]{RUtil.getDebugString(ancestor), RUtil.getDebugString(descendant), o.getDepth()});
-            }
-            session.delete(o);
-        }
-        deleteHierarchy(rObjectToModify, session);
-        return ocDescendant;
-    }
-
-
-    private void refillHierarchy(RObject parent, List<RObject> descendants,
-                                 Session session) throws SchemaException, DtoTranslationException {
-        fillHierarchy(parent, session, false);
-
-        for (RObject descendant : descendants) {
-            LOGGER.trace("ObjectToRecompute {}", descendant);
-            if (!parent.getOid().equals(descendant.getOid())) {
-                fillTransitiveHierarchy(descendant, parent.getOid(),
-                        session, false);
-            }
-        }
-
-    }
-
-    private void deleteHierarchy(RObject objectToDelete, Session session) {
-        session.getNamedQuery("sqlDeleteOrgClosure").setParameter("oid", objectToDelete.getOid()).executeUpdate();
-        session.getNamedQuery("sqlDeleteOrgIncorrect").setParameter("oid", objectToDelete.getOid()).executeUpdate();
     }
 
     @Override
@@ -1573,6 +1350,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // No self-tests for now
     }
 
+    @Override
+    public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult) {
+        getClosureManager().checkAndOrRebuild(this, true, repairIfNecessary, false, false, testResult);
+    }
+
+    @PostConstruct
+    public void initialize() {
+        getClosureManager().initialize(this);
+    }
+
     /* (non-Javadoc)
      * @see com.evolveum.midpoint.repo.api.RepositoryService#getVersion(java.lang.Class, java.lang.String,
      * com.evolveum.midpoint.schema.result.OperationResult)
@@ -1639,12 +1426,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      * com.evolveum.midpoint.schema.result.OperationResult)
      */
     @Override
-    public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+    public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
                                                               ResultHandler<T> handler,
                                                               Collection<SelectorOptions<GetOperationOptions>> options,
-                                                              OperationResult result)
-            throws SchemaException {
-
+                                                              OperationResult result) throws SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(handler, "Result handler must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
@@ -1654,10 +1439,21 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         OperationResult subResult = result.createSubresult(SEARCH_OBJECTS_ITERATIVE);
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
+        
+        if (query != null) {
+        	ObjectFilter filter = query.getFilter();
+        	filter = ObjectQueryUtil.simplify(filter);
+        	if (filter instanceof NoneFilter) {
+        		subResult.recordSuccess();
+        		return null;
+        	}
+        	query = query.cloneEmpty();
+        	query.setFilter(filter);
+        }
 
         if (getConfiguration().isIterativeSearchByPaging()) {
             searchObjectsIterativeByPaging(type, query, handler, options, subResult);
-            return;
+            return null;
         }
 
 //        turned off until resolved 'unfinished operation' warning
@@ -1670,7 +1466,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             while (true) {
                 try {
                     searchObjectsIterativeAttempt(type, query, handler, options, subResult);
-                    return;
+                    return null;
                 } catch (RuntimeException ex) {
                     attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
 //                    pm.registerOperationNewTrial(opHandle, attempt);
@@ -1684,9 +1480,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T extends ObjectType> void searchObjectsIterativeAttempt(Class<T> type, ObjectQuery query,
                                                                       ResultHandler<T> handler,
                                                                       Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                      OperationResult result)
-            throws SchemaException {
-
+                                                                      OperationResult result) throws SchemaException {
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
@@ -1773,13 +1567,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		Validate.notNull(upperOrgOid, "upperOrgOid must not be null.");
         Validate.notNull(lowerObjectOids, "lowerObjectOids must not be null.");
 
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Querying for subordination upper {}, lower {}", new Object[]{upperOrgOid, lowerObjectOids});
+        if (LOGGER.isTraceEnabled())
+            LOGGER.trace("Querying for subordination upper {}, lower {}", new Object[]{upperOrgOid, lowerObjectOids});
 
         if (lowerObjectOids.isEmpty()) {
-        	// trivial case
-        	return false;
+            // trivial case
+            return false;
         }
-        
+
         int attempt = 1;
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
@@ -1796,49 +1591,25 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
         }
-	}
-    
-	private boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids) {
-		Session session = null;
+    }
+
+    private boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids) {
+        Session session = null;
         try {
             session = beginTransaction();
 
             Query query;
             if (lowerObjectOids.size() == 1) {
                 query = session.getNamedQuery("isAnySubordinateAttempt.oneLowerOid");
+                query.setString("dOid", lowerObjectOids.iterator().next());
             } else {
-                StringBuilder sb = new StringBuilder();
-                sb.append("select count(*) from ROrgClosure o where ");
-
-                sb.append('(');
-                Iterator<String> iterator = lowerObjectOids.iterator();
-                int paramIndex = 0;
-                while (iterator.hasNext()) {
-                    iterator.next();
-                    sb.append("(o.ancestorOid=:aOid").append(paramIndex);
-                    sb.append(" and o.descendantOid=:dOid").append(paramIndex);
-                    sb.append(')');
-                    paramIndex++;
-                    if (iterator.hasNext()) {
-                        sb.append(" or ");
-                    }
-                }
-                sb.append(')');
-
-                query = session.createQuery(sb.toString());
+                query = session.getNamedQuery("isAnySubordinateAttempt.moreLowerOids");
+                query.setParameterList("dOids", lowerObjectOids);
             }
+            query.setString("aOid", upperOrgOid);
 
-            Iterator<String> iterator = lowerObjectOids.iterator();
-            int paramIndex = 0;
-            while (iterator.hasNext()) {
-            	String subOid = iterator.next();
-            	query.setString("aOid" + paramIndex, upperOrgOid);
-            	query.setString("dOid" + paramIndex, subOid);
-            	paramIndex++;
-            }
-            
             Number number = (Number) query.uniqueResult();
-            return (number != null && number.longValue() != 0L) ? true : false;
+            return number != null && number.longValue() != 0L;
         } catch (RuntimeException ex) {
             handleGeneralException(ex, session, null);
         } finally {

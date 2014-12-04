@@ -21,11 +21,16 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -60,49 +65,45 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
     private static final String DOT_CLASS = AccountContentDataProvider.class.getName() + ".";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_LOAD_OWNER = DOT_CLASS + "loadOwner";
+    private static final String OPERATION_COUNT_ACCOUNTS = DOT_CLASS + "countAccounts";
 
     private IModel<String> resourceOid;
     private IModel<QName> objectClass;
+    private IModel<Boolean> useConnectorPagingModel;
+    private Integer cachedSize;
 
-    public AccountContentDataProvider(Component component, IModel<String> resourceOid, IModel<QName> objectClass) {
-        super(component);
+    public AccountContentDataProvider(Component component, IModel<String> resourceOid, IModel<QName> objectClass, IModel<Boolean> useConnectorPagingModel) {
+        super(component, false, false);     // don't use cache, don't use default sorting field (c:name)
 
         Validate.notNull(resourceOid, "Resource oid model must not be null.");
         Validate.notNull(objectClass, "Object class model must not be null.");
+        Validate.notNull(useConnectorPagingModel, "'Use connector paging' model must not be null.");
         this.resourceOid = resourceOid;
         this.objectClass = objectClass;
+        this.useConnectorPagingModel = useConnectorPagingModel;
     }
 
     @Override
     public Iterator<AccountContentDto> internalIterator(long first, long count) {
-        LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
+        boolean useConnectorPaging = isUseConnectorPaging();
+        LOGGER.trace("begin::iterator() from {} count {} useConnectorPaging {}.", new Object[]{first, count, useConnectorPaging});
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
         try {
-            ObjectPaging paging = createPaging(first, count);
             Task task = getPage().createSimpleTask(OPERATION_LOAD_ACCOUNTS);
 
-            ObjectQuery baseQuery = ObjectQueryUtil.createResourceAndAccountQuery(resourceOid.getObject(),
-                    objectClass.getObject(), getPage().getPrismContext());
-            ObjectQuery query = getQuery();
-            if (query != null) {
-                ObjectFilter baseFilter = baseQuery.getFilter();
-                ObjectFilter filter = query.getFilter();
-
-                query = new ObjectQuery();
-                ObjectFilter andFilter = AndFilter.createAnd(baseFilter, filter);
-                query.setFilter(andFilter);
-            } else {
-                query = baseQuery;
-            }
+            ObjectPaging paging = createPaging(first, count);
+            ObjectQuery query = getObjectQuery();
             query.setPaging(paging);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Query filter:\n{}", query);
             }
 
-            List<PrismObject<ShadowType>> list = getModel().searchObjects(ShadowType.class, query, null, task, result);
+            Collection<SelectorOptions<GetOperationOptions>> options =
+                    SelectorOptions.createCollection(ShadowType.F_ASSOCIATION, GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
+            List<PrismObject<ShadowType>> list = getModel().searchObjects(ShadowType.class, query, options, task, result);
 
             AccountContentDto dto;
             for (PrismObject<ShadowType> object : list) {
@@ -125,9 +126,72 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
         return getAvailableData().iterator();
     }
 
+    private boolean isUseConnectorPaging() {
+        return Boolean.TRUE.equals(useConnectorPagingModel.getObject());
+    }
+
+    private ObjectQuery getObjectQuery() throws SchemaException {
+        ObjectQuery baseQuery = ObjectQueryUtil.createResourceAndAccountQuery(resourceOid.getObject(),
+                objectClass.getObject(), getPage().getPrismContext());
+        ObjectQuery query = getQuery();
+        if (query != null) {
+            ObjectFilter baseFilter = baseQuery.getFilter();
+            ObjectFilter filter = query.getFilter();
+
+            query = new ObjectQuery();
+            ObjectFilter andFilter = AndFilter.createAnd(baseFilter, filter);
+            query.setFilter(andFilter);
+        } else {
+            query = baseQuery;
+        }
+        return query;
+    }
+
+    @Override
+    public void setQuery(ObjectQuery query) {
+        super.setQuery(query);
+        cachedSize = null;
+    }
+
     @Override
     protected int internalSize() {
-        return Integer.MAX_VALUE;
+        if (!isUseConnectorPaging()) {
+            return Integer.MAX_VALUE;
+        }
+        if (cachedSize != null) {
+            LOGGER.trace("begin::internalSize() returning cached size of {}", cachedSize);
+            return cachedSize;
+        }
+
+        LOGGER.trace("begin::internalSize() useConnectorPaging is TRUE.");
+
+        OperationResult result = new OperationResult(OPERATION_COUNT_ACCOUNTS);
+        Task task = getPage().createSimpleTask(OPERATION_COUNT_ACCOUNTS);
+
+        int retval = Integer.MAX_VALUE;         // default in case of problems
+
+        ObjectQuery query;
+        try {
+            query = getObjectQuery();
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't create object query for counting resource objects - using count of {} instead", e, retval);
+            return retval;
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Query filter for object counting:\n{}", query);
+        }
+
+        try {
+            retval = getModel().countObjects(ShadowType.class, query, null, task, result);
+            cachedSize = retval;
+        } catch (SchemaException|ObjectNotFoundException|SecurityViolationException|ConfigurationException|CommunicationException|RuntimeException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't count resource objects - using count of {} instead", e, retval);
+            return retval;
+        }
+
+        LOGGER.trace("end::internalSize() retval = {}", retval);
+        return retval;
     }
 
     private AccountContentDto createAccountContentDto(PrismObject<ShadowType> object, OperationResult result)

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 
 public class NotFilter extends UnaryLogicalFilter {
@@ -48,6 +49,11 @@ public class NotFilter extends UnaryLogicalFilter {
 		return new NotFilter(getFilter().clone());
 	}
 	
+	@Override
+	public NotFilter cloneEmpty() {
+		return new NotFilter();
+	}
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);
@@ -79,7 +85,7 @@ public class NotFilter extends UnaryLogicalFilter {
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
 		return !getFilter().match(object, matchingRuleRegistry);
 		
 	}

@@ -69,7 +69,7 @@
     </xsd:import>
 
     <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" 
-    			schemaLocation="http://www.w3.org/2001/04/xmlenc#">
+    			schemaLocation="http://www.w3.org/2001/04/xmlenc">
         <xsd:annotation>
             <xsd:documentation>
                 The XML Encryption schema. Used for "protected" data types (property encryption).
@@ -764,6 +764,7 @@
     		<xsd:appinfo>
     			<a:operational>true</a:operational>
     			<a:container/>
+                <a:displayName>Metadata</a:displayName>
     		</xsd:appinfo>
     	</xsd:annotation>
     	<xsd:sequence>
@@ -1900,6 +1901,9 @@
                                 a desired state of things (cf. linkRef).
                                 </p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Assignment</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -2543,6 +2547,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:displayName>Assignment</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2568,6 +2573,7 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                     		<a:objectReference>tns:targetRef</a:objectReference>
+                            <a:displayName>Target</a:displayName>
                     	</xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2577,6 +2583,9 @@
                         <xsd:documentation>
                             TODO: target ref
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>Target</a:displayName>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 
@@ -2585,6 +2594,9 @@
                         <xsd:documentation>
                             TODO
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>Construction</a:displayName>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 
@@ -2615,6 +2627,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                        <a:displayName>Tenant reference</a:displayName>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3256,6 +3269,9 @@
                 element to make the implementation
                 (JAXB marshall/unmarshall) easier.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
@@ -3271,6 +3287,9 @@
                 that can be used for creating accounts, entitlements and possible other concepts.
                 This is abstract supertype for other types. 
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"/>
@@ -3330,14 +3349,45 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="pagedSearches" minOccurs="0" type="xsd:anyType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Placeholder for old-style specification of paged searches.
+                        Kept here just to avoid parsing errors when reading the configuration.
+                        DEPRECATED. The value is ignored.
+                        TODO remove before release
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:rawType/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="configuredCapabilities" type="c:CapabilityCollectionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The configured capabilities of the resource specific to this object type.
+
+                        This part contains "tweaks" of the native capabilities.
+                        Some of the native capabilities may be turned off, other capabilities may be simulated.
+
+                        If this element is not present at all then the native+configured capabilities
+                        at the resource level are applied.
+
+                        BEWARE: Currently, only pagedSearch and addRemoveAttributeValues capability is expected here.
+                        Other capabilities listed in this section are ignored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="ResourceConsistencyType">
         <xsd:annotation>
             <xsd:documentation>
-                Configuration of consistency mechanisms. This may include configurqation of high-level
-                operation retries and similar technical condifiguration.
+                Configuration of consistency mechanisms. This may include configuration of high-level
+                operation retries and similar technical configuration.
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
@@ -3345,6 +3395,14 @@
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="avoidDuplicateValues" type="xsd:boolean" minOccurs="0" default="false"/>
+            <xsd:element name="caseIgnoreAttributeNames" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should we ignore casing of names of attributes retrieved from the connector?
+                        If yes, we normalize any attribute names with regard to the resource schema.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         	<xsd:element name="postpone" type="xsd:boolean" minOccurs="0" default="true"/>
         	<xsd:element name="discovery" type="xsd:boolean" minOccurs="0" default="true"/>
             <!-- TODO -->
@@ -3450,6 +3508,14 @@
    							</xsd:documentation>
    						</xsd:annotation>
    					</xsd:element>
+   					<xsd:element name="forceLoad" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+   						<xsd:annotation>
+   							<xsd:documentation>
+   								Specifies if the shadow on which we depends has to be load. By default we do
+   								not force to load full dependent shadow.
+   							</xsd:documentation>
+   						</xsd:annotation>
+   					</xsd:element>
    				</xsd:sequence>
    			</xsd:extension>
    		</xsd:complexContent>
@@ -3532,7 +3598,7 @@
             <xsd:element name="ref" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the attribute (XSD element) or assciation that this
+                        Name of the attribute (XSD element) or association that this
                         definition describes. It must point to the
                         attribute in the resource schema that belongs to an
                         object class that is being described here.
@@ -3544,7 +3610,7 @@
             <xsd:element name="limitations" type="tns:PropertyLimitationsType" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
-            			Limits the usage of the attribute, e.g. whether it may is read-only, read write or entirelly ignored.
+            			Limits the usage of the attribute, e.g. whether it may is read-only, read write or entirely ignored.
             			The limitations may apply to several system layers, therefore this element may be repeated several times.
             			But it there may be only one instance for each layer.
             		</xsd:documentation>
@@ -3571,6 +3637,46 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="modificationPriority" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Modification priority of this item. Items with specified priorities are modified in order that
+                        follows these priorities: these with lower numbers are modified first, these with higher numbers
+                        next, and items with unspecified priorities are modified last. Each priority level gets its own
+                        modify operation (or operations, if required by ICF limitations).
+
+                        Currently this field is supported only for attributes, even it is present on associations as well.
+
+                        (It is envisioned that 'addingPriority' could be created as well in the future; it would concern
+                        creating new objects. In that case, attributes with numerically lowest adding priority would be
+                        used to create an object, and other attributes would be set via MODIFY operation, again,
+                        according to their priorities.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="readReplaceMode" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Modifications to this attribute are executed in REPLACE form only. I.e. if ADD or DELETE VALUE is
+                        requested, midPoint will fetch the object state, compute the expected result and write it to the
+                        resource object via REPLACE VALUE operation. This works around some weird connector behavior.
+
+                        BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
+
+                        EXPERIMENTAL. May change in near future.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="secondaryIdentifier" type="xsd:boolean" minOccurs="0">
+            <xsd:annotation>
+            		<xsd:documentation>
+            			Indicated if the attribute should be considered as secondary identifier. If set to true,
+            			this attribue is stored in repository and user for example by synchronization (correlation
+            			rule), consistency mechanism, etc.
+            		</xsd:documentation>
+            	</xsd:annotation>
+			</xsd:element>
+    		
             <xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -4088,7 +4194,7 @@
             <xsd:element name="native" type="c:CapabilityCollectionType" minOccurs="0" maxOccurs="1">
             	<xsd:annotation>
             		<xsd:documentation>
-            			The capabilities nativelly supported by the connector without any simulation or any
+            			The capabilities natively supported by the connector without any simulation or any
                         other workaround. It is stored in the repository as a cache of the real capabilities
                         (connector can always produce the capabilities if the resource is online).
                         If this element is not present then the data were not yet retrieved from the resource.
@@ -4123,7 +4229,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Collection of resource capabilities. Each element in this collection defines a specific resource
-                capability. Stardard midpoint capabilities are defined in a separate namespace. But that is not
+                capability. Standard midpoint capabilities are defined in a separate namespace. But that is not
                 a closed set. Resource may also specify additional capabilities. If the code that is processing
                 capabilities encounters unknown capability it must ignore it.
             </xsd:documentation>
@@ -5199,6 +5305,19 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+             <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0" default="false">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			If set to true, applicable synchronization reactions will propagate changes only form/to source 
+            			resource. In the case focus cotains links to another resource this will be not recomputed
+            			and after reaction execution there may be small inconsistencies.
+            			
+            			It can improve performance for example for initial import.
+            			
+            			Default value is false. 
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="opportunistic" type="xsd:boolean" minOccurs="0" default="true">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -5251,17 +5370,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="unmatched">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The new account is found on the resource (it exists) and
-                        IDM cannot determine any owner for the account.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="UNMATCHED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="disputed">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5292,6 +5400,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="unmatched">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The new account is found on the resource (it exists) and
+                        IDM cannot determine any owner for the account.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNMATCHED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
     
@@ -5318,6 +5437,7 @@
             <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="synchronize" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="reconcile" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -5340,7 +5460,7 @@
 	            The actions change the default midpoint behaviour.
 	            If there is no action for a particular situation,there will be no special
 	            reaction and the default activity takes place.
-	            Sevaral action may be defined for a specific reaction. All of them will be
+	            Several actions may be defined for a specific reaction. All of them will be
 	            executed however the ordering is not guaranteed.
 	        </xsd:documentation>
 	    </xsd:annotation>
@@ -5466,6 +5586,18 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
+                    <xsd:element name="displayName" type="t:PolyStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	Human-readable name of the connector. It may be quite long, container national characters
+                            	and there is no uniqueness requirement.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>Display Name</a:displayName>
+		                    	<a:displayOrder>100</a:displayOrder>
+		                    </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="framework" type="xsd:anyURI">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -6101,6 +6233,9 @@
                             <xsd:documentation>
                             	TODO
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Inducement</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="authorization" type="tns:AuthorizationType" minOccurs="0" maxOccurs="unbounded">
@@ -8541,6 +8676,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Option to limit change computation and execution only for the source resource.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -8801,7 +8943,6 @@
                         Focus types supported by this handler. (Default: all)
                         Types not listed are filtered out: not handled by this handler nor any of its successors.
                         (Relevant only for model-generated events.)
-                        NOT IMPLEMENTED YET.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -8827,6 +8968,13 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simpleFocalObjectNotifier" type="tns:SimpleFocalObjectNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -9092,6 +9240,18 @@
     </xsd:complexType>
 
     <xsd:complexType name="SimpleUserNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:SimpleFocalObjectNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SimpleFocalObjectNotifierType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO

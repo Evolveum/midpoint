@@ -88,8 +88,12 @@ public class ConfigurationStep extends WizardStep {
     }
 
     private void initLayout() {
+    	com.evolveum.midpoint.web.component.form.Form form = new com.evolveum.midpoint.web.component.form.Form<>("main", true);
+        form.setOutputMarkupId(true);
+        add(form);
+        
         final PrismObjectPanel configuration = new PrismObjectPanel(ID_CONFIGURATION, configurationProperties, null, null);
-        add(configuration);
+        form.add(configuration);
 
         AjaxSubmitButton testConnection = new AjaxSubmitButton(ID_TEST_CONNECTION,
                 createStringResource("ConfigurationStep.button.testConnection")) {

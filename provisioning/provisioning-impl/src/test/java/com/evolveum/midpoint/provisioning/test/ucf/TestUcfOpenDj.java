@@ -182,7 +182,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		
 		OperationResult result = new OperationResult("initUcf");
 		cc.configure(resourceType.getConnectorConfiguration().asPrismContainerValue(), result);
-		cc.initialize(null, null, result);
+		cc.initialize(null, null, false, result);
 		// TODO: assert something
 
 		resourceSchema = cc.fetchResourceSchema(null, result);
@@ -639,7 +639,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testSearch");
 
 		// WHEN
-		cc.search(accountDefinition, new ObjectQuery(), handler, null, result);
+		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, result);
 
 		// THEN
 

@@ -153,7 +153,7 @@ public class ObjectPolicyDialog extends ModalWindow{
         form.setOutputMarkupId(true);
         content.add(form);
 
-        DropDownFormGroup type = new DropDownFormGroup(ID_TYPE, new PropertyModel<QName>(model,
+        DropDownFormGroup type = new DropDownFormGroup<>(ID_TYPE, new PropertyModel<QName>(model,
                 ObjectPolicyDialogDto.F_TYPE), createTypeChoiceList(),
                 new IChoiceRenderer<QName>() {
 
@@ -169,7 +169,7 @@ public class ObjectPolicyDialog extends ModalWindow{
                 }, createStringResource("ObjectPolicyDialog.type"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(type);
 
-        DropDownFormGroup template = new DropDownFormGroup(ID_OBJECT_TEMPLATE, new PropertyModel<ObjectTemplateConfigTypeReferenceDto>(model, ObjectPolicyDialogDto.F_TEMPLATE_REF),
+        DropDownFormGroup template = new DropDownFormGroup<>(ID_OBJECT_TEMPLATE, new PropertyModel<ObjectTemplateConfigTypeReferenceDto>(model, ObjectPolicyDialogDto.F_TEMPLATE_REF),
                 createObjectTemplateList(), new IChoiceRenderer<ObjectTemplateConfigTypeReferenceDto>() {
             @Override
             public Object getDisplayValue(ObjectTemplateConfigTypeReferenceDto object) {

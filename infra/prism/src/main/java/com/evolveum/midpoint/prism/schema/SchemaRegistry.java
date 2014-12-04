@@ -564,7 +564,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 				// The systemId will be populated by schema location, not namespace URI.
 				// As we use catalog resolver as the default one, we need to pass it the namespaceURI in place of systemId
 				inputSource = builtinSchemaResolver.resolveEntity(publicId, namespaceURI);
-			} else {
+			}
+            // however, there are cases where systemId differs from namespaceURI (e.g. when namespace ends with '#')
+            // so, give systemId a try...
+            if (inputSource == null) {
 				inputSource = builtinSchemaResolver.resolveEntity(publicId, systemId);
 			}
 		} catch (SAXException e) {

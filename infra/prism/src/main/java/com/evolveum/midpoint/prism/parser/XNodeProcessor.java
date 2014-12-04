@@ -254,6 +254,7 @@ public class XNodeProcessor {
 			PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)xnode;
 			if (xprim.isEmpty()) {
 				PrismContainer<C> container = containerDef.instantiate(elementName);
+                container.createNewValue();         // empty primitive node corresponds actually to empty container VALUE, not empty (value-less) container ITEM
 				return container;
 			} else {
 				throw new IllegalArgumentException("Cannot parse container from (non-empty) "+xnode);
@@ -275,9 +276,19 @@ public class XNodeProcessor {
 			throws SchemaException {
 		if (xnode instanceof MapXNode) {
 			return parsePrismContainerValueFromMap((MapXNode)xnode, containerDef, null);
-		} else {
-			throw new IllegalArgumentException("Cannot parse container value from "+xnode);
-		}
+		} else if (xnode instanceof PrimitiveXNode) {
+            PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)xnode;
+            if (xprim.isEmpty()) {
+                PrismContainer<C> container = containerDef.instantiate();
+                PrismContainerValue pcv = container.createNewValue();
+                pcv.setParent(null);
+                return pcv;
+            } else {
+                throw new IllegalArgumentException("Cannot parse container value from (non-empty) "+xnode);
+            }
+        } else {
+            throw new IllegalArgumentException("Cannot parse container value from "+xnode);
+        }
 	}
 
 	private <C extends Containerable> PrismContainerValue<C> parsePrismContainerValueFromMap(MapXNode xmap, PrismContainerDefinition<C> containerDef,
@@ -960,6 +971,46 @@ public class XNodeProcessor {
         }
     }
 
+    // experimental
+    public <T> JAXBElement<T> parseAnyValueAsJAXBElement(XNode node) throws SchemaException {
+        // is the type name explicitly specified? (if not, guess that we have a string)
+        QName typeName = getExplicitType(node);
+        if (typeName == null && node instanceof PrimitiveXNode) {
+            typeName = DOMUtil.XSD_STRING;
+        }
+        if (typeName != null) {
+            ItemDefinition itemDefinition = getSchemaRegistry().findItemDefinitionByType(typeName);
+            if (itemDefinition != null) {
+                Item item = parseItem(node, getElementName(node, itemDefinition), itemDefinition);
+                return getItemValueAsJAXBElement(item);
+            } else {
+                Object o = parseAtomicValue(node, typeName);
+                if (o instanceof JAXBElement) {
+                    return (JAXBElement) o;
+                } else {
+                    if (!(node instanceof RootXNode)) {
+                        throw new SchemaException("Couldn't represent an object with no root element name and no item definition as JAXBElement: " + node);
+                    }
+                    QName elementName = ((RootXNode) node).getRootElementName();
+                    return new JAXBElement(elementName, Object.class, o);       // or o.getClass?
+                }
+            }
+        } else {
+            // if type name is not known, we have to derive it from the element name
+            if (!(node instanceof RootXNode)) {
+                throw new SchemaException("Couldn't parse general object with no type name and no root element name: " + node);
+            }
+            QName elementName = ((RootXNode) node).getRootElementName();
+            ItemDefinition itemDefinition = getSchemaRegistry().findItemDefinitionByElementName(elementName);
+            if (itemDefinition == null) {
+                throw new SchemaException("Couldn't parse general object with no type name and unknown element name: " + elementName);
+            }
+            Item item = parseItem(((RootXNode) node).getSubnode(), elementName, itemDefinition);
+            return getItemValueAsJAXBElement(item);
+        }
+    }
+
+
     private Object getItemRealValue(Item item) throws SchemaException {
         if (item.size() == 0) {
             return null;
@@ -979,6 +1030,14 @@ public class XNodeProcessor {
         }
     }
 
+    private <T> JAXBElement<T> getItemValueAsJAXBElement(Item item) throws SchemaException {
+        Object v = getItemRealValue(item);
+        if (v == null) {
+            return null;
+        } else {
+            return (JAXBElement) new JAXBElement<>(item.getElementName(), Object.class, v);     // or v.getClass?
+        }
+    }
 
     private QName getElementName(XNode node, ItemDefinition itemDefinition) {
         if (node instanceof RootXNode) {

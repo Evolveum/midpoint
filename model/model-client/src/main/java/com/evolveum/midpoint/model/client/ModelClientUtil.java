@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.client;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
@@ -42,6 +43,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.cxf.frontend.ClientProxy;
@@ -108,10 +110,32 @@ public class ModelClientUtil {
 
     public static PolyStringType createPolyStringType(String string, Document doc) {
 		PolyStringType polyStringType = new PolyStringType();
-		Element origElement = createTextElement(TYPES_POLYSTRING_ORIG, string, doc);
-		polyStringType.getContent().add(origElement);
+		polyStringType.getContent().add(string);
 		return polyStringType;
 	}
+    
+    public static String getOrig(PolyStringType polyStringType) {
+        if (polyStringType == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Object o : polyStringType.getContent()) {
+            if (o instanceof String) {
+                sb.append(o);
+            } else if (o instanceof Element) {
+                Element e = (Element) o;
+                if ("orig".equals(e.getLocalName())) {
+                    return e.getTextContent();
+                }
+            } else if (o instanceof JAXBElement) {
+                JAXBElement je = (JAXBElement) o;
+                if ("orig".equals(je.getName().getLocalPart())) {
+                    return (String) je.getValue();
+                }
+            }
+        }
+        return sb.toString();
+    }
 	
 	public static Element createTextElement(QName qname, String value, Document doc) {
 		Element element = doc.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
@@ -190,6 +214,11 @@ public class ModelClientUtil {
      * PRELIMINARY IMPLEMENTATION. Currently the first returned ADD delta with the same object type as original delta is returned.
      */
     public static String getOidFromDeltaOperationList(ObjectDeltaOperationListType operationListType, ObjectDeltaType originalDelta) {
+        ObjectDeltaOperationType odo = findInDeltaOperationList(operationListType, originalDelta);
+        return odo != null ? ((ObjectType) odo.getObjectDelta().getObjectToAdd()).getOid() : null;
+    }
+
+    public static ObjectDeltaOperationType findInDeltaOperationList(ObjectDeltaOperationListType operationListType, ObjectDeltaType originalDelta) {
         Validate.notNull(operationListType);
         Validate.notNull(originalDelta);
         if (originalDelta.getChangeType() != ChangeTypeType.ADD) {
@@ -204,7 +233,7 @@ public class ModelClientUtil {
                     objectDeltaType.getObjectToAdd() != null) {
                 ObjectType objectAdded = (ObjectType) objectDeltaType.getObjectToAdd();
                 if (objectAdded.getClass().equals(originalDelta.getObjectToAdd().getClass())) {
-                    return objectAdded.getOid();
+                    return operationType;
                 }
             }
         }

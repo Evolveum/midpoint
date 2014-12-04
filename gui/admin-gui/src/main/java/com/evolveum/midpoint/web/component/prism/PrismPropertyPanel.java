@@ -148,7 +148,6 @@ public class PrismPropertyPanel extends Panel {
             @Override
             protected void populateItem(final ListItem<ValueWrapper> item) {
                 PrismValuePanel panel = new PrismValuePanel("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass());
-                panel.add(new AttributeModifier("class", getValueCssClass()));
                 item.add(panel);
                 item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
 

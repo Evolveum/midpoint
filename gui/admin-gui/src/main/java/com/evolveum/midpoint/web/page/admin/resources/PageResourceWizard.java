@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -31,26 +30,34 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.wizard.WizardModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
 /**
  * @author lazyman
  */
-//@PageDescriptor(url = "/admin/resources/wizard", encoder = OnePageParameterEncoder.class, action = {
-//        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
-//        AuthorizationConstants.NS_AUTHORIZATION + "#resourceWizard"})
-@PageDescriptor(url = "/admin/resources/wizard",
-        action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_NO_ACCESS_URL)})
+@PageDescriptor(url = "/admin/resources/wizard", encoder = OnePageParameterEncoder.class, action = {
+        @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
+            label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
+            description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#resource",
+            label = "PageResourceWizard.auth.resource.label",
+            description = "PageResourceWizard.auth.resource.description")})
 public class PageResourceWizard extends PageAdminResources {
 
     private static final String ID_WIZARD = "wizard";
     private IModel<PrismObject<ResourceType>> model;
+    private PageParameters parameters;
 
-    public PageResourceWizard() {
+    public PageResourceWizard(PageParameters parameters) {
+        this.parameters = parameters;
+
         model = new LoadableModel<PrismObject<ResourceType>>(false) {
 
             @Override
@@ -78,6 +85,26 @@ public class PageResourceWizard extends PageAdminResources {
         };
 
         initLayout();
+    }
+
+    @Override
+    protected boolean isResourceOidAvailable(){
+        if(parameters != null){
+            StringValue resourceOid = parameters.get(OnePageParameterEncoder.PARAMETER);
+            return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    protected String getResourceOid() {
+        if(parameters != null){
+            StringValue resourceOid = parameters.get(OnePageParameterEncoder.PARAMETER);
+            return resourceOid != null ? resourceOid.toString() : null;
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -120,6 +147,7 @@ public class PageResourceWizard extends PageAdminResources {
         wizardModel.add(new SynchronizationStep(model));
 
         Wizard wizard = new Wizard(ID_WIZARD, new Model(wizardModel));
+        wizard.setOutputMarkupId(true);
         add(wizard);
     }
 }

@@ -17,179 +17,183 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="row">
-        <div class="col-md-6">
-            <h3 style="margin-left: 20px;">
-                <wicket:message key="SystemConfigPanel.title.basic"/>
-            </h3>
 
-            <div class="form-group">
-                <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.title.passwordPolicy"/>
-                </label>
-                <div wicket:id="passwordPolicyChooser" />
-            </div>
+    <form wicket:id="mainForm">
+        <div class="row">
+            <div class="col-md-6">
+                <h3 style="margin-left: 20px;">
+                    <wicket:message key="SystemConfigPanel.title.basic"/>
+                </h3>
 
-            <div class="form-group">
-                <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.title.userTemplate"/>
-                </label>
-                <div wicket:id="userTemplateChooser" />
-            </div>
-
-            <div class="form-group" wicket:id="objectPolicyEditor"></div>
-
-            <h3 style="margin-left: 20px;">
-                <wicket:message key="SystemConfigPanel.title.accountSynchronization"/>
-            </h3>
-
-            <div class="form-group">
-                <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.assignmentPolicyEnforcement"/>
-                </label>
-
-                <div class="col-lg-4">
-                    <select class="form-control input-sm" wicket:id="aepChooser">
-                    </select>
-                </div>
-            </div>
-
-            <h3 style="margin-left: 20px">
-                <wicket:message key="SystemConfigPanel.cleanupPolicy"/>
-            </h3>
-
-            <div class="form-group">
-                <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.cleanupPolicy.auditRecords"/>
-                </label>
-
-                <div class="col-lg-2">
-                    <input type="text" class="form-control input-sm" wicket:id="auditRecordsCleanup"
-                            wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder">
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">
+                        <wicket:message key="SystemConfigPanel.title.passwordPolicy"/>
+                    </label>
+                    <div wicket:id="passwordPolicyChooser" />
                 </div>
 
-                <i wicket:id="auditRecordsCleanupTooltip" wicket:message="title:SystemConfigPanel.tooltip.duration"/>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.cleanupPolicy.closedTasks"/>
-                </label>
-
-                <div class="col-lg-2">
-                    <input type="text" class="form-control input-sm" wicket:id="closedTasksCleanup"
-                           wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder">
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">
+                        <wicket:message key="SystemConfigPanel.title.userTemplate"/>
+                    </label>
+                    <div wicket:id="userTemplateChooser" />
                 </div>
 
-                <i wicket:id="closedTasksCleanupTooltip" wicket:message="title:SystemConfigPanel.tooltip.duration"/>
-            </div>
-        </div>
+                <div class="form-group" wicket:id="objectPolicyEditor"></div>
 
-        <!-- TODO - move this into webapps/js and change selector to attribute rather than to class -->
-        <script>
-            $('.btn-xs').tooltip();
-        </script>
+                <h3 style="margin-left: 20px;">
+                    <wicket:message key="SystemConfigPanel.title.accountSynchronization"/>
+                </h3>
 
-        <div class="col-md-6">
-            <h3>
-                <wicket:message key="SystemConfigPanel.title.notification"/>
-            </h3>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">
+                        <wicket:message key="SystemConfigPanel.assignmentPolicyEnforcement"/>
+                    </label>
 
-            <div class="form-group">
-                <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.mail.defaultFrom"/>
-                </label>
-
-                <div class="col-lg-4">
-                    <input type="text" class="form-control input-sm" wicket:id="defaultFrom"
-                           wicket:message="placeholder:SystemConfigPanel.mail.defaultFrom">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.mail.debug"/>
-                </label>
-
-                <div class="col-lg-4">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="optionsRadios1" wicket:id="debugCheckbox">
-                        </label>
+                    <div class="col-lg-4">
+                        <select class="form-control input-sm" wicket:id="aepChooser">
+                        </select>
                     </div>
                 </div>
-            </div>
 
-            <hr style="margin-right: 20px;"/>
-            <div class="form-group">
-                <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.mail.host"/>
-                </label>
+                <h3 style="margin-left: 20px">
+                    <wicket:message key="SystemConfigPanel.cleanupPolicy"/>
+                </h3>
 
-                <div class="col-lg-4">
-                    <input type="text" class="form-control input-sm" wicket:id="host"
-                           wicket:message="placeholder:SystemConfigPanel.mail.host">
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">
+                        <wicket:message key="SystemConfigPanel.cleanupPolicy.auditRecords"/>
+                    </label>
+
+                    <div class="col-lg-2">
+                        <input type="text" class="form-control input-sm" wicket:id="auditRecordsCleanup"
+                                wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder">
+                    </div>
+
+                    <i wicket:id="auditRecordsCleanupTooltip" wicket:message="title:SystemConfigPanel.tooltip.duration"/>
                 </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.mail.port"/>
-                </label>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">
+                        <wicket:message key="SystemConfigPanel.cleanupPolicy.closedTasks"/>
+                    </label>
 
-                <div class="col-lg-2">
-                    <input type="text" class="form-control input-sm" wicket:id="port"
-                           wicket:message="placeholder:SystemConfigPanel.mail.port">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.mail.username"/>
-                </label>
+                    <div class="col-lg-2">
+                        <input type="text" class="form-control input-sm" wicket:id="closedTasksCleanup"
+                               wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder">
+                    </div>
 
-                <div class="col-lg-4">
-                    <input type="text" class="form-control input-sm" wicket:id="username" autocomplete="off"
-                           wicket:message="placeholder:SystemConfigPanel.mail.username">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.mail.password"/>
-                </label>
-
-                <div class="col-lg-4">
-                    <input type="password" class="form-control input-sm" wicket:id="password" autocomplete="off">
+                    <i wicket:id="closedTasksCleanupTooltip" wicket:message="title:SystemConfigPanel.tooltip.duration"/>
                 </div>
             </div>
 
-            <div class="form-group" wicket:id="transportSecurity" />
+            <!-- TODO - move this into webapps/js and change selector to attribute rather than to class -->
+            <script>
+                $('.btn-xs').tooltip();
+            </script>
 
-            <hr style="margin-right: 20px;"/>
+            <div class="col-md-6">
+                <h3>
+                    <wicket:message key="SystemConfigPanel.title.notification"/>
+                </h3>
 
-            <div class="form-group">
-                <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.notification.redirectToFile"/>
-                </label>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">
+                        <wicket:message key="SystemConfigPanel.mail.defaultFrom"/>
+                    </label>
 
-                <div class="col-lg-4">
-                    <input type="text" class="form-control input-sm" wicket:id="redirectToFile"
-                           wicket:message="placeholder:SystemConfigPanel.notification.redirectToFile.placeholder">
+                    <div class="col-lg-4">
+                        <input type="text" class="form-control input-sm" wicket:id="defaultFrom"
+                               wicket:message="placeholder:SystemConfigPanel.mail.defaultFrom">
+                    </div>
                 </div>
-            </div>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">
+                        <wicket:message key="SystemConfigPanel.mail.debug"/>
+                    </label>
 
-            <wicket:remove>
-            <!-- Connector frameworks configuration commented out for now
-            <h3>
-                <wicket:message key="SystemConfigPanel.title.connectorFramework"/>
-            </h3>
-
-            <div class="form-group">
-                <label class="col-lg-4 control-label">Whatever</label>
-
-                <div class="col-lg-4">
-                    <input type="password" class="form-control input-sm" placeholder="Whatever">
+                    <div class="col-lg-4">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="optionsRadios1" wicket:id="debugCheckbox">
+                            </label>
+                        </div>
+                    </div>
                 </div>
+
+                <hr style="margin-right: 20px;"/>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">
+                        <wicket:message key="SystemConfigPanel.mail.host"/>
+                    </label>
+
+                    <div class="col-lg-4">
+                        <input type="text" class="form-control input-sm" wicket:id="host"
+                               wicket:message="placeholder:SystemConfigPanel.mail.host">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">
+                        <wicket:message key="SystemConfigPanel.mail.port"/>
+                    </label>
+
+                    <div class="col-lg-2">
+                        <input type="text" class="form-control input-sm" wicket:id="port"
+                               wicket:message="placeholder:SystemConfigPanel.mail.port">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">
+                        <wicket:message key="SystemConfigPanel.mail.username"/>
+                    </label>
+
+                    <div class="col-lg-4">
+                        <input type="text" class="form-control input-sm" wicket:id="username" autocomplete="off"
+                               wicket:message="placeholder:SystemConfigPanel.mail.username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">
+                        <wicket:message key="SystemConfigPanel.mail.password"/>
+                    </label>
+
+                    <div class="col-lg-4">
+                        <input type="password" class="form-control input-sm" wicket:id="password" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-group" wicket:id="transportSecurity" />
+
+                <hr style="margin-right: 20px;"/>
+
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">
+                        <wicket:message key="SystemConfigPanel.notification.redirectToFile"/>
+                    </label>
+
+                    <div class="col-lg-4">
+                        <input type="text" class="form-control input-sm" wicket:id="redirectToFile"
+                               wicket:message="placeholder:SystemConfigPanel.notification.redirectToFile.placeholder">
+                    </div>
+                </div>
+
+                <wicket:remove>
+                <!-- Connector frameworks configuration commented out for now
+                <h3>
+                    <wicket:message key="SystemConfigPanel.title.connectorFramework"/>
+                </h3>
+
+                <div class="form-group">
+                    <label class="col-lg-4 control-label">Whatever</label>
+
+                    <div class="col-lg-4">
+                        <input type="password" class="form-control input-sm" placeholder="Whatever">
+                    </div>
+                </div>
+                -->
+                </wicket:remove>
             </div>
-            -->
-            </wicket:remove>
         </div>
-    </div>
+    </form>
+
 </wicket:panel>
 </html>

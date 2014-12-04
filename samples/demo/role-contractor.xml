@@ -14,11 +14,12 @@
   ~ limitations under the License.
   -->
 
-<role oid="8d62985c-7797-11e2-94a6-001e8c717e5b" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<role oid="8d62985c-7797-11e2-94a6-001e8c717e5b" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <name>Contractor</name>    
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>Contractor role</name>    
     <description>Role that gives contractors necessary access.</description>
     <inducement>
 	<description>Addressbook resource. We want contractors to be in addressbook. But not in the LDAP.</description>

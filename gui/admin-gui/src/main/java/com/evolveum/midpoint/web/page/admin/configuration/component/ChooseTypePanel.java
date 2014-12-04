@@ -32,6 +32,8 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import javax.xml.namespace.QName;
+
 /**
  *  @author shood
  * */
@@ -60,13 +62,17 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
 
                 if(dto.getName() != null)
                     return getModel().getObject().getName();
-                else
+                else if(ObjectViewDto.BAD_OID.equals(dto.getOid())){
+                    return createStringResource("chooseTypePanel.ObjectNameValue.badOid").getString();
+                } else {
                     return createStringResource("chooseTypePanel.ObjectNameValue.null").getString();
+                }
             }
         });
         name.setOutputMarkupId(true);
 
         AjaxLink choose = new AjaxLink(ID_LINK_CHOOSE) {
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                  changeOptionPerformed(target);
@@ -74,6 +80,7 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
         };
 
         AjaxLink remove = new AjaxLink(ID_LINK_REMOVE) {
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 setToDefault();
@@ -89,7 +96,7 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     }
 
     private void initDialog(){
-        ModalWindow dialog = new ChooseTypeDialog<T>(MODAL_ID_SHOW_CHOOSE_OPTIONS, getModel().getObject().getType()){
+        ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_SHOW_CHOOSE_OPTIONS, getObjectTypeClass()){
 
             @Override
             protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
@@ -100,9 +107,27 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
             protected ObjectQuery getDataProviderQuery(){
                 return getChooseQuery();
             }
+
+            @Override
+            public boolean isSearchEnabled() {
+                return ChooseTypePanel.this.isSearchEnabled();
+            }
+
+            @Override
+            public QName getSearchProperty() {
+                return ChooseTypePanel.this.getSearchProperty();
+            }
         };
 
         add(dialog);
+    }
+
+    protected  boolean isSearchEnabled(){
+        return false;
+    }
+
+    protected QName getSearchProperty(){
+        return null;
     }
 
     protected ObjectQuery getChooseQuery(){
@@ -131,7 +156,13 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     }
 
     private void setToDefault(){
-        getModel().setObject(new ObjectViewDto());
+        ObjectViewDto dto = new ObjectViewDto();
+        dto.setType(getObjectTypeClass());
+        getModel().setObject(dto);
+    }
+
+    private Class<T> getObjectTypeClass(){
+        return getModel().getObject().getType();
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {

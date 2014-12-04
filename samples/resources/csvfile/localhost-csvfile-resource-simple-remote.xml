@@ -44,7 +44,7 @@ connector server.
 			<filter>
 		        <q:equal>
 				<q:path>c:name</q:path>
-		          <q:value>ICF org.forgerock.openicf.csvfile.CSVFileConnector @ICF Connector server on localhost:8759</q:value>
+		          <q:value>ICF com.evolveum.polygon.csvfile.CSVFileConnector @ICF Connector server on localhost:8759</q:value>
 		        </q:equal>
 		      </filter>
 		</connectorRef>
@@ -54,7 +54,7 @@ connector server.
 		<c:connectorConfiguration>
 	
             <!-- Configuration specific for the CSVfile connector -->
-			<icfc:configurationProperties xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
+			<icfc:configurationProperties xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csvfile/com.evolveum.polygon.csvfile.CSVFileConnector">
 				<icfccsvfile:filePath>/var/tmp/midpoint-flatfile-remote.csv</icfccsvfile:filePath>
 				<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
 				<icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>

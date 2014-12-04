@@ -16,25 +16,11 @@
 
 package com.evolveum.midpoint.prism.delta;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContainerable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -216,7 +202,30 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		}
 	}
 
-	@Override
+    @Override
+    public void checkConsistence(boolean requireDefinition, boolean prohibitRaw, ConsistencyCheckScope scope) {
+        super.checkConsistence(requireDefinition, prohibitRaw, scope);
+        checkDuplicateId(valuesToAdd);
+    }
+
+    private void checkDuplicateId(Collection<PrismContainerValue<V>> valuesToAdd) {
+        if (valuesToAdd == null || valuesToAdd.isEmpty()) {
+            return;
+        }
+        Set<Long> idsToAdd = new HashSet<>();
+        for (PrismContainerValue<V> valueToAdd : valuesToAdd) {
+            Long id = valueToAdd.getId();
+            if (id != null) {
+                if (idsToAdd.contains(id)) {
+                    throw new IllegalArgumentException("Trying to add prism container value with id " + id + " multiple times");
+                } else {
+                    idsToAdd.add(id);
+                }
+            }
+        }
+    }
+
+    @Override
 	public ContainerDelta<V> clone() {
 		ContainerDelta<V> clone = new ContainerDelta<V>(getElementName(), getDefinition(), getPrismContext());
 		copyValues(clone);
@@ -252,8 +261,14 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		ContainerDelta<T> delta = new ContainerDelta<T>(containerPath, containerDefinition, objectDefinition.getPrismContext());
 		return delta;
 	}
-    
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(QName containerName, 
+
+	public static <T extends Containerable> ContainerDelta<T> createDelta(QName containerName, PrismContainerDefinition<T> containerDefinition) {
+		ContainerDelta<T> delta = new ContainerDelta<T>(new ItemPath(containerName), containerDefinition, containerDefinition.getPrismContext());
+		return delta;
+	}
+
+
+	public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(QName containerName,
     		Class<O> type, PrismContext prismContext, T containerable) throws SchemaException {
     	return createModificationAdd(new ItemPath(containerName), type, prismContext, containerable);
     }
@@ -322,7 +337,26 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
     	return delta;
     }
 
-    @Override
+	// cValue should be parent-less
+	public static <T extends Containerable> ContainerDelta<T> createModificationReplace(QName containerName, PrismContainerDefinition containerDefinition, PrismContainerValue<T> cValue) throws SchemaException {
+		ContainerDelta<T> delta = createDelta(containerName, containerDefinition);
+		delta.setValuesToReplace(cValue);
+		return delta;
+	}
+
+	// cValues should be parent-less
+	public static Collection<? extends ItemDelta> createModificationReplaceContainerCollection(QName containerName,
+																							   PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues) {
+		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+		ContainerDelta delta = createDelta(containerName, objectDefinition.findContainerDefinition(containerName));
+		delta.setValuesToReplace(cValues);
+		((Collection)modifications).add(delta);
+		return modifications;
+	}
+
+
+
+	@Override
     protected void dumpValues(StringBuilder sb, String label, Collection<PrismContainerValue<V>> values, int indent) {
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);

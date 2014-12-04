@@ -85,6 +85,14 @@
       "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113",
       "type" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#AccountType"
     } ],
-      "special" : "got it!"
+      "special" : "got it!",
+
+      "singleActivation" : { },
+      "multiActivation" : { },
+      "multiActivationCopy" : [ { }, { "enabled" : "true" } ],
+
+      "singleConstruction" : { },
+      "multiConstruction" : [ { } ],
+      "multiConstructionCopy" : [ { }, { "howto" : "abc" } ]
   }
 }

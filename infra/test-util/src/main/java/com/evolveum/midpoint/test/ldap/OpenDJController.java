@@ -664,6 +664,21 @@ public class OpenDJController extends AbstractResourceController {
         addEntry(ldifEntry);
         return ldifEntry;
 	}
+
+	public List<Entry> addEntriesFromLdifFile(String filename) throws IOException, LDIFException {
+		List<Entry> retval = new ArrayList<>();
+		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
+		LDIFReader ldifReader = new LDIFReader(importConfig);
+		for (;;) {
+			Entry ldifEntry = ldifReader.readEntry();
+			if (ldifEntry == null) {
+				break;
+			}
+			addEntry(ldifEntry);
+			retval.add(ldifEntry);
+		}
+		return retval;
+	}
 	
 	public void addEntry(Entry ldapEntry) {
 		 AddOperation addOperation = getInternalConnection().processAdd(ldapEntry);
@@ -732,6 +747,43 @@ public class OpenDJController extends AbstractResourceController {
 		}
 		
 		return sb.toString();
+	}
+
+    public Collection<String> getGroupUniqueMembers(String groupDn) throws DirectoryException {
+        SearchResultEntry groupEntry = fetchEntry(groupDn);
+        if (groupEntry == null) {
+            throw new IllegalArgumentException(groupDn + " was not found");
+        }
+        return getAttributeValues(groupEntry, "uniqueMember");
+    }
+
+    /*
+        dn: <group>
+        changetype: modify
+        delete: uniqueMember
+        uniqueMember: <member>
+     */
+    public ChangeRecordEntry removeGroupUniqueMember(String groupDn, String memberDn) throws IOException, LDIFException {
+        String ldif = "dn: " + groupDn + "\nchangetype: modify\ndelete: uniqueMember\nuniqueMember: " + memberDn;
+        return executeLdifChange(ldif);
+    }
+
+	public ChangeRecordEntry addGroupUniqueMember(String groupDn, String memberDn) throws IOException, LDIFException {
+		String ldif = "dn: " + groupDn + "\nchangetype: modify\nadd: uniqueMember\nuniqueMember: " + memberDn;
+		return executeLdifChange(ldif);
+	}
+
+	public ChangeRecordEntry addGroupUniqueMembers(String groupDn, List<String> memberDns) throws IOException, LDIFException {
+		if (memberDns.isEmpty()) {
+			return null; // garbage in garbage out, sorry
+		}
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("dn: ").append(groupDn).append("\nchangetype: modify\nadd: uniqueMember");
+		for (String memberDn : memberDns) {
+			sb.append("\nuniqueMember: ").append(memberDn);
+		}
+		return executeLdifChange(sb.toString());
 	}
 
 }

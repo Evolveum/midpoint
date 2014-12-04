@@ -16,9 +16,11 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.impl.NotificationsUtil;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
@@ -44,13 +46,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.NOTIFICATIONS;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
 /**
  * @author mederly
@@ -72,7 +75,7 @@ public class GeneralNotifier extends BaseHandler {
     @Autowired
     protected AggregatedEventHandler aggregatedEventHandler;
 
-    protected static final List<ItemPath> auxiliaryPaths = Arrays.asList(
+    protected static final List<ItemPath> auxiliaryPaths = Collections.unmodifiableList(Arrays.asList(
             new ItemPath(ShadowType.F_METADATA),
             new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),                // works for user activation as well
             new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
@@ -83,7 +86,7 @@ public class GeneralNotifier extends BaseHandler {
             new ItemPath(ShadowType.F_ITERATION),
             new ItemPath(ShadowType.F_ITERATION_TOKEN),
             new ItemPath(UserType.F_LINK_REF),
-            new ItemPath(ShadowType.F_TRIGGER)
+            new ItemPath(ShadowType.F_TRIGGER))
     );
 
 
@@ -94,7 +97,9 @@ public class GeneralNotifier extends BaseHandler {
 
     @Override
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
-    		Task task, OperationResult result) throws SchemaException {
+    		Task task, OperationResult parentResult) throws SchemaException {
+
+        OperationResult result = parentResult.createSubresult(GeneralNotifier.class.getName() + ".processEvent");
 
         logStart(getLogger(), event, eventHandlerType);
 
@@ -118,43 +123,56 @@ public class GeneralNotifier extends BaseHandler {
 
                     ExpressionVariables variables = getDefaultVariables(event, result);
 
-                    for (String transportName : generalNotifierType.getTransport()) {
+                    if (event instanceof ModelEvent) {
+                        ((ModelEvent) event).getModelContext().reportProgress(
+                                new ProgressInformation(NOTIFICATIONS, ENTERING));
+                    }
 
-                        variables.addVariableDefinition(SchemaConstants.C_TRANSPORT_NAME, transportName);
-                        Transport transport = notificationManager.getTransport(transportName);
+                    try {
+                        for (String transportName : generalNotifierType.getTransport()) {
 
-                        List<String> recipientsAddresses = getRecipientsAddresses(event, generalNotifierType, variables,
-                                getDefaultRecipient(event, generalNotifierType, result), transportName, transport, task, result);
+                            variables.addVariableDefinition(SchemaConstants.C_TRANSPORT_NAME, transportName);
+                            Transport transport = notificationManager.getTransport(transportName);
 
-                        if (!recipientsAddresses.isEmpty()) {
+                            List<String> recipientsAddresses = getRecipientsAddresses(event, generalNotifierType, variables,
+                                    getDefaultRecipient(event, generalNotifierType, result), transportName, transport, task, result);
 
-                            String body = getBodyFromExpression(event, generalNotifierType, variables, task, result);
-                            String subject = getSubjectFromExpression(event, generalNotifierType, variables, task, result);
+                            if (!recipientsAddresses.isEmpty()) {
 
-                            if (body == null) {
-                                body = getBody(event, generalNotifierType, transportName, result);
+                                String body = getBodyFromExpression(event, generalNotifierType, variables, task, result);
+                                String subject = getSubjectFromExpression(event, generalNotifierType, variables, task, result);
+
+                                if (body == null) {
+                                    body = getBody(event, generalNotifierType, transportName, result);
+                                }
+                                if (subject == null) {
+                                    subject = generalNotifierType.getSubjectPrefix() != null ? generalNotifierType.getSubjectPrefix() : "";
+                                    subject += getSubject(event, generalNotifierType, transportName, result);
+                                }
+
+                                Message message = new Message();
+                                message.setBody(body != null ? body : "");
+                                //message.setContentType("text/plain");           // todo make more flexible
+                                message.setSubject(subject != null ? subject : "");
+                                message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
+
+                                getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
+                                transport.send(message, transportName, task, result);
+                            } else {
+                                getLogger().info("No recipients addresses for transport " + transportName + ", message corresponding to event " + event.getId() + " will not be send.");
                             }
-                            if (subject == null) {
-                                subject = generalNotifierType.getSubjectPrefix() != null ? generalNotifierType.getSubjectPrefix() : "";
-                                subject += getSubject(event, generalNotifierType, transportName, result);
-                            }
-
-                            Message message = new Message();
-                            message.setBody(body != null ? body : "");
-                            //message.setContentType("text/plain");           // todo make more flexible
-                            message.setSubject(subject != null ? subject : "");
-                            message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
-
-                            getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
-                            transport.send(message, transportName, task, result);
-                        } else {
-                            getLogger().info("No recipients addresses for transport " + transportName + ", message corresponding to event " + event.getId() + " will not be send.");
+                        }
+                    } finally {
+                        if (event instanceof ModelEvent) {
+                            ((ModelEvent) event).getModelContext().reportProgress(
+                                    new ProgressInformation(NOTIFICATIONS, result));
                         }
                     }
                 }
             }
         }
         logEnd(getLogger(), event, eventHandlerType, applies);
+        result.computeStatusIfUnknown();
         return true;            // not-applicable notifiers do not stop processing of other notifiers
     }
 
@@ -321,5 +339,16 @@ public class GeneralNotifier extends BaseHandler {
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
+        ExpressionVariables variables = super.getDefaultVariables(event, result);
+        variables.addVariableDefinition(SchemaConstants.C_TEXT_FORMATTER, textFormatter);
+        return variables;
+    }
+
+    public static List<ItemPath> getAuxiliaryPaths() {
+        return auxiliaryPaths;
     }
 }

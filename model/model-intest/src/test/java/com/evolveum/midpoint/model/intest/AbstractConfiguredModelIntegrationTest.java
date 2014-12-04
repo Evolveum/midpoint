@@ -136,7 +136,13 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_BLACK_OID = "10000000-0000-0000-0000-000000000305";
 	protected static final String RESOURCE_DUMMY_BLACK_NAME = "black";
 	protected static final String RESOURCE_DUMMY_BLACK_NAMESPACE = MidPointConstants.NS_RI;
-	
+
+	// Orange dummy resource for testing associations with resource-provided referential integrity
+	protected static final String RESOURCE_DUMMY_ORANGE_FILENAME = COMMON_DIR_PATH + "/resource-dummy-orange.xml";
+	protected static final String RESOURCE_DUMMY_ORANGE_OID = "10000000-0000-0000-0000-000000001104";
+	protected static final String RESOURCE_DUMMY_ORANGE_NAME = "orange";
+	protected static final String RESOURCE_DUMMY_ORANGE_NAMESPACE = MidPointConstants.NS_RI;
+
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_FILENAME = COMMON_DIR_PATH + "/resource-dummy-schemaless-no-schema.xml";
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_NAME = "schemaless";

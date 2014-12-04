@@ -307,7 +307,12 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 //        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
 //        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMembers(dummyGroup);
-	}
+
+        DummyGroup dummyGroupAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
+        display("Group @orange", dummyGroupAtOrange);
+        assertNoGroupMembers(dummyGroupAtOrange);
+    }
     
     @Test
     public void test310AssignRoleWimpToLargo() throws Exception {
@@ -332,6 +337,45 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 //        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
 //        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, USER_LARGO_USERNAME);
+
+        DummyGroup dummyGroupAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
+        display("Group @orange", dummyGroupAtOrange);
+        assertGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
 	}
+
+    /**
+     * after renaming user largo it should be also propagated to the associations
+     * @throws Exception
+     */
+    @Test
+    public void test311RenameLargo() throws Exception {
+		final String TEST_NAME = "test311RenameLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        modifyUserReplace(USER_LARGO_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("newLargo"));
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+//        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
+//        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertNoGroupMember(dummyGroup, USER_LARGO_USERNAME);
+        assertGroupMember(dummyGroup, "newLargo");
+
+        DummyGroup dummyGroupAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
+        display("Group", dummyGroupAtOrange);
+        assertNoGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
+        assertGroupMember(dummyGroupAtOrange, "newLargo");
+    }
 
 }

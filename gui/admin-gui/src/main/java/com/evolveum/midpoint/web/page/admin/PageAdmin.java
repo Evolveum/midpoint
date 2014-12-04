@@ -143,21 +143,8 @@ public class PageAdmin extends PageBase {
     private MenuBarItem createResourcesItems() {
         MenuBarItem resources = new MenuBarItem(createStringResource("PageAdmin.menu.top.resources"), null);
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class));
-        //todo delete this [lazyman]
-        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceEdit.class));
-//        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.wizard"), PageResourceWizard.class));
-//
-
-//        items.add(new BottomMenuItem(createStringResource("pageAdminResources.detailsResource"), PageResource.class,
-//                new PageVisibleDisabledBehaviour(this, PageResource.class)));
-//        items.add(new BottomMenuItem(createResourceWizardLabel(), PageResourceEdit.class,
-//                createWizardVisibleBehaviour()));
-//        items.add(new BottomMenuItem(createStringResource("pageAdminResources.importResource"),
-//                PageResourceImport.class, new PageVisibleDisabledBehaviour(this, PageResourceImport.class)));
-//        items.add(new BottomMenuItem(createStringResource("pageAdminResources.contentAccounts"),
-//                PageContentAccounts.class, new PageVisibleDisabledBehaviour(this, PageContentAccounts.class)));
-//        items.add(new BottomMenuItem(createStringResource("pageAdminResources.accountDetails"), PageAccount.class,
-//                new PageVisibleDisabledBehaviour(this, PageAccount.class)));
+        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceWizard.class));
+        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.import"), PageImportObject.class));
 
         return resources;
     }
@@ -178,6 +165,7 @@ public class PageAdmin extends PageBase {
         configuration.addMenuItem(new MenuItem(null));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.configuration"), true, null, null));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.basic"), PageSystemConfiguration.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.logging"), PageSystemConfigurationLogging.class));
 //        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.security"), PageDashboard.class));
         configuration.addMenuItem(new MenuItem(null));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.development"), true, null, null));

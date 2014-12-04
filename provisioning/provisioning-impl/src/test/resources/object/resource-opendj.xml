@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,12 +23,13 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 								  
 	<name>Embedded Test OpenDJ</name>
 	<!-- NOTE: The connector OID will get dynamically replaced in the integration tests -->
 	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd" type="c:ConnectorType"/>
-	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector">
+	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
 					   
 		<icfc:configurationProperties>
 			<icfcldap:port>10389</icfcldap:port>
@@ -36,8 +37,8 @@
 			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 			<icfcldap:principal>cn=directory manager</icfcldap:principal>
 			<icfcldap:credentials><t:clearValue>secret</t:clearValue></icfcldap:credentials>
-<!-- 			<icfcldap:credentials>secret></icfcldap:credentials> -->
-			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
 			<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
 		</icfc:configurationProperties>
 		
@@ -67,7 +68,7 @@
 			</icfc:timeouts>
 			
 			<icfc:resultsHandlerConfiguration>
-				<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+				<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
 			</icfc:resultsHandlerConfiguration>
 
 	</connectorConfiguration>
@@ -101,7 +102,15 @@
        		<protected>
        			<!-- WilDCapiTaLIzaTioN makes sure that this is matched case-insensitive -->
 				<icfs:name>uid=cAlyPSo,ou=PeoPle,DC=example,dc=COM</icfs:name>
-			</protected>	
+			</protected>
+			<configuredCapabilities>
+				<cap:pagedSearch>
+					<cap:defaultSortField>ri:uid</cap:defaultSortField>
+				</cap:pagedSearch>
+				<cap:countObjects>
+					<cap:simulate>sequentialSearch</cap:simulate>
+				</cap:countObjects>
+			</configuredCapabilities>
         </objectType>
         
         <objectType>
@@ -109,11 +118,15 @@
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:GroupObjectClass</objectClass>
+			<attribute>
+				<ref>ri:uniqueMember</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
         </objectType>
                 
 	</schemaHandling>
 	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+	<capabilities>
 		<configured>
 			<cap:activation>
 				<cap:status>

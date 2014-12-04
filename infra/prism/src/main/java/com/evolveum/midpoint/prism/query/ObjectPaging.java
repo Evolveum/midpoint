@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	private Integer maxSize;
 	private QName orderBy;
 	private OrderDirection direction;
-
+	private String cookie;
 	
 	ObjectPaging() {
 		// TODO Auto-generated constructor stub
@@ -94,8 +94,40 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		this.maxSize = maxSize;
 	}
 	
+	/**
+	 * Returns the paging cookie. The paging cookie is used for optimization of paged searches.
+	 * The presence of the cookie may allow the data store to correlate queries and associate
+	 * them with the same server-side context. This may allow the data store to reuse the same
+	 * pre-computed data. We want this as the sorted and paged searches may be quite expensive.
+	 * It is expected that the cookie returned from the search will be passed back in the options
+	 * when the next page of the same search is requested.
+	 * 
+	 * It is OK to initialize a search without any cookie. If the datastore utilizes a re-usable
+	 * context it will return a cookie in a search response.
+	 */
+	public String getCookie() {
+		return cookie;
+	}
+
+	/**
+	 * Sets paging cookie. The paging cookie is used for optimization of paged searches.
+	 * The presence of the cookie may allow the data store to correlate queries and associate
+	 * them with the same server-side context. This may allow the data store to reuse the same
+	 * pre-computed data. We want this as the sorted and paged searches may be quite expensive.
+	 * It is expected that the cookie returned from the search will be passed back in the options
+	 * when the next page of the same search is requested.
+	 * 
+	 * It is OK to initialize a search without any cookie. If the datastore utilizes a re-usable
+	 * context it will return a cookie in a search response.
+	 */
+	public void setCookie(String cookie) {
+		this.cookie = cookie;
+	}
+
 	public ObjectPaging clone() {
-		return new ObjectPaging(offset, maxSize, orderBy, direction);
+		ObjectPaging clone = new ObjectPaging(offset, maxSize, orderBy, direction);
+		clone.cookie = this.cookie;
+		return clone;
 	}
 
 	@Override
@@ -106,23 +138,31 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("PAGING: \n");
-		DebugUtil.indentDebugDump(sb, indent + 1);
+		sb.append("PAGING:");
 		if (getOffset() != null) {
-			sb.append("Offset: " + getOffset());
 			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent + 1);
+			sb.append("Offset: " + getOffset());
 		}
 		if (getMaxSize() != null) {
-			sb.append("Max size: " + getMaxSize());
 			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent + 1);
+			sb.append("Max size: " + getMaxSize());
 		}
 		if (getOrderBy() != null) {
-			sb.append("Order by: " + getOrderBy().toString());
 			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent + 1);
+			sb.append("Order by: " + getOrderBy().toString());
 		}
 		if (getDirection() != null) {
-			sb.append("Order direction: " + getDirection());
 			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent + 1);
+			sb.append("Order direction: " + getDirection());
+		}
+		if (getCookie() != null) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent + 1);
+			sb.append("Cookie: " + getCookie());
 		}
 		return sb.toString();
 	}
@@ -153,6 +193,11 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		if (getDirection() != null){
 			sb.append("D:");
 			sb.append(getDirection());
+			sb.append(", ");
+		}
+		if (getCookie() != null) {
+			sb.append("C:");
+			sb.append(getCookie());
 		}
 		
 		return sb.toString();

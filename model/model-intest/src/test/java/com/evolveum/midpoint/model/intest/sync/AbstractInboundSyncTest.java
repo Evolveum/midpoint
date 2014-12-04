@@ -15,21 +15,14 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
-import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -41,37 +34,17 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -221,50 +194,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
 
 	@Test
-    public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
-		final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
-        TestUtil.displayTestTile(this, TEST_NAME);
-
-        // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-        rememberTimeBeforeSync();
-        prepareNotifications();
-        
-        // Preconditions
-        assertUsers(6);
-
-		/// WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        
-		dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        
-        waitForSyncTaskNextRun(resourceDummyEmerald);
-		
-        // THEN
-        TestUtil.displayThen(TEST_NAME);
-        
-        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
-        display("Account mancomb", accountMancomb);
-        assertNull("Account shadow mancomb not gone", accountMancomb);
-        
-        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        display("User mancomb", userMancomb);
-        assertNotNull("User mancomb is gone", userMancomb);
-        assertLinks(userMancomb, 0);
-        // Disabled by sync reaction
-        assertAdministrativeStatusDisabled(userMancomb);
-        assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
-        assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
-        
-        assertNoDummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        
-        assertUsers(6);
-
-        // notifications
-        notificationManager.setDisabled(true);
-	}
-
+    public abstract void test199DeleteDummyEmeraldAccountMancomb() throws Exception;
 
 	protected void waitForSyncTaskStart(PrismObject<ResourceType> resource) throws Exception {
 		waitForTaskStart(getSyncTaskOid(resource), false, getWaitTimeout());

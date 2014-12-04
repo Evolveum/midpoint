@@ -53,8 +53,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
             updateConfigurationFromFile(configuration, configFile);
         }
 
-        LOGGER.info("Overriding loaded configuration with values read from system properties.");
-        updateConfiguration(configuration, null);
+        updateConfigurationFromProperties(configuration, null);
 
         super.init(configuration);
     }
@@ -82,10 +81,10 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         }
 
         //override loaded configuration based on properties file...
-        updateConfiguration(configuration, properties);
+        updateConfigurationFromProperties(configuration, properties);
     }
 
-    private void updateConfiguration(Configuration configuration, Properties properties) {
+    private void updateConfigurationFromProperties(Configuration configuration, Properties properties) {
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_EMBEDDED);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_DROP_IF_EXISTS);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_AS_SERVER);
@@ -122,8 +121,9 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         if (value == null || !value.matches("[1-9]{1}[0-9]*")) {
             return;
         }
-
-        configuration.setProperty(propertyName, Integer.parseInt(value));
+        int val = Integer.parseInt(value);
+        LOGGER.info("Overriding loaded configuration with value read from system properties: {}={}", propertyName, val);
+        configuration.setProperty(propertyName, val);
     }
 
     private void updateConfigurationBooleanProperty(Configuration configuration, Properties properties, String propertyName) {
@@ -131,8 +131,9 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         if (value == null) {
             return;
         }
-
-        configuration.setProperty(propertyName, new Boolean(value).booleanValue());
+        boolean val = new Boolean(value).booleanValue();
+        LOGGER.info("Overriding loaded configuration with value read from system properties: {}={}", propertyName, val);
+        configuration.setProperty(propertyName, val);
     }
 
     private void updateConfigurationStringProperty(Configuration configuration, Properties properties, String propertyName) {
@@ -140,7 +141,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         if (value == null) {
             return;
         }
-
+        LOGGER.info("Overriding loaded configuration with value read from system properties: {}={}", propertyName, value);
         configuration.setProperty(propertyName, value);
     }
 }

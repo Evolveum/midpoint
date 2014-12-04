@@ -188,6 +188,16 @@ basic.norm(basic.stringify(familyName))?.replaceAll(/\w+/, { it[0].toUpperCase()
                         </target>
                     </inbound>
                 </attribute>
+                       <attribute>
+                       
+                    <ref>ri:internalId</ref>
+                    <displayName>Generated ID by resource</displayName>
+                    <inbound>
+					    <target>
+                            <path>$user/extension/trafo:uid</path>
+                        </target>
+                    </inbound>
+                </attribute>
                 <attribute>
                     <ref>ri:ShortName</ref>
                     <displayName>ShortName</displayName>
@@ -266,6 +276,7 @@ log.info('XXXXX got here, input = {}', input)
 		    </limitations>
                     <matchingRule>mr:stringIgnoreCase</matchingRule>
                     <outbound>
+                        <strength>weak</strength>           <!-- to be applied only on object creation -->
                         <source>
                         	<path>$user/givenName</path>
                         </source>
@@ -288,6 +299,7 @@ else return 'c:\\install\\test-id-folder\\' + basic.norm(tmpGivenNameInitial + b
 			</expression>
                     </outbound>
                     <inbound><!-- As the "update=false" is specified above, this will not be updated -->
+			
 			<expression>
 				<script>
 					<code>

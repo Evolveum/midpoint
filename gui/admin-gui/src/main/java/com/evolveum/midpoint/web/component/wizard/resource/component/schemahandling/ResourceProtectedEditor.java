@@ -16,15 +16,17 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectPatternType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -38,7 +40,7 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class ResourceProtectedEditor extends SimplePanel{
+public class ResourceProtectedEditor extends SimplePanel<List<ResourceObjectPatternType>>{
 
     private static enum ChangeState{
         SKIP, FIRST, LAST
@@ -51,10 +53,12 @@ public class ResourceProtectedEditor extends SimplePanel{
     private static final String ID_ACCOUNT_BODY = "accountBodyContainer";
     private static final String ID_NAME = "name";
     private static final String ID_UID = "uid";
-    private static final String ID_FILTER_DESCRIPTION = "filterDescription";
-    private static final String ID_FILTER_CLAUSE = "filterClause";
+    private static final String ID_FILTER_EDITOR = "filterClause";
     private static final String ID_BUTTON_ADD = "addButton";
     private static final String ID_BUTTON_DELETE = "deleteAccount";
+    private static final String ID_T_NAME = "nameTooltip";
+    private static final String ID_T_UID = "uidTooltip";
+    private static final String ID_T_FILTER = "filterTooltip";
 
     private ChangeState changeState = ChangeState.FIRST;
 
@@ -94,7 +98,7 @@ public class ResourceProtectedEditor extends SimplePanel{
                     public String getObject() {
                         StringBuilder sb = new StringBuilder();
                         ResourceObjectPatternType account = item.getModelObject();
-                        sb.append("#").append(item.getIndex()).append(":");
+                        sb.append("#").append(item.getIndex()+1).append(" - ");
 
                         if(account.getUid() != null){
                             sb.append(account.getUid()).append(":");
@@ -116,7 +120,7 @@ public class ResourceProtectedEditor extends SimplePanel{
                         deleteDependencyPerformed(target, item);
                     }
                 };
-                item.add(delete);
+                linkCont.add(delete);
 
                 WebMarkupContainer accountBody = new WebMarkupContainer(ID_ACCOUNT_BODY);
                 accountBody.setOutputMarkupId(true);
@@ -150,16 +154,21 @@ public class ResourceProtectedEditor extends SimplePanel{
                 uid.add(prepareAjaxOnComponentTagUpdateBehavior());
                 accountBody.add(uid);
 
-                TextArea filterDescription = new TextArea<>(ID_FILTER_DESCRIPTION,
-                        new PropertyModel<String>(item.getModelObject(), "filter.description"));
-                filterDescription.add(prepareAjaxOnComponentTagUpdateBehavior());
-                accountBody.add(filterDescription);
+                SearchFilterPanel searchFilterPanel = new SearchFilterPanel<>(ID_FILTER_EDITOR,
+                        new PropertyModel<SearchFilterType>(item.getModelObject(), "filter"));
+                accountBody.add(searchFilterPanel);
 
-                //TODO - what is this? How should we edit this?
-                TextField filterClause = new TextField<>(ID_FILTER_CLAUSE,
-                        new PropertyModel<String>(item.getModelObject(), "filter.filterClauseXNode"));
-                filterClause.add(prepareAjaxOnComponentTagUpdateBehavior());
-                accountBody.add(filterClause);
+                Label nameTooltip = new Label(ID_T_NAME);
+                nameTooltip.add(new InfoTooltipBehavior());
+                accountBody.add(nameTooltip);
+
+                Label uidTooltip = new Label(ID_T_UID);
+                uidTooltip.add(new InfoTooltipBehavior());
+                accountBody.add(uidTooltip);
+
+                Label filterTooltip = new Label(ID_T_FILTER);
+                filterTooltip.add(new InfoTooltipBehavior());
+                accountBody.add(filterTooltip);
             }
         };
         repeater.setOutputMarkupId(true);

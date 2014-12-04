@@ -15,31 +15,58 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
+import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
+import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
+import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.w3c.dom.Element;
 
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  *  @author shood
  * */
-public class ResourceAttributeEditor extends SimplePanel{
+public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefinitionType>{
+
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceAttributeEditor.class);
 
     private static final String ID_LABEL = "label";
-    private static final String ID_REFERENCE = "reference";
+    private static final String ID_SCHEMA_REF_PANEL = "schemaRefPanel";
+    private static final String ID_NON_SCHEMA_REF_PANEL = "nonSchemaReferencePanel";
+    private static final String ID_REFERENCE_SELECT = "referenceSelect";
+    private static final String ID_REFERENCE_ALLOW = "allowRef";
     private static final String ID_DISPLAY_NAME = "displayName";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXCLUSIVE_STRONG = "exclusiveStrong";
@@ -52,9 +79,30 @@ public class ResourceAttributeEditor extends SimplePanel{
     private static final String ID_OUTBOUND_LABEL = "outboundLabel";
     private static final String ID_BUTTON_OUTBOUND = "buttonOutbound";
     private static final String ID_BUTTON_LIMITATIONS = "buttonLimitations";
+    private static final String ID_MODAL_LIMITATIONS = "limitationsEditor";
+    private static final String ID_MODAL_MAPPING = "mappingEditor";
+    private static final String ID_T_REF = "referenceTooltip";
+    private static final String ID_T_ALLOW = "allowTooltip";
+    private static final String ID_T_LIMITATIONS = "limitationsTooltip";
+    private static final String ID_T_EXCLUSIVE_STRONG = "exclusiveStrongTooltip";
+    private static final String ID_T_TOLERANT = "tolerantTooltip";
+    private static final String ID_T_TOLERANT_VP = "tolerantVPTooltip";
+    private static final String ID_T_INTOLERANT_VP = "intolerantVPTooltip";
+    private static final String ID_T_FETCH = "fetchStrategyTooltip";
+    private static final String ID_T_MATCHING_RULE = "matchingRuleTooltip";
+    private static final String ID_T_OUTBOUND = "outboundTooltip";
+    private static final String ID_T_INBOUND = "inboundTooltip";
 
-    public ResourceAttributeEditor(String id, IModel<ResourceAttributeDefinitionType> model){
+    private PrismObject<ResourceType> resource;
+    private ResourceObjectTypeDefinitionType objectType;
+    private boolean nonSchemaRefValueAllowed = false;
+
+    public ResourceAttributeEditor(String id, IModel<ResourceAttributeDefinitionType> model, ResourceObjectTypeDefinitionType objectType,
+                                   PrismObject<ResourceType> resource){
         super(id, model);
+
+        this.resource = resource;
+        this.objectType = objectType;
     }
 
     @Override
@@ -63,7 +111,7 @@ public class ResourceAttributeEditor extends SimplePanel{
 
             @Override
             public String getObject() {
-                ResourceAttributeDefinitionType attribute = (ResourceAttributeDefinitionType)getModelObject();
+                ResourceAttributeDefinitionType attribute = getModelObject();
 
                 if(attribute.getDisplayName() == null && attribute.getRef() == null){
                     return getString("ResourceAttributeEditor.label.new");
@@ -74,9 +122,72 @@ public class ResourceAttributeEditor extends SimplePanel{
         });
         add(label);
 
-        //TODO - figure out what ref is exactly and make this autoCompleteField with proper resource values + validator
-        TextField ref = new TextField<>(ID_REFERENCE, new PropertyModel<String>(getModel(), "ref.localPart"));
-        add(ref);
+        QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_NON_SCHEMA_REF_PANEL, new PropertyModel<QName>(getModel(), "ref"));
+
+        nonSchemaRefPanel.setOutputMarkupId(true);
+        nonSchemaRefPanel.setOutputMarkupPlaceholderTag(true);
+        nonSchemaRefPanel.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return nonSchemaRefValueAllowed;
+            }
+        });
+        add(nonSchemaRefPanel);
+
+        WebMarkupContainer schemaRefPanel = new WebMarkupContainer(ID_SCHEMA_REF_PANEL);
+        schemaRefPanel.setOutputMarkupId(true);
+        schemaRefPanel.setOutputMarkupPlaceholderTag(true);
+        schemaRefPanel.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return !nonSchemaRefValueAllowed;
+            }
+
+        });
+        add(schemaRefPanel);
+
+        Label refTooltip = new Label(ID_T_REF);
+        refTooltip.add(new InfoTooltipBehavior());
+        refTooltip.setOutputMarkupId(true);
+        refTooltip.setOutputMarkupId(true);
+        schemaRefPanel.add(refTooltip);
+
+        DropDownChoice refSelect = new DropDownChoice<>(ID_REFERENCE_SELECT, new PropertyModel<QName>(getModel(), "ref"),
+                new AbstractReadOnlyModel<List<QName>>() {
+
+                    @Override
+                    public List<QName> getObject() {
+                        return loadObjectReferences();
+                    }
+                }, new IChoiceRenderer<QName>() {
+
+            @Override
+            public Object getDisplayValue(QName object) {
+                return prepareReferenceDisplayValue(object);
+            }
+
+            @Override
+            public String getIdValue(QName object, int index) {
+                return Integer.toString(index);
+            }
+        });
+        refSelect.setNullValid(false);
+
+        refSelect.setOutputMarkupId(true);
+        refSelect.setOutputMarkupPlaceholderTag(true);
+        schemaRefPanel.add(refSelect);
+
+        CheckBox allowNonSchema = new CheckBox(ID_REFERENCE_ALLOW, new PropertyModel<Boolean>(this, "nonSchemaRefValueAllowed"));
+        allowNonSchema.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(get(ID_NON_SCHEMA_REF_PANEL), get(ID_SCHEMA_REF_PANEL));
+            }
+        });
+        add(allowNonSchema);
 
         TextField displayName = new TextField<>(ID_DISPLAY_NAME, new PropertyModel<String>(getModel(), "displayName"));
         add(displayName);
@@ -111,25 +222,59 @@ public class ResourceAttributeEditor extends SimplePanel{
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), "fetchStrategy"),
                 WebMiscUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
+        fetchStrategy.setNullValid(true);
         add(fetchStrategy);
 
-        //TODO - figure out what matchingRule is exactly and make this autoCompleteField with proper resource values + validator
-        TextField matchingRule = new TextField<>(ID_MATCHING_RULE, new PropertyModel<String>(getModel(), "matchingRule.localPart"));
-        add(matchingRule);
+        DropDownChoice matchingRule = new DropDownChoice<>(ID_MATCHING_RULE,
+                new PropertyModel<QName>(getModel(), "matchingRule"),
+                new AbstractReadOnlyModel<List<QName>>() {
 
-        //TODO - what should we display as Mapping label?
-        TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
-                new PropertyModel<String>(getModel(), "outbound.name"));
-        outboundLabel.setEnabled(false);
-        add(outboundLabel);
-
-        AjaxLink outbound = new AjaxLink(ID_BUTTON_OUTBOUND) {
+                    @Override
+                    public List<QName> getObject() {
+                        return WebMiscUtil.getMatchingRuleList();
+                    }
+                }, new IChoiceRenderer<QName>() {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            public Object getDisplayValue(QName object) {
+                return object.getLocalPart();
+            }
+
+            @Override
+            public String getIdValue(QName object, int index) {
+                return Integer.toString(index);
+            }
+        });
+        matchingRule.setNullValid(true);
+        add(matchingRule);
+
+        TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        ResourceAttributeDefinitionType attributeDefinition = getModel().getObject();
+
+                        if(attributeDefinition == null){
+                            return null;
+                        }
+
+                        return MappingTypeDto.createMappingLabel(attributeDefinition.getOutbound(), LOGGER, getPageBase().getPrismContext(),
+                                getString("MappingType.label.placeholder"), getString("MultiValueField.nameNotSpecified"));
+                    }
+                });
+        outboundLabel.setEnabled(false);
+        outboundLabel.setOutputMarkupId(true);
+        add(outboundLabel);
+
+        AjaxSubmitLink outbound = new AjaxSubmitLink(ID_BUTTON_OUTBOUND) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 outboundEditPerformed(target);
             }
         };
+        outbound.setOutputMarkupId(true);
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
@@ -141,8 +286,8 @@ public class ResourceAttributeEditor extends SimplePanel{
 
                     @Override
                     public String getObject() {
-                        //TODO - what should we display as Mapping label?
-                        return model.getObject().getName();
+                        return MappingTypeDto.createMappingLabel(model.getObject(), LOGGER, getPageBase().getPrismContext(),
+                                getString("MappingType.label.placeholder"), getString("MultiValueField.nameNotSpecified"));
                     }
                 };
             }
@@ -157,18 +302,141 @@ public class ResourceAttributeEditor extends SimplePanel{
                 mappingEditPerformed(target, object);
             }
         };
+        inbound.setOutputMarkupId(true);
         add(inbound);
+
+        Label allowTooltip = new Label(ID_T_ALLOW);
+        allowTooltip.add(new InfoTooltipBehavior());
+        add(allowTooltip);
+
+        Label limitationsTooltip = new Label(ID_T_LIMITATIONS);
+        limitationsTooltip.add(new InfoTooltipBehavior());
+        add(limitationsTooltip);
+
+        Label exclusiveStrongTooltip = new Label(ID_T_EXCLUSIVE_STRONG);
+        exclusiveStrongTooltip.add(new InfoTooltipBehavior());
+        add(exclusiveStrongTooltip);
+
+        Label tolerantTooltip = new Label(ID_T_TOLERANT);
+        tolerantTooltip.add(new InfoTooltipBehavior());
+        add(tolerantTooltip);
+
+        Label tolerantVPTooltip = new Label(ID_T_TOLERANT_VP);
+        tolerantVPTooltip.add(new InfoTooltipBehavior());
+        add(tolerantVPTooltip);
+
+        Label intolerantVPTooltip = new Label(ID_T_INTOLERANT_VP);
+        intolerantVPTooltip.add(new InfoTooltipBehavior());
+        add(intolerantVPTooltip);
+
+        Label fetchTooltip = new Label(ID_T_FETCH);
+        fetchTooltip.add(new InfoTooltipBehavior());
+        add(fetchTooltip);
+
+        Label matchingRuleTooltip = new Label(ID_T_MATCHING_RULE);
+        matchingRuleTooltip.add(new InfoTooltipBehavior());
+        add(matchingRuleTooltip);
+
+        Label outboundTooltip = new Label(ID_T_OUTBOUND);
+        outboundTooltip.add(new InfoTooltipBehavior());
+        add(outboundTooltip);
+
+        Label inboundTooltip = new Label(ID_T_INBOUND);
+        inboundTooltip.add(new InfoTooltipBehavior());
+        add(inboundTooltip);
+
+        initModals();
+    }
+
+    private void initModals(){
+        ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
+                new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
+        add(limitationsEditor);
+
+        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null){
+
+            @Override
+            public void updateComponents(AjaxRequestTarget target) {
+                target.add(ResourceAttributeEditor.this.get(ID_INBOUND), ResourceAttributeEditor.this.get(ID_OUTBOUND_LABEL),
+                        ResourceAttributeEditor.this.get(ID_BUTTON_OUTBOUND));
+            }
+        };
+        add(mappingEditor);
+    }
+
+    private List<QName> loadObjectReferences(){
+        List<QName> references = new ArrayList<>();
+
+        ResourceSchema schema = loadResourceSchema();
+        if (schema == null) {
+            return references;
+        }
+
+        for(ObjectClassComplexTypeDefinition def: schema.getObjectClassDefinitions()){
+            if(objectType != null && def.getTypeName().equals(objectType.getObjectClass())){
+                Iterator it = def.getAttributeDefinitions().iterator();
+
+                while(it.hasNext()){
+                    ResourceAttributeDefinition attributeDefinition = (ResourceAttributeDefinition)it.next();
+                    references.add(attributeDefinition.getName());
+                }
+            }
+        }
+
+        return references;
+    }
+
+    private ResourceSchema loadResourceSchema() {
+        if(resource != null){
+            Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
+            if (xsdSchema == null) {
+                return null;
+            }
+
+            try {
+                return ResourceSchema.parse(xsdSchema, resource.toString(), getPageBase().getPrismContext());
+            } catch (Exception e) {
+                LoggingUtils.logException(LOGGER, "Couldn't parse resource schema.", e);
+                getSession().error(getString("ResourceAttributeEditor.message.cantParseSchema") + " " + e.getMessage());
+
+                throw new RestartResponseException(PageResources.class);
+            }
+        }
+
+        return null;
+    }
+
+    private String prepareReferenceDisplayValue(QName object){
+        StringBuilder sb = new StringBuilder();
+
+        if(object != null){
+            sb.append(object.getLocalPart());
+
+            if(object.getNamespaceURI() != null){
+                sb.append(" (");
+                String[] ns = object.getNamespaceURI().split("/");
+                sb.append(ns[ns.length-1]);
+                sb.append(")");
+            }
+        }
+
+        return sb.toString();
     }
 
     private void limitationsEditPerformed(AjaxRequestTarget target){
-        //TODO - implement (open ModalWindow here - limitations editor)
+        LimitationsEditorDialog window = (LimitationsEditorDialog)get(ID_MODAL_LIMITATIONS);
+        window.show(target);
     }
 
     private void outboundEditPerformed(AjaxRequestTarget target){
-        //TODO - implement (open ModalWindow here - MappingType editor)
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
+        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "outbound"));
+        window.show(target);
     }
 
     private void mappingEditPerformed(AjaxRequestTarget target, MappingType mapping){
-        //TODO - implement (open ModalWindow here - MappingType editor)
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
+        window.updateModel(target, mapping);
+        window.show(target);
     }
 }

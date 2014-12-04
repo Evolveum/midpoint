@@ -85,6 +85,15 @@
         }
       }
     } ],
-    "special" : "got it!"
+    "special" : "got it!",
+
+    "singleActivation" : { },
+    "multiActivation" : { },
+    "multiActivationCopy" : [ { }, { "enabled" : "true" } ],
+
+    "singleConstruction" : { },
+    "multiConstruction" : [ { } ],
+    "multiConstructionCopy" : [ { }, { "howto" : "abc" } ]
+
   }
 }

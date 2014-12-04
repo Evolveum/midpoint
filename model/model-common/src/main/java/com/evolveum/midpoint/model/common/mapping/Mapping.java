@@ -488,8 +488,8 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 			
 			parseSources(result);
 			parseTarget();
-	
-			if (outputDefinition == null) {
+
+			if (outputPath != null && outputDefinition == null) {
 				throw new IllegalArgumentException("No output definition, cannot evaluate "+getMappingContextDescription());
 			}
 			
@@ -533,6 +533,15 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 			traceFailure(e);
 			throw e;
 		}
+	}
+	
+	public boolean isSatisfyCondition(){
+		boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
+		boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
+		
+		boolean conditionOutputNew = computeConditionResult(conditionOutputTriple.getNonNegativeValues());
+		boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
+		return (conditionResultOld || conditionResultNew);
 	}
 	
 	private void traceEvaluationStart() {
@@ -960,7 +969,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		params.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
 		params.setMappingQName(mappingQName);
 		outputTriple = expression.evaluate(params);
-		
+
 		if (outputTriple == null) {
 			return;
 		}

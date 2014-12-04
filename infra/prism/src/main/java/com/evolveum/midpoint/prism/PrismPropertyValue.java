@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism;
 
 
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -40,6 +41,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 
 import org.w3c.dom.Element;
 
@@ -161,7 +163,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	@Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		if (definition != null && rawElement !=null) {
-			value = parseRawElementToNewRealValue(this, (PrismPropertyDefinition) definition);
+			value = (T) parseRawElementToNewRealValue(this, (PrismPropertyDefinition) definition);
 			rawElement = null;
 		}
 	}
@@ -248,7 +250,11 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	}
 
     @Override
-	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
+	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
+        if (!scope.isThorough()) {
+            return;
+        }
+
     	ItemPath myPath = getPath();
     	if (prohibitRaw && rawElement != null) {
     		throw new IllegalStateException("Raw element in property value "+this+" ("+myPath+" in "+rootItem+")");
@@ -311,6 +317,15 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		return false;
 	}
 
+	public static boolean containsValue(Collection<PrismPropertyValue> collection, PrismPropertyValue value, Comparator comparator) {
+		for (PrismPropertyValue<?> colVal: collection) {
+			if (comparator.compare(colVal, value) == 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static <T> Collection<PrismPropertyValue<T>> createCollection(Collection<T> realValueCollection) {
 		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<PrismPropertyValue<T>>(realValueCollection.size());
 		for (T realValue: realValueCollection) {
@@ -335,7 +350,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	 */
 	private PrismPropertyValue<T> parseRawElementToNewValue(PrismPropertyValue<T> origValue, PrismPropertyValue<T> definitionSource) throws SchemaException {
 		if (definitionSource.getParent() != null && definitionSource.getParent().getDefinition() != null) {
-			T parsedRealValue = parseRawElementToNewRealValue(origValue,
+			T parsedRealValue = (T) parseRawElementToNewRealValue(origValue,
 					(PrismPropertyDefinition) definitionSource.getParent().getDefinition());
 			PrismPropertyValue<T> newPVal = new PrismPropertyValue<T>(parsedRealValue);
 			return newPVal;
@@ -358,10 +373,10 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		if (other == null || !(other instanceof PrismPropertyValue)) {
 			return false;
 		}
-		return equalsComplex((PrismPropertyValue<?>)other, ignoreMetadata, isLiteral);
+		return equalsComplex((PrismPropertyValue<?>)other, ignoreMetadata, isLiteral, null);
 	}
 
-	public boolean equalsComplex(PrismPropertyValue<?> other, boolean ignoreMetadata, boolean isLiteral) {
+	public boolean equalsComplex(PrismPropertyValue<?> other, boolean ignoreMetadata, boolean isLiteral, MatchingRule<T> matchingRule) {
 		if (!super.equalsComplex(other, ignoreMetadata, isLiteral)) {
 			return false;
 		}
@@ -395,23 +410,28 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         	return false;
         }
 
-		if (thisRealValue instanceof Element &&
-				otherRealValue instanceof Element) {
-			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
-		}
-		
-		if (thisRealValue instanceof SchemaDefinitionType &&
-				otherRealValue instanceof SchemaDefinitionType) {
-			SchemaDefinitionType thisSchema = (SchemaDefinitionType) thisRealValue;
-			return thisSchema.equals(otherRealValue, isLiteral);
-//			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
-		}
-
-        if (thisRealValue instanceof byte[] && otherRealValue instanceof byte[]) {
-            return Arrays.equals((byte[]) thisRealValue, (byte[]) otherRealValue);
+        if (matchingRule != null) {
+        	return matchingRule.match(thisRealValue, otherRealValue);
+        } else {
+        
+			if (thisRealValue instanceof Element &&
+					otherRealValue instanceof Element) {
+				return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
+			}
+			
+			if (thisRealValue instanceof SchemaDefinitionType &&
+					otherRealValue instanceof SchemaDefinitionType) {
+				SchemaDefinitionType thisSchema = (SchemaDefinitionType) thisRealValue;
+				return thisSchema.equals(otherRealValue, isLiteral);
+	//			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
+			}
+	
+	        if (thisRealValue instanceof byte[] && otherRealValue instanceof byte[]) {
+	            return Arrays.equals((byte[]) thisRealValue, (byte[]) otherRealValue);
+	        }
+	
+			return thisRealValue.equals(otherRealValue);
         }
-
-		return thisRealValue.equals(otherRealValue);
 	}
 
 	private boolean equalsRawElements(PrismPropertyValue<T> other) {
@@ -486,7 +506,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		if (getClass() != obj.getClass())
 			return false;
 		PrismPropertyValue other = (PrismPropertyValue) obj;
-		return equalsComplex(other, false, false);
+		return equalsComplex(other, false, false, null);
 	}
 
     @Override

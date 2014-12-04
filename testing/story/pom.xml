@@ -121,13 +121,13 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.forgerock.openicf.connectors</groupId>
-			<artifactId>ldap-connector</artifactId>
+            <groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-ldap</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.forgerock.openicf.connectors</groupId>
-			<artifactId>databasetable-connector</artifactId>
+        	<groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-databasetable</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -178,6 +178,7 @@
 					  <artifactId>maven-surefire-plugin</artifactId>
 					  <configuration>
 					    <skip>false</skip>
+                        <argLine>-XX:MaxPermSize=256m</argLine>
 					  </configuration>
 					</plugin>
 				</plugins>

@@ -87,6 +87,8 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final String DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME = "members";
 	public static final String DUMMY_GROUP_ATTRIBUTE_DESCRIPTION = "description";
     public static final String DUMMY_GROUP_ATTRIBUTE_CC = "cc";
+    
+    public static final String DUMMY_PRIVILEGE_ATTRIBUTE_POWER = "power";
 	
 	public static final String DUMMY_ENTITLEMENT_GROUP_NAME = "group";
 	public static final String DUMMY_ENTITLEMENT_PRIVILEGE_NAME = "priv";
@@ -147,9 +149,12 @@ public class DummyResourceContoller extends AbstractResourceController {
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME, String.class, false, false);
 		
-		DummyObjectClass groupObjectClass = dummyResource.getGroupObjectClass();		
+		DummyObjectClass groupObjectClass = dummyResource.getGroupObjectClass();
 		addAttrDef(groupObjectClass, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, String.class, false, false);
         addAttrDef(groupObjectClass, DUMMY_GROUP_ATTRIBUTE_CC, String.class, false, false);
+        
+        DummyObjectClass privilegeObjectClass = dummyResource.getPrivilegeObjectClass();
+		addAttrDef(privilegeObjectClass, DUMMY_PRIVILEGE_ATTRIBUTE_POWER, Integer.class, false, false);
 		
 		isExtendedSchema = true;
 	}
@@ -202,7 +207,17 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertExtendedSchema();
 		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeWeaponQName());
 	}
-	
+
+	public QName getAttributeLootQName() {
+		assertExtendedSchema();
+		return new QName(getNamespace(), DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
+	}
+
+	public ItemPath getAttributeLootPath() {
+		assertExtendedSchema();
+		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeLootQName());
+	}
+
 	private void assertExtendedSchema() {
 		assert isExtendedSchema : "Resource "+resource+" does not have extended schema yet an extedned attribute was requested";
 	}
@@ -239,7 +254,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertDummyResourceSchemaSanity(resourceSchema, resourceType);
 		
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);		
-		assertEquals("Unexpected number of defnitions", 16, accountDef.getDefinitions().size());
+		assertEquals("Unexpected number of defnitions", 17, accountDef.getDefinitions().size());
 		ResourceAttributeDefinition treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
 		assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());
 	}

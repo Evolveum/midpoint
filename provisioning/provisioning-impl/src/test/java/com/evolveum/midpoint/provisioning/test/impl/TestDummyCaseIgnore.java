@@ -16,6 +16,9 @@
 package com.evolveum.midpoint.provisioning.test.impl;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -23,11 +26,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -147,6 +153,123 @@ public class TestDummyCaseIgnore extends TestDummy {
 		assertSteadyResource();
 	}
 
+	@Test
+	public void test282DetitleAccountWillPirates() throws Exception {
+		final String TEST_NAME = "test282DetitleAccountWillPirates";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				GROUP_PIRATES_OID, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		TestUtil.assertSuccess(result);
+		
+		delta.checkConsistence();
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
+		assertNoMember(group, getWillRepoIcfName());
+		
+		// Make sure that account is still there and it has the privilege
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+		assertNotNull("Account will is gone!", dummyAccount);
+		
+		syncServiceMock.assertNotifySuccessOnly();
+		assertSteadyResource();
+	}
+
+	/**
+	 * Add will to the group pirates. But he is already there - and the capitalization is wrong.
+	 */
+	@Test
+	public void test285EntitleAccountWillPiratesAlreadyThereCaseIgnore() throws Exception {
+		final String TEST_NAME = "test285EntitleAccountWillPiratesAlreadyThereCaseIgnore";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		DummyGroup groupPirates = getDummyGroup(GROUP_PIRATES_NAME, piratesIcfUid);
+		groupPirates.addMember(getWillRepoIcfName().toUpperCase());
+		
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID, 
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				GROUP_PIRATES_OID, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		TestUtil.assertSuccess(result);
+		
+		delta.checkConsistence();
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
+		IntegrationTestTools.assertGroupMember(group, getWillRepoIcfName(),true);
+		
+		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertSteadyResource();
+	}
+
+	@Test
+	public void test289DetitleAccountWillPirates() throws Exception {
+		final String TEST_NAME = "test289DetitleAccountWillPirates";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				GROUP_PIRATES_OID, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		TestUtil.assertSuccess(result);
+		
+		delta.checkConsistence();
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
+		assertNoMember(group, getWillRepoIcfName());
+		assertNoMember(group, getWillRepoIcfName().toUpperCase());
+		assertNoMember(group, getWillRepoIcfName().toLowerCase());
+		
+		// Make sure that account is still there and it has the privilege
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+		assertNotNull("Account will is gone!", dummyAccount);
+		
+		syncServiceMock.assertNotifySuccessOnly();
+		assertSteadyResource();
+	}
 	
 	@Test
 	public void test511AddProtectedAccountCaseIgnore() throws Exception {

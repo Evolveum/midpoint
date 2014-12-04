@@ -28,9 +28,12 @@
                 <div class="panel-heading">
                     <h4 class="panel-title">
                         <a wicket:id="dependencyLink" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                            <button wicket:id="deleteDependency" type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                            <span class="close">&nbsp;</span>
+                            <button type="button" class="close"><span aria-hidden="true">&#8628;</span><span class="sr-only">Expand</span></button>
                             <span wicket:id="dependencyLinkName"></span>
                         </a>
-                        <button wicket:id="deleteDependency" type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+
                     </h4>
                 </div>
 
@@ -40,6 +43,7 @@
                         <dl class="dl-horizontal">
                             <dt>
                                 <label><wicket:message key="ResourceDependencyEditor.label.order" /></label>
+                                <i wicket:id="orderTooltip" wicket:message="title:SchemaHandlingStep.dependency.tooltip.order"/>
                             </dt>
                             <dd>
                                 <input wicket:id="order" class="form-control input-sm" />
@@ -49,6 +53,7 @@
                         <dl class="dl-horizontal">
                             <dt>
                                 <label><wicket:message key="ResourceDependencyEditor.label.strictness" /></label>
+                                <i wicket:id="strictnessTooltip" wicket:message="title:SchemaHandlingStep.dependency.tooltip.strictness"/>
                             </dt>
                             <dd>
                                 <select wicket:id="strictness" class="form-control input-sm"></select>
@@ -58,6 +63,7 @@
                         <dl class="dl-horizontal">
                             <dt>
                                 <label><wicket:message key="ResourceDependencyEditor.label.kind" /></label>
+                                <i wicket:id="kindTooltip" wicket:message="title:SchemaHandlingStep.dependency.tooltip.kind"/>
                             </dt>
                             <dd>
                                 <select wicket:id="kind" class="form-control input-sm"></select>
@@ -67,6 +73,7 @@
                         <dl class="dl-horizontal">
                             <dt>
                                 <label><wicket:message key="ResourceDependencyEditor.label.intent" /></label>
+                                <i wicket:id="intentTooltip" wicket:message="title:SchemaHandlingStep.dependency.tooltip.intent"/>
                             </dt>
                             <dd>
                                 <input wicket:id="intent" type="text" class="form-control input-sm" value=""/>
@@ -76,6 +83,7 @@
                         <dl class="dl-horizontal">
                             <dt>
                                 <label><wicket:message key="ResourceDependencyEditor.label.resourceRef" /></label>
+                                <i wicket:id="resourceRefTooltip" wicket:message="title:SchemaHandlingStep.dependency.tooltip.resourceRef"/>
                             </dt>
                             <dd class="cap-dl-multivalue">
                                 <select wicket:id="resourceRef" class="form-control input-sm"></select>

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
@@ -50,7 +51,7 @@ import java.util.Map;
 /**
  *  @author shood
  * */
-public class ResourceDependencyEditor extends SimplePanel{
+public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTypeDependencyType>>{
 
     private static enum ChangeState{
         SKIP, FIRST, LAST
@@ -60,7 +61,6 @@ public class ResourceDependencyEditor extends SimplePanel{
 
     private static final String DOT_CLASS = ResourceDependencyEditor.class.getName() + ".";
     private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "createResourceList";
-    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
     private static final String ID_CONTAINER = "protectedContainer";
     private static final String ID_REPEATER = "repeater";
@@ -74,16 +74,17 @@ public class ResourceDependencyEditor extends SimplePanel{
     private static final String ID_REF = "resourceRef";
     private static final String ID_ADD_BUTTON = "addButton";
     private static final String ID_DELETE_BUTTON = "deleteDependency";
+    private static final String ID_T_ORDER = "orderTooltip";
+    private static final String ID_T_STRICTNESS = "strictnessTooltip";
+    private static final String ID_T_KIND = "kindTooltip";
+    private static final String ID_T_INTENT = "intentTooltip";
+    private static final String ID_T_RESOURCE_REF = "resourceRefTooltip";
 
     private ChangeState changeState = ChangeState.FIRST;
     private Map<String, String> resourceMap = new HashMap<>();
 
     public ResourceDependencyEditor(String id, IModel<List<ResourceObjectTypeDependencyType>> model){
         super(id, model);
-    }
-
-    public List<ResourceObjectTypeDependencyType> getDependencyList(){
-        return getModel().getObject();
     }
 
     @Override
@@ -122,7 +123,7 @@ public class ResourceDependencyEditor extends SimplePanel{
                         deleteDependencyPerformed(target, item);
                     }
                 };
-                item.add(delete);
+                linkContainer.add(delete);
 
                 WebMarkupContainer dependencyBody = new WebMarkupContainer(ID_DEPENDENCY_BODY);
                 dependencyBody.setOutputMarkupId(true);
@@ -190,6 +191,26 @@ public class ResourceDependencyEditor extends SimplePanel{
                 });
                 resource.add(prepareAjaxOnComponentTagUpdateBehavior());
                 dependencyBody.add(resource);
+
+                Label orderTooltip = new Label(ID_T_ORDER);
+                orderTooltip.add(new InfoTooltipBehavior());
+                dependencyBody.add(orderTooltip);
+
+                Label strictnessTooltip = new Label(ID_T_STRICTNESS);
+                strictnessTooltip.add(new InfoTooltipBehavior());
+                dependencyBody.add(strictnessTooltip);
+
+                Label kindTooltip = new Label(ID_T_KIND);
+                kindTooltip.add(new InfoTooltipBehavior());
+                dependencyBody.add(kindTooltip);
+
+                Label intentTooltip = new Label(ID_T_INTENT);
+                intentTooltip.add(new InfoTooltipBehavior());
+                dependencyBody.add(intentTooltip);
+
+                Label resourceRefTooltip = new Label(ID_T_RESOURCE_REF);
+                resourceRefTooltip.add(new InfoTooltipBehavior());
+                dependencyBody.add(resourceRefTooltip);
             }
         };
         repeater.setOutputMarkupId(true);
@@ -212,21 +233,21 @@ public class ResourceDependencyEditor extends SimplePanel{
             public String getObject() {
                 StringBuilder sb = new StringBuilder();
                 ResourceObjectTypeDependencyType dep = item.getModelObject();
-                sb.append("#").append(item.getIndex()).append(":");
+                sb.append("#").append(item.getIndex()+1).append(" - ");
 
                 if(dep.getResourceRef() != null){
-                    sb.append(resourceMap.get(dep.getResourceRef().getOid()));
+                    sb.append(resourceMap.get(dep.getResourceRef().getOid())).append(":");
                 }
 
                 if(dep.getKind() != null){
-                    sb.append(dep.getKind()).append(":");
+                    sb.append(dep.getKind().toString()).append(":");
                 }
 
                 if(dep.getIntent() != null){
                     sb.append(dep.getIntent()).append(":");
                 }
 
-                sb.append(":").append(dep.getOrder()).append(":");
+                sb.append(dep.getOrder()).append(":");
                 if(dep.getStrictness() != null){
                     sb.append(dep.getStrictness().toString());
                 }

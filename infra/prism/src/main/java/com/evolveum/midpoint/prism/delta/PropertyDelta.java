@@ -18,13 +18,13 @@ package com.evolveum.midpoint.prism.delta;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -68,7 +69,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	super(propertyPath, propertyDefinition, prismContext);
     }
     
-    PrismPropertyDefinition getPropertyDefinition() {
+    public PrismPropertyDefinition getPropertyDefinition() {
 		return (PrismPropertyDefinition) super.getDefinition();
 	}
 
@@ -133,7 +134,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		copyValues(clone);
 		return clone;
 	}
-	
+
 	protected void copyValues(PropertyDelta<T> clone) {
 		super.copyValues(clone);
 	}
@@ -270,6 +271,20 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		return (PropertyDelta<T>) super.narrow(object);
 	}
     
+    public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule) {
+		Comparator<PrismPropertyValue<T>> comparator = new Comparator<PrismPropertyValue<T>>() {
+			@Override
+			public int compare(PrismPropertyValue<T> o1, PrismPropertyValue<T> o2) {
+				if (o1.equalsComplex(o2, true, false, matchingRule)) {
+					return 0;
+				} else {
+					return 1;
+				}
+			}
+		};
+		return (PropertyDelta<T>) super.narrow(object, comparator);
+	}
+    
     public static <O extends Objectable,T> PropertyDelta<T> createDelta(QName propertyName, PrismObjectDefinition<O> objectDefinition) {
     	return createDelta(new ItemPath(propertyName), objectDefinition);
     }
@@ -354,8 +369,8 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	((Collection)modifications).add(delta);
     	return modifications;
     }
-    
-    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, ItemPath propertyPath) {
+
+	public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, ItemPath propertyPath) {
     	for (ItemDelta delta: modifications) {
     		if (delta instanceof PropertyDelta && delta.getPath().equivalent(propertyPath)) {
     			return (PropertyDelta) delta;

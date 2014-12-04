@@ -234,6 +234,7 @@
 						<add>false</add>
 						<modify>false</modify>
 					</access>
+                    <ignore>true</ignore>           <!-- limiting access without setting "ignore" to true is not enough (leads to an error on modification attempt) -->
 				</limitations>
                 <outbound>
                 	<!-- Make sure this mapping is really ignored -->

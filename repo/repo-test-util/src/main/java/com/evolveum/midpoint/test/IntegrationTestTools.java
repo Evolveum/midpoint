@@ -18,6 +18,7 @@ package com.evolveum.midpoint.test;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -543,7 +544,7 @@ public class IntegrationTestTools {
 	public static void checkShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
 			ObjectChecker<ShadowType> checker, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) {
 		LOGGER.trace("Checking shadow:\n{}",shadowType.asPrismObject().debugDump());
-		shadowType.asPrismObject().checkConsistence(true, true);
+		shadowType.asPrismObject().checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
 		assertNotNull("no OID",shadowType.getOid());
 		assertNotNull("no name",shadowType.getName());
         assertEquals(resourceType.getOid(), shadowType.getResourceRef().getOid());
@@ -833,9 +834,22 @@ public class IntegrationTestTools {
 	}
 	
 	public static void assertGroupMember(DummyGroup group, String accountId) {
+		assertGroupMember(group, accountId, false);
+	}
+	
+	public static void assertGroupMember(DummyGroup group, String accountId, boolean caseIgnore) {
 		Collection<String> members = group.getMembers();
 		assertNotNull("No members in group "+group.getName()+", expected that "+accountId+" will be there", members);
-		assertTrue("Account "+accountId+" is not member of group "+group.getName()+", members: "+members, members.contains(accountId));
+		if (caseIgnore) {
+			for (String member: members) {
+				if (StringUtils.equalsIgnoreCase(accountId, member)) {
+					return;
+				}
+			}
+			AssertJUnit.fail("Account "+accountId+" is not member of group "+group.getName()+", members: "+members);
+		} else {
+			assertTrue("Account "+accountId+" is not member of group "+group.getName()+", members: "+members, members.contains(accountId));
+		}
 	}
 	
 	public static void assertNoGroupMember(DummyGroup group, String accountId) {

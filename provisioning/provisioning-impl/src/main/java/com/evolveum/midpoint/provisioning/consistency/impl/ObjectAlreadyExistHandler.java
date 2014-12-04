@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.provisioning.consistency.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -38,7 +40,9 @@ import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -91,7 +95,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 			resourceAccount = foundAccount.get(0);
 		}
 		
-		LOGGER.trace("Found conflicting resource account: {}", resourceAccount);
+		LOGGER.trace("Found conflicting resource object: {}", resourceAccount);
 
 		try{
 		if (resourceAccount != null) {
@@ -104,7 +108,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 			changeNotificationDispatcher.notifyChange(change, task, operationResult);
 		}
 		} finally {
-		operationResult.computeStatus();
+			operationResult.computeStatus();
 		}
 		if (operationResult.isSuccess()) {
 			parentResult.recordSuccess();
@@ -120,15 +124,21 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 
 	private ObjectQuery createQueryByIcfName(ShadowType shadow) throws SchemaException {
 		// TODO: error handling TODO TODO TODO set matching rule instead of null in equlas filter
-		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue()
-				.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
-		EqualFilter nameFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, nameProperty.getDefinition().getName()),nameProperty);
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+		
+		List<EqualFilter> secondaryIdentifierFilters = new ArrayList<EqualFilter>();
+		
+		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers){
+			EqualFilter equal = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, secondaryIdentifier.getElementName()), secondaryIdentifier);
+			secondaryIdentifierFilters.add(equal);
+		}
+		OrFilter orSecondary = OrFilter.createOr((List)secondaryIdentifierFilters);
 		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
 				prismContext, shadow.getResourceRef().getOid());
 		EqualFilter objectClassFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext,
 				null, shadow.getObjectClass());
 
-		ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(nameFilter, resourceRefFilter,
+		ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(orSecondary, resourceRefFilter,
 				objectClassFilter));
 
 		return query;

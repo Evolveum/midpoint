@@ -17,8 +17,6 @@ package com.evolveum.midpoint.util.aspect;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -55,58 +53,46 @@ public class MidpointAspect {
 	private static final String MDC_SUBSYSTEM_KEY = "subsystem";
     public static final String INDENT_STRING = " ";
 
-    //Subsystems
-	public static final String SUBSYSTEM_REPOSITORY = "REPOSITORY";
-	public static final String SUBSYSTEM_TASKMANAGER = "TASKMANAGER";
-	public static final String SUBSYSTEM_PROVISIONING = "PROVISIONING";
-	public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "RESOURCEOBJECTCHANGELISTENER";
-	public static final String SUBSYSTEM_MODEL = "MODEL";
-	public static final String SUBSYSTEM_UCF = "UCF";
-    public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
-	
-	public static final String[] SUBSYSTEMS = { SUBSYSTEM_REPOSITORY, SUBSYSTEM_TASKMANAGER, SUBSYSTEM_PROVISIONING, 
-		SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, SUBSYSTEM_MODEL, SUBSYSTEM_UCF };
-
 	@Around("entriesIntoRepository()")
 	public Object processRepositoryNdc(ProceedingJoinPoint pjp) throws Throwable {
-		return wrapSubsystem(pjp, SUBSYSTEM_REPOSITORY);
+		return wrapSubsystem(pjp, ProfilingDataManager.Subsystem.REPOSITORY);
 	}
 
     @Around("entriesIntoModel()")
     public Object processModelNdc(ProceedingJoinPoint pjp) throws Throwable {
-        return wrapSubsystem(pjp, SUBSYSTEM_MODEL);
+        return wrapSubsystem(pjp, ProfilingDataManager.Subsystem.MODEL);
     }
 
     @Around("entriesIntoProvisioning()")
     public Object processProvisioningNdc(ProceedingJoinPoint pjp) throws Throwable {
-        return wrapSubsystem(pjp, SUBSYSTEM_PROVISIONING);
+        return wrapSubsystem(pjp, ProfilingDataManager.Subsystem.PROVISIONING);
     }
 
     @Around("entriesIntoTaskManager()")
 	public Object processTaskManagerNdc(ProceedingJoinPoint pjp) throws Throwable {
-		return wrapSubsystem(pjp, SUBSYSTEM_TASKMANAGER);
+		return wrapSubsystem(pjp, ProfilingDataManager.Subsystem.TASK_MANAGER);
 	}
 
     @Around("entriesIntoUcf()")
     public Object processUcfNdc(ProceedingJoinPoint pjp) throws Throwable {
-        return wrapSubsystem(pjp, SUBSYSTEM_UCF);
+        return wrapSubsystem(pjp, ProfilingDataManager.Subsystem.UCF);
     }
 
     @Around("entriesIntoResourceObjectChangeListener()")
 	public Object processResourceObjectChangeListenerNdc(ProceedingJoinPoint pjp) throws Throwable {
-		return wrapSubsystem(pjp, SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER);
+		return wrapSubsystem(pjp, ProfilingDataManager.Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER);
 	}
 
     @Around("entriesIntoWorkflow()")
     public Object proccessWorkflowNdc(ProceedingJoinPoint pjp) throws Throwable {
-        return wrapSubsystem(pjp, SUBSYSTEM_WORKFLOW);
+        return wrapSubsystem(pjp, ProfilingDataManager.Subsystem.WORKFLOW);
     }
 
 
 
 	// This is made public to use in testing
 	public static String swapSubsystemMark(String subsystemName) {
-		String prev = (String) MDC.get(MDC_SUBSYSTEM_KEY);
+		String prev = MDC.get(MDC_SUBSYSTEM_KEY);
 		if (subsystemName == null) {
 			MDC.remove(MDC_SUBSYSTEM_KEY);
 		} else {
@@ -115,7 +101,7 @@ public class MidpointAspect {
 		return prev;
 	}
 
-	private Object wrapSubsystem(ProceedingJoinPoint pjp, String subsystem) throws Throwable {
+	private Object wrapSubsystem(ProceedingJoinPoint pjp, ProfilingDataManager.Subsystem subsystem) throws Throwable {
 	    Object retValue = null;
 		String prev = null;
         int id = 0;
@@ -131,7 +117,7 @@ public class MidpointAspect {
 		try {
 			// Marking MDC->Subsystem with current one subsystem and mark
 			// previous
-			prev = swapSubsystemMark(subsystem);
+			prev = swapSubsystemMark(subsystem.name());
 
             if (LOGGER_PROFILING.isDebugEnabled()) {
                 id = idcounter.incrementAndGet();

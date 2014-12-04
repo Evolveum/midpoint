@@ -44,7 +44,10 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean requireExplicitEnable = false;
     private boolean caseIgnoreId = false;
     private boolean caseIgnoreValues = false;
+    private boolean generateDefaultValues = false;
     private boolean tolerateDuplicateValues = true;
+	private boolean varyLetterCase = false;
+	private boolean referentialIntegrity = false;
     private String uselessString;
     private GuardedString uselessGuardedString;
 
@@ -160,6 +163,19 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setCaseIgnoreId(boolean caseIgnoreId) {
 		this.caseIgnoreId = caseIgnoreId;
 	}
+	
+	/**
+	 * If set to true then the "home dir" will be generated
+	 */
+	@ConfigurationProperty(displayMessageKey = "UI_GENERATE_DEFAULT_VALUES",
+    		helpMessageKey = "UI_GENERATE_DEFAULT_VALUES")
+	public boolean isGenerateDefaultValues() {
+		return generateDefaultValues;
+	}
+	
+	public void setGenerateDefaultValues(boolean generateDefaultValues) {
+		this.generateDefaultValues = generateDefaultValues;
+	}
 
 	/**
 	 * If set to true then the attribute values will be considered case-insensitive
@@ -211,7 +227,27 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setUselessGuardedString(GuardedString uselessGuardedString) {
 		this.uselessGuardedString = uselessGuardedString;
 	}
-	
+
+	@ConfigurationProperty(displayMessageKey = "UI_VARY_LETTER_CASE",
+			helpMessageKey = "UI_VARY_LETTER_CASE_HELP")
+	public boolean isVaryLetterCase() {
+		return varyLetterCase;
+	}
+
+	public void setVaryLetterCase(boolean value) {
+		this.varyLetterCase = value;
+	}
+
+	@ConfigurationProperty(displayMessageKey = "UI_REFERENTIAL_INTEGRITY",
+			helpMessageKey = "UI_REFERENTIAL_INTEGRITY_HELP")
+	public boolean isReferentialIntegrity() {
+		return referentialIntegrity;
+	}
+
+	public void setReferentialIntegrity(boolean referentialIntegrity) {
+		this.referentialIntegrity = referentialIntegrity;
+	}
+
 	/**
      * {@inheritDoc}
      */

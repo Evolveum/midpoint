@@ -1,0 +1,14 @@
+dn: cn=painters,ou=Groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+cn: painters
+uniqueMember: uid=leonardo, ou=People, dc=example,dc=com
+#aci: (targetattr="*")(version 3.0; acl "IDM Access"; allow (all)
+#  userdn="ldap:///uid=idm,ou=Administrators,dc=example,dc=com";)
+
+#dn: cn=employees,ou=Groups,dc=example,dc=com
+#objectClass: groupOfUniqueNames
+#objectClass: top
+#cn: employees
+#aci: (targetattr="*")(version 3.0; acl "IDM Access"; allow (all)
+#  userdn="ldap:///uid=idm,ou=Administrators,dc=example,dc=com";)

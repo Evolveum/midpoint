@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,27 @@
  */
 package com.evolveum.midpoint.init;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.StatusPrinter;
+
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.commons.configuration.*;
 import org.apache.commons.lang.NotImplementedException;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilder;
+
 import java.io.File;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
@@ -36,6 +45,9 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final Trace LOGGER = TraceManager.getTrace(StartupConfiguration.class);
     private static final String USER_HOME = "user.home";
     private static final String MIDPOINT_HOME = "midpoint.home";
+    
+    private static final String DEFAULT_CONFIG_FILE_NAME = "config.xml";
+	private static final String LOGBACK_CONFIG_FILENAME = "logback.xml";
 
     private CompositeConfiguration config = null;
     private Document xmlConfigAsDocument = null;        // just in case when we need to access original XML document
@@ -45,7 +57,7 @@ public class StartupConfiguration implements MidpointConfiguration {
      * Default constructor
      */
     public StartupConfiguration() {
-        this.configFilename = "config.xml";
+        this.configFilename = DEFAULT_CONFIG_FILE_NAME;
     }
 
     /**
@@ -131,6 +143,7 @@ public class StartupConfiguration implements MidpointConfiguration {
 			if (getConfigFilename().startsWith("test")) {
 				String midpointHome = "./target/midpoint-home";
 				System.setProperty(MIDPOINT_HOME, midpointHome);
+				System.out.println("Using " + MIDPOINT_HOME + " for test runs: '" + midpointHome + "'.");
 			} else {
 
 				String userHome = System.getProperty(USER_HOME);
@@ -144,29 +157,24 @@ public class StartupConfiguration implements MidpointConfiguration {
 			}
 		}
 
-        loadConfiguration();
-    }
+    	String midpointHomeString = System.getProperty(MIDPOINT_HOME);
+        if (midpointHomeString != null) {
+                //Fix missing last slash in path
+                if (!midpointHomeString.endsWith("/")) {
+                	midpointHomeString = midpointHomeString + "/";
+                    System.setProperty(MIDPOINT_HOME, midpointHomeString);
+                }
+        }
 
-    /**
-     * Load system configuration
-     */
-    public void load() {
-        loadConfiguration();
-    }
-
-    /**
-     * Save system configuration
-     *
-     * @TODO not implement yet
-     */
-    public void save() {
-        throw new NotImplementedException();
+        File midpointHome = new File(midpointHomeString);
+        setupInitialLogging(midpointHome);
+        loadConfiguration(midpointHome);
     }
 
     /**
      * Loading logic
      */
-    private void loadConfiguration() {
+    private void loadConfiguration(File midpointHome) {
         if (config != null) {
             config.clear();
         } else {
@@ -175,42 +183,34 @@ public class StartupConfiguration implements MidpointConfiguration {
 
         DocumentBuilder documentBuilder = DOMUtil.createDocumentBuilder();          // we need namespace-aware document builder (see GeneralChangeProcessor.java)
 
+        if (midpointHome != null) {
         /* configuration logic */
-        // load from midpoint.home
-        if (null != System.getProperty(MIDPOINT_HOME)) {
-            try {
-                //Fix missing last slash in path
-                if (!System.getProperty(MIDPOINT_HOME).endsWith("/")) {
-                    System.setProperty(MIDPOINT_HOME, System.getProperty(MIDPOINT_HOME) + "/");
-                }
-
-                //Load configuration
-                String path = System.getProperty(MIDPOINT_HOME) + this.getConfigFilename();
-                LOGGER.info("Loading midPoint configuration from file {}", path);
-                File f = new File(path);
+        	File f = new File(midpointHome, this.getConfigFilename());
+        	System.out.println("Loading midPoint configuration from file "+f);
+        	LOGGER.info("Loading midPoint configuration from file {}", f);
+        	try {
                 if (!f.exists()) {
-                    LOGGER.warn("Configuration file {} does not exists. Need to do extraction ...", path);
+                    LOGGER.warn("Configuration file {} does not exists. Need to do extraction ...", f);
 
                     ApplicationHomeSetup ah = new ApplicationHomeSetup();
                     ah.init(MIDPOINT_HOME);
-                    ClassPathUtil.extractFileFromClassPath(this.getConfigFilename(), path);
+                    ClassPathUtil.extractFileFromClassPath(this.getConfigFilename(), f.getPath());
 
                 }
-                this.setConfigFilename(path);
                 //Load and parse properties
                 config.addProperty(MIDPOINT_HOME, System.getProperty(MIDPOINT_HOME));
-                createXmlConfiguration(documentBuilder);
+                createXmlConfiguration(documentBuilder, f.getPath());
             } catch (ConfigurationException e) {
-                String message = "Unable to read configuration file [" + this.getConfigFilename() + "]: " + e.getMessage();
+                String message = "Unable to read configuration file [" + f + "]: " + e.getMessage();
                 LOGGER.error(message);
                 System.out.println(message);
                 throw new SystemException(message, e);      // there's no point in continuing with midpoint initialization
             }
 
         } else {
-            // Load from class path
+            // Load from current directory
             try {
-                createXmlConfiguration(documentBuilder);
+                createXmlConfiguration(documentBuilder, this.getConfigFilename());
             } catch (ConfigurationException e) {
                 String message = "Unable to read configuration file [" + this.getConfigFilename() + "]: " + e.getMessage();
                 LOGGER.error(message);
@@ -219,15 +219,34 @@ public class StartupConfiguration implements MidpointConfiguration {
             }
         }
     }
+    
+	private void setupInitialLogging(File midpointHome) {
+		File logbackConfigFile = new File(midpointHome, LOGBACK_CONFIG_FILENAME);
+		if (!logbackConfigFile.exists()) {
+			return;
+		}
+		LOGGER.info("Loading additional logging configuration from {}", logbackConfigFile);
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		try {
+		  JoranConfigurator configurator = new JoranConfigurator();
+		  configurator.setContext(context);
+		configurator.doConfigure(logbackConfigFile);
+		} catch (JoranException je) {
+		  // StatusPrinter will handle this
+		} catch (Exception ex) {
+		  ex.printStackTrace();
+		}
+		StatusPrinter.printInCaseOfErrorsOrWarnings(context);
+    }
 
-    private void createXmlConfiguration(DocumentBuilder documentBuilder) throws ConfigurationException {
+    private void createXmlConfiguration(DocumentBuilder documentBuilder, String filename) throws ConfigurationException {
         XMLConfiguration xmlConfig = new XMLConfiguration();
         xmlConfig.setDocumentBuilder(documentBuilder);
-        xmlConfig.setFileName(this.getConfigFilename());
+        xmlConfig.setFileName(filename);
         xmlConfig.load();
         config.addConfiguration(xmlConfig);
 
-        xmlConfigAsDocument = DOMUtil.parseFile(this.getConfigFilename());
+        xmlConfigAsDocument = DOMUtil.parseFile(filename);
     }
 
     @Override

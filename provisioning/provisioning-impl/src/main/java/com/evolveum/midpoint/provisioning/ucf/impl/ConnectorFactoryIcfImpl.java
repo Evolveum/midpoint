@@ -61,13 +61,11 @@ import org.identityconnectors.framework.api.operations.SyncApiOp;
 import org.identityconnectors.framework.api.operations.TestApiOp;
 import org.identityconnectors.framework.api.operations.UpdateApiOp;
 import org.identityconnectors.framework.api.operations.ValidateApiOp;
-import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -151,6 +149,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
             "ResultsHandlerConfigurationType");
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER = "enableNormalizingResultsHandler";
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER = "enableFilteredResultsHandler";
+    public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_FILTERED_RESULTS_HANDLER_IN_VALIDATION_MODE = "filteredResultsHandlerInValidationMode";
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER = "enableCaseInsensitiveFilter";
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER = "enableAttributesToGetSearchResultsHandler";
 
@@ -245,7 +244,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			LOGGER.trace("Connector object: {}", ObjectTypeUtil.dump(connectorType));
 			LOGGER.trace("Connector host object: {}", ObjectTypeUtil.dump(connectorType.getConnectorHost()));
 			throw new ObjectNotFoundException("The classes (JAR) of " + ObjectTypeUtil.toShortString(connectorType)
-					+ " were not found by the ICF framework; connector type=" + connectorType.getConnectorType() + ", version="+connectorType.getConnectorVersion());
+					+ " were not found by the ICF framework; bundle="+connectorType.getConnectorBundle()+" connector type=" + connectorType.getConnectorType() + ", version="+connectorType.getConnectorVersion());
 		}
 
 		PrismSchema connectorSchema = getConnectorSchema(connectorType, namespace);
@@ -527,7 +526,11 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		// Test if this path is single jar or need to do deep examination
 		if (isThisJarFileBundle(dir)) {
 			try {
-				bundle.add(dir.toURI().toURL());
+				if (isThisBundleCompatible(dir.toURI().toURL())) {
+					bundle.add(dir.toURI().toURL());
+				} else {
+					LOGGER.warn("Skip loading budle {} due error occured", dir.toURI().toURL());
+				}
 			} catch (MalformedURLException e) {
 				LOGGER.error("This never happend we hope.", e);
 				throw new SystemException(e);
@@ -575,16 +578,23 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		if (null == bundleUrl)
 			return false;
 		try {
-			ConnectorInfoManagerFactory.getInstance().getLocalManager(bundleUrl);
+			ConnectorInfoManager localManager = ConnectorInfoManagerFactory.getInstance().getLocalManager(bundleUrl);
+			List<ConnectorInfo> connectorInfos = localManager.getConnectorInfos();
+			if (connectorInfos == null || connectorInfos.isEmpty()) {
+				LOGGER.error("Strange error happened. ConnId is not accepting bundle {}. But no error is indicated.", bundleUrl);
+				return false;
+			} else {
+				LOGGER.trace("Found {} compatible connectors in bundle {}", connectorInfos.size(), bundleUrl);
+				return true;
+			}
 		} catch (Exception ex) {
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()}, ex);
+				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage(), ex});
 			} else {
 				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()});
 			}
 			return false;
 		}
-		return true;
 	}
 
 	/**

@@ -146,7 +146,7 @@ public class MockSingleTaskHandler implements TaskHandler {
                 try {
                     ArrayList<ItemDelta<?>> deltas = new ArrayList<ItemDelta<?>>();
                     deltas.add(((TaskQuartzImpl) task).createExtensionDelta(wfsFlagDefinition, true));
-                    runResult = task.waitForSubtasks(2, deltas, opResult);
+                    runResult = ((TaskQuartzImpl) task).waitForSubtasks(2, deltas, opResult);
                     runResult.setProgress(1);
                 } catch (Exception e) {
                     throw new SystemException("WaitForSubtasks failed.", e);

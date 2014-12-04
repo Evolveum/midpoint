@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -62,7 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UnknownJavaObjectTyp
  * @author Radovan Semancik
  * 
  */
-public class OperationResult implements Serializable, DebugDumpable {
+public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String INDENT_STRING = "    ";
@@ -1446,5 +1447,37 @@ public class OperationResult implements Serializable, DebugDumpable {
             return result;
         }
     }
+
+    public OperationResult clone() {
+        OperationResult clone = new OperationResult(operation);
+
+        clone.status = status;
+        clone.params = CloneUtil.clone(params);
+        clone.context = CloneUtil.clone(context);
+        clone.returns = CloneUtil.clone(returns);
+        clone.token = token;
+        clone.messageCode = messageCode;
+        clone.message = message;
+        clone.localizationMessage = localizationMessage;
+        clone.localizationArguments = CloneUtil.clone(localizationArguments);
+        clone.cause = CloneUtil.clone(cause);
+        clone.count = count;
+        if (subresults != null) {
+            clone.subresults = new ArrayList<>(subresults.size());
+            for (OperationResult subresult : subresults) {
+                if (subresult != null) {
+                    clone.subresults.add(subresult.clone());
+                }
+            }
+        }
+        clone.details = CloneUtil.clone(details);
+        clone.summarizeErrors = summarizeErrors;
+        clone.summarizePartialErrors = summarizePartialErrors;
+        clone.summarizeSuccesses = summarizeSuccesses;
+        clone.minor = minor;
+
+        return clone;
+    }
+
 
 }

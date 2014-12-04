@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
+import org.apache.commons.lang.Validate;
 
 /**
  * @author semancik
@@ -67,7 +68,9 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory implements Express
 	@Override
 	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
 			ItemDefinition outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
-		
+
+        Validate.notNull(outputDefinition, "output definition must be specified for assignmentTargetSearch expression evaluator");
+
 		JAXBElement<?> evaluatorElement = null;
 		if (evaluatorElements != null) {
 			if (evaluatorElements.size() > 1) {
@@ -81,7 +84,7 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory implements Express
         	evaluatorTypeObject = evaluatorElement.getValue();
         }
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof SearchObjectExpressionEvaluatorType)) {
-            throw new SchemaException("assignment expression evlauator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
+            throw new SchemaException("assignment expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         AssignmentTargetSearchExpressionEvaluator expressionEvaluator = new AssignmentTargetSearchExpressionEvaluator((SearchObjectExpressionEvaluatorType)evaluatorTypeObject, 
         		outputDefinition, protector, objectResolver, modelService, prismContext);

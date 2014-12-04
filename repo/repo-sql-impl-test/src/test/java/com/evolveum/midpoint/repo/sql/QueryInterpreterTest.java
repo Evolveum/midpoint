@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -35,12 +36,17 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
+import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query.RQuery;
+import com.evolveum.midpoint.repo.sql.query.RQueryCriteriaImpl;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -540,6 +546,42 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             close(session);
         }
     }
+
+    @Test
+    public void queryUserAssignmentTargetRef() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RUser.class, "u");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("u", projections, false);
+            main.setProjection(projections);
+
+            Criteria a = main.createCriteria("assignments", "a", JoinType.LEFT_OUTER_JOIN);
+            Conjunction c0 = Restrictions.conjunction();
+            c0.add(Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS));
+            Conjunction c1 = Restrictions.conjunction();
+            c1.add(Restrictions.eq("a.targetRef.targetOid", "123"));
+            c1.add(Restrictions.eq("a.targetRef.type", RObjectType.ROLE));
+            c0.add(c1);
+            a.add(c0);
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            ObjectReferenceType ort = new ObjectReferenceType();
+            ort.setOid("123");
+            ort.setType(RoleType.COMPLEX_TYPE);
+            RefFilter filter = RefFilter.createReferenceEqual(
+                    new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
+                    UserType.class, prismContext, ort.asReferenceValue());
+            String real = getInterpretedQuery(session, UserType.class, ObjectQuery.createObjectQuery(filter));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
 
     @Test
     public void queryTrigger() throws Exception {
@@ -1098,10 +1140,12 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            DetachedCriteria detached = DetachedCriteria.forClass(ROrgClosure.class, "cl");
-            detached.setProjection(Projections.distinct(Projections.property("cl.descendantOid")));
-            detached.add(Restrictions.eq("cl.ancestorOid", "1234"));
-            detached.add(Restrictions.ne("cl.descendantOid", "1234"));
+            DetachedCriteria detached = DetachedCriteria.forClass(RParentOrgRef.class, "p");
+            detached.setProjection(Projections.distinct(Projections.property("p.ownerOid")));
+            detached.add(Property.forName("targetOid").in(
+                    DetachedCriteria.forClass(ROrgClosure.class, "cl")
+                            .setProjection(Projections.property("cl.descendantOid"))
+                            .add(Restrictions.eq("cl.ancestorOid", "1234"))));
 
             Criteria main = session.createCriteria(RUser.class, "u");
             String mainAlias = "u";
@@ -1123,7 +1167,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     Restrictions.eq("u.name.norm", "cpt jack sparrow")));
             c.add(Subqueries.propertyIn(mainAlias + ".oid", detached));
             main.add(c);
-
 
             main.addOrder(Order.asc("u.name.orig"));
 
@@ -1563,4 +1606,47 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             close(session);
         }
     }
+
+//    @Test
+//    public void atest100() throws Exception {
+//        Session session = open();
+//
+//        try {
+//            String expected = null;//HibernateToSqlTranslator.toSql(main);
+//
+//            List<EqualFilter> secondaryEquals = new ArrayList<>();
+//            EqualFilter eq = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_UID),
+//                    new PrismPropertyDefinition(SchemaConstantsGenerated.ICF_S_UID, DOMUtil.XSD_STRING, prismContext),
+//                    "8daaeeae-f0c7-41c9-b258-2a3351aa8876");
+//            secondaryEquals.add(eq);
+//            eq = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_NAME),
+//                    new PrismPropertyDefinition(SchemaConstantsGenerated.ICF_S_NAME, DOMUtil.XSD_STRING, prismContext),
+//                    "some-name");
+//            secondaryEquals.add(eq);
+//
+//            OrFilter secondaryIdentifierFilter = OrFilter.createOr((List) secondaryEquals);
+//            RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
+//                    prismContext, "ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2");
+//
+//            AndFilter filter = AndFilter.createAnd(ref, secondaryIdentifierFilter);
+//            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+//            LOGGER.debug("Query\n{}", query);
+//
+//            QueryEngine engine = new QueryEngine(repositoryService.getConfiguration(), prismContext);
+//            RQuery rQuery = engine.interpret(query, ShadowType.class, null, false, session);
+//            RQueryCriteriaImpl rci = (RQueryCriteriaImpl) rQuery;
+//            System.out.println(rci);
+//            System.out.println(rci.getCriteria());
+//            //just test if DB will handle it or throws some exception
+//            List l = rQuery.list();
+//            LOGGER.info(">>>>>>>>asdfasdfasdfasdf{}",l.size());
+//
+//            String real = getInterpretedQuery(session, ShadowType.class, query);
+//
+//            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+//            AssertJUnit.assertEquals(expected, real);
+//        } finally {
+//            close(session);
+//        }
+//    }
 }

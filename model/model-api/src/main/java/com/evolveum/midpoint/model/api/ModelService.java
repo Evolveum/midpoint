@@ -24,23 +24,20 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -50,7 +47,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -227,8 +223,12 @@ public interface ModelService {
     Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
-	
-	/**
+
+    Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, Collection<ProgressListener> listeners, OperationResult parentResult)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+
+    /**
 	 * Recomputes focal object with the specified OID. The operation considers all the applicable policies and
 	 * mapping and tries to re-apply them as necessary.
 	 * 
@@ -378,7 +378,7 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
-	<T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+	<T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
 	
@@ -421,7 +421,7 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
-	<T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+	<T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
 			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
@@ -445,7 +445,7 @@ public interface ModelService {
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return number of objects of specified type that match search criteria (subject
-	 *         to paging)
+	 *         to paging). May return null if the number of objects is not known.
 	 * 
 	 * @throws SchemaException
 	 *             unknown property used in search query
@@ -461,7 +461,7 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
-	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+	<T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult) 
             		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
 

@@ -83,13 +83,17 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 	
 	public ObjectDeltaOperation<T> clone() {
 		ObjectDeltaOperation<T> clone = new ObjectDeltaOperation<T>();
+		copyToClone(clone);
+		return clone;
+	}
+
+	protected void copyToClone(ObjectDeltaOperation<T> clone) {
 		if (this.objectDelta != null) {
 			clone.objectDelta = this.objectDelta.clone();
 		}
 		clone.executionResult = this.executionResult;
-		return clone;
 	}
-	
+
 	public static void checkConsistence(Collection<? extends ObjectDeltaOperation<?>> deltas) {
 		for (ObjectDeltaOperation<?> delta: deltas) {
 			delta.checkConsistence();

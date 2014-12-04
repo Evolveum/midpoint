@@ -15,6 +15,7 @@
  */
 import groovy.sql.Sql;
 import groovy.sql.DataSet;
+import org.identityconnectors.framework.common.exceptions.UnknownUidException
 
 // Parameters:
 // The connector sends the following:
@@ -32,20 +33,28 @@ assert uid != null
 
 switch ( objectClass ) {
     case "__ACCOUNT__":
-    sql.execute("DELETE FROM Users where uid= ?",[uid])
-    sql.commit();
+    sql.execute("DELETE FROM Users where id= ?",[uid as Integer])
+    count = sql.updateCount;
+    //sql.commit();
     break
 
-    case "__GROUP__":
-    sql.execute("DELETE FROM Groups where name= ?",[uid])
-    sql.commit();
+    case "Groups":
+    sql.execute("DELETE FROM Groups where id= ?",[uid as Integer])
+    count = sql.updateCount;
+    //sql.commit();
     break
 
-    case "organization":
-    sql.execute("DELETE FROM Organizations where name= ?",[uid])
-    sql.commit();
+    case "Organization":
+    sql.execute("DELETE FROM Organizations where id= ?",[uid as Integer])
+    count = sql.updateCount;
+    //sql.commit();
     break
 
     default:
     uid;
 }
+
+if (count != 1) {
+    throw new UnknownUidException("Couldn't found and delete object $objectClass with uid $uid")
+}
+

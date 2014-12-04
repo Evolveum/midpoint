@@ -44,6 +44,7 @@
             <jdbcJobStore>false</jdbcJobStore>
             <waitingTasksCheckInterval>5</waitingTasksCheckInterval>
             <testMode>true</testMode>
+            <useThreadInterrupt>whenNecessary</useThreadInterrupt>              <!-- needed for task manager tests -->
         </taskManager>
         <icf>
             <scanClasspath>true</scanClasspath>

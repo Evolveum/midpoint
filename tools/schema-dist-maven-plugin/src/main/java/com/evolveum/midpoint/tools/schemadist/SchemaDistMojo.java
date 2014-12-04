@@ -203,7 +203,7 @@ public class SchemaDistMojo extends AbstractMojo {
         for (ArtifactItem artifactItem: artifactItems) {
         	Artifact artifact = artifactItem.getArtifact();
         	getLog().info( "SchemaDist unpacking artifact " + artifact);
-        	File workDir = new File(workDirectory, artifact.toString());
+        	File workDir = new File(workDirectory, artifact.getArtifactId());
         	initializeOutDir(workDir);
         	artifactItem.setWorkDir(workDir);
         	unpack(artifactItem, workDir);
@@ -215,7 +215,18 @@ public class SchemaDistMojo extends AbstractMojo {
         	Catalog catalog = new Catalog(catalogManager);
         	catalog.setupReaders();
         	try {
-				catalog.parseCatalog(catalogFile.getPath());
+                // UGLY HACK. On Windows, file names like d:\abc\def\catalog.xml eventually get treated very strangely
+                // (resulting in names like "file:<current-working-dir>d:\abc\def\catalog.xml" that are obviously wrong)
+                // Prefixing such names with "file:/" helps.
+                String prefix;
+                if (catalogFile.isAbsolute() && !catalogFile.getPath().startsWith("/")) {
+                    prefix = "/";
+                } else {
+                    prefix = "";
+                }
+				String fileName = "file:" + prefix + catalogFile.getPath();
+                getLog().debug("Calling parseCatalog with: " + fileName);
+                catalog.parseCatalog(fileName);
 			} catch (MalformedURLException e) {
 				throw new MojoExecutionException("Error parsing catalog file "+catalogPath+" in artifact "+artifact, e);
 			} catch (IOException e) {
@@ -340,7 +351,11 @@ public class SchemaDistMojo extends AbstractMojo {
     private String resolveSchemaLocation(String namespace, Path filePath, File workDir) throws MojoExecutionException, IOException {
     	for(ArtifactItem artifactItem: artifactItems) {
     		Catalog catalog = artifactItem.getResolveCatalog();
-    		String resolvedString = catalog.resolveEntity(filePath.toString(), namespace, namespace);
+            String publicId = namespace;
+            if (publicId.endsWith("#")) {
+                publicId = publicId.substring(0, publicId.length()-1);
+            }
+    		String resolvedString = catalog.resolveEntity(filePath.toString(), publicId, publicId);
     		if (resolvedString != null) {
     			getLog().debug("-------------------");
     			getLog().debug("Resolved namespace "+namespace+" to "+resolvedString+" using catalog "+catalog);

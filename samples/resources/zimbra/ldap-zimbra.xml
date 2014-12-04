@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+
+		 
+    <resource oid="9b45cb56-32a8-11e4-8cab-001e8c717e5b">
+
+        <name>Zimbra LDAP</name>
+	<description>Zimbra OpenLDAP</description>
+        <connectorRef type="ConnectorType">
+            <filter>
+                <q:equal>
+			<q:path>c:connectorType</q:path>
+                    <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
+                </q:equal>
+            </filter>
+        </connectorRef>
+	<connectorConfiguration>
+		<icfc:configurationProperties
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
+			<icfcldap:port>389</icfcldap:port>
+			<icfcldap:host>hermes.evolveum.com</icfcldap:host>
+			<icfcldap:baseContexts>dc=evolveum,dc=com</icfcldap:baseContexts>
+			<icfcldap:principal>uid=midpoint,cn=admins,cn=zimbra</icfcldap:principal>
+			<icfcldap:credentials>
+                    		<clearValue>XXXXXXXXXXXXXXXX</clearValue>
+			</icfcldap:credentials>
+			<icfcldap:startTls>true</icfcldap:startTls>
+			<icfcldap:accountObjectClasses>top</icfcldap:accountObjectClasses>
+			<icfcldap:accountObjectClasses>person</icfcldap:accountObjectClasses>
+			<icfcldap:accountObjectClasses>organizationalPerson</icfcldap:accountObjectClasses>
+			<icfcldap:accountObjectClasses>inetOrgPerson</icfcldap:accountObjectClasses>
+			<icfcldap:accountObjectClasses>zimbraAccount</icfcldap:accountObjectClasses>
+			<icfcldap:accountObjectClasses>amavisAccount</icfcldap:accountObjectClasses>
+			<icfcldap:modifiersNamesToFilterOut>uid=midpoint,cn=admins,cn=zimbra</icfcldap:modifiersNamesToFilterOut>
+			<icfcldap:groupMemberAttribute>member</icfcldap:groupMemberAttribute>
+			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+			<icfcldap:useBlocks>true</icfcldap:useBlocks>
+			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+		</icfc:configurationProperties>
+
+		<icfc:resultsHandlerConfiguration>
+                	<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+		</icfc:resultsHandlerConfiguration>
+	</connectorConfiguration>
+
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<displayName>Normal Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Distinguished Name</displayName>
+				<limitations>
+					<minOccurs>0</minOccurs>
+					<access>
+                        			<read>true</read>
+						<add>true</add>
+						<modify>true</modify>
+					</access>
+				</limitations>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<source>
+						<path>$user/name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								'uid=' + name + iterationToken + ',ou=people,dc=evolveum,dc=com'
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+				<displayName>Entry UUID</displayName>
+				<limitations>
+					<access>
+                        			<read>true</read>
+						<add>false</add>
+						<modify>true</modify>
+					</access>
+				</limitations>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
+			<attribute>
+				<ref>ri:cn</ref>
+				<displayName>Common Name</displayName>
+				<limitations>
+					<minOccurs>0</minOccurs>
+					<access>
+                        			<read>true</read>
+						<add>true</add>
+						<modify>true</modify>
+					</access>
+				</limitations>
+				<outbound>
+					<source>
+						<path>fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:displayName</ref>
+				<displayName>Display Name</displayName>
+				<limitations>
+					<minOccurs>0</minOccurs>
+					<access>
+                        			<read>true</read>
+						<add>true</add>
+						<modify>true</modify>
+					</access>
+				</limitations>
+				<outbound>
+					<source>
+						<path>fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:sn</ref>
+				<displayName>Surname</displayName>
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
+				<outbound>
+					<source>
+						<path>familyName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:givenName</ref>
+				<displayName>Given Name</displayName>
+				<outbound>
+					<source>
+						<path>givenName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:uid</ref>
+				<displayName>Login Name</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:zimbraId</ref>
+				<outbound>
+					<strength>weak</strength>
+					<expression>
+						<generate>
+							<mode>uuid</mode>
+						</generate>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:mail</ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>name</path>
+					</source>
+					<expression>
+						<script>
+							<code>name + '@evolveum.com'</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:zimbraMailDeliveryAddress</ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>name</path>
+					</source>
+					<expression>
+						<script>
+							<code>name + '@evolveum.com'</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:zimbraMailHost</ref>
+				<outbound>
+					<expression>
+						<value>hermes.evolveum.com</value>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:zimbraMailStatus</ref>
+				<outbound>
+					<expression>
+						<value>enabled</value>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:zimbraMailTransport</ref>
+				<outbound>
+					<expression>
+						<value>lmtp:hermes.evolveum.com:7025</value>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:zimbraHideInGal</ref>
+				<outbound>
+					<expression>
+						<value>FALSE</value>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+					<source>
+						<path>description</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:l</ref>
+				<displayName>Location</displayName>
+				<outbound>
+					<source>
+						<path>locality</path>
+					</source>
+				</outbound>
+			</attribute>
+			
+			<association>
+				<ref>ri:group</ref>
+				<displayName>LDAP Group Membership</displayName>
+				<kind>entitlement</kind>
+				<intent>ldapGroup</intent>
+				<direction>objectToSubject</direction>
+				<associationAttribute>ri:member</associationAttribute>
+				<valueAttribute>icfs:name</valueAttribute>
+			</association>
+
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+			
+			<protected>
+				<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+			</protected>
+			
+			<activation>
+		                <administrativeStatus>
+					<outbound/>
+				</administrativeStatus>
+			</activation>
+			
+			<credentials>
+				<password>
+				    <outbound>
+				    	<expression>
+						<asIs/>
+					</expression>
+				    </outbound>
+				</password>
+			</credentials>
+
+		</objectType>
+
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>ldapGroup</intent>
+			<displayName>LDAP Group</displayName>
+			<objectClass>ri:CustomgroupOfNamesObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$focus/name</path>
+					</source>
+					    <expression>
+					    	<script>
+							<code>
+								import javax.naming.ldap.Rdn
+								import javax.naming.ldap.LdapName
+								
+								dn = new LdapName('ou=groups,dc=evolveum,dc=com')
+								dn.add(new Rdn('cn', name.toString()))
+								return dn.toString()
+							</code>
+						</script>
+					    </expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:member</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
+			<attribute>
+				<ref>ri:cn</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$focus/name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+					<source>
+						<path>description</path>
+					</source>
+				</outbound>
+			</attribute>
+		</objectType>
+
+	</schemaHandling>
+
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+    	<configured>
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:zimbraAccountStatus</cap:attribute>
+                    <cap:enableValue>active</cap:enableValue>
+                    <cap:disableValue>locked</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+    	</configured>
+    </capabilities>
+
+	<consistency>
+		<avoidDuplicateValues>true</avoidDuplicateValues>
+	</consistency>
+
+
+    </resource>
+
+</objects>

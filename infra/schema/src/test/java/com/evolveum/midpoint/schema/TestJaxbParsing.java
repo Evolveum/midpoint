@@ -45,6 +45,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -227,4 +228,26 @@ public class TestJaxbParsing {
                 new JAXBElement<Object>(new QName("http://www.example.com", "custom"), Object.class, delta));
         assertNotNull(xml);
     }
+
+    @Test
+    public void testParseAnyValue() throws SchemaException, SAXException, IOException, JAXBException {
+
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+        // WHEN
+
+        String dataAsIs = "<asIs/>";
+        String dataValue = "<c:value xmlns:c='" + SchemaConstants.NS_C + "'>12345</c:value>";
+
+        // THEN
+
+        Object oAsIs = prismContext.parseAnyValueAsJAXBElement(dataAsIs, PrismContext.LANG_XML);
+        System.out.println("Parsed expression evaluator: "  + dataAsIs + " as " + oAsIs);
+        AssertJUnit.assertTrue("result is of wrong class (not JAXBElement): " + oAsIs.getClass(), oAsIs instanceof JAXBElement);
+
+        Object oValue = prismContext.parseAnyValueAsJAXBElement(dataValue, PrismContext.LANG_XML);
+        System.out.println("Parsed expression evaluator: " + dataValue + " as " + oValue);
+        AssertJUnit.assertTrue("result is of wrong class (not JAXBElement): " + oValue.getClass(), oValue instanceof JAXBElement);
+    }
+
 }

@@ -43,7 +43,7 @@
 
 		<connectorConfiguration>
 			<icfc:configurationProperties
-			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector">
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
 				<icfcldap:port>3636</icfcldap:port>
 				<icfcldap:ssl>true</icfcldap:ssl>
 				<icfcldap:host>deimos.lab.evolveum.com</icfcldap:host>
@@ -58,6 +58,10 @@
 				<icfcldap:useBlocks>true</icfcldap:useBlocks>
 				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
 			</icfc:configurationProperties>
+
+			<icfc:resultsHandlerConfiguration>
+	                	<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+			</icfc:resultsHandlerConfiguration>
 		</connectorConfiguration>
 
 	    <schema>
@@ -78,6 +82,9 @@
 				<attribute>
 					<ref>icfs:name</ref>
 					<displayName>Distinguished Name</displayName>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
 					<matchingRule>mr:stringIgnoreCase</matchingRule>
 					<outbound>
 						<source>
@@ -104,6 +111,9 @@
 				</attribute>
 				<attribute>
 					<ref>ri:cn</ref>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
 					<outbound>
 						<source>
 							<path>fullName</path>
@@ -112,6 +122,9 @@
 				</attribute>
 				<attribute>
 					<ref>ri:sn</ref>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
 					<outbound>
 						<source>
 							<path>familyName</path>

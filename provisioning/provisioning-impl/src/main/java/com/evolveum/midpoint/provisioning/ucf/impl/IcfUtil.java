@@ -25,6 +25,7 @@ import java.net.ConnectException;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.naming.NameAlreadyBoundException;
@@ -294,7 +295,13 @@ class IcfUtil {
 		} else if (ex instanceof InvalidAttributeValueException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			Exception newEx = new SchemaException(createMessageFromAllExceptions("Invalid attribute", ex));
+			InvalidAttributeValueException e = (InvalidAttributeValueException) ex;
+			Exception newEx = null;
+			if (e.getExplanation().contains("unique attribute conflict")){
+				newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions("Invalid attribute", ex));
+			} else{
+				newEx = new SchemaException(createMessageFromAllExceptions("Invalid attribute", ex));
+			}
 			parentResult.recordFatalError("Invalid attribute: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof ConnectException) {
@@ -378,7 +385,11 @@ class IcfUtil {
 			Attribute attribute = ((AttributeFilter)filter).getAttribute();
 			sb.append(attribute.getName());
 			sb.append(": ");
-			sb.append(attribute.getValue());
+			List<Object> value = attribute.getValue();
+			sb.append(value);
+//			if (value != null && !value.isEmpty()) {
+//				sb.append(" :").append(attribute.getValue().iterator().next().getClass().getSimpleName());
+//			}
 			sb.append(")");
 		}
 		if (filter instanceof CompositeFilter) {

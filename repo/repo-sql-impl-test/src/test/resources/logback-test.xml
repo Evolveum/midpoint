@@ -33,7 +33,8 @@
     <!--<logger name="org.springframework" level="INFO" />-->
 
     <logger name="org.hibernate.SQL" level="DEBUG"/>
-    <logger name="com.evolveum.midpoint.repo" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.repo" level="DEBUG"/>
+    <logger name="com.evolveum.midpoint.repo.sql.OrgClosureManager" level="TRACE"/>
     <logger name="com.evolveum.midpoint.testing" level="TRACE"/>
 
     <logger name="com.evolveum.midpoint.repo.sql.query.QueryRegistry" level="OFF"/>

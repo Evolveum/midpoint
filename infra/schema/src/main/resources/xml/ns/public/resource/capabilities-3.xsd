@@ -19,6 +19,7 @@
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
     xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
     xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -33,7 +34,7 @@
             Defines resource capabilities such as ability to enable/disable account,
             ability to reset passwords, etc.
             
-            Version: 2.2-SNAPSHOT
+            Version: 3.1-SNAPSHOT
             Recommended namespace prefix: cap
         </xsd:documentation>
         <xsd:appinfo>
@@ -49,8 +50,17 @@
     		</xsd:documentation>
     	</xsd:annotation>
     </xsd:import>
-    
-    <!-- Abstract supertype -->
+
+	<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
+				schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3">
+		<xsd:annotation>
+			<xsd:documentation>
+				Prism query.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:import>
+
+	<!-- Abstract supertype -->
     
     <xsd:complexType name="CapabilityType" abstract="true">
 		<xsd:annotation>
@@ -404,6 +414,120 @@
 	</xsd:complexType>	
 	
 	<xsd:element name="script" type="tns:ScriptCapabilityType"/>
+
+	<xsd:complexType name="PagedSearchCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How to handle paged searches.
+				Although deals primarily with GUI issues, may be useful for other kinds of access as well.
+
+				If not present, paged searches are not enabled for this resource/kind/intent/objectClass.
+
+				EXPERIMENTAL.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+				<xsd:sequence>
+					<xsd:element name="defaultSortField" type="xsd:QName" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								If no sorting is specified by client (higher levels), use this field as the default.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="defaultSortDirection" type="q:OrderDirectionType" minOccurs="0" >
+						<xsd:annotation>
+							<xsd:documentation>
+								If the defaultSortField is used, this element specified the sorting order
+								(ascending is the default).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:element name="pagedSearch" type="tns:PagedSearchCapabilityType"/>
+
+	<xsd:complexType name="CountObjectsCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Ability to efficiently count objects.
+				Although deals primarily with GUI issues, may be useful for other kinds of access as well.
+				EXPERIMENTAL.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+				<xsd:sequence>
+					<xsd:element name="simulate" type="tns:CountObjectsSimulateType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Strategy to simulate count operation using a different operation.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:element name="countObjects" type="tns:CountObjectsCapabilityType"/>
+	
+	<xsd:simpleType name="CountObjectsSimulateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Strategy to simulate count operation using a different operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="pagedSearchEstimate">
+                <xsd:annotation>
+		            <xsd:documentation>
+		                Try a paged search with the page of one. Use the approximate number of entries
+		                returned in search metadata as count approximation.
+		            </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PAGED_SEARCH_ESTIMATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="sequentialSearch">
+                <xsd:annotation>
+		            <xsd:documentation>
+		                Execute the actual search and sequentially count the entries.
+		                WARNING: this may be very inefficient.
+		            </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SEQUENTIAL_SEARCH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
+
+	<xsd:complexType name="AddRemoveAttributeValuesCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Indication that ADD and REMOVE of attribute values is reliably supported.
+				If this capability is not present or disabled, READ+REPLACE mode is assumed.
+				(Can be overriden at the level of individual attributes via readReplaceMode property.)
+
+				BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType"/>
 
 </xsd:schema>
 

@@ -101,7 +101,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
     }
 
     public List<AssignmentEditorDto> loadFromAssignmentTypeList(List<AssignmentType> asgList, OperationResult result){
-        List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
+        List<AssignmentEditorDto> list = new ArrayList<>();
 
         for (AssignmentType assignment : asgList) {
             ObjectType targetObject = null;
@@ -160,6 +160,10 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't get assignment target ref", ex);
             subResult.recordFatalError("Couldn't get assignment target ref.", ex);
+        }
+
+        if(!subResult.isHandledError() && !subResult.isSuccess()){
+            getPageBase().showResultInSession(subResult);
         }
 
         return target;
@@ -221,7 +225,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
                     return null;
                 } else {
                     ObjectQuery query = new ObjectQuery();
-                    List<String> oids = new ArrayList<String>();
+                    List<String> oids = new ArrayList<>();
                     oids.add(getExcludeOid());
 
                     ObjectFilter oidFilter = InOidFilter.createInOid(oids);
@@ -253,7 +257,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
     }
 
     private List<InlineMenuItem> createAssignmentMenu(){
-        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+        List<InlineMenuItem> items = new ArrayList<>();
 
         InlineMenuItem item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assign"),
                 new InlineMenuItemAction(){
@@ -300,7 +304,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
     }
 
     private List<AssignmentEditorDto> getSelectedAssignments(){
-        List<AssignmentEditorDto> selected = new ArrayList<AssignmentEditorDto>();
+        List<AssignmentEditorDto> selected = new ArrayList<>();
 
         List<AssignmentEditorDto> all = assignmentModel.getObject();
 

@@ -17,54 +17,24 @@
 package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.DiffUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
- *
- *  On this place, we take care about profilingConfiguration part of midPoint systemConfiguration
- *
  *  @author shood
  * */
 public class ProfilingConfigurationManager {
 
-    /* Class Attributes */
     private static final Trace LOGGER = TraceManager.getTrace(ProfilingConfigurationManager.class);
-    private static final String DOT_CLASS = ProfilingConfigurationManager.class + ".";
 
     private static final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
     private static final String SUBSYSTEM_PROFILING_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
     private static final String APPENDER_IDM_PROFILE = "IDM-PROFILE_LOG";
-
-    //Subsystems
-    public static final String SUBSYSTEM_REPOSITORY = "REPOSITORY";
-    public static final String SUBSYSTEM_TASKMANAGER = "TASKMANAGER";
-    public static final String SUBSYSTEM_PROVISIONING = "PROVISIONING";
-    public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "RESOURCEOBJECTCHANGELISTENER";
-    public static final String SUBSYSTEM_MODEL = "MODEL";
-    public static final String SUBSYSTEM_UCF = "UCF";
-    public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
-    public static final String SUBSYSTEM_WEB = "WEB";
-
-    /* Object Attributes */
-
-    /* Methods - STATIC */
 
     /**
      *  In this method, we perform the check of systemConfiguration object, searching for any changes
@@ -73,7 +43,7 @@ public class ProfilingConfigurationManager {
     public static LoggingConfigurationType checkSystemProfilingConfiguration(PrismObject<SystemConfigurationType> systemConfigurationPrism){
         SystemConfigurationType systemConfig = systemConfigurationPrism.asObjectable();
         ProfilingConfigurationType profilingConfig = systemConfig.getProfilingConfiguration();
-        boolean isSubsystemConfig = false;
+        boolean isSubsystemConfig;
 
         if(profilingConfig == null || !profilingConfig.isEnabled())
             return systemConfig.getLogging();
@@ -81,18 +51,14 @@ public class ProfilingConfigurationManager {
             isSubsystemConfig = applySubsystemProfiling(systemConfig);
             return applyProfilingConfiguration(systemConfigurationPrism, profilingConfig, isSubsystemConfig);
         }
-    }   //checkSystemProfilingConfiguration
+    }
 
-    /*
-     *  Checks systemConfig profiling configuration and performs necessary actions
-     * */
     private static LoggingConfigurationType applyProfilingConfiguration(PrismObject<SystemConfigurationType> systemConfigurationPrism, ProfilingConfigurationType profilingConfig, boolean subsystemProfiling){
         SystemConfigurationType systemConfig = systemConfigurationPrism.asObjectable();
 
         LoggingConfigurationType loggingConfig = systemConfig.getLogging();
 
         if(loggingConfig != null){
-            //LOGGER.info("entering profiling config applyProfilingConfiguration()");
             if(checkXsdBooleanValue(profilingConfig.isRequestFilter())){
                 ClassLoggerConfigurationType requestFilterLogger = new ClassLoggerConfigurationType();
                 requestFilterLogger.setPackage(REQUEST_FILTER_LOGGER_CLASS_NAME);
@@ -115,28 +81,25 @@ public class ProfilingConfigurationManager {
 
         LOGGER.info("Applying profiling configuration.");
         return  loggingConfig;
-    }   //applyProfilingConfiguration
+    }
 
-    /*
-    *   Checks for subsystem profiling in system configuration.
-    * */
     private static boolean applySubsystemProfiling(SystemConfigurationType systemConfig){
         ProfilingConfigurationType profilingConfig = systemConfig.getProfilingConfiguration();
 
-        Map<String, Boolean> profiledSubsystems = new HashMap<String, Boolean>();
+        Map<ProfilingDataManager.Subsystem, Boolean> profiledSubsystems = new HashMap<>();
         int dumpInterval = 0;
         boolean subSystemProfiling = false;
-        boolean performanceProfiling = false;
-        boolean requestProfiling = false;
+        boolean performanceProfiling;
+        boolean requestProfiling;
 
-        profiledSubsystems.put(SUBSYSTEM_PROVISIONING, checkXsdBooleanValue(profilingConfig.isProvisioning()));
-        profiledSubsystems.put(SUBSYSTEM_REPOSITORY, checkXsdBooleanValue(profilingConfig.isRepository()));
-        profiledSubsystems.put(SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, checkXsdBooleanValue(profilingConfig.isResourceObjectChangeListener()));
-        profiledSubsystems.put(SUBSYSTEM_TASKMANAGER, checkXsdBooleanValue(profilingConfig.isTaskManager()));
-        profiledSubsystems.put(SUBSYSTEM_UCF, checkXsdBooleanValue(profilingConfig.isUcf()));
-        profiledSubsystems.put(SUBSYSTEM_MODEL, checkXsdBooleanValue(profilingConfig.isModel()));
-        profiledSubsystems.put(SUBSYSTEM_WORKFLOW, checkXsdBooleanValue(profilingConfig.isWorkflow()));
-        profiledSubsystems.put(SUBSYSTEM_WEB, checkXsdBooleanValue(profilingConfig.isRequestFilter()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.PROVISIONING, checkXsdBooleanValue(profilingConfig.isProvisioning()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.REPOSITORY, checkXsdBooleanValue(profilingConfig.isRepository()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER, checkXsdBooleanValue(profilingConfig.isResourceObjectChangeListener()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.TASK_MANAGER, checkXsdBooleanValue(profilingConfig.isTaskManager()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.UCF, checkXsdBooleanValue(profilingConfig.isUcf()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.MODEL, checkXsdBooleanValue(profilingConfig.isModel()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.WORKFLOW, checkXsdBooleanValue(profilingConfig.isWorkflow()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.WEB, checkXsdBooleanValue(profilingConfig.isRequestFilter()));
 
         for(Boolean b: profiledSubsystems.values()){
             if(b != null && b){
@@ -160,16 +123,12 @@ public class ProfilingConfigurationManager {
             ProfilingDataManager.getInstance().configureProfilingDataManager(profiledSubsystems, dumpInterval, subSystemProfiling, performanceProfiling, requestProfiling);
             return false;
         }
-    }   //applySubsystemProfiling
+    }
 
-    /*
-    *   Check value of Boolean in xsd
-    * */
     private static boolean checkXsdBooleanValue(Boolean value){
         if(value == null || !value)
             return false;
         else
             return true;
-    }   //checkXsdBooleanValue
-
-}   //ProfilingConfigurationManager
+    }
+}

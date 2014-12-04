@@ -209,6 +209,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="filteredResultsHandlerInValidationMode" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="enableCaseInsensitiveFilter" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

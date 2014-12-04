@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -86,8 +87,10 @@ public class ContextFactory {
 				}
 				if (InternalsConfig.consistencyChecks) {
 					// Focus delta has to be complete now with all the definition already in place
-					delta.checkConsistence(false, true, true);
-				}
+					delta.checkConsistence(false, true, true, ConsistencyCheckScope.THOROUGH);
+				} else {
+                    delta.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);        // TODO is this necessary? Perhaps it would be sufficient to check on model/repo entry
+                }
                 if (focusDelta != null) {
                     throw new IllegalStateException("More than one focus delta used in model operation");
                 }

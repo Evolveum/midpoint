@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
+import org.apache.commons.lang.StringUtils;
 
 public class JsonValueParser<T> implements ValueParser<T> {
 
@@ -56,7 +57,8 @@ public class JsonValueParser<T> implements ValueParser<T> {
 	
 	@Override
 	public boolean isEmpty() {
-		return node == null || parser == null;
+		return node == null || parser == null ||
+				StringUtils.isBlank(node.asText());			// to be consistent with PrimitiveXNode.isEmpty for parsed values
 	}
 
 	@Override

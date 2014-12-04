@@ -239,12 +239,16 @@ public abstract class ItemDefinition extends Definition implements Serializable 
     public boolean canAdd() {
         return canAdd;
     }
-	
-	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
+
+    public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
+        return isValidFor(elementQName, clazz, false);
+    }
+
+	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz, boolean caseInsensitive) {
 		if (!clazz.isAssignableFrom(this.getClass())) {
     		return false;
     	}
-        if (QNameUtil.match(elementQName, getName())) {
+        if (QNameUtil.match(elementQName, getName(), caseInsensitive)) {
         	return true;
         }
         return false;

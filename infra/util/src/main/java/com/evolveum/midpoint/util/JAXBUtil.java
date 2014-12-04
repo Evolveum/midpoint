@@ -244,18 +244,20 @@ public final class JAXBUtil {
             return clazz;
         }
 
-        if (!scannedPackages.contains(pkg)) {
+        if (!scannedPackages.contains(pkg.getName())) {
             scannedPackages.add(pkg.getName());
 
+            Class foundClass = null;
             for (Class c : ClassPathUtil.listClasses(pkg)) {
                 QName foundTypeQName = getTypeQName(c);
                 if (foundTypeQName != null) {
                     classQNames.put(foundTypeQName, c);
                 }
                 if (typeName.equals(foundTypeQName)) {
-                    return c;
+                    foundClass = c;
                 }
             }
+            return foundClass;          // may be null but that's OK
         }
 
 		return null;

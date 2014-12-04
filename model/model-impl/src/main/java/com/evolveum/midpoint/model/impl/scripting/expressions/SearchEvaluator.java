@@ -100,6 +100,8 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                     JAXBElement<?> childExpression = searchExpression.getScriptingExpression();
                     try {
                         outputData.addAllFrom(scriptingExpressionEvaluator.evaluateExpression((ScriptingExpressionType) childExpression.getValue(), Data.create(object), context, result));
+                        result.setSummarizeSuccesses(true);
+                        result.summarize();
                     } catch (ScriptExecutionException e) {
                         throw new SystemException(e);           // todo think about this
                     }

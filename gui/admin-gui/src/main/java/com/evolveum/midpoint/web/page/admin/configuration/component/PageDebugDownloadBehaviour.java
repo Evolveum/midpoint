@@ -177,8 +177,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
 
         ModelService service = page.getModelService();
         GetOperationOptions options = GetOperationOptions.createRaw();
-        // TODO enable when necessary
-        //options.setResolveNames(true);
+        options.setResolveNames(true);
         service.searchObjectsIterative(type, query, handler, SelectorOptions.createCollection(options),
                 page.createSimpleTask(OPERATION_SEARCH_OBJECT), result);
     }

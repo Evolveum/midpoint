@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
@@ -89,6 +91,7 @@ import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -141,6 +144,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
@@ -284,7 +288,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		PrismProperty<ShadowKindType> kind = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_KIND);
 		if (kind != null && !kind.isEmpty()){
 			ShadowKindType kindValue = kind.getRealValue();
-			if (!synchronizationPolicy.getKind().equals(kindValue)){
+			ShadowKindType policyKind = synchronizationPolicy.getKind();
+			if (policyKind == null) {
+				policyKind = ShadowKindType.ACCOUNT;			// TODO is this ok? [med]
+			}
+			if (!policyKind.equals(kindValue)){
 				return false;
 			}
 		}
@@ -317,6 +325,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	}
 		
 	private <F extends FocusType> Class<F> determineFocusClass(ObjectSynchronizationType synchronizationPolicy, ResourceType resource) throws ConfigurationException {
+        if (synchronizationPolicy == null) {
+            throw new IllegalStateException("synchronizationPolicy is null");
+        }
 		QName focusTypeQName = synchronizationPolicy.getFocusType();
 		if (focusTypeQName == null) {
 			return (Class<F>) UserType.class;
@@ -509,7 +520,13 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	public <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> shadow, PrismObject<F> focus, 
 			ResourceType resourceType, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result) throws ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
 		ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType, shadow, configuration, task, result);
-		Class<F> focusClass = determineFocusClass(synchronizationPolicy, resourceType);
+        Class<F> focusClass;
+        // TODO is this correct? The problem is that synchronizationPolicy can be null...
+        if (synchronizationPolicy != null) {
+		    focusClass = determineFocusClass(synchronizationPolicy, resourceType);
+        } else {
+            focusClass = (Class) focus.asObjectable().getClass();
+        }
 		return correlationConfirmationEvaluator.matchUserCorrelationRule(focusClass, shadow, focus, synchronizationPolicy, resourceType, 
 				configuration==null?null:configuration.asObjectable(), task, result);
 	}
@@ -643,11 +660,16 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 		}
 		
+		Boolean limitPropagation = determinePropagationLimitation(synchronizationPolicy, reactionDefinition, change.getSourceChannel());
+		ModelExecuteOptions options = new ModelExecuteOptions();
+		options.setReconcile(doReconciliation);
+		options.setLimitPropagation(limitPropagation);
+		
 		boolean willSynchronize = isSynchronize(reactionDefinition);
 		LensContext<F> lensContext = null;
 		if (willSynchronize) {
 			lensContext = createLensContext(focusClass, change, reactionDefinition, synchronizationPolicy, situation, 
-					doReconciliation, configuration, parentResult);
+					options, configuration, parentResult);
 		}
 		
 		if (LOGGER.isTraceEnabled() && lensContext != null) {
@@ -684,17 +706,46 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 		return null;
 	}
+	
+	private Boolean determinePropagationLimitation(ObjectSynchronizationType synchronizationPolicy,
+			SynchronizationReactionType reactionDefinition, String channel) {
+		
+		if (StringUtils.isNotBlank(channel)){
+			QName channelQName = QNameUtil.uriToQName(channel);
+			// discovery channel is used when compensating some inconsistent
+			// state. Therefe we do not want to propagate changes to other
+			// resource. We only want to resolve the problem and continue in
+			// previous provisioning/synchronization during which his
+			// compensation was triggered
+			if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(channelQName) && SynchronizationSituationType.DELETED != reactionDefinition.getSituation()){
+				return true;
+			}
+		}
+		
+		if (reactionDefinition.isLimitPropagation() != null) {
+			return reactionDefinition.isLimitPropagation();
+		}
+		if (synchronizationPolicy.isLimitPropagation() != null) {
+			return synchronizationPolicy.isLimitPropagation();
+		}
+		return null;
+	}
 
 	private <F extends FocusType> LensContext<F> createLensContext(Class<F> focusClass, ResourceObjectShadowChangeDescription change,
 			SynchronizationReactionType reactionDefinition, ObjectSynchronizationType synchronizationPolicy,
-			SynchronizationSituation<F> situation, Boolean doReconciliation, PrismObject<SystemConfigurationType> configuration,
+			SynchronizationSituation<F> situation, ModelExecuteOptions options, PrismObject<SystemConfigurationType> configuration,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		
 		LensContext<F> context = contextFactory.createSyncContext(focusClass, change);
 		context.setLazyAuditRequest(true);
 		context.setSystemConfiguration(configuration);
-
-        ResourceType resource = change.getResource().asObjectable();
+		context.setOptions(options);
+		
+		ResourceType resource = change.getResource().asObjectable();
+		if (ModelExecuteOptions.isLimitPropagation(options)){
+			context.setTriggeredResource(resource);
+		}
+        
         context.rememberResource(resource);
         PrismObject<ShadowType> shadow = getShadowFromChange(change);
         if (InternalsConfig.consistencyChecks) shadow.checkConsistence();
@@ -733,10 +784,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         	projectionContext.setExists(true);
         }
                 
-        if (doReconciliation != null) {
-        	projectionContext.setDoReconciliation(doReconciliation);
-		}
-        
+        projectionContext.setDoReconciliation(ModelExecuteOptions.isReconcile(options));
+		
         // Focus context
         if (situation.getCurrentOwner() != null) {
         	F focusType = situation.getCurrentOwner();

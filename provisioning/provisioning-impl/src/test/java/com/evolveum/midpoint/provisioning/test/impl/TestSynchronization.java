@@ -76,7 +76,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/ucf/will.ldif";
 	private static final String LDIF_CALYPSO_FILENAME = "src/test/resources/impl/opendj/calypso.ldif";
 	private static final String FILENAME_USER_ADMIN = "src/test/resources/impl/admin.xml";
-	private static final String ACCOUNT_WILL_NAME = "uid=wturner,ou=people,dc=example,dc=com";
+	private static final String ACCOUNT_WILL_NAME = "uid=wturner,ou=People,dc=example,dc=com";
 	private static final String ACCOUNT_CALYPSO_NAME = "uid=calypso,ou=people,dc=example,dc=com";
 
 	private ResourceType resourceType;

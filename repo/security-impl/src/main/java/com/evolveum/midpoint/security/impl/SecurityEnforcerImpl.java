@@ -422,10 +422,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			if (specFilter != null) {
 				ObjectQueryUtil.assertPropertyOnly(specFilter, "Filter in authorization "+desc+" is not property-only filter");
 			}
-			if (!ObjectQuery.match(object, specFilter, matchingRuleRegistry)) {
-				LOGGER.trace("  filter authorization not applicable for {}, object OID {}",
-						new Object[]{desc, object.getOid()});
-				return false;
+			try {
+				if (!ObjectQuery.match(object, specFilter, matchingRuleRegistry)) {
+					LOGGER.trace("  filter authorization not applicable for {}, object OID {}", new Object[] {
+							desc, object.getOid() });
+					return false;
+				}
+			} catch (SchemaException ex) {
+				throw new SchemaException("Could not apply authorization for " + object + ". "
+						+ ex.getMessage(), ex);
 			}
 		}
 			

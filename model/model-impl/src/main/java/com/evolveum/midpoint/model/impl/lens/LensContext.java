@@ -17,12 +17,13 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -97,6 +98,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * Current wave of execution.
 	 */
 	int executionWave = 0;
+	
+	private String triggeredResourceOid;
 
 	transient private boolean isFresh = false;
 	transient private boolean isRequestAuthorized = false;
@@ -116,8 +119,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * Used mostly in unit tests.
 	 */
 	transient private LensDebugListener debugListener;
-	
-	public LensContext(Class<F> focusClass, PrismContext prismContext, ProvisioningService provisioningService) {
+
+    /**
+     * User feedback.
+     */
+    transient private Collection<ProgressListener> progressListeners;
+
+    public LensContext(Class<F> focusClass, PrismContext prismContext, ProvisioningService provisioningService) {
 		Validate.notNull(prismContext, "No prismContext");
 		
         this.prismContext = prismContext;
@@ -143,6 +151,21 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     public ProvisioningService getProvisioningService() {
         return provisioningService;
     }
+    
+    public void setTriggeredResource(String triggeredResourceOid) {
+		this.triggeredResourceOid = triggeredResourceOid;
+	}
+    
+    public void setTriggeredResource(ResourceType triggeredResource) {
+    	if (triggeredResource != null){
+    		this.triggeredResourceOid = triggeredResource.getOid();
+    	}
+	}
+    
+    public String getTriggeredResourceOid() {
+		return triggeredResourceOid;
+	}
+
 
     @Override
 	public ModelState getState() {
@@ -552,7 +575,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 	}
 
+    public void checkAbortRequested() {
+        if (isAbortRequested()) {
+            throw new RuntimeException("Aborted on user request");             // TODO more meaningful exception + message
+        }
+    }
+
 	public void checkConsistence() {
+        checkAbortRequested();
 		if (focusContext != null) {
 			focusContext.checkConsistence();
 		}
@@ -894,4 +924,34 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return globalPasswordPolicy;
 	}
 
+    public void setProgressListeners(Collection<ProgressListener> progressListeners) {
+        this.progressListeners = progressListeners;
+    }
+
+    public Collection<ProgressListener> getProgressListeners() {
+        return progressListeners;
+    }
+
+    @Override
+    public void reportProgress(ProgressInformation progress) {
+        if (progressListeners == null) {
+            return;
+        }
+
+        for (ProgressListener listener : progressListeners) {
+            listener.onProgressAchieved(this, progress);
+        }
+    }
+
+    public boolean isAbortRequested() {
+        if (progressListeners == null) {
+            return false;
+        }
+        for (ProgressListener progressListener : progressListeners) {
+            if (progressListener.isAbortRequested()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

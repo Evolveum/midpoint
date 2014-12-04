@@ -173,6 +173,7 @@ public abstract class SchemaConstants {
 	public static final String MODEL_DISABLE_REASON_MAPPED = QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "mapped"));
 	
     public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
+	public static final QName MODEL_EXTENSION_WORKER_THREADS = new QName(NS_MODEL_EXTENSION, "workerThreads");
 
     public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
 	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";
@@ -189,6 +190,7 @@ public abstract class SchemaConstants {
 	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3";
 	public static final QName ICF_CONFIGURATION_PROPERTIES = new QName(NS_ICF_CONFIGURATION, "configurationProperties");
 	public static final QName ICF_TIMEOUTS = new QName(NS_ICF_CONFIGURATION, "timeouts");
+	public static final QName ICF_RESULTS_HANDLER_CONFIGURATION = new QName(NS_ICF_CONFIGURATION, "resultsHandlerConfiguration");
 	public static final QName ICF_CONNECTOR_POOL_CONFIGURATION = new QName(NS_ICF_CONFIGURATION,
 			"connectorPoolConfiguration");
 	
@@ -209,6 +211,7 @@ public abstract class SchemaConstants {
     public static final QName SE_EXECUTE_SCRIPT = new QName(SCRIPTING_EXTENSION_NS, "executeScript");
 
     public static final QName C_EVENT = new QName(NS_C, "event");
+    public static final QName C_TEXT_FORMATTER = new QName(NS_C, "textFormatter");
 
     public static final QName C_TRANSPORT_NAME = new QName(NS_C, "transportName");
     public static final QName C_FROM = new QName(NS_C, "from");
@@ -221,4 +224,5 @@ public abstract class SchemaConstants {
     public static final QName APIT_ITEM_LIST = new QName(SchemaConstants.NS_API_TYPES, "itemList");
     public static final QName C_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
 
+    public static final QName C_NAME = new QName(SchemaConstants.NS_C, "name");
 }

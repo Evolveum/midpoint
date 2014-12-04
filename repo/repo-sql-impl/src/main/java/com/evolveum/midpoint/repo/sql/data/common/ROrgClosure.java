@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.repo.sql.data.common.id.ROrgClosureId;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -26,14 +27,13 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
+@IdClass(ROrgClosureId.class)
 @Entity
 @Table(name = "m_org_closure")
 @org.hibernate.annotations.Table(appliesTo = "m_org_closure",
-        indexes = {@Index(name = "iAncestorDepth", columnNames = {"ancestor_oid", "depthValue"}),
-                @Index(name = "iAncDescDepth", columnNames = {"ancestor_oid", "descendant_oid", "depthValue"})})
+        indexes = {@Index(name = "iDescendant", columnNames = {"descendant_oid"}),
+                   @Index(name = "iDescendantAncestor", columnNames = {"descendant_oid", "ancestor_oid"})})
 public class ROrgClosure implements Serializable {
-
-    private Long id;
 
     private RObject ancestor;
     private String ancestorOid;
@@ -41,39 +41,28 @@ public class ROrgClosure implements Serializable {
     private RObject descendant;
     private String descendantOid;
 
-    private String relation;
-
-    private int depth;
+    private int val;
 
     public ROrgClosure() {
     }
 
-    public ROrgClosure(String ancestorOid, String descendantOid, int depth) {
+    public ROrgClosure(String ancestorOid, String descendantOid, int val) {
         if (ancestorOid != null) {
             this.ancestorOid = ancestorOid;
         }
         if (descendantOid != null) {
             this.descendantOid = descendantOid;
         }
-        this.depth = depth;
+        this.val = val;
     }
 
-    public ROrgClosure(RObject ancestor, RObject descendant, int depth) {
+    public ROrgClosure(RObject ancestor, RObject descendant, int val) {
         this.ancestor = ancestor;
         this.descendant = descendant;
-        this.depth = depth;
+        this.val = val;
     }
 
-    @Id
-    @GeneratedValue
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
+    @MapsId("ancestorOid")
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumns({@JoinColumn(name = "ancestor_oid", referencedColumnName = "oid")})
     @ForeignKey(name = "fk_ancestor")
@@ -81,6 +70,7 @@ public class ROrgClosure implements Serializable {
         return ancestor;
     }
 
+    @Id
     @Index(name = "iAncestor")
     @Column(name = "ancestor_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
     public String getAncestorOid() {
@@ -94,6 +84,7 @@ public class ROrgClosure implements Serializable {
         this.ancestor = ancestor;
     }
 
+    @MapsId("descendantOid")
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumns({@JoinColumn(name = "descendant_oid", referencedColumnName = "oid")})
     @ForeignKey(name = "fk_descendant")
@@ -101,6 +92,7 @@ public class ROrgClosure implements Serializable {
         return descendant;
     }
 
+    @Id
     @Index(name = "iDescendant")
     @Column(name = "descendant_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
     public String getDescendantOid() {
@@ -114,24 +106,6 @@ public class ROrgClosure implements Serializable {
         this.descendant = descendant;
     }
 
-    @Column(name = "depthValue")
-    public int getDepth() {
-        return depth;
-    }
-
-    @Column(length = RUtil.COLUMN_LENGTH_QNAME)
-    public String getRelation() {
-        return relation;
-    }
-
-    public void setRelation(String relation) {
-        this.relation = relation;
-    }
-
-    public void setDepth(int depth) {
-        this.depth = depth;
-    }
-
     public void setAncestorOid(String ancestorOid) {
         this.ancestorOid = ancestorOid;
     }
@@ -140,10 +114,19 @@ public class ROrgClosure implements Serializable {
         this.descendantOid = descendantOid;
     }
 
+    @Id
+    @Column(name = "val")
+    public int getVal() {
+        return val;
+    }
+
+    public void setVal(int val) {
+        this.val = val;
+    }
+
     @Override
     public int hashCode() {
-        int result = depth;
-        return result;
+        return super.hashCode();
     }
 
     @Override
@@ -155,13 +138,16 @@ public class ROrgClosure implements Serializable {
 
         ROrgClosure that = (ROrgClosure) obj;
 
-        if (depth != that.depth)
-            return false;
         if (ancestor != null ? !ancestor.equals(that.ancestor) : that.ancestor != null)
             return false;
         if (descendant != null ? !descendant.equals(that.descendant) : that.descendant != null)
             return false;
 
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "ROrgClosure{a='" + ancestorOid + "', d='" + descendantOid + "', val=" + val + "}";
     }
 }

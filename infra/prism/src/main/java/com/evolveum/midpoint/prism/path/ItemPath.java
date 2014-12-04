@@ -211,8 +211,26 @@ public class ItemPath implements Serializable, Cloneable {
         if (i < 0) {
             return EMPTY_PATH;
         } else {
-            return new ItemPath(segments.subList(0, i-1));
+            return new ItemPath(segments.subList(0, i));
         }
+    }
+
+    /**
+     * Returns a path containing all segments up to (including) the specified one;
+     * counted from backwards.
+     * If the segment is not present, returns empty path.
+     */
+    public ItemPath allUpToIncluding(ItemPathSegment segment) {
+        int i = segments.lastIndexOf(segment);
+        if (i < 0) {
+            return EMPTY_PATH;
+        } else {
+            return allUpToIncluding(i);
+        }
+    }
+
+    public ItemPath allUpToIncluding(int i) {
+        return new ItemPath(segments.subList(0, i+1));
     }
 
     public int size() {
@@ -271,6 +289,16 @@ public class ItemPath implements Serializable, Cloneable {
     public static boolean containsEquivalent(Collection<ItemPath> paths, ItemPath pathToBeFound) {
         for (ItemPath path : paths) {
             if (path.equivalent(pathToBeFound)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsSubpathOrEquivalent(Collection<ItemPath> paths, ItemPath pathToBeFound) {
+        for (ItemPath path : paths) {
+            CompareResult r = pathToBeFound.compareComplex(path);
+            if (r == CompareResult.SUBPATH || r == CompareResult.EQUIVALENT) {
                 return true;
             }
         }

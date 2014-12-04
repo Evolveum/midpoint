@@ -389,16 +389,6 @@ public class ProjectionValuesProcessor {
 									        }
 											LOGGER.trace("User {} satisfies correlation rules.", context.getFocusContext().getObjectNew());
 											
-//											result.computeStatus();
-//											// if the result is fatal error, it may mean that the
-//											// already exists expection occures before..but in this
-//											// scenario it means, the exception was handled and we
-//											// can mute the result to give better understanding of
-//											// the situation which happend
-//						        			if (result.isError()){
-//						        				result.muteError();
-//						        			}
-//											
 						        			// Re-do this same iteration again (do not increase iteration count).
 						        			// It will recompute the values and therefore enforce the user deltas and enable reconciliation
 											skipUniquenessCheck = true; // to avoid endless loop

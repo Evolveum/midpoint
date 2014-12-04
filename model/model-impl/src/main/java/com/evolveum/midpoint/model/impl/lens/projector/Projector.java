@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.PROJECTOR;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,6 +26,7 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.ProgressInformation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -107,11 +110,13 @@ public class Projector {
             Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-		
+
+        context.checkAbortRequested();
+
 		if (context.getDebugListener() != null) {
 			context.getDebugListener().beforeProjection(context);
 		}
-		
+
 		// Read the time at the beginning so all processors have the same notion of "now"
 		// this provides nicer unified timestamp that can be used in equality checks in tests and also for
 		// troubleshooting
@@ -131,8 +136,10 @@ public class Projector {
 		// in the following code.
 		
 		try {
-		
-			contextLoader.load(context, activityDescription, result);
+
+            context.reportProgress(new ProgressInformation(PROJECTOR, ENTERING));
+
+            contextLoader.load(context, activityDescription, result);
 			// Set the "fresh" mark now so following consistency check will be stricter
 			context.setFresh(true);
 			if (consistencyChecks) context.checkConsistence();
@@ -145,9 +152,14 @@ public class Projector {
 	        LOGGER.trace("WAVE: Starting the waves.");
 	        context.setProjectionWave(0);
 	        while (context.getProjectionWave() < maxWaves) {
-	    
+	        	
+                context.checkAbortRequested();
+
 	        	LOGGER.trace("WAVE {} (maxWaves={}, executionWave={})", new Object[]{
 	        			context.getProjectionWave(), maxWaves, context.getExecutionWave()});
+	        	
+	        	//just make sure everythink is loaded and set as needed
+				dependencyProcessor.preprocessDependencies(context);
 	        	
 	        	// Process the focus-related aspects of the context. That means inbound, focus activation,
 	        	// object template and assignments.
@@ -182,6 +194,8 @@ public class Projector {
 		        // Focus-related processing is over. Now we will process projections in a loop.
 		        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 
+                    context.checkAbortRequested();
+
 		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
 		        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 						continue;
@@ -200,7 +214,7 @@ public class Projector {
 		        	
 		        	if (consistencyChecks) context.checkConsistence();
 		        	
-		        	if (!dependencyProcessor.checkDependencies(context, projectionContext)) {
+		        	if (!dependencyProcessor.checkDependencies(context, projectionContext, result)) {
 		        		continue;
 		        	}
 		        	
@@ -244,7 +258,7 @@ public class Projector {
 	        
 	        // We can do this only when computation of all the waves is finished. Before that we do not know
 	        // activation of every account and therefore cannot decide what is OK and what is not
-	        dependencyProcessor.checkDependenciesFinal(context);
+	        dependencyProcessor.checkDependenciesFinal(context, result);
 	        
 	        if (consistencyChecks) context.checkConsistence();
 	        
@@ -284,7 +298,8 @@ public class Projector {
 			if (context.getDebugListener() != null) {
 				context.getDebugListener().afterProjection(context);
 			}
-		}
+            context.reportProgress(new ProgressInformation(PROJECTOR, result));
+        }
 		
 	}
 

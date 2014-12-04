@@ -46,6 +46,7 @@ public interface ModelDiagnosticService {
 	
 	String CLASS_NAME_WITH_DOT = ModelDiagnosticService.class.getName() + ".";
 	String REPOSITORY_SELF_TEST = CLASS_NAME_WITH_DOT + "repositorySelfTest";
+    String REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY = CLASS_NAME_WITH_DOT + "repositoryTestOrgClosureConsistency";
 	String PROVISIONING_SELF_TEST = CLASS_NAME_WITH_DOT + "provisioningSelfTest";
 	
 	/**
@@ -59,8 +60,24 @@ public interface ModelDiagnosticService {
 	 * should be in the returned result structure (including fatal errors).
 	 */
 	public OperationResult repositorySelfTest(Task task);
-	
-	/**
+
+    /**
+     * Checks a org closure table for consistency, repairing any problems found.
+     * This methods should never throw a (checked) exception. All the results
+     * should be in the returned result structure (including fatal errors).
+     *
+     * The current implementation expects closure to be of reasonable size - so
+     * it could be fetched into main memory as well as recomputed online
+     * (perhaps up to ~250K entries). In future, this method will be reimplemented.
+     *
+     * BEWARE, this method locks out the M_ORG_CLOSURE table, so org-related operations
+     * would wait until it completes.
+     *
+     * TODO this method is SQL service specific; it should be generalized/fixed somehow.
+     */
+    public OperationResult repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary);
+
+    /**
 	 * Runs a short, non-destructive internal provisioning test. It tests provisioning framework and
 	 * general setup. Use ModelService.testResource for testing individual resource configurations.
 	 */

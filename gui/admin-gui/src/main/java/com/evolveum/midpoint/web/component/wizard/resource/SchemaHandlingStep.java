@@ -17,10 +17,10 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,13 +34,16 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandl
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceObjectTypeDefinitionTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SchemaHandlingDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -53,8 +56,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.Strings;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -68,7 +69,7 @@ public class SchemaHandlingStep extends WizardStep {
     private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlingStep.class);
 
     private static final String DOT_CLASS = SchemaHandlingStep.class.getName() + ".";
-    private static final String OPERATION_LOAD_OBJECT_CLASS_LIST = DOT_CLASS + "loadObjectClassList";
+    private static final String OPERATION_SAVE_SCHEMA_HANDLING = DOT_CLASS + "saveSchemaHandling";
 
     private static final String ID_ROWS = "tableRows";
     private static final String ID_ROW_OBJECT_TYPE = "objectTypeRow";
@@ -94,6 +95,18 @@ public class SchemaHandlingStep extends WizardStep {
     private static final String ID_EDITOR_BUTTON_CREDENTIALS = "editorCredentialsButton";
     private static final String ID_EDITOR_ATTRIBUTES = "editorAttributes";
     private static final String ID_EDITOR_ASSOCIATIONS = "editorAssociations";
+    private static final String ID_T_KIND = "kindTooltip";
+    private static final String ID_T_INTENT = "intentTooltip";
+    private static final String ID_T_DEFAULT = "defaultTooltip";
+    private static final String ID_T_DEPENDENCY = "dependencyTooltip";
+    private static final String ID_T_OBJECT_CLASS = "objectClassTooltip";
+    private static final String ID_T_ATTRIBUTES = "attributesTooltip";
+    private static final String ID_T_ASSOCIATIONS = "associationsTooltip";
+    private static final String ID_T_ASSIGNMENT_POLICY_REF = "assignmentPolicyRefTooltip";
+    private static final String ID_T_ITERATION = "iterationTooltip";
+    private static final String ID_T_PROTECTED = "protectedTooltip";
+    private static final String ID_T_ACTIVATION = "activationTooltip";
+    private static final String ID_T_CREDENTIALS = "credentialsTooltip";
 
     private static final Integer AUTO_COMPLETE_LIST_SIZE = 10;
 
@@ -118,12 +131,12 @@ public class SchemaHandlingStep extends WizardStep {
         SchemaHandlingDto dto = new SchemaHandlingDto();
         List<ResourceObjectTypeDefinitionTypeDto> list = new ArrayList<>();
 
-        if(resourceModel.getObject() != null && resourceModel.getObject() != null
+        if(resourceModel != null && resourceModel.getObject() != null
                 && resourceModel.getObject().asObjectable() != null){
             SchemaHandlingType schemaHandling = resourceModel.getObject().asObjectable().getSchemaHandling();
 
             ResourceObjectTypeDefinitionTypeDto obj;
-            if(schemaHandling.getObjectType() != null){
+            if(schemaHandling != null && schemaHandling.getObjectType() != null){
                 for(ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()){
 
                     // temporary fix - think about better solution
@@ -141,38 +154,10 @@ public class SchemaHandlingStep extends WizardStep {
             }
         }
 
-        //TODO - delete this when this step is finished and tested
-        ResourceObjectTypeDefinitionType sample = new ResourceObjectTypeDefinitionType();
-        sample.setDisplayName("Test Object Class");
-        sample.getAttribute().add(new ResourceAttributeDefinitionType());
-        sample.getAssociation().add(new ResourceObjectAssociationType());
-        ResourceObjectTypeDefinitionTypeDto sampleDto = new ResourceObjectTypeDefinitionTypeDto(sample);
-        list.add(sampleDto);
-        //TODO - delete
-
         dto.setSelected(createPlaceholderObjectType());
-        dto.setObjectClassList(loadResourceObjectClassList());
+        dto.setObjectClassList(loadResourceObjectClassList(resourceModel, LOGGER, getString("SchemaHandlingStep.message.errorLoadingObjectTypeList")));
         dto.setObjectTypeList(list);
         return dto;
-    }
-
-    private List<QName> loadResourceObjectClassList(){
-        List<QName> list = new ArrayList<>();
-
-        try {
-            ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resourceModel.getObject(), getPageBase().getPrismContext());
-            schema.getObjectClassDefinitions();
-
-            for(Definition def: schema.getDefinitions()){
-                list.add(def.getTypeName());
-            }
-
-        } catch (Exception e){
-            LoggingUtils.logException(LOGGER, "Couldn't load object class list from resource.", e);
-            error(getString("SchemaHandlingStep.message.errorLoadingObjectTypeList") + " " + e.getMessage());
-        }
-
-        return list;
     }
 
     private ResourceObjectTypeDefinitionType createPlaceholderObjectType(){
@@ -227,16 +212,16 @@ public class SchemaHandlingStep extends WizardStep {
             protected void populateItem(final Item<ResourceObjectTypeDefinitionTypeDto> item) {
                 final ResourceObjectTypeDefinitionTypeDto objectType = item.getModelObject();
 
-                AjaxLink link = new AjaxLink(ID_LINK_OBJECT_TYPE) {
+                AjaxSubmitLink link = new AjaxSubmitLink(ID_LINK_OBJECT_TYPE) {
 
                     @Override
-                    public void onClick(AjaxRequestTarget target) {
+                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         editObjectTypePerformed(target, objectType);
                     }
                 };
                 item.add(link);
 
-                Label label = new Label(ID_NAME_OBJECT_TYPE, new PropertyModel<>(objectType, "objectType.displayName"));
+                Label label = new Label(ID_NAME_OBJECT_TYPE, createObjectTypeDisplayModel(objectType));
                 label.setOutputMarkupId(true);
                 link.add(label);
 
@@ -247,12 +232,12 @@ public class SchemaHandlingStep extends WizardStep {
                         deleteObjectTypePerformed(target, objectType);
                     }
                 };
-                item.add(delete);
+                link.add(delete);
 
-                item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<Object>() {
+                item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
 
                     @Override
-                    public Object getObject() {
+                    public String getObject() {
                         if(item.getModelObject().isSelected()){
                             return "success";
                         }
@@ -265,20 +250,45 @@ public class SchemaHandlingStep extends WizardStep {
         tableBody.add(objectTypeDataView);
 
         NavigatorPanel navigator = new NavigatorPanel(ID_PAGING_OBJECT_TYPE, objectTypeDataView, true);
+        navigator.setOutputMarkupPlaceholderTag(true);
         navigator.setOutputMarkupId(true);
         add(navigator);
 
-        AjaxLink add = new AjaxLink(ID_BUTTON_ADD_OBJECT_TYPE) {
+        AjaxSubmitLink add = new AjaxSubmitLink(ID_BUTTON_ADD_OBJECT_TYPE) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 addObjectTypePerformed(target);
             }
         };
         add(add);
 
         initObjectTypeEditor(objectTypeEditor);
-        initModals();
+    }
+
+    private IModel<String> createObjectTypeDisplayModel(final ResourceObjectTypeDefinitionTypeDto objectType){
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                StringBuilder sb = new StringBuilder();
+
+                if(objectType != null && objectType.getObjectType() != null){
+                    ResourceObjectTypeDefinitionType object = objectType.getObjectType();
+                    sb.append(object.getDisplayName() != null ? object.getDisplayName() : "- ");
+
+                    if(object.getKind() != null || object.getIntent() != null){
+                        sb.append(" (");
+                        sb.append(object.getKind() != null ? object.getKind() : " - ");
+                        sb.append(", ");
+                        sb.append(object.getIntent() != null ? object.getIntent() : "- ");
+                        sb.append(")");
+                    }
+                }
+
+                return sb.toString();
+            }
+        };
     }
 
     private void initObjectTypeEditor(WebMarkupContainer editor){
@@ -296,31 +306,31 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(editorLabel);
 
         DropDownChoice editorKind = new DropDownChoice<>(ID_EDITOR_KIND,
-                new PropertyModel<ShadowKindType>(model, SchemaHandlingDto.F_SELECTED + ".kind"),
+                new PropertyModel<ShadowKindType>(model, SchemaHandlingDto.F_SELECTED + "." + ResourceObjectTypeDefinitionType.F_KIND.getLocalPart()),
                 WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                 new EnumChoiceRenderer<ShadowKindType>(this));
         editor.add(editorKind);
 
         TextField editorIntent = new TextField<>(ID_EDITOR_INTENT, new PropertyModel<String>(model,
-                SchemaHandlingDto.F_SELECTED + ".intent"));
+                SchemaHandlingDto.F_SELECTED + "." + ResourceObjectTypeDefinitionType.F_INTENT.getLocalPart()));
         editor.add(editorIntent);
 
         TextField editorDisplayName = new TextField<>(ID_EDITOR_DISPLAY_NAME, new PropertyModel<String>(model,
-                SchemaHandlingDto.F_SELECTED + ".displayName"));
+                SchemaHandlingDto.F_SELECTED + "." + ResourceObjectTypeDefinitionType.F_DISPLAY_NAME.getLocalPart()));
         editor.add(editorDisplayName);
 
         TextArea editorDescription = new TextArea<>(ID_EDITOR_DESCRIPTION, new PropertyModel<String>(model,
-                SchemaHandlingDto.F_SELECTED + ".description"));
+                SchemaHandlingDto.F_SELECTED + "." + ResourceObjectTypeDefinitionType.F_DESCRIPTION.getLocalPart()));
         editor.add(editorDescription);
 
         CheckBox editorDefault = new CheckBox(ID_EDITOR_DEFAULT, new PropertyModel<Boolean>(model,
-                SchemaHandlingDto.F_SELECTED + "._default"));
+                SchemaHandlingDto.F_SELECTED + "." + ResourceObjectTypeDefinitionType.F_DEFAULT.getLocalPart()));
         editor.add(editorDefault);
 
-        AjaxLink editorDependency = new AjaxLink(ID_EDITOR_BUTTON_DEPENDENCY) {
+        AjaxSubmitLink editorDependency = new AjaxSubmitLink(ID_EDITOR_BUTTON_DEPENDENCY) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 dependencyEditPerformed(target);
             }
         };
@@ -328,7 +338,7 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(editorDependency);
 
         AutoCompleteTextField<String> editorObjectClass = new AutoCompleteTextField<String>(ID_EDITOR_OBJECT_CLASS,
-                new PropertyModel<String>(model, SchemaHandlingDto.F_SELECTED + ".objectClass.localPart")) {
+                new PropertyModel<String>(model, SchemaHandlingDto.F_SELECTED_OBJECT_CLASS)) {
 
             @Override
             protected Iterator<String> getChoices(String input) {
@@ -353,11 +363,18 @@ public class SchemaHandlingStep extends WizardStep {
                 return choices.iterator();
             }
         };
-        editorObjectClass.add(createObjectClassValidator());
+        editorObjectClass.add(createObjectClassValidator(new LoadableModel<List<QName>>(false) {
+
+            @Override
+            protected List<QName> load() {
+                return model.getObject().getObjectClassList();
+            }
+        }));
         editor.add(editorObjectClass);
 
         MultiValueTextEditPanel editorAttributes = new MultiValueTextEditPanel<ResourceAttributeDefinitionType>(ID_EDITOR_ATTRIBUTES,
-                new PropertyModel<List<ResourceAttributeDefinitionType>>(model, SchemaHandlingDto.F_SELECTED + ".attribute"), false, false){
+                new PropertyModel<List<ResourceAttributeDefinitionType>>(model, SchemaHandlingDto.F_SELECTED + "." +
+                        ResourceObjectTypeDefinitionType.F_ATTRIBUTE.getLocalPart()), false, false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ResourceAttributeDefinitionType> model) {
@@ -400,7 +417,8 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(editorAttributes);
 
         MultiValueTextEditPanel editorAssociations = new MultiValueTextEditPanel<ResourceObjectAssociationType>(ID_EDITOR_ASSOCIATIONS,
-                new PropertyModel<List<ResourceObjectAssociationType>>(model, SchemaHandlingDto.F_SELECTED + ".association"), false, false){
+                new PropertyModel<List<ResourceObjectAssociationType>>(model, SchemaHandlingDto.F_SELECTED + "." +
+                        ResourceObjectTypeDefinitionType.F_ASSOCIATION.getLocalPart()), false, false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ResourceObjectAssociationType> model) {
@@ -442,77 +460,100 @@ public class SchemaHandlingStep extends WizardStep {
         };
         editor.add(editorAssociations);
 
-
-
         DropDownChoice editorAssignmentPolicyRef = new DropDownChoice<>(ID_EDITOR_ASSIGNMENT_POLICY,
-                new PropertyModel<AssignmentPolicyEnforcementType>(model, SchemaHandlingDto.F_SELECTED + ".assignmentPolicyEnforcement"),
+                new PropertyModel<AssignmentPolicyEnforcementType>(model, SchemaHandlingDto.F_SELECTED + "." +
+                        ResourceObjectTypeDefinitionType.F_ASSIGNMENT_POLICY_ENFORCEMENT.getLocalPart()),
                 WebMiscUtil.createReadonlyModelFromEnum(AssignmentPolicyEnforcementType.class),
                 new EnumChoiceRenderer<AssignmentPolicyEnforcementType>(this));
         editor.add(editorAssignmentPolicyRef);
 
-        AjaxLink editorIteration = new AjaxLink(ID_EDITOR_BUTTON_ITERATION) {
+        AjaxSubmitLink editorIteration = new AjaxSubmitLink(ID_EDITOR_BUTTON_ITERATION) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 iterationEditPerformed(target);
             }
         };
         addDisabledClassModifier(editorIteration);
         editor.add(editorIteration);
 
-        AjaxLink editorProtected = new AjaxLink(ID_EDITOR_BUTTON_PROTECTED) {
+        AjaxSubmitLink editorProtected = new AjaxSubmitLink(ID_EDITOR_BUTTON_PROTECTED) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 protectedEditPerformed(target);
             }
         };
         addDisabledClassModifier(editorProtected);
         editor.add(editorProtected);
 
-        AjaxLink editorActivation = new AjaxLink(ID_EDITOR_BUTTON_ACTIVATION) {
+        AjaxSubmitLink editorActivation = new AjaxSubmitLink(ID_EDITOR_BUTTON_ACTIVATION) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 activationEditPerformed(target);
             }
         };
         addDisabledClassModifier(editorActivation);
         editor.add(editorActivation);
 
-        AjaxLink editorCredentials = new AjaxLink(ID_EDITOR_BUTTON_CREDENTIALS) {
+        AjaxSubmitLink editorCredentials = new AjaxSubmitLink(ID_EDITOR_BUTTON_CREDENTIALS) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 credentialsEditPerformed(target);
             }
         };
         addDisabledClassModifier(editorCredentials);
         editor.add(editorCredentials);
-    }
 
-    private void initModals(){
-        //TODO - init all modal windows here
-    }
+        Label kindTooltip = new Label(ID_T_KIND);
+        kindTooltip.add(new InfoTooltipBehavior());
+        editor.add(kindTooltip);
 
-    private IValidator<String> createObjectClassValidator(){
-        return new IValidator<String>() {
+        Label intentTooltip = new Label(ID_T_INTENT);
+        intentTooltip.add(new InfoTooltipBehavior());
+        editor.add(intentTooltip);
 
-            @Override
-            public void validate(IValidatable<String> validatable) {
-                String value = validatable.getValue();
-                List<QName> list = model.getObject().getObjectClassList();
-                List<String> stringList = new ArrayList<>();
+        Label defaultTooltip = new Label(ID_T_DEFAULT);
+        defaultTooltip.add(new InfoTooltipBehavior());
+        editor.add(defaultTooltip);
 
-                for(QName q: list){
-                    stringList.add(q.getLocalPart());
-                }
+        Label dependencyTooltip = new Label(ID_T_DEPENDENCY);
+        dependencyTooltip.add(new InfoTooltipBehavior());
+        editor.add(dependencyTooltip);
 
-                if(!stringList.contains(value)){
-                    error(createStringResource("SchemaHandlingStep.message.validationError", value).getString());
-                }
-            }
-        };
+        Label objectClassTooltip = new Label(ID_T_OBJECT_CLASS);
+        objectClassTooltip.add(new InfoTooltipBehavior());
+        editor.add(objectClassTooltip);
+
+        Label attributesTooltip = new Label(ID_T_ATTRIBUTES);
+        attributesTooltip.add(new InfoTooltipBehavior());
+        editor.add(attributesTooltip);
+
+        Label associationsTooltip = new Label(ID_T_ASSOCIATIONS);
+        associationsTooltip.add(new InfoTooltipBehavior());
+        editor.add(associationsTooltip);
+
+        Label assignmentPolicyRefTooltip = new Label(ID_T_ASSIGNMENT_POLICY_REF);
+        assignmentPolicyRefTooltip.add(new InfoTooltipBehavior());
+        editor.add(assignmentPolicyRefTooltip);
+
+        Label iterationTooltip = new Label(ID_T_ITERATION);
+        iterationTooltip.add(new InfoTooltipBehavior());
+        editor.add(iterationTooltip);
+
+        Label protectedTooltip = new Label(ID_T_PROTECTED);
+        protectedTooltip.add(new InfoTooltipBehavior());
+        editor.add(protectedTooltip);
+
+        Label activationTooltip = new Label(ID_T_ACTIVATION);
+        activationTooltip.add(new InfoTooltipBehavior());
+        editor.add(activationTooltip);
+
+        Label credentialsTooltip = new Label(ID_T_CREDENTIALS);
+        credentialsTooltip.add(new InfoTooltipBehavior());
+        editor.add(credentialsTooltip);
     }
 
     private void addDisabledClassModifier(Component component){
@@ -557,66 +598,128 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void dependencyEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceDependencyEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<List<ResourceObjectTypeDependencyType>>(model, SchemaHandlingDto.F_SELECTED + ".dependency"));
+                new PropertyModel<List<ResourceObjectTypeDependencyType>>(model, SchemaHandlingDto.F_SELECTED + "." +
+                        ResourceObjectTypeDefinitionType.F_DEPENDENCY.getLocalPart()));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void iterationEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceIterationEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<IterationSpecificationType>(model, SchemaHandlingDto.F_SELECTED + ".iteration"));
+                new PropertyModel<IterationSpecificationType>(model, SchemaHandlingDto.F_SELECTED + "." +
+                        ResourceObjectTypeDefinitionType.F_ITERATION.getLocalPart()));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void protectedEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceProtectedEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<List<ResourceObjectPatternType>>(model, SchemaHandlingDto.F_SELECTED + "._protected"));
+                new PropertyModel<List<ResourceObjectPatternType>>(model, SchemaHandlingDto.F_SELECTED + "." +
+                        ResourceObjectTypeDefinitionType.F_PROTECTED.getLocalPart()));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void activationEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceActivationEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<ResourceActivationDefinitionType>(model, SchemaHandlingDto.F_SELECTED + ".activation"));
+                new PropertyModel<ResourceActivationDefinitionType>(model, SchemaHandlingDto.F_SELECTED + "." +
+                        ResourceObjectTypeDefinitionType.F_ACTIVATION.getLocalPart()));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void credentialsEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceCredentialsEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<ResourceCredentialsDefinitionType>(model, SchemaHandlingDto.F_SELECTED + ".credentials"));
+                new PropertyModel<ResourceCredentialsDefinitionType>(model, SchemaHandlingDto.F_SELECTED + "." +
+                        ResourceObjectTypeDefinitionType.F_CREDENTIALS.getLocalPart()));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
     }
 
-    private void editAttributePerformed(AjaxRequestTarget target, ResourceAttributeDefinitionType object){
-        WebMarkupContainer newContainer = new ResourceAttributeEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object));
-        getThirdRowContainer().replaceWith(newContainer);
+    private void editAttributePerformed(AjaxRequestTarget target, final ResourceAttributeDefinitionType object){
+        if(model.getObject().getSelected() != null && model.getObject().getSelected().getObjectClass() != null){
+            WebMarkupContainer newContainer = new ResourceAttributeEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
+                    model.getObject().getSelected(), resourceModel.getObject());
+            getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+            target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR));
+        } else {
+            warn(getString("SchemaHandlingStep.message.selectObjectClassAttr"));
+            getThirdRowContainer().replaceWith(new WebMarkupContainer(ID_THIRD_ROW_CONTAINER));
+            target.add(getPageBase().getFeedbackPanel(), get(ID_OBJECT_TYPE_EDITOR), getThirdRowContainer());
+        }
     }
 
     private void editAssociationPerformed(AjaxRequestTarget target, ResourceObjectAssociationType object){
-        WebMarkupContainer newContainer = new ResourceAssociationEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object));
-        getThirdRowContainer().replaceWith(newContainer);
+        if(model.getObject().getSelected() != null && model.getObject().getSelected().getObjectClass() != null){
+            WebMarkupContainer newContainer = new ResourceAssociationEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
+                    model.getObject().getSelected(), resourceModel.getObject());
+            getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer());
+            target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
+        } else {
+            warn(getString("SchemaHandlingStep.message.selectObjectClassAss"));
+            getThirdRowContainer().replaceWith(new WebMarkupContainer(ID_THIRD_ROW_CONTAINER));
+            target.add(getPageBase().getFeedbackPanel(), get(ID_OBJECT_TYPE_EDITOR), getThirdRowContainer());
+        }
     }
 
     @Override
     public void applyState() {
-        // TODO - implement
+        savePerformed();
+    }
+
+    private void savePerformed(){
+        PrismObject<ResourceType> oldResource;
+        PrismObject<ResourceType> newResource = resourceModel.getObject();
+        OperationResult result = new OperationResult(OPERATION_SAVE_SCHEMA_HANDLING);
+        ModelService modelService = getPageBase().getModelService();
+        ObjectDelta delta;
+
+        removeEmptyContainers(newResource);
+
+        try{
+            oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, getPageBase());
+            if(oldResource != null){
+                delta = oldResource.diff(newResource);
+
+                if(LOGGER.isTraceEnabled()){
+                    LOGGER.trace(delta.debugDump());
+                }
+
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING), result);
+            }
+
+        } catch (Exception e){
+            LoggingUtils.logException(LOGGER, "Couldn't save schema handling", e);
+            result.recordFatalError(getString("SchemaHandlingStep.message.saveError", e));
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        if(WebMiscUtil.showResultInPage(result)){
+            getPageBase().showResult(result);
+        }
     }
 
     private void editObjectTypePerformed(AjaxRequestTarget target, ResourceObjectTypeDefinitionTypeDto objectType){
         resetSelected();
         objectType.setSelected(true);
+
+        if(objectType.getObjectType().getAssociation().isEmpty()){
+            objectType.getObjectType().getAssociation().add(new ResourceObjectAssociationType());
+        }
+
+        if(objectType.getObjectType().getAttribute().isEmpty()){
+            objectType.getObjectType().getAttribute().add(new ResourceAttributeDefinitionType());
+        }
+
         model.getObject().setSelected(objectType.getObjectType());
 
         insertEmptyThirdRow();
@@ -658,5 +761,42 @@ public class SchemaHandlingStep extends WizardStep {
         model.getObject().getObjectTypeList().add(dto);
         insertEmptyThirdRow();
         target.add(getObjectListTable(), getNavigator(), getObjectTypeEditor(), getThirdRowContainer());
+    }
+
+    private void removeEmptyContainers(PrismObject<ResourceType> resourcePrism){
+        if(resourcePrism == null){
+            return;
+        }
+
+        ResourceType resource = resourcePrism.asObjectable();
+
+        if(resource != null && resource.getSchemaHandling() != null){
+            SchemaHandlingType schemaHandling = resource.getSchemaHandling();
+
+            for(ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()){
+
+                //Clear obsolete containers from attributes
+                List<ResourceAttributeDefinitionType> newAttributeList = new ArrayList<>();
+                newAttributeList.addAll(objectType.getAttribute());
+                for(ResourceAttributeDefinitionType attribute: objectType.getAttribute()){
+                    if(attribute.getRef() == null){
+                        newAttributeList.remove(attribute);
+                    }
+                }
+                objectType.getAttribute().clear();
+                objectType.getAttribute().addAll(newAttributeList);
+
+                //Clear obsolete containers from associations
+                List<ResourceObjectAssociationType> newAssociationList = new ArrayList<>();
+                newAssociationList.addAll(objectType.getAssociation());
+                for(ResourceObjectAssociationType association: objectType.getAssociation()){
+                    if(association.getKind() == null){
+                        newAssociationList.remove(association);
+                    }
+                }
+                objectType.getAssociation().clear();
+                objectType.getAssociation().addAll(newAssociationList);
+            }
+        }
     }
 }

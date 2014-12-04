@@ -48,6 +48,12 @@
 				<module>story</module>
 			</modules>
 		</profile>
+	    <profile>
+			<id>conntest</id>
+			<modules>
+				<module>conntest</module>
+			</modules>
+		</profile>
 	</profiles>
     
 </project>

@@ -101,7 +101,7 @@ public class IcfConvertor {
 	 * @throws SchemaException
 	 */
 	<T extends ShadowType> PrismObject<T> convertToResourceObject(ConnectorObject co,
-			PrismObjectDefinition<T> objectDefinition, boolean full) throws SchemaException {
+			PrismObjectDefinition<T> objectDefinition, boolean full, boolean caseIgnoreAttributeNames) throws SchemaException {
 
 		PrismObject<T> shadowPrism = null;
 		if (objectDefinition != null) {
@@ -172,23 +172,29 @@ public class IcfConvertor {
 			
 			if (icfAttr.getName().equals(OperationalAttributes.LOCK_OUT_NAME)) {
 				Boolean lockOut = getSingleValue(icfAttr, Boolean.class);
-				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
-				LockoutStatusType lockoutStatusType;
-				if (lockOut) {
-					lockoutStatusType = LockoutStatusType.LOCKED;
-				} else {
-					lockoutStatusType = LockoutStatusType.NORMAL;
+				if (lockOut != null){
+					ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
+					LockoutStatusType lockoutStatusType;
+					if (lockOut) {
+						lockoutStatusType = LockoutStatusType.LOCKED;
+					} else {
+						lockoutStatusType = LockoutStatusType.NORMAL;
+					}
+					activationType.setLockoutStatus(lockoutStatusType);
+					LOGGER.trace("Converted activation lockoutStatus: {}", lockoutStatusType);
 				}
-				activationType.setLockoutStatus(lockoutStatusType);
-				LOGGER.trace("Converted activation lockoutStatus: {}", lockoutStatusType);
 				continue;
 			}
 
 			QName qname = icfNameMapper.convertAttributeNameToQName(icfAttr.getName(), resourceSchemaNamespace);
-			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname);
+			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
 
 			if (attributeDefinition == null) {
 				throw new SchemaException("Unknown attribute "+qname+" in definition of object class "+attributesContainerDefinition.getTypeName()+". Original ICF name: "+icfAttr.getName(), qname);
+			}
+
+			if (caseIgnoreAttributeNames) {
+				qname = attributeDefinition.getName();            // normalized version
 			}
 
 			ResourceAttribute<Object> resourceAttribute = attributeDefinition.instantiate(qname);
@@ -287,7 +293,8 @@ public class IcfConvertor {
 						+ " but got " + val.getClass().getName());
 			}
 		} else {
-			throw new SchemaException("Empty value for " + icfAttr.getName());
+			return null;
+//			throw new SchemaException("Empty value for " + icfAttr.getName());
 		}
 
 	}

@@ -16,25 +16,17 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
-import static org.testng.AssertJUnit.*;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.connector.DummyConnector;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.model.test.LogfileTestTailer;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -44,26 +36,15 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.aspect.MidpointAspect;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -144,7 +125,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		// precondition
 		tailer.logAndTail();		
 		assertBasicLogging(tailer);
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_PROVISIONING);
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
 		
 		// WHEN
 		modelService.postInit(result);
@@ -154,7 +135,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		
 		assertBasicLogging(tailer);
 
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_PROVISIONING);
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
 		
 		tailer.close();
 		
@@ -189,8 +170,8 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		
 		assertBasicLogging(tailer);
 
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_DEBUG, MidpointAspect.SUBSYSTEM_MODEL);
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_MODEL);
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_DEBUG, ProfilingDataManager.Subsystem.MODEL.name());
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.MODEL.name());
 
 		// Setup
 		PrismObject<SystemConfigurationType> systemConfiguration = 
@@ -217,8 +198,8 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		
 		assertBasicLogging(tailer);
 
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, MidpointAspect.SUBSYSTEM_MODEL);
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_MODEL);
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, ProfilingDataManager.Subsystem.MODEL.name());
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.MODEL.name());
 		
 		// Test that the class logger for this test messages works
 		// GIVEN
@@ -453,8 +434,8 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
 	
 	private void assertBasicLogging(LogfileTestTailer tailer) {
-		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, MidpointAspect.SUBSYSTEM_MODEL);
-		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_REPOSITORY);
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, ProfilingDataManager.Subsystem.MODEL.name());
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.REPOSITORY.name());
 	}
 
 }

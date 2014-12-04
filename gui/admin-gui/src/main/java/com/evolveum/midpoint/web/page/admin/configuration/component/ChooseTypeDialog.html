@@ -15,7 +15,11 @@
   -->
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div wicket:id="content">
+    <div wicket:id="content" style="padding: 10px;">
+        <form wicket:id="searchForm" class="form-inline pull-right">
+            <div wicket:id="basicSearch" />
+        </form>
+
         <div wicket:id="table" />
 
         <p align="right">

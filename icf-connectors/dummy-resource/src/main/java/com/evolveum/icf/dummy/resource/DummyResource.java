@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,6 +78,7 @@ public class DummyResource implements DebugDumpable {
 	private List<DummyDelta> deltas;
 	private int latestSyncToken;
 	private boolean tolerateDuplicateValues = false;
+	private boolean generateDefaultValues = false;
 	private boolean enforceUniqueName = true;
 	private boolean enforceSchema = true;
 	private boolean caseIgnoreId = false;
@@ -87,6 +89,7 @@ public class DummyResource implements DebugDumpable {
 	private BreakMode addBreakMode = BreakMode.NONE;
 	private BreakMode modifyBreakMode = BreakMode.NONE;
 	private BreakMode deleteBreakMode = BreakMode.NONE;
+	
 	
 	// Following two properties are just copied from the connector
 	// configuration and can be checked later. They are otherwise
@@ -149,6 +152,14 @@ public class DummyResource implements DebugDumpable {
 		this.tolerateDuplicateValues = tolerateDuplicateValues;
 	}
 
+	public boolean isGenerateDefaultValues() {
+		return generateDefaultValues;
+	}
+	
+	public void setGenerateDefaultValues(boolean generateDefaultValues) {
+		this.generateDefaultValues = generateDefaultValues;
+	}
+	
 	public boolean isEnforceUniqueName() {
 		return enforceUniqueName;
 	}
@@ -418,7 +429,7 @@ public class DummyResource implements DebugDumpable {
 		}
 	}
 	
-	private synchronized <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+	private synchronized <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
 		if (addBreakMode == BreakMode.NONE) {
 			// just go on
 		} else if (addBreakMode == BreakMode.NETWORK) {
@@ -446,6 +457,13 @@ public class DummyResource implements DebugDumpable {
 			throw new IllegalStateException("The hell is frozen over. The impossible has happened. ID "+newId+" already exists ("+ type.getSimpleName()+" with identifier "+normalName+")");
 		}
 		
+		//this is "resource-generated" attribute (used to simulate resource which generate by default attributes which we need to sync)
+		if (generateDefaultValues){
+//			int internalId = allObjects.size();
+			newObject.addAttributeValue(DummyAccount.ATTR_INTERNAL_ID, new Random().nextInt());
+		}
+		
+		
 		String mapKey;
 		if (enforceUniqueName) {
 			mapKey = normalName;
@@ -470,6 +488,7 @@ public class DummyResource implements DebugDumpable {
 		return newObject.getName();
 	}
 	
+
 	private synchronized <T extends DummyObject> void deleteObjectByName(Class<T> type, Map<String,T> map, String name) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
 		if (deleteBreakMode == BreakMode.NONE) {
 			// go on
@@ -615,7 +634,7 @@ public class DummyResource implements DebugDumpable {
 		existingObject.setName(newName);
 	}
 	
-	public String addAccount(DummyAccount newAccount) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+	public String addAccount(DummyAccount newAccount) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
 		return addObject(accounts, newAccount);
 	}
 	
@@ -623,11 +642,17 @@ public class DummyResource implements DebugDumpable {
 		deleteObjectByName(DummyAccount.class, accounts, id);
 	}
 
-	public void renameAccount(String id, String oldUsername, String newUsername) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+	public void renameAccount(String id, String oldUsername, String newUsername) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
 		renameObject(DummyAccount.class, accounts, id, oldUsername, newUsername);
+		for (DummyGroup group : groups.values()) {
+			if (group.containsMember(oldUsername)) {
+				group.removeMember(oldUsername);
+				group.addMember(newUsername);
+			}
+		}
 	}
 	
-	public String addGroup(DummyGroup newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+	public String addGroup(DummyGroup newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
 		return addObject(groups, newGroup);
 	}
 	
@@ -639,7 +664,7 @@ public class DummyResource implements DebugDumpable {
 		renameObject(DummyGroup.class, groups, id, oldName, newName);
 	}
 	
-	public String addPrivilege(DummyPrivilege newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+	public String addPrivilege(DummyPrivilege newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
 		return addObject(privileges, newGroup);
 	}
 	
@@ -692,6 +717,7 @@ public class DummyResource implements DebugDumpable {
 	public void populateWithDefaultSchema() {
 		accountObjectClass.clear();
 		accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_FULLNAME_NAME, String.class, true, false);
+		accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERNAL_ID, String.class, false, false);
 		accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_DESCRIPTION_NAME, String.class, false, false);
 		accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERESTS_NAME, String.class, false, true);
 		accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_PRIVILEGES_NAME, String.class, false, true);

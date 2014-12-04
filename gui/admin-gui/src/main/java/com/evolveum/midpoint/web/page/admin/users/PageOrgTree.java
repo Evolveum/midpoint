@@ -130,7 +130,7 @@ public class PageOrgTree extends PageAdminUsers {
         Task task = createSimpleTask(OPERATION_LOAD_ORG_UNIT);
         OperationResult result = new OperationResult(OPERATION_LOAD_ORG_UNIT);
 
-        List<PrismObject<OrgType>> list = null;
+        List<PrismObject<OrgType>> list = new ArrayList<>();
         try {
             ObjectQuery query = ObjectQueryUtil.createRootOrgQuery(getPrismContext());
             list = getModelService().searchObjects(OrgType.class, query, null, task, result);

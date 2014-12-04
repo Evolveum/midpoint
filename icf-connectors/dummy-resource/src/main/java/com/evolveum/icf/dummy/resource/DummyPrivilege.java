@@ -32,7 +32,7 @@ public class DummyPrivilege extends DummyObject {
 		
 	@Override
 	protected DummyObjectClass getObjectClass() {
-		return resource.getGroupObjectClass();
+		return resource.getPrivilegeObjectClass();
 	}
 
 	@Override

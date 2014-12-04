@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
@@ -69,6 +70,7 @@ public class CorrelationConfirmationEvaluator {
 	private static transient Trace LOGGER = TraceManager.getTrace(CorrelationConfirmationEvaluator.class);
 
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
 	@Autowired(required = true)
@@ -233,7 +235,7 @@ public class CorrelationConfirmationEvaluator {
 
 
 private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusType, PrismObject<ShadowType> currentShadow, 
-		PrismObject<F> userType, ResourceType resourceType, SystemConfigurationType configurationType, ConditionalSearchFilterType conditionalFilter, Task task, OperationResult result){
+		PrismObject<F> userType, ResourceType resourceType, SystemConfigurationType configurationType, ConditionalSearchFilterType conditionalFilter, Task task, OperationResult result) throws SchemaException{
 	if (conditionalFilter == null) {
 		LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
 				+ "returning empty list of users.", resourceType);
@@ -288,13 +290,14 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 
 		if (synchronization == null){
 			LOGGER.warn(
-					"Resource does not support synchornization. Skipping evaluation correlation/confirmation for user {} and account {}",
+					"Resource does not support synchronization. Skipping evaluation correlation/confirmation for user {} and account {}",
 					userType, currentShadow);
 			return false;
 		}
 		
 		List<ConditionalSearchFilterType> conditionalFilters = synchronization.getCorrelation();
 		
+		try {
 		for (ConditionalSearchFilterType conditionalFilter : conditionalFilters){
 			
 			if (true && matchUserCorrelationRule(focusType, currentShadow, userType, resourceType, configurationType, conditionalFilter, task, result)){
@@ -302,6 +305,9 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 						currentShadow, userType });
 				return true;
 			}
+		}
+		} catch (SchemaException ex){
+			throw new SystemException("Failed to match user using correlation rule. " + ex.getMessage(), ex);
 		}
 		
 		

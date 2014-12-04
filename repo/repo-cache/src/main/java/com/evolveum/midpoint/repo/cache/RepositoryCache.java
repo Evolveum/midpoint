@@ -32,6 +32,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
@@ -196,10 +198,10 @@ public class RepositoryCache implements RepositoryService {
 	}
 	
 	@Override
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
+	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 		// Cannot satisfy from cache, pass down to repository
-		List<PrismObject<T>> objects = repository.searchObjects(type, query, options, parentResult);
+		SearchResultList<PrismObject<T>> objects = repository.searchObjects(type, query, options, parentResult);
 		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache != null && options == null) {
 			for (PrismObject<T> object : objects) {
@@ -213,7 +215,7 @@ public class RepositoryCache implements RepositoryService {
 	 * @see com.evolveum.midpoint.repo.api.RepositoryService#searchObjectsIterative(java.lang.Class, com.evolveum.midpoint.prism.query.ObjectQuery, com.evolveum.midpoint.schema.ResultHandler, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
 			final ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 		final Map<String, PrismObject<ObjectType>> cache = getCache();
 		ResultHandler<T> myHandler = new ResultHandler<T>() {
@@ -223,7 +225,7 @@ public class RepositoryCache implements RepositoryService {
 				return handler.handle(object, parentResult);
 			}
 		};
-		repository.searchObjectsIterative(type, query, myHandler, options, parentResult);
+		return repository.searchObjectsIterative(type, query, myHandler, options, parentResult);
 	}
 	
 	@Override
@@ -298,8 +300,13 @@ public class RepositoryCache implements RepositoryService {
 	public void repositorySelfTest(OperationResult parentResult) {
 		repository.repositorySelfTest(parentResult);
 	}
-	
-	private <T extends ObjectType> void cacheObject(Map<String, PrismObject<ObjectType>> cache, PrismObject<T> object) {
+
+    @Override
+    public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult) {
+        repository.testOrgClosureConsistency(repairIfNecessary, testResult);
+    }
+
+    private <T extends ObjectType> void cacheObject(Map<String, PrismObject<ObjectType>> cache, PrismObject<T> object) {
 		if (cache != null) {
 			cache.put(object.getOid(), (PrismObject<ObjectType>) object.clone());
 		}

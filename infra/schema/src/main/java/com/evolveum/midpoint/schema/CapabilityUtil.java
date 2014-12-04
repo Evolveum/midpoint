@@ -119,7 +119,7 @@ public class CapabilityUtil {
 
 	public static String getCapabilityDisplayName(Object capability) {
 		// TODO: look for schema annotation
-		String className = null;
+		String className;
 		if (capability instanceof JAXBElement) {
 			className = ((JAXBElement) capability).getDeclaredType().getSimpleName();
 		} else {
@@ -127,7 +127,7 @@ public class CapabilityUtil {
 		}
 		if (className.endsWith("CapabilityType")) {
 			return className.substring(0, className.length() - "CapabilityType".length());
-            }
+		}
 		return className;
 	}
 	

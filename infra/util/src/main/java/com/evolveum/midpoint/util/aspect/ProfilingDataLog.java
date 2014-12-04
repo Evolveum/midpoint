@@ -23,8 +23,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import java.util.Date;
 
 /**
- *  This is a blueprint for single method call, or ProfilingEvent as we call it. In here, we capture some
- *  attributes for each method call, specifically:
+ *     This is a blueprint for single method call, or ProfilingEvent as we call it. In here, we capture some
+ *     attributes for each method call, specifically:
  *     className with package name
  *     method name
  *     objectType with which method works (or deltaType for some model methods)
@@ -36,10 +36,8 @@ import java.util.Date;
  * */
 public class ProfilingDataLog {
 
-    /* LOGGER */
     private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
 
-    /* Member Attributes */
     private String className;
     private String methodName;
     long executionTimestamp;
@@ -49,30 +47,22 @@ public class ProfilingDataLog {
     //this is here for profiling events captured from servlet requests
     private String sessionID = null;
 
-    /*
-    *   Constructor - with parameters
-    * */
     public ProfilingDataLog(String className, String method, long est, long exeTimestamp, Object[] args){
         this.className = className;
         this.methodName = method;
         this.estimatedTime = est;
         this.executionTimestamp = exeTimestamp;
         this.args = args;
+    }
 
-    }   //ProfilingDataLog
-
-    /*
-    *   Second constructor, this time for request events
-    * */
     public ProfilingDataLog(String method, String uri, String sessionID, long est, long exec){
         this.methodName = method;
         this.className = uri;
         this.sessionID = sessionID;
         this.estimatedTime = est;
         this.executionTimestamp = exec;
-    }   //ProfilingDataLog
+    }
 
-    /* Getters and Setters */
     public String getSessionID() {
         return sessionID;
     }
@@ -121,40 +111,34 @@ public class ProfilingDataLog {
         this.methodName = methodName;
     }
 
-    /* Behavior */
-    /*
-    *   Retrieves Object[] containing method arguments from ProceedingJoinPoint object
-    * */
     public Object[] retrieveMethodArguments(ProceedingJoinPoint pjp){
         return pjp.getArgs();
-    }   //retrieveMethodArguments
+    }
 
-    /*
-    *   Prints profilingLog to provided LOGGER
-    *   this method is here for test purposes only
-    * */
     public void logProfilingEvent(Trace LOGGER){
         LOGGER.info(className + "->" + methodName + " est: " + formatExecutionTime(estimatedTime));
-    }   //logProfilingEvent
+    }
 
-    /*
-    *   Appends log event to logger
-    * */
-    public void appendToLogger(){
+    public void appendToLogger(boolean afterTest){
         Date date = new Date(executionTimestamp);
 
         //If we are printing request filter event, there are no arguments, but sessionID instead
         if(sessionID != null){
-            LOGGER.debug("    EST: {} EXECUTED: {} SESSION: {}", new Object[]{formatExecutionTime(estimatedTime), date, sessionID});
+            if(afterTest){
+                LOGGER.info("    EST: {} EXECUTED: {} SESSION: {}", new Object[]{formatExecutionTime(estimatedTime), date, sessionID});
+            } else {
+                LOGGER.debug("    EST: {} EXECUTED: {} SESSION: {}", new Object[]{formatExecutionTime(estimatedTime), date, sessionID});
+            }
         } else{
-            LOGGER.debug("    EST: {} EXECUTED: {} ARGS: {}", new Object[]{formatExecutionTime(estimatedTime), date, args});
-        }
-    }   //appendToLogger
+            if(afterTest){
+                LOGGER.info("    EST: {} EXECUTED: {} ARGS: {}", new Object[]{formatExecutionTime(estimatedTime), date, args});
+            } else {
+                LOGGER.debug("    EST: {} EXECUTED: {} ARGS: {}", new Object[]{formatExecutionTime(estimatedTime), date, args});
+            }
 
-    /* =====STATIC HELPER METHODS===== */
-    /*
-    *   Formats execution time
-    * */
+        }
+    }
+
     private static String formatExecutionTime(long est){
         StringBuilder sb = new StringBuilder();
 
@@ -171,8 +155,5 @@ public class ProfilingDataLog {
         sb.append(" ms.");
 
         return sb.toString();
-    }   //formatExecutionTime
-
-
-
+    }
 }

@@ -53,9 +53,9 @@ def where = "";
 
 if (query != null){
     //Need to handle the __UID__ in queries
-    if (query.get("left").equalsIgnoreCase("__UID__") && objectClass.equalsIgnoreCase("__ACCOUNT__")) query.put("left","uid");
-    if (query.get("left").equalsIgnoreCase("__UID__") && objectClass.equalsIgnoreCase("__GROUP__")) query.put("left","name");
-    if (query.get("left").equalsIgnoreCase("__UID__") && objectClass.equalsIgnoreCase("organization")) query.put("left","name")
+    if (query.get("left").equalsIgnoreCase("__UID__") && objectClass.equalsIgnoreCase("__ACCOUNT__")) query.put("left","id");
+    if (query.get("left").equalsIgnoreCase("__UID__") && objectClass.equalsIgnoreCase("Group")) query.put("left","id");
+    if (query.get("left").equalsIgnoreCase("__UID__") && objectClass.equalsIgnoreCase("Organization")) query.put("left","id")
 
     // We can use Groovy template engine to generate our custom SQL queries
     def engine = new groovy.text.SimpleTemplateEngine();
@@ -64,7 +64,7 @@ if (query != null){
         CONTAINS:' WHERE $left ${not ? "NOT " : ""}LIKE "%$right%"',
         ENDSWITH:' WHERE $left ${not ? "NOT " : ""}LIKE "%$right"',
         STARTSWITH:' WHERE $left ${not ? "NOT " : ""}LIKE "$right%"',
-        EQUALS:' WHERE $left ${not ? "<>" : "="} "$right"',
+        EQUALS:' WHERE $left ${not ? "<>" : "="} \'$right\'',
         GREATERTHAN:' WHERE $left ${not ? "<=" : ">"} "$right"',
         GREATERTHANOREQUAL:' WHERE $left ${not ? "<" : ">="} "$right"',
         LESSTHAN:' WHERE $left ${not ? ">=" : "<"} "$right"',
@@ -80,15 +80,15 @@ if (query != null){
 
 switch ( objectClass ) {
     case "__ACCOUNT__":
-    sql.eachRow("SELECT * FROM Users" + where, {result.add([__UID__:it.uid, __NAME__:it.uid, uid:it.uid, fullname:it.fullname,firstname:it.firstname,lastname:it.lastname,email:it.email,organization:it.organization])} );
+    sql.eachRow("SELECT * FROM Users" + where, {result.add([__UID__:it.id, __NAME__:it.login, __ENABLE__:!it.disabled, fullname:it.fullname, firstname:it.firstname, lastname:it.lastname, email:it.email, organization:it.organization])} );
     break
 
-    case "__GROUP__":
-    sql.eachRow("SELECT * FROM Groups" + where, {result.add([__UID__:it.name, __NAME__:it.name, gid:it.gid, ,description:it.description])} );
+    case "Group":
+    sql.eachRow("SELECT * FROM Groups" + where, {result.add([__UID__:it.id, __NAME__:it.name, ,description:it.description])} );
     break
 
-    case "organization":
-    sql.eachRow("SELECT * FROM Organizations" + where, {result.add([__UID__:it.name, __NAME__:it.name, description:it.description])} );
+    case "Organization":
+    sql.eachRow("SELECT * FROM Organizations" + where, {result.add([__UID__:it.id, __NAME__:it.name, description:it.description])} );
     break
 
     default:

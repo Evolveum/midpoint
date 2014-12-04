@@ -17,6 +17,8 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+    <div wicket:id="limitationsEditor" />
+    <div wicket:id="mappingEditor" />
 
     <h3><span wicket:id="label" ></span></h3>
 
@@ -28,6 +30,7 @@
                 <h4 class="panel-title">
                     <a data-toggle="collapse" data-parent="#accordion" href="#main">
                         <wicket:message key="ResourceAssociationEditor.label.association"/>
+                        <button type="button" class="close"><span aria-hidden="true">&#8628;</span><span class="sr-only">Expand</span></button>
                     </a>
                 </h4>
             </div>
@@ -38,6 +41,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.kind" /></label>
+                            <i wicket:id="kindTooltip" wicket:message="title:SchemaHandlingStep.association.tooltip.kind"/>
                         </dt>
                         <dd>
                             <select wicket:id="kind" class="form-control input-sm"></select>
@@ -48,6 +52,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.intent" /></label>
+                            <i wicket:id="intentTooltip" wicket:message="title:SchemaHandlingStep.association.tooltip.intent"/>
                         </dt>
                         <div wicket:id="intent" />
                     </dl>
@@ -55,6 +60,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.direction" /></label>
+                            <i wicket:id="directionTooltip" wicket:message="title:SchemaHandlingStep.association.tooltip.direction"/>
                         </dt>
                         <dd>
                             <select wicket:id="direction" class="form-control input-sm"></select>
@@ -64,24 +70,27 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.associationAttribute" /></label>
+                            <i wicket:id="associationAttributeTooltip" wicket:message="title:SchemaHandlingStep.association.tooltip.associationAttribute"/>
                         </dt>
                         <dd>
-                            <input wicket:id="associationAttribute" type="text" class="form-control input-sm" value=""/>
+                            <select wicket:id="associationAttribute" class="form-control input-sm"></select>
                         </dd>
                     </dl>
 
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.valueAttribute" /></label>
+                            <i wicket:id="valueAttributeTooltip" wicket:message="title:SchemaHandlingStep.association.tooltip.valueAttribute"/>
                         </dt>
                         <dd>
-                            <input wicket:id="valueAttribute" type="text" class="form-control input-sm" value=""/>
+                            <select wicket:id="valueAttribute" class="form-control input-sm"></select>
                         </dd>
                     </dl>
 
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.explicitRefIntegrity" /></label>
+                            <i wicket:id="explicitRefIntegrityTooltip" wicket:message="title:SchemaHandlingStep.association.tooltip.explicitRefIntegrity"/>
                         </dt>
                         <dd>
                             <input wicket:id="explicitRefIntegrity" type="checkbox" value="checked"/>
@@ -98,6 +107,7 @@
                 <h4 class="panel-title">
                     <a data-toggle="collapse" data-parent="#accordion" href="#other">
                         <wicket:message key="ResourceAssociationEditor.label.resourceItem"/>
+                        <button type="button" class="close"><span aria-hidden="true">&#8628;</span><span class="sr-only">Expand</span></button>
                     </a>
                 </h4>
             </div>
@@ -105,12 +115,25 @@
             <div id="other" class="panel-collapse collapse">
                 <div class="panel-body">
 
-                    <dl class="dl-horizontal">
+                    <dl wicket:id="schemaRefPanel" class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.reference" /></label>
+                            <i wicket:id="referenceTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.reference"/>
                         </dt>
                         <dd>
-                            <input wicket:id="reference" type="text" class="form-control input-sm" value=""/>
+                            <select wicket:id="referenceSelect" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <div wicket:id="nonSchemaReferencePanel" />
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceAssociationEditor.label.allow" /></label>
+                            <i wicket:id="allowTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.allow"/>
+                        </dt>
+                        <dd>
+                            <input wicket:id="allowRef" type="checkbox" value="checked"/>
                         </dd>
                     </dl>
 
@@ -135,6 +158,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.limitations" /></label>
+                            <i wicket:id="limitationsTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.limitations"/>
                         </dt>
                         <dd>
                             <a wicket:id="buttonLimitations" class="btn btn-sm btn-primary" title="Edit">
@@ -149,6 +173,7 @@
                             <dl class="dl-horizontal">
                                 <dt>
                                     <label><wicket:message key="ResourceAssociationEditor.label.exclusiveStrong" /></label>
+                                    <i wicket:id="exclusiveStrongTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.exclusiveStrong"/>
                                 </dt>
                                 <dd>
                                     <input wicket:id="exclusiveStrong" type="checkbox" value="checked"/>
@@ -160,6 +185,7 @@
                             <dl class="dl-horizontal">
                                 <dt>
                                     <label><wicket:message key="ResourceAssociationEditor.label.tolerant" /></label>
+                                    <i wicket:id="tolerantTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.tolerant"/>
                                 </dt>
                                 <dd>
                                     <input wicket:id="tolerant" type="checkbox" value="checked"/>
@@ -172,6 +198,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.tolerantVP" /></label>
+                            <i wicket:id="tolerantVPTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.tolerantVP"/>
                         </dt>
                         <div wicket:id="tolerantValuePattern" />
                     </dl>
@@ -180,6 +207,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.intolerantVP" /></label>
+                            <i wicket:id="intolerantVPTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.intolerantVP"/>
                         </dt>
                         <div wicket:id="intolerantValuePattern" />
                     </dl>
@@ -187,6 +215,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.fetchStrategy" /></label>
+                            <i wicket:id="fetchStrategyTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.fetchStrategy"/>
                         </dt>
                         <dd>
                             <select wicket:id="fetchStrategy" class="form-control input-sm"></select>
@@ -196,9 +225,10 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.matchingRule" /></label>
+                            <i wicket:id="matchingRuleTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.matchingRule"/>
                         </dt>
                         <dd>
-                            <input wicket:id="matchingRule" type="text" class="form-control input-sm" value=""/>
+                            <select wicket:id="matchingRule" class="form-control input-sm"></select>
                         </dd>
                     </dl>
 
@@ -206,6 +236,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.outbound" /></label>
+                            <i wicket:id="outboundTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.outbound"/>
                         </dt>
                         <dd class="cap-dl-multivalue">
                             <div class="input-group">
@@ -223,6 +254,7 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceAssociationEditor.label.inbound" /></label>
+                            <i wicket:id="inboundTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.inbound"/>
                         </dt>
                         <div wicket:id="inbound" />
                     </dl>

@@ -20,7 +20,7 @@
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>replace</t:modificationType>
         <t:path>c:credentials/c:password</t:path>
         <t:value>
@@ -28,26 +28,31 @@
                 <clearValue>jack123456</clearValue>
 			</c:value>
 		</t:value>
-	</modification>
-    <modification>
+	</itemDelta>
+    <itemDelta>
         <t:modificationType>replace</t:modificationType>
-        <t:value>
-            <c:familyName>SPARROW</c:familyName>
-        </t:value>
-    </modification>
-    <modification>
+        <t:path>familyName</t:path>
+        <t:value>SPARROW</t:value>
+    </itemDelta>
+    <itemDelta>
         <t:modificationType>replace</t:modificationType>
-        <t:path>c:metadata</t:path>
-        <t:value>
-            <c:createTimestamp>2013-12-01T11:22:33.44</c:createTimestamp>
-        </t:value>
-    </modification>
-    <modification>
+        <t:path>c:metadata/c:createTimestamp</t:path>
+        <t:value>2013-12-01T11:22:33.44</t:value>
+    </itemDelta>
+    <itemDelta>
         <t:modificationType>replace</t:modificationType>
-        <t:path>c:extension</t:path>
-        <t:value xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
-            <piracy:ship xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:type="xsd:string">BLACK PEARL</piracy:ship>
-        </t:value>
-    </modification>
+        <t:path xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>c:extension/piracy:ship</t:path>
+        <t:value xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:type="xsd:string">BLACK PEARL</t:value>
+    </itemDelta>
+    <itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>assignment[1]/activation/validTo</t:path>
+        <t:value>2013-12-01T11:22:33.44</t:value>
+    </itemDelta>
+    <itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>assignment[2]/activation/validTo</t:path>
+        <t:value>2014-10-03T11:22:33.44</t:value>
+    </itemDelta>
 
 </objectModification>

@@ -52,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import com.sun.management.OperatingSystemMXBean;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -69,6 +70,7 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 
+import javax.management.*;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -93,6 +95,29 @@ public final class WebMiscUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(WebMiscUtil.class);
     private static DatatypeFactory df = null;
+
+    public static enum Channel{
+        LIVE_SYNC("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync"),
+        RECONCILIATION("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation"),
+        DISCOVERY("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery"),
+        IMPORT("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import"),
+        USER("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#user"),
+        WEB_SERVICE("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#webService");
+
+        private String channel;
+
+        Channel(String channel){
+            this.channel = channel;
+        }
+
+        public String getChannel() {
+            return channel;
+        }
+
+        public void setChannel(String channel) {
+            this.channel = channel;
+        }
+    }
 
     static {
         try {
@@ -448,6 +473,14 @@ public final class WebMiscUtil {
         return result.isSuccess() || result.isHandledError();
     }
 
+    public static boolean isSuccessOrHandledErrorOrInProgress(OperationResult result) {
+        if (result == null) {
+            return false;
+        }
+
+        return result.isSuccess() || result.isHandledError() || result.isInProgress();
+    }
+
     public static String createUserIcon(PrismObject<UserType> object) {
         UserType user = object.asObjectable();
 
@@ -501,8 +534,9 @@ public final class WebMiscUtil {
         long prevProcessCpuTime = operatingSystemMXBean.getProcessCpuTime();
 
         try {
-            Thread.sleep(30);
+            Thread.sleep(150);
         } catch (Exception ignored) {
+            //ignored
         }
 
         operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
@@ -617,5 +651,29 @@ public final class WebMiscUtil {
                 throw new SystemException("Couldn't revive " + objectType + " because of schema exception", e);
             }
         }
+    }
+
+    public static List<String> getChannelList(){
+        List<String> channels = new ArrayList<>();
+
+        for(Channel channel: Channel.values()){
+            channels.add(channel.getChannel());
+        }
+
+        return channels;
+    }
+
+    public static List<QName> getMatchingRuleList(){
+        List<QName> list = new ArrayList<>();
+
+        String NS_MATCHING_RULE = "http://prism.evolveum.com/xml/ns/public/matching-rule-3";
+
+        list.add(new QName(NS_MATCHING_RULE, "default", "mr"));
+        list.add(new QName(NS_MATCHING_RULE, "stringIgnoreCase", "mr"));
+        list.add(new QName(NS_MATCHING_RULE, "polyStringStrict", "mr"));
+        list.add(new QName(NS_MATCHING_RULE, "polyStringOrig", "mr"));
+        list.add(new QName(NS_MATCHING_RULE, "polyStringNorm", "mr"));
+
+        return list;
     }
 }

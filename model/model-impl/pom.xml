@@ -63,6 +63,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>system-init</artifactId>
+			<version>3.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
 			<version>3.1-SNAPSHOT</version>
 		</dependency>
@@ -200,18 +205,18 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.forgerock.openicf.connectors</groupId>
-			<artifactId>ldap-connector</artifactId>
+			<groupId>com.evolveum.polygon</groupId>
+			<artifactId>connector-ldap</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.forgerock.openicf.connectors</groupId>
-			<artifactId>databasetable-connector</artifactId>
+        	<groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-databasetable</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-            <groupId>org.forgerock.openicf.connectors</groupId>
-            <artifactId>csvfile-connector</artifactId>
+            <groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-csvfile</artifactId>
             <scope>test</scope>
         </dependency>
 		<dependency>

@@ -17,24 +17,29 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+    <div wicket:id="variableEditor" />
 
     <h3><wicket:message key="ResourceIterationEditor.label" /></h3>
 
     <dl class="dl-horizontal">
         <dt>
             <label><wicket:message key="ResourceIterationEditor.label.maxIteration" /></label>
+            <i wicket:id="maxIterationTooltip" wicket:message="title:SchemaHandlingStep.iteration.tooltip.maxIteration"/>
         </dt>
         <dd>
             <input wicket:id="maxIteration" type="text" class="form-control input-sm" value=""/>
         </dd>
     </dl>
 
-    <!-- Token Expression - ExpressionType editor -->
+    <!-- Token Expression -->
     <div class="panel-group" id="accordion">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne"><wicket:message key="ResourceIterationEditor.label.tokenExpression" /></a>
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                        <wicket:message key="ResourceIterationEditor.label.tokenExpression" />
+                        <button type="button" class="close"><span aria-hidden="true">&#8628;</span><span class="sr-only">Expand</span></button>
+                    </a>
                 </h4>
             </div>
 
@@ -50,30 +55,11 @@
                         </dd>
                     </dl>
 
-                    <!-- Extension - we do not want to edit this now -->
-                    <!--<dl class="dl-horizontal">-->
-                        <!--<dt>-->
-                            <!--<label><wicket:message key="ResourceIterationEditor.label.extension" /></label>-->
-                        <!--</dt>-->
-                        <!--<dd>-->
-                            <!--<a wicket:id="tokenExtensionButton" class="btn btn-sm btn-primary" title="Edit">-->
-                                <!--<i class="fa fa-pencil-square-o"/>-->
-                            <!--</a>-->
-                        <!--</dd>-->
-                    <!--</dl>-->
-
-                    <!-- String Filter -->
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="ResourceIterationEditor.label.stringFilter" /></label>
-                        </dt>
-                        <div wicket:id="tokenStringFilterList" />
-                    </dl>
-
                     <!-- Variable -->
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceIterationEditor.label.variable" /></label>
+                            <i wicket:id="tokenVariableTooltip" wicket:message="title:SchemaHandlingStep.iteration.tooltip.variable"/>
                         </dt>
                         <div wicket:id="tokenVariableList" />
                     </dl>
@@ -81,19 +67,51 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceIterationEditor.label.returnMultiplicity" /></label>
+                            <i wicket:id="tokenReturnMultiplicityTooltip" wicket:message="title:SchemaHandlingStep.iteration.tooltip.returnMultiplicity"/>
                         </dt>
                         <dd>
                             <select wicket:id="tokenReturnMultiplicity" class="form-control input-sm"></select>
                         </dd>
                     </dl>
 
-                    <!-- Expression Evaluator -->
+                    <!-- Expression -->
+                    <!--
                     <dl class="dl-horizontal">
                         <dt>
-                            <label><wicket:message key="ResourceIterationEditor.label.expressionEvaluator" /></label>
+                            <label><wicket:message key="ResourceIterationEditor.label.expressionType" /></label>
                         </dt>
-                        <div wicket:id="tokenExpressionEvaluatorList" />
+                        <dd>
+                            <select wicket:id="tokenExpressionType" class="form-control input-sm"></select>
+                        </dd>
                     </dl>
+
+                    <dl wicket:id="tokenLanguageContainer" class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.language" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="tokenExpressionLanguage" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <dl wicket:id="tokenPolicyContainer" class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.policyRef" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="tokenExpressionPolicyRef" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.expression" /></label>
+                        </dt>
+                        <dd>
+                            <textarea wicket:id="tokenExpression" class="form-control input-sm" rows="5"></textarea>
+                        </dd>
+                    </dl>
+                    -->
 
                 </div>
             </div>
@@ -102,7 +120,10 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo"><wicket:message key="ResourceIterationEditor.label.preIterationCondition" /></a>
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+                        <wicket:message key="ResourceIterationEditor.label.preIterationCondition" />
+                        <button type="button" class="close"><span aria-hidden="true">&#8628;</span><span class="sr-only">Expand</span></button>
+                    </a>
                 </h4>
             </div>
 
@@ -117,30 +138,12 @@
                             <textarea wicket:id="preDescription" class="form-control input-sm" rows="2"></textarea>
                         </dd>
                     </dl>
-                    <!-- Extension - we do not want to edit this now -->
-                    <!--<dl class="dl-horizontal">-->
-                        <!--<dt>-->
-                            <!--<label><wicket:message key="ResourceIterationEditor.label.extension" /></label>-->
-                        <!--</dt>-->
-                        <!--<dd>-->
-                            <!--<a wicket:id="preExtensionButton" class="btn btn-sm btn-primary" title="Edit">-->
-                                <!--<i class="fa fa-pencil-square-o"/>-->
-                            <!--</a>-->
-                        <!--</dd>-->
-                    <!--</dl>-->
-
-                    <!-- String Filter -->
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="ResourceIterationEditor.label.stringFilter" /></label>
-                        </dt>
-                        <div wicket:id="preStringFilterList" />
-                    </dl>
 
                     <!-- Variable -->
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceIterationEditor.label.variable" /></label>
+                            <i wicket:id="preVariableTooltip" wicket:message="title:SchemaHandlingStep.iteration.tooltip.variable"/>
                         </dt>
                         <div wicket:id="preVariableList" />
                     </dl>
@@ -148,19 +151,51 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceIterationEditor.label.returnMultiplicity" /></label>
+                            <i wicket:id="preReturnMultiplicityTooltip" wicket:message="title:SchemaHandlingStep.iteration.tooltip.returnMultiplicity"/>
                         </dt>
                         <dd>
                             <select wicket:id="preReturnMultiplicity" class="form-control input-sm"></select>
                         </dd>
                     </dl>
 
-                    <!-- Expression Evaluator -->
+                    <!-- Expression -->
+                    <!--
                     <dl class="dl-horizontal">
                         <dt>
-                            <label><wicket:message key="ResourceIterationEditor.label.expressionEvaluator" /></label>
+                            <label><wicket:message key="ResourceIterationEditor.label.expressionType" /></label>
                         </dt>
-                        <div wicket:id="preExpressionEvaluatorList" />
+                        <dd>
+                            <select wicket:id="preExpressionType" class="form-control input-sm"></select>
+                        </dd>
                     </dl>
+
+                    <dl wicket:id="preLanguageContainer" class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.language" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="preExpressionLanguage" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <dl wicket:id="prePolicyContainer" class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.policyRef" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="preExpressionPolicyRef" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.expression" /></label>
+                        </dt>
+                        <dd>
+                            <textarea wicket:id="preExpression" class="form-control input-sm" rows="5"></textarea>
+                        </dd>
+                    </dl>
+                    -->
 
                 </div>
             </div>
@@ -169,7 +204,10 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree"><wicket:message key="ResourceIterationEditor.label.postIterationCondition" /></a>
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+                        <wicket:message key="ResourceIterationEditor.label.postIterationCondition" />
+                        <button type="button" class="close"><span aria-hidden="true">&#8628;</span><span class="sr-only">Expand</span></button>
+                    </a>
                 </h4>
             </div>
 
@@ -185,30 +223,11 @@
                         </dd>
                     </dl>
 
-                    <!-- Extension - we do not want to edit this now -->
-                    <!--<dl class="dl-horizontal">-->
-                        <!--<dt>-->
-                            <!--<label><wicket:message key="ResourceIterationEditor.label.extension" /></label>-->
-                        <!--</dt>-->
-                        <!--<dd>-->
-                            <!--<a wicket:id="postExtensionButton" class="btn btn-sm btn-primary" title="Edit">-->
-                                <!--<i class="fa fa-pencil-square-o"/>-->
-                            <!--</a>-->
-                        <!--</dd>-->
-                    <!--</dl>-->
-
-                    <!-- String Filter -->
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="ResourceIterationEditor.label.stringFilter" /></label>
-                        </dt>
-                        <div wicket:id="postStringFilterList" />
-                    </dl>
-
                     <!-- Variable -->
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceIterationEditor.label.variable" /></label>
+                            <i wicket:id="postVariableTooltip" wicket:message="title:SchemaHandlingStep.iteration.tooltip.variable"/>
                         </dt>
                         <div wicket:id="postVariableList" />
                     </dl>
@@ -216,19 +235,51 @@
                     <dl class="dl-horizontal">
                         <dt>
                             <label><wicket:message key="ResourceIterationEditor.label.returnMultiplicity" /></label>
+                            <i wicket:id="postReturnMultiplicityTooltip" wicket:message="title:SchemaHandlingStep.iteration.tooltip.returnMultiplicity"/>
                         </dt>
                         <dd>
                             <select wicket:id="postReturnMultiplicity" class="form-control input-sm"></select>
                         </dd>
                     </dl>
 
-                    <!-- Expression Evaluator -->
+                    <!-- Expression -->
+                    <!--
                     <dl class="dl-horizontal">
                         <dt>
-                            <label><wicket:message key="ResourceIterationEditor.label.expressionEvaluator" /></label>
+                            <label><wicket:message key="ResourceIterationEditor.label.expressionType" /></label>
                         </dt>
-                        <div wicket:id="postExpressionEvaluatorList" />
+                        <dd>
+                            <select wicket:id="postExpressionType" class="form-control input-sm"></select>
+                        </dd>
                     </dl>
+
+                    <dl wicket:id="postLanguageContainer" class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.language" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="postExpressionLanguage" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <dl wicket:id="postPolicyContainer" class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.policyRef" /></label>
+                        </dt>
+                        <dd>
+                            <select wicket:id="postExpressionPolicyRef" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="ResourceIterationEditor.label.expression" /></label>
+                        </dt>
+                        <dd>
+                            <textarea wicket:id="postExpression" class="form-control input-sm" rows="5"></textarea>
+                        </dd>
+                    </dl>
+                    -->
 
                 </div>
             </div>

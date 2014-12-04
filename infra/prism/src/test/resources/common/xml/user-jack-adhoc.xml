@@ -96,4 +96,19 @@
     </account>
 
     <special>got it!</special>
+
+	<singleActivation/>			<!-- empty container value for single-valued child container -->
+	<multiActivation/>
+	<multiActivationCopy/>
+	<multiActivationCopy>
+		<enabled>true</enabled>
+	</multiActivationCopy>
+
+	<singleConstruction/>
+	<multiConstruction/>
+	<multiConstructionCopy/>
+	<multiConstructionCopy>
+		<howto>abc</howto>
+	</multiConstructionCopy>
+
 </user>

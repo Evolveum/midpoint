@@ -21,11 +21,13 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -571,5 +573,52 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             close(session);
         }
     }
+
+    @Test
+    public void test110AddUserWithDuplicateAssignmentIds() throws Exception {
+        OperationResult result = new OperationResult("test110AddUserWithDuplicateAssignmentIds");
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "user-same-ids.xml"));
+
+        //create duplicate ids in assignment values
+        PrismContainer container = user.findContainer(UserType.F_ASSIGNMENT);
+        List<PrismContainerValue> values = (List<PrismContainerValue>) container.getValues();
+        values.get(0).setId(999L);      // setting it manually because object with duplicate IDs could not be parsed at all
+        values.get(1).setId(999L);
+        try {
+            String OID = repositoryService.addObject(user, null, result);
+            throw new AssertionError("Two container values with the same ID were accepted even they shouldn't be");
+        } catch (RuntimeException e) {
+            // this was expected
+        } catch (Exception e) {
+            throw new AssertionError("Two container values with the same ID resulted in unexpected exception", e);
+        }
+    }
+
+    @Test
+    public void test990AddResourceWithEmptyConnectorConfiguration() throws Exception {
+        OperationResult result = new OperationResult("test990AddResourceWithEmptyConnectorConfiguration");
+
+        PrismObject<ResourceType> prismResource = PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class).instantiate();
+
+        PolyStringType name = new PolyStringType();
+        name.setOrig("Test Resource");
+        name.setNorm("test resource");
+
+        prismResource.asObjectable().setName(name);
+
+        prismResource
+                .findOrCreateContainer(ResourceType.F_CONNECTOR_CONFIGURATION)
+                .findOrCreateContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES)
+                .createNewValue();
+
+        System.out.println("Original data before saving: " + prismResource.debugDump());
+        String oid = repositoryService.addObject(prismResource, null, result);
+        PrismObject<ResourceType> fetchedResource = repositoryService.getObject(ResourceType.class, oid, null, result);
+        System.out.println("Original data after saving: " + prismResource.debugDump());
+        System.out.println("Fetched data: " + fetchedResource.debugDump());
+
+        AssertJUnit.assertEquals(prismResource, fetchedResource);
+    }
+
 }
 

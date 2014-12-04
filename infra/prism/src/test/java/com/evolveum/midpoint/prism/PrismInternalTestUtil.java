@@ -306,7 +306,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		user.assertDefinitions("test");
 		assertUserJackContent(user);
 		assertUserJackExtension(user);
-		assertVisitor(user,55);
+		assertVisitor(user, 71);
 		
 		assertPathVisitor(user, new ItemPath(UserType.F_ASSIGNMENT), true, 9);
 		assertPathVisitor(user, new ItemPath(
@@ -354,7 +354,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		ItemPath enabledPath = USER_ENABLED_PATH;
 		PrismProperty<Boolean> enabledProperty1 = user.findProperty(enabledPath);
 		assertNotNull("No enabled property", enabledProperty1);
-		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 1, 1);
+		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 0, 1);
 		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
 		PrismAsserts.assertPropertyValue(enabledProperty1, true);
 		

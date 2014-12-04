@@ -66,18 +66,16 @@ import java.util.Set;
         @NamedQuery(name = "listAccountShadowOwner.getUser", query = "select u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount from RUser as u left join u.linkRef as ref where ref.targetOid = :oid"),
         @NamedQuery(name = "getExtCount", query = "select stringsCount, longsCount, datesCount, referencesCount, polysCount from RObject where oid = :oid"),
         @NamedQuery(name = "getVersion", query = "select o.version from RObject as o where o.oid = :oid"),
-        @NamedQuery(name = "existIncorrect", query = "select count(*) from ROrgIncorrect as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid"),
-        @NamedQuery(name = "existOrgClosure", query = "select count(*) from ROrgClosure as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid and o.depth = :depth"),
-        @NamedQuery(name = "fillHierarchy", query = "from ROrgIncorrect as o where o.ancestorOid = :oid"),
+        @NamedQuery(name = "existOrgClosure", query = "select count(*) from ROrgClosure as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid"),
         @NamedQuery(name = "sqlDeleteOrgClosure", query = "delete from ROrgClosure as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
-        @NamedQuery(name = "sqlDeleteOrgIncorrect", query = "delete from ROrgIncorrect as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
         @NamedQuery(name = "listResourceObjectShadows", query = "select s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid"),
         @NamedQuery(name = "getDefinition.ROExtDate", query = "select c.name, c.type, c.valueType from ROExtDate as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
         @NamedQuery(name = "getDefinition.ROExtString", query = "select c.name, c.type, c.valueType from ROExtString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
         @NamedQuery(name = "getDefinition.ROExtPolyString", query = "select c.name, c.type, c.valueType from ROExtPolyString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
         @NamedQuery(name = "getDefinition.ROExtLong", query = "select c.name, c.type, c.valueType from ROExtLong as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
         @NamedQuery(name = "getDefinition.ROExtReference", query = "select c.name, c.type, c.valueType from ROExtReference as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "isAnySubordinateAttempt.oneLowerOid", query = "select count(*) from ROrgClosure o where o.ancestorOid=:aOid0 and o.descendantOid=:dOid0"),
+        @NamedQuery(name = "isAnySubordinateAttempt.oneLowerOid", query = "select count(*) from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid=:dOid"),
+        @NamedQuery(name = "isAnySubordinateAttempt.moreLowerOids", query = "select count(*) from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid in (:dOids)"),
 })
 @Entity
 @Table(name = "m_object")

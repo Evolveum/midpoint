@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
@@ -37,7 +38,6 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -67,6 +67,7 @@ import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import java.util.*;
 
@@ -106,6 +107,8 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private static final String ID_CONSTRUCTION_CONTAINER = "constructionContainer";
     private static final String ID_CONTAINER_TENANT_REF = "tenantRefContainer";
     private static final String ID_TENANT_CHOOSER = "tenantRefChooser";
+    private static final String ID_BUTTON_SHOW_MORE = "errorLink";
+    private static final String ID_ERROR_ICON = "errorIcon";
 
     private IModel<List<ACAttributeDto>> attributesModel;
 
@@ -151,6 +154,16 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 createImageTypeModel(new PropertyModel<AssignmentEditorDtoType>(getModel(), AssignmentEditorDto.F_TYPE))));
         headerRow.add(typeImage);
 
+        Label errorIcon = new Label(ID_ERROR_ICON);
+        errorIcon.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return !isTargetValid();
+            }
+        });
+        headerRow.add(errorIcon);
+
         AjaxLink name = new AjaxLink(ID_NAME) {
 
             @Override
@@ -160,7 +173,23 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         };
         headerRow.add(name);
 
-        Label nameLabel = new Label(ID_NAME_LABEL, new PropertyModel<String>(getModel(), AssignmentEditorDto.F_NAME));
+        AjaxLink errorLink = new AjaxLink(ID_BUTTON_SHOW_MORE) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showErrorPerformed(target);
+            }
+        };
+        errorLink.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return !isTargetValid();
+            }
+        });
+        headerRow.add(errorLink);
+
+        Label nameLabel = new Label(ID_NAME_LABEL, createAssignmentNameLabelModel());
         name.add(nameLabel);
 
         Label activation = new Label(ID_ACTIVATION, createActivationModel());
@@ -182,6 +211,41 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         main.add(body);
 
         initBodyLayout(body);
+    }
+
+    private IModel<String> createAssignmentNameLabelModel(){
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                if(getModel() != null && getModel().getObject() != null){
+                    AssignmentEditorDto dto = getModelObject();
+
+                    if(dto.getName() != null){
+                        return dto.getName();
+                    }
+
+                    if(dto.getAltName() != null){
+                        return getString("AssignmentEditorPanel.name.focus");
+                    }
+                }
+
+                return getString("AssignmentEditorPanel.name.noTarget");
+            }
+        };
+    }
+
+    private boolean isTargetValid(){
+
+        if(getModel() != null && getModel().getObject() != null){
+            AssignmentEditorDto dto = getModelObject();
+
+            if(dto.getName() == null && dto.getAltName() == null){
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
@@ -249,11 +313,11 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     }
 
     private void initBodyLayout(WebMarkupContainer body) {
-        TextArea description = new TextArea(ID_DESCRIPTION,
-                new PropertyModel(getModel(), AssignmentEditorDto.F_DESCRIPTION));
+        TextArea description = new TextArea<>(ID_DESCRIPTION,
+                new PropertyModel<String>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
         body.add(description);
 
-        TextField relation = new TextField(ID_RELATION, new PropertyModel(getModel(), AssignmentEditorDto.F_RELATION));
+        TextField relation = new TextField<>(ID_RELATION, new PropertyModel<String>(getModel(), AssignmentEditorDto.F_RELATION));
         relation.setEnabled(false);
         body.add(relation);
 
@@ -270,6 +334,16 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 query.setFilter(filter);
 
                 return query;
+            }
+
+            @Override
+            protected boolean isSearchEnabled() {
+                return true;
+            }
+
+            @Override
+            protected QName getSearchProperty() {
+                return OrgType.F_NAME;
             }
         };
         tenantRefContainer.add(tenantRef);
@@ -454,10 +528,15 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         }
 
         OperationResult result = new OperationResult(OPERATION_LOAD_ATTRIBUTES);
-        List<ACAttributeDto> attributes = new ArrayList<ACAttributeDto>();
+        List<ACAttributeDto> attributes = new ArrayList<>();
         try {
             ConstructionType construction = WebMiscUtil.getContainerValue(dto.getOldValue(),
                     AssignmentType.F_CONSTRUCTION, ConstructionType.class);
+
+            if(construction == null){
+                return attributes;
+            }
+
             PrismObject<ResourceType> resource = construction.getResource() != null
                     ? construction.getResource().asPrismObject() : null;
             if (resource == null) {
@@ -467,8 +546,14 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
             PrismContext prismContext = getPageBase().getPrismContext();
             RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
                     LayerType.PRESENTATION, prismContext);
-            PrismContainerDefinition definition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent())
-            		.toResourceAttributeContainerDefinition();
+            RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
+
+            if(objectClassDefinition == null){
+                return attributes;
+            }
+
+            PrismContainerDefinition definition = objectClassDefinition.toResourceAttributeContainerDefinition();
+
             if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Refined definition for {}\n{}", construction, definition.debugDump());
 			}
@@ -623,5 +708,10 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 return oid;
             }
         };
+    }
+
+    private void showErrorPerformed(AjaxRequestTarget target){
+        error(getString("AssignmentEditorPanel.targetError"));
+        target.add(getPageBase().getFeedbackPanel());
     }
 }

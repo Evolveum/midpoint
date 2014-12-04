@@ -260,7 +260,10 @@ public class ObjectWrapper implements Serializable, Revivable {
         ContainerWrapper wrapper = new ContainerWrapper(this, container, status, new ItemPath(name), pageBase);
         addSubresult(wrapper.getResult());
 		list.add(wrapper);
+//		list.addAll(createContainerWrapper(container, null, pageBase)); 
+		if (!ShadowType.F_ASSOCIATION.equals(name)){
 		list.addAll(createContainerWrapper(container, new ItemPath(name), pageBase));     // [pm] is this OK? "name" is the name of the container itself; originally here was an empty path - that seems more logical
+		}
 
 		return list;
 	}
@@ -305,7 +308,10 @@ public class ObjectWrapper implements Serializable, Revivable {
 				
 				PrismContainer<ShadowAssociationType> associationContainer = object.findContainer(ShadowType.F_ASSOCIATION);
 				if (associationContainer != null) {
-					containers.addAll(createCustomContainerWrapper(object, ShadowType.F_ASSOCIATION, pageBase));
+					container = new ContainerWrapper(this, associationContainer, ContainerStatus.MODIFYING, new ItemPath(
+							ShadowType.F_ASSOCIATION), pageBase);
+	                addSubresult(container.getResult());
+	                containers.add(container);
 				}
             } else if (ResourceType.class.isAssignableFrom(clazz)) {
                 containers = createResourceContainers(pageBase);
@@ -357,11 +363,8 @@ public class ObjectWrapper implements Serializable, Revivable {
     private List<ContainerWrapper> createResourceContainers(PageBase pageBase) throws SchemaException {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
         PrismObject<ConnectorType> connector = loadConnector();
-
-        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_CONFIGURATION_PROPERTIES, connector, pageBase));
-        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_CONNECTOR_POOL_CONFIGURATION, connector, pageBase));
-        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_TIMEOUTS, connector, pageBase));
-
+ 
+        containers.addAll(createResourceContainerWrapper(connector, pageBase));
         return containers;
     }
 
@@ -371,30 +374,22 @@ public class ObjectWrapper implements Serializable, Revivable {
         //todo reimplement
     }
 
-    private ContainerWrapper createResourceContainerWrapper(QName name, PrismObject<ConnectorType> connector, PageBase pageBase)
+    private List<ContainerWrapper> createResourceContainerWrapper(PrismObject<ConnectorType> connector, PageBase pageBase)
         throws SchemaException {
 
         PrismContainer container = object.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-        if (container != null && container.size() == 1 &&  container.getValue() != null) {
-            PrismContainerValue value = container.getValue();
-            container = value.findContainer(name);
-        }
 
+        ConnectorType connectorType = connector.asObjectable();
+        PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType, connector.getPrismContext());
+        PrismContainerDefinition definition = ConnectorTypeUtil.findConfigurationContainerDefintion(connectorType, schema);
+        
         ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         if (container == null) {
-            ConnectorType connectorType = connector.asObjectable();
-            PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType, connector.getPrismContext());
-            PrismContainerDefinition definition = ConnectorTypeUtil.findConfigurationContainerDefintion(connectorType, schema);
-
-            definition = definition.findContainerDefinition(new ItemPath(name));
             container =  definition.instantiate();
         }
-
-        ContainerWrapper wrapper = new ContainerWrapper(this, container, status,
-                new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, name), pageBase);
-        addSubresult(wrapper.getResult());
-
-        return wrapper;
+        
+        return createContainerWrapper(container, new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION), pageBase);
+        
     }
 
 	private List<ContainerWrapper> createContainerWrapper(PrismContainer parent, ItemPath path, PageBase pageBase) {
@@ -417,6 +412,7 @@ public class ObjectWrapper implements Serializable, Revivable {
             if (TriggerType.COMPLEX_TYPE.equals(def.getTypeName())) {
                 continue;       // TEMPORARY FIX TODO: remove after getEditSchema (authorization) will be fixed.
             }
+           
             LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
 
 			PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
@@ -432,9 +428,12 @@ public class ObjectWrapper implements Serializable, Revivable {
             }
 
 			ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
-			PrismContainer prismContainer = object.findContainer(def.getName());
-            ContainerWrapper container;
-			if (prismContainer != null) {
+			
+			PrismContainer prismContainer = null;
+			 prismContainer = parent.findContainer(def.getName());
+			 
+			 ContainerWrapper container;
+			if (prismContainer != null && !prismContainer.getElementName().equals(CredentialsType.F_PASSWORD)) {
                 container = new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING, newPath, pageBase);
 			} else {
 				prismContainer = containerDef.instantiate();
@@ -443,7 +442,7 @@ public class ObjectWrapper implements Serializable, Revivable {
             addSubresult(container.getResult());
             wrappers.add(container);
 
-            if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {      // do not show internals of Assignments (e.g. activation)
+            if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName()) ||  !ShadowType.F_ASSOCIATION.equals(parent.getElementName())){      // do not show internals of Assignments (e.g. activation)
 			    wrappers.addAll(createContainerWrapper(prismContainer, newPath, pageBase));
             }
 		}
@@ -668,7 +667,7 @@ public class ObjectWrapper implements Serializable, Revivable {
         Collections.sort(containers, new ItemWrapperComparator());
         
         if (InternalsConfig.consistencyChecks) {
-        	delta.checkConsistence(true, true, true);
+        	delta.checkConsistence(true, true, true, ConsistencyCheckScope.THOROUGH);
         }
 
 		return delta;

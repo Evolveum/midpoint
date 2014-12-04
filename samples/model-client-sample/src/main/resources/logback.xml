@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<appender name="CLIENT" class="ch.qos.logback.core.FileAppender">
+		<file>./target/client.log</file>
+		<encoder>
+			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+		</encoder>
+	</appender>
+
+    <logger name="ddd" level="INFO" />
+    <root level="INFO">
+        <appender-ref ref="CLIENT"/>
+    </root>
+</configuration>

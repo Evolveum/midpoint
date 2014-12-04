@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.io.Serializable;
 
@@ -71,23 +72,26 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		return query;
 	}
 	
-	public static <T extends Objectable> boolean match(PrismObject<T> object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry){
+	public static <T extends Objectable> boolean match(PrismObject<T> object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
 		return filter.match(object, matchingRuleRegistry);
 //		return false;
 	}
 	
 	public ObjectQuery clone() {
-		ObjectQuery clone = new ObjectQuery();
+		ObjectQuery clone = cloneEmpty();
 		if (this.filter != null) {
 			clone.filter = this.filter.clone();
-		}
-		if (this.paging != null) {
-			clone.paging = this.paging.clone();
 		}
 		return clone;
 	}
 	
-	
+	public ObjectQuery cloneEmpty() {
+		ObjectQuery clone = new ObjectQuery();
+		if (this.paging != null) {
+			clone.paging = this.paging.clone();
+		}
+		return clone;
+	}	
 
 	@Override
 	public String debugDump() {

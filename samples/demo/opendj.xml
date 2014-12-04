@@ -50,7 +50,7 @@
 
 	 <connectorConfiguration>
 		<icfc:configurationProperties
-			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector">
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
 			<icfcldap:port>1389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
 			<icfcldap:baseContexts>ou=people,dc=example,dc=com</icfcldap:baseContexts>
@@ -163,7 +163,7 @@
                   <xsd:element minOccurs="0" name="displayName" type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string"/>
-                  <xsd:element ref="icfs:name">
+                  <xsd:element minOccurs="0" ref="icfs:name">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayName>ICF NAME</a:displayName>
@@ -190,7 +190,7 @@
                                type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string"/>
-                  <xsd:element maxOccurs="unbounded" name="sn" type="xsd:string"/>
+                  <xsd:element maxOccurs="unbounded" minOccurs="0" name="sn" type="xsd:string"/>
                   <xsd:element minOccurs="0" name="ds-pwp-account-disabled" type="xsd:string">
                      <xsd:annotation>
                         <xsd:appinfo>
@@ -209,12 +209,12 @@
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="x500UniqueIdentifier"
                                type="xsd:base64Binary"/>
-                  <xsd:element maxOccurs="unbounded" name="cn" type="xsd:string"/>
+                  <xsd:element maxOccurs="unbounded" minOccurs="0" name="cn" type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator"
                                type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber" type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string"/>
-		  <xsd:element maxOccurs="unbounded" name="ldapGroups" type="xsd:string"/>
+		  <xsd:element maxOccurs="unbounded" minOccurs="0" name="ldapGroups" type="xsd:string"/>
                </xsd:sequence>
             </xsd:complexType>
 
@@ -241,7 +241,7 @@
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string"/>
-                  <xsd:element ref="icfs:name">
+                  <xsd:element minOccurs="0" ref="icfs:name">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayName>ICF NAME</a:displayName>
@@ -252,7 +252,7 @@
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string"/>
-                  <xsd:element maxOccurs="unbounded" name="cn" type="xsd:string"/>
+                  <xsd:element maxOccurs="unbounded" minOccurs="0" name="cn" type="xsd:string"/>
                   <xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string">
                      <xsd:annotation>
                         <xsd:appinfo>
@@ -266,7 +266,7 @@
          </xsd:schema>
       </definition>
    </schema>
-      
+    
 	<schemaHandling>
 		<objectType>
 			<intent>default</intent>
@@ -290,10 +290,23 @@
 			<attribute>
 				<ref>icfs:uid</ref>
 				<displayName>Entry UUID</displayName>
+				<limitations>
+                    <access>
+                        <read>true</read>
+                    </access>
+                </limitations>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
 				<displayName>Common Name</displayName>
+				<limitations>
+					<minOccurs>0</minOccurs>
+					<access>
+                        <read>true</read>
+						<add>true</add>
+						<modify>true</modify>
+					</access>
+				</limitations>
 				<outbound>
 					<source>
 						<path>$user/fullName</path>
@@ -309,6 +322,9 @@
 			<attribute>
 				<ref>ri:sn</ref>
 				<displayName>Surname</displayName>
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
 				<outbound>
 					<source>
 						<path>familyName</path>
@@ -339,6 +355,12 @@
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
+				<limitations>
+                    <access>
+                        <read>true</read>
+                        <add>true</add>
+                    </access>
+                </limitations>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -445,11 +467,9 @@
                     </inbound>
                 </password>
             </credentials>
-            
 		</objectType>
 	</schemaHandling>
-
-
+	
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
     	<configured>
             <cap:activation>
@@ -464,6 +484,12 @@
 
         <synchronization>
 		<objectSynchronization>
+		<name>sync</name>
+                        
+						<objectClass>ri:AccountObjectClass</objectClass>
+                        <kind>account</kind>
+                        <intent>default</intent>
+
 	            <enabled>true</enabled>
 	
 	            <correlation>

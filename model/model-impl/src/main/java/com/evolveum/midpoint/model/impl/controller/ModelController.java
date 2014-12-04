@@ -26,6 +26,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
@@ -34,13 +35,14 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
-
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -106,6 +108,8 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -343,6 +347,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
         rootOptionsNoResolve.setResolveNames(false);
         rootOptionsNoResolve.setResolve(false);
         rootOptionsNoResolve.setRaw(true);
+        //rootOptionsNoResolve.setAllowNotFound(true);           // does not work reliably yet
 
         object.accept(new Visitor() {
             @Override
@@ -356,8 +361,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
                             // TODO use some minimalistic get options (e.g. retrieve name only)
                             refObject = objectResolver.resolve(refVal, "", rootOptionsNoResolve, task, result);
                         } catch (ObjectNotFoundException e) {
-                            // can be safely ignored
-                            result.recordHandledError(e.getMessage());
+                            // actually, this won't occur if AllowNotFound is set to true above (however, for now, it is not)
+                            result.muteError();
+                            result.muteLastSubresultError();
                         }
                     }
                     String name;
@@ -409,13 +415,21 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 		}
 	}
-	
+
+    @Override
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
+                                                                                 Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            PolicyViolationException, SecurityViolationException {
+        return executeChanges(deltas, options, task, null, parentResult);
+    }
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.ModelService#executeChanges(java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
 	public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			Task task, Collection<ProgressListener> statusListeners, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
 
@@ -510,6 +524,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			} else {				
 				
 				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
+                context.setProgressListeners(statusListeners);
 				// Note: Request authorization happens inside clockwork
 				clockwork.run(context, task, result);
 
@@ -917,7 +932,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
     }
 
 	@Override
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(type, "Object type must not be null.");
@@ -943,10 +958,10 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			LOGGER.trace("Security denied the search");
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Denied");
 			RepositoryCache.exit();
-			return new ArrayList<>();
+			return new SearchResultList(new ArrayList<>());
 		}
 		
-		List<PrismObject<T>> list = null;
+		SearchResultList<PrismObject<T>> list = null;
 		try {
 			if (query != null){
                 if (query.getPaging() == null) {
@@ -993,7 +1008,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 
 			if (list == null) {
-				list = new ArrayList<PrismObject<T>>();
+				list = new SearchResultList(new ArrayList<PrismObject<T>>());
 			}
 
             for (PrismObject<T> object : list) {
@@ -1002,8 +1017,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                         hook.invoke(object, options, task, result);
                     }
                 }
-                // TODO enable when necessary
-                //resolveNames(object, options, task, result);
+                resolveNames(object, options, task, result);
             }
 
 		} finally {
@@ -1016,7 +1030,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	@Override
-	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
 			final ResultHandler<T> handler, final Collection<SelectorOptions<GetOperationOptions>> options,
             final Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -1042,7 +1056,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			LOGGER.trace("Security denied the search");
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Denied");
 			RepositoryCache.exit();
-			return;
+			return null;
 		}
 		
         ResultHandler<T> internalHandler = new ResultHandler<T>() {
@@ -1055,8 +1069,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                             hook.invoke(object, options, task, result);     // TODO result or parentResult??? [med]
                         }
                     }
-                    // TODO enable when necessary
-                    //resolveNames(object, options, task, parentResult);
+                    resolveNames(object, options, task, parentResult);
                     postProcessObject(object, rootOptions, parentResult);
                 } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
                         | CommunicationException | ConfigurationException ex) {
@@ -1068,6 +1081,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 		};
         
+		SearchResultMetadata metadata;
 		try {
 			if (query != null){
                 if (query.getPaging() == null) {
@@ -1081,8 +1095,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			
 			try {
                 switch (searchProvider) {
-                    case REPOSITORY: cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result); break;
-                    case PROVISIONING: provisioning.searchObjectsIterative(type, query, options, internalHandler, result); break;
+                    case REPOSITORY: metadata = cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result); break;
+                    case PROVISIONING: metadata = provisioning.searchObjectsIterative(type, query, options, internalHandler, result); break;
                     case TASK_MANAGER: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     case WORKFLOW: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
@@ -1115,6 +1129,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		} finally {
 			RepositoryCache.exit();
 		}
+		
+		return metadata;
 	}
 
 	private void processSearchException(Exception e, GetOperationOptions rootOptions,
@@ -1133,7 +1149,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 
 	@Override
-	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
+	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, CommunicationException {
 
@@ -1151,7 +1167,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			return 0;
 		}
 
-		int count;
+		Integer count;
 		try {
 			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
@@ -1612,7 +1628,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 					tolerateRaw = true;
 				}
 			}
-			object.checkConsistence(true, !tolerateRaw);
+			object.checkConsistence(true, !tolerateRaw, ConsistencyCheckScope.THOROUGH);
 		} catch (RuntimeException e) {
 			result.recordFatalError(e);
 			throw e;

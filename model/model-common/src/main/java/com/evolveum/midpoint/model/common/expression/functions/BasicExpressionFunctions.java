@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -339,7 +340,49 @@ public class BasicExpressionFunctions {
 	public Collection<String> getAttributeStringValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
 		return ShadowUtil.getAttributeValues(shadow, attributeQname, String.class);
 	}
-			
+	
+	public <T> T getIdentifierValue(ShadowType shadow) throws SchemaException {
+		if (shadow == null) {
+			return null;
+		}
+		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
+		if (identifiers.size() == 0) {
+			return null;
+		}
+		if (identifiers.size() > 1) {
+			throw new SchemaException("More than one idenfier in "+shadow);
+		}
+		Collection<T> realValues = (Collection<T>) identifiers.iterator().next().getRealValues();
+		if (realValues.size() == 0) {
+			return null;
+		}
+		if (realValues.size() > 1) {
+			throw new SchemaException("More than one idenfier value in "+shadow);
+		}
+		return realValues.iterator().next();
+	}
+
+	public <T> T getSecondaryIdentifierValue(ShadowType shadow) throws SchemaException {
+		if (shadow == null) {
+			return null;
+		}
+		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+		if (identifiers.size() == 0) {
+			return null;
+		}
+		if (identifiers.size() > 1) {
+			throw new SchemaException("More than one secondary idenfier in "+shadow);
+		}
+		Collection<T> realValues = (Collection<T>) identifiers.iterator().next().getRealValues();
+		if (realValues.size() == 0) {
+			return null;
+		}
+		if (realValues.size() > 1) {
+			throw new SchemaException("More than one secondary idenfier value in "+shadow);
+		}
+		return realValues.iterator().next();
+	}
+
 	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, PrismProperty attribute) throws NamingException {
 		return determineLdapSingleAttributeValue(dns, attributeName, attribute.getRealValues());
 	}

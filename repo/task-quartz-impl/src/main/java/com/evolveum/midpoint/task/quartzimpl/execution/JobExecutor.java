@@ -27,7 +27,6 @@ import org.apache.commons.lang.Validate;
 import org.quartz.*;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -43,7 +42,7 @@ public class JobExecutor implements InterruptableJob {
     private static final String DOT_CLASS = JobExecutor.class.getName() + ".";
 
     /*
-     * Ugly hack - this class is instantiated not by Spring but explicity by Quartz.
+     * Ugly hack - this class is instantiated not by Spring but explicitly by Quartz.
      */
 	public static void setTaskManagerQuartzImpl(TaskManagerQuartzImpl tmqi) {
 		taskManagerImpl = tmqi;
@@ -170,6 +169,8 @@ public class JobExecutor implements InterruptableJob {
 			}
 		
 		} finally {
+            waitForTransientChildrenAndCloseThem(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
+
             taskManagerImpl.unregisterRunningTask(task);
             executingThread = null;
 
@@ -182,6 +183,20 @@ public class JobExecutor implements InterruptableJob {
 		}
 
 	}
+
+    private void waitForTransientChildrenAndCloseThem(OperationResult result) {
+        taskManagerImpl.waitForTransientChildren(task, result);
+
+        // at this moment, there should be no executing child tasks... we just clean-up all runnables that had not started
+        for (Task subtask : task.getLightweightAsynchronousSubtasks()) {
+            if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+                if (((TaskQuartzImpl) subtask).getLightweightHandlerFuture() == null) {
+                    LOGGER.trace("Lightweight task handler for subtask {} has not started yet; closing the task.", subtask);
+                    closeTask(task, result);
+                }
+            }
+        }
+    }
 
     // returns true if the execution of the task should continue
     private boolean processTaskRecovery(OperationResult executionResult) {
@@ -279,11 +294,10 @@ public class JobExecutor implements InterruptableJob {
 
 		try {
 			
-			RepositoryCache.enter();
 			TaskRunResult runResult = null;
 
 			recordCycleRunStart(executionResult, handler);
-            runResult = executeHandler(handler);        // exceptions thrown by handler are handled in this method
+            runResult = executeHandler(handler, executionResult);        // exceptions thrown by handler are handled in executeHandler()
 
             // we should record finish-related information before dealing with (potential) task closure/restart
             // so we place this method call before the following block
@@ -318,8 +332,6 @@ public class JobExecutor implements InterruptableJob {
 		} catch (Throwable t) {
 			LoggingUtils.logException(LOGGER, "An exception occurred during processing of task {}", t, task);
 			//throw new JobExecutionException("An exception occurred during processing of task " + task, t);
-		} finally {
-			RepositoryCache.exit();
 		}
 	}
 	
@@ -342,18 +354,12 @@ mainCycle:
 				
 				LOGGER.trace("CycleRunner loop: start");
 
-				RepositoryCache.enter();
-
                 TaskRunResult runResult;
-                try {
-				    recordCycleRunStart(executionResult, handler);
-				    runResult = executeHandler(handler);
-				    boolean canContinue = recordCycleRunFinish(runResult, handler, executionResult);
-                    if (!canContinue) { // in case of task disappeared
-                        break;
-                    }
-                } finally {
-    				RepositoryCache.exit();
+                recordCycleRunStart(executionResult, handler);
+                runResult = executeHandler(handler, executionResult);
+                boolean canContinue = recordCycleRunFinish(runResult, handler, executionResult);
+                if (!canContinue) { // in case of task disappeared
+                    break;
                 }
 
                 // let us treat various exit situations here...
@@ -460,7 +466,7 @@ mainCycle:
 		}
 	}
 	
-    private TaskRunResult executeHandler(TaskHandler handler) {
+    private TaskRunResult executeHandler(TaskHandler handler, OperationResult executionResult) {
 
     	TaskRunResult runResult;
     	try {
@@ -473,14 +479,16 @@ mainCycle:
     		runResult = handler.run(task);
     		if (runResult == null) {				// Obviously an error in task handler
                 LOGGER.error("Unable to record run finish: task returned null result");
-				return createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
-			} else {
-    		    return runResult;
-            }
+				runResult = createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
+			}
     	} catch (Throwable t) {
 			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", new Object[] { t.getClass().getName(), t.getMessage(), task, t});
-            return createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
+            runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
     	}
+
+        waitForTransientChildrenAndCloseThem(executionResult);
+
+        return runResult;
 	}
 
     private TaskRunResult createFailureTaskRunResult(String message, Throwable t) {
@@ -562,19 +570,48 @@ mainCycle:
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
 		LOGGER.trace("Trying to shut down the task " + task + ", executing in thread " + executingThread);
+
+        boolean interruptsAlways = taskManagerImpl.getConfiguration().getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS;
+        boolean interruptsMaybe = taskManagerImpl.getConfiguration().getUseThreadInterrupt() != UseThreadInterrupt.NEVER;
         if (task != null) {
-		    task.signalShutdown();
-		    if (taskManagerImpl.getConfiguration().getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS) {
-                sendThreadInterrupt();
+            synchronized (task) {
+                task.unsetCanRun();
+                for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+                    TaskQuartzImpl subtaskq = (TaskQuartzImpl) subtask;
+                    subtaskq.unsetCanRun();
+                    // if we want to cancel the Future using interrupts, we have to do it now
+                    // because after calling cancel(false) subsequent calls to cancel(true) have no effect whatsoever
+                    subtaskq.getLightweightHandlerFuture().cancel(interruptsMaybe);
+                }
+            }
+		    if (interruptsAlways) {
+                sendThreadInterrupt(false);         // subtasks were interrupted by their futures
             }
         }
 	}
 
     public void sendThreadInterrupt() {
+        sendThreadInterrupt(true);
+    }
+
+    public void sendThreadInterrupt(boolean alsoSubtasks) {
         if (executingThread != null) {			// in case this method would be (mistakenly?) called after the execution is over
             LOGGER.trace("Calling Thread.interrupt on thread {}.", executingThread);
             executingThread.interrupt();
             LOGGER.trace("Thread.interrupt was called on thread {}.", executingThread);
         }
+        if (alsoSubtasks) {
+            synchronized (task) {
+                for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+                    LOGGER.trace("Calling Future.cancel(mayInterruptIfRunning:=true) on a future for LAT subtask {}", subtask);
+                    ((TaskQuartzImpl) subtask).getLightweightHandlerFuture().cancel(true);
+                }
+            }
+        }
+    }
+
+    // should be used only for testing
+    public Thread getExecutingThread() {
+        return executingThread;
     }
 }

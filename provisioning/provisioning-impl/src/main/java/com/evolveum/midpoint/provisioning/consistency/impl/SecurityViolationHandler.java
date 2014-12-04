@@ -76,7 +76,7 @@ public class SecurityViolationHandler extends ErrorHandler{
 		
 		if (op != FailedOperation.GET){
 //		Task task = taskManager.createTaskInstance();
-		ResourceOperationDescription operationDescription = createOperationDescription(shadow, shadow.getResource(),
+		ResourceOperationDescription operationDescription = createOperationDescription(shadow, ex, shadow.getResource(),
 				delta, task, parentResult);
 		changeNotificationDispatcher.notifyFailure(operationDescription, task, parentResult);
 		}

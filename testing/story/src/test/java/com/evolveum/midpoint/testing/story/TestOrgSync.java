@@ -19,8 +19,10 @@ package com.evolveum.midpoint.testing.story;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -127,6 +129,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final String ACCOUNT_LEMONHEAD_USERNAME = "lemonhead";
 	private static final String ACCOUNT_LEMONHEAD_FIST_NAME = "Lemonhead";
 	private static final String ACCOUNT_LEMONHEAD_LAST_NAME = "Canibal";
+    private static final String ACCOUNT_LEMONHEAD_DN = "uid=lemonhead,ou=Monkey Island,dc=example,dc=com";
 
 	private static final String ACCOUNT_SHARPTOOTH_USERNAME = "sharptooth";
 	private static final String ACCOUNT_SHARPTOOTH_FIST_NAME = "Sharptooth";
@@ -189,12 +192,13 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final String ORGPATH_HRAD = HRAD+"/"+ORGPATH_KARPATULA;
 	
 	private static final String RESP_CANIBALISM = "canibalism";
-	
+    private static final String RESP_CANIBALISM_DN = "cn=R_canibalism,ou=Groups,dc=example,dc=com";
+
 	private static final File SCABB_OU_LDIF_FILE = new File(TEST_DIR, "scabb.ldif");
 	private static final File BOOTY_OU_LDIF_FILE = new File(TEST_DIR, "booty.ldif");
 	private static final File BOOTY_LOOKOUT_OU_LDIF_FILE = new File(TEST_DIR, "booty-lookout.ldif");
-	
-	@Autowired(required=true)
+
+    @Autowired(required=true)
 	private ReconciliationTaskHandler reconciliationTaskHandler;
 	
 	private DebugReconciliationTaskResultListener reconciliationTaskResultListener;
@@ -1004,8 +1008,55 @@ public class TestOrgSync extends AbstractStoryTest {
         display("Recon task result", reconTaskResult);
         TestUtil.assertSuccess(reconTaskResult);
 	}
-	
-	protected void assertUserGuybrush(PrismObject<UserType> user) {
+
+    @Test
+    public void test550ReconcileOpenDJAfterMembershipChange() throws Exception {
+        final String TEST_NAME = "test550ReconcileOpenDJAfterMembershipChange";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // We manually remove Lemonhead from R_canibalism group
+        // And check whether reconciliation re-adds him again
+
+        // GIVEN
+        Task task = createTask(TestOrgSync.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        Collection<String> membersBeforeTest = openDJController.getGroupUniqueMembers(RESP_CANIBALISM_DN);
+        System.out.println("group members before test = " + membersBeforeTest);
+        assertTrue(RESP_CANIBALISM_DN + " does not contain " + ACCOUNT_LEMONHEAD_DN, membersBeforeTest.contains(ACCOUNT_LEMONHEAD_DN));
+
+        openDJController.removeGroupUniqueMember(RESP_CANIBALISM_DN, ACCOUNT_LEMONHEAD_DN);
+
+        System.out.println("group members after removal = " + openDJController.getGroupUniqueMembers(RESP_CANIBALISM_DN));
+
+        openDJController.assertNoUniqueMember(RESP_CANIBALISM_DN, ACCOUNT_LEMONHEAD_DN);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        restartTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+
+        waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+
+        // Task result
+        PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
+        OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
+        display("Recon task result", reconTaskResult);
+        TestUtil.assertSuccess(reconTaskResult);
+
+        Collection<String> membersAfterTest = openDJController.getGroupUniqueMembers(RESP_CANIBALISM_DN);
+        System.out.println("group members after test = " + membersAfterTest);
+        assertTrue(RESP_CANIBALISM_DN + " does not contain " + ACCOUNT_LEMONHEAD_DN, membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN.toLowerCase()));    // ...it seems to get lowercased during the reconciliation
+    }
+
+
+    protected void assertUserGuybrush(PrismObject<UserType> user) {
 		assertUser(user, ACCOUNT_GUYBRUSH_USERNAME, ACCOUNT_GUYBRUSH_FIST_NAME, ACCOUNT_GUYBRUSH_LAST_NAME);
 	}
 

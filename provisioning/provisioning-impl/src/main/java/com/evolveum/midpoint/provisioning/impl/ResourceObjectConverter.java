@@ -18,15 +18,22 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -39,15 +46,16 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
@@ -64,6 +72,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -75,7 +84,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -148,7 +156,7 @@ public class ResourceObjectConverter {
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(objectClassDefinition, resource);
 		
 		PrismObject<ShadowType> resourceShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, 
-				attributesToReturn, parentResult);
+				attributesToReturn, true, parentResult);			// todo consider whether it is always necessary to fetch the entitlements
 		
 		return resourceShadow;
 
@@ -165,7 +173,7 @@ public class ResourceObjectConverter {
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(objectClassDefinition, resource);
 		
 		if (hasAllIdentifiers(identifiers, objectClassDefinition)) {
-			return fetchResourceObject(connector, resource, objectClassDefinition, identifiers, attributesToReturn, parentResult);
+			return fetchResourceObject(connector, resource, objectClassDefinition, identifiers, attributesToReturn, true, parentResult);	// todo consider whether it is always necessary to fetch the entitlements
 		} else {
 			// Search
 			Collection<? extends RefinedAttributeDefinition> secondaryIdentifierDefs = objectClassDefinition.getSecondaryIdentifiers();
@@ -187,8 +195,17 @@ public class ResourceObjectConverter {
 			}
 			
 			final ResourceAttribute<?> finalSecondaryIdentifier = secondaryIdentifier;
-			
-			ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()), secondaryIdentifierDef, secondaryIdentifier.getValue());
+
+            List<PrismPropertyValue> secondaryIdentifierValues = (List) secondaryIdentifier.getValues();
+            PrismPropertyValue secondaryIdentifierValue;
+            if (secondaryIdentifierValues.size() > 1) {
+                throw new IllegalStateException("Secondary identifier has more than one value: " + secondaryIdentifier.getValues());
+            } else if (secondaryIdentifierValues.size() == 1) {
+                secondaryIdentifierValue = secondaryIdentifierValues.get(0);
+            } else {
+                secondaryIdentifierValue = null;
+            }
+			ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()), secondaryIdentifierDef, secondaryIdentifierValue);
 			ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 //			query.setFilter(filter);
 			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<PrismObject<ShadowType>>();
@@ -203,12 +220,12 @@ public class ResourceObjectConverter {
 				}
 			};
 			try {
-				connector.search(objectClassDefinition, query, handler, attributesToReturn, parentResult);
+				connector.search(objectClassDefinition, query, handler, attributesToReturn, null, parentResult);
 				if (shadowHolder.isEmpty()) {
 					throw new ObjectNotFoundException("No object found for secondary identifier "+secondaryIdentifier);
 				}
 				PrismObject<ShadowType> shadow = shadowHolder.getValue();
-				return postProcessResourceObjectRead(connector, resource, shadow, objectClassDefinition, parentResult);
+				return postProcessResourceObjectRead(connector, resource, shadow, objectClassDefinition, true, parentResult);
 			} catch (GenericFrameworkException e) {
 				throw new GenericConnectorException(e.getMessage(), e);
 			}
@@ -284,18 +301,18 @@ public class ResourceObjectConverter {
 			applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
 		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
-					"Could not create account on the resource. Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
+					"Could not create object on the resource. Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with the connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
-			parentResult.recordFatalError("Could not create account on the resource. Generic error in connector: " + ex.getMessage(), ex);
+			parentResult.recordFatalError("Could not create object on the resource. Generic error in connector: " + ex.getMessage(), ex);
 //			LOGGER.info("Schema for add:\n{}",
 //					DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resource)));
 //			
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
 		} catch (ObjectAlreadyExistsException ex){
-			parentResult.recordFatalError("Could not create account on the resource. Account already exists on the resource: " + ex.getMessage(), ex);
-			throw new ObjectAlreadyExistsException("Account already exists on the resource: " + ex.getMessage(), ex);
+			parentResult.recordFatalError("Could not create object on the resource. Object already exists on the resource: " + ex.getMessage(), ex);
+			throw new ObjectAlreadyExistsException("Object already exists on the resource: " + ex.getMessage(), ex);
 		} catch (ConfigurationException ex){
 			parentResult.recordFatalError(ex);
 			throw ex;
@@ -331,7 +348,7 @@ public class ResourceObjectConverter {
 		//check idetifier if it is not null
 		if (identifiers.isEmpty() && shadow.asObjectable().getFailedOperationType()!= null){
 			throw new GenericConnectorException(
-					"Unable to delete account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+					"Unable to delete object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 		}
 		
 		// Execute entitlement modification on other objects (if needed)
@@ -396,7 +413,7 @@ public class ResourceObjectConverter {
 			} else {
 				// Return immediately. This structure of the code makes sure that we do not execute any
 				// resource operation for protected account even if there is a bug in the code below.
-				LOGGER.trace("No resource modfications for protected resource object {}: {}; skipping",
+				LOGGER.trace("No resource modifications for protected resource object {}: {}; skipping",
 						objectClassDefinition, identifiers);
 				return null;
 			}
@@ -414,12 +431,12 @@ public class ResourceObjectConverter {
          *
          *  We decide based on setting of explicitReferentialIntegrity in association definition.
          */
-        PrismObject<ShadowType> shadowBefore = shadow.clone();
+       
 
 		collectAttributeAndEntitlementChanges(itemDeltas, operations, resource, shadow, objectClassDefinition, parentResult);
 		
 		Collection<PropertyModificationOperation> sideEffectChanges = null;
-				
+		PrismObject<ShadowType> shadowBefore = shadow.clone();
 		if (operations.isEmpty()){
 			// We have to check BEFORE we add script operations, otherwise the check would be pointless
 			LOGGER.trace("No modifications for connector object specified. Skipping processing of modifyShadow.");
@@ -431,14 +448,17 @@ public class ResourceObjectConverter {
 			//check identifier if it is not null
 			if (identifiers.isEmpty() && shadow.asObjectable().getFailedOperationType()!= null){
 				throw new GenericConnectorException(
-						"Unable to modify account in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+						"Unable to modify object in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 			}
 	
 //			PrismObject<ShadowType> currentShadow = null;
-			if (avoidDuplicateValues(resource) || isRename(operations)) {
+			if (ResourceTypeUtil.isAvoidDuplicateValues(resource) || isRename(operations)) {
 				// We need to filter out the deltas that add duplicate values or remove values that are not there
-				shadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, null, parentResult);
+				LOGGER.trace("Fetching shadow for duplicate filtering and/or rename processing");
+				shadow = getShadowToFilterDuplicates(connector, resource, objectClassDefinition, identifiers, operations, true, parentResult);      // yes, we need associations here
+				shadowBefore = shadow.clone();
 			}
+
 			
 			// Execute primary ICF operation on this shadow
 			sideEffectChanges = executeModify(connector, resource, shadow, objectClassDefinition, identifiers, operations, parentResult);
@@ -458,6 +478,7 @@ public class ResourceObjectConverter {
         
         if (isRename(operations)){
 			Collection<PropertyModificationOperation> renameOperations = distillRenameDeltas(itemDeltas, shadowAfter, objectClassDefinition);
+			LOGGER.trace("Determining rename operation {}", renameOperations);
 			sideEffectChanges.addAll(renameOperations);
 		}
 
@@ -471,37 +492,39 @@ public class ResourceObjectConverter {
 	private Collection<PropertyModificationOperation> executeModify(ConnectorInstance connector, ResourceType resource, PrismObject<ShadowType> currentShadow, 
 			RefinedObjectClassDefinition objectClassDefinition, Collection<? extends ResourceAttribute<?>> identifiers, 
 					Collection<Operation> operations, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
-		Collection<PropertyModificationOperation> sideEffectChanges = null;
+		Collection<PropertyModificationOperation> sideEffectChanges = new HashSet<>();
 
 		if (operations.isEmpty()){
 			LOGGER.trace("No modifications for connector object. Skipping modification.");
+			// TODO [mederly] shouldn't "return new HashSet<>()" be here?
 		}
 		
 		// Invoke ICF
 		try {
 			
-			
-			
-			if (avoidDuplicateValues(resource)){
-				
-				if (currentShadow == null){
-					currentShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, null, parentResult);
+			if (ResourceTypeUtil.isAvoidDuplicateValues(resource)){
+
+				if (currentShadow == null) {
+					LOGGER.trace("Fetching shadow for duplicate filtering");
+					currentShadow = getShadowToFilterDuplicates(connector, resource, objectClassDefinition, identifiers, operations, false, parentResult);
 				}
 				
 				Collection<Operation> filteredOperations = new ArrayList(operations.size());
 				for (Operation origOperation: operations) {
 					if (origOperation instanceof PropertyModificationOperation) {
 						PropertyDelta<?> propertyDelta = ((PropertyModificationOperation)origOperation).getPropertyDelta();
-						PropertyDelta<?> filteredDelta = propertyDelta.narrow(currentShadow);
+						PropertyDelta<?> filteredDelta = narrowPropertyDelta(propertyDelta, currentShadow);
 						if (filteredDelta != null && !filteredDelta.isEmpty()) {
 							if (propertyDelta == filteredDelta) {
 								filteredOperations.add(origOperation);
+							} else if (filteredDelta == null && filteredDelta.isEmpty()) {
+									// nothing to do
 							} else {
 								PropertyModificationOperation newOp = new PropertyModificationOperation(filteredDelta);
 								filteredOperations.add(newOp);
 							}
 						}
-					}else if (origOperation instanceof ExecuteProvisioningScriptOperation){
+					} else if (origOperation instanceof ExecuteProvisioningScriptOperation){
 						filteredOperations.add(origOperation);					
 					}
 				}
@@ -523,21 +546,41 @@ public class ResourceObjectConverter {
 			if (!ResourceTypeUtil.hasUpdateCapability(resource)){
 				throw new UnsupportedOperationException("Resource does not support 'update' operation");
 			}
-			
-			sideEffectChanges = connector.modifyObject(objectClassDefinition, identifiers, operations,
-					parentResult);
-			
-			
-		LOGGER.debug("PROVISIONING MODIFY successful, side-effect changes {}",
-				SchemaDebugUtil.debugDump(sideEffectChanges));
+
+			Collection<ResourceAttribute<?>> identifiersWorkingCopy = cloneIdentifiers(identifiers);			// because identifiers can be modified e.g. on rename operation
+			List<Collection<Operation>> operationsWaves = sortOperationsIntoWaves(operations, objectClassDefinition);
+			LOGGER.trace("Operation waves: {}", operationsWaves.size());
+			for (Collection<Operation> operationsWave : operationsWaves) {
+				Collection<RefinedAttributeDefinition> readReplaceAttributes = determineReadReplace(operationsWave, objectClassDefinition);
+				LOGGER.trace("Read+Replace attributes: {}", readReplaceAttributes);
+				if (!readReplaceAttributes.isEmpty()) {
+					AttributesToReturn attributesToReturn = new AttributesToReturn();
+					attributesToReturn.setReturnDefaultAttributes(false);
+					attributesToReturn.setAttributesToReturn(readReplaceAttributes);
+					// TODO eliminate this fetch if this is first wave and there are no explicitly requested attributes
+					// but make sure currentShadow contains all required attributes
+					LOGGER.trace("Fetching object because of READ+REPLACE mode");
+					currentShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiersWorkingCopy, attributesToReturn, false, parentResult);
+					operationsWave = convertToReplace(operationsWave, currentShadow, objectClassDefinition);
+				}
+				Collection<PropertyModificationOperation> sideEffects =
+						connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, parentResult);
+				sideEffectChanges.addAll(sideEffects);
+				// we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
+			}
+
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("PROVISIONING MODIFY successful, side-effect changes {}",
+						SchemaDebugUtil.debugDump(sideEffectChanges));
+			}
 
 		} catch (ObjectNotFoundException ex) {
 			parentResult.recordFatalError("Object to modify not found: " + ex.getMessage(), ex);
 			throw new ObjectNotFoundException("Object to modify not found: " + ex.getMessage(), ex);
 		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
-					"Error communicationg with the connector " + connector + ": " + ex.getMessage(), ex);
-			throw new CommunicationException("Error comminicationg with connector " + connector + ": "
+					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
+			throw new CommunicationException("Error communicating with connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Schema violation: " + ex.getMessage(), ex);
@@ -560,63 +603,231 @@ public class ResourceObjectConverter {
 		
 		return sideEffectChanges;
 	}
-	
+
+	private PrismObject<ShadowType> getShadowToFilterDuplicates(ConnectorInstance connector, ResourceType resource, RefinedObjectClassDefinition objectClassDefinition, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> operations, boolean fetchEntitlements, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
+		PrismObject<ShadowType> currentShadow;
+		List<RefinedAttributeDefinition> neededExtraAttributes = new ArrayList<>();
+		for (Operation operation : operations) {
+            RefinedAttributeDefinition rad = getRefinedAttributeDefinitionIfApplicable(operation, objectClassDefinition);
+            if (rad != null && (!rad.isReturnedByDefault() || rad.getFetchStrategy() == AttributeFetchStrategyType.EXPLICIT)) {
+                neededExtraAttributes.add(rad);
+            }
+        }
+
+		AttributesToReturn attributesToReturn = new AttributesToReturn();
+		attributesToReturn.setAttributesToReturn(neededExtraAttributes);
+		currentShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, attributesToReturn, fetchEntitlements, parentResult);
+		return currentShadow;
+	}
+
+	private Collection<RefinedAttributeDefinition> determineReadReplace(Collection<Operation> operations, RefinedObjectClassDefinition objectClassDefinition) {
+		Collection<RefinedAttributeDefinition> retval = new ArrayList<>();
+		for (Operation operation : operations) {
+			RefinedAttributeDefinition rad = getRefinedAttributeDefinitionIfApplicable(operation, objectClassDefinition);
+			if (rad != null && isReadReplaceMode(rad, objectClassDefinition) && operation instanceof PropertyModificationOperation) {		// third condition is just to be sure
+				PropertyDelta propertyDelta = ((PropertyModificationOperation) operation).getPropertyDelta();
+				if (propertyDelta.isAdd() || propertyDelta.isDelete()) {
+					retval.add(rad);		// REPLACE operations are not needed to be converted to READ+REPLACE
+				}
+			}
+		}
+		return retval;
+	}
+
+	private boolean isReadReplaceMode(RefinedAttributeDefinition rad, RefinedObjectClassDefinition objectClassDefinition) {
+		if (rad.getReadReplaceMode() != null) {
+			return rad.getReadReplaceMode();
+		}
+		// READ+REPLACE mode is if addRemoveAttributeCapability is NOT present
+		return objectClassDefinition.getEffectiveCapability(AddRemoveAttributeValuesCapabilityType.class) == null;
+	}
+
+	private RefinedAttributeDefinition getRefinedAttributeDefinitionIfApplicable(Operation operation, RefinedObjectClassDefinition objectClassDefinition) {
+		if (operation instanceof PropertyModificationOperation) {
+			PropertyDelta propertyDelta = ((PropertyModificationOperation) operation).getPropertyDelta();
+			if (isAttributeDelta(propertyDelta)) {
+				QName attributeName = propertyDelta.getElementName();
+				return objectClassDefinition.findAttributeDefinition(attributeName);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 *  Converts ADD/DELETE VALUE operations into REPLACE VALUE, if needed
+	 */
+	private Collection<Operation> convertToReplace(Collection<Operation> operations, PrismObject<ShadowType> currentShadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+		List<Operation> retval = new ArrayList<>(operations.size());
+		for (Operation operation : operations) {
+			if (operation instanceof PropertyModificationOperation) {
+				PropertyDelta propertyDelta = ((PropertyModificationOperation) operation).getPropertyDelta();
+				if (isAttributeDelta(propertyDelta)) {
+					QName attributeName = propertyDelta.getElementName();
+					RefinedAttributeDefinition rad = objectClassDefinition.findAttributeDefinition(attributeName);
+					if (isReadReplaceMode(rad, objectClassDefinition) && (propertyDelta.isAdd() || propertyDelta.isDelete())) {
+						retval.add(convertToReplace(propertyDelta, currentShadow, rad.getMatchingRuleQName()));
+						continue;
+					}
+
+				}
+			}
+			retval.add(operation);		// for yet-unprocessed operations
+		}
+		return retval;
+	}
+
+	private PropertyModificationOperation convertToReplace(PropertyDelta<?> propertyDelta, PrismObject<ShadowType> currentShadow, QName matchingRuleQName) throws SchemaException {
+		if (propertyDelta.isReplace()) {
+			// this was probably checked before
+			throw new IllegalStateException("PropertyDelta is both ADD/DELETE and REPLACE");
+		}
+		// let's extract (parent-less) current values
+		PrismProperty<?> currentProperty = currentShadow.findProperty(propertyDelta.getPath());
+		Collection<PrismPropertyValue> currentValues = new ArrayList<>();
+		if (currentProperty != null) {
+			for (PrismPropertyValue currentValue : currentProperty.getValues()) {
+				currentValues.add(currentValue.clone());
+			}
+		}
+		final MatchingRule matchingRule;
+		if (matchingRuleQName != null) {
+			ItemDefinition def = propertyDelta.getDefinition();
+			QName typeName;
+			if (def != null) {
+				typeName = def.getTypeName();
+			} else {
+				typeName = null;		// we'll skip testing rule fitness w.r.t type
+			}
+			matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, typeName);
+		} else {
+			matchingRule = null;
+		}
+		Comparator comparator = new Comparator<PrismPropertyValue<?>>() {
+			@Override
+			public int compare(PrismPropertyValue<?> o1, PrismPropertyValue<?> o2) {
+				if (o1.equalsComplex(o2, true, false, matchingRule)) {
+					return 0;
+				} else {
+					return 1;
+				}
+			}
+		};
+		// add values that have to be added
+		if (propertyDelta.isAdd()) {
+			for (PrismPropertyValue valueToAdd : propertyDelta.getValuesToAdd()) {
+				if (!PrismPropertyValue.containsValue(currentValues, valueToAdd, comparator)) {
+					currentValues.add(valueToAdd.clone());
+				} else {
+					LOGGER.warn("Attempting to add a value of {} that is already present in {}: {}",
+							new Object[]{valueToAdd, propertyDelta.getElementName(), currentValues});
+				}
+			}
+		}
+		// remove values that should not be there
+		if (propertyDelta.isDelete()) {
+			for (PrismPropertyValue valueToDelete : propertyDelta.getValuesToDelete()) {
+				Iterator<PrismPropertyValue> iterator = currentValues.iterator();
+				boolean found = false;
+				while (iterator.hasNext()) {
+					PrismPropertyValue pValue = iterator.next();
+					LOGGER.trace("Comparing existing {} to about-to-be-deleted {}, matching rule: {}", new Object[]{pValue, valueToDelete, matchingRule});
+					if (comparator.compare(pValue, valueToDelete) == 0) {
+						LOGGER.trace("MATCH! compared existing {} to about-to-be-deleted {}", pValue, valueToDelete);
+						iterator.remove();
+						found = true;
+					}
+				}
+				if (!found) {
+					LOGGER.warn("Attempting to remove a value of {} that is not in {}: {}",
+							new Object[]{valueToDelete, propertyDelta.getElementName(), currentValues});
+				}
+			}
+		}
+		PropertyDelta resultingDelta = new PropertyDelta(propertyDelta.getPath(), propertyDelta.getPropertyDefinition(), propertyDelta.getPrismContext());
+		resultingDelta.setValuesToReplace(currentValues);
+		return new PropertyModificationOperation(resultingDelta);
+	}
+
+	private List<Collection<Operation>> sortOperationsIntoWaves(Collection<Operation> operations, RefinedObjectClassDefinition objectClassDefinition) {
+		TreeMap<Integer,Collection<Operation>> waves = new TreeMap<>();	// operations indexed by priority
+		List<Operation> others = new ArrayList<>();					// operations executed at the end (either non-priority ones or non-attribute modifications)
+		for (Operation operation : operations) {
+			RefinedAttributeDefinition rad = getRefinedAttributeDefinitionIfApplicable(operation, objectClassDefinition);
+			if (rad != null && rad.getModificationPriority() != null) {
+				putIntoWaves(waves, rad.getModificationPriority(), operation);
+				continue;
+			}
+			others.add(operation);
+		}
+		// computing the return value
+		List<Collection<Operation>> retval = new ArrayList<>(waves.size()+1);
+		Map.Entry<Integer,Collection<Operation>> entry = waves.firstEntry();
+		while (entry != null) {
+			retval.add(entry.getValue());
+			entry = waves.higherEntry(entry.getKey());
+		}
+		retval.add(others);
+		return retval;
+	}
+
+	private void putIntoWaves(Map<Integer, Collection<Operation>> waves, Integer key, Operation operation) {
+		Collection<Operation> wave = waves.get(key);
+		if (wave == null) {
+			wave = new ArrayList<>();
+			waves.put(key, wave);
+		}
+		wave.add(operation);
+	}
+
+	private Collection<ResourceAttribute<?>> cloneIdentifiers(Collection<? extends ResourceAttribute<?>> identifiers) {
+		Collection<ResourceAttribute<?>> retval = new HashSet<>(identifiers.size());
+		for (ResourceAttribute<?> identifier : identifiers) {
+			retval.add(identifier.clone());
+		}
+		return retval;
+	}
+
+	private <T> PropertyDelta<T> narrowPropertyDelta(PropertyDelta<T> propertyDelta,
+			PrismObject<ShadowType> currentShadow) throws SchemaException {
+		MatchingRule<T> matchingRule = null;
+		ItemDefinition propertyDef = propertyDelta.getDefinition();
+		if (propertyDef instanceof RefinedAttributeDefinition) {
+			QName matchingRuleQName = ((RefinedAttributeDefinition)propertyDef).getMatchingRuleQName();
+			if (matchingRuleQName != null) {
+				matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, propertyDef.getTypeName());
+			}
+		}
+		LOGGER.trace("Narrowing attr def={}, matchingRule={}",propertyDef,matchingRule);
+		PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, matchingRule);
+		return filteredDelta;
+	}
+
 	private boolean isRename(Collection<Operation> modifications){
 		for (Operation op : modifications){
 			if (!(op instanceof PropertyModificationOperation)){
 				continue;
 			}
 			
-			if (((PropertyModificationOperation)op).getPropertyDelta().getPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
+			if (((PropertyModificationOperation)op).getPropertyDelta().getPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
 				return true;
 			}
 		}
 		return false;
-//		return ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class) != null;
 	}
 	
-//	private Collection<PropertyModificationOperation> distillRenameDeltas(Collection<Operation> modifications, 
-//	PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
-//		
-//		PropertyModificationOperation nameDelta =null;
-//		
-//		for (Operation op : modifications){
-//			
-//			if (!(op instanceof PropertyModificationOperation)){
-//				continue;
-//			}
-//			
-//			if (((PropertyModificationOperation)op).getPropertyDelta().getPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
-//				nameDelta = (PropertyModificationOperation) op;
-//			}
-//		}
-//		
-//		PropertyDelta<String> namePropertyDelta = nameDelta.getPropertyDelta();
-//		
-//		PrismProperty<String> name = namePropertyDelta.getPropertyNew();
-//		String newName = name.getRealValue();
-//		
-//		Collection<PropertyModificationOperation> deltas = new ArrayList<PropertyModificationOperation>();
-//		
-//		// $shadow/attributes/icfs:name
-////		String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getElementName()));
-//		PropertyDelta<String> cloneNameDelta = namePropertyDelta.clone();
-//		cloneNameDelta.clearValuesToReplace();
-//		cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(newName));
-//		PropertyModificationOperation operation = new PropertyModificationOperation(cloneNameDelta);
-//		deltas.add(operation);
-//		
-//		// $shadow/name
-//		if (!newName.equals(shadow.asObjectable().getName().getOrig())){
-//			
-//			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
-//					ProvisioningUtil.determineShadowName(shadow));
-//			operation = new PropertyModificationOperation(shadowNameDelta);
-//			deltas.add(operation);
-//		}
-//	
-//		return deltas;
-//}
+	private boolean isRename(ItemDelta itemDelta){
+		
+		if (!(itemDelta instanceof PropertyDelta)){
+			return false;
+		}
+		
+		if (itemDelta.getPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
+			return true;
+		}
+		return false;
+	}
+	
+
 	private Collection<PropertyModificationOperation> distillRenameDeltas(Collection<? extends ItemDelta> modifications, 
 			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
 				
@@ -625,17 +836,17 @@ public class ResourceObjectConverter {
 			return null;
 		}
 				
-				PrismProperty<String> name = nameDelta.getPropertyNewMatchingPath();
-				String newName = name.getRealValue();
+//				PrismProperty<String> name = nameDelta.getPropertyNewMatchingPath();
+//				String newName = name.getRealValue();
 				
 				Collection<PropertyModificationOperation> deltas = new ArrayList<PropertyModificationOperation>();
 				
 				// $shadow/attributes/icfs:name
 //				String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getElementName()));
-				PropertyDelta<String> cloneNameDelta = nameDelta.clone();
-				cloneNameDelta.clearValuesToReplace();
-				cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(newName));
-				PropertyModificationOperation operation = new PropertyModificationOperation(cloneNameDelta);
+//				PropertyDelta<String> cloneNameDelta = nameDelta.clone();
+//				cloneNameDelta.clearValuesToReplace();
+//				cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(newName));
+				PropertyModificationOperation operation = new PropertyModificationOperation(nameDelta.clone());
 				deltas.add(operation);
 				
 				// $shadow/name
@@ -675,8 +886,43 @@ public class ResourceObjectConverter {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)itemDelta;				
 				entitlementConverter.collectEntitlementsAsObjectOperation(roMap, containerDelta, objectClassDefinition,
                         shadowBefore, shadowAfter, rSchema, resource);
+			} else if (isRename(itemDelta)){
+			
+				ContainerDelta<ShadowAssociationType> associationDelta = ContainerDelta.createDelta(ShadowType.F_ASSOCIATION, shadowBefore.getDefinition());
+				PrismContainer<ShadowAssociationType> association = shadowBefore.findContainer(ShadowType.F_ASSOCIATION);
+				if (association == null || association.isEmpty()){
+					LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change.");
+					continue;
+				}
+
+				// Delete + re-add association values that should ensure correct functioning in case of rename
+				// This has to be done only for associations that require explicit referential integrity.
+				// For these that do not, it is harmful (), so it must be skipped.
+				for (PrismContainerValue<ShadowAssociationType> associationValue : association.getValues()) {
+					QName associationName = associationValue.asContainerable().getName();
+					if (associationName == null) {
+						throw new IllegalStateException("No association name in " + associationValue);
+					}
+					LOGGER.trace("Processing association {} on rename", associationName);
+					RefinedAssociationDefinition associationDefinition = objectClassDefinition.findAssociation(associationName);
+					if (associationDefinition == null) {
+						throw new IllegalStateException("No association definition for " + associationValue);
+					}
+					if (associationDefinition.requiresExplicitReferentialIntegrity()) {
+						associationDelta.addValuesToDelete(associationValue.clone());
+						associationDelta.addValuesToAdd(associationValue.clone());
+					}
+				}
+				if (!associationDelta.isEmpty()) {
+					entitlementConverter.collectEntitlementsAsObjectOperation(roMap, associationDelta, objectClassDefinition, shadowBefore, shadowAfter, rSchema, resource);
+				}
+				
+//				shadowAfter.findOrCreateContainer(ShadowType.F_ASSOCIATION).addAll((Collection) association.getClonedValues());
+//				entitlementConverter.processEntitlementsAdd(resource, shadowAfter, objectClassDefinition);
 			}
 		}
+		
+		
 		
 		executeEntitlements(connector, resource, roMap, parentResult);
 		
@@ -728,18 +974,19 @@ public class ResourceObjectConverter {
 		}
 	}
 
-	public void searchResourceObjects(final ConnectorInstance connector, 
+	public SearchResultMetadata searchResourceObjects(final ConnectorInstance connector, 
 			final ResourceType resourceType, final RefinedObjectClassDefinition objectClassDef,
-			final ResultHandler<ShadowType> resultHandler, ObjectQuery query, final OperationResult parentResult) throws SchemaException,
+			final ResultHandler<ShadowType> resultHandler, ObjectQuery query, final boolean fetchAssociations,
+            final OperationResult parentResult) throws SchemaException,
 			CommunicationException, ObjectNotFoundException, ConfigurationException {
 		
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(objectClassDef, resourceType);
-		
+
 		ResultHandler<ShadowType> innerResultHandler = new ResultHandler<ShadowType>() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
 				try {
-					shadow = postProcessResourceObjectRead(connector, resourceType, shadow, objectClassDef, parentResult);
+					shadow = postProcessResourceObjectRead(connector, resourceType, shadow, objectClassDef, fetchAssociations, parentResult);
 				} catch (SchemaException e) {
 					throw new TunnelException(e);
 				} catch (CommunicationException e) {
@@ -751,8 +998,9 @@ public class ResourceObjectConverter {
 			}
 		};
 		
+		SearchResultMetadata metadata = null;
 		try {
-			connector.search(objectClassDef, query, innerResultHandler, attributesToReturn, parentResult);
+			metadata = connector.search(objectClassDef, query, innerResultHandler, attributesToReturn, objectClassDef.getPagedSearches(), parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new SystemException("Generic error in the connector: " + e.getMessage(), e);
@@ -776,16 +1024,7 @@ public class ResourceObjectConverter {
 		}
 
 		parentResult.recordSuccess();
-
-	}
-	private boolean avoidDuplicateValues(ResourceType resource) {
-		if (resource.getConsistency() == null) {
-			return false;
-		}
-		if (resource.getConsistency().isAvoidDuplicateValues() == null) {
-			return false;
-		}
-		return resource.getConsistency().isAvoidDuplicateValues();
+		return metadata;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -821,18 +1060,19 @@ public class ResourceObjectConverter {
 			RefinedObjectClassDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute<?>> identifiers, 
 			AttributesToReturn attributesToReturn,
+			boolean fetchAssociations,
 			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
 
 		try {
-			
+		
 			if (!ResourceTypeUtil.hasReadCapability(resource)){
 				throw new UnsupportedOperationException("Resource does not support 'read' operation");
 			}
 			
 			PrismObject<ShadowType> resourceObject = connector.fetchObject(ShadowType.class, objectClassDefinition, identifiers,
 					attributesToReturn, parentResult);
-			return postProcessResourceObjectRead(connector, resource, resourceObject, objectClassDefinition, parentResult);
+			return postProcessResourceObjectRead(connector, resource, resourceObject, objectClassDefinition, fetchAssociations, parentResult);
 		} catch (ObjectNotFoundException e) {
 			parentResult.recordFatalError(
 					"Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
@@ -1123,7 +1363,7 @@ public class ResourceObjectConverter {
 	private boolean hasChangesOnResource(
 			Collection<? extends ItemDelta> itemDeltas) {
 		for (ItemDelta itemDelta : itemDeltas) {
-			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
+			if (isAttributeDelta(itemDelta) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
 				return true;
 			} else if (SchemaConstants.PATH_ACTIVATION.equivalent(itemDelta.getParentPath())){
 				return true;
@@ -1142,7 +1382,7 @@ public class ResourceObjectConverter {
 			operations = new ArrayList<Operation>();
 		}
 		for (ItemDelta itemDelta : objectChange) {
-			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
+			if (isAttributeDelta(itemDelta) || SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
 				if (itemDelta instanceof PropertyDelta) {
 					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
 							(PropertyDelta) itemDelta);
@@ -1166,12 +1406,16 @@ public class ResourceObjectConverter {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
 				}				
 			} else {
-				LOGGER.trace("Skip converting item delta: {}. It's not account change, but it it shadow change.", itemDelta);	
+				LOGGER.trace("Skip converting item delta: {}. It's not resource object change, but it is shadow change.", itemDelta);	
 			}
 			
 		}
 	}
-		
+
+	private boolean isAttributeDelta(ItemDelta itemDelta) {
+		return new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath());
+	}
+
 	public List<Change<ShadowType>> fetchChanges(ConnectorInstance connector, ResourceType resource,
 			RefinedObjectClassDefinition objectClass, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws SchemaException,
@@ -1196,7 +1440,7 @@ public class ResourceObjectConverter {
 					try {
 						
 						PrismObject<ShadowType> currentShadow = fetchResourceObject(connector, resource, objectClass, 
-								change.getIdentifiers(), attrsToReturn, parentResult);
+								change.getIdentifiers(), attrsToReturn, true, parentResult);	// todo consider whether it is always necessary to fetch the entitlements
 						change.setCurrentShadow(currentShadow);
 						
 					} catch (ObjectNotFoundException ex) {
@@ -1211,7 +1455,7 @@ public class ResourceObjectConverter {
 				}
 			} else {
 				PrismObject<ShadowType> currentShadow = postProcessResourceObjectRead(connector, resource, change.getCurrentShadow(), 
-						objectClass, parentResult);
+						objectClass, true, parentResult);
 				change.setCurrentShadow(currentShadow);
 			}
 		}
@@ -1225,7 +1469,8 @@ public class ResourceObjectConverter {
 	 * Process simulated activation, credentials and other properties that are added to the object by midPoint. 
 	 */
 	private PrismObject<ShadowType> postProcessResourceObjectRead(ConnectorInstance connector, ResourceType resourceType,
-			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException {
+			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, boolean fetchAssociations,
+            OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException {
 		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
 		setProtectedFlag(resourceType, objectClassDefinition, resourceObject);
@@ -1247,7 +1492,9 @@ public class ResourceObjectConverter {
 		}
 		
 		// Entitlements
-		entitlementConverter.postProcessEntitlementsRead(connector, resourceType, resourceObject, objectClassDefinition, parentResult);
+        if (fetchAssociations) {
+            entitlementConverter.postProcessEntitlementsRead(connector, resourceType, resourceObject, objectClassDefinition, parentResult);
+        }
 		
 		return resourceObject;
 	}
@@ -1520,7 +1767,7 @@ public class ResourceObjectConverter {
 				ActivationCapabilityType.class);
 		if (activationCapability == null) {
 			result.recordWarning("Resource " + resource
-					+ " does not have native or simulated activation capability. Processing of activation for account "+ shadow +" was skipped");
+					+ " does not have native or simulated activation capability. Processing of activation for "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1528,7 +1775,7 @@ public class ResourceObjectConverter {
 		ActivationStatusCapabilityType capActStatus = getStatusCapability(resource, activationCapability);
 		if (capActStatus == null) {
 			result.recordWarning("Resource " + resource
-					+ " does not have native or simulated activation status capability. Processing of activation for account "+ shadow +" was skipped");
+					+ " does not have native or simulated activation status capability. Processing of activation for "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1545,7 +1792,7 @@ public class ResourceObjectConverter {
 		if (enableAttributeName == null) {
 			result.recordWarning("Resource "
 							+ ObjectTypeUtil.toShortString(resource)
-							+ " does not have attribute specification for simulated activation status capability. Processing of activation for account "+ shadow +" was skipped");
+							+ " does not have attribute specification for simulated activation status capability. Processing of activation for "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1555,7 +1802,7 @@ public class ResourceObjectConverter {
 		if (enableAttributeDefinition == null) {
 			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
 					+ "  attribute for simulated activation/enableDisable capability" + enableAttributeName
-					+ " in not present in the schema for objeclass " + objectClassDefinition+". Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+					+ " in not present in the schema for objeclass " + objectClassDefinition+". Processing of activation for "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1643,7 +1890,7 @@ public class ResourceObjectConverter {
 				ActivationCapabilityType.class);
 		if (activationCapability == null) {
 			result.recordWarning("Resource " + resource
-					+ " does not have native or simulated activation capability. Processing of activation for account "+ shadow +" was skipped");
+					+ " does not have native or simulated activation capability. Processing of activation for "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1651,7 +1898,7 @@ public class ResourceObjectConverter {
 		ActivationLockoutStatusCapabilityType capActStatus = getLockoutStatusCapability(resource, activationCapability);
 		if (capActStatus == null) {
 			result.recordWarning("Resource " + resource
-					+ " does not have native or simulated activation lockout capability. Processing of activation for account "+ shadow +" was skipped");
+					+ " does not have native or simulated activation lockout capability. Processing of activation for "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1666,7 +1913,7 @@ public class ResourceObjectConverter {
 		if (enableAttributeName == null) {
 			result.recordWarning("Resource "
 							+ ObjectTypeUtil.toShortString(resource)
-							+ " does not have attribute specification for simulated activation lockout capability. Processing of activation for account "+ shadow +" was skipped");
+							+ " does not have attribute specification for simulated activation lockout capability. Processing of activation for "+ shadow +" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}
@@ -1676,7 +1923,7 @@ public class ResourceObjectConverter {
 		if (enableAttributeDefinition == null) {
 			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
 					+ "  attribute for simulated activation/lockout capability" + enableAttributeName
-					+ " in not present in the schema for objeclass " + objectClassDefinition+". Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+					+ " in not present in the schema for objeclass " + objectClassDefinition+". Processing of activation for "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 		}

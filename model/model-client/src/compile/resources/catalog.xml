@@ -69,8 +69,8 @@
     <public publicId="XMLSchema.dtd" uri="../../../target/midpoint-schema/xml/ns/standard/XMLSchema.dtd" />
     <system systemId="XMLSchema.dtd" uri="../../../target/midpoint-schema/xml/ns/standard/XMLSchema.dtd" />
 
-    <public publicId="http://www.w3.org/2001/04/xmlenc#" uri="../../../target/midpoint-schema/xml/ns/standard/xenc-schema.xsd" />
-    <system systemId="http://www.w3.org/2001/04/xmlenc#" uri="../../../target/midpoint-schema/xml/ns/standard/xenc-schema.xsd" />
+    <public publicId="http://www.w3.org/2001/04/xmlenc" uri="../../../target/midpoint-schema/xml/ns/standard/xenc-schema.xsd" />
+    <system systemId="http://www.w3.org/2001/04/xmlenc" uri="../../../target/midpoint-schema/xml/ns/standard/xenc-schema.xsd" />
 
     <public publicId="http://www.w3.org/2001/XMLSchema" uri="../../../target/midpoint-schema/xml/ns/standard/XMLSchema.xsd" />
     <system systemId="http://www.w3.org/2001/XMLSchema" uri="../../../target/midpoint-schema/xml/ns/standard/XMLSchema.xsd" />
@@ -78,8 +78,8 @@
     <public publicId="http://www.w3.org/XML/1998/namespace" uri="../../../target/midpoint-schema/xml/ns/standard/xml.xsd" />
     <system systemId="http://www.w3.org/XML/1998/namespace" uri="../../../target/midpoint-schema/xml/ns/standard/xml.xsd" />
 
-    <public publicId="http://www.w3.org/2000/09/xmldsig#" uri="../../../target/midpoint-schema/xml/ns/standard/xmldsig-core-schema.xsd" />
-    <system systemId="http://www.w3.org/2000/09/xmldsig#" uri="../../../target/midpoint-schema/xml/ns/standard/xmldsig-core-schema.xsd" />
+    <public publicId="http://www.w3.org/2000/09/xmldsig" uri="../../../target/midpoint-schema/xml/ns/standard/xmldsig-core-schema.xsd" />
+    <system systemId="http://www.w3.org/2000/09/xmldsig" uri="../../../target/midpoint-schema/xml/ns/standard/xmldsig-core-schema.xsd" />
 
 
 </catalog>

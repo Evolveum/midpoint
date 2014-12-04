@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 public abstract class DummyObject implements DebugDumpable {
 	
 	private String id;
+//	private int internalId = -1;
 	private String name;
 	private Map<String,Set<Object>> attributes = new HashMap<String, Set<Object>>();
 	private boolean enabled = true;
@@ -59,7 +61,7 @@ public abstract class DummyObject implements DebugDumpable {
 	public void setId(String id) {
 		this.id = id;
 	}
-
+	
 	public DummyObject(String name) {
 		this.name = name;
 	}
@@ -155,7 +157,7 @@ public abstract class DummyObject implements DebugDumpable {
 			currentValues.clear();
 		}
 		currentValues.addAll(values);
-		checkSchema(name, values, "relace");
+		checkSchema(name, values, "replace");
 		recordModify();
 	}
 	
@@ -248,7 +250,28 @@ public abstract class DummyObject implements DebugDumpable {
 		valuesToCheck.removeAll(values);
 		checkSchema(name, valuesToCheck, "remove");
 		
-		currentValues.removeAll(values);
+		Iterator<Object> iterator = currentValues.iterator();
+		while(iterator.hasNext()) {
+			Object currentValue = iterator.next();
+			boolean found = false;
+			for (Object value: values) {
+				if (resource.isCaseIgnoreValues() && currentValue instanceof String && value instanceof String) {
+					if (StringUtils.equalsIgnoreCase((String)currentValue, (String)value)) {
+						found = true;
+						break;
+					}
+				} else {
+					if (currentValue.equals(value)) {
+						found = true;
+						break;
+					}
+				}
+			}
+			if (found) {
+				iterator.remove();
+			}
+		}
+		
 		recordModify();
 	}
 
@@ -323,7 +346,7 @@ public abstract class DummyObject implements DebugDumpable {
 	}
 	
 	protected String toStringContent() {
-		return "username=" + name + ", attributes=" + attributes + ", enabled=" + enabled;
+		return "name=" + name + ", attributes=" + attributes + ", enabled=" + enabled;
 	}
 
 	@Override

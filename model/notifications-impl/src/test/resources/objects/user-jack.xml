@@ -56,4 +56,21 @@
     	<administrativeStatus>enabled</administrativeStatus>
         <effectiveStatus>enabled</effectiveStatus>          <!-- an example of hidden (w.r.t. notifications) attribute -->
     </activation>
+
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
+    </assignment>
+    <assignment id="2">
+        <targetRef oid="00000000-0000-0000-0000-000000000002" type="c:RoleType"/>
+        <activation>
+            <validFrom>2013-12-01T11:22:33.44</validFrom>
+        </activation>
+    </assignment>
+    <assignment id="3">
+        <targetRef oid="00000000-0000-0000-0000-000000000002" type="c:RoleType"/>
+        <activation>
+            <validFrom>2015-01-01T00:00:00.00</validFrom>
+        </activation>
+    </assignment>
+
 </user>
