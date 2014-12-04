@@ -16,8 +16,9 @@
 package com.evolveum.midpoint.schema;
 
 /**
- * @author semancik
+ * Objects of this type are considered READ ONLY.
  *
+ * @author semancik
  */
 public class SearchResultMetadata {
 	

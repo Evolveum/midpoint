@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -143,6 +144,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;

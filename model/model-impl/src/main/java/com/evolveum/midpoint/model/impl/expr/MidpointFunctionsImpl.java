@@ -66,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextTyp
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -104,6 +105,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private ModelObjectResolver modelObjectResolver;
 
     @Autowired(required=true)
+    @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
     @Autowired

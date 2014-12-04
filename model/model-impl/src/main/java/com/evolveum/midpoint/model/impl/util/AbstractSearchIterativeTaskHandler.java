@@ -219,7 +219,8 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	        String finishMessage = "Finished " + taskName + " (" + coordinatorTask + "). ";
 	        String statistics = "Processed " + resultHandler.getProgress() + " objects, got " + resultHandler.getErrors() + " errors.";
             if (resultHandler.getProgress() > 0) {
-                statistics += " Average time for one object: " + resultHandler.getAverageTime() + " milliseconds.";
+                statistics += " Average time for one object: " + resultHandler.getAverageTime() + " milliseconds" +
+                    " (wall clock time average: " + resultHandler.getWallAverageTime() + " ms).";
             }
 	
 	        opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);

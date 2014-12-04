@@ -337,7 +337,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 //        assertShadowFetchOperationCountIncrement(8);
         
         // WHY????
-        assertShadowFetchOperationCountIncrement(4);
+        assertShadowFetchOperationCountIncrement(3);
         
         users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -387,12 +387,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         TestUtil.assertSuccess(task.getResult());
         
-        // First fetch: search in import handler
+        // The fetch: search in import handler
         // Even though there are outbound mappings these were already processes
         // by previous import run. There are no account modifications this time.
         // Therefore there should be no "fetchbacks".
-        // Second fetch is because of counting resource objects before importing them.
-        assertShadowFetchOperationCountIncrement(2);
+        assertShadowFetchOperationCountIncrement(1);
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -448,8 +447,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // One fetch: search in import handler
         // There are no outbound mappings in lime resource, therefore there are no
         // modifications of accounts during import, therefore there are no "fetchbacks".
-        // Second is because of counting resource objects before importing them.
-        assertShadowFetchOperationCountIncrement(2);
+        assertShadowFetchOperationCountIncrement(1);
                 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
