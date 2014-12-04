@@ -50,6 +50,7 @@
         <module>admin-gui</module>
         <module>admin-gui-en-US</module>
 	    <module>admin-gui-sk-SK</module>
+		<module>admin-gui-tr-TR</module>
     </modules>
 
 </project>

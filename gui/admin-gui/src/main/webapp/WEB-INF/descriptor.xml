@@ -171,4 +171,5 @@
     <packagesToScan>com.evolveum.midpoint.web.page.admin.configuration</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.login</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.error</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.forgetpassword</packagesToScan>
 </descriptor>
