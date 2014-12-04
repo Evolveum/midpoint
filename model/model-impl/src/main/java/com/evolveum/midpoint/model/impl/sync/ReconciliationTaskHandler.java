@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -117,6 +118,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	private ProvisioningService provisioningService;
 
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
 	@Autowired(required = true)

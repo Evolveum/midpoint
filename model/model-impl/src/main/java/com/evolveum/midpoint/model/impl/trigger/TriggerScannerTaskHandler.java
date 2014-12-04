@@ -23,6 +23,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -83,6 +84,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	private TriggerHandlerRegistry triggerHandlerRegistry;
 	
 	@Autowired(required=true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
 	public TriggerScannerTaskHandler() {
