@@ -21,6 +21,8 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -464,4 +467,16 @@ public interface ProvisioningService {
 	 * constructed, properly wired and initialized. Also logging and other infrastructure should be already set up.
 	 */
 	public void postInit(OperationResult parentResult);
+
+	ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition,
+											   PrismObject<ShadowType> shadowObject,
+											   ResourceType resourceType,
+											   String shadowOid,
+											   ResourceShadowDiscriminator resourceShadowDiscriminator,
+											   ConstraintViolationConfirmer constraintViolationConfirmer,
+											   OperationResult parentResult) throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+
+	void enterConstraintsCheckerCache();
+
+	void exitConstraintsCheckerCache();
 }

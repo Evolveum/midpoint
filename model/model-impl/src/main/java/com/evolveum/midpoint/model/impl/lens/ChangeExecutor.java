@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -928,6 +929,8 @@ public class ChangeExecutor {
             }
             result.addReturn("createdAccountOid", oid);
         } else {
+			FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
+
         	RepoAddOptions addOpt = new RepoAddOptions();
         	if (ModelExecuteOptions.isOverwrite(options)){
         		addOpt.setOverwrite(true);
@@ -1016,6 +1019,7 @@ public class ChangeExecutor {
                 change.setOid(oid);
             }
         } else {
+			FocusConstraintsChecker.clearCacheForDelta(change.getModifications());
             cacheRepositoryService.modifyObject(objectTypeClass, change.getOid(), change.getModifications(), result);
         }
     }

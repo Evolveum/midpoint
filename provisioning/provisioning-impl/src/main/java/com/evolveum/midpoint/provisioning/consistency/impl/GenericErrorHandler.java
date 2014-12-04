@@ -18,6 +18,7 @@ package com.evolveum.midpoint.provisioning.consistency.impl;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -154,6 +155,7 @@ public class GenericErrorHandler extends ErrorHandler{
 				// pending modifications to the shadow in the
 				// repository..next time by processing this shadow, we can try again
 				// TODO: probably there is a need to union current changes with previous
+				ConstraintsChecker.onShadowModifyOperation(modifications);
 				cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), modifications,
 					result);
 				result.recordHandledError("Modifications not applied to the object, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
@@ -173,6 +175,7 @@ public class GenericErrorHandler extends ErrorHandler{
 			}
 			
 			Collection<ItemDelta> modification = createAttemptModification(shadow, null);
+			ConstraintsChecker.onShadowModifyOperation(modification);
 			cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(), modification, parentResult);
 			
 			String message = "Can't process " + ObjectTypeUtil.toShortString(shadow) + ". ";
