@@ -17,6 +17,7 @@ package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
@@ -42,6 +43,8 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
     private ApplicationContext applicationContext;
     @Autowired
     MidpointConfiguration midpointConfiguration;
+    @Autowired
+    private PrismContext prismContext;
     //Repository factory
     private RepositoryServiceFactory factory;
     private RepositoryServiceFactory cacheFactory;
@@ -128,7 +131,7 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
                 cacheFactory = getFactoryBean(clazz);
                 //TODO decompose this dependency, remove class casting !!!
                 RepositoryCache repositoryCache = (RepositoryCache) cacheFactory.getRepositoryService();
-                repositoryCache.setRepository(getRepositoryService());
+                repositoryCache.setRepository(getRepositoryService(), prismContext);
 
                 cacheRepositoryService = repositoryCache;
             } catch (Exception ex) {
