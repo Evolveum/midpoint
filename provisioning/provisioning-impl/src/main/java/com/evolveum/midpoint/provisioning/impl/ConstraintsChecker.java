@@ -31,7 +31,10 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -66,6 +69,7 @@ public class ConstraintsChecker {
 
 	private PrismContext prismContext;
 	private RepositoryService cacheRepositoryService;
+	private ProvisioningService provisioningService;
 	private StringBuilder messageBuilder = new StringBuilder();
 
 	public PrismContext getPrismContext() {
@@ -78,6 +82,10 @@ public class ConstraintsChecker {
 
 	public void setCacheRepositoryService(RepositoryService cacheRepositoryService) {
 		this.cacheRepositoryService = cacheRepositoryService;
+	}
+
+	public void setProvisioningService(ProvisioningService provisioningService) {
+		this.provisioningService = provisioningService;
 	}
 
 	private RefinedObjectClassDefinition shadowDefinition;
@@ -169,17 +177,18 @@ public class ConstraintsChecker {
 		return unique;
 	}
 
-	private boolean checkUniqueness(String oid, PrismProperty identifier, ObjectQuery query, OperationResult result) throws SchemaException {
+	private boolean checkUniqueness(String oid, PrismProperty identifier, ObjectQuery query, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 
 		if (Cache.isOk(resourceType.getOid(), oid, shadowDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues())) {
 			return true;
 		}
 
-		// Originally here was a call to provisioning service (with noFetch option); however, to see whether there is a conflict, it is sufficient
-		// to call repository service (which is faster and may be better cached).
-		//Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-		//List<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, options, result);
-		List<PrismObject<ShadowType>> foundObjects = cacheRepositoryService.searchObjects(ShadowType.class, query, null, result);
+		// Here was an attempt to call cacheRepositoryService.searchObjects directly (because we use noFetch, so the net result is searching in repo anyway).
+		// The idea was that it is faster and cacheable. However, it is not correct. We have to apply definition to query before execution, e.g.
+		// because there could be a matching rule; see ShadowManager.processQueryMatchingRuleFilter.
+		// Besides that, now the constraint checking is cached at a higher level, so this is not a big issue any more.
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+		List<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, options, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
 				new Object[]{identifier, foundObjects.size(), query.debugDump()});

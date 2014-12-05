@@ -1561,6 +1561,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
 		ConstraintsChecker checker = new ConstraintsChecker();
 		checker.setCacheRepositoryService(cacheRepositoryService);
+		checker.setProvisioningService(this);
 		checker.setPrismContext(prismContext);
 		checker.setShadowDefinition(shadowDefinition);
 		checker.setShadowObject(shadowObject);
