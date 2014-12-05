@@ -283,6 +283,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
+			parentResult.summarize();					// to prevent parent result from growing above reasonable size
+			                                            // it is here (before modifying the task) to make the task smaller
+			                                            // (although I doubt it has any real effect)
+
 			if (shouldReportProgress()) {
 				try {
 					coordinatorTask.setProgressImmediate(progress, result);              // this is necessary for the progress to be immediately available in GUI
@@ -300,8 +304,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 							(System.currentTimeMillis()-this.startTime)/progress});
 				}
 			}
-
-			parentResult.summarize();					// to prevent parent result from growing above reasonable size
 		}
 
 		if (LOGGER.isTraceEnabled()) {
