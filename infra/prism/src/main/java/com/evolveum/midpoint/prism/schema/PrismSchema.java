@@ -19,8 +19,11 @@ package com.evolveum.midpoint.prism.schema;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -197,12 +200,26 @@ public class PrismSchema implements DebugDumpable {
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByType(QName typeName, Class<T> type) {
 		return findContainerDefinitionByType(typeName,PrismObjectDefinition.class);
 	}
-	
+
+	// TODO create cache eagerly
+	private Map<Class<? extends Objectable>, PrismObjectDefinition> classToDefCache = Collections.synchronizedMap(new HashMap());
+
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByCompileTimeClass(Class<T> type) {
+		if (classToDefCache.containsKey(type)) {		// there may be null values
+			return classToDefCache.get(type);
+		}
+
+		PrismObjectDefinition definition = scanForPrismObjectDefinition(type);
+		classToDefCache.put(type, definition);
+		return definition;
+	}
+
+	private <T extends Objectable> PrismObjectDefinition<T> scanForPrismObjectDefinition(Class<T> type) {
 		for (Definition def: getDefinitions()) {
 			if (def instanceof PrismObjectDefinition<?>) {
 				PrismObjectDefinition<?> objDef = (PrismObjectDefinition<?>)def;
 				if (type.equals(objDef.getCompileTimeClass())) {
+					classToDefCache.put(type, objDef);
 					return (PrismObjectDefinition<T>) objDef;
 				}
 			}

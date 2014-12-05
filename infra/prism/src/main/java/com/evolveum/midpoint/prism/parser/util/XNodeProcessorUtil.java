@@ -24,17 +24,18 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 public class XNodeProcessorUtil {
-	
-	public static <T> String findEnumFieldValue(Class classType, Object bean){
-        String name = bean.toString();
-        for (Field field: classType.getDeclaredFields()) {
-            XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
-            if (xmlEnumValue != null && field.getName().equals(name)) {
-                return xmlEnumValue.value();
-            }
-        }
-        return null;
-    }
+
+//    @Deprecated     // too slow - moved to PrismBeanInspector where it is cached
+//	public static <T> String findEnumFieldValue(Class classType, Object bean){
+//        String name = bean.toString();
+//        for (Field field: classType.getDeclaredFields()) {
+//            XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
+//            if (xmlEnumValue != null && field.getName().equals(name)) {
+//                return xmlEnumValue.value();
+//            }
+//        }
+//        return null;
+//    }
 	
 	public static <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext) throws SchemaException {
 		XNode xEncryptedData = xmap.get(ProtectedDataType.F_ENCRYPTED_DATA);
