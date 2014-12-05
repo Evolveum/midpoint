@@ -19,24 +19,21 @@ package com.evolveum.midpoint.repo.cache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.caching.AbstractCache;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 /**
  * @author Pavol Mederly
  */
-public class Cache {
+public class Cache extends AbstractCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(Cache.class);
 
@@ -48,6 +45,7 @@ public class Cache {
         return objects.size() + versions.size() + queries.size();
     }
 
+    @Override
     public String description() {
         return "O:"+objects.size()+", V:"+versions.size()+", Q:"+queries.size();
     }

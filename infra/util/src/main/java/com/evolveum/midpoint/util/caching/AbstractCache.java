@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  * @author mederly
  */
-public class AbstractCache {
+public abstract class AbstractCache {
 
     private int entryCount = 0;
 
@@ -31,7 +31,7 @@ public class AbstractCache {
         T inst = cacheThreadLocal.get();
         logger.trace("Cache: ENTER for thread {}, {}", Thread.currentThread().getName(), inst);
         if (inst == null) {
-            logger.info("Cache: creating for thread {}",Thread.currentThread().getName());
+            logger.trace("Cache: creating for thread {}",Thread.currentThread().getName());
             try {
                 inst = cacheClass.newInstance();
             } catch (InstantiationException|IllegalAccessException e) {
@@ -51,9 +51,16 @@ public class AbstractCache {
         } else {
             inst.decrementEntryCount();
             if (inst.getEntryCount() <= 0) {
-                logger.info("Cache: DESTROY for thread {}", Thread.currentThread().getName());
-                cacheThreadLocal.set(null);
+                destroy(cacheThreadLocal, logger);
             }
+        }
+    }
+
+    public static <T extends AbstractCache> void destroy(ThreadLocal<T> cacheThreadLocal, Trace logger) {
+        T inst = cacheThreadLocal.get();
+        if (inst != null) {
+            logger.trace("Cache: DESTROY for thread {}", Thread.currentThread().getName());
+            cacheThreadLocal.set(null);
         }
     }
 
@@ -68,5 +75,25 @@ public class AbstractCache {
     public int getEntryCount() {
         return entryCount;
     }
+
+    public static boolean exists(ThreadLocal<? extends AbstractCache> cacheThreadLocal) {
+        return cacheThreadLocal.get() != null;
+    }
+
+    public static <T extends AbstractCache> String debugDump(ThreadLocal<T> cacheThreadLocal) {
+        T inst = cacheThreadLocal.get();
+        StringBuilder sb = new StringBuilder("Cache ");
+        if (inst != null) {
+            sb.append("exists, entry count ");
+            sb.append(inst.getEntryCount());
+            sb.append(", content: ");
+            sb.append(inst.description());
+        } else {
+            sb.append("doesn't exist");
+        }
+        return sb.toString();
+    }
+
+    abstract public String description();
 
 }

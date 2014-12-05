@@ -64,6 +64,7 @@ import java.util.Set;
 public class ConstraintsChecker {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConstraintsChecker.class);
+	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
 	private static ThreadLocal<Cache> cacheThreadLocal = new ThreadLocal<>();
 
@@ -238,7 +239,7 @@ public class ConstraintsChecker {
 	public static <T extends ShadowType> void onShadowAddOperation(T shadow) {
 		Cache cache = Cache.getCache();
 		if (cache != null) {
-			LOGGER.info("Clearing cache on shadow add operation");
+			log("Clearing cache on shadow add operation");
 			cache.conflictFreeSituations.clear();            // TODO fix this brute-force approach
 		}
 	}
@@ -254,7 +255,7 @@ public class ConstraintsChecker {
 		ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
 		for (ItemDelta itemDelta : deltas) {
 			if (attributesPath.isSubPathOrEquivalent(itemDelta.getParentPath())) {
-				LOGGER.info("Clearing cache on shadow attribute modify operation");
+				log("Clearing cache on shadow attribute modify operation");
 				cache.conflictFreeSituations.clear();
 				return;
 			}
@@ -332,15 +333,15 @@ public class ConstraintsChecker {
 
 			Cache cache = getCache();
 			if (cache == null) {
-				LOGGER.info("Cache NULL for {}", situation);
+				log("Cache NULL for {}", situation);
 				return false;
 			}
 
 			if (cache.conflictFreeSituations.contains(situation)) {
-				LOGGER.info("Cache HIT for {}", situation);
+				log("Cache HIT for {}", situation);
 				return true;
 			} else {
-				LOGGER.info("Cache MISS for {}", situation);
+				log("Cache MISS for {}", situation);
 				return false;
 			}
 		}
@@ -378,9 +379,23 @@ public class ConstraintsChecker {
 		public static void remove(PolyStringType name) {
 			Cache cache = getCache();
 			if (name != null && cache != null) {
-				LOGGER.info("Cache REMOVE for {}", name);
+				log("Cache REMOVE for {}", name);
 				cache.conflictFreeSituations.remove(name.getOrig());
 			}
+		}
+
+		@Override
+		public String description() {
+			return "conflict-free situations: " + conflictFreeSituations;
+		}
+	}
+
+	private static void log(String message, Object... params) {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(message, params);
+		}
+		if (PERFORMANCE_ADVISOR.isTraceEnabled()) {
+			PERFORMANCE_ADVISOR.trace(message, params);
 		}
 	}
 

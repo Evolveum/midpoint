@@ -184,11 +184,14 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	public Float getWallAverageTime() {
 		long count = getProgress();
 		if (count > 0) {
-			long total = System.currentTimeMillis() - startTime;
-			return (float) total / (float) count;
+			return (float) getWallTime() / (float) count;
 		} else {
 			return null;
 		}
+	}
+
+	public long getWallTime() {
+		return System.currentTimeMillis() - startTime;
 	}
 
 	public void waitForCompletion(OperationResult opResult) {

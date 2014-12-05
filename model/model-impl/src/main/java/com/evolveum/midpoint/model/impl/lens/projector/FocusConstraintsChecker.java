@@ -49,7 +49,8 @@ public class FocusConstraintsChecker<F extends FocusType> {
 	private static ThreadLocal<Cache> cacheThreadLocal = new ThreadLocal<>();
 	
 	private static final Trace LOGGER = TraceManager.getTrace(FocusConstraintsChecker.class);
-	
+	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
+
 	private LensContext<F> context;
 	private PrismContext prismContext;
 	private RepositoryService repositoryService;
@@ -208,21 +209,21 @@ public class FocusConstraintsChecker<F extends FocusType> {
 
 		public static boolean isOk(PolyStringType name) {
 			if (name == null) {
-				LOGGER.info("Null name");
+				log("Null name");
 				return false;			// strange case
 			}
 
 			Cache cache = getCache();
 			if (cache == null) {
-				LOGGER.info("Cache NULL for {}", name);
+				log("Cache NULL for {}", name);
 				return false;
 			}
 
 			if (cache.conflictFreeNames.contains(name.getOrig())) {
-				LOGGER.info("Cache HIT for {}", name);
+				log("Cache HIT for {}", name);
 				return true;
 			} else {
-				LOGGER.info("Cache MISS for {}", name);
+				log("Cache MISS for {}", name);
 				return false;
 			}
 		}
@@ -241,9 +242,24 @@ public class FocusConstraintsChecker<F extends FocusType> {
 		public static void remove(PolyStringType name) {
 			Cache cache = getCache();
 			if (name != null && cache != null) {
-				LOGGER.info("Cache REMOVE for {}", name);
+				log("Cache REMOVE for {}", name);
 				cache.conflictFreeNames.remove(name.getOrig());
 			}
 		}
+
+		@Override
+		public String description() {
+			return "conflict-free names: " + conflictFreeNames;
+		}
+
+		private static void log(String message, Object... params) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(message, params);
+			}
+			if (PERFORMANCE_ADVISOR.isTraceEnabled()) {
+				PERFORMANCE_ADVISOR.trace(message, params);
+			}
+		}
+
 	}
 }
