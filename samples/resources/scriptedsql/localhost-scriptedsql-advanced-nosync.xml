@@ -84,6 +84,7 @@
 
 		</c:connectorConfiguration>
 
+		<!-- We need to specify nativeCapabilities as well as these are usually schema-derived -->
 		<!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
              midPoint. It defines expressions and limitations for individual
@@ -116,15 +117,14 @@
 					<!-- Access limitation for this attribute.
                          Entry UUID is created by the directory server itelf
                          and it is immutable. We can only read it. -->
-                    <limitations>
-                        <access>
-                            <read>true</read>
-                        </access>
-                    </limitations>
+					<limitations>
+						<access>
+							<read>true</read>
+						</access>
+					</limitations>
 				</attribute>
 				<attribute>
 					<ref>icfs:name</ref>
-
 					<!-- Readable name for the attribute. This will be used in GUI -->
 					<displayName>Name</displayName>
 					<limitations>
@@ -135,11 +135,6 @@
 							<path>$user/name</path>
 						</source>
 					</outbound>
-					<inbound>
-						<target>
-							<path>$user/name</path>
-						</target>
-					</inbound>
 				</attribute>
 
 				<attribute>
@@ -151,12 +146,6 @@
 							<path>$user/givenName</path>
 						</source>
 					</outbound>
-					<inbound>
-						<target>
-							<path>$user/givenName</path>
-						</target>
-					</inbound>
-
 				</attribute>
 				<attribute>
 					<ref>ri:lastname</ref>
@@ -167,11 +156,6 @@
 							<path>$user/familyName</path>
 						</source>
 					</outbound>
-					<inbound>
-						<target>
-							<path>$user/familyName</path>
-						</target>
-					</inbound>
 				</attribute>
 				<attribute>
 					<ref>ri:fullname</ref>
@@ -182,11 +166,6 @@
 							<path>$user/fullName</path>
 						</source>
 					</outbound>
-					<inbound>
-						<target>
-							<path>$user/fullName</path>
-						</target>
-					</inbound>
 				</attribute>
 				<attribute>
 					<ref>ri:email</ref>
@@ -195,32 +174,41 @@
 							<path>$user/emailAddress</path>
 						</source>
 					</outbound>
-					<inbound>
-						<target>
-							<path>$user/emailAddress</path>
-						</target>
-					</inbound>
 				</attribute>
 				<activation>
 					<administrativeStatus>
 						<outbound/>
-						<inbound/>
-							<!--<strength>weak</strength>-->
 					</administrativeStatus>
 				</activation>
 				<credentials>
 					<password>
 						<outbound/>
-						<inbound>
-							<strength>weak</strength>
-							<expression>
-								<generate/>
-							</expression>
-						</inbound>
 					</password>
 				</credentials>
 			</objectType>
 		</schemaHandling>
+<!--
+		<capabilities>
+			<native>
+				<cap:script>
+					<cap:host>
+						<cap:type>resource</cap:type>
+					</cap:host>
+					<cap:host>
+						<cap:type>connector</cap:type>
+					</cap:host>
+				</cap:script>
+				<cap:testConnection/>
+				<cap:liveSync/>
+				<cap:credentials>
+					<cap:password/>
+	        		</cap:credentials>
+				<cap:activation>
+	        		    <cap:status/>
+			        </cap:activation>
+			</native>
+		</capabilities>
+-->
 		<synchronization>
 			<objectSynchronization>
 				<!--
@@ -272,28 +260,13 @@
 				</reaction>
 				<reaction>
 					<situation>unmatched</situation>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+					<!-- Reference to the User Template is here. If the user would be
+	                         created as a result of this action, it will be created according
+	                         to this template. -->
 				</reaction>
 			</objectSynchronization>
 		</synchronization>
 
 	</c:resource>
-
-	<task oid="91919191-76e0-59e2-8787-3d4f03d8ffff">
-		<name>Synchronization: ScriptedSQL</name>
-		<description>
-            Definition of a live synchronization task. It will poll changelog and pull in changes
-		</description>
-		<taskIdentifier>91919191-76e0-59e2-8787-3d4f03d8ffff</taskIdentifier>
-		<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-		<executionStatus>runnable</executionStatus>
-		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
-        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d420db" type="c:ResourceType"/>
-		<recurrence>recurring</recurrence>
-		<binding>tight</binding>
-		<schedule>
-			<interval>5</interval>
-		</schedule>
-	</task>
 
 </c:objects>

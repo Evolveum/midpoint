@@ -15,6 +15,8 @@
  */
 import groovy.sql.Sql;
 import groovy.sql.DataSet;
+import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.common.security.SecurityUtil;
 
 // Parameters:
 // The connector sends us the following:
@@ -25,49 +27,56 @@ import groovy.sql.DataSet;
 // id: The entry identifier (OpenICF "Name" atribute. (most often matches the uid)
 // attributes: an Attribute Map, containg the <String> attribute name as a key
 // and the <List> attribute value(s) as value.
-// password: password string, clear text
+// password: GuardedString type
 // options: a handler to the OperationOptions Map
 
 log.info("Entering "+action+" Script");
 
 def sql = new Sql(connection);
-//Create must return UID. Let's return the name for now.
+
+String newUid; //Create must return UID.
 
 switch ( objectClass ) {
     case "__ACCOUNT__":
-    sql.execute("INSERT INTO Users (uid, firstname,lastname,fullname,email,organization) values (?,?,?,?,?,?)",
+    def keys = sql.executeInsert("INSERT INTO Users (login, firstname,lastname,fullname,email,organization,password,disabled) values (?,?,?,?,?,?,?,?)",
         [
             id,
-            attributes.get("firstname") ? attributes.get("firstname").get(0) : "",
-            attributes.get("lastname")  ? attributes.get("lastname").get(0) : "",
-            attributes.get("fullname")  ? attributes.get("fullname").get(0) : "",
-            attributes.get("email")     ? attributes.get("email").get(0) : "",
-            attributes.get("organization") ? attributes.get("organization").get(0) : ""
+            attributes?.get("firstname")?.get(0),
+            attributes?.get("lastname")?.get(0),
+            attributes?.get("fullname")?.get(0),
+            attributes?.get("email")?.get(0),
+            attributes?.get("organization")?.get(0),
+            // decrypt password
+            SecurityUtil.decrypt(attributes?.get("__PASSWORD__")?.get(0)),
+            // negate __ENABLE__ attribute
+            !(attributes?.get("__ENABLE__")?.get(0) as Boolean)
+
+            //attributes.get("firstname") ? attributes.get("firstname").get(0) : "",
+            //attributes.get("lastname")  ? attributes.get("lastname").get(0) : "",
+            //attributes.get("fullname")  ? attributes.get("fullname").get(0) : "",
+            //attributes.get("email")     ? attributes.get("email").get(0) : "",
+            //attributes.get("organization") ? attributes.get("organization").get(0) : ""
         ])
-	sql.commit();
+	newUid = keys[0][0];
     break
 
-    case "__GROUP__":
-    sql.execute("INSERT INTO Groups (gid,name,description) values (?,?,?)",
+    case "Group":
+    def keys = sql.executeInsert("INSERT INTO Groups (name,description) values (?,?)",
         [
-            attributes.get("gid") ? attributes.get("gid").get(0) : "",
             id,
-            attributes.get("description") ? attributes.get("description").get(0) : ""
+            attributes?.get("description")?.get(0)
         ])
-	sql.commit();
+	newUid = keys[0][0];
     break
 
-    case "organization":
-    sql.execute("INSERT INTO Organizations (name,description) values (?,?)",
+    case "Organization":
+    def keys = sql.executeInsert("INSERT INTO Organizations (name,description) values (?,?)",
         [
             id,
-            attributes.get("description") ? attributes.get("description").get(0) : ""
+            attributes?.get("description")?.get(0)
         ])
-	sql.commit();
+	newUid = keys[0][0];
     break
-
-    default:
-    id;
 }
 
-return id;
+return newUid;
