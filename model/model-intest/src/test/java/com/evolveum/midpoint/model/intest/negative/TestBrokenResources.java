@@ -91,6 +91,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	private static final File RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE = new File (TEST_DIR, "resource-dummy-wrong-connector-oid.xml");
 	private static final String RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID = "10000000-0000-0000-0000-666600660005";
 
+	private static final File RESOURCE_DUMMY_NO_CONFIGURATION_FILE = new File (TEST_DIR, "resource-dummy-no-configuration.xml");
+	private static final String RESOURCE_DUMMY_NO_CONFIGURATION_OID = "10000000-0000-0000-0000-666600660006";
+
 	private static final String ACCOUNT_SHADOW_JACK_CSVFILE_FILENAME = TEST_DIR + "/account-shadow-jack-csvfile.xml";
 	private static final String ACCOUNT_SHADOW_JACK_CSVFILE_OID = "ef2bc95b-76e0-1111-d3ad-3d4f12120001";
 	
@@ -531,6 +534,79 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		assertNoObject(ResourceType.class, RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID, task, result);
 	}
 
+	@Test
+    public void test360AddResourceNoConfiguration() throws Exception {
+		final String TEST_NAME = "test360AddResourceNoConfiguration";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_NO_CONFIGURATION_FILE);
+        PrismObject<ConnectorType> connectorDummy = findConnectorByTypeAndVersion(CONNECTOR_DUMMY_TYPE, CONNECTOR_DUMMY_VERSION, result);
+        resource.asObjectable().getConnectorRef().setOid(connectorDummy.getOid());
+
+        ObjectDelta<ResourceType> delta = ObjectDelta.createAddDelta(resource);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+		
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+	        
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+
+	@Test
+    public void test362GetResourceNoConfiguration() throws Exception {
+		final String TEST_NAME = "test362GetResourceNoConfiguration";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_CONFIGURATION_OID, null, task, result);
+		
+		// THEN
+		display("getObject resource", resource);
+		result.computeStatus();
+		display("getObject result", result);
+		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		
+		OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+		display("resource.fetchResult", fetchResult);
+		assertEquals("Expected partial errror in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+		
+        // TODO: better asserts
+		assertNotNull("Null resource", resource);
+	}
+
+	@Test
+    public void test369DeleteResourceNoConfiguration() throws Exception {
+		final String TEST_NAME = "test369DeleteResourceNoConfiguration";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		ObjectDelta<ResourceType> delta = ObjectDelta.createDeleteDelta(ResourceType.class, RESOURCE_DUMMY_NO_CONFIGURATION_OID, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+		
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		
+		assertNoObject(ResourceType.class, RESOURCE_DUMMY_NO_CONFIGURATION_OID, task, result);
+	}
+	
 	/**
 	 * Assign two resources to a user. One of them is looney, the other is not. The result should be that
 	 * the account on the good resource is created.
