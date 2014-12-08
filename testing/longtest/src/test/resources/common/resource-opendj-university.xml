@@ -369,7 +369,7 @@
                         </expression>
                       </outbound>-->
 					<inbound>
-
+						<strength>weak</strength>
 						<expression>
 							<generate/>
 						</expression>
