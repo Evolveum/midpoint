@@ -44,7 +44,14 @@ public class EntityStateInterceptor extends EmptyInterceptor {
     }
 
     private Boolean isTransient(EntityState object) {
+        return isTransient(object, false);
+    }
+
+    private Boolean isTransient(EntityState object, boolean isObjectMyParent) {
         Boolean trans = object != null ? object.isTransient() : null;
+        if (!isObjectMyParent) {
+            return trans;
+        }
         if (Boolean.TRUE.equals(trans)) {
             return true;
         }
