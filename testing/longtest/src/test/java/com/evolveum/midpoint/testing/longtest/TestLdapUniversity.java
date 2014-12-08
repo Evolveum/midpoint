@@ -88,7 +88,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 	
 	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 900;
+	private static final int NUM_LDAP_ENTRIES = 20000;
 
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 	
@@ -200,10 +200,10 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
             repositoryService.addObject(userType.asPrismObject(), null, result);
 
             if ((i+1)%TICK == 0 && (i+1)<NUM_LDAP_ENTRIES) {
-                display("Created "+(i+1)+" users in "+((System.currentTimeMillis()-start))+" seconds, continuing...");
+                display("Created "+(i+1)+" users in "+((System.currentTimeMillis()-start))+" milliseconds, continuing...");
             }
         }
-        display("Created "+NUM_LDAP_ENTRIES+" users in "+((System.currentTimeMillis()-start))+" seconds.");
+        display("Created "+NUM_LDAP_ENTRIES+" users in "+((System.currentTimeMillis()-start))+" milliseconds.");
 
     }
 
