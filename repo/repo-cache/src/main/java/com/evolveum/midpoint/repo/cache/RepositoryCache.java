@@ -103,7 +103,7 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		if (!isCacheable(type) || options != null) {
+		if (!isCacheable(type) || !nullOrHarmlessOptions(options)) {
 			log("Cache: PASS {} ({})", oid, type.getSimpleName());
 			return repository.getObject(type, oid, options, parentResult);
 		}
@@ -153,7 +153,7 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
-		if (!isCacheable(type) || options != null) {
+		if (!isCacheable(type) || !nullOrHarmlessOptions(options)) {
 			log("Cache: PASS ({})", type.getSimpleName());
 			return repository.searchObjects(type, query, options, parentResult);
 		}
@@ -234,8 +234,30 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <F extends FocusType> PrismObject<F> searchShadowOwner(
 			String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException {
-		// TODO cache?
-		return repository.searchShadowOwner(shadowOid, options, parentResult);
+		// TODO cache the search operation?
+		PrismObject<F> ownerObject = repository.searchShadowOwner(shadowOid, options, parentResult);
+		if (ownerObject != null && nullOrHarmlessOptions(options)) {
+			cacheObject(getCache(), ownerObject);
+		}
+		return ownerObject;
+	}
+
+	private boolean nullOrHarmlessOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+		if (options == null || options.isEmpty()) {
+			return true;
+		}
+		if (options.size() > 1) {
+			return false;
+		}
+		SelectorOptions<GetOperationOptions> selectorOptions = options.iterator().next();
+		if (!selectorOptions.isRoot()) {
+			return false;
+		}
+		GetOperationOptions options1 = selectorOptions.getOptions();
+		if (options1 == null || options1.equals(new GetOperationOptions()) || options1.equals(GetOperationOptions.createAllowNotFound())) {
+			return true;
+		}
+		return false;
 	}
 
 	@Override
