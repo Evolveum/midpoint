@@ -5345,17 +5345,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="unmatched">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The new account is found on the resource (it exists) and
-                        IDM cannot determine any owner for the account.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="UNMATCHED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="disputed">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5383,6 +5372,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="UNLINKED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unmatched">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The new account is found on the resource (it exists) and
+                        IDM cannot determine any owner for the account.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNMATCHED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
