@@ -954,6 +954,7 @@ public abstract class ShadowCache {
 
 			repoShadow = shadowManager.createRepositoryShadow(
 					resourceShadow, resourceType, objectClassDef);
+			ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable());
 			String oid = repositoryService.addObject(repoShadow, null,
 					parentResult);
 			repoShadow.setOid(oid);
@@ -1158,9 +1159,9 @@ public abstract class ShadowCache {
 		Collection<? extends ItemDelta> shadowModification = createShadowResultModification(change, notifyChangeResult);
 		String oid = getOidFromChange(change);
 		// maybe better error handling is needed
-		try{
-		repositoryService.modifyObject(ShadowType.class, oid,
-				shadowModification, parentResult);
+		try {
+			ConstraintsChecker.onShadowModifyOperation(shadowModification);
+			repositoryService.modifyObject(ShadowType.class, oid, shadowModification, parentResult);
 		} catch (SchemaException ex){
 			parentResult.recordPartialError("Couldn't modify object: schema violation: " + ex.getMessage(), ex);
 //			throw ex;
@@ -1321,6 +1322,7 @@ public abstract class ShadowCache {
 			}
 		}
 		if (!renameDeltas.isEmpty()){
+			ConstraintsChecker.onShadowModifyOperation(renameDeltas);
 			repositoryService.modifyObject(ShadowType.class, oldShadowType.getOid(), renameDeltas, parentResult);
 			oldShadowType.setName(new PolyStringType(currentShadowName));
 		}

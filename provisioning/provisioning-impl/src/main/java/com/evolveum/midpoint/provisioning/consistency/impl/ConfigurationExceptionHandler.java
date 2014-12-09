@@ -18,6 +18,7 @@ package com.evolveum.midpoint.provisioning.consistency.impl;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -85,6 +86,7 @@ public class ConfigurationExceptionHandler extends ErrorHandler {
 		
 		Collection<ItemDelta> modification = createAttemptModification(shadow, null);
 		try {
+			ConstraintsChecker.onShadowModifyOperation(modification);
 			cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(),
 					modification, parentResult);
 		} catch (Exception e) {

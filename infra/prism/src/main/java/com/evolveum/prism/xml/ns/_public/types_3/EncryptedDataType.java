@@ -173,7 +173,7 @@ public class EncryptedDataType implements Serializable, Cloneable {
 	}
 
     @Override
-    protected EncryptedDataType clone() {
+    public EncryptedDataType clone() {
         EncryptedDataType cloned = new EncryptedDataType();
         cloned.setCipherData(getCipherData().clone());
         cloned.setEncryptionMethod(getEncryptionMethod().clone());

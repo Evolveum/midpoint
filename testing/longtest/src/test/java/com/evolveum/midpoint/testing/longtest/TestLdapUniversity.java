@@ -214,7 +214,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         //assertEquals("Wrong number of assignments", 4, user.getAssignment().size());
     }
 
-    @Test(enabled = false)
+    @Test
     public void test120BigReconciliation() throws Exception {
         final String TEST_NAME = "test120BigReconciliation";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -239,16 +239,20 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 //        OperationResult subresult = result.getLastSubresult();
 //        TestUtil.assertInProgress("reconciliation launch result", subresult);
 
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
+        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000, 10000L);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
-        assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES+4, userCount);
+        assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES+1, userCount);
 
-        assertUser("u1", task, result);
+        display("e0(u0)", findUserByUsername("e0(u0)"));
+        display("e1(u1)", findUserByUsername("e1(u1)"));
+
+        assertUser("e0(u0)", task, result);
+        assertUser("e1(u1)", task, result);
     }
 
     private void loadEntries(String prefix) throws LDIFException, IOException {

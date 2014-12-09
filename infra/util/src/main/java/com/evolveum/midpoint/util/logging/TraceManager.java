@@ -27,6 +27,8 @@ import com.evolveum.midpoint.util.logging.impl.TraceImpl;
  */
 public class TraceManager {
 
+    private static final String PERFORMANCE_ADVISOR = "PERFORMANCE_ADVISOR";
+
     private static Logger LOGGER = org.slf4j.LoggerFactory.getLogger(TraceManager.class);
 
     public static Trace getTrace(Class clazz) {
@@ -36,6 +38,11 @@ public class TraceManager {
     
     public static Trace getTrace(String loggerName) {
         Logger logger = org.slf4j.LoggerFactory.getLogger(loggerName);
+        return new TraceImpl(logger);
+    }
+
+    public static Trace getPerformanceAdvisorTrace() {
+        Logger logger = org.slf4j.LoggerFactory.getLogger(PERFORMANCE_ADVISOR);
         return new TraceImpl(logger);
     }
     
