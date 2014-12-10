@@ -1657,6 +1657,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	 */
 	@Override
 	public void postInit(OperationResult parentResult) {
+		Utils.clearSystemConfigurationCache();        // necessary for testing situations where we re-import different system configurations with the same version (on system init)
+
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(POST_INIT);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelController.class);
