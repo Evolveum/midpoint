@@ -466,8 +466,8 @@ public final class Utils {
 		return synchronizationPolicy.toString();
 	}
 
-	public static PrismObject<SystemConfigurationType> cachedSystemConfiguration = null;
-	public static long cachedSystemConfigurationRetrieveTimestamp = 0;
+	private static PrismObject<SystemConfigurationType> cachedSystemConfiguration = null;
+	private static long cachedSystemConfigurationRetrieveTimestamp = 0;
 	private static final long CACHED_SYSTEM_CONFIGURATION_TTL = 120000L;		// just to avoid stalled data if version is not incremented for any reason
 
 	public static PrismObject<SystemConfigurationType> getSystemConfiguration(RepositoryService repositoryService, OperationResult result) throws SchemaException {
@@ -481,12 +481,13 @@ public final class Utils {
 				LOGGER.warn("System configuration object was not found (should not happen!)");
 				return null;
 			}
-			if (currentVersion != null || currentVersion.equals(cachedSystemConfiguration.getVersion())) {
+			if (currentVersion != null && currentVersion.equals(cachedSystemConfiguration.getVersion())) {
 				LOGGER.trace("Using cached system configuration object; version = {}", currentVersion);
 				return cachedSystemConfiguration.clone();
 			}
 		}
 		try {
+			LOGGER.trace("Cache miss: reading system configuration from the repository");
 			systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 					SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()), result);
 		} catch (ObjectNotFoundException e) {
@@ -502,5 +503,9 @@ public final class Utils {
 		cachedSystemConfiguration = systemConfiguration.clone();
 		cachedSystemConfigurationRetrieveTimestamp = System.currentTimeMillis();
 		return systemConfiguration;
+	}
+
+	public static void clearSystemConfigurationCache() {
+		cachedSystemConfiguration = null;
 	}
 }
