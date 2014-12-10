@@ -563,7 +563,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult.recordSuccess();
 		} catch (UnsupportedOperationException ex) {
 			// The connector does no support schema() operation.
-			icfResult.recordStatus(OperationResultStatus.HANDLED_ERROR, ex.getMessage());
+			icfResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, ex.getMessage());
 			resourceSchema = null;
 			return;
 		} catch (Throwable ex) {
@@ -595,6 +595,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
 		}
+		
+		if (icfSchema == null) {
+			icfResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Null schema returned");
+			resourceSchema = null;
+			return;
+		}
+
 
 		parseResourceSchema(icfSchema, generateObjectClasses);
 	}
