@@ -1031,8 +1031,8 @@ public class OrgClosureManager {
             // with serializable transactions it is not possible to create index within the transaction (after inserting data)
             start = System.currentTimeMillis();
             Query createTableQuery = session.createSQLQuery("create table " + deltaTempTableName + " (" +
-                    "descendant_oid NVARCHAR(36), " +
-                    "ancestor_oid NVARCHAR(36), " +
+                    "descendant_oid NVARCHAR(36) COLLATE database_default, " +
+                    "ancestor_oid NVARCHAR(36) COLLATE database_default, " +
                     "val INT, " +
                     "PRIMARY KEY (descendant_oid, ancestor_oid))");
             createTableQuery.executeUpdate();
