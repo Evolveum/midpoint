@@ -147,14 +147,20 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_NAME = "schemaless";
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_NAMESPACE = MidPointConstants.NS_RI;
-	
+
+    // Upcase resource turns all names to upper case. It is also caseInsensitive resource
+	protected static final File RESOURCE_DUMMY_UPCASE_FILE = new File(COMMON_DIR, "resource-dummy-upcase.xml");
+	protected static final String RESOURCE_DUMMY_UPCASE_OID = "10000000-0000-0000-0000-000000001204";
+	protected static final String RESOURCE_DUMMY_UPCASE_NAME = "upcase";
+	protected static final String RESOURCE_DUMMY_UPCASE_NAMESPACE = MidPointConstants.NS_RI;
+
 	protected static final String RESOURCE_DUMMY_FAKE_FILENAME = COMMON_DIR_PATH + "/resource-dummy-fake.xml";
 	protected static final String RESOURCE_DUMMY_FAKE_OID = "10000000-0000-0000-0000-00000000000f";
 
 	protected static final String ROLE_SUPERUSER_FILENAME = COMMON_DIR_PATH + "/role-superuser.xml";
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
-	protected static final File ROLE_PIRATE_FILE = new File(COMMON_DIR_PATH, "role-pirate.xml");
+	protected static final File ROLE_PIRATE_FILE = new File(COMMON_DIR, "role-pirate.xml");
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
     protected static final String ROLE_PIRATE_NAME = "Pirate";
     protected static final String ROLE_PIRATE_DESCRIPTION = "Scurvy Pirates";
