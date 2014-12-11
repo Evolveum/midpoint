@@ -1679,7 +1679,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void waitForTaskFinish(Task task, boolean checkSubresult, final int timeout) throws Exception {
-		waitForTaskFinish(task, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT, DEFAULT_TASK_SLEEP_TIME);
+		waitForTaskFinish(task, checkSubresult, timeout, DEFAULT_TASK_SLEEP_TIME);
 	}
 	
 	protected void waitForTaskFinish(final Task task, final boolean checkSubresult, final int timeout, long sleepTime) throws Exception {
