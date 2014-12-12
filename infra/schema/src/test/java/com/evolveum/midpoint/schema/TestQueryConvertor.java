@@ -27,14 +27,16 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-
 import com.evolveum.midpoint.prism.util.PrismUtil;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -256,6 +258,10 @@ public class TestQueryConvertor {
 
 	}
 	
+	private PrismObjectDefinition<UserType> getUserDefinition(){
+		return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+	}
+	
 	@Test
 	public void testTypeFilterQuery() throws Exception {
 		displayTestTitle("testConnectorQuery");
@@ -272,8 +278,10 @@ public class TestQueryConvertor {
 			TypeFilter typeFilter = (TypeFilter) filter;
 			assertEquals(typeFilter.getType(), UserType.COMPLEX_TYPE);
 			assertNotNull("filter in type filter must not be null", typeFilter.getFilter());
-			PrismAsserts.assertEqualsFilter(typeFilter.getFilter(), UserType.COMPLEX_TYPE, DOMUtil.XSD_QNAME, new ItemPath(UserType.F_NAME));
-			PrismAsserts.assertEqualsFilterValue((EqualFilter) typeFilter.getFilter(), "some name identificator");
+			ItemPath namePath = new ItemPath(UserType.F_NAME);
+			PrismPropertyDefinition ppd = getUserDefinition().findPropertyDefinition(namePath);
+			PrismAsserts.assertEqualsFilter(typeFilter.getFilter(), ppd.getName(), ppd.getTypeName(), namePath);
+			PrismAsserts.assertEqualsFilterValue((EqualFilter) typeFilter.getFilter(), PrismTestUtil.createPolyString("some name identificator"));
 //			PrismAsserts.assertEqualsFilter(query.getFilter(), ConnectorType.F_CONNECTOR_TYPE, DOMUtil.XSD_STRING,
 //					new ItemPath(ConnectorType.F_CONNECTOR_TYPE));
 //			PrismAsserts.assertEqualsFilterValue((EqualsFilter) filter, "org.identityconnectors.ldap.LdapConnector");
