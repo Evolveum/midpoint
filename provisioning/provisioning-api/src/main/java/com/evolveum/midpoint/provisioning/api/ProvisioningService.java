@@ -21,6 +21,8 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -30,6 +32,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -45,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -224,12 +229,12 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
 			SecurityViolationException;
 	
 
-	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
+	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
 			SecurityViolationException;
 	
@@ -260,7 +265,7 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,  Collection<SelectorOptions<GetOperationOptions>> options,
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,  Collection<SelectorOptions<GetOperationOptions>> options,
 			final ResultHandler<T> handler, final OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
@@ -462,4 +467,16 @@ public interface ProvisioningService {
 	 * constructed, properly wired and initialized. Also logging and other infrastructure should be already set up.
 	 */
 	public void postInit(OperationResult parentResult);
+
+	ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition,
+											   PrismObject<ShadowType> shadowObject,
+											   ResourceType resourceType,
+											   String shadowOid,
+											   ResourceShadowDiscriminator resourceShadowDiscriminator,
+											   ConstraintViolationConfirmer constraintViolationConfirmer,
+											   OperationResult parentResult) throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+
+	void enterConstraintsCheckerCache();
+
+	void exitConstraintsCheckerCache();
 }

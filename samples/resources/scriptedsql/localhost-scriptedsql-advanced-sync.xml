@@ -37,7 +37,7 @@
 			<filter>
 				<q:equal>
 					<q:path>c:connectorType</q:path>
-					<q:value>org.forgerock.openicf.scriptedsql.ScriptedSQLConnector</q:value>
+					<q:value>org.forgerock.openicf.connectors.scriptedsql.ScriptedSQLConnector</q:value>
 				</q:equal>
 			</filter>
 		</connectorRef>
@@ -46,43 +46,36 @@
              such as hostnames and passwords -->
 		<c:connectorConfiguration>
 
-			<!-- Configuration specific for the DBTable connector -->
+			<!-- Configuration specific for the ScriptedSQL connector -->
 			<icfc:configurationProperties
-			   xmlns:icscscriptedsql="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.scriptedsql/org.forgerock.openicf.scriptedsql.ScriptedSQLConnector">
-				<icscscriptedsql:port>3306</icscscriptedsql:port>
+			xmlns:icscscriptedsql="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.scriptedsql-connector/org.forgerock.openicf.connectors.scriptedsql.ScriptedSQLConnector">
+				<icscscriptedsql:port>5432</icscscriptedsql:port>
 				<icscscriptedsql:quoting></icscscriptedsql:quoting>
 				<icscscriptedsql:host>localhost</icscscriptedsql:host>
 				<icscscriptedsql:user>mdp_scriptedsql</icscscriptedsql:user>
-				<icscscriptedsql:password><clearValue>secret</clearValue></icscscriptedsql:password>
+				<icscscriptedsql:password><clearValue>password</clearValue></icscscriptedsql:password>
 				<icscscriptedsql:database>mdp_scriptedsql</icscscriptedsql:database>
 				<icscscriptedsql:clearTextPasswordToScript>true</icscscriptedsql:clearTextPasswordToScript>
 				<icscscriptedsql:scriptingLanguage>GROOVY</icscscriptedsql:scriptingLanguage>
-				<!--
-				<icscscriptedsql:createScript></icscscriptedsql:createScript>
-				<icscscriptedsql:updateScript></icscscriptedsql:updateScript>
-				<icscscriptedsql:deleteScript></icscscriptedsql:deleteScript>
-				<icscscriptedsql:searchScript></icscscriptedsql:searchScript>
-				<icscscriptedsql:testScript></icscscriptedsql:testScript>
-				<icscscriptedsql:syncScript></icscscriptedsql:syncScript>
--->
+				<icscscriptedsql:reloadScriptOnExecution>true</icscscriptedsql:reloadScriptOnExecution>
 
-				<icscscriptedsql:createScriptFileName>/opt/midpoint-configuration/icf-connectors/CreateScript.groovy</icscscriptedsql:createScriptFileName>
-				<icscscriptedsql:updateScriptFileName>/opt/midpoint-configuration/icf-connectors/UpdateScript.groovy</icscscriptedsql:updateScriptFileName>
-				<icscscriptedsql:deleteScriptFileName>/opt/midpoint-configuration/icf-connectors/DeleteScript.groovy</icscscriptedsql:deleteScriptFileName>
-				<icscscriptedsql:searchScriptFileName>/opt/midpoint-configuration/icf-connectors/SearchScript.groovy</icscscriptedsql:searchScriptFileName>
-				<icscscriptedsql:testScriptFileName>/opt/midpoint-configuration/icf-connectors/TestScript.groovy</icscscriptedsql:testScriptFileName>
-				<icscscriptedsql:syncScriptFileName>/opt/midpoint-configuration/icf-connectors/SyncScript.groovy</icscscriptedsql:syncScriptFileName>
+				<icscscriptedsql:createScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/CreateScript.groovy</icscscriptedsql:createScriptFileName>
+				<icscscriptedsql:updateScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/UpdateScript.groovy</icscscriptedsql:updateScriptFileName>
+				<icscscriptedsql:deleteScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/DeleteScript.groovy</icscscriptedsql:deleteScriptFileName>
+				<icscscriptedsql:schemaScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/SchemaScript.groovy</icscscriptedsql:schemaScriptFileName>
+				<icscscriptedsql:searchScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/SearchScript.groovy</icscscriptedsql:searchScriptFileName>
+				<icscscriptedsql:testScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/TestScript.groovy</icscscriptedsql:testScriptFileName>
+				<icscscriptedsql:syncScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/SyncScript.groovy</icscscriptedsql:syncScriptFileName>
 
 				<icscscriptedsql:validConnectionQuery></icscscriptedsql:validConnectionQuery>
 				<icscscriptedsql:jndiProperties></icscscriptedsql:jndiProperties>
 
-				<icscscriptedsql:jdbcDriver>com.mysql.jdbc.Driver</icscscriptedsql:jdbcDriver>
-				<icscscriptedsql:jdbcUrlTemplate>jdbc:mysql://%h:%p/%d?useUnicode=true&amp;characterEncoding=utf8&amp;connectionCollation=utf8_bin</icscscriptedsql:jdbcUrlTemplate>
+				<icscscriptedsql:jdbcDriver>org.postgresql.Driver</icscscriptedsql:jdbcDriver>
+				<icscscriptedsql:jdbcUrlTemplate>jdbc:postgresql://%h:%p/%d</icscscriptedsql:jdbcUrlTemplate>
 				<icscscriptedsql:enableEmptyString>true</icscscriptedsql:enableEmptyString>
 				<icscscriptedsql:rethrowAllSQLExceptions>true</icscscriptedsql:rethrowAllSQLExceptions>
-				<icscscriptedsql:nativeTimestamps>false</icscscriptedsql:nativeTimestamps>
+				<icscscriptedsql:nativeTimestamps>true</icscscriptedsql:nativeTimestamps>
 				<icscscriptedsql:allNative>false</icscscriptedsql:allNative>
-				<!--<icscscriptedsql:changeLogColumn>timestamp</icscscriptedsql:changeLogColumn>-->
 				<icscscriptedsql:datasource></icscscriptedsql:datasource>
 			</icfc:configurationProperties>
 
@@ -91,49 +84,6 @@
 
 		</c:connectorConfiguration>
 
-		<schema>
-			<!-- Storing schema here and don't letting midpoint to generate it. ScriptedSQL does not support getting schema... -->
-			<definition>
-				<xsd:schema elementFormDefault="qualified"
-			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
-
-					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
-					<xsd:complexType name="AccountObjectClass">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<ra:resourceObject/>
-								<ra:identifier>icfs:uid</ra:identifier>
-								<ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-								<ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-								<ra:namingAttribute>icfs:name</ra:namingAttribute>
-								<ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-								<ra:account/>
-								<ra:default/>
-							</xsd:appinfo>
-						</xsd:annotation>
-						<xsd:sequence>
-							<xsd:element ref="icfs:name" />
-							<xsd:element minOccurs="0" ref="icfs:uid" />
-							<!--	<xsd:element minOccurs="0" ref="icfs:password" />-->
-							<xsd:element maxOccurs="1" minOccurs="0" name="uid" type="xsd:string" />
-							<xsd:element maxOccurs="1" minOccurs="0" name="firstname" type="xsd:string" />
-							<xsd:element maxOccurs="1" minOccurs="0" name="fullname" type="xsd:string" />
-							<xsd:element maxOccurs="1" minOccurs="0" name="lastname" type="xsd:string" />
-							<xsd:element maxOccurs="1" minOccurs="0" name="email" type="xsd:string" />
-							<xsd:element maxOccurs="1" minOccurs="0" name="organization" type="xsd:string" />
-							<!-- TODO: how about timestamp ? It's defined in the sample DB and used for Sync -->
-						</xsd:sequence>
-					</xsd:complexType>
-				</xsd:schema>
-			</definition>
-		</schema>
-		<!-- We need to specify nativeCapabilities as well as these are usually schema-derived -->
 		<!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
              midPoint. It defines expressions and limitations for individual
@@ -177,18 +127,10 @@
 
 					<!-- Readable name for the attribute. This will be used in GUI -->
 					<displayName>Name</displayName>
-
-					<!-- Access limitation for this attribute.
-                          -->
-                    <limitations>
-                        <access>
-                            <read>true</read>
-                            <add>true</add>
-                            <modify>false</modify>
-                        </access>
-                    </limitations>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
 					<outbound>
-						<strength>weak</strength>
 						<source>
 							<path>$user/name</path>
 						</source>
@@ -230,7 +172,6 @@
 							<path>$user/familyName</path>
 						</target>
 					</inbound>
-
 				</attribute>
 				<attribute>
 					<ref>ri:fullname</ref>
@@ -249,6 +190,11 @@
 				</attribute>
 				<attribute>
 					<ref>ri:email</ref>
+					<outbound>
+						<source>
+							<path>$user/emailAddress</path>
+						</source>
+					</outbound>
 					<inbound>
 						<target>
 							<path>$user/emailAddress</path>
@@ -258,9 +204,8 @@
 				<activation>
 					<administrativeStatus>
 						<outbound/>
-						<inbound>
-							<strength>weak</strength>
-						</inbound>
+						<inbound/>
+							<!--<strength>weak</strength>-->
 					</administrativeStatus>
 				</activation>
 				<credentials>
@@ -276,26 +221,6 @@
 				</credentials>
 			</objectType>
 		</schemaHandling>
-		<capabilities>
-			<native>
-				<cap:script>
-					<cap:host>
-						<cap:type>resource</cap:type>
-					</cap:host>
-					<cap:host>
-						<cap:type>connector</cap:type>
-					</cap:host>
-				</cap:script>
-				<cap:testConnection/>
-				<cap:liveSync/>
-				<!--	        <cap:credentials>
-	            <cap:password/>
-	        </cap:credentials>-->
-				<!--	        <cap:activation>
-	            <cap:status/>
-	        </cap:activation>-->
-			</native>
-		</capabilities>
 		<synchronization>
 			<objectSynchronization>
 				<!--
@@ -347,12 +272,7 @@
 				</reaction>
 				<reaction>
 					<situation>unmatched</situation>
-					<!-- Reference to the User Template is here. If the user would be
-	                         created as a result of this action, it will be created according
-	                         to this template. -->
-					<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
 					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
-					<!--	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
 				</reaction>
 			</objectSynchronization>
 		</synchronization>

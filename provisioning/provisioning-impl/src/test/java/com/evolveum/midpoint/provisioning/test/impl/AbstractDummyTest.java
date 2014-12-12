@@ -240,7 +240,19 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected File getAccountWillFile() {
 		return new File(ACCOUNT_WILL_FILENAME);
 	}
+			
+	protected String transformNameFromResource(String origName) {
+		return origName;
+	}
 	
+	protected void assertShadowName(PrismObject<ShadowType> shadow, String expectedName) {
+		PrismAsserts.assertEqualsPolyString("Shadow name is wrong in "+shadow, expectedName, shadow.asObjectable().getName());
+	}
+
+	protected void assertShadowName(ShadowType shadowType, String expectedName) {
+		assertShadowName(shadowType.asPrismObject(), expectedName);
+	}
+
 	protected boolean supportsActivation() {
 		return true;
 	}

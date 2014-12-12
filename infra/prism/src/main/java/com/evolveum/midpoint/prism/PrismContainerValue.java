@@ -200,12 +200,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
      */
     public Set<PrismProperty<?>> getProperties() {
         Set<PrismProperty<?>> properties = new HashSet<PrismProperty<?>>();
-        if (items == null){
-        	return null;
-        }
-        for (Item<?> item : getItems()) {
-            if (item instanceof PrismProperty) {
-                properties.add((PrismProperty<?>) item);
+        if (items != null) {
+            for (Item<?> item : getItems()) {
+                if (item instanceof PrismProperty) {
+                    properties.add((PrismProperty<?>) item);
+                }
             }
         }
         return properties;

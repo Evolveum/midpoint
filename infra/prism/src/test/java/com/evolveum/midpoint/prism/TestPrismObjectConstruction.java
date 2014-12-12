@@ -208,7 +208,7 @@ public class TestPrismObjectConstruction {
 		PrismProperty<Boolean> enabledProperty = user.findOrCreateProperty(USER_ENABLED_PATH);
 		assertEquals(USER_ENABLED_QNAME, enabledProperty.getElementName());
 		PrismAsserts.assertParentConsistency(user);
-		if (assertDefinitions) PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 0, 1);
 		enabledProperty.setValue(new PrismPropertyValue<Boolean>(true));
 		PrismProperty<Boolean> enabledPropertyAgain = activationContainer.findOrCreateProperty(USER_ENABLED_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
@@ -304,7 +304,7 @@ public class TestPrismObjectConstruction {
 		// activation/enabled
 		PrismProperty enabledProperty = user.findProperty(USER_ENABLED_PATH);
 		assertEquals(USER_ENABLED_QNAME, enabledProperty.getElementName());
-		if (assertDefinitions) PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
+		if (assertDefinitions) PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 0, 1);
 		assertEquals("Wrong enabled", true, enabledProperty.getValue().getValue());
 		// assignment
 		PrismContainer assignmentContainer = user.findContainer(USER_ASSIGNMENT_QNAME);

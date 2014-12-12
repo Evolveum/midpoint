@@ -52,6 +52,10 @@ public class DummyGroup extends DummyObject {
 		addAttributeValue(ATTR_MEMBERS_NAME, newMember);
 	}
 
+	public boolean containsMember(String member) {
+		return getMembers().contains(member);			// TODO ok? what about case ignoring scenarios?
+	}
+
 	public void removeMember(String newMember) throws SchemaViolationException, ConnectException, FileNotFoundException {
 		removeAttributeValue(ATTR_MEMBERS_NAME, newMember);
 	}

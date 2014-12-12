@@ -126,7 +126,17 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected DummyResourceContoller dummyResourceCtlBlack;
 	protected ResourceType resourceDummyBlackType;
 	protected PrismObject<ResourceType> resourceDummyBlack;
-	
+
+	protected DummyResource dummyResourceOrange;
+	protected DummyResourceContoller dummyResourceCtlOrange;
+	protected ResourceType resourceDummyOrangeType;
+	protected PrismObject<ResourceType> resourceDummyOrange;
+
+	protected DummyResource dummyResourceUpcase;
+	protected DummyResourceContoller dummyResourceCtlUpcase;
+	protected ResourceType resourceDummyUpcaseType;
+	protected PrismObject<ResourceType> resourceDummyUpcase;
+
 	protected ResourceType resourceDummySchemalessType;
 	protected PrismObject<ResourceType> resourceDummySchemaless;
 	
@@ -195,7 +205,21 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		resourceDummyBlack = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BLACK_FILENAME, RESOURCE_DUMMY_BLACK_OID, initTask, initResult);
 		resourceDummyBlackType = resourceDummyBlack.asObjectable();
 		dummyResourceCtlBlack.setResource(resourceDummyBlack);
-		
+
+		dummyResourceCtlOrange = DummyResourceContoller.create(RESOURCE_DUMMY_ORANGE_NAME, resourceDummyOrange);
+		dummyResourceCtlOrange.extendSchemaPirate();
+		dummyResourceOrange = dummyResourceCtlOrange.getDummyResource();
+		resourceDummyOrange = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_ORANGE_FILENAME, RESOURCE_DUMMY_ORANGE_OID, initTask, initResult);
+		resourceDummyOrangeType = resourceDummyOrange.asObjectable();
+		dummyResourceCtlOrange.setResource(resourceDummyOrange);
+
+		dummyResourceCtlUpcase = DummyResourceContoller.create(RESOURCE_DUMMY_UPCASE_NAME, resourceDummyUpcase);
+		dummyResourceCtlUpcase.extendSchemaPirate();
+		dummyResourceUpcase = dummyResourceCtlUpcase.getDummyResource();
+		resourceDummyUpcase = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_UPCASE_FILE, RESOURCE_DUMMY_UPCASE_OID, initTask, initResult);
+		resourceDummyUpcaseType = resourceDummyUpcase.asObjectable();
+		dummyResourceCtlUpcase.setResource(resourceDummyUpcase);
+
 		resourceDummySchemaless = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SCHEMALESS_FILENAME, RESOURCE_DUMMY_SCHEMALESS_OID, initTask, initResult); 
 		resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
 

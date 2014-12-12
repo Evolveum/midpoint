@@ -24,12 +24,18 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
+import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.schema.RetrieveOption;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.InternalsConfig;
@@ -53,6 +59,8 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -80,6 +88,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisionin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 
 /**
  * Implementation of provisioning service.
@@ -92,6 +102,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author Radovan Semancik
  */
 @Service(value = "provisioningService")
+@Primary
 public class ProvisioningServiceImpl implements ProvisioningService {
 	
 	@Autowired(required = true)
@@ -533,7 +544,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 	
 	@Override
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
+	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
 			ConfigurationException, SecurityViolationException {
 
@@ -542,11 +553,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		final List<PrismObject<T>> objListType = new ArrayList<PrismObject<T>>();
+		final SearchResultList<PrismObject<T>> objListType = new SearchResultList(new ArrayList<PrismObject<T>>());
 		
+		SearchResultMetadata metadata;
 		try {
 			if (!ShadowType.class.isAssignableFrom(type)) {
-				List<PrismObject<T>> objects = searchRepoObjects(type, query, result);
+				SearchResultList<PrismObject<T>> objects = searchRepoObjects(type, query, result);
 				result.computeStatus();
 				result.recordSuccessIfUnknown();
 				result.cleanupResult();
@@ -561,7 +573,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				}
 			};
 		
-			searchObjectsIterative(type, query, options, handler, result);
+			metadata = searchObjectsIterative(type, query, options, handler, result);
 			
 		} catch (ConfigurationException e) {
 			recordFatalError(LOGGER, result, "Could not search objects: configuration problem: " + e.getMessage(), e);
@@ -586,12 +598,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.computeStatus();
 		result.cleanupResult();
 		validateObjects(objListType);
+		objListType.setMetadata(metadata);
 		return objListType;
 	}
 
 
 	@SuppressWarnings("unchecked")
-	private <T extends ObjectType> List<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query, OperationResult result) throws SchemaException {
+	private <T extends ObjectType> SearchResultList<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query, OperationResult result) throws SchemaException {
 
 		List<PrismObject<T>> repoObjects = null;
 
@@ -599,7 +612,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		repoObjects = getCacheRepositoryService().searchObjects(type, query, null, result);
 
-		List<PrismObject<T>> newObjListType = new ArrayList<PrismObject<T>>();
+		SearchResultList<PrismObject<T>> newObjListType = new SearchResultList(new ArrayList<PrismObject<T>>());
 		for (PrismObject<T> repoObject : repoObjects) {
 			OperationResult objResult = new OperationResult(ProvisioningService.class.getName()
 					+ ".searchObjects.object");
@@ -689,7 +702,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 
-	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
+	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
@@ -713,40 +726,106 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
         if (refinedSchema == null) {
-            throw new ConfigurationException("No schema for "+resourceType);
+            ConfigurationException e = new ConfigurationException("No schema for "+resourceType);
+            result.recordFatalError(e);
+            throw e;
         }
         final RefinedObjectClassDefinition objectClassDef = refinedSchema.getRefinedDefinition(objectClassName);
 
-        if (!objectClassDef.isPagedSearchEnabled()) {
-            // traditional way of counting objects (i.e. counting them one by one)
-            final Holder<Integer> countHolder = new Holder<Integer>(0);
-
-            final ResultHandler<T> handler = new ResultHandler<T>() {
-                @Override
-                public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-                    int count = countHolder.getValue();
-                    count++;
-                    countHolder.setValue(count);
-                    return true;
+        CountObjectsCapabilityType countObjectsCapabilityType = objectClassDef.getEffectiveCapability(CountObjectsCapabilityType.class);
+        if (countObjectsCapabilityType == null) {
+        	// Unable to count. Return null which means "I do not know"
+        	result.recordNotApplicableIfUnknown();
+    		return null;
+        } else {
+        	CountObjectsSimulateType simulate = countObjectsCapabilityType.getSimulate();
+        	if (simulate == null) {
+        		// We have native capability
+        		
+        		// TODO shouldn't this be moved into ShadowCache?
+                ConnectorInstance connector = getShadowCache(Mode.STANDARD).getConnectorInstance(resourceType, parentResult);
+                try {
+                    ObjectQuery attributeQuery = getShadowCache(Mode.STANDARD).createAttributeQuery(query);
+                    int count;
+                    try {
+                    	count = connector.count(objectClassDef.getObjectClassDefinition(), attributeQuery, objectClassDef.getPagedSearches(), result);
+                    } catch (CommunicationException | GenericFrameworkException| SchemaException | UnsupportedOperationException e) {
+                    	result.recordFatalError(e);
+                        throw e;
+                    }
+                    result.computeStatus();
+    	            result.cleanupResult();
+    	            return count;
+                } catch (GenericFrameworkException|UnsupportedOperationException e) {
+                    SystemException ex = new SystemException("Couldn't count objects on resource " + resourceType + ": " + e.getMessage(), e);
+                    result.recordFatalError(ex);
+                    throw ex;
                 }
-            };
-
-            searchObjectsIterative(type, query, null, handler, result);
-            // TODO: better error handling
-            result.computeStatus();
-            result.cleanupResult();
-            return countHolder.getValue();
+                
+        	} else if (simulate == CountObjectsSimulateType.PAGED_SEARCH_ESTIMATE) {
+        		
+        		if (!objectClassDef.isPagedSearchEnabled()) {
+        			throw new ConfigurationException("Configured count object capability to be simulated using a paged search but paged search capability is not present");
+        		}
+        		
+        		final Holder<Integer> countHolder = new Holder<Integer>(0);
+        		
+	            final ResultHandler<T> handler = new ResultHandler<T>() {
+	                @Override
+	                public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+	                    int count = countHolder.getValue();
+	                    count++;
+	                    countHolder.setValue(count);
+	                    return true;
+	                }
+	            };
+	
+	            query = query.clone();
+	            ObjectPaging paging = ObjectPaging.createEmptyPaging();
+	            paging.setMaxSize(1);
+				query.setPaging(paging);
+				Collection<SelectorOptions<GetOperationOptions>> options =
+						SelectorOptions.createCollection(new ItemPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
+				SearchResultMetadata resultMetadata;
+				try {
+					resultMetadata = searchObjectsIterativeInternal(type, query, options, handler, false, result);
+				} catch (SchemaException | ObjectNotFoundException | ConfigurationException | SecurityViolationException e) {
+					result.recordFatalError(e);
+                    throw e;
+				}
+	            result.computeStatus();
+	            result.cleanupResult();
+	            
+        		return resultMetadata.getApproxNumberOfAllResults();
+                
+        	} else if (simulate == CountObjectsSimulateType.SEQUENTIAL_SEARCH) {
+        		
+        		// traditional way of counting objects (i.e. counting them one by one)
+	            final Holder<Integer> countHolder = new Holder<Integer>(0);
+	
+	            final ResultHandler<T> handler = new ResultHandler<T>() {
+	                @Override
+	                public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+	                    int count = countHolder.getValue();
+	                    count++;
+	                    countHolder.setValue(count);
+	                    return true;
+	                }
+	            };
+	
+				Collection<SelectorOptions<GetOperationOptions>> options =
+						SelectorOptions.createCollection(new ItemPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
+	            searchObjectsIterativeInternal(type, query, options, handler, false, result);
+	            // TODO: better error handling
+	            result.computeStatus();
+	            result.cleanupResult();
+	            return countHolder.getValue();
+        		
+        	} else {
+        		throw new IllegalArgumentException("Unknown count capability simulate type "+simulate);
+        	}
         }
-
-        // counting objects using paged search
-        // TODO shouldn't this be moved into ShadowCache?
-        ConnectorInstance connector = getShadowCache(Mode.STANDARD).getConnectorInstance(resourceType, parentResult);
-        try {
-            ObjectQuery attributeQuery = getShadowCache(Mode.STANDARD).createAttributeQuery(query);
-            return connector.count(objectClassDef.getObjectClassDefinition(), attributeQuery, objectClassDef.getPagedSearches(), result);
-        } catch (GenericFrameworkException|UnsupportedOperationException e) {
-            throw new SystemException("Couldn't count objects on resource " + resourceType + ": " + e.getMessage(), e);
-        }
+                
     }
 
 	@SuppressWarnings("rawtypes")
@@ -1072,12 +1151,21 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.cleanupResult();
 	}
 
-
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public <T extends ObjectType> void searchObjectsIterative(final Class<T> type, ObjectQuery query, 
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(final Class<T> type, ObjectQuery query, 
 			Collection<SelectorOptions<GetOperationOptions>> options, 
 			final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException,
+				ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return searchObjectsIterativeInternal(type, query, options, handler, true, parentResult);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterativeInternal(final Class<T> type, ObjectQuery query,
+																	  Collection<SelectorOptions<GetOperationOptions>> options,
+																	  final ResultHandler<T> handler,
+																	  boolean readFromRepository,
+																	  final OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -1107,7 +1195,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.recordSuccessIfUnknown();
 			result.cleanupResult();
 			LOGGER.trace("Finished searching. Nothing to do. Filter is NONE");
-			return;
+			SearchResultMetadata metadata = new SearchResultMetadata();
+			metadata.setApproxNumberOfAllResults(0);
+			return metadata;
 		}
 		
 		if (!ShadowType.class.isAssignableFrom(type)) {
@@ -1147,9 +1237,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				}
 			};
 			
+			SearchResultMetadata metadata = null;
 			try {
 				
-				getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, null, result);
+				metadata = getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, null, result);
 				
 				result.computeStatus();
 				result.recordSuccessIfUnknown();
@@ -1163,7 +1254,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				recordFatalError(LOGGER, result, null, e);
 			}
 			
-			return;
+			return metadata;
 		}
 
         ResourceAndObjectClassFinder resourceAndObjectClassFinder = new ResourceAndObjectClassFinder(filter, result).invoke();
@@ -1200,6 +1291,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
                                 .createModificationReplacePropertyCollection(ShadowType.F_RESULT,
                                         getResourceObjectShadowDefinition(), handleResult.createOperationResultType());
                         try {
+							ConstraintsChecker.onShadowModifyOperation(shadowModificationType);
                             cacheRepositoryService.modifyObject(ShadowType.class, shadowType.getOid(),
                                     shadowModificationType, result);
                         } catch (ObjectNotFoundException ex) {
@@ -1235,9 +1327,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
+		SearchResultMetadata metadata;
 		try {
-			getShadowCache(Mode.STANDARD).searchObjectsIterative(objectClass,
-				resource.asObjectable(), query, options, shadowHandler, result);
+			metadata = getShadowCache(Mode.STANDARD).searchObjectsIterative(objectClass,
+				resource.asObjectable(), query, options, shadowHandler, readFromRepository, result);
 			result.computeStatus();
 		} catch (ConfigurationException e) {
 			recordFatalError(LOGGER, result, null, e);
@@ -1260,6 +1353,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} finally {
 			result.cleanupResult();
 		}
+		
+		return metadata;
 	}
 
 
@@ -1455,6 +1550,44 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.cleanupResult();
 	}
 
+	@Override
+	public ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition,
+													  PrismObject<ShadowType> shadowObject,
+													  ResourceType resourceType,
+													  String shadowOid,
+													  ResourceShadowDiscriminator resourceShadowDiscriminator,
+													  ConstraintViolationConfirmer constraintViolationConfirmer,
+													  OperationResult parentResult) throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
+		ConstraintsChecker checker = new ConstraintsChecker();
+		checker.setCacheRepositoryService(cacheRepositoryService);
+		checker.setProvisioningService(this);
+		checker.setPrismContext(prismContext);
+		checker.setShadowDefinition(shadowDefinition);
+		checker.setShadowObject(shadowObject);
+		checker.setResourceType(resourceType);
+		checker.setShadowOid(shadowOid);
+		checker.setResourceShadowDiscriminator(resourceShadowDiscriminator);
+		checker.setConstraintViolationConfirmer(constraintViolationConfirmer);
+		try {
+			ConstraintsCheckingResult retval = checker.check(result);
+			result.computeStatus();
+			return retval;
+		} catch (CommunicationException|ObjectAlreadyExistsException|SchemaException|SecurityViolationException|ConfigurationException|ObjectNotFoundException|RuntimeException e) {
+			result.recordFatalError(e.getMessage(), e);
+			throw e;
+		}
+	}
+
+	@Override
+	public void enterConstraintsCheckerCache() {
+		ConstraintsChecker.enterCache();
+	}
+
+	@Override
+	public void exitConstraintsCheckerCache() {
+		ConstraintsChecker.exitCache();
+	}
 
 	private PrismObjectDefinition<ShadowType> getResourceObjectShadowDefinition() {
 		if (resourceObjectShadowDefinition == null) {

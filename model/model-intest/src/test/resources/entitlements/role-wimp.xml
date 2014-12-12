@@ -18,6 +18,7 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+        xmlns:riOrange="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Wimp</name>
@@ -36,6 +37,22 @@
 				</outbound>
             </attribute>
     	</construction>
+    </assignment>
+    <assignment>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000001104" type="c:ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>wimps</value>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
     </assignment>
     <inducement>
     	<construction>
@@ -56,6 +73,26 @@
             	</outbound>
             </association>
     	</construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000001104" type="c:ResourceType"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>riOrange:group</ref>
+                <outbound>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>group</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
     </inducement>
     <requestable>true</requestable>
 </role>

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -476,18 +476,18 @@
 
         <!-- Dependencies to connectors, just to add to good place in WAR -->
         <dependency>
-            <groupId>org.forgerock.openicf.connectors</groupId>
-            <artifactId>ldap-connector</artifactId>
+			<groupId>com.evolveum.polygon</groupId>
+			<artifactId>connector-ldap</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.forgerock.openicf.connectors</groupId>
-            <artifactId>databasetable-connector</artifactId>
+        	<groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-databasetable</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.forgerock.openicf.connectors</groupId>
-            <artifactId>csvfile-connector</artifactId>
+            <groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-csvfile</artifactId>
             <scope>runtime</scope>
         </dependency>
         <!-- end connectors -->

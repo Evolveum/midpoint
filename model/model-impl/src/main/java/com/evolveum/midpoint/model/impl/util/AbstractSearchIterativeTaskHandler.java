@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.util;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,7 +64,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	// If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
 	
 	// This is not ideal, TODO: refactor
-	private Map<Task, H> handlers = new HashMap<Task,H>();
+	private Map<Task, H> handlers = Collections.synchronizedMap(new HashMap<Task, H>());
 	
 	@Autowired(required=true)
 	protected TaskManager taskManager;
@@ -92,31 +93,31 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
-		LOGGER.trace("{} run starting (task {})", taskName, task);
+	public TaskRunResult run(Task coordinatorTask) {
+		LOGGER.trace("{} run starting (coordinator task {})", taskName, coordinatorTask);
 		
 		OperationResult opResult = new OperationResult(taskOperationPrefix + ".run");
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
 
-		H resultHandler = createHandler(runResult, task, opResult);
+		H resultHandler = createHandler(runResult, coordinatorTask, opResult);
 		if (resultHandler == null) {
 			// the error should already be in the runResult
 			return runResult;
 		}
 		
-		boolean cont = initializeRun(resultHandler, runResult, task, opResult);
+		boolean cont = initializeRun(resultHandler, runResult, coordinatorTask, opResult);
 		if (!cont) {
 			return runResult;
 		}
 		
 		// TODO: error checking - already running
-        handlers.put(task, resultHandler);
+        handlers.put(coordinatorTask, resultHandler);
         
         ObjectQuery query;
         try {
-        	query = createQuery(resultHandler, runResult, task, opResult);
+        	query = createQuery(resultHandler, runResult, coordinatorTask, opResult);
         } catch (SchemaException ex) {
         	LOGGER.error("{}: Schema error while creating a search filter: {}", new Object[]{taskName, ex.getMessage(), ex});
             opResult.recordFatalError("Schema error while creating a search filter: " + ex.getMessage(), ex);
@@ -139,22 +140,29 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             // counting objects can be within try-catch block, because the handling is similar to handling errors within searchIterative
             Long expectedTotal = null;
             if (countObjectsOnStart) {
-                expectedTotal = (long) modelObjectResolver.countObjects(type, query, opResult);
+                Integer expectedTotalInt = modelObjectResolver.countObjects(type, query, opResult);
                 LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
+                if (expectedTotalInt != null) {
+                    expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
+                }
             }
 
             runResult.setProgress(0);
-            task.setProgress(0);
-            task.setExpectedTotal(expectedTotal);
+            coordinatorTask.setProgress(0);
+            if (expectedTotal != null) {
+                coordinatorTask.setExpectedTotal(expectedTotal);
+            }
             try {
-                task.savePendingModifications(opResult);
+                coordinatorTask.savePendingModifications(opResult);
             } catch (ObjectAlreadyExistsException e) {      // other exceptions are handled in the outer try block
                 throw new IllegalStateException("Unexpected ObjectAlreadyExistsException when updating task progress/expectedTotal", e);
             }
 
+            resultHandler.createWorkerThreads(coordinatorTask, opResult);
             modelObjectResolver.searchIterative(type, query, null, resultHandler, opResult);
-			
-		} catch (ObjectNotFoundException ex) {
+            resultHandler.completeProcessing(opResult);
+
+        } catch (ObjectNotFoundException ex) {
             LOGGER.error("{}: Object not found: {}", new Object[]{taskName, ex.getMessage(), ex});
             // This is bad. The resource does not exist. Permanent problem.
             opResult.recordFatalError("Object not found " + ex.getMessage(), ex);
@@ -202,14 +210,18 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
         // TODO: check last handler status
 
-        handlers.remove(task);
-        opResult.computeStatus("Errors during processing");
+        handlers.remove(coordinatorTask);
+
         runResult.setProgress(resultHandler.getProgress());
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
         if (logFinishInfo) {
-	        String finishMessage = "Finished " + taskName + " (" + task + "). ";
-	        String statistics = "Processed " + resultHandler.getProgress() + " objects, got " + resultHandler.getErrors() + " errors.";
+	        String finishMessage = "Finished " + taskName + " (" + coordinatorTask + "). ";
+	        String statistics = "Processed " + resultHandler.getProgress() + " objects in " + resultHandler.getWallTime()/1000 + " seconds, got " + resultHandler.getErrors() + " errors.";
+            if (resultHandler.getProgress() > 0) {
+                statistics += " Average time for one object: " + resultHandler.getAverageTime() + " milliseconds" +
+                    " (wall clock time average: " + resultHandler.getWallAverageTime() + " ms).";
+            }
 	
 	        opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
 	
@@ -217,7 +229,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         }
         
         try {
-        	finish(resultHandler, runResult, task, opResult);
+        	finish(resultHandler, runResult, coordinatorTask, opResult);
         } catch (SchemaException ex) {
         	LOGGER.error("{}: Schema error while finishing the run: {}", new Object[]{taskName, ex.getMessage(), ex});
             opResult.recordFatalError("Schema error while finishing the run: " + ex.getMessage(), ex);
@@ -226,13 +238,13 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             return runResult;
         }
         
-        LOGGER.trace("{} run finished (task {}, run result {})", new Object[]{taskName, task, runResult});
+        LOGGER.trace("{} run finished (task {}, run result {})", new Object[]{taskName, coordinatorTask, runResult});
 
         return runResult;
 		
 	}
-	
-	protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+
+    protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 	}
 
 	private H getHandler(Task task) {
@@ -327,13 +339,13 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             return null;
         }
     }
-    
+
     /**
      * Handler parameter may be used to pass task instance state between the calls. 
      */
 	protected abstract ObjectQuery createQuery(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException;
 
-	protected abstract  H createHandler(TaskRunResult runResult, Task task,
+	protected abstract  H createHandler(TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult);
 	
 	/**

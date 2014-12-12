@@ -32,6 +32,9 @@ import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
+import com.evolveum.midpoint.model.impl.lens.projector.ShadowConstraintsChecker;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
@@ -132,6 +135,9 @@ public class Clockwork {
     @Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService repositoryService;
+
+	@Autowired
+	private transient ProvisioningService provisioningService;
     
     @Autowired(required = true)
     private ScriptExpressionFactory scriptExpressionFactory;
@@ -149,23 +155,41 @@ public class Clockwork {
 		this.debugListener = debugListener;
 	}
 
+	private static final int MAX_CLICKS = 1000;
+
 	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (InternalsConfig.consistencyChecks) {
 			context.checkConsistence();
 		}
-		
-		while (context.getState() != ModelState.FINAL) {
-            HookOperationMode mode = click(context, task, result);
 
-            if (mode == HookOperationMode.BACKGROUND) {
-                result.recordInProgress();
-                return mode;
-            } else if (mode == HookOperationMode.ERROR) {
-                return mode;
-            }
+		int clicked = 0;
+
+		try {
+			FocusConstraintsChecker.enterCache();
+			provisioningService.enterConstraintsCheckerCache();
+			while (context.getState() != ModelState.FINAL) {
+
+				// TODO implement in model context (as transient or even non-transient attribute) to allow for checking in more complex scenarios
+				if (clicked >= MAX_CLICKS) {
+					throw new IllegalStateException("Model operation took too many clicks (limit is " + MAX_CLICKS + "). Is there a cycle?");
+				}
+				clicked++;
+
+				HookOperationMode mode = click(context, task, result);
+
+				if (mode == HookOperationMode.BACKGROUND) {
+					result.recordInProgress();
+					return mode;
+				} else if (mode == HookOperationMode.ERROR) {
+					return mode;
+				}
+			}
+			// One last click in FINAL state
+			return click(context, task, result);
+		} finally {
+			FocusConstraintsChecker.exitCache();
+			provisioningService.exitConstraintsCheckerCache();
 		}
-		// One last click in FINAL state
-        return click(context, task, result);
 	}
 	
 	public <F extends ObjectType> HookOperationMode click(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -399,13 +423,16 @@ public class Clockwork {
 			return;
 		}
 		
-		changeExecutor.executeChanges(context, task, result);
-		
+		boolean restartRequested = changeExecutor.executeChanges(context, task, result);
+
 		audit(context, AuditEventStage.EXECUTION, task, result);
 		
 		rotContext(context);
-		
-		context.incrementExecutionWave();
+
+		if (!restartRequested) {
+			// TODO what if restart is requested indefinitely?
+			context.incrementExecutionWave();
+		}
 		
 		LensUtil.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
 	}

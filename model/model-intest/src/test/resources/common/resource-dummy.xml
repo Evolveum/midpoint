@@ -48,6 +48,8 @@
 			<icfi:uselessGuardedString>
 				<clearValue>whatever</clearValue>
 			</icfi:uselessGuardedString>
+			<icfi:uselessString>USEless</icfi:uselessString>
+			<icfi:varyLetterCase>true</icfi:varyLetterCase>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -568,6 +570,7 @@ end
 	
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
+		<caseIgnoreAttributeNames>true</caseIgnoreAttributeNames>
 	</consistency>
 	
 	<synchronization>

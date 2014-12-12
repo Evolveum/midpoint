@@ -52,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import com.sun.management.OperatingSystemMXBean;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -69,6 +70,7 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 
+import javax.management.*;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -471,6 +473,14 @@ public final class WebMiscUtil {
         return result.isSuccess() || result.isHandledError();
     }
 
+    public static boolean isSuccessOrHandledErrorOrInProgress(OperationResult result) {
+        if (result == null) {
+            return false;
+        }
+
+        return result.isSuccess() || result.isHandledError() || result.isInProgress();
+    }
+
     public static String createUserIcon(PrismObject<UserType> object) {
         UserType user = object.asObjectable();
 
@@ -524,8 +534,9 @@ public final class WebMiscUtil {
         long prevProcessCpuTime = operatingSystemMXBean.getProcessCpuTime();
 
         try {
-            Thread.sleep(30);
+            Thread.sleep(150);
         } catch (Exception ignored) {
+            //ignored
         }
 
         operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();

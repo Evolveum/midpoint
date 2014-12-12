@@ -185,6 +185,19 @@
                     </xsd:element>
                     <!-- element that has different names in XML/JSON/YAML and in java bean -->
                     <xsd:element name="special" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                    <!-- single-occurence container -->
+                    <xsd:element name="singleActivation" type="tns:ActivationType" minOccurs="0" />
+                    <!-- multi-occurence container -->
+                    <xsd:element name="multiActivation" type="tns:ActivationType" minOccurs="0" maxOccurs="unbounded" />
+                    <!-- multi-occurence container -->
+                    <xsd:element name="multiActivationCopy" type="tns:ActivationType" minOccurs="0" maxOccurs="unbounded" />
+                    <!-- single-occurence structured property (not a container) -->
+                    <xsd:element name="singleConstruction" type="tns:AccountConstructionType" minOccurs="0" />
+                    <!-- multi-occurence container -->
+                    <xsd:element name="multiConstruction" type="tns:AccountConstructionType" minOccurs="0" maxOccurs="unbounded" />
+                    <!-- multi-occurence container -->
+                    <xsd:element name="multiConstructionCopy" type="tns:AccountConstructionType" minOccurs="0" maxOccurs="unbounded" />
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -293,7 +306,7 @@
     		</xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="howto" type="xsd:string"/>
+        	<xsd:element name="howto" type="xsd:string" minOccurs="0"/>
         	<xsd:element name="when" type="xsd:dateTime" minOccurs="0"/>
             <xsd:element name="value" type="t:RawType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
@@ -311,7 +324,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="enabled" type="xsd:boolean"/>
+        	<xsd:element name="enabled" type="xsd:boolean" minOccurs="0"/>
         	<xsd:element name="validFrom" type="xsd:dateTime" minOccurs="0"/>
         	<xsd:element name="validTo" type="xsd:dateTime" minOccurs="0"/>
         </xsd:sequence>

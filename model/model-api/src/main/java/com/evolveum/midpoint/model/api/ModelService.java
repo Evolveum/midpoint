@@ -30,6 +30,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -376,7 +378,7 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
-	<T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+	<T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
 	
@@ -419,7 +421,7 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
-	<T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+	<T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
 			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
@@ -443,7 +445,7 @@ public interface ModelService {
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return number of objects of specified type that match search criteria (subject
-	 *         to paging)
+	 *         to paging). May return null if the number of objects is not known.
 	 * 
 	 * @throws SchemaException
 	 *             unknown property used in search query
@@ -459,7 +461,7 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
-	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+	<T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult) 
             		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
 

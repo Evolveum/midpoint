@@ -101,7 +101,7 @@ public class IcfConvertor {
 	 * @throws SchemaException
 	 */
 	<T extends ShadowType> PrismObject<T> convertToResourceObject(ConnectorObject co,
-			PrismObjectDefinition<T> objectDefinition, boolean full) throws SchemaException {
+			PrismObjectDefinition<T> objectDefinition, boolean full, boolean caseIgnoreAttributeNames) throws SchemaException {
 
 		PrismObject<T> shadowPrism = null;
 		if (objectDefinition != null) {
@@ -119,7 +119,9 @@ public class IcfConvertor {
 		ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
 		shadow.setObjectClass(attributesContainerDefinition.getTypeName());
 
-		LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.debugDump());
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.debugDump());
+		}
 
 		// Uid is always there
 		Uid uid = co.getUid();
@@ -187,10 +189,14 @@ public class IcfConvertor {
 			}
 
 			QName qname = icfNameMapper.convertAttributeNameToQName(icfAttr.getName(), resourceSchemaNamespace);
-			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname);
+			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
 
 			if (attributeDefinition == null) {
 				throw new SchemaException("Unknown attribute "+qname+" in definition of object class "+attributesContainerDefinition.getTypeName()+". Original ICF name: "+icfAttr.getName(), qname);
+			}
+
+			if (caseIgnoreAttributeNames) {
+				qname = attributeDefinition.getName();            // normalized version
 			}
 
 			ResourceAttribute<Object> resourceAttribute = attributeDefinition.instantiate(qname);

@@ -688,8 +688,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	 */
 	public ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException {
 		SynchronizationPolicyDecision policyDecision = getSynchronizationPolicyDecision();
-		ObjectDelta<ShadowType> origDelta = getDelta();
+		ObjectDelta<ShadowType> origDelta = getFixedDelta();
 		if (policyDecision == SynchronizationPolicyDecision.ADD) {
+			// let's try to retrieve original (non-fixed) delta. Maybe it's ADD delta so we spare fixing it.
+			origDelta = getDelta();
             if (origDelta == null || origDelta.isModify()) {
             	// We need to convert modify delta to ADD
             	ObjectDelta<ShadowType> addDelta = new ObjectDelta<ShadowType>(getObjectTypeClass(),

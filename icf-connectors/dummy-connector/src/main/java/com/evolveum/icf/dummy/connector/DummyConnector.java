@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.GuardedString.Accessor;
@@ -50,10 +51,8 @@ import org.identityconnectors.framework.common.objects.SyncDeltaBuilder;
 import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.framework.common.objects.filter.AbstractFilterTranslator;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
-import org.identityconnectors.framework.spi.AttributeNormalizer;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.ConnectorClass;
@@ -79,7 +78,6 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.icf.dummy.connector.Utils;
 
 /**
  * Connector for the Dummy Resource.
@@ -145,7 +143,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         resource.setEnforceUniqueName(this.configuration.isEnforceUniqueName());
         resource.setTolerateDuplicateValues(this.configuration.getTolerateDuplicateValues());
         resource.setGenerateDefaultValues(this.configuration.isGenerateDefaultValues());
-        
+
         resource.setUselessString(this.configuration.getUselessString());
         GuardedString uselessGuardedString = this.configuration.getUselessGuardedString();
         if (uselessGuardedString == null) {
@@ -278,8 +276,10 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 							throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
 						} catch (ObjectAlreadyExistsException e) {
 							throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+						} catch (SchemaViolationException e) {
+							throw new org.identityconnectors.framework.common.exceptions.ConnectorException("Schema exception: " + e.getMessage(), e);
 						}
-		        		// We need to change the returned uid here (only if the mode is not set to UUID)
+						// We need to change the returned uid here (only if the mode is not set to UUID)
 						if (!(configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID))){
 							uid = new Uid(newName);
 						}
@@ -1051,6 +1051,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 				}
 			}
 			Set<Object> values = dummyObject.getAttributeValues(name, Object.class);
+			if (configuration.isVaryLetterCase()) {
+				name = varyLetterCase(name);
+			}
 			builder.addAttribute(name, values);
 		}
 		
@@ -1072,7 +1075,21 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		
 		return builder;
    }
-    
+
+	private String varyLetterCase(String name) {
+		StringBuilder sb = new StringBuilder(name.length());
+		for (char c : name.toCharArray()) {
+			double a = Math.random();
+			if (a < 0.4) {
+				c = Character.toLowerCase(c);
+			} else if (a > 0.7) {
+				c = Character.toUpperCase(c);
+			}
+			sb.append(c);
+		}
+		return sb.toString();
+	}
+
 	private Long convertToLong(Date date) {
 		if (date == null) {
 			return null;
@@ -1125,6 +1142,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException {
 		log.ok("Create attributes: {0}", createAttributes);
 		String userName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
+		if (configuration.getUpCaseName()) {
+			userName = StringUtils.upperCase(userName);
+		}
 		log.ok("Username {0}", userName);
 		final DummyAccount newAccount = new DummyAccount(userName);
 		
@@ -1183,6 +1203,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	
 	private DummyGroup convertToGroup(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException {
 		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
+		if (configuration.getUpCaseName()) {
+			icfName = StringUtils.upperCase(icfName);
+		}
 		final DummyGroup newGroup = new DummyGroup(icfName);
 
 		Boolean enabled = null;
@@ -1229,6 +1252,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	
 	private DummyPrivilege convertToPriv(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException {
 		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
+		if (configuration.getUpCaseName()) {
+			icfName = StringUtils.upperCase(icfName);
+		}
 		final DummyPrivilege newPriv = new DummyPrivilege(icfName);
 
 		Boolean enabled = null;

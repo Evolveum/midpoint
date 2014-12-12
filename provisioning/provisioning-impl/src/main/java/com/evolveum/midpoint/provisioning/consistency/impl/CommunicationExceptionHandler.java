@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -131,6 +132,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				}
 				shadow.setAttemptNumber(getAttemptNumber(shadow));
 				shadow.setFailedOperationType(FailedOperationTypeType.ADD);
+				ConstraintsChecker.onShadowAddOperation(shadow);
 				String oid = cacheRepositoryService.addObject(shadow.asPrismObject(), null, operationResult);
 				shadow.setOid(oid);
 			
@@ -139,6 +141,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 
 					Collection<? extends ItemDelta> attemptdelta = createAttemptModification(shadow, null);
+					ConstraintsChecker.onShadowModifyOperation(attemptdelta);
 					cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), attemptdelta,
 							operationResult);
 			
@@ -167,6 +170,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
 				Collection<ItemDelta> modifications = createShadowModification(shadow);
 
+				ConstraintsChecker.onShadowModifyOperation(modifications);
 				getCacheRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), modifications,
 						operationResult);
 				delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.asPrismObject().getCompileTimeClass(), prismContext);
@@ -178,6 +182,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 						Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(shadow
 								.getObjectChange().getItemDelta(), shadow.asPrismObject().getDefinition());
 
+						ConstraintsChecker.onShadowModifyOperation(deltas);
 						cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), deltas,
 								operationResult);
 						delta = ObjectDelta.createModifyDelta(shadow.getOid(), deltas, shadow.asPrismObject().getCompileTimeClass(), prismContext);
@@ -203,6 +208,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			shadow.setFailedOperationType(FailedOperationTypeType.DELETE);
 			Collection<ItemDelta> modifications = createShadowModification(shadow);
 
+			ConstraintsChecker.onShadowModifyOperation(modifications);
 			getCacheRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), modifications,
 					operationResult);
 			for (OperationResult subRes : parentResult.getSubresults()) {

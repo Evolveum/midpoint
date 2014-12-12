@@ -226,8 +226,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static final String RESOURCE_DUMMY_FILENAME = REPO_DIR_NAME + "resource-dummy.xml";
     private static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 
-    private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector";
-    private static final String CONNECTOR_DBTABLE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.databasetable-connector/org.identityconnectors.databasetable.DatabaseTableConnector";
+    private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector";
+    private static final String CONNECTOR_DBTABLE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
     
     private static final String CONNECTOR_BROKEN_FILENAME = REPO_DIR_NAME + "connector-broken.xml";
     private static final String CONNECTOR_BROKEN_OID = "cccccccc-76e0-59e2-ffff-ffffffffffff";

@@ -86,12 +86,10 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
     private static final String ID_DETAILS_INTENT = "intent";
     private static final String ID_DETAILS_NATIVE_OBJECT_CLASS = "nativeObjectClass";
     private static final String ID_DETAILS_DEFAULT = "isDefault";
-    private static final String ID_DETAILS_KIND_DEFAULT = "isKindDefault";
     private static final String ID_T_KIND = "kindTooltip";
     private static final String ID_T_INTENT = "intentTooltip";
     private static final String ID_T_NATIVE_OBJECT_CLASS = "nativeObjectClassTooltip";
     private static final String ID_T_DEFAULT = "isDefaultTooltip";
-    private static final String ID_T_KIND_DEFAULT = "isKindDefaultTooltip";
 
     private IModel<List<ObjectClassDto>> allClasses;
     private LoadableModel<ObjectClassDetailsDto> detailsModel;
@@ -228,10 +226,6 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
         isDefault.setEnabled(false);
         detailsContainer.add(isDefault);
 
-        CheckBox idKindDefault = new CheckBox(ID_DETAILS_KIND_DEFAULT, new PropertyModel<Boolean>(detailsModel, ObjectClassDetailsDto.F_IS_KIND_DEFAULT));
-        idKindDefault.setEnabled(false);
-        detailsContainer.add(idKindDefault);
-
         Label kindTooltip = new Label(ID_T_KIND);
         kindTooltip.add(new InfoTooltipBehavior());
         detailsContainer.add(kindTooltip);
@@ -247,10 +241,6 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
         Label defaultTooltip = new Label(ID_T_DEFAULT);
         defaultTooltip.add(new InfoTooltipBehavior());
         detailsContainer.add(defaultTooltip);
-
-        Label kindDefaultTooltip = new Label(ID_T_KIND_DEFAULT);
-        kindDefaultTooltip.add(new InfoTooltipBehavior());
-        detailsContainer.add(kindDefaultTooltip);
     }
 
     private List<IColumn> initColumns() {
@@ -357,12 +347,13 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
 
     private RefinedResourceSchema loadResourceSchema() {
         PrismObject<ResourceType> resource = getModel().getObject();
-        Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
-        if (xsdSchema == null) {
-            return null;
-        }
 
         try {
+            Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
+            if (xsdSchema == null) {
+                return null;
+            }
+
             return RefinedResourceSchema.getRefinedSchema(getModel().getObject(), getPageBase().getPrismContext());
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't parse resource schema.", ex);

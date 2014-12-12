@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -39,6 +41,8 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author Radovan Semancik
@@ -82,5 +86,21 @@ public class TestFundamentals {
 		assert PrismValue.containsRealValue(collection, valBar3);
 		assert !PrismValue.containsRealValue(collection, valBaz);
     }
+
+	@Test
+	public void testRawTypeClone() throws Exception {
+		System.out.println("\n\n===[ testRawTypeClone ]===\n");
+		// GIVEN
+		QName typeQName = new QName("abcdef");
+		MapXNode mapXNode = new MapXNode();
+		mapXNode.setTypeQName(typeQName);
+		RawType rawType = new RawType(mapXNode, PrismTestUtil.getPrismContext());
+
+		// WHEN
+		RawType rawTypeClone = rawType.clone();
+
+		// THEN
+		assertEquals("Wrong or missing type QName", typeQName, rawTypeClone.getXnode().getTypeQName());
+	}
 
 }

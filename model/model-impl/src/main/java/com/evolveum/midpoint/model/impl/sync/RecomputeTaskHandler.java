@@ -15,16 +15,15 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -33,32 +32,19 @@ import com.evolveum.midpoint.model.impl.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -69,8 +55,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -92,6 +76,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 	private TaskManager taskManager;
 	
 	@Autowired(required=true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	
 	@Autowired(required=true)
@@ -113,6 +98,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 	
 	public RecomputeTaskHandler() {
         super(UserType.class, "Recompute users", OperationConstants.RECOMPUTE);
+		setLogFinishInfo(true);
     }
 
 	@PostConstruct
@@ -136,14 +122,14 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 	}
 	
 	@Override
-	protected AbstractSearchIterativeResultHandler<UserType> createHandler(TaskRunResult runResult, final Task task,
+	protected AbstractSearchIterativeResultHandler<UserType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
 		
 		AbstractSearchIterativeResultHandler<UserType> handler = new AbstractSearchIterativeResultHandler<UserType>(
-				task, RecomputeTaskHandler.class.getName(), "recompute", "recompute task") {
+				coordinatorTask, RecomputeTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<UserType> user, OperationResult result) throws CommonException {
-				recomputeUser(user, task, result);
+			protected boolean handleObject(PrismObject<UserType> user, Task workerTask, OperationResult result) throws CommonException {
+				recomputeUser(user, workerTask, result);
 				return true;
 			}
 		};

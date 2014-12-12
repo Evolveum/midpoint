@@ -122,7 +122,7 @@ public class SelectorOptions<T> implements Serializable {
 		return null;
 	}
 
-	private boolean isRoot() {
+	public boolean isRoot() {
 		if (selector == null) {
 			return true;
 		}

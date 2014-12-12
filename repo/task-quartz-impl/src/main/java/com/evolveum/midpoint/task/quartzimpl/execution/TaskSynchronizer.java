@@ -93,11 +93,10 @@ public class TaskSynchronizer {
 
         LOGGER.info("Synchronizing Quartz job store with midPoint repository.");
 
-        PagingType paging = new PagingType();
         List<PrismObject<TaskType>> tasks;
         try {
             tasks = getRepositoryService().searchObjects(TaskType.class, new ObjectQuery(), null, result);
-        } catch(Exception e) {
+        } catch(SchemaException|RuntimeException e) {
             LoggingUtils.logException(LOGGER, "Synchronization cannot be done, because tasks cannot be listed from the repository.", e);
             return false;
         }

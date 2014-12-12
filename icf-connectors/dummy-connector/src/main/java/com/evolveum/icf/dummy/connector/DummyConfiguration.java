@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,11 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean requireExplicitEnable = false;
     private boolean caseIgnoreId = false;
     private boolean caseIgnoreValues = false;
+	private boolean upCaseName = false;
     private boolean generateDefaultValues = false;
     private boolean tolerateDuplicateValues = true;
+	private boolean varyLetterCase = false;
+	private boolean referentialIntegrity = false; 
     private String uselessString;
     private GuardedString uselessGuardedString;
 
@@ -166,7 +169,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	 * If set to true then the "home dir" will be generated
 	 */
 	@ConfigurationProperty(displayMessageKey = "UI_GENERATE_DEFAULT_VALUES",
-    		helpMessageKey = "UI_GENERATE_DEFAULT_VALUES")
+    		helpMessageKey = "UI_GENERATE_DEFAULT_VALUES_HELP")
 	public boolean isGenerateDefaultValues() {
 		return generateDefaultValues;
 	}
@@ -179,7 +182,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	 * If set to true then the attribute values will be considered case-insensitive
 	 */
 	@ConfigurationProperty(displayMessageKey = "UI_CASE_IGNORE_VALUES",
-    		helpMessageKey = "UI_CASE_IGNORE_VALUES")
+    		helpMessageKey = "UI_CASE_IGNORE_VALUES_HELP")
 	public boolean getCaseIgnoreValues() {
 		return caseIgnoreValues;
 	}
@@ -188,8 +191,21 @@ public class DummyConfiguration extends AbstractConfiguration {
 		this.caseIgnoreValues = caseIgnoreValues;
 	}
 
+	/**
+	 * If set to true then the connector will convert names of all objects to upper case.
+	 */
+	@ConfigurationProperty(displayMessageKey = "UI_UPCASE_NAME",
+    		helpMessageKey = "UI_UPCASE_NAME_HELP")
+	public boolean getUpCaseName() {
+		return upCaseName;
+	}
+
+	public void setUpCaseName(boolean upCaseName) {
+		this.upCaseName = upCaseName;
+	}
+
 	@ConfigurationProperty(displayMessageKey = "UI_TOLERATE_DUPLICATE_VALUES",
-    		helpMessageKey = "UI_TOLERATE_DUPLICATE_VALUES")
+    		helpMessageKey = "UI_TOLERATE_DUPLICATE_VALUES_HELP")
 	public boolean getTolerateDuplicateValues() {
 		return tolerateDuplicateValues;
 	}
@@ -225,7 +241,27 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setUselessGuardedString(GuardedString uselessGuardedString) {
 		this.uselessGuardedString = uselessGuardedString;
 	}
-	
+
+	@ConfigurationProperty(displayMessageKey = "UI_VARY_LETTER_CASE",
+			helpMessageKey = "UI_VARY_LETTER_CASE_HELP")
+	public boolean isVaryLetterCase() {
+		return varyLetterCase;
+	}
+
+	public void setVaryLetterCase(boolean value) {
+		this.varyLetterCase = value;
+	}
+
+	@ConfigurationProperty(displayMessageKey = "UI_REFERENTIAL_INTEGRITY",
+			helpMessageKey = "UI_REFERENTIAL_INTEGRITY_HELP")
+	public boolean isReferentialIntegrity() {
+		return referentialIntegrity;
+	}
+
+	public void setReferentialIntegrity(boolean referentialIntegrity) {
+		this.referentialIntegrity = referentialIntegrity;
+	}
+
 	/**
      * {@inheritDoc}
      */

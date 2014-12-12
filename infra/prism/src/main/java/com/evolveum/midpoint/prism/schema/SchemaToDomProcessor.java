@@ -479,7 +479,7 @@ public class SchemaToDomProcessor {
 		}
 		
 		if (definition.getHelp() != null) {
-			addAnnotation(A_HELP, definition.getDisplayName(), appinfoElement);
+			addAnnotation(A_HELP, definition.getHelp(), appinfoElement);
 		}
 	}
 	

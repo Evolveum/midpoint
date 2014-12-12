@@ -56,6 +56,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -182,7 +183,41 @@ public class ShadowManager {
 
 		return results.get(0);
 	}
-	
+
+	public PrismObject<ShadowType> lookupShadowInRepository(ResourceAttributeContainer identifierContainer,
+			RefinedObjectClassDefinition rObjClassDef, ResourceType resource, OperationResult parentResult) 
+					throws SchemaException, ConfigurationException {
+
+		ObjectQuery query = createSearchShadowQuery(identifierContainer.getValue().getItems(), rObjClassDef, resource, prismContext,
+				parentResult);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Searching for shadow using filter:\n{}",
+					query.debugDump());
+		}
+//		PagingType paging = new PagingType();
+
+		// TODO: check for errors
+		List<PrismObject<ShadowType>> results;
+
+		results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
+
+		LOGGER.trace("lookupShadow found {} objects", results.size());
+
+		if (results.size() == 0) {
+			return null;
+		}
+		if (results.size() > 1) {
+			for (PrismObject<ShadowType> result : results) {
+				LOGGER.trace("Search result:\n{}", result.debugDump());
+			}
+			LOGGER.error("More than one shadows found for " + identifierContainer);
+			// TODO: Better error handling later
+			throw new IllegalStateException("More than one shadows found for " + identifierContainer);
+		}
+
+		return results.get(0);
+	}
+
 	public PrismObject<ShadowType> lookupShadowBySecondaryIdentifiers( 
 			PrismObject<ShadowType> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
 			ResourceType resource, OperationResult parentResult) 
@@ -314,6 +349,7 @@ public class ShadowManager {
 				newShadow = createNewAccountFromChange(change, resource, objectClassDefinition, parentResult);
 
 				try {
+					ConstraintsChecker.onShadowAddOperation(newShadow.asObjectable());
 					String oid = repositoryService.addObject(newShadow, null, parentResult);
 					newShadow.setOid(oid);
 					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
@@ -336,6 +372,7 @@ public class ShadowManager {
 							.createModificationReplacePropertyCollection(ShadowType.F_DEAD,
 									newShadow.getDefinition(), true);
 					try {
+						ConstraintsChecker.onShadowModifyOperation(deadDeltas);
 						repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas,
 								parentResult);
 					} catch (ObjectAlreadyExistsException e) {
@@ -477,7 +514,7 @@ public class ShadowManager {
 		return query;
 	}
 	
-	public void searchObjectsIterativeRepository(
+	public SearchResultMetadata searchObjectsIterativeRepository(
 			RefinedObjectClassDefinition objectClassDef,
 			final ResourceType resourceType, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options,
@@ -486,8 +523,7 @@ public class ShadowManager {
 		ObjectQuery repoQuery = query.clone();
 		processQueryMatchingRules(repoQuery, objectClassDef);
 		
-		repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, parentResult);
-		
+		return repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, parentResult);
 	}
 
 	/**

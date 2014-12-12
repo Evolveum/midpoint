@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
@@ -260,7 +262,7 @@ public interface RepositoryService {
 	 *             unknown property used in search query
 	 */
 
-	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query,
+	public <T extends ObjectType> SearchResultList<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException;
 
@@ -295,7 +297,7 @@ public interface RepositoryService {
 	 *             unknown property used in search query
 	 */
 
-	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
 			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException;
 

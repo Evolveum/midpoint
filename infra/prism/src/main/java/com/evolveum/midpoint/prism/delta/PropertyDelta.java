@@ -25,7 +25,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -70,7 +69,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	super(propertyPath, propertyDefinition, prismContext);
     }
     
-    PrismPropertyDefinition getPropertyDefinition() {
+    public PrismPropertyDefinition getPropertyDefinition() {
 		return (PrismPropertyDefinition) super.getDefinition();
 	}
 
@@ -135,7 +134,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		copyValues(clone);
 		return clone;
 	}
-	
+
 	protected void copyValues(PropertyDelta<T> clone) {
 		super.copyValues(clone);
 	}
@@ -370,8 +369,8 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	((Collection)modifications).add(delta);
     	return modifications;
     }
-    
-    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, ItemPath propertyPath) {
+
+	public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, ItemPath propertyPath) {
     	for (ItemDelta delta: modifications) {
     		if (delta instanceof PropertyDelta && delta.getPath().equivalent(propertyPath)) {
     			return (PropertyDelta) delta;

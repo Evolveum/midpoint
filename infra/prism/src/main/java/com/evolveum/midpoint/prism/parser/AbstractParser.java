@@ -11,6 +11,9 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -46,6 +49,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 public abstract class AbstractParser implements Parser {
+
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractParser.class);
 	
 	private static final String PROP_NAMESPACE = "@ns";
 	protected static final String TYPE_DEFINITION = "@typeDef";
@@ -116,7 +121,7 @@ public abstract class AbstractParser implements Parser {
 		try { 
 			
 			generator = createGenerator(out);
-			
+
 			generator.writeStartObject();
 			generator.writeStringField(PROP_NAMESPACE, rootElement.getNamespaceURI());
 			generator.writeObjectFieldStart(rootElement.getLocalPart());
@@ -129,6 +134,10 @@ public abstract class AbstractParser implements Parser {
 			
 		} catch (IOException ex){
 			throw new SchemaException("Schema error during serializing to JSON.", ex);
+		} catch (RuntimeException e) {
+			LoggingUtils.logException(LOGGER, "Unexpected exception while serializing", e);
+			System.out.println("Unexpected exception while serializing: " + e);
+			e.printStackTrace();
 		} finally {
 			if (generator != null) {
 				try {
@@ -136,7 +145,7 @@ public abstract class AbstractParser implements Parser {
 					generator.close();
 				} catch (IOException e) {
 					throw new SchemaException(e.getMessage(), e);
-				}
+				} // beware, this code can throw any exception, masking the original one
 				
 			}
 
@@ -158,6 +167,8 @@ public abstract class AbstractParser implements Parser {
 			serializeFromPrimitive((PrimitiveXNode<T>) node, nodeName, generator);
 		} else if (node instanceof SchemaXNode){
 			serializeFromSchema((SchemaXNode) node, nodeName, generator);
+		} else if (node == null) {
+			serializeFromNull(nodeName, generator);
 		} else {
 			throw new IllegalStateException("Unsupported node type: " + node.getClass().getSimpleName());
 		}
@@ -176,6 +187,7 @@ public abstract class AbstractParser implements Parser {
 	}
 	
 	private void serializeFromMap(MapXNode map, QName nodeName, String globalNamespace, JsonGenerator generator) throws JsonGenerationException, IOException{
+
 		if (root) {
 			root = false;
 		} else {
@@ -254,7 +266,17 @@ public abstract class AbstractParser implements Parser {
 			generator.writeObjectField(nodeName.getLocalPart(), value);
 		}
 	}
-	
+
+	@SuppressWarnings("unchecked")
+	private <T> void serializeFromNull(QName nodeName, JsonGenerator generator) throws JsonGenerationException, IOException{
+		if (nodeName == null) {
+			generator.writeObject("");			// is this reasonable?
+		} else {
+			generator.writeObjectField(nodeName.getLocalPart(), "");
+			//generator.writeFieldName(nodeName.getLocalPart());			// todo how to write empty objects?
+		}
+	}
+
 	private void serializeFromSchema(SchemaXNode node, QName nodeName, JsonGenerator generator) throws JsonProcessingException, IOException {
 		generator.writeObjectField(nodeName.getLocalPart(), node.getSchemaElement());
 		
@@ -398,10 +420,12 @@ public abstract class AbstractParser implements Parser {
 		MapXNode subMap = new MapXNode();
 		
 		String ns = processNamespace(parent, parser);
-		
+
+		boolean specialFound = false;
 		boolean iterate = false;
 		while (moveNext(parser, iterate)) {
 			if (processSpecialIfNeeded(parser, parent, propertyName)) {
+				specialFound = true;
 				break;
 			}
 			if (ns != null) {
@@ -415,8 +439,8 @@ public abstract class AbstractParser implements Parser {
 		}
 
 		//DO not add to the parent, if the map does not contain any values..
-		if (subMap.isEmpty()){
-//			System.out.println("SUB MAP FOR PROPERTY: " + parentPropertyName + " NOT ADDED");
+		// and a primitive value was found
+		if (specialFound && subMap.isEmpty()) {
 			return;
 		}
 //		System.out.println("CURRENT TOKEN: " + parser.getCurrentToken());

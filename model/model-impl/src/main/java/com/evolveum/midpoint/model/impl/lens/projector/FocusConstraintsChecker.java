@@ -15,31 +15,42 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.caching.AbstractCache;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
  *
  */
 public class FocusConstraintsChecker<F extends FocusType> {
+
+	private static ThreadLocal<Cache> cacheThreadLocal = new ThreadLocal<>();
 	
 	private static final Trace LOGGER = TraceManager.getTrace(FocusConstraintsChecker.class);
-	
+	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
+
 	private LensContext<F> context;
 	private PrismContext prismContext;
 	private RepositoryService repositoryService;
@@ -94,8 +105,16 @@ public class FocusConstraintsChecker<F extends FocusType> {
 			return;
 		}
 		
-		// Hardcode to name ... for now		
-		satisfiesConstraints = checkPropertyUniqueness(objectNew, new ItemPath(ObjectType.F_NAME), context, result);
+		// Hardcode to name ... for now
+		PolyStringType name = objectNew.asObjectable().getName();
+		if (Cache.isOk(name)) {
+			satisfiesConstraints = true;
+		} else {
+			satisfiesConstraints = checkPropertyUniqueness(objectNew, new ItemPath(ObjectType.F_NAME), context, result);
+			if (satisfiesConstraints) {
+				Cache.setOk(name);
+			}
+		}
 	}
 	
 	private <T> boolean checkPropertyUniqueness(PrismObject<F> objectNew, ItemPath propPath, LensContext<F> context, OperationResult result) throws SchemaException {
@@ -146,4 +165,101 @@ public class FocusConstraintsChecker<F extends FocusType> {
 		messageBuilder.append(message);
 	}
 
+	public static void enterCache() {
+		Cache.enter(cacheThreadLocal, Cache.class, LOGGER);
+	}
+
+	public static void exitCache() {
+		Cache.exit(cacheThreadLocal, LOGGER);
+	}
+
+	public static <T extends ObjectType> void clearCacheFor(PolyStringType name) {
+		Cache.remove(name);
+	}
+
+	public static void clearCacheForValues(Collection<? extends PrismValue> values) {
+		if (values == null) {
+			return;
+		}
+		for (PrismValue value : values) {
+			if (value instanceof PrismPropertyValue) {
+				Object real = ((PrismPropertyValue) value).getValue();
+				if (real instanceof PolyStringType) {
+					clearCacheFor((PolyStringType) real);
+				}
+			}
+		}
+	}
+
+	public static void clearCacheForDelta(Collection<? extends ItemDelta> modifications) {
+		if (modifications == null) {
+			return;
+		}
+		for (ItemDelta itemDelta : modifications) {
+			if (new ItemPath(ObjectType.F_NAME).equivalent(itemDelta.getPath())) {
+				clearCacheForValues(itemDelta.getValuesToAdd());			// these may present a conflict
+				clearCacheForValues(itemDelta.getValuesToReplace());		// so do these
+			}
+		}
+	}
+
+	public static class Cache extends AbstractCache {
+
+		private Set<String> conflictFreeNames = new HashSet<>();
+
+		public static boolean isOk(PolyStringType name) {
+			if (name == null) {
+				log("Null name");
+				return false;			// strange case
+			}
+
+			Cache cache = getCache();
+			if (cache == null) {
+				log("Cache NULL for {}", name);
+				return false;
+			}
+
+			if (cache.conflictFreeNames.contains(name.getOrig())) {
+				log("Cache HIT for {}", name);
+				return true;
+			} else {
+				log("Cache MISS for {}", name);
+				return false;
+			}
+		}
+
+		public static void setOk(PolyStringType name) {
+			Cache cache = getCache();
+			if (name != null && cache != null) {
+				cache.conflictFreeNames.add(name.getOrig());
+			}
+		}
+
+		private static Cache getCache() {
+			return cacheThreadLocal.get();
+		}
+
+		public static void remove(PolyStringType name) {
+			Cache cache = getCache();
+			if (name != null && cache != null) {
+				log("Cache REMOVE for {}", name);
+				cache.conflictFreeNames.remove(name.getOrig());
+			}
+		}
+
+		@Override
+		public String description() {
+			return "conflict-free names: " + conflictFreeNames;
+		}
+
+		private static void log(String message, Object... params) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(message, params);
+			}
+			if (PERFORMANCE_ADVISOR.isTraceEnabled()) {
+				PERFORMANCE_ADVISOR.trace(message, params);
+			}
+		}
+
+	}
 }

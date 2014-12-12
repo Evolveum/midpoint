@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -49,6 +50,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 
 import org.opends.server.types.Attribute;
 import org.opends.server.types.SearchResultEntry;
+import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,6 +136,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public static final String L2_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l2-task-handler";
     public static final String L3_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l3-task-handler";
     public static final String WAIT_FOR_SUBTASKS_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/wait-for-subtasks-task-handler";
+    public static final String PARALLEL_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/parallel-task-handler";
 
     @Autowired(required = true)
     private RepositoryService repositoryService;
@@ -169,6 +172,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     MockSingleTaskHandler l1Handler, l2Handler, l3Handler;
     MockSingleTaskHandler waitForSubtasksTaskHandler;
     MockCycleTaskHandler cycleFinishingHandler;
+    MockParallelTaskHandler parallelTaskHandler;
 
     @PostConstruct
     public void initHandlers() throws Exception {
@@ -193,6 +197,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         waitForSubtasksTaskHandler = new MockSingleTaskHandler("WFS", taskManager);
         taskManager.registerHandler(WAIT_FOR_SUBTASKS_TASK_HANDLER_URI, waitForSubtasksTaskHandler);
+        parallelTaskHandler = new MockParallelTaskHandler("1", taskManager);
+        taskManager.registerHandler(PARALLEL_TASK_HANDLER_URI, parallelTaskHandler);
 
         addObjectFromFile(TASK_OWNER_FILENAME);
         addObjectFromFile(TASK_OWNER2_FILENAME);
@@ -1535,6 +1541,101 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
     }
 
+    @Test(enabled = true)
+    public void test100LightweightSubtasks() throws Exception {
+
+        final String test = "100LightweightSubtasks";
+        final OperationResult result = createResult(test);
+
+        addObjectFromFile(taskFilename(test));
+
+        Task task = taskManager.getTask(taskOid(test), result);
+        System.out.println("After setup: " + task.debugDump());
+
+        waitFor("Waiting for task manager to execute the task", new Checker() {
+            public boolean check() throws ObjectNotFoundException, SchemaException {
+                Task task = taskManager.getTask(taskOid(test), result);
+                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
+                return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
+            }
+
+            @Override
+            public void timeout() {
+            }
+        }, 15000, 500);
+
+        task.refresh(result);
+        System.out.println("After refresh (task was executed): " + task.debugDump());
+
+        Collection<? extends Task> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
+        assertEquals("Wrong number of subtasks", MockParallelTaskHandler.NUM_SUBTASKS, subtasks.size());
+        for (Task subtask : subtasks) {
+            assertEquals("Wrong subtask state", TaskExecutionStatus.CLOSED, subtask.getExecutionStatus());
+            MockParallelTaskHandler.MyLightweightTaskHandler handler = (MockParallelTaskHandler.MyLightweightTaskHandler) subtask.getLightweightTaskHandler();
+            assertTrue("Handler has not run", handler.hasRun());
+            assertTrue("Handler has not exited", handler.hasExited());
+        }
+    }
+
+    @Test(enabled = true)
+    public void test105LightweightSubtasksSuspension() throws Exception {
+
+        final String test = "105LightweightSubtasksSuspension";
+        final OperationResult result = createResult(test);
+
+        addObjectFromFile(taskFilename(test));
+
+        Task task = taskManager.getTask(taskOid(test), result);
+        System.out.println("After setup: " + task.debugDump());
+
+        waitFor("Waiting for task manager to start the task", new Checker() {
+            public boolean check() throws ObjectNotFoundException, SchemaException {
+                Task task = taskManager.getTask(taskOid(test), result);
+                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
+                return task.getLastRunStartTimestamp() != null && task.getLastRunStartTimestamp() != 0L;
+            }
+
+            @Override
+            public void timeout() {
+            }
+        }, 15000, 500);
+
+        task.refresh(result);
+        System.out.println("After refresh (task was started; and it should run now): " + task.debugDump());
+
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+
+        // check the thread
+        List<JobExecutionContext> jobExecutionContexts = taskManager.getExecutionManager().getQuartzScheduler().getCurrentlyExecutingJobs();
+        JobExecutionContext found = null;
+        for (JobExecutionContext jobExecutionContext : jobExecutionContexts) {
+            if (task.getOid().equals(jobExecutionContext.getJobDetail().getKey().getName())) {
+                found = jobExecutionContext; break;
+            }
+        }
+        assertNotNull("Job for the task was not found", found);
+        JobExecutor executor = (JobExecutor) found.getJobInstance();
+        assertNotNull("No job executor", executor);
+        Thread thread = executor.getExecutingThread();
+        assertNotNull("No executing thread", thread);
+
+        // now let us suspend it - the handler should stop, as well as the subtasks
+
+        boolean stopped = taskManager.suspendTask(task, 10000L, result);
+        task.refresh(result);
+        AssertJUnit.assertTrue("Task is not stopped", stopped);
+        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
+
+        Collection<? extends Task> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
+        assertEquals("Wrong number of subtasks", MockParallelTaskHandler.NUM_SUBTASKS, subtasks.size());
+        for (Task subtask : subtasks) {
+            assertEquals("Wrong subtask state", TaskExecutionStatus.CLOSED, subtask.getExecutionStatus());
+            MockParallelTaskHandler.MyLightweightTaskHandler handler = (MockParallelTaskHandler.MyLightweightTaskHandler) subtask.getLightweightTaskHandler();
+            assertTrue("Handler has not run", handler.hasRun());
+            assertTrue("Handler has not exited", handler.hasExited());
+        }
+    }
+
 
     @Test(enabled = true)
     public void test999CheckingLeftovers() throws Exception {
@@ -1560,6 +1661,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         checkLeftover(leftovers, "021", "1", result);
         checkLeftover(leftovers, "021", "2", result);
         checkLeftover(leftovers, "022", result);
+        checkLeftover(leftovers, "100", result);
+        checkLeftover(leftovers, "105", result);
 
         String message = "Leftover task(s) found:";
         for (String leftover : leftovers) {

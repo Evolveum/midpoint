@@ -21,16 +21,20 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -108,6 +112,9 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
+
+    @Autowired
+    private ReconciliationTaskHandler reconciliationTaskHandler;
 	
     @Override
     protected void startResources() throws Exception {
@@ -116,6 +123,10 @@ public class TestLdap extends AbstractModelIntegrationTest {
 
     @AfterClass
     public static void stopResources() throws Exception {
+        //end profiling
+        ProfilingDataManager.getInstance().printMapAfterTest();
+        ProfilingDataManager.getInstance().stopProfilingAfterTest();
+
         openDJController.stop();
     }
 
@@ -125,14 +136,20 @@ public class TestLdap extends AbstractModelIntegrationTest {
 		modelService.postInit(initResult);
 		
 		// System Configuration
+        PrismObject<SystemConfigurationType> config;
 		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
+			config = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
-		
-		// administrator
+
+        // to get profiling facilities (until better API is available)
+//        LoggingConfigurationManager.configure(
+//                ProfilingConfigurationManager.checkSystemProfilingConfiguration(config),
+//                config.asObjectable().getVersion(), initResult);
+
+        // administrator
 		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
 		login(userAdministrator);
@@ -150,7 +167,18 @@ public class TestLdap extends AbstractModelIntegrationTest {
 		openDJController.setResource(resourceOpenDj);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-		
+
+        //initProfiling - start
+        ProfilingDataManager profilingManager = ProfilingDataManager.getInstance();
+
+        Map<ProfilingDataManager.Subsystem, Boolean> subsystems = new HashMap<>();
+        subsystems.put(ProfilingDataManager.Subsystem.MODEL, true);
+        subsystems.put(ProfilingDataManager.Subsystem.REPOSITORY, true);
+        profilingManager.configureProfilingDataManagerForTest(subsystems, true);
+
+        profilingManager.appendProfilingToTest();
+        //initProfiling - end
+
 		display("initial LDAP content", openDJController.dumpEntries());
 	}
 	
@@ -329,6 +357,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
+        //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
         modelService.importFromResource(RESOURCE_OPENDJ_OID, 
         		new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
         
@@ -347,7 +376,45 @@ public class TestLdap extends AbstractModelIntegrationTest {
         assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
 	}
 
-	private void loadEntries(String prefix) throws LDIFException, IOException {
+    @Test
+    public void test820BigReconciliation() throws Exception {
+        final String TEST_NAME = "test820BigReconciliation";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+
+//        System.out.println("openDJController.isRunning = " + openDJController.isRunning());
+//        OperationResult testResult = modelService.testResource(RESOURCE_OPENDJ_OID, task);
+//        System.out.println("Test resource result = " + testResult.debugDump());
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
+
+        ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
+        reconciliationTaskHandler.launch(resource,
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+//        OperationResult subresult = result.getLastSubresult();
+//        TestUtil.assertInProgress("reconciliation launch result", subresult);
+
+        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+
+        int userCount = modelService.countObjects(UserType.class, null, null, task, result);
+        display("Users", userCount);
+        assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
+    }
+
+    private void loadEntries(String prefix) throws LDIFException, IOException {
         long ldapPopStart = System.currentTimeMillis();
         
         for(int i=0; i < NUM_LDAP_ENTRIES; i++) {
@@ -358,7 +425,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         
         long ldapPopEnd = System.currentTimeMillis();
         
-        display("Loaded "+NUM_LDAP_ENTRIES+" LDAP entries in "+((ldapPopEnd-ldapPopStart)/1000)+" seconds");
+        display("Loaded "+NUM_LDAP_ENTRIES+" LDAP entries (prefix "+prefix+") in "+((ldapPopEnd-ldapPopStart)/1000)+" seconds");
 	}
 
 	private Entry createEntry(String uid, String name) throws IOException, LDIFException {

@@ -60,6 +60,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -73,6 +74,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -180,9 +182,10 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	 */
 	@Test
 	public void test003Connection() throws Exception {
-		TestUtil.displayTestTile("test003Connection");
+		final String TEST_NAME = "test003Connection";
+		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test003Connection");
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"."+TEST_NAME);
 		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
 		assertNotNull("No connector ref OID",resourceTypeBefore.getConnectorRef().getOid());
@@ -224,6 +227,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNull("The userPassword attribute sneaked into schema", accountDefinition.findAttributeDefinition(
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeRepoAfter),"userPassword")));
 		
+		assertShadows(1);
 	}
 	
 	@Test
@@ -263,6 +267,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ConnectorInstance configuredConnectorInstanceAgain = connectorManager.getConfiguredConnectorInstance(
 				resourceAgain, false, result);
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
+		
+		assertShadows(1);
 	}
 	
 	@Test
@@ -324,6 +330,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
         assertNotNull("activation capability not found",capAct);
         
+        assertShadows(1);
 	}
 	
 	@Test
@@ -382,6 +389,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
 
+		assertShadows(1);
 	}
 	
 	
@@ -397,6 +405,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull(objectList);
 		assertFalse("Empty list returned",objectList.isEmpty());
 		display("Resource object list "+RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS,objectList);
+		
+		assertShadows(1);
 	}
 
 	@Test
@@ -427,6 +437,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		PrismAsserts.assertEqualsPolyString("Name not equals.", "uid=jbond,ou=People,dc=example,dc=com", acct.getName());
 			
 		// TODO: check values
+		
+		assertShadows(2);
 	}
 
 	/**
@@ -460,6 +472,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			Assert.fail("Expected ObjectNotFoundException, but got" + e);
 		}
 
+		assertShadows(2);
 	}
 
 	/**
@@ -503,6 +516,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			}
 		}
 
+		assertShadows(0);
 	}
 
 	@Test
@@ -530,6 +544,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
 				null, task, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will,ou=People,dc=example,dc=com", provisioningAccountType.getName());
+		
+		assertShadows(1);
 	}
 
 	@Test
@@ -559,7 +575,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo after provisioning)", "uid=will123,ou=People,dc=example,dc=com", repoShadowType.getName());
 		assertAttribute(repoShadowType, ConnectorFactoryIcfImpl.ICFS_NAME, "uid=will123,ou=people,dc=example,dc=com");
 		
-		
+		assertShadows(1);
 	}
 	
 	@Test
@@ -581,6 +597,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		} catch(IllegalArgumentException ex){
 			assertEquals("Object to add must not be null.", ex.getMessage());
 		}
+		
+		assertShadows(1);
 	}
 
 	
@@ -626,6 +644,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
             assertTrue(ex.getMessage().contains(ACCOUNT_DELETE_OID));
 		}
 		
+		assertShadows(1);
 	}
 
 	@Test
@@ -695,7 +714,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OpenDJController.assertAttribute(response, "sn", "First");
 		
 		assertEquals("First", changedSn);
-			
+		
+		assertShadows(2);
 	}
 
 	@Test
@@ -747,6 +767,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		System.out.println("Changed password: "+passwordAfter);
 
+		assertShadows(3);
 	}
 
 	@Test
@@ -793,6 +814,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		System.out.println("Account password: "+passwordAfter);
 			
+		assertShadows(4);
 	}
 	
 	@Test
@@ -848,7 +870,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         display("Count", objects.size());
         assertEquals("Unexpected number of shadows", 9, objects.size());
 
-        assertShadows(9);
+        // The extra shadow is a group shadow 
+        assertShadows(10);
         
         // Bad things may happen, so let's check if the shadow is still there and that is has the same OID
         PrismObject<ShadowType> accountNew = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID, null, taskManager.createTaskInstance(), result);
@@ -857,7 +880,17 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	private void assertShadows(int expectedCount) throws SchemaException {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + ".assertShadows");
 		int actualCount = repositoryService.countObjects(ShadowType.class, null, result);
-		assertEquals("Unexpected number of shadows in the repo", expectedCount, actualCount);
+		if (actualCount != expectedCount) {
+			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+				@Override
+				public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+					display("Repo shadow", object);
+					return true;
+				}
+			};
+			repositoryService.searchObjectsIterative(ShadowType.class, null, handler, null, result);
+			assertEquals("Unexpected number of shadows in the repo", expectedCount, actualCount);
+		}
 	}
 
 	@Test
@@ -1253,16 +1286,14 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 	@Test
 	public void test201SearchObjects() throws Exception {
-		TestUtil.displayTestTile("test201SearchObjects");
+		final String TEST_NAME = "test201SearchObjects";
+		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
-				+ ".test201SearchObjects");
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
 
 		ShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_FILENAME, ShadowType.class); 
 
-		System.out.println(SchemaDebugUtil.prettyPrint(object));
-		System.out.println(object.asPrismObject().debugDump());
-
+		display("New object", object);
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
 
@@ -1270,16 +1301,16 @@ public class TestOpenDJ extends AbstractOpenDJTest {
                 QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
-		List<PrismObject<ShadowType>> objListType = 
+		// WHEN
+		List<PrismObject<ShadowType>> searchResults = 
 			provisioningService.searchObjects(ShadowType.class, query, null, result);
 		
-		for (PrismObject<ShadowType> objType : objListType) {
-			if (objType == null) {
-				System.out.println("Object not found in repository.");
-			} else {
-				System.out.println("found object: " + objType.asObjectable().getName());
-			}
-		}		
+		// THEN
+		result.computeStatus();
+		assertSuccess(result);
+		display("Search resutls", searchResults);
+		
+		assertEquals("Unexpected number of search results", 14, searchResults.size());
 	}
 
 	@Test
@@ -1303,6 +1334,63 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				System.out.println("found object: " + objType.asObjectable().getName());
 			}
 		}
+	}
+	
+	@Test
+	public void test230SearchObjectsPaged() throws Exception {
+		final String TEST_NAME = "test230SearchObjectsPaged";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
+                QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		
+		ObjectPaging paging = ObjectPaging.createPaging(2, 5);
+		query.setPaging(paging);
+
+		// WHEN
+		List<PrismObject<ShadowType>> searchResults = 
+			provisioningService.searchObjects(ShadowType.class, query, null, result);
+		
+		// THEN
+		result.computeStatus();
+		assertSuccess(result);
+		display("Search resutls", searchResults);
+		
+		assertEquals("Unexpected number of search results", 5, searchResults.size());
+		String expectedUids[] = new String[] { "hbarbossa", "idm", "jbeckett", "jbond", "jgibbs" };
+		int i = 0;
+		for (PrismObject<ShadowType> searchResult: searchResults) {
+			assertShadow(searchResult);
+			ResourceAttribute<String> uidAttr = ShadowUtil.getAttribute(searchResult, new QName(RESOURCE_NS, "uid"));
+			String uid = uidAttr.getRealValues().iterator().next();
+			display("found uid", uid);
+			assertEquals("Wrong uid (index "+i+")", expectedUids[i], uid);
+			i++;
+		}
+	}
+	
+	@Test
+	public void test250CountObjects() throws Exception {
+		final String TEST_NAME = "test250CountObjects";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
+                QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+
+		// WHEN
+		Integer count = provisioningService.countObjects(ShadowType.class, query, result);
+		
+		// THEN
+		result.computeStatus();
+		assertSuccess(result);
+		
+		assertEquals("Unexpected number of search results", (Integer)14, count);
 	}
 	
 	/**

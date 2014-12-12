@@ -847,6 +847,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected ContainerDelta<AssignmentType> createAccountAssignmentModification(String resourceOid, String intent, boolean add) throws SchemaException {
 		return createAssignmentModification(resourceOid, ShadowKindType.ACCOUNT, intent, add);
 	}
+
+	protected <V> PropertyDelta<V> createUserPropertyReplaceModification(QName propertyName, V... values) {
+		return PropertyDelta.createReplaceDelta(getUserDefinition(), propertyName, values);
+	}
 	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String resourceOid, ShadowKindType kind, 
 			String intent, boolean add) throws SchemaException {
@@ -1673,13 +1677,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void waitForTaskFinish(Task task, boolean checkSubresult) throws Exception {
 		waitForTaskFinish(task, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
+
+	protected void waitForTaskFinish(Task task, boolean checkSubresult, final int timeout) throws Exception {
+		waitForTaskFinish(task, checkSubresult, timeout, DEFAULT_TASK_SLEEP_TIME);
+	}
 	
-	protected void waitForTaskFinish(final Task task, final boolean checkSubresult,final int timeout) throws Exception {
+	protected void waitForTaskFinish(final Task task, final boolean checkSubresult, final int timeout, long sleepTime) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
 		Checker checker = new Checker() {
 			@Override
 			public boolean check() throws Exception {
 				task.refresh(waitResult);
+				waitResult.summarize();
 //				Task freshTask = taskManager.getTask(task.getOid(), waitResult);
 				OperationResult result = task.getResult();
 				if (verbose) display("Check result", result);
@@ -1701,7 +1710,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				assert false : "Timeout ("+timeout+") while waiting for "+task+" to finish. Last result "+result;
 			}
 		};
-		IntegrationTestTools.waitFor("Waiting for "+task+" finish", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
+		IntegrationTestTools.waitFor("Waiting for "+task+" finish", checker , timeout, sleepTime);
 	}
 	
 	protected void waitForTaskFinish(String taskOid, boolean checkSubresult) throws Exception {
@@ -2132,11 +2141,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertDummyAccount(null, username, fullname, active);
 	}
 	
-	protected void assertDummyAccount(String dummyInstanceName, String username, String fullname, boolean active) {
+	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username, String fullname, boolean active) {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") account "+username, fullname, account.getAttributeValue("fullname"));
 		assertEquals("Wrong activation for dummy("+dummyInstanceName+") account "+username, active, account.isEnabled());
+		return account;
 	}
 	
 	protected void assertDummyAccount(String dummyInstanceName, String username) {

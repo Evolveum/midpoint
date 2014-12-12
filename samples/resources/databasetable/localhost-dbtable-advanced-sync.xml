@@ -56,7 +56,7 @@ This resource definition contains also definition to enable synchronization.
 
 			<!-- Configuration specific for the DBTable connector -->
 			<icfc:configurationProperties
-			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.databasetable-connector/org.identityconnectors.databasetable.DatabaseTableConnector">
+			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
 				<icscdbtable:port>3306</icscdbtable:port>
 				<icscdbtable:quoting></icscdbtable:quoting>
 				<icscdbtable:host>localhost</icscdbtable:host>

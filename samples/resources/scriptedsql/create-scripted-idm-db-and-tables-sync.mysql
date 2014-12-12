@@ -4,27 +4,30 @@
 CREATE DATABASE IF NOT EXISTS mdp_scriptedsql CHARACTER SET utf8 COLLATE utf8_bin;
 
 CREATE TABLE mdp_scriptedsql.Users (
-	uid		VARCHAR(32) NOT NULL,
-	firstname	VARCHAR(64),
-	lastname	VARCHAR(64),
-	fullname	VARCHAR(128),
-	email		VARCHAR(128),
-	organization	VARCHAR(128),
+	id		INT NOT NULL AUTO_INCREMENT,
+	login		VARCHAR(255),
+	firstname	VARCHAR(255),
+	lastname	VARCHAR(255),
+	fullname	VARCHAR(255),
+	email		VARCHAR(255),
+	organization	VARCHAR(255),
+	disabled	BOOLEAN DEFAULT 0,
 	timestamp	TIMESTAMP,
-	PRIMARY KEY (uid)
+	PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE mdp_scriptedsql.Groups (
-	gid		VARCHAR(32) NOT NULL,
-	name		VARCHAR(64),
-	description	VARCHAR(128),
-	PRIMARY KEY (gid)
+	id		INT NOT NULL AUTO_INCREMENT,
+	name		VARCHAR(255) NOT NULL,
+	description	VARCHAR(255),
+	PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE mdp_scriptedsql.Organizations (
-	name		VARCHAR(32) NOT NULL,
-	description	VARCHAR(64),
-	PRIMARY KEY (name)
+	id		INT NOT NULL AUTO_INCREMENT,
+	name		VARCHAR(255) NOT NULL,
+	description	VARCHAR(255),
+	PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 GRANT ALL PRIVILEGES on mdp_scriptedsql.* TO mdp_scriptedsql@'%' IDENTIFIED BY 'secret';
 GRANT ALL PRIVILEGES on mdp_scriptedsql.* TO mdp_scriptedsql@localhost IDENTIFIED BY 'secret';

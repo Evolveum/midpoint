@@ -15,31 +15,18 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.Collection;
-import java.util.List;
-
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
+import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -49,9 +36,9 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author semancik
@@ -60,14 +47,13 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 public class ShadowConstraintsChecker<F extends FocusType> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowConstraintsChecker.class);
-	
+
 	private LensProjectionContext accountContext;
 	private LensContext<F> context;
 	private PrismContext prismContext;
 	private ProvisioningService provisioningService;
 	private boolean satisfiesConstraints;
-	private StringBuilder messageBuilder = new StringBuilder();
-	private PrismObject conflictingShadow;
+	private ConstraintsCheckingResult constraintsCheckingResult;
 
 	public ShadowConstraintsChecker(LensProjectionContext accountContext) {
 		this.accountContext = accountContext;
@@ -110,12 +96,13 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 	}
 	
 	public String getMessages() {
-		return messageBuilder.toString();
+		return constraintsCheckingResult.getMessages();
 	}
 
 	public PrismObject getConflictingShadow() {
-		return conflictingShadow;
+		return constraintsCheckingResult.getConflictingShadow();
 	}
+
 	public void check(OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		RefinedObjectClassDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
@@ -130,117 +117,57 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 		PrismContainer<?> attributesContainer = accountNew.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null) {
 			// No attributes no constraint violations
-			LOGGER.trace("Current shadow does not contain attributes, skipping cheching uniqueness.");
+			LOGGER.trace("Current shadow does not contain attributes, skipping checking uniqueness.");
 			satisfiesConstraints = true;
 			return;
 		}
-		
-		Collection<? extends ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.unionExtends(accountDefinition.getIdentifiers(),
-				accountDefinition.getSecondaryIdentifiers());
-		LOGGER.trace("Secondary IDs {}", accountDefinition.getSecondaryIdentifiers());
-		for (ResourceAttributeDefinition attrDef: uniqueAttributeDefs) {
-			PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getName());
-			LOGGER.trace("Attempt to check uniqueness of {} (def {})", attr, attrDef);
-			if (attr == null) {
-				continue;
+
+		ConstraintViolationConfirmer confirmer = new ConstraintViolationConfirmer() {
+			@Override
+			public boolean confirmViolation(String oid) {
+				boolean violation = true;
+				LensProjectionContext foundContext = context.findProjectionContextByOid(oid);
+				if (foundContext != null) {
+					if (foundContext.getResourceShadowDiscriminator() != null) {
+						if (foundContext.getResourceShadowDiscriminator().isThombstone()) {
+							violation = false;
+						}
+						LOGGER.trace("Comparing with account in other context resulted to violation confirmation of {}", violation);
+					}
+				}
+				return violation;
 			}
-			boolean unique = checkAttributeUniqueness(attr, accountDefinition, accountContext.getResource(), 
-					accountContext.getOid(), context, result);
-			if (!unique) {
-				LOGGER.debug("Attribute {} conflicts with existing object (in {})", attr,  accountContext.getResourceShadowDiscriminator());
-				if (isInDelta(attr, accountContext.getPrimaryDelta())) {
-					throw new ObjectAlreadyExistsException("Attribute "+attr+" conflicts with existing object (and it is present in primary "+
+		};
+
+		constraintsCheckingResult = provisioningService.checkConstraints(accountDefinition, accountNew,
+				accountContext.getResource(), accountContext.getOid(), accountContext.getResourceShadowDiscriminator(),
+				confirmer, result);
+
+		if (constraintsCheckingResult.isSatisfiesConstraints()) {
+			satisfiesConstraints = true;
+			return;
+		}
+		for (QName checkedAttributeName: constraintsCheckingResult.getCheckedAttributes()) {
+			if (constraintsCheckingResult.getConflictingAttributes().contains(checkedAttributeName)) {
+				if (isInDelta(checkedAttributeName, accountContext.getPrimaryDelta())) {
+					throw new ObjectAlreadyExistsException("Attribute "+checkedAttributeName+" conflicts with existing object (and it is present in primary "+
 							"account delta therefore no iteration is performed)");
 				}
-				if (accountContext.getResourceShadowDiscriminator() != null && accountContext.getResourceShadowDiscriminator().isThombstone()){
-					satisfiesConstraints = true;
-					return;
-				}
-				satisfiesConstraints = false;
-				return;
 			}
 		}
-		satisfiesConstraints = true;
+		if (accountContext.getResourceShadowDiscriminator() != null && accountContext.getResourceShadowDiscriminator().isThombstone()) {
+			satisfiesConstraints = true;
+		} else {
+			satisfiesConstraints = false;
+		}
 	}
 	
-	private boolean checkAttributeUniqueness(PrismProperty identifier, RefinedObjectClassDefinition accountDefinition,
-			ResourceType resourceType, String oid, LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-//		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
-//				resourceType, prismContext);
-		
-		List<PrismPropertyValue<?>> identifierValues = identifier.getValues();
-		if (identifierValues.isEmpty()) {
-			throw new SchemaException("Empty identifier "+identifier+" while checking uniqueness of "+oid+" ("+resourceType+")");
-		}
 
-		OrFilter isNotDead = OrFilter.createOr(
-				EqualFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, false),
-				EqualFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, null));
-		//TODO: set matching rule instead of null
-		ObjectQuery query = ObjectQuery.createObjectQuery(
-				AndFilter.createAnd(
-						RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid()),
-						EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, accountDefinition.getTypeName()),
-						EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifier.getDefinition().getName()), identifier.getDefinition(), identifierValues),
-						isNotDead));
-		
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-		List<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, options, result);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
-				new Object[]{identifier, foundObjects.size(), query.debugDump()});
-		}
-		if (foundObjects.isEmpty()) {
-			return true;
-		}
-		if (foundObjects.size() > 1) {
-			LOGGER.trace("Found more than one object with attribute "+identifier.toHumanReadableString());
-			message("Found more than one object with attribute "+identifier.toHumanReadableString());
-			return false;
-		} 
-//		PrismProperty<Boolean> isDead = foundObjects.get(0).findProperty(AccountShadowType.F_DEAD);
-//		if (isDead != null && !isDead.isEmpty() && isDead.getRealValue() != null && isDead.getRealValue() == true){
-//			LOGGER.trace("Found matching accounts, but one of them is signed as dead, ignoring this match.");
-//			message("Found matching accounts, but one of them is signed as dead, ignoring this match.");
-//			return true;
-//		}
-//		
-		LOGGER.trace("Comparing {} and {}", foundObjects.get(0).getOid(), oid);
-		boolean match = foundObjects.get(0).getOid().equals(oid);
-		if (!match) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Found conflicting existing object with attribute " + identifier.toHumanReadableString() + ":\n"
-						+ foundObjects.get(0).debugDump());
-			}
-			message("Found conflicting existing object with attribute " + identifier.toHumanReadableString() + ": "
-					+ foundObjects.get(0));
-
-			LensProjectionContext foundContext = context.findProjectionContextByOid(foundObjects
-					.get(0).getOid());
-			if (foundContext != null) {
-				if (foundContext.getResourceShadowDiscriminator() != null) {
-					match = foundContext.getResourceShadowDiscriminator().isThombstone();
-					LOGGER.trace("Comparing with account in other context resulted to {}", match);
-				}
-			}
-			conflictingShadow = foundObjects.get(0);
-		}
-		
-		return match;
-	}
-	
-	private boolean isInDelta(PrismProperty<?> attr, ObjectDelta<ShadowType> delta) {
+	private boolean isInDelta(QName attrName, ObjectDelta<ShadowType> delta) {
 		if (delta == null) {
 			return false;
 		}
-		return delta.hasItemDelta(new ItemPath(ShadowType.F_ATTRIBUTES, attr.getElementName()));
-	}
-
-	private void message(String message) {
-		if (messageBuilder.length() != 0) {
-			messageBuilder.append(", ");
-		}
-		messageBuilder.append(message);
+		return delta.hasItemDelta(new ItemPath(ShadowType.F_ATTRIBUTES, attrName));
 	}
 
 }

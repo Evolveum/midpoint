@@ -113,6 +113,7 @@ public class PageTaskEdit extends PageAdminTasks {
     private static final String ID_RESOURCE_REF = "resourceRef";
     private static final String ID_KIND = "kind";
     private static final String ID_INTENT = "intent";
+    private static final String ID_WORKER_THREADS = "workerThreads";
     private static final String ID_MODEL_OPERATION_STATUS_LABEL = "modelOperationStatusLabel";
     private static final String ID_MODEL_OPERATION_STATUS_PANEL = "modelOperationStatusPanel";
     private static final String ID_SUBTASKS_LABEL = "subtasksLabel";
@@ -510,7 +511,27 @@ public class PageTaskEdit extends PageAdminTasks {
             }
         });
 
-		Label node = new Label("node", new AbstractReadOnlyModel<String>() {
+        final TextField<Integer> workerThreads = new TextField<>(ID_WORKER_THREADS, new PropertyModel<Integer>(model, TaskDto.F_WORKER_THREADS));
+        mainForm.add(workerThreads);
+        workerThreads.setOutputMarkupId(true);
+        workerThreads.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isEnabled() {
+                return edit;
+            }
+
+            @Override
+            public boolean isVisible() {
+                TaskDto dto = model.getObject();
+                return TaskCategory.RECONCILIATION.equals(dto.getCategory()) ||
+                        TaskCategory.IMPORTING_ACCOUNTS.equals(dto.getCategory()) ||
+                        TaskCategory.USER_RECOMPUTATION.equals(dto.getCategory());
+            }
+        });
+
+
+        Label node = new Label("node", new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = model.getObject();
@@ -1008,7 +1029,23 @@ public class PageTaskEdit extends PageAdminTasks {
             }
         }
 
-		return existingTask;
+        if(dto.getWorkerThreads() != null) {
+            PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
+            PrismProperty workerThreads = new PrismProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
+            workerThreads.setDefinition(def);
+            workerThreads.setRealValue(dto.getWorkerThreads());
+
+            existingTask.setExtensionProperty(workerThreads);
+        } else {
+            PrismProperty workerThreads = existingTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
+
+            if(workerThreads != null){
+                existingTask.deleteExtensionProperty(workerThreads);
+            }
+        }
+
+
+        return existingTask;
 	}
 
     private void suspendPerformed(AjaxRequestTarget target) {

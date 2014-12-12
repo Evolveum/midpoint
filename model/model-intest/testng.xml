@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestScriptHooks"/>
             <class name="com.evolveum.midpoint.model.intest.TestIntent"/>
             <class name="com.evolveum.midpoint.model.intest.TestEntitlements"/>
+            <class name="com.evolveum.midpoint.model.intest.TestCaseIgnore"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
@@ -82,7 +83,7 @@
     <test name="Model Integration 2" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.TestLoggingConfiguration"/>
-            <class name="com.evolveum.midpoint.model.intest.negative.TestBrokenCSV"/>
+            <class name="com.evolveum.midpoint.model.intest.negative.TestBrokenResources"/>
         </classes>
     </test>
 </suite>

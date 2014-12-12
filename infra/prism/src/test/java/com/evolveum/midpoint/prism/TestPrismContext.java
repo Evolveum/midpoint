@@ -183,7 +183,7 @@ public class TestPrismContext {
 		assertFalse("Activation is runtime", activationContainer.isRuntimeSchema());
 		assertTrue("Activation is NOT operational", activationContainer.isOperational());
 		assertEquals("Activation size", 3, activationContainer.getDefinitions().size());
-		PrismAsserts.assertPropertyDefinition(activationContainer, USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 1, 1);
+		PrismAsserts.assertPropertyDefinition(activationContainer, USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 0, 1);
 		PrismAsserts.assertPropertyDefinition(activationContainer, USER_VALID_FROM_QNAME, DOMUtil.XSD_DATETIME, 0, 1);
 		PrismAsserts.assertPropertyDefinition(activationContainer, USER_VALID_TO_QNAME, DOMUtil.XSD_DATETIME, 0, 1);
 		

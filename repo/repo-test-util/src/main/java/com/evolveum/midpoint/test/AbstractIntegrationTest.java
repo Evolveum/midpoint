@@ -116,6 +116,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected static final String DEFAULT_INTENT = "default";
 	
 	protected static final String OPENDJ_PEOPLE_SUFFIX = "ou=people,dc=example,dc=com";
+	protected static final String OPENDJ_GROUPS_SUFFIX = "ou=groups,dc=example,dc=com";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
 	
@@ -130,6 +131,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	private long lastShadowFetchOperationCount = 0;
 	private long lastScriptCompileCount = 0;
 	private long lastScriptExecutionCount = 0;
+	private long lastConnectorOperationCount = 0;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -495,9 +497,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		
 	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName, String location) {
 		assertObject(user);
-		assertEquals("Wrong "+user+" OID (prism)", oid, user.getOid());
 		UserType userType = user.asObjectable();
-		assertEquals("Wrong "+user+" OID (jaxb)", oid, userType.getOid());
+		if (oid != null) {
+			assertEquals("Wrong " + user + " OID (prism)", oid, user.getOid());
+			assertEquals("Wrong " + user + " OID (jaxb)", oid, userType.getOid());
+		}
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" name", name, userType.getName());
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" fullName", fullName, userType.getFullName());
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" givenName", givenName, userType.getGivenName());
@@ -682,6 +686,22 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		lastScriptExecutionCount = currentCount;
 	}
 	
+	
+	
+	protected void rememberConnectorOperationCount() {
+		lastConnectorOperationCount = InternalMonitor.getConnectorOperationCount();
+	}
+
+	protected void assertConnectorOperationIncrement(int expectedIncrement) {
+		long currentCount = InternalMonitor.getConnectorOperationCount();
+		long actualIncrement = currentCount - lastConnectorOperationCount;
+		assertEquals("Unexpected increment in connector operationCount count", (long)expectedIncrement, actualIncrement);
+		lastConnectorOperationCount = currentCount;
+	}
+	
+	
+	
+	
 	protected void rememberResourceCacheStats() {
 		lastResourceCacheStats  = InternalMonitor.getResourceCacheStats().clone();
 	}
@@ -744,7 +764,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String uid, String name) throws SchemaException {
 		PrismObject<ShadowType> shadow = getShadowDefinition().instantiate();
 		ShadowType shadowType = shadow.asObjectable();
-		shadowType.setName(PrismTestUtil.createPolyStringType(name));
+		if (name != null) {
+			shadowType.setName(PrismTestUtil.createPolyStringType(name));
+		}
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resource.getOid());
 		shadowType.setResourceRef(resourceRef);
@@ -842,6 +864,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected PrismObjectDefinition<ShadowType> getShadowDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+	}
+
+	// objectClassName may be null
+	protected RefinedAttributeDefinition getAttributeDefinition(ResourceType resourceType,
+																ShadowKindType kind,
+																QName objectClassName,
+																String attributeLocalName) throws SchemaException {
+		RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+		RefinedObjectClassDefinition refinedObjectClassDefinition =
+				refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClassName);
+		return refinedObjectClassDefinition.findAttributeDefinition(attributeLocalName);
 	}
 
 }

@@ -644,7 +644,7 @@ public class PrismBeanConverter {
 
         //check for enums
         if (beanClass.isEnum()){
-            String enumValue = XNodeProcessorUtil.findEnumFieldValue(beanClass, bean);
+			String enumValue = inspector.findEnumFieldValue(beanClass, bean.toString());
             if (StringUtils.isEmpty(enumValue)){
                 enumValue = bean.toString();
             }

@@ -143,6 +143,7 @@ public class StartupConfiguration implements MidpointConfiguration {
 			if (getConfigFilename().startsWith("test")) {
 				String midpointHome = "./target/midpoint-home";
 				System.setProperty(MIDPOINT_HOME, midpointHome);
+				System.out.println("Using " + MIDPOINT_HOME + " for test runs: '" + midpointHome + "'.");
 			} else {
 
 				String userHome = System.getProperty(USER_HOME);
@@ -185,6 +186,7 @@ public class StartupConfiguration implements MidpointConfiguration {
         if (midpointHome != null) {
         /* configuration logic */
         	File f = new File(midpointHome, this.getConfigFilename());
+        	System.out.println("Loading midPoint configuration from file "+f);
         	LOGGER.info("Loading midPoint configuration from file {}", f);
         	try {
                 if (!f.exists()) {

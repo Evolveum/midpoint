@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -143,6 +144,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
@@ -286,7 +288,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		PrismProperty<ShadowKindType> kind = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_KIND);
 		if (kind != null && !kind.isEmpty()){
 			ShadowKindType kindValue = kind.getRealValue();
-			if (!synchronizationPolicy.getKind().equals(kindValue)){
+			ShadowKindType policyKind = synchronizationPolicy.getKind();
+			if (policyKind == null) {
+				policyKind = ShadowKindType.ACCOUNT;			// TODO is this ok? [med]
+			}
+			if (!policyKind.equals(kindValue)){
 				return false;
 			}
 		}

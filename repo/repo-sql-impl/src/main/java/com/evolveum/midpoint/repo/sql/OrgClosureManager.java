@@ -732,10 +732,10 @@ public class OrgClosureManager {
     // Checks that there is no edge=(D,A) such that A->D exists in the transitive closure
     // (this would yield a cycle D->A->D in the graph)
     private void checkForCycles(List<Edge> edges, Session session) {
-        String queryText = "select descendant_oid, ancestor_oid from " + CLOSURE_TABLE_NAME + " T where " + getWhereClauseForCycleCheck(edges);
+        String queryText = "select t.descendant_oid, t.ancestor_oid from " + CLOSURE_TABLE_NAME + " t where " + getWhereClauseForCycleCheck(edges);
         Query query = session.createSQLQuery(queryText)
-                .addScalar("descendant_oid", StringType.INSTANCE)
-                .addScalar("ancestor_oid", StringType.INSTANCE);
+                .addScalar("t.descendant_oid", StringType.INSTANCE)
+                .addScalar("t.ancestor_oid", StringType.INSTANCE);
         long start = System.currentTimeMillis();
         List list = query.list();
         LOGGER.trace("Cycles checked in {} ms, {} conflicts found", System.currentTimeMillis()-start, list.size());
@@ -1031,8 +1031,8 @@ public class OrgClosureManager {
             // with serializable transactions it is not possible to create index within the transaction (after inserting data)
             start = System.currentTimeMillis();
             Query createTableQuery = session.createSQLQuery("create table " + deltaTempTableName + " (" +
-                    "descendant_oid NVARCHAR(36), " +
-                    "ancestor_oid NVARCHAR(36), " +
+                    "descendant_oid NVARCHAR(36) COLLATE database_default, " +
+                    "ancestor_oid NVARCHAR(36) COLLATE database_default, " +
                     "val INT, " +
                     "PRIMARY KEY (descendant_oid, ancestor_oid))");
             createTableQuery.executeUpdate();

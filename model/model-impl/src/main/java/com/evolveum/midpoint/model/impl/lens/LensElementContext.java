@@ -182,6 +182,37 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	public ObjectDelta<O> getPrimaryDelta() {
 		return primaryDelta;
 	}
+
+	/**
+	 * As getPrimaryDelta() but caters for the possibility that an object already exists.
+	 * So, if the primary delta is ADD and object already exists, it should be changed somehow,
+	 * e.g. to MODIFY delta or to null.
+	 *
+	 * Actually, the question is what to do with the attribute values if changed to MODIFY.
+	 * (a) Should they become REPLACE item deltas? (b) ADD ones?
+	 * (c) Or should we compute a difference from objectCurrent to objectToAdd, hoping that
+	 * secondary deltas will re-add everything that might be unknowingly removed by this step?
+	 * (d) Or should we simply ignore ADD delta altogether, hoping that it was executed
+	 * so it need not be repeated?
+	 *
+	 * And, should not we report AlreadyExistingException instead?
+	 *
+	 * It seems that (c) i.e. reverting back to objectToAdd is not a good idea at all. For example, this
+	 * may erase linkRefs for good.
+	 *
+	 * For the time being let us proceed with (d), i.e. ignoring such a delta.
+	 *
+	 * TODO is this OK???? [med]
+	 *
+	 * @return
+	 */
+	public ObjectDelta<O> getFixedPrimaryDelta() {
+		if (primaryDelta == null || !primaryDelta.isAdd() || objectCurrent == null) {
+			return primaryDelta;		// nothing to do
+		}
+		// Object does exist. Let's ignore the delta - see description above.
+		return null;
+	}
 	
 	public void setPrimaryDelta(ObjectDelta<O> primaryDelta) {
 		this.primaryDelta = primaryDelta;
@@ -284,7 +315,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	}
 	
 	public void addToExecutedDeltas(LensObjectDeltaOperation<O> executedDelta) {
-		executedDeltas.add(executedDelta);
+		executedDeltas.add(executedDelta.clone());      // must be cloned because e.g. for ADD deltas the object gets modified afterwards
 	}
 
 	/**
@@ -294,8 +325,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     public ObjectDelta<O> getDelta() throws SchemaException {
         return ObjectDelta.union(primaryDelta, getSecondaryDelta());
     }
-    
-    public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
+
+	public ObjectDelta<O> getFixedDelta() throws SchemaException {
+		return ObjectDelta.union(getFixedPrimaryDelta(), getSecondaryDelta());
+	}
+
+	public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
 		return new ObjectDeltaObject<O>(objectOld, getDelta(), objectNew);
 	}
 

@@ -51,7 +51,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.jobs.WfProcessInstanceShadowTaskHandler;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
@@ -101,6 +100,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     private static final File REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE = new File(TEST_RESOURCE_DIR, "user-jack-modify-activation-enable.xml");
     private static final File REQ_USER_JACK_MODIFY_CHANGE_PASSWORD = new File(TEST_RESOURCE_DIR, "user-jack-modify-change-password.xml");
     private static final File REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2 = new File(TEST_RESOURCE_DIR, "user-jack-modify-change-password-2.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE10 = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-role10.xml");
 
     private static final String DONT_CHECK = "dont-check";
 
@@ -159,8 +159,12 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 	@Test(enabled = true)
     public void test010UserModifyAddRole() throws Exception {
         TestUtil.displayTestTile(this, "test010UserModifyAddRole");
-       	executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
-               @Override
+       	executeTest("test010UserModifyAddRole", USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 1; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+
+            @Override
                public LensContext createModelContext(OperationResult result) throws Exception {
                    LensContext<UserType> context = createUserAccountContext();
                    fillContextWithUser(context, USER_JACK_OID, result);
@@ -284,7 +288,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Test(enabled = true)
     public void test011UserModifyAddRoleChangeGivenName() throws Exception {
         TestUtil.displayTestTile(this, "test011UserModifyAddRoleChangeGivenName");
-        executeTest("test011UserModifyAddRoleChangeGivenName", USER_JACK_OID, 1, false, true, new ContextCreator() {
+        executeTest("test011UserModifyAddRoleChangeGivenName", USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 1; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
@@ -329,7 +337,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Test(enabled = true)
     public void test012UserModifyAddRoleChangeGivenNameImmediate() throws Exception {
         TestUtil.displayTestTile(this, "test012UserModifyAddRoleChangeGivenNameImmediate");
-        executeTest("test012UserModifyAddRoleChangeGivenNameImmediate", USER_JACK_OID, 2, true, true, new ContextCreator() {
+        executeTest("test012UserModifyAddRoleChangeGivenNameImmediate", USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 2; }
+            @Override boolean immediate() { return true; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
@@ -373,7 +385,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Test(enabled = true)
     public void test020UserModifyAddThreeRoles() throws Exception {
         TestUtil.displayTestTile(this, "test020UserModifyAddThreeRoles");
-        executeTest("test020UserModifyAddThreeRoles", USER_JACK_OID, 2, false, true, new ContextCreator() {
+        executeTest("test020UserModifyAddThreeRoles", USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 2; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
@@ -427,7 +443,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Test(enabled = true)
     public void test021UserModifyAddThreeRolesImmediate() throws Exception {
         TestUtil.displayTestTile(this, "test021UserModifyAddThreeRolesImmediate");
-        executeTest("test021UserModifyAddThreeRolesImmediate", USER_JACK_OID, 3, true, true, new ContextCreator() {
+        executeTest("test021UserModifyAddThreeRolesImmediate", USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 3; }
+            @Override boolean immediate() { return true; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
@@ -479,7 +499,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Test(enabled = true)
     public void test030UserAdd() throws Exception {
         TestUtil.displayTestTile(this, "test030UserAdd");
-        executeTest("test030UserAdd", null, 2, false, false, new ContextCreator() {
+        executeTest("test030UserAdd", null, new TestDetails() {
+            @Override int subtaskCount() { return 2; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return false; }
+
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
@@ -532,7 +556,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         deleteUserFromModel("bill");
 
-        executeTest("test031UserAddImmediate", null, 3, true, true, new ContextCreator() {
+        executeTest("test031UserAddImmediate", null, new TestDetails() {
+            @Override int subtaskCount() { return 3; }
+            @Override boolean immediate() { return true; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
@@ -592,7 +620,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
         LOGGER.trace("password before test = " + originalPasswordValue);
 
-        executeTest("test040UserModifyPasswordChangeBlocked", USER_JACK_OID, 1, false, true, new ContextCreator() {
+        executeTest("test040UserModifyPasswordChangeBlocked", USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 1; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
@@ -637,7 +669,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
         LOGGER.trace("password before test = " + originalPasswordValue);
 
-        executeTest("test041UserModifyPasswordChange", USER_JACK_OID, 1, false, true, new ContextCreator() {
+        executeTest("test041UserModifyPasswordChange", USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 1; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
@@ -681,7 +717,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
         LOGGER.trace("password before test = " + originalPasswordValue);
 
-        executeTest("test050UserModifyAddRoleAndPasswordChange", USER_JACK_OID, 2, false, true, new ContextCreator() {
+        executeTest("test050UserModifyAddRoleAndPasswordChange", USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 2; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
@@ -727,8 +767,51 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         });
     }
 
+    @Test(enabled = true)
+    public void test060UserModifyAddRoleAutoApproval() throws Exception {
+        TestUtil.displayTestTile(this, "test060UserModifyAddRoleAutoApproval");
+        executeTest("test060UserModifyAddRoleAutoApproval", USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 1; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
 
-    private abstract class ContextCreator {
+            @Override boolean approvedAutomatically() { return true; }
+
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_JACK_OID, result);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE10);
+                return context;
+            }
+
+            @Override
+            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
+                // todo perhaps the role should be assigned even at this point?
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+                assertAssignedRole(jack, TestConstants.ROLE_R10_OID);
+
+                checkDummyTransportMessages("simpleUserNotifier", 1);
+            }
+
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                throw new AssertionError("Decision should not be acquired in this scenario.");
+            }
+
+        });
+    }
+
+
+    private abstract class TestDetails {
+        abstract int subtaskCount();
+        abstract boolean immediate();
+        abstract boolean checkObjectOnSubtasks();
+        boolean approvedAutomatically() { return false; }
         LensContext createModelContext(OperationResult result) throws Exception { return null; }
         void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception { }
         void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception { }
@@ -761,9 +844,9 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         }
     }
 	
-	private void executeTest(String testName, String oid, int subtaskCount, boolean immediate, boolean checkObjectOnSubtasks, ContextCreator contextCreator) throws Exception {
+	private void executeTest(String testName, String oid, TestDetails testDetails) throws Exception {
 
-        int workflowSubtaskCount = immediate ? subtaskCount-1 : subtaskCount;
+        int workflowSubtaskCount = testDetails.immediate() ? testDetails.subtaskCount()-1 : testDetails.subtaskCount();
 
 		// GIVEN
         prepareNotifications();
@@ -779,7 +862,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             removeAllRoles(oid, result);
         }
 
-        LensContext<UserType> context = (LensContext<UserType>) contextCreator.createModelContext(result);
+        LensContext<UserType> context = (LensContext<UserType>) testDetails.createModelContext(result);
 
         display("Input context", context);
 
@@ -792,7 +875,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         // THEN
 
         assertEquals("Unexpected state of the context", ModelState.PRIMARY, context.getState());
-        assertEquals("Wrong mode after clockwork.run in "+context.getState(), HookOperationMode.BACKGROUND, mode);
+        assertEquals("Wrong mode after clockwork.run in " + context.getState(), HookOperationMode.BACKGROUND, mode);
         modelTask.refresh(result);
 
         String rootTaskOid = wfTaskUtil.getRootTaskOid(modelTask);
@@ -801,97 +884,99 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         Task rootTask = taskManager.getTask(rootTaskOid, result);
         assertTrue("Root task is not persistent", rootTask.isPersistent());          // trivial ;)
 
-        UriStack uriStack = rootTask.getOtherHandlersUriStack();
-        if (!immediate) {
-            assertEquals("Invalid handler at stack position 0", ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, uriStack.getUriStackEntry().get(0).getHandlerUri());
-//            assertEquals("Invalid current handler", WfPrepareRootOperationTaskHandler.HANDLER_URI, rootTask.getHandlerUri());
-        } else {
-            assertTrue("There should be no handlers for root tasks with immediate execution mode", uriStack == null || uriStack.getUriStackEntry().isEmpty());
-        }
+        if (!testDetails.approvedAutomatically()) {
 
-        ModelContext taskModelContext = immediate ? null : wfTaskUtil.retrieveModelContext(rootTask, result);
-        if (!immediate) {
-            assertNotNull("Model context is not present in root task", taskModelContext);
-        } else {
-            assertFalse("Model context is present in root task (execution mode = immediate)", wfTaskUtil.hasModelContext(rootTask));
-        }
-
-        //assertEquals("Invalid current task handler", Wait, uriStack.getUriStackEntry().get(1).getHandlerUri());
-
-        List<Task> subtasks = rootTask.listSubtasks(result);
-        assertEquals("Incorrect number of subtasks", subtaskCount, subtasks.size());
-
-        Task task0 = null;
-
-        for (Task subtask : subtasks) {
-            if (!WfProcessInstanceShadowTaskHandler.HANDLER_URI.equals(subtask.getHandlerUri())) {
-                assertNull("More than one non-wf-monitoring subtask", task0);
-                task0 = subtask;
+            UriStack uriStack = rootTask.getOtherHandlersUriStack();
+            if (!testDetails.immediate()) {
+                assertEquals("Invalid handler at stack position 0", ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, uriStack.getUriStackEntry().get(0).getHandlerUri());
+            } else {
+                assertTrue("There should be no handlers for root tasks with immediate execution mode", uriStack == null || uriStack.getUriStackEntry().isEmpty());
             }
-        }
 
-        if (immediate) {
-            assertNotNull("Subtask for immediate execution was not found", task0);
-            subtasks.remove(task0);
-        }
+            ModelContext taskModelContext = testDetails.immediate() ? null : wfTaskUtil.retrieveModelContext(rootTask, result);
+            if (!testDetails.immediate()) {
+                assertNotNull("Model context is not present in root task", taskModelContext);
+            } else {
+                assertFalse("Model context is present in root task (execution mode = immediate)", wfTaskUtil.hasModelContext(rootTask));
+            }
 
-        contextCreator.assertsAfterClockworkRun(rootTask, result);
+            List<Task> subtasks = rootTask.listSubtasks(result);
+            assertEquals("Incorrect number of subtasks", testDetails.subtaskCount(), subtasks.size());
 
-        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount);
-        checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount);
+            Task task0 = null;
 
-        if (immediate) {
-            waitForTaskClose(task0, 20000);
-            //TestUtil.assertSuccess(task0.getResult());            // todo enable this
-            contextCreator.assertsAfterImmediateExecutionFinished(rootTask, result);
-        }
+            for (Task subtask : subtasks) {
+                if (!WfProcessInstanceShadowTaskHandler.HANDLER_URI.equals(subtask.getHandlerUri())) {
+                    assertNull("More than one non-wf-monitoring subtask", task0);
+                    task0 = subtask;
+                }
+            }
 
-        for (int i = 0; i < subtasks.size(); i++) {
-            Task subtask = subtasks.get(i);
-            //assertEquals("Subtask #" + i + " is not recurring: " + subtask, TaskRecurrence.RECURRING, subtask.getRecurrenceStatus());
-            //assertEquals("Incorrect execution status of subtask #" + i + ": " + subtask, TaskExecutionStatus.RUNNABLE, subtask.getExecutionStatus());
-            PrismProperty<ObjectDelta> deltas = subtask.getExtensionProperty(PcpTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME);
-            assertNotNull("There are no modifications in subtask #" + i + ": " + subtask, deltas);
-            assertEquals("Incorrect number of modifications in subtask #" + i + ": " + subtask, 1, deltas.getRealValues().size());
-            // todo check correctness of the modification?
+            if (testDetails.immediate()) {
+                assertNotNull("Subtask for immediate execution was not found", task0);
+                subtasks.remove(task0);
+            }
 
-            // now check the workflow state
+            testDetails.assertsAfterClockworkRun(rootTask, result);
 
-            String pid = wfTaskUtil.getProcessId(subtask);
-            assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
+            checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount);
+            checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount);
 
-            WfProcessInstanceType processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
-            assertNotNull("Process instance information cannot be retrieved", processInstance);
-            assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
+            if (testDetails.immediate()) {
+                waitForTaskClose(task0, 20000);
+                //TestUtil.assertSuccess(task0.getResult());            // todo enable this
+                testDetails.assertsAfterImmediateExecutionFinished(rootTask, result);
+            }
 
-            String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
-            //WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsById(taskId, result);
+            for (int i = 0; i < subtasks.size(); i++) {
+                Task subtask = subtasks.get(i);
+                //assertEquals("Subtask #" + i + " is not recurring: " + subtask, TaskRecurrence.RECURRING, subtask.getRecurrenceStatus());
+                //assertEquals("Incorrect execution status of subtask #" + i + ": " + subtask, TaskExecutionStatus.RUNNABLE, subtask.getExecutionStatus());
+                PrismProperty<ObjectDelta> deltas = subtask.getExtensionProperty(PcpTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME);
+                assertNotNull("There are no modifications in subtask #" + i + ": " + subtask, deltas);
+                assertEquals("Incorrect number of modifications in subtask #" + i + ": " + subtask, 1, deltas.getRealValues().size());
+                // todo check correctness of the modification?
 
-            org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
-            assertNotNull("activiti task not found", t);
+                // now check the workflow state
 
-            String executionId = t.getExecutionId();
-            LOGGER.trace("Task id = " + taskId + ", execution id = " + executionId);
+                String pid = wfTaskUtil.getProcessId(subtask);
+                assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
-            boolean approve = contextCreator.decideOnApproval(executionId);
+                WfProcessInstanceType processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
+                assertNotNull("Process instance information cannot be retrieved", processInstance);
+                assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
 
-            workflowServiceImpl.approveOrRejectWorkItem(taskId, approve, result);
+                String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
+                //WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsById(taskId, result);
+
+                org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
+                assertNotNull("activiti task not found", t);
+
+                String executionId = t.getExecutionId();
+                LOGGER.trace("Task id = " + taskId + ", execution id = " + executionId);
+
+                boolean approve = testDetails.decideOnApproval(executionId);
+
+                workflowServiceImpl.approveOrRejectWorkItem(taskId, approve, result);
+            }
         }
 
         waitForTaskClose(rootTask, 60000);
         //TestUtil.assertSuccess(rootTask.getResult());
-        contextCreator.assertsRootTaskFinishes(rootTask, result);
+        testDetails.assertsRootTaskFinishes(rootTask, result);
 
         if (oid == null) {
-            oid = contextCreator.getObjectOid(rootTask, result);
+            oid = testDetails.getObjectOid(rootTask, result);
         }
         assertNotNull("object oid is null after operation", oid);
         if (!oid.equals(DONT_CHECK)) {
-            assertObjectInTaskTree(rootTask, oid, checkObjectOnSubtasks, result);
+            assertObjectInTaskTree(rootTask, oid, testDetails.checkObjectOnSubtasks(), result);
         }
 
-        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount*2);
-        checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount*2);
+        if (!testDetails.approvedAutomatically()) {
+            checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount * 2);
+            checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount * 2);
+        }
         notificationManager.setDisabled(true);
 
         // Check audit

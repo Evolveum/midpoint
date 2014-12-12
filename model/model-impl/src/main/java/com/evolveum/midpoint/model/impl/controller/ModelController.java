@@ -41,8 +41,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
-
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -108,6 +108,8 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -930,7 +932,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
     }
 
 	@Override
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(type, "Object type must not be null.");
@@ -956,10 +958,10 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			LOGGER.trace("Security denied the search");
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Denied");
 			RepositoryCache.exit();
-			return new ArrayList<>();
+			return new SearchResultList(new ArrayList<>());
 		}
 		
-		List<PrismObject<T>> list = null;
+		SearchResultList<PrismObject<T>> list = null;
 		try {
 			if (query != null){
                 if (query.getPaging() == null) {
@@ -1006,7 +1008,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 
 			if (list == null) {
-				list = new ArrayList<PrismObject<T>>();
+				list = new SearchResultList(new ArrayList<PrismObject<T>>());
 			}
 
             for (PrismObject<T> object : list) {
@@ -1028,7 +1030,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	@Override
-	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
 			final ResultHandler<T> handler, final Collection<SelectorOptions<GetOperationOptions>> options,
             final Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -1054,7 +1056,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			LOGGER.trace("Security denied the search");
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Denied");
 			RepositoryCache.exit();
-			return;
+			return null;
 		}
 		
         ResultHandler<T> internalHandler = new ResultHandler<T>() {
@@ -1079,6 +1081,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 		};
         
+		SearchResultMetadata metadata;
 		try {
 			if (query != null){
                 if (query.getPaging() == null) {
@@ -1092,8 +1095,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			
 			try {
                 switch (searchProvider) {
-                    case REPOSITORY: cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result); break;
-                    case PROVISIONING: provisioning.searchObjectsIterative(type, query, options, internalHandler, result); break;
+                    case REPOSITORY: metadata = cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result); break;
+                    case PROVISIONING: metadata = provisioning.searchObjectsIterative(type, query, options, internalHandler, result); break;
                     case TASK_MANAGER: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     case WORKFLOW: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
@@ -1126,6 +1129,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		} finally {
 			RepositoryCache.exit();
 		}
+		
+		return metadata;
 	}
 
 	private void processSearchException(Exception e, GetOperationOptions rootOptions,
@@ -1144,7 +1149,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 
 	@Override
-	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
+	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, CommunicationException {
 
@@ -1162,7 +1167,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			return 0;
 		}
 
-		int count;
+		Integer count;
 		try {
 			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
@@ -1652,6 +1657,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	 */
 	@Override
 	public void postInit(OperationResult parentResult) {
+		Utils.clearSystemConfigurationCache();        // necessary for testing situations where we re-import different system configurations with the same version (on system init)
+
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(POST_INIT);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelController.class);

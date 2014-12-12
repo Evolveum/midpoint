@@ -131,7 +131,13 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 
     @Override
     public ExpressionType getAutomaticallyApproved() {
-        return automaticallyApproved != null ? automaticallyApproved.getValue() : null;
+        if (automaticallyApproved == null) {
+            return null;
+        }
+        if (prismContext != null && automaticallyApproved.getPrismContext() == null) {
+            automaticallyApproved.setPrismContext(prismContext);
+        }
+        return automaticallyApproved.getValue();
     }
 
     public void setAutomaticallyApproved(ExpressionType automaticallyApproved) {

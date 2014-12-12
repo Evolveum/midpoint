@@ -42,6 +42,9 @@ public class InternalMonitor {
 	private static long scriptCompileCount = 0;
 	private static long scriptExecutionCount = 0;
 	
+	private static boolean traceConnectorOperation = false;
+	private static long connectorOperationCount = 0;
+	
 	private static long shadowFetchOperationCount = 0;
 	private static boolean traceShadowFetchOperation = false;
 	
@@ -170,7 +173,27 @@ public class InternalMonitor {
 		shadowChangeOpeartionCount++;
 		provisioningAllExtOperationCount++;
 	}
+	
+	public static long getConnectorOperationCount() {
+		return connectorOperationCount;
+	}
+	
+	public static void recordConnectorOperation(String name) {
+		connectorOperationCount++;
+		if (traceConnectorOperation) {
+			traceOperation("connector "+name, shadowFetchOperationCount);
+		}
+	}
 
+	public static boolean isTraceConnectorOperation() {
+		return traceShadowFetchOperation;
+	}
+
+	public static void setTraceConnectorOperation(boolean trace) {
+		LOGGER.debug("MONITOR traceConnectorOperation={}", trace);
+		InternalMonitor.traceConnectorOperation = trace;
+	}
+	
 	public static long getProvisioningAllExtOperationCont() {
 		return provisioningAllExtOperationCount;
 	}
@@ -193,6 +216,8 @@ public class InternalMonitor {
 		shadowFetchOperationCount = 0;
 		traceShadowFetchOperation = false;
 		shadowChangeOpeartionCount = 0;
+		traceConnectorOperation = false;
+		connectorOperationCount = 0;
 	}
 
 	private static void traceOperation(String opName, long counter) {

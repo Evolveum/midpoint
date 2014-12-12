@@ -413,7 +413,7 @@ public class ResourceManager {
 		
 		// Capabilities
 		
-		Collection<Object> capabilities = null;
+		Collection<Object> capabilities;
 		try {
 
 			InternalMonitor.recordConnectorCapabilitiesFetchCount();
@@ -431,11 +431,10 @@ public class ResourceManager {
 			resourceType.setCapabilities(capType);
 		}
 		
-		if (capabilities != null) {
-			CapabilityCollectionType nativeCapType = new CapabilityCollectionType();
-			capType.setNative(nativeCapType);
-			nativeCapType.getAny().addAll(capabilities);
-		}
+		CapabilityCollectionType nativeCapType = new CapabilityCollectionType();
+		capType.setNative(nativeCapType);
+		nativeCapType.getAny().addAll(capabilities);
+
 		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 		capType.setCachingMetadata(cachingMetadata);
 		
@@ -721,6 +720,8 @@ public class ResourceManager {
 	/**
 	 * Adjust scheme with respect to capabilities. E.g. disable attributes that
 	 * are used for special purpose (such as account activation simulation).
+	 *
+	 * TODO treat also objectclass-specific capabilities here
 	 */
 	private void adjustSchemaForSimulatedCapabilities(PrismObject<ResourceType> resource, ResourceSchema resourceSchema) {
 		ResourceType resourceType = resource.asObjectable();

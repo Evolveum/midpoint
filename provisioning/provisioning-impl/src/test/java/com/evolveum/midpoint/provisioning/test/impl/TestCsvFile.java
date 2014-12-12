@@ -97,7 +97,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 	private static final String FILENAME_RESOURCE_CSV = "src/test/resources/object/resource-csv.xml";
 	private static final String RESOURCE_CSV_OID = "ef2bc95b-76e0-59e2-86d6-9999cccccccc";
 	
-	private static final String CSV_CONNECTOR_TYPE = "org.forgerock.openicf.csvfile.CSVFileConnector";
+	private static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.csvfile.CSVFileConnector";
 	
 	private static final String CSV_SOURCE_FILE_PATH = "src/test/resources/midpoint-flatfile.csv";
 	private static final String CSV_TARGET_FILE_PATH = "target/midpoint-flatfile.csv";

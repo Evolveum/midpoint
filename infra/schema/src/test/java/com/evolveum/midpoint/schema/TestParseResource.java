@@ -494,11 +494,11 @@ public class TestParseResource {
 			assertNotNull("No schema container", schemaContainer);
 		}
 		
-		PrismProperty<?> schemaHandlingProperty = resource.findProperty(ResourceType.F_SCHEMA_HANDLING);
+		PrismContainer<?> schemaHandlingContainer = resource.findContainer(ResourceType.F_SCHEMA_HANDLING);
 		if (isSimple) {
-			assertNull("SchemaHandling sneaked in", schemaHandlingProperty);
+			assertNull("SchemaHandling sneaked in", schemaHandlingContainer);
 		} else {
-			assertNotNull("No schemaHandling property", schemaHandlingProperty);
+			assertNotNull("No schemaHandling container", schemaHandlingContainer);
 		}
 
 		if (!isSimple) {

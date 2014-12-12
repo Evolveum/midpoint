@@ -15,37 +15,18 @@
  */
 package com.evolveum.midpoint.schema.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
-
-
-
-
-
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
@@ -55,7 +36,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
@@ -66,6 +46,12 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import org.w3c.dom.Element;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -197,31 +183,49 @@ public class ResourceTypeUtil {
 	 * Assumes that native capabilities are already cached. 
 	 */
 	public static <T extends CapabilityType> T getEffectiveCapability(ResourceType resource, Class<T> capabilityClass) {
+		return getEffectiveCapability(resource, null, capabilityClass);
+	}
+
+	/**
+	 * Assumes that native capabilities are already cached.
+	 */
+	public static <T extends CapabilityType> T getEffectiveCapability(ResourceType resource,
+																	  ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType,
+																	  Class<T> capabilityClass) {
+		T capability = getEffectiveCapabilityInternal(resource, resourceObjectTypeDefinitionType, capabilityClass);
+		if (CapabilityUtil.isCapabilityEnabled(capability)) {
+			return capability;
+		} else {
+			// Disabled or null capability, pretend that it is not there
+			return null;
+		}
+	}
+
+	private static <T extends CapabilityType> T getEffectiveCapabilityInternal(ResourceType resource,
+																			   ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType,
+																			   Class<T> capabilityClass) {
+		if (resourceObjectTypeDefinitionType != null && resourceObjectTypeDefinitionType.getConfiguredCapabilities() != null) {
+			T configuredCapability = CapabilityUtil.getCapability(resourceObjectTypeDefinitionType.getConfiguredCapabilities().getAny(), capabilityClass);
+			if (configuredCapability != null) {
+				return configuredCapability;
+			}
+			// No capability at the level of resource object type, continuing at the resource level
+		}
+
 		if (resource.getCapabilities() == null) {
 			return null;
 		}
 		if (resource.getCapabilities().getConfigured() != null) {
 			T configuredCapability = CapabilityUtil.getCapability(resource.getCapabilities().getConfigured().getAny(), capabilityClass);
 			if (configuredCapability != null) {
-				if (CapabilityUtil.isCapabilityEnabled(configuredCapability)) {
-					return configuredCapability;
-				} else {
-					// Disabled capability, pretend that it is not there
-					return null;
-				}
+				return configuredCapability;
 			}
 			// No configured capability entry, fallback to native capability
 		}
 		if (resource.getCapabilities().getNative() != null) {
 			T nativeCapability = CapabilityUtil.getCapability(resource.getCapabilities().getNative().getAny(), capabilityClass);
-			if (nativeCapability == null) {
-				return null;
-			}
-			if (CapabilityUtil.isCapabilityEnabled(nativeCapability)) {
+			if (nativeCapability != null) {
 				return nativeCapability;
-			} else {
-				// Disabled capability, pretend that it is not there
-				return null;
 			}
 		}
 		return null;
@@ -469,4 +473,15 @@ public class ResourceTypeUtil {
 		}
 		return resource.getConsistency().isAvoidDuplicateValues();
 	}
+
+	public static boolean isCaseIgnoreAttributeNames(ResourceType resource) {
+		if (resource.getConsistency() == null) {
+			return false;
+		}
+		if (resource.getConsistency().isCaseIgnoreAttributeNames() == null) {
+			return false;
+		}
+		return resource.getConsistency().isCaseIgnoreAttributeNames();
+	}
+
 }

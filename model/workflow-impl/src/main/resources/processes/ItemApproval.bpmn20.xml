@@ -170,7 +170,10 @@
 
         <!-- prepares wfAnswer -->
         <serviceTask id="prepareResult" activiti:class="com.evolveum.midpoint.wf.impl.processes.itemApproval.PrepareResult" />
-        <sequenceFlow sourceRef="prepareResult" targetRef="end"></sequenceFlow>
+        <sequenceFlow sourceRef="prepareResult" targetRef="after.prepareResult"></sequenceFlow>
+
+        <serviceTask id="after.prepareResult" activiti:class="com.evolveum.midpoint.wf.impl.processes.common.DumpVariables" />
+        <sequenceFlow sourceRef="after.prepareResult" targetRef="end"></sequenceFlow>
 
         <endEvent id="end" />
     </process>

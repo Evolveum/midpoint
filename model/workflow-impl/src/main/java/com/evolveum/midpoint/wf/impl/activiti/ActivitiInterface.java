@@ -47,6 +47,7 @@ import org.activiti.engine.history.HistoricDetail;
 import org.activiti.engine.history.HistoricDetailQuery;
 import org.activiti.engine.history.HistoricFormProperty;
 import org.activiti.engine.history.HistoricVariableUpdate;
+import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.IdentityLink;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,6 +147,7 @@ public class ActivitiInterface {
                 LOGGER.trace("Running process instance = " + pi + ", isRunning: " + qpr.isRunning());
                 LOGGER.trace("Response to be sent to midPoint: " + qpr);
             }
+            fillInAnswerAndState(qpr);
 
             activiti2midpoint(qpr, task, false, result);
         }
@@ -182,8 +184,9 @@ public class ActivitiInterface {
                 ProcessStartedEvent event = new ProcessStartedEvent();
                 event.setTaskOid(spic.getTaskOid());
                 event.setPid(pi.getProcessInstanceId());
-                event.setVariablesFrom(map);
+                event.setVariablesFrom(((ExecutionEntity) pi).getVariables());          // a bit of hack...
                 event.setRunning(!pi.isEnded());
+                fillInAnswerAndState(event);
 
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Event to be sent to IDM: " + event);
@@ -244,10 +247,14 @@ public class ActivitiInterface {
         event.setRunning(true);
         event.setTaskOid((String) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID));
         event.setVariablesFrom(execution.getVariables());
-        ProcessMidPointInterface processInterface = processInterfaceFinder.getProcessInterface(execution.getVariables());
-        event.setAnswer(processInterface.getAnswer(execution.getVariables()));
-        event.setState(processInterface.getState(execution.getVariables()));
+        fillInAnswerAndState(event);
         activiti2midpoint(event, null, true, new OperationResult(DOT_CLASS + "notifyMidpointAboutProcessEvent"));
+    }
+
+    private void fillInAnswerAndState(ProcessEvent event) {
+        ProcessMidPointInterface processInterface = processInterfaceFinder.getProcessInterface(event.getVariables());
+        event.setAnswer(processInterface.getAnswer(event.getVariables()));
+        event.setState(processInterface.getState(event.getVariables()));
     }
 
     //region Processing work item events

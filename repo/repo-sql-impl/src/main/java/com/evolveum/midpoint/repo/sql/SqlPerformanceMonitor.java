@@ -139,7 +139,7 @@ public class SqlPerformanceMonitor {
             }
             return "Records: " + records + ", " +
                    "Total time (avg/sum): " + ((float) totalTime/records) + "/" + totalTime + ", " +
-                   "Wasted time (avg/sum): " + ((float) wastedTime/records) + "/" + wastedTime + ", " +
+                   "Wasted time (avg/sum): " + ((float) wastedTime/records) + "/" + wastedTime + " (" + (wastedTime*100.0f/totalTime) + "%), " +
                    "Attempts (avg): " + ((float) attempts/records);
         }
     }

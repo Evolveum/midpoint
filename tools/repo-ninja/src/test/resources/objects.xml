@@ -849,20 +849,20 @@
     </object>
 
     <object xsi:type="ConnectorType" oid="1234" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-        <name>ICF org.forgerock.openicf.csvfile.CSVFileConnector</name>
+        <name>ICF com.evolveum.polygon.csvfile.CSVFileConnector</name>
         <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
-        <connectorType>org.forgerock.openicf.csvfile.CSVFileConnector</connectorType>
+        <connectorType>com.evolveum.polygon.csvfile.CSVFileConnector</connectorType>
         <connectorVersion>1.1.0.0-e2</connectorVersion>
         <connectorBundle>openicf-csvfile-connector</connectorBundle>
-        <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector</namespace>
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/com.evolveum.polygon.csvfile.CSVFileConnector</namespace>
         <schema>
         <definition>
-            <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector"
+            <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/com.evolveum.polygon.csvfile.CSVFileConnector"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen366="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:gen538="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen366="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:gen538="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/com.evolveum.polygon.csvfile.CSVFileConnector">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
 
                 <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>

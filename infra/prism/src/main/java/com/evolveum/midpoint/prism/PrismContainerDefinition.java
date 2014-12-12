@@ -154,7 +154,11 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
 		}
 	}
 
-	public <D extends ItemDefinition> D findItemDefinition(QName name, Class<D> clazz) {
+    public <D extends ItemDefinition> D findItemDefinition(QName name, Class<D> clazz) {
+        return findItemDefinition(name, clazz, false);
+    }
+
+    public <D extends ItemDefinition> D findItemDefinition(QName name, Class<D> clazz, boolean caseInsensitive) {
         if (clazz == null) {
             throw new IllegalArgumentException("type not specified while searching for " + name + " in " + this);
         }
@@ -167,7 +171,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         	return null;
         }
 
-        return complexTypeDefinition.findItemDefinition(name, clazz);
+        return complexTypeDefinition.findItemDefinition(name, clazz, caseInsensitive);
     }
 
     public <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {

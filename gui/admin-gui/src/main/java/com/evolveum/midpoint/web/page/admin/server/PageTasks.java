@@ -499,7 +499,7 @@ public class PageTasks extends PageAdminTasks {
 
     // used in SubtasksPanel as well
     public static IColumn createTaskNameColumn(final Component component, String label) {
-        return new LinkColumn<TaskDto>(createStringResourceStatic(component, label), TaskDto.F_NAME, TaskDto.F_NAME) {
+        LinkColumn<TaskDto> column = new LinkColumn<TaskDto>(createStringResourceStatic(component, label), TaskDto.F_NAME, TaskDto.F_NAME) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<TaskDto> rowModel) {
@@ -513,7 +513,12 @@ public class PageTasks extends PageAdminTasks {
                 component.setResponsePage(new PageTaskEdit(parameters, (PageBase) component.getPage()));
             }
 
+            @Override
+            public boolean isEnabled(IModel<TaskDto> rowModel) {
+                return super.isEnabled(rowModel) && rowModel.getObject().getOid() != null;
+            }
         };
+        return column;
     }
 
     public static AbstractColumn<TaskDto, String> createTaskCategoryColumn(final Component component, String label) {

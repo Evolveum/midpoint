@@ -2,10 +2,8 @@ package com.evolveum.midpoint.model.impl.util;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class AbstractScannerResultHandler<O extends ObjectType> extends
@@ -14,9 +12,9 @@ public abstract class AbstractScannerResultHandler<O extends ObjectType> extends
 	protected XMLGregorianCalendar lastScanTimestamp;
 	protected XMLGregorianCalendar thisScanTimestamp;
 
-	public AbstractScannerResultHandler(Task task, String taskOperationPrefix,
-			String processShortName, String contextDesc) {
-		super(task, taskOperationPrefix, processShortName, contextDesc);
+	public AbstractScannerResultHandler(Task coordinatorTask, String taskOperationPrefix,
+			String processShortName, String contextDesc, TaskManager taskManager) {
+		super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
 	}
 
 	public XMLGregorianCalendar getLastScanTimestamp() {

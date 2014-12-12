@@ -39,17 +39,17 @@ public class CheckFormGroup extends SimplePanel<Boolean> {
     private static final String ID_TOOLTIP = "tooltip";
 
     public CheckFormGroup(String id, IModel<Boolean> value, IModel<String> label, String labelSize, String textSize) {
-        this(id, value, label, null, labelSize, textSize);
+        this(id, value, label, null, false, labelSize, textSize);
     }
 
     public CheckFormGroup(String id, IModel<Boolean> value, IModel<String> label, String tooltipKey,
-                          String labelSize, String textSize) {
+                          boolean isTooltipInModal, String labelSize, String textSize) {
         super(id, value);
 
-        initLayout(label, tooltipKey, labelSize, textSize);
+        initLayout(label, tooltipKey, isTooltipInModal, labelSize, textSize);
     }
 
-    private void initLayout(IModel<String> label, final String tooltipKey, String labelSize, String textSize) {
+    private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelSize, String textSize) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
         Label l = new Label(ID_LABEL, label);
@@ -61,7 +61,7 @@ public class CheckFormGroup extends SimplePanel<Boolean> {
 
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
         tooltipLabel.add(new AttributeAppender("data-original-title", getString(tooltipKey)));
-        tooltipLabel.add(new InfoTooltipBehavior());
+        tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
         tooltipLabel.add(new VisibleEnableBehaviour(){
 
             @Override
