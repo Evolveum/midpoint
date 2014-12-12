@@ -18,6 +18,8 @@ package com.evolveum.midpoint.audit.impl;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -150,6 +152,12 @@ public class LoggerAuditServiceImpl implements AuditService {
 		}
 		sb.append("]");
 		return sb.toString();
+	}
+
+	@Override
+	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

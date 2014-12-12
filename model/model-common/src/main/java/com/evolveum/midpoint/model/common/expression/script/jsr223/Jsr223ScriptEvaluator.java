@@ -164,6 +164,37 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		return pvals;
 	}
 	
+	public <T> Object evaluateReportScript(String codeString, ExpressionVariables variables, ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
+			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
+			ObjectNotFoundException, ExpressionSyntaxException {
+		
+		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, result);
+		
+//		String codeString = code;
+		if (codeString == null) {
+			throw new ExpressionEvaluationException("No script code in " + contextDescription);
+		}
+
+		boolean allowEmptyValues = true;
+//		if (expressionType.isAllowEmptyValues() != null) {
+//			allowEmptyValues = expressionType.isAllowEmptyValues();
+//		}
+		
+		CompiledScript compiledScript = createCompiledScript(codeString, contextDescription);
+		
+		Object evalRawResult;
+		try {
+			InternalMonitor.recordScriptExecution();
+			evalRawResult = compiledScript.eval(bindings);
+		} catch (ScriptException e) {
+			throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
+		}
+		
+		
+				
+		return evalRawResult;
+	}
+	
 	private CompiledScript createCompiledScript(String codeString, String contextDescription) throws ExpressionEvaluationException {
 		CompiledScript compiledScript = scriptCache.get(codeString);
 		if (compiledScript != null) {

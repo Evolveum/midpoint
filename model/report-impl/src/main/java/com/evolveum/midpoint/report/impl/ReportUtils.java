@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
@@ -64,6 +65,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -77,12 +79,14 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportFieldConfigurationType;
@@ -199,6 +203,9 @@ public class ReportUtils {
 		}
 		
 		LOGGER.trace("Parameters container : {}", configuration.debugDump());
+		if (schema == null){
+			return null;
+		}
 		
 		QName configContainerQName = new QName(schema.getNamespace(), ReportType.F_CONFIGURATION.getLocalPart());
 		PrismContainerDefinition<ReportConfigurationType> configurationContainerDefinition = schema.findContainerDefinitionByElementName(configContainerQName);
@@ -269,7 +276,6 @@ public class ReportUtils {
 			parameter.setForPrompting(false);
 			jasperDesign.addParameter(parameter);
 		 } 
-		 
 		 jasperReport = JasperCompileManager.compileReport(jasperDesign);
 		 
 		 
@@ -318,16 +324,6 @@ public class ReportUtils {
 			for(PrismProperty<?> parameter : parameterConfiguration.getValue().getProperties())
 			{
 				LOGGER.trace("parameter {}, {}, {} ", new Object[]{parameter.getElementName().getLocalPart(), parameter.getRealValue(), parameter.getValues()});
-				//if ((parameter.getElementName().getLocalPart() != PARAMETER_OBJECT_TYPE) && (parameter.getElementName().getLocalPart() != PARAMETER_QUERY_FILTER))
-				//{
-					/*LOGGER.trace("Parameter : {} ", parameter.dump());
-					LOGGER.trace("Display Name : {}", parameter.getDisplayName());
-					LOGGER.trace("Real value : {}", parameter.getRealValue());
-					LOGGER.trace("Values : {}", parameter.getValues());
-					LOGGER.trace("Element Name : {}", parameter.getElementName());
-					LOGGER.trace("Definition - type class : {}", parameter.getDefinition().getTypeClass());
-					LOGGER.trace("Definition - type name: {}", parameter.getDefinition().getTypeName());
-					*/
 					
 					if (parameter.getDefinition().getTypeName().getNamespaceURI().equals(reportSchema.getNamespace()))
 					{			
@@ -349,13 +345,24 @@ public class ReportUtils {
 			}
 		}
 		// for our special datasource
-		params.put(PARAMETER_REPORT_OID, reportType.getOid());
-		params.put(PARAMETER_OPERATION_RESULT, parentResult);
-		
 		subResult.computeStatus();	
 		 
 		return params;
 	}
+    
+    public static String resolveRefName(ObjectReferenceType ref){
+		if (ref == null){
+			return null;
+		}
+		PrismReferenceValue refValue = ref.asReferenceValue();
+		Object name = refValue.getUserData(XNodeSerializer.USER_DATA_KEY_COMMENT);
+		if (!(name instanceof String)){
+			LOGGER.error("Couldn't resolve object name");
+		}
+		
+		return (String) name;
+	}
+    
     /*
 	public static Class getObjectTypeClass(PrismContainer<Containerable> parameterConfiguration, String namespace)
 	{
@@ -388,6 +395,9 @@ public class ReportUtils {
 	
 	public static PrismProperty<?> getParameter(String parameterName, PrismContainer<Containerable> parameterConfiguration, String namespace)
 	{
+		if (parameterConfiguration == null){
+			return null;
+		}
 		PrismProperty<?> property = parameterConfiguration.findProperty(new QName(namespace, parameterName));	
 		/*for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
 		{

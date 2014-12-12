@@ -526,7 +526,7 @@
         <dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
-			<version>4.7.0-e1</version>
+			<version>6.0.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>xml-apis</groupId>
@@ -534,6 +534,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<dependency>
+	<groupId>commons-javaflow</groupId>
+	<artifactId>commons-javaflow</artifactId>
+	<version>20060411</version>
+</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>

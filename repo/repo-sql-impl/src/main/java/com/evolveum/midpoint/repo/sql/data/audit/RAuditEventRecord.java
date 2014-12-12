@@ -40,7 +40,10 @@ import javax.xml.namespace.QName;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -401,6 +404,54 @@ public class RAuditEventRecord implements Serializable {
         return repo;
     }
 
+    public static AuditEventRecord fromRepo(RAuditEventRecord repo, PrismContext prismContext) throws DtoTranslationException{
+    	
+    	AuditEventRecord audit = new AuditEventRecord();
+    	audit.setChannel(repo.getChannel());
+    	audit.setEventIdentifier(repo.getEventIdentifier());
+    	if (repo.getEventStage() != null){
+    		audit.setEventStage(repo.getEventStage().getStage());
+    	}
+    	if (repo.getEventType() != null){
+    		audit.setEventType(repo.getEventType().getType());
+    	}
+    	audit.setHostIdentifier(repo.getHostIdentifier());
+    	audit.setMessage(repo.getMessage());
+    	
+    	if (repo.getOutcome() != null){
+    		audit.setOutcome(repo.getOutcome().getStatus());
+    	}
+    	audit.setParameter(repo.getParameter());
+    	audit.setResult(repo.getResult());
+    	audit.setSessionIdentifier(repo.getSessionIdentifier());
+    	audit.setTaskIdentifier(repo.getTaskIdentifier());
+    	audit.setTaskOID(repo.getTaskOID());
+    	if (repo.getTimestamp() != null){
+    		audit.setTimestamp(repo.getTimestamp().getTime());
+    	}
+    	
+    	
+    	List<ObjectDeltaOperation> odos = new ArrayList<ObjectDeltaOperation>();
+    	for (RObjectDeltaOperation rodo : repo.getDeltas()){
+    		try {
+    		ObjectDeltaOperation odo = RObjectDeltaOperation.fromRepo(rodo, prismContext);
+    		if (odo != null){
+    			odos.add(odo);
+    		}
+    		} catch (Exception ex){
+    			
+        		//TODO: for now thi is OK, if we cannot parse detla, just skipp it.. Have to be resolved later;
+        	}
+    	}
+    	
+    	audit.getDeltas().addAll((Collection) odos);
+    	
+    	return audit;
+    	//initiator, target, targetOwner
+    	
+    	
+    }
+    
 	private static String trimMessage(String message) {
 		if (message == null || message.length() <= AuditService.MAX_MESSAGE_SIZE) {
 			return message;

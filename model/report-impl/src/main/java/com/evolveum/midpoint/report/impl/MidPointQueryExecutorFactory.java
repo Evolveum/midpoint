@@ -25,6 +25,11 @@ public class MidPointQueryExecutorFactory extends AbstractQueryExecuterFactory{
 	public final static String PARAMETER_PRISM_CONTEXT = "PRISM_CONTEXT";
 	public final static String PARAMETER_TASK_MANAGER = "TASK_MANAGER";
 	public final static String PARAMETER_EXPRESSION_FACTORY = "EXPRESSION_FACTORY";
+	public final static String PARAMETER_OBJECT_RESOLVER = "OBJECT_RESOLVER";
+	public final static String PARAMETER_MIDPOINT_FUNCTION = "MIDPOINT_FUNCTION";
+	public final static String PARAMETER_AUDIT_SERVICE = "AUDIT_SERVICE";
+	public final static String PARAMETER_REPORT_FUNCTIONS = "reportFunctions";
+	
 	
 	private final static Object[] MIDPOINT_BUILTIN_PARAMETERS = {
 		PARAMETER_MIDPOINT_CONNECTION, PARAMETER_PRISM_CONTEXT, PARAMETER_TASK_MANAGER, "midpoint.connection"

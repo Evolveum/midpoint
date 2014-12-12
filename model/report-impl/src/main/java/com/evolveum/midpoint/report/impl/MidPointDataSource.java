@@ -10,8 +10,10 @@ import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -60,18 +62,37 @@ public class MidPointDataSource implements JRDataSource{
 		}
 		Item i = currentObject.findItem(new QName(fieldName));
 		if (i == null){
-			throw new JRException("Object of type " + currentObject.getCompileTimeClass().getSimpleName() + " does not contain field " + fieldName +".");
+			return null;
+//			throw new JRException("Object of type " + currentObject.getCompileTimeClass().getSimpleName() + " does not contain field " + fieldName +".");
 		}
+	
 		if (i instanceof PrismProperty){
-			return ((PrismProperty) i).getRealValue();
+			if (i.isSingleValue()){
+				return ((PrismProperty) i).getRealValue();
+			}
+			return ((PrismProperty) i).getRealValues();
 		} else if (i instanceof PrismReference){
+			if (i.isSingleValue()){
+				return ((PrismReference) i).getValue().asReferencable();
+			}
+			
 			List<Referencable> refs = new ArrayList<Referencable>();
 			for (PrismReferenceValue refVal : ((PrismReference) i).getValues()){
 				refs.add(refVal.asReferencable());
 			}
 			return refs;
 		} else if (i instanceof PrismContainer){
-			return ((PrismContainer) i).getValue().asContainerable();
+			if (i.isSingleValue()){
+				return ((PrismContainer) i).getValue().asContainerable();
+			}
+			List<Containerable> containers = new ArrayList<Containerable>();
+			for (Object pcv : i.getValues()){
+				if (pcv instanceof PrismContainerValue){
+					containers.add(((PrismContainerValue) pcv).asContainerable());
+				}
+			}
+			return containers;
+			
 		} else
 			throw new JRException("Could not get value of the fileld: " + fieldName);
 //		return 

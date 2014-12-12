@@ -151,7 +151,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     
     @Override
     public void runReport(PrismObject<ReportType> object, Task task, OperationResult parentResult) {    	
-        task.setHandlerUri(ReportCreateTaskHandler.REPORT_CREATE_TASK_URI);
+        task.setHandlerUri(ReportCreateTaskHandler2.REPORT_CREATE_TASK_URI);
         task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
 
         task.setThreadStopAction(ThreadStopActionType.CLOSE);

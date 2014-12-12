@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.report.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,25 +15,35 @@ import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JRValueParameter;
 import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.base.JRBaseParameter;
+import net.sf.jasperreports.engine.data.JRBeanArrayDataSource;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.fill.JRFillParameter;
 import net.sf.jasperreports.engine.query.JRAbstractQueryExecuter;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -44,6 +55,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -55,8 +67,14 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 	ModelService model;
 	TaskManager taskManager;
 	ExpressionFactory expressionFactory;
+	ObjectResolver objectResolver;
 	ObjectQuery query;
+	String script;
 	Class type;
+	ExpressionVariables variables;
+	MidpointFunctions midpointFunctions;
+	AuditService auditService;
+	ReportFunctions reportFunctions;
 	
 	@Override
 	protected void parseQuery() {
@@ -80,9 +98,9 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 			LOGGER.info("p.val: {}", v);
 		}
 		
-		ExpressionVariables variables = new ExpressionVariables();
+		variables = new ExpressionVariables();
 		variables.addVariableDefinitions(expressionParameters);
-		
+
 		LOGGER.info("query: " + s);
 		ObjectQuery q;
 		if (StringUtils.isEmpty(s)){
@@ -90,30 +108,44 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 		} else {
 			
 		try {
-			SearchFilterType filter = (SearchFilterType) prismContext.parseAtomicValue(s, SearchFilterType.COMPLEX_TYPE);
-			LOGGER.info("filter {}", filter);
-			ObjectFilter f = QueryConvertor.parseFilter(filter, UserType.class, prismContext);
-			LOGGER.info("f {}", f.debugDump());
-			if (!(f instanceof TypeFilter)){
-				throw new IllegalArgumentException("Defined query must contain type. Use 'type filter' in your report query.");
-			}
-			
-			type = prismContext.getSchemaRegistry().findObjectDefinitionByType(((TypeFilter) f).getType()).getCompileTimeClass();
-			
-			ObjectFilter subFilter = ((TypeFilter) f).getFilter();
-			if (subFilter instanceof PropertyValueFilter){
-				if (((PropertyValueFilter) subFilter).getExpression() != null){
-					q = ObjectQuery.createObjectQuery(subFilter);
-					Task task = taskManager.createTaskInstance();
-					query = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionFactory, prismContext, "parsing expression values for report", task, task.getResult());
+			if (s.startsWith("<filter")){
+				SearchFilterType filter = (SearchFilterType) prismContext.parseAtomicValue(s, SearchFilterType.COMPLEX_TYPE);
+				LOGGER.info("filter {}", filter);
+				ObjectFilter f = QueryConvertor.parseFilter(filter, UserType.class, prismContext);
+				LOGGER.info("f {}", f.debugDump());
+				if (!(f instanceof TypeFilter)){
+					throw new IllegalArgumentException("Defined query must contain type. Use 'type filter' in your report query.");
+				}
+				
+				type = prismContext.getSchemaRegistry().findObjectDefinitionByType(((TypeFilter) f).getType()).getCompileTimeClass();
+				
+				ObjectFilter subFilter = ((TypeFilter) f).getFilter();
+				if (subFilter instanceof PropertyValueFilter){
+					if (((PropertyValueFilter) subFilter).getExpression() != null){
+						if (((PropertyValueFilter) subFilter).getPath().equals(new ItemPath(new QName("linkRef")))){
+							PrismReferenceDefinition refDef = prismContext.getSchemaRegistry().findReferenceDefinitionByElementName(UserType.F_LINK_REF);
+							PrismReferenceDefinition refDef2 = prismContext.getSchemaRegistry().findReferenceDefinitionByElementName(UserType.F_LINK);
+							PrismPropertyDefinition propDef = new PrismPropertyDefinition<>(UserType.F_LINK_REF, ObjectReferenceType.COMPLEX_TYPE, prismContext);
+							propDef.setMaxOccurs(-1);
+							((PropertyValueFilter) subFilter).setDefinition(propDef);
+						}
+						q = ObjectQuery.createObjectQuery(subFilter);
+						Task task = taskManager.createTaskInstance();
+						query = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionFactory, prismContext, "parsing expression values for report", task, task.getResult());
+					} 
 				} 
-			} 
-			
-			if (query == null) {
-				query = ObjectQuery.createObjectQuery(subFilter);
+				
+				if (query == null) {
+					query = ObjectQuery.createObjectQuery(subFilter);
+				}
+				
+				LOGGER.info("query dump {}", query.debugDump());
+			} else if (s.startsWith("<code")){
+				String normalized = s.replace("<code>", "");
+				script = normalized.replace("</code>", "");
+				
 			}
 			
-			LOGGER.info("query dump {}", query.debugDump());
 		} catch (SchemaException e) {
 			throw new RuntimeException(e);
 			
@@ -131,12 +163,32 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 	protected MidPointQueryExecutor(JasperReportsContext jasperReportsContext, JRDataset dataset,
 			Map<String, ? extends JRValueParameter> parametersMap) {
 		super(jasperReportsContext, dataset, parametersMap);
+		
 		JRFillParameter fillparam = (JRFillParameter) parametersMap.get(JRParameter.REPORT_PARAMETERS_MAP);
 		Map reportParams = (Map) fillparam.getValue();
 		prismContext = (PrismContext) reportParams.get(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT);
 		taskManager = (TaskManager) reportParams.get(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER);
 		expressionFactory = (ExpressionFactory) reportParams.get(MidPointQueryExecutorFactory.PARAMETER_EXPRESSION_FACTORY);
+		objectResolver = (ObjectResolver) reportParams.get(MidPointQueryExecutorFactory.PARAMETER_OBJECT_RESOLVER);
+		midpointFunctions = (MidpointFunctions) reportParams.get(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_FUNCTION);
+		auditService = (AuditService) reportParams.get(MidPointQueryExecutorFactory.PARAMETER_AUDIT_SERVICE);
+		reportFunctions = (ReportFunctions) reportParams.get(MidPointQueryExecutorFactory.PARAMETER_REPORT_FUNCTIONS);
 		model = (ModelService) parametersMap.get(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION).getValue();
+		
+		if (prismContext == null){
+			prismContext = (PrismContext) parametersMap.get(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT).getValue();
+			taskManager = (TaskManager) parametersMap.get(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER).getValue();
+			objectResolver = (ObjectResolver) parametersMap.get(MidPointQueryExecutorFactory.PARAMETER_OBJECT_RESOLVER).getValue();
+			expressionFactory = (ExpressionFactory) parametersMap.get(MidPointQueryExecutorFactory.PARAMETER_EXPRESSION_FACTORY).getValue();
+			midpointFunctions = (MidpointFunctions) parametersMap.get(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_FUNCTION).getValue();
+			
+		}
+//		if (SecurityContextHolder.getContext().getAuthentication() == null){
+//			Authentication principal = (Authentication) reportParams.get("principal");
+//			if (principal != null){
+//				SecurityContextHolder.getContext().setAuthentication(principal);
+//			}
+//		}
 		parseQuery();
 //		 TODO Auto-generated constructor stub
 	}
@@ -147,23 +199,54 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 		
 		
 		Task task = taskManager.createTaskInstance();
+		
 		OperationResult parentResult = task.getResult();
 		List<PrismObject<? extends ObjectType>> results = results = new ArrayList<>();
 //		Class<? extends ObjectType> clazz = UserType.class;
-		try {
-		if (isSearchByOid(query.getFilter())){
-			String oid = getOid(query.getFilter());
-			PrismObject result = model.getObject(type, oid, null, task, parentResult);
-			results.add(result);
-			
-		} else{
+	
 		
+		try {
+			if (query == null && script == null){
+				throw new JRException("Neither query, nor script defined in the report.");
+			}
+			if (script != null){
+				FunctionLibrary functionLib = ExpressionUtil.createBasicFunctionLibrary(prismContext, prismContext.getDefaultProtector());
+				FunctionLibrary midPointLib = new FunctionLibrary();
+				midPointLib.setVariableName("report");
+				midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
+//				ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, taskManager, auditService);
+				midPointLib.setGenericFunctions(reportFunctions);
+				
+				Collection<FunctionLibrary> functions = new ArrayList<>();
+				functions.add(functionLib);
+				
+				
+				functions.add(midPointLib);
+				Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext, prismContext.getDefaultProtector());
+				Object o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc", task.getResult());
+				if (o != null){
+
+					if (Collection.class.isAssignableFrom(o.getClass())) {
+						Collection resultSet = (Collection) o;
+						if (resultSet != null && !resultSet.isEmpty()){
+							if (resultSet.iterator().next() instanceof PrismObject){
+								results.addAll((Collection<? extends PrismObject<? extends ObjectType>>) o);
+							} else {
+								return new JRBeanCollectionDataSource(resultSet);
+							}
+						}
+						
+					} else {
+						results.add((PrismObject) o);
+					}
+				}
+			}else{
 		
 			results = model.searchObjects(type, query, null, task, parentResult);;
 		
 		}
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-				| CommunicationException | ConfigurationException e) {
+				| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 			// TODO Auto-generated catch block
 			throw new JRException(e);
 		}

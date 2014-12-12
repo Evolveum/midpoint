@@ -28,6 +28,9 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -220,4 +223,24 @@ public class RObjectDeltaOperation implements OperationResultFull {
 
         return auditDelta;
     }
+    
+   	public static ObjectDeltaOperation fromRepo(RObjectDeltaOperation operation, PrismContext prismContext) throws DtoTranslationException {
+   		ObjectDeltaOperation odo = new ObjectDeltaOperation();
+   		try{
+   		
+   			if (operation.getDelta() !=null){
+   		ObjectDeltaType delta = prismContext.parseAtomicValue(operation.getDelta(), ObjectDeltaType.COMPLEX_TYPE);
+   		odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
+   			}
+   			if (operation.getFullResult() != null){
+   		OperationResultType resultType = prismContext.parseAtomicValue(operation.getFullResult(), OperationResultType.COMPLEX_TYPE);
+   		
+   		odo.setExecutionResult(OperationResult.createOperationResult(resultType));
+   			}
+   		} catch (Exception ex) {
+   			throw new DtoTranslationException(ex.getMessage(), ex);
+   		}
+   		
+   		return odo;
+   	}
 }
