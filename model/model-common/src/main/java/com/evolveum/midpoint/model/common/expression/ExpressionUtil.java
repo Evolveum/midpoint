@@ -27,8 +27,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.springframework.expression.ExpressionException;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctionsXPath;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
@@ -61,6 +63,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -336,7 +339,7 @@ public class ExpressionUtil {
 		lib.setXmlFunctions(funcXPath);
 		return lib;
 	}
-
+	
 	public static FunctionLibrary createLogFunctionLibrary(PrismContext prismContext) {
 		FunctionLibrary lib = new FunctionLibrary();
 		lib.setVariableName(MidPointConstants.FUNCTION_LIBRARY_LOG_VARIABLE_NAME);
@@ -375,6 +378,47 @@ public class ExpressionUtil {
 			return null;
 		}
 		
+		if (filter instanceof InOidFilter){
+			ExpressionWrapper expressionWrapper = ((InOidFilter) filter).getExpression();
+			if (expressionWrapper == null || expressionWrapper.getExpression() == null) {
+                LOGGER.warn("No valueExpression in filter in {}", shortDesc);
+                return NoneFilter.createNone();
+			}
+			
+			if (!(expressionWrapper.getExpression() instanceof ExpressionType)) {
+                throw new SchemaException("Unexpected expression type " + expressionWrapper.getExpression().getClass() + " in filter in " + shortDesc);
+            }
+
+            ExpressionType valueExpression = (ExpressionType) expressionWrapper.getExpression();
+
+            try {
+//            	PrismPropertyDefinition outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, 
+//    					DOMUtil.XSD_STRING, prismContext);
+//            	outputDefinition.setMaxOccurs(-1);
+            	Collection<String> expressionResult = evaluateExpression(variables, prismContext, valueExpression, expressionFactory, shortDesc, task, result);
+                 
+            	if (expressionResult == null || expressionResult.isEmpty()) {
+                    LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
+                            valueExpression);
+                    return NoneFilter.createNone();
+                }
+                // TODO: log more context
+                LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", new Object[] {
+                        shortDesc, expressionResult });
+                
+                InOidFilter evaluatedFilter = (InOidFilter) filter.clone();
+//                if (evaluatedFilter instanceof EqualFilter) {
+                    evaluatedFilter.setOids(expressionResult);
+                    evaluatedFilter.setExpression(null);
+//                }
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Transformed filter to:\n{}", evaluatedFilter.debugDump());
+                }
+                return evaluatedFilter;
+		} catch (Exception ex){
+			throw new ExpressionEvaluationException(ex);
+		}
+		}else
 		if (filter instanceof LogicalFilter) {
 			List<ObjectFilter> conditions = ((LogicalFilter) filter).getConditions();
 			LogicalFilter evaluatedFilter = ((LogicalFilter)filter).cloneEmpty();
@@ -498,6 +542,34 @@ public class ExpressionUtil {
         }
 
         return nonNegativeValues.iterator().next();
+	}
+	
+	public static Collection<String> evaluateExpression(ExpressionVariables variables, PrismContext prismContext,
+			ExpressionType expressionType,
+			ExpressionFactory expressionFactory,
+			String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		
+		PrismPropertyDefinition outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, 
+				DOMUtil.XSD_STRING, prismContext);
+    	outputDefinition.setMaxOccurs(-1);
+		Expression<PrismPropertyValue> expression = expressionFactory.makeExpression(expressionType,
+				outputDefinition, shortDesc, parentResult);
+
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, parentResult);
+		PrismValueDeltaSetTriple<PrismPropertyValue> outputTriple = expression.evaluate(params);
+		
+		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
+		
+		if (outputTriple == null) {
+			return null;
+		}
+		Collection<PrismPropertyValue> nonNegativeValues = outputTriple.getNonNegativeValues();
+		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
+			return null;
+		}
+        
+        return PrismValue.getRealValuesOfCollection((Collection) nonNegativeValues);
+//        return nonNegativeValues.iterator().next();
 	}
 	
 	public static PrismPropertyValue<Boolean> evaluateCondition(ExpressionVariables variables, ExpressionType expressionType,

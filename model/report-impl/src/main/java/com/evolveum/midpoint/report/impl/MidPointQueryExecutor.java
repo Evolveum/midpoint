@@ -37,11 +37,14 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
@@ -120,15 +123,8 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 				type = prismContext.getSchemaRegistry().findObjectDefinitionByType(((TypeFilter) f).getType()).getCompileTimeClass();
 				
 				ObjectFilter subFilter = ((TypeFilter) f).getFilter();
-				if (subFilter instanceof PropertyValueFilter){
-					if (((PropertyValueFilter) subFilter).getExpression() != null){
-						if (((PropertyValueFilter) subFilter).getPath().equals(new ItemPath(new QName("linkRef")))){
-							PrismReferenceDefinition refDef = prismContext.getSchemaRegistry().findReferenceDefinitionByElementName(UserType.F_LINK_REF);
-							PrismReferenceDefinition refDef2 = prismContext.getSchemaRegistry().findReferenceDefinitionByElementName(UserType.F_LINK);
-							PrismPropertyDefinition propDef = new PrismPropertyDefinition<>(UserType.F_LINK_REF, ObjectReferenceType.COMPLEX_TYPE, prismContext);
-							propDef.setMaxOccurs(-1);
-							((PropertyValueFilter) subFilter).setDefinition(propDef);
-						}
+				if (subFilter instanceof PropertyValueFilter || subFilter instanceof InOidFilter){
+					if (containsExpression(subFilter)){
 						q = ObjectQuery.createObjectQuery(subFilter);
 						Task task = taskManager.createTaskInstance();
 						query = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionFactory, prismContext, "parsing expression values for report", task, task.getResult());
@@ -158,6 +154,16 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 		}
 		}
 		
+	}
+	
+	private boolean containsExpression(ObjectFilter subFilter){
+		if (subFilter instanceof PropertyValueFilter){
+			return ((PropertyValueFilter) subFilter).getExpression() != null;
+		} else if (subFilter instanceof InOidFilter){
+			return ((InOidFilter) subFilter).getExpression() != null;
+		}
+		
+		return false;
 	}
 	
 	protected MidPointQueryExecutor(JasperReportsContext jasperReportsContext, JRDataset dataset,
@@ -241,8 +247,10 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 					}
 				}
 			}else{
-		
-			results = model.searchObjects(type, query, null, task, parentResult);;
+				
+				GetOperationOptions options = GetOperationOptions.createRaw();
+				options.setResolveNames(true);
+			results = model.searchObjects(type, query, SelectorOptions.createCollection(options), task, parentResult);;
 		
 		}
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
@@ -256,53 +264,11 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 		return mds;
 	}
 	
-	private boolean isSearchByOid(ObjectFilter filter){
-//		ObjectFilter filter = query.getFilter();
-		if (filter instanceof TypeFilter){
-			return isSearchByOid(((TypeFilter) filter).getFilter());
-		} else if (filter instanceof LogicalFilter){
-			for (ObjectFilter f : ((LogicalFilter) filter).getConditions()){
-				boolean isSearchByOid = isSearchByOid(f);
-				if (isSearchByOid){
-					return true;
-				}
-			}
-		}
-		if (filter instanceof PropertyValueFilter){
-			if (QNameUtil.match(((PropertyValueFilter) filter).getPath().lastNamed().getName(), new QName("oid"))){
-				return true;
-			}
-		}
-		
-		return false;
-	}
 	
-	private String getOid(ObjectFilter filter){
-		if (filter instanceof TypeFilter){
-			return getOid(((TypeFilter) filter).getFilter());
-		} else if (filter instanceof LogicalFilter){
-			for (ObjectFilter f : ((LogicalFilter) filter).getConditions()){
-				String oid = getOid(f);
-				if (oid != null){
-					return oid;
-				}
-			}
-		}
-		if (filter instanceof PropertyValueFilter){
-			if (QNameUtil.match(((PropertyValueFilter) filter).getPath().lastNamed().getName(), new QName("oid"))){
-				return (String) ((PrismPropertyValue)((PropertyValueFilter) filter).getValues().iterator().next()).getValue();
-			}
-		}
-		
-		return null;
-	}
-
 	@Override
 	public void close() {
 //		throw new UnsupportedOperationException("QueryExecutor.close() not supported");
 		//nothing to DO
-		System.out.println("query executer close()");
-		
 	}
 
 	@Override
