@@ -51,6 +51,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -241,6 +242,7 @@ public class AssignmentProcessor {
         for (PrismContainerValue<AssignmentType> assignmentCVal : allAssignments) {
             AssignmentType assignmentType = assignmentCVal.asContainerable();
             PrismContainerValue<AssignmentType> assignmentCValOld = assignmentCVal;
+            PrismContainerValue<AssignmentType> assignmentCValNew = assignmentCVal;
             ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
             assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
             
@@ -266,6 +268,8 @@ public class AssignmentProcessor {
 	            	forceRecon = true;
 	            	
 	            	isAssignmentChanged = true;
+	            	PrismContainer<AssignmentType> assContNew = focusContext.getObjectNew().findContainer(FocusType.F_ASSIGNMENT);
+	            	assignmentCValNew = assContNew.getValue(assignmentCVal.getId());
             	}
             }
             
@@ -378,12 +382,13 @@ public class AssignmentProcessor {
 		                	// of provisioning/deprovisioning of the projections. So check that explicitly. Other changes are
 		                	// not significant, i.e. reconciliation can handle them.
 		                	boolean isValidOld = LensUtil.isValid(assignmentCValOld.asContainerable(), now, activationComputer);
-		                	boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
+		                	boolean isValid = LensUtil.isValid(assignmentCValNew.asContainerable(), now, activationComputer);
 		                	if (isValid == isValidOld) {
 		                		// No change in validity -> right to the zero set
 			                	// The change is not significant for assignment applicability. Recon will sort out the details.
 		                		if (LOGGER.isTraceEnabled()) {
-				            		LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}", new Object[]{isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrint(assignmentCVal)});
+				            		LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}", 
+				            				new Object[]{isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
 		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
@@ -393,7 +398,8 @@ public class AssignmentProcessor {
 		                	} else if (isValid) {
 		                		// Assignment became valid. We need to place it in plus set to initiate provisioning
 		                		if (LOGGER.isTraceEnabled()) {
-				            		LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}", new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
+				            		LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}", 
+				            				new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
 		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
@@ -403,7 +409,8 @@ public class AssignmentProcessor {
 		                	} else {
 		                		// Assignment became invalid. We need to place is in minus set to initiate deprovisioning
 		                		if (LOGGER.isTraceEnabled()) {
-				            		LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}", new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
+				            		LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}", 
+				            				new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
 		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {

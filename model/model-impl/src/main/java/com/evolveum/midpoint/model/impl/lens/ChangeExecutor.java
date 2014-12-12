@@ -232,7 +232,7 @@ public class ChangeExecutor {
 				
 				ObjectDelta<ShadowType> accDelta = accCtx.getExecutableDelta();
 				if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
-					if (syncContext.getFocusContext().getDelta() != null
+					if (syncContext.getFocusContext() != null && syncContext.getFocusContext().getDelta() != null
 							&& syncContext.getFocusContext().getDelta().isDelete()
 							&& syncContext.getOptions() != null
 							&& ModelExecuteOptions.isForce(syncContext.getOptions())) {
