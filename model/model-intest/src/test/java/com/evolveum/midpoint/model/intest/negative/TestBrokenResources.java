@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,13 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.TestModelServiceContract;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -68,14 +71,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
+public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest {
 	
 	private static final String TEST_DIR = "src/test/resources/negative";
 	private static final String TEST_TARGET_DIR = "target/test/negative";
 	
-	private static final String CONNECTOR_DUMMY_NOJARS_FILENAME = TEST_DIR + "/connector-dummy-nojars.xml";
+	private static final File CONNECTOR_DUMMY_NOJARS_FILE = new File (TEST_DIR, "connector-dummy-nojars.xml");
 	private static final String CONNECTOR_DUMMY_NOJARS_OID = "cccccccc-cccc-cccc-cccc-666600660004";
-	
+
 	private static final String RESOURCE_CSVFILE_BROKEN_FILENAME = TEST_DIR + "/resource-csvfile-broken.xml";
 	private static final String RESOURCE_CSVFILE_BROKEN_OID = "ef2bc95b-76e0-48e2-86d6-3d4f02d3bbbb";
 	
@@ -84,7 +87,13 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	
 	private static final String RESOURCE_DUMMY_NOJARS_FILENAME = TEST_DIR + "/resource-dummy-nojars.xml";
 	private static final String RESOURCE_DUMMY_NOJARS_OID = "10000000-0000-0000-0000-666600660004";
-	
+
+	private static final File RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE = new File (TEST_DIR, "resource-dummy-wrong-connector-oid.xml");
+	private static final String RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID = "10000000-0000-0000-0000-666600660005";
+
+	private static final File RESOURCE_DUMMY_NO_CONFIGURATION_FILE = new File (TEST_DIR, "resource-dummy-no-configuration.xml");
+	private static final String RESOURCE_DUMMY_NO_CONFIGURATION_OID = "10000000-0000-0000-0000-666600660006";
+
 	private static final String ACCOUNT_SHADOW_JACK_CSVFILE_FILENAME = TEST_DIR + "/account-shadow-jack-csvfile.xml";
 	private static final String ACCOUNT_SHADOW_JACK_CSVFILE_OID = "ef2bc95b-76e0-1111-d3ad-3d4f12120001";
 	
@@ -95,7 +104,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	private static final String BROKEN_CSV_SOURCE_FILE_NAME = TEST_DIR + "/" + BROKEN_CSV_FILE_NAME;
 	private static final String BROKEN_CSV_TARGET_FILE_NAME = TEST_TARGET_DIR + "/" + BROKEN_CSV_FILE_NAME;
 	
-	protected static final Trace LOGGER = TraceManager.getTrace(TestBrokenCSV.class);
+	protected static final Trace LOGGER = TraceManager.getTrace(TestBrokenResources.class);
 	
 	protected static DummyResource dummyResource;
 	protected static DummyResourceContoller dummyResourceCtl;
@@ -117,7 +126,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		
 		MiscUtil.copyFile(new File(BROKEN_CSV_SOURCE_FILE_NAME), new File(BROKEN_CSV_TARGET_FILE_NAME));
 		
-		repoAddObjectFromFile(CONNECTOR_DUMMY_NOJARS_FILENAME, ConnectorType.class, initResult);
+		repoAddObjectFromFile(CONNECTOR_DUMMY_NOJARS_FILE, ConnectorType.class, initResult);
 		
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.extendSchemaPirate();
@@ -368,10 +377,11 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test320GetResourceNoJars() throws Exception {
-        TestUtil.displayTestTile(this, "test320GetResourceNoJars");
+		final String TEST_NAME = "test320GetResourceNoJars";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test320GetResourceNoJars");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -389,6 +399,212 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		
         // TODO: better asserts
 		assertNotNull("Null resource", resource);
+	}
+
+	@Test
+    public void test350AddResourceWrongConnectorOid() throws Exception {
+		final String TEST_NAME = "test350AddResourceWrongConnectorOid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
+		ObjectDelta<ResourceType> delta = ObjectDelta.createAddDelta(resource);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+		
+		try {
+			// WHEN
+	        modelService.executeChanges(deltas, null, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+		
+		// THEN
+		result.computeStatus();
+		display(result);
+		TestUtil.assertFailure(result);
+	}
+
+	/**
+	 * Even "raw" add should fail. No connector object means no connector schema which means no
+	 * definitions for configuration properties which means we are not able to store them.
+	 */
+	@Test
+    public void test352AddResourceWrongConnectorOidRaw() throws Exception {
+		final String TEST_NAME = "test352AddResourceWrongConnectorOidRaw";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
+		ObjectDelta<ResourceType> delta = ObjectDelta.createAddDelta(resource);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+		
+		try {
+			// WHEN
+	        modelService.executeChanges(deltas, null, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+		
+		// THEN
+		result.computeStatus();
+		display(result);
+		TestUtil.assertFailure(result);
+	}
+	
+
+	/**
+	 * Store directly to repo. This is not really a test, it is more like a hack to prepare
+	 * environment for next tests.
+	 */
+	@Test
+    public void test355AddResourceWrongConnectorOidRepo() throws Exception {
+		final String TEST_NAME = "test355AddResourceWrongConnectorOidRepo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
+		
+		// WHEN
+		repositoryService.addObject(resource, null, result);
+		
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);				
+	}
+
+	@Test
+    public void test358GetResourceWrongConnectorOid() throws Exception {
+		final String TEST_NAME = "test358GetResourceWrongConnectorOid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID, null, task, result);
+		
+		// THEN
+		display("getObject resource", resource);
+		result.computeStatus();
+		display("getObject result", result);
+		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		
+		OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+		display("resource.fetchResult", fetchResult);
+		assertEquals("Expected partial errror in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+		
+        // TODO: better asserts
+		assertNotNull("Null resource", resource);
+	}
+
+	@Test
+    public void test359DeleteResourceWrongConnectorOid() throws Exception {
+		final String TEST_NAME = "test359DeleteResourceWrongConnectorOid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		ObjectDelta<ResourceType> delta = ObjectDelta.createDeleteDelta(ResourceType.class, RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+		
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		
+		assertNoObject(ResourceType.class, RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID, task, result);
+	}
+
+	@Test
+    public void test360AddResourceNoConfiguration() throws Exception {
+		final String TEST_NAME = "test360AddResourceNoConfiguration";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_NO_CONFIGURATION_FILE);
+        PrismObject<ConnectorType> connectorDummy = findConnectorByTypeAndVersion(CONNECTOR_DUMMY_TYPE, CONNECTOR_DUMMY_VERSION, result);
+        resource.asObjectable().getConnectorRef().setOid(connectorDummy.getOid());
+
+        ObjectDelta<ResourceType> delta = ObjectDelta.createAddDelta(resource);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+		
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+	        
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+
+	@Test
+    public void test362GetResourceNoConfiguration() throws Exception {
+		final String TEST_NAME = "test362GetResourceNoConfiguration";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_CONFIGURATION_OID, null, task, result);
+		
+		// THEN
+		display("getObject resource", resource);
+		result.computeStatus();
+		display("getObject result", result);
+		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		
+		OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+		display("resource.fetchResult", fetchResult);
+		assertEquals("Expected partial errror in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+		
+        // TODO: better asserts
+		assertNotNull("Null resource", resource);
+	}
+
+	@Test
+    public void test369DeleteResourceNoConfiguration() throws Exception {
+		final String TEST_NAME = "test369DeleteResourceNoConfiguration";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		ObjectDelta<ResourceType> delta = ObjectDelta.createDeleteDelta(ResourceType.class, RESOURCE_DUMMY_NO_CONFIGURATION_OID, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+		
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		
+		assertNoObject(ResourceType.class, RESOURCE_DUMMY_NO_CONFIGURATION_OID, task, result);
 	}
 	
 	/**

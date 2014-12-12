@@ -47,6 +47,7 @@
 		<url>https://fisheye.evolveum.com/browse/midPoint</url>
 	</scm>
 	<dependencies>
+	
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-api</artifactId>
@@ -57,13 +58,39 @@
 			<artifactId>model-api</artifactId>
 			<version>3.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.model</groupId>
+			<artifactId>model-common</artifactId>
+			<version>3.1-SNAPSHOT</version>
+		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.evolveum.midpoint.model</groupId> -->
+<!-- 			<artifactId>model-client</artifactId> -->
+<!-- 			<version>3.1-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
 
  		<!-- Jasper reports -->
-        <dependency>
-  			<groupId>net.sf.jasperreports</groupId>
-   			<artifactId>jasperreports</artifactId>
-   			<version>4.7.0-e1</version>
- 		</dependency>
+<!--         <dependency> -->
+<!--   			<groupId>net.sf.jasperreports</groupId> -->
+<!--    			<artifactId>jasperreports</artifactId> -->
+<!--    			<version>4.7.0-e1</version> -->
+<!--  		</dependency> -->
+<dependency>
+	<groupId>net.sf.jasperreports</groupId>
+	<artifactId>jasperreports</artifactId>
+	<version>6.0.0</version>
+</dependency>
+<!-- <dependency> -->
+<!-- 	<groupId>com.google.code.maven-play-plugin.org.apache.commons</groupId> -->
+<!-- 	<artifactId>commons-javaflow</artifactId> -->
+<!-- 	<version>1590792</version> -->
+<!-- </dependency> -->
+
+<dependency>
+	<groupId>commons-javaflow</groupId>
+	<artifactId>commons-javaflow</artifactId>
+	<version>20060411</version>
+</dependency>
   		<dependency>
    			<groupId>org.hibernate</groupId>
    			<artifactId>hibernate-core</artifactId>

@@ -395,10 +395,20 @@ public class NameStep extends WizardStep {
 
         try {
             PrismObject<ResourceType> resource = resourceModel.getObject();
+
+            if(StringUtils.isNotEmpty(resource.getOid())){
+                newResource = false;
+            } else {
+                newResource = true;
+            }
+
             page.getPrismContext().adopt(resource);
-            resource.findOrCreateContainer(ResourceType.F_CONNECTOR_CONFIGURATION)
-                    .findOrCreateContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES)
-                    .createNewValue();
+
+            if(newResource){
+                resource.findOrCreateContainer(ResourceType.F_CONNECTOR_CONFIGURATION)
+                        .findOrCreateContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES)
+                        .createNewValue();
+            }
 
             DropDownFormGroup connectorTypeDropDown = ((DropDownFormGroup)get(ID_CONNECTOR_TYPE));
             if(connectorTypeDropDown != null && connectorTypeDropDown.getInput() != null){
@@ -415,12 +425,6 @@ public class NameStep extends WizardStep {
                         ref.replace(val);
                     }
                 }
-            }
-
-            if(StringUtils.isNotEmpty(resource.getOid())){
-                newResource = false;
-            } else {
-                newResource = true;
             }
 
             ObjectDelta delta;

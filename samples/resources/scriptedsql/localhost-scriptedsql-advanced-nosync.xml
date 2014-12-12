@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+	xmlns:my="http://myself.me/schemas/whatever"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+
+	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d420db">
+
+		<!-- Resource name. It will be displayed in GUI.  -->
+		<c:name>Localhost ScriptedSQL</c:name>
+
+		<!-- Reference to the ICF DatabaseTable connector. OID is "virtual" for now. -->
+		<connectorRef type="ConnectorType">
+			<filter>
+				<q:equal>
+					<q:path>c:connectorType</q:path>
+					<q:value>org.forgerock.openicf.connectors.scriptedsql.ScriptedSQLConnector</q:value>
+				</q:equal>
+			</filter>
+		</connectorRef>
+
+		<!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+		<c:connectorConfiguration>
+
+			<!-- Configuration specific for the ScriptedSQL connector -->
+			<icfc:configurationProperties
+			xmlns:icscscriptedsql="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.scriptedsql-connector/org.forgerock.openicf.connectors.scriptedsql.ScriptedSQLConnector">
+				<icscscriptedsql:port>5432</icscscriptedsql:port>
+				<icscscriptedsql:quoting></icscscriptedsql:quoting>
+				<icscscriptedsql:host>localhost</icscscriptedsql:host>
+				<icscscriptedsql:user>mdp_scriptedsql</icscscriptedsql:user>
+				<icscscriptedsql:password><clearValue>password</clearValue></icscscriptedsql:password>
+				<icscscriptedsql:database>mdp_scriptedsql</icscscriptedsql:database>
+				<icscscriptedsql:clearTextPasswordToScript>true</icscscriptedsql:clearTextPasswordToScript>
+				<icscscriptedsql:scriptingLanguage>GROOVY</icscscriptedsql:scriptingLanguage>
+				<icscscriptedsql:reloadScriptOnExecution>true</icscscriptedsql:reloadScriptOnExecution>
+
+				<icscscriptedsql:createScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/CreateScript.groovy</icscscriptedsql:createScriptFileName>
+				<icscscriptedsql:updateScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/UpdateScript.groovy</icscscriptedsql:updateScriptFileName>
+				<icscscriptedsql:deleteScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/DeleteScript.groovy</icscscriptedsql:deleteScriptFileName>
+				<icscscriptedsql:schemaScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/SchemaScript.groovy</icscscriptedsql:schemaScriptFileName>
+				<icscscriptedsql:searchScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/SearchScript.groovy</icscscriptedsql:searchScriptFileName>
+				<icscscriptedsql:testScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/TestScript.groovy</icscscriptedsql:testScriptFileName>
+				<icscscriptedsql:syncScriptFileName>/opt/midpoint.home-master-node1/scripts/scriptedsql-sample/SyncScript.groovy</icscscriptedsql:syncScriptFileName>
+
+				<icscscriptedsql:validConnectionQuery></icscscriptedsql:validConnectionQuery>
+				<icscscriptedsql:jndiProperties></icscscriptedsql:jndiProperties>
+
+				<icscscriptedsql:jdbcDriver>org.postgresql.Driver</icscscriptedsql:jdbcDriver>
+				<icscscriptedsql:jdbcUrlTemplate>jdbc:postgresql://%h:%p/%d</icscscriptedsql:jdbcUrlTemplate>
+				<icscscriptedsql:enableEmptyString>true</icscscriptedsql:enableEmptyString>
+				<icscscriptedsql:rethrowAllSQLExceptions>true</icscscriptedsql:rethrowAllSQLExceptions>
+				<icscscriptedsql:nativeTimestamps>true</icscscriptedsql:nativeTimestamps>
+				<icscscriptedsql:allNative>false</icscscriptedsql:allNative>
+				<icscscriptedsql:datasource></icscscriptedsql:datasource>
+			</icfc:configurationProperties>
+
+			<!-- Generic ICF configuration -->
+
+
+		</c:connectorConfiguration>
+
+		<!-- We need to specify nativeCapabilities as well as these are usually schema-derived -->
+		<!-- Resource Schema Handling definition.
+             This part defines how the schema defined above will be used by
+             midPoint. It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+        -->
+
+		<schemaHandling>
+
+			<!-- Definition of default account type.
+                 This is now the only account type that midPoint can work with. -->
+			<objectType>
+				<!-- Readable name for the account type -->
+				<displayName>Default Account</displayName>
+				<default>true</default>
+
+				<!-- Reference to the Resource Schema (see above) specifying
+                     object class for this account type -->
+				<objectClass>ri:AccountObjectClass</objectClass>
+				<attribute>
+					<ref>icfs:uid</ref>
+
+					<!-- Readable name for the attribute. This will be used in GUI -->
+					<displayName>Entry UUID</displayName>
+
+					<!-- Access limitation for this attribute.
+                         Entry UUID is created by the directory server itelf
+                         and it is immutable. We can only read it. -->
+					<limitations>
+						<access>
+							<read>true</read>
+						</access>
+					</limitations>
+				</attribute>
+				<attribute>
+					<ref>icfs:name</ref>
+					<!-- Readable name for the attribute. This will be used in GUI -->
+					<displayName>Name</displayName>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
+					<outbound>
+						<source>
+							<path>$user/name</path>
+						</source>
+					</outbound>
+				</attribute>
+
+				<attribute>
+					<ref>ri:firstname</ref>
+					<displayName>First name</displayName>
+					<description>Definition of Firstname attribute handling.</description>
+					<outbound>
+						<source>
+							<path>$user/givenName</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:lastname</ref>
+					<displayName>Last name</displayName>
+					<description>Definition of Lastname attribute handling.</description>
+					<outbound>
+						<source>
+							<path>$user/familyName</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:fullname</ref>
+					<displayName>Full name</displayName>
+					<description>Definition of Fullname attribute handling.</description>
+					<outbound>
+						<source>
+							<path>$user/fullName</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:email</ref>
+					<outbound>
+						<source>
+							<path>$user/emailAddress</path>
+						</source>
+					</outbound>
+				</attribute>
+				<activation>
+					<administrativeStatus>
+						<outbound/>
+					</administrativeStatus>
+				</activation>
+				<credentials>
+					<password>
+						<outbound/>
+					</password>
+				</credentials>
+			</objectType>
+		</schemaHandling>
+<!--
+		<capabilities>
+			<native>
+				<cap:script>
+					<cap:host>
+						<cap:type>resource</cap:type>
+					</cap:host>
+					<cap:host>
+						<cap:type>connector</cap:type>
+					</cap:host>
+				</cap:script>
+				<cap:testConnection/>
+				<cap:liveSync/>
+				<cap:credentials>
+					<cap:password/>
+	        		</cap:credentials>
+				<cap:activation>
+	        		    <cap:status/>
+			        </cap:activation>
+			</native>
+		</capabilities>
+-->
+		<synchronization>
+			<objectSynchronization>
+				<!--
+	                The synchronization for this resource is enabled.
+	                It means that the synchronization will react to changes detected by
+	                the system (live sync task, discovery or reconciliation) -->
+				<enabled>true</enabled>
+
+				<correlation>
+					<q:description>
+	                    Correlation expression is a search query.
+	                    Following search queury will look for users that have "name"
+	                    equal to the "name" attribute of the account. Simply speaking,
+	                    it will look for match in usernames in the IDM and the resource.
+	                    The correlation rule always looks for users, so it will not match
+	                    any other object type.
+					</q:description>
+					<q:equal>
+						<q:path>c:name</q:path>
+						<expression>
+							<path>
+								declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+								$account/attributes/icfs:name
+							</path>
+						</expression>
+					</q:equal>
+				</correlation>
+
+				<!-- Confirmation rule may be here, but as the search above will
+	                 always return at most one match, the confirmation rule is not needed. -->
+
+				<!-- Following section describes reactions to a situations.
+	                 The setting here assumes that this resource is authoritative,
+	                 therefore all accounts created on the resource should be
+	                 reflected as new users in IDM.
+	                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+	             -->
+				<reaction>
+					<situation>linked</situation>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+				</reaction>
+				<reaction>
+					<situation>deleted</situation>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+				</reaction>
+				<reaction>
+					<situation>unlinked</situation>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+				</reaction>
+				<reaction>
+					<situation>unmatched</situation>
+					<!-- Reference to the User Template is here. If the user would be
+	                         created as a result of this action, it will be created according
+	                         to this template. -->
+				</reaction>
+			</objectSynchronization>
+		</synchronization>
+
+	</c:resource>
+
+</c:objects>

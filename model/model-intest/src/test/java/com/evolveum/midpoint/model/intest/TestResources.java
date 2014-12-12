@@ -141,7 +141,7 @@ public class TestResources extends AbstractInitializedModelIntegrationTest {
 		// THEN
         assertNotNull("null search return", resources);
         assertFalse("Empty search return", resources.isEmpty());
-        assertEquals("Unexpected number of resources found", 9, resources.size());
+        assertEquals("Unexpected number of resources found", 10, resources.size());
         
         result.computeStatus();
         TestUtil.assertSuccess("searchObjects result", result);
@@ -186,7 +186,7 @@ public class TestResources extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess("searchObjects result", result);
 
         assertFalse("Empty search return", resources.isEmpty());
-        assertEquals("Unexpected number of resources found", 9, resources.size());
+        assertEquals("Unexpected number of resources found", 10, resources.size());
         
         assertSteadyResources();
 	}

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.expression.Expression;
@@ -73,6 +74,7 @@ public class ExpressionHandler {
 	private ModelController model;
 	
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	
 	@Autowired(required = true)

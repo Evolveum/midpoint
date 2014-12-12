@@ -668,7 +668,12 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
      */
     @Override
     public SearchFilterType clone() {
-        final SearchFilterType clone = new SearchFilterType();
+        final SearchFilterType clone;
+        try {
+            clone = this.getClass().newInstance();          // TODO fix this using super.clone()
+        } catch (InstantiationException|IllegalAccessException e) {
+            throw new IllegalStateException("Couldn't instantiate " + this.getClass() + ": " + e.getMessage(), e);
+        }
         clone.description = this.description;
         if (this.filterClauseXNode != null) {
             clone.filterClauseXNode = (MapXNode) this.filterClauseXNode.clone();

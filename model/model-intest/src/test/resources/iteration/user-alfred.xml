@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<user
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>alfred</name>
+	<fullName>Alfred Hitchcock</fullName>
+    <givenName>Alfred</givenName>
+    <familyName>Hitchcock</familyName>
+	<activation>
+		<validFrom>1777-05-30T14:15:00Z</validFrom>
+		<validTo>2222-02-22T08:30:42Z</validTo>
+	</activation>
+    <link>
+        <resourceRef oid="10000000-0000-0000-0000-0000000dd204"/>           <!-- fuchsia -->
+        <objectClass>ri:AccountObjectClass</objectClass>
+        <activation>
+            <administrativeStatus>enabled</administrativeStatus>
+        </activation>
+    </link>
+	 <credentials>
+        <password>
+        	<value>
+	            <clearValue>dead123</clearValue>
+            </value>
+        </password>
+    </credentials>
+</user>

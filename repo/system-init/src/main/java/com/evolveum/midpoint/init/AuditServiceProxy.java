@@ -30,7 +30,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -130,4 +132,16 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             // TODO
         }
     }
+
+	@Override
+	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
+		List<AuditEventRecord> result = new ArrayList<AuditEventRecord>();
+		for (AuditService service : services){
+			List<AuditEventRecord> records = service.listRecords(query, params);
+			if (records != null && !records.isEmpty()){
+				result.addAll(records);
+			}
+		}
+		return result;
+	}
 }

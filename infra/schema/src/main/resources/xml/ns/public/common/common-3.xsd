@@ -5345,17 +5345,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="unmatched">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The new account is found on the resource (it exists) and
-                        IDM cannot determine any owner for the account.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="UNMATCHED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="disputed">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5383,6 +5372,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="UNLINKED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unmatched">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The new account is found on the resource (it exists) and
+                        IDM cannot determine any owner for the account.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNMATCHED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -6234,6 +6234,23 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Indication of the level of risk associated with the persissions that this role assigns.
+                    			This may be a numeric value, textual label are any other suitable machine-processable indication.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+					<xsd:element name="ownerRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Owner of this role. The owner is a person (or group) that is responsible for maintenance of
+                                role definition.
+                                This reference may point to object of type UserType of OrgType.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
 					<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>

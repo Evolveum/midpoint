@@ -628,6 +628,10 @@ public class PageAccounts extends PageAdminConfiguration {
         return columns;
     }
 
+    private ObjectFilter createResourceAndQueryFilter(){
+        return AndFilter.createAnd(createResourceQueryFilter());
+    }
+
     private ObjectFilter createResourceQueryFilter() {
         ResourceItemDto dto = resourceModel.getObject();
         if (dto == null) {
@@ -755,6 +759,12 @@ public class PageAccounts extends PageAdminConfiguration {
     }
 
     private void exportPerformed(AjaxRequestTarget target) {
+        if(resourceModel.getObject() == null){
+            warn(getString("pageAccounts.message.resourceNotSelected"));
+            refreshEverything(target);
+            return;
+        }
+
         String fileName = "accounts-" + WebMiscUtil.formatDate("yyyy-MM-dd-HH-mm-ss", new Date()) + ".xml";
 
         OperationResult result = new OperationResult(OPERATION_EXPORT);
@@ -785,11 +795,12 @@ public class PageAccounts extends PageAdminConfiguration {
 
                     return true;
                 }
-            };
+        };
 
             try {
-                ObjectQuery query = ObjectQuery.createObjectQuery(createResourceQueryFilter());
-                getModelService().searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+                ObjectQuery query = ObjectQuery.createObjectQuery(createResourceAndQueryFilter());
+                getModelService().searchObjectsIterative(ShadowType.class, query, handler,
+                        SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
             } finally {
                 writeFooter(writer);
             }
@@ -803,7 +814,8 @@ public class PageAccounts extends PageAdminConfiguration {
         }
 
         filesModel.reset();
-        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_FILES_CONTAINER)));
+        success(getString("PageAccounts.message.success.export", fileName));
+        target.add(getFeedbackPanel(), get(createComponentPath(ID_FORM_ACCOUNT, ID_FILES_CONTAINER)));
     }
 
     private Writer createWriter(String fileName) throws IOException {
@@ -858,7 +870,8 @@ public class PageAccounts extends PageAdminConfiguration {
         }
 
         filesModel.reset();
-        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_FILES_CONTAINER)));
+        success(getString("PageAccounts.message.success.clearExport"));
+        target.add(getFeedbackPanel(), get(createComponentPath(ID_FORM_ACCOUNT, ID_FILES_CONTAINER)));
     }
 
     private void downloadPerformed(AjaxRequestTarget target, String fileName,

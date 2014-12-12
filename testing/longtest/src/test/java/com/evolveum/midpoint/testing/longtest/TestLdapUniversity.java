@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.testing.longtest;
 
 
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -86,7 +88,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 	
 	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 500;
+	private static final int NUM_LDAP_ENTRIES = 20000;
 
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 	
@@ -146,16 +148,20 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
         // GIVEN
 
+        InternalsConfig.turnOffAllChecks();
+
         Task task = taskManager.createTaskInstance(TestLdapUniversity.class.getName() + "." + TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
         loadEntries("u");
-        createUsers("u", result);
-        
+        createUsers("u", new OperationResult("createUsers"));       // we do not want to have all this in the task's result
+
+        display("e0", findUserByUsername("e0"));
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
+        //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 5);
         modelService.importFromResource(RESOURCE_OPENDJ_OID, 
         		new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
         
@@ -164,7 +170,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
         
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
+        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000, 10000L);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -173,7 +179,10 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         display("Users", userCount);
         assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES+1, userCount);
 
-        assertUser("e0", task, result);
+        display("e0(u0)", findUserByUsername("e0(u0)"));
+        display("e1(u1)", findUserByUsername("e1(u1)"));
+
+        assertUser("e0(u0)", task, result);
         assertUser("e1(u1)", task, result);
 	}
 
@@ -191,9 +200,10 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
             repositoryService.addObject(userType.asPrismObject(), null, result);
 
             if ((i+1)%TICK == 0 && (i+1)<NUM_LDAP_ENTRIES) {
-                display("Created "+(i+1)+" users in "+((System.currentTimeMillis()-start))+" seconds, continuing...");
+                display("Created "+(i+1)+" users in "+((System.currentTimeMillis()-start))+" milliseconds, continuing...");
             }
         }
+        display("Created "+NUM_LDAP_ENTRIES+" users in "+((System.currentTimeMillis()-start))+" milliseconds.");
 
     }
 
@@ -204,7 +214,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         //assertEquals("Wrong number of assignments", 4, user.getAssignment().size());
     }
 
-    @Test(enabled = false)
+    @Test
     public void test120BigReconciliation() throws Exception {
         final String TEST_NAME = "test120BigReconciliation";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -229,16 +239,20 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 //        OperationResult subresult = result.getLastSubresult();
 //        TestUtil.assertInProgress("reconciliation launch result", subresult);
 
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
+        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000, 10000L);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
-        assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES+4, userCount);
+        assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES+1, userCount);
 
-        assertUser("u1", task, result);
+        display("e0(u0)", findUserByUsername("e0(u0)"));
+        display("e1(u1)", findUserByUsername("e1(u1)"));
+
+        assertUser("e0(u0)", task, result);
+        assertUser("e1(u1)", task, result);
     }
 
     private void loadEntries(String prefix) throws LDIFException, IOException {

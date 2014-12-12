@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.util;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
@@ -183,11 +184,14 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	public Float getWallAverageTime() {
 		long count = getProgress();
 		if (count > 0) {
-			long total = System.currentTimeMillis() - startTime;
-			return (float) total / (float) count;
+			return (float) getWallTime() / (float) count;
 		} else {
 			return null;
 		}
+	}
+
+	public long getWallTime() {
+		return System.currentTimeMillis() - startTime;
 	}
 
 	public void waitForCompletion(OperationResult opResult) {
@@ -247,6 +251,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		try {
 
+			RepositoryCache.enter();
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("{} starting for {} {}",new Object[] {
 						getProcessShortNameCapitalized(), object, getContextDesc()});
@@ -272,11 +278,17 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		} catch (CommonException|RuntimeException e) {
 			cont = processError(object, e, result);
 		} finally {
+			RepositoryCache.exit();
+
 			long duration = System.currentTimeMillis()-startTime;
 			long total = totalTimeProcessing.addAndGet(duration);
 			int progress = objectsProcessed.incrementAndGet();
 
 			result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
+
+			parentResult.summarize();					// to prevent parent result from growing above reasonable size
+			                                            // it is here (before modifying the task) to make the task smaller
+			                                            // (although I doubt it has any real effect)
 
 			if (shouldReportProgress()) {
 				try {
@@ -295,8 +307,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 							(System.currentTimeMillis()-this.startTime)/progress});
 				}
 			}
-
-			parentResult.summarize();					// to prevent parent result from growing above reasonable size
 		}
 
 		if (LOGGER.isTraceEnabled()) {

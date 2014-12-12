@@ -103,7 +103,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	 * when the next page of the same search is requested.
 	 * 
 	 * It is OK to initialize a search without any cookie. If the datastore utilizes a re-usable
-	 * context it will return a coockie in a search response.
+	 * context it will return a cookie in a search response.
 	 */
 	public String getCookie() {
 		return cookie;
@@ -118,7 +118,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	 * when the next page of the same search is requested.
 	 * 
 	 * It is OK to initialize a search without any cookie. If the datastore utilizes a re-usable
-	 * context it will return a coockie in a search response.
+	 * context it will return a cookie in a search response.
 	 */
 	public void setCookie(String cookie) {
 		this.cookie = cookie;

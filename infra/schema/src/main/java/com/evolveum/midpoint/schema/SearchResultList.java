@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -24,7 +27,7 @@ import java.util.ListIterator;
  * @author semancik
  *
  */
-public class SearchResultList<T> implements List<T> {
+public class SearchResultList<T> implements List<T>, Cloneable {
 	
 	private List<T> list = null;
 	private SearchResultMetadata metadata = null;
@@ -197,5 +200,16 @@ public class SearchResultList<T> implements List<T> {
 			}			
 		}
 	}
-	
+
+	public SearchResultList<T> clone() {
+		SearchResultList<T> clone = new SearchResultList<>();
+		clone.metadata = this.metadata;		// considered read-only object
+		if (this.list != null) {
+			clone.list = new ArrayList(this.list.size());
+			for (T item : this.list) {
+				clone.list.add(CloneUtil.clone(item));
+			}
+		}
+		return clone;
+	}
 }

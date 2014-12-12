@@ -349,6 +349,7 @@ public class ShadowManager {
 				newShadow = createNewAccountFromChange(change, resource, objectClassDefinition, parentResult);
 
 				try {
+					ConstraintsChecker.onShadowAddOperation(newShadow.asObjectable());
 					String oid = repositoryService.addObject(newShadow, null, parentResult);
 					newShadow.setOid(oid);
 					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
@@ -371,6 +372,7 @@ public class ShadowManager {
 							.createModificationReplacePropertyCollection(ShadowType.F_DEAD,
 									newShadow.getDefinition(), true);
 					try {
+						ConstraintsChecker.onShadowModifyOperation(deadDeltas);
 						repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas,
 								parentResult);
 					} catch (ObjectAlreadyExistsException e) {

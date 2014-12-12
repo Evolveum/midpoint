@@ -1149,7 +1149,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 
 	@Override
-	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
+	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, CommunicationException {
 
@@ -1167,7 +1167,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			return 0;
 		}
 
-		int count;
+		Integer count;
 		try {
 			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
@@ -1657,6 +1657,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	 */
 	@Override
 	public void postInit(OperationResult parentResult) {
+		Utils.clearSystemConfigurationCache();        // necessary for testing situations where we re-import different system configurations with the same version (on system init)
+
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(POST_INIT);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelController.class);

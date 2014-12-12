@@ -1,0 +1,53 @@
+<!--
+  ~ Copyright (c) 2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="ef7edff4-813c-11e4-b893-3c970e467874"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>X</name>    
+        <inducement>
+    	<construction>
+    		<resourceRef oid="10000000-0000-0000-0000-000000001204" type="ResourceType"/>
+    		<kind>account</kind>
+    		<attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>
+								'X-' + name
+							</code>
+						</script>
+					</expression>
+				</outbound>
+            </attribute>
+    		<attribute>
+                <ref>ri:title</ref>
+                <outbound>
+                	<expression>
+						<value>XXX</value>
+					</expression>
+				</outbound>
+            </attribute>
+    	</construction>
+    </inducement>
+
+</role>

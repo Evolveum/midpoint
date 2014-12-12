@@ -101,7 +101,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 		TestUtil.displayTestTile(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME, 
 				ConnectorFactoryIcfImpl.ICFS_UID, "wIlL", null, true,
-				"Will");
+				transformNameFromResource("Will"));
 	}
 	
 	@Test
@@ -110,7 +110,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 		TestUtil.displayTestTile(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME, 
 				ConnectorFactoryIcfImpl.ICFS_UID, "wIlL", GetOperationOptions.createNoFetch(), false,
-				"Will");
+				transformNameFromResource("Will"));
 	}
 	
 	/**

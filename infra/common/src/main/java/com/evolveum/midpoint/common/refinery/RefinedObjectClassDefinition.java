@@ -833,6 +833,10 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			return getKind()+":"+getIntent();
 		}
 	}
+	
+	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
+		return ResourceTypeUtil.getEffectiveCapability(resourceType, schemaHandlingObjectTypeDefinitionType, capabilityClass);
+	}
 
     public PagedSearchCapabilityType getPagedSearches() {
         return ResourceTypeUtil.getEffectiveCapability(resourceType, schemaHandlingObjectTypeDefinitionType, PagedSearchCapabilityType.class);
@@ -842,7 +846,4 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return getPagedSearches() != null;          // null means nothing or disabled
     }
 
-    public CapabilityType getEffectiveCapability(Class<? extends CapabilityType> capabilityClass) {
-        return ResourceTypeUtil.getEffectiveCapability(resourceType, schemaHandlingObjectTypeDefinitionType, capabilityClass);
-    }
 }

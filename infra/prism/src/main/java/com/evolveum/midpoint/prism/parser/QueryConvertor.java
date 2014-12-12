@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -297,6 +298,7 @@ public class QueryConvertor {
 			throw new SchemaException("Cannot convert query, because query does not contain property path.");
 		}
 		QName itemName = ItemPath.getName(itemPath.last());
+		
 		XNode valueXnode = xmap.get(KEY_FILTER_EQUAL_VALUE);
 		
 		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd, prismContext);
@@ -337,14 +339,16 @@ public class QueryConvertor {
 
 	}
 	
+	
 	private static TypeFilter parseTypeFilter(XNode xnode, PrismContainerDefinition pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
 		MapXNode xmap = toMap(xnode);
 		QName type = xmap.getParsedPrimitiveValue(KEY_FILTER_TYPE_TYPE, DOMUtil.XSD_QNAME);
 		
 		XNode subXFilter = xmap.get(KEY_FILTER_TYPE_FILTER);
 		ObjectFilter subFilter = null; 
+		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
 		if (subXFilter != null) {
-			subFilter = parseFilter(subXFilter, prismContext);
+			subFilter = parseFilter((MapXNode) subXFilter, def);
 		}
 
         if (preliminaryParsingOnly) {
@@ -381,24 +385,53 @@ public class QueryConvertor {
 			}
 		}
 
-		XNode valueXnode = xmap.get(KEY_FILTER_EQUAL_VALUE);
 		
-		Item<?> item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
+		XNode valueXnode = xmap.get(KEY_FILTER_EQUAL_VALUE);
+		if (valueXnode != null){
+		
+			Item<?> item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
         
-        if (preliminaryParsingOnly) {
-            return null;
-        }
-        
-		PrismReference ref = (PrismReference)item;
+			  if (preliminaryParsingOnly) {
+		            return null;
+		        }
+		        
+				PrismReference ref = (PrismReference)item;
 
-		if (item.getValues().size() < 1 ) {
-			throw new IllegalStateException("No values to search specified for item " + itemName);
+				if (item.getValues().size() < 1 ) {
+					throw new IllegalStateException("No values to search specified for item " + itemName);
+				}
+
+				ExpressionWrapper expressionWrapper = null;
+		        // TODO implement expressions - don't forget preliminary mode!
+				
+				return RefFilter.createReferenceEqual(itemPath, ref, expressionWrapper);
+			
+		} else {
+			Entry<QName, XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
+
+			KEY_FILTER_EQUAL_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
+			if (expressionEntry != null) {
+				PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor()
+						.parsePrismPropertyFromGlobalXNodeValue(expressionEntry);
+				if (preliminaryParsingOnly) {
+					return null;
+				} else {
+					ExpressionWrapper expressionWrapper = new ExpressionWrapper();
+					expressionWrapper.setExpression(expressionPropertyValue.getValue());
+					return RefFilter.createReferenceEqual(itemPath,
+							(PrismReferenceDefinition) itemDefinition, expressionWrapper);
+				}
+			} else {
+				if (preliminaryParsingOnly) {
+					return null;
+				} else {
+					ExpressionWrapper expressionWrapper = null;
+					return RefFilter.createReferenceEqual(itemPath,
+							(PrismReferenceDefinition) itemDefinition, expressionWrapper);
+				}
+			}
 		}
 
-		ExpressionWrapper expressionWrapper = null;
-        // TODO implement expressions - don't forget preliminary mode!
-		
-		return RefFilter.createReferenceEqual(itemPath, ref, expressionWrapper);
 	}
 
 	private static <C extends Containerable> SubstringFilter parseSubstringFilter(XNode xnode, PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, PrismContext prismContext)
@@ -416,6 +449,7 @@ public class QueryConvertor {
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
 		QName itemName = ItemPath.getName(itemPath.last());
+		
 		
 		XNode valueXnode = xmap.get(KEY_FILTER_EQUAL_VALUE);
 		
@@ -458,29 +492,6 @@ public class QueryConvertor {
 		String scopeString = xorgrefmap.getParsedPrimitiveValue(KEY_FILTER_ORG_SCOPE, DOMUtil.XSD_STRING);
 		Scope scope = Scope.valueOf(scopeString);
 		
-//		String minDepth = xmap.getParsedPrimitiveValue(KEY_FILTER_ORG_MIN_DEPTH, DOMUtil.XSD_STRING);
-//		Integer min = null;
-//		if (!StringUtils.isBlank(minDepth)) {
-//			min = XsdTypeMapper.multiplicityToInteger(minDepth);
-//		}
-//
-//		String maxDepth = xmap.getParsedPrimitiveValue(KEY_FILTER_ORG_MAX_DEPTH, DOMUtil.XSD_STRING);
-//		Integer max = null;
-//		if (!StringUtils.isBlank(maxDepth)) {
-//			max = XsdTypeMapper.multiplicityToInteger(maxDepth);
-//		}
-
-        //todo fix scope handling properly
-//        OrgFilter.Scope scope;
-//        if (min == null && max == null) {
-//            scope = OrgFilter.Scope.SUBTREE;
-//        } else if (ObjectUtils.equals(min, max) && (min != null && min.intValue() == 1)) {
-//            scope = OrgFilter.Scope.ONE_LEVEL;
-//        } else {
-//            throw new SchemaException("Unsupported min/max (" + min + "/" + max
-//                    + ") depth, can't translate it to scope SUBTREE/ONE_LEVEL");
-//        }
-
         if (preliminaryParsingOnly) {
             return null;
         } else {

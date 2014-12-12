@@ -1677,8 +1677,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void waitForTaskFinish(Task task, boolean checkSubresult) throws Exception {
 		waitForTaskFinish(task, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
+
+	protected void waitForTaskFinish(Task task, boolean checkSubresult, final int timeout) throws Exception {
+		waitForTaskFinish(task, checkSubresult, timeout, DEFAULT_TASK_SLEEP_TIME);
+	}
 	
-	protected void waitForTaskFinish(final Task task, final boolean checkSubresult,final int timeout) throws Exception {
+	protected void waitForTaskFinish(final Task task, final boolean checkSubresult, final int timeout, long sleepTime) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
 		Checker checker = new Checker() {
 			@Override
@@ -1706,7 +1710,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				assert false : "Timeout ("+timeout+") while waiting for "+task+" to finish. Last result "+result;
 			}
 		};
-		IntegrationTestTools.waitFor("Waiting for "+task+" finish", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
+		IntegrationTestTools.waitFor("Waiting for "+task+" finish", checker , timeout, sleepTime);
 	}
 	
 	protected void waitForTaskFinish(String taskOid, boolean checkSubresult) throws Exception {

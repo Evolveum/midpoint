@@ -18,26 +18,41 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang.Validate;
+import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.jdbc.Work;
+import org.hibernate.transform.DistinctRootEntityResultTransformer;
+import org.hibernate.transform.ResultTransformer;
+import org.hibernate.transform.RootEntityResultTransformer;
+import org.hibernate.transform.Transformers;
 
 import javax.xml.datatype.Duration;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -66,6 +81,78 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 attempt = logOperationAttempt(null, operation, attempt, ex, null);
             }
         }
+    }
+    
+    @Override
+    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params){
+    	final String operation = "listRecords";
+        int attempt = 1;
+
+        while (true) {
+            try {
+                return listRecordsAttempt(query, params);
+            } catch (RuntimeException ex) {
+                attempt = logOperationAttempt(null, operation, attempt, ex, null);
+            }
+        }	   
+    }
+    
+    private List<AuditEventRecord> listRecordsAttempt(String query, Map<String, Object> params){
+    	Session session = null;
+    	List<AuditEventRecord> auditRecords = null;
+        try {
+            session = beginTransaction();
+            Query q = session.createQuery(query);
+            for (String paramName : params.keySet()){
+            	q.setParameter(paramName, params.get(paramName));
+            }
+//            q.setResultTransformer(Transformers.aliasToBean(RAuditEventRecord.class));
+            List resultList = q.list();
+            
+            auditRecords = new ArrayList<>();
+            
+            for (Object o : resultList){
+            	if (!(o instanceof RAuditEventRecord)){
+            		throw new DtoTranslationException("Unexpected object in result set. Expected audit record, but got " + o.getClass().getSimpleName());
+            	}
+            	RAuditEventRecord raudit = (RAuditEventRecord) o;
+            	
+            	AuditEventRecord audit = RAuditEventRecord.fromRepo(raudit, getPrismContext());
+            	
+            	
+            	audit.setInitiator(resolve(session, (raudit.getInitiatorOid())));
+            	audit.setTarget(resolve(session, (raudit.getTargetOid())));
+            	audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid()));
+            	
+            	auditRecords.add(audit);
+            }
+            
+            session.getTransaction().commit();
+           
+        } catch (DtoTranslationException | SchemaException ex ) {
+            handleGeneralCheckedException(ex, session, null);
+        } catch (RuntimeException ex) {
+            handleGeneralRuntimeException(ex, session, null);
+        } finally {
+            cleanupSessionAndResult(session, null);
+        }
+        return auditRecords;
+     
+    }
+    
+    private PrismObject resolve(Session session, String oid) throws SchemaException{
+    	Query query = session.getNamedQuery("get.object");
+    	query.setParameter("oid", oid);
+    	query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+    	GetObjectResult object = (GetObjectResult) query.uniqueResult();
+    	
+    	PrismObject result = null;
+    	if (object != null){
+    		String xml = RUtil.getXmlFromByteArray(object.getFullObject(), getConfiguration().isUseZip());
+    		 result = getPrismContext().parseObject(xml);
+    	}
+    	
+    	return result;
     }
 
     private void auditAttempt(AuditEventRecord record) {

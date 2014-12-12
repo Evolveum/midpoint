@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 5.6.2.final using JasperReports Library version 5.6.1  -->
+<!-- 2014-11-03T17:19:52 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportAuditLogs" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+	<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="title"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value="pageFooter"/>
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="from" class="java.sql.Timestamp"/>
+	<parameter name="to" class="java.sql.Timestamp"/>
+	<parameter name="eventType" class="java.lang.Integer"/>
+	<parameter name="eventDescription" class="java.lang.String"/>
+	<queryString language="mql">
+		<![CDATA[]]>
+	</queryString>
+	<field name="timestamp" class="java.sql.Timestamp"/>
+	<field name="initiator" class="java.lang.String"/>
+	<field name="eventType" class="java.lang.String">
+		<fieldDescription><![CDATA[eventType]]></fieldDescription>
+	</field>
+	<field name="eventStage" class="java.lang.String">
+		<fieldDescription><![CDATA[eventStage]]></fieldDescription>
+	</field>
+	<field name="targetName" class="java.lang.String"/>
+	<field name="targetType" class="java.lang.String">
+		<fieldDescription><![CDATA[targetType]]></fieldDescription>
+	</field>
+	<field name="targetOwnerName" class="java.lang.String"/>
+	<field name="outcome" class="java.lang.String">
+		<fieldDescription><![CDATA[outcome]]></fieldDescription>
+	</field>
+	<field name="message" class="java.lang.String"/>
+	<field name="delta" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="168" splitType="Stretch">
+			<frame>
+				<reportElement mode="Opaque" x="0" y="0" width="800" height="67" backcolor="#267994" uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553"/>
+				<staticText>
+					<reportElement x="10" y="13" width="266" height="38" uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[Audit Log Report]]></text>
+				</staticText>
+			</frame>
+			<staticText>
+				<reportElement x="2" y="85" width="100" height="20" uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[From:]]></text>
+			</staticText>
+			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
+				<reportElement isPrintRepeatedValues="false" x="110" y="85" width="644" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{from}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="2" y="115" width="100" height="20" uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[To:]]></text>
+			</staticText>
+			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
+				<reportElement isPrintRepeatedValues="false" x="110" y="115" width="644" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{to}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="2" y="145" width="100" height="20" uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Event Type:]]></text>
+			</staticText>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="110" y="145" width="644" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{eventType} != null ? $P{eventDescription} : "All"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="24" splitType="Stretch">
+			<frame>
+				<reportElement mode="Transparent" x="0" y="1" width="800" height="19" isRemoveLineWhenBlank="true" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
+				<staticText>
+					<reportElement x="0" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<text><![CDATA[Timestamp]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="100" y="0" width="80" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<text><![CDATA[Initiator]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="180" y="0" width="90" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<text><![CDATA[Event Type]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="270" y="0" width="90" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<text><![CDATA[Event Stage]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="360" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<text><![CDATA[Target]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="460" y="0" width="80" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<text><![CDATA[Outcome]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="540" y="0" width="160" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<text><![CDATA[Message]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="700" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<text><![CDATA[Delta]]></text>
+				</staticText>
+			</frame>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<frame>
+				<reportElement mode="Opaque" x="0" y="0" width="800" height="14" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
+				<textField isStretchWithOverflow="true" pattern="dd.MM.yy, HH:mm:ss">
+					<reportElement x="0" y="0" width="100" height="13" isPrintWhenDetailOverflows="true" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{timestamp}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="100" y="0" width="80" height="13" isPrintWhenDetailOverflows="true" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{initiator}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="180" y="0" width="90" height="13" isPrintWhenDetailOverflows="true" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{eventType}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="270" y="0" width="90" height="13" isPrintWhenDetailOverflows="true" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{eventStage}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="360" y="0" width="100" height="13" isPrintWhenDetailOverflows="true" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8">
+						<printWhenExpression><![CDATA[!$F{targetType}.equals(null)]]></printWhenExpression>
+					</reportElement>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{targetName} + " (" + $F{targetType} + ") "]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="460" y="0" width="80" height="13" isPrintWhenDetailOverflows="true" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{outcome}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="540" y="0" width="160" height="13" isPrintWhenDetailOverflows="true" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{message}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="700" y="0" width="100" height="13" isPrintWhenDetailOverflows="true" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{delta}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement positionType="FixRelativeToBottom" mode="Opaque" x="0" y="13" width="800" height="1" forecolor="#333333" uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d"/>
+				</line>
+			</frame>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="7" splitType="Stretch">
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="3" width="800" height="1" uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="32" splitType="Stretch">
+			<frame>
+				<reportElement mode="Transparent" x="0" y="1" width="800" height="24" forecolor="#000000" backcolor="#267994" uuid="fbe8aae4-6500-468a-b1e8-700b569139a1"/>
+				<textField pattern="EEEEE dd MMMMM yyyy">
+					<reportElement x="2" y="1" width="197" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="680" y="1" width="80" height="20" uuid="5c062c66-ba45-4288-9dcd-246e28c5af75"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report">
+					<reportElement x="760" y="1" width="40" height="20" uuid="934b16e8-c3eb-4017-866a-0b7735bf2917"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

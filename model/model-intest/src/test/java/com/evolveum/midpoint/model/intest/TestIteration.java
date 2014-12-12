@@ -141,6 +141,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	private static final String USER_JUPITER_NAME = "jupiter";
 	private static final String ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME = "Jupiter Jones";
 
+	private static final File USER_ALFRED_FILE = new File(TEST_DIR, "user-alfred.xml");
+	private static final String USER_ALFRED_NAME = "alfred";
+
 	private static final String USER_BOB_NAME = "bob";
 
 	protected String jupiterUserOid;
@@ -473,6 +476,56 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
+
+	@Test
+	public void test230ScroogeAddAccountDummyConflictingNoShadow() throws Exception {
+		final String TEST_NAME = "test230ScroogeAddAccountDummyConflictingNoShadow";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		dummyAuditService.clear();
+
+		// Make sure there is a conflicting account and NO shadow for it
+		DummyAccount account = new DummyAccount("scrooge");
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Scrooge Pinky");
+		dummyResourcePink.addAccount(account);
+
+		PrismObject<UserType> userScrooge = createUser("scrooge", "Scrooge McDuck", true);
+		ShadowType newPinkyShadow = createShadow(resourceDummyPinkType.asPrismObject(), null, null).asObjectable();
+		userScrooge.asObjectable().getLink().add(newPinkyShadow);
+
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		deltas.add(ObjectDelta.createAddDelta(userScrooge));
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userScroogeAfter = findUserByUsername("scrooge");
+		display("User after change execution", userScroogeAfter);
+		assertUser(userScroogeAfter, null, "scrooge", "Scrooge McDuck", null, null, null);
+		String accountOid = getSingleLinkOid(userScroogeAfter);
+
+		// Check shadow
+		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+		assertAccountShadowRepo(accountShadow, accountOid, "scrooge1", resourceDummyPinkType);
+
+		// Check account
+		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+		assertAccountShadowModel(accountModel, accountOid, "scrooge1", resourceDummyPinkType);
+
+		// Check account in dummy resource
+		assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, "scrooge1", "Scrooge McDuck", true);
+	}
+
 
 	@Test
 	public void test240LargoAssignAccountDummyConflictingNoShadow() throws Exception {
@@ -938,6 +991,55 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertDummyAccountAttribute(RESOURCE_DUMMY_FUCHSIA_NAME, "Pete Crenshaw1", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, "pete");
 		assertNoDummyAccount(RESOURCE_DUMMY_PINK_NAME, "peter");
 	}
+
+	// as with jupiter, but ADD instead of ASSIGN account
+	@Test
+	public void test290AlfredConflictNoShadowSyncBackAdd() throws Exception {
+		final String TEST_NAME = "test290AlfredConflictNoShadowSyncBackAdd";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		dummyAuditService.clear();
+
+		// Make sure there is a conflicting account and NO shadow for it
+		DummyAccount account = new DummyAccount("Alfred Hitchcock");
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, "alfred");
+		dummyResourceFuchsia.addAccount(account);
+
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+		PrismObject<UserType> userJupiter = PrismTestUtil.parseObject(USER_ALFRED_FILE);			// there is a linked account
+		deltas.add(ObjectDelta.createAddDelta(userJupiter));
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userAlfredAfter = findUserByUsername(USER_ALFRED_NAME);		// alfred
+		display("User after change execution", userAlfredAfter);
+		assertUser(userAlfredAfter, null, USER_ALFRED_NAME, "Alfred Hitchcock", "Alfred", "Hitchcock", null);
+		String accountOid = getSingleLinkOid(userAlfredAfter);
+
+		// Check shadow
+		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+		display("Account shadow from repo", accountShadow);
+		assertAccountShadowRepo(accountShadow, accountOid, "Alfred Hitchcock", resourceDummyFuchsiaType);
+
+		// Check account
+		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+		assertAccountShadowModel(accountModel, accountOid, "Alfred Hitchcock", resourceDummyFuchsiaType);
+
+		// Check account in dummy resource (actually, the fullname attribute does not exist but it's OK)
+		assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, "Alfred Hitchcock", null, true);
+	}
+
 
 
 	@Test

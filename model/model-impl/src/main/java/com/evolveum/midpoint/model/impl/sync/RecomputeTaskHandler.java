@@ -23,6 +23,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -75,6 +76,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 	private TaskManager taskManager;
 	
 	@Autowired(required=true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	
 	@Autowired(required=true)

@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
@@ -69,6 +70,7 @@ public class CorrelationConfirmationEvaluator {
 	private static transient Trace LOGGER = TraceManager.getTrace(CorrelationConfirmationEvaluator.class);
 
 	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
 	@Autowired(required = true)

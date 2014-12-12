@@ -47,7 +47,13 @@ log.info("Entering "+action+" Script");
 def sql = new Sql(connection);
 
 if (action.equalsIgnoreCase("GET_LATEST_SYNC_TOKEN")) {
-    row = sql.firstRow("select timestamp from Users order by timestamp desc")
+    // XXX the following line is probably fine for MySQL
+    // row = sql.firstRow("select timestamp from Users order by timestamp desc")
+
+    // the following line is for PostgreSQL with TIMESTAMP columns. We will
+    // "truncate" the timestamp to milliseconds
+    row = sql.firstRow("select date_trunc('milliseconds', timestamp) as timestamp from users order by timestamp desc;")
+
     log.ok("Get Latest Sync Token script: last token is: "+row["timestamp"])
     // We don't wanna return the java.sql.Timestamp, it is not a supported data type
     // Get the 'long' version
@@ -65,8 +71,14 @@ else if (action.equalsIgnoreCase("SYNC")) {
         tstamp = new java.sql.Timestamp(today.time)
     }
 
-    sql.eachRow("select * from Users where timestamp > ${tstamp}",
-        {result.add([operation:"CREATE_OR_UPDATE", uid:it.uid, token:it.timestamp.getTime(), attributes:[firstname:it.firstname, lastname:it.lastname, email:it.email]])}
+    // XXX the following line is probably fine for MySQL
+    // sql.eachRow("select * from Users where timestamp > ${tstamp}",
+    //    {result.add([operation:"CREATE_OR_UPDATE", uid:Integer.toString(it.id), token:it.timestamp.getTime(), attributes:[__NAME__:it.login, firstname:it.firstname, lastname:it.lastname, fullname:it.fullname, organization:it.organization, email:it.email, __ENABLE__:!(it.disabled as Boolean)]])}
+
+    // the following line (the select statement) is for PostgreSQL with
+    // timestamp in microseconds - we truncate the timestamp to milliseconds
+    sql.eachRow("select id,login,firstname,lastname,fullname,email,organization,disabled,date_trunc('milliseconds', timestamp) as timestamp from Users where date_trunc('milliseconds',timestamp) > ${tstamp}",
+        {result.add([operation:"CREATE_OR_UPDATE", uid:Integer.toString(it.id), token:it.timestamp.getTime(), attributes:[__NAME__:it.login, firstname:it.firstname, lastname:it.lastname, fullname:it.fullname, organization:it.organization, email:it.email, __ENABLE__:!(it.disabled as Boolean)]])}
     )
     log.ok("Sync script: found "+result.size()+" events to sync")
     return result;

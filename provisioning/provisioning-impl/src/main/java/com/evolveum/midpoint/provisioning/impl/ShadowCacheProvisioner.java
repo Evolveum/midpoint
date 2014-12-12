@@ -67,6 +67,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	LOGGER.trace("Adding object with identifiers to the repository.");
 	String oid = null;
 	try {
+		ConstraintsChecker.onShadowAddOperation(shadow.asObjectable());
 		oid = getRepositoryService().addObject(shadow, null, parentResult);
 
 	} catch (ObjectAlreadyExistsException ex) {
@@ -98,6 +99,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 					"Detected shadow changes. Start to modify shadow in the repository, applying modifications {}",
 					DebugUtil.debugDump(shadowChanges));
 			try {
+				ConstraintsChecker.onShadowModifyOperation(shadowChanges);
 				getRepositoryService().modifyObject(ShadowType.class, shadowType.getOid(), shadowChanges, parentResult);
 				LOGGER.trace("Shadow changes processed successfully.");
 			} catch (ObjectAlreadyExistsException ex) {

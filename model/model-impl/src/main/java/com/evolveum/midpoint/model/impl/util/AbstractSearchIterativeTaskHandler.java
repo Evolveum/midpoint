@@ -140,13 +140,18 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             // counting objects can be within try-catch block, because the handling is similar to handling errors within searchIterative
             Long expectedTotal = null;
             if (countObjectsOnStart) {
-                expectedTotal = (long) modelObjectResolver.countObjects(type, query, opResult);
+                Integer expectedTotalInt = modelObjectResolver.countObjects(type, query, opResult);
                 LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
+                if (expectedTotalInt != null) {
+                    expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
+                }
             }
 
             runResult.setProgress(0);
             coordinatorTask.setProgress(0);
-            coordinatorTask.setExpectedTotal(expectedTotal);
+            if (expectedTotal != null) {
+                coordinatorTask.setExpectedTotal(expectedTotal);
+            }
             try {
                 coordinatorTask.savePendingModifications(opResult);
             } catch (ObjectAlreadyExistsException e) {      // other exceptions are handled in the outer try block
@@ -212,9 +217,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
         if (logFinishInfo) {
 	        String finishMessage = "Finished " + taskName + " (" + coordinatorTask + "). ";
-	        String statistics = "Processed " + resultHandler.getProgress() + " objects, got " + resultHandler.getErrors() + " errors.";
+	        String statistics = "Processed " + resultHandler.getProgress() + " objects in " + resultHandler.getWallTime()/1000 + " seconds, got " + resultHandler.getErrors() + " errors.";
             if (resultHandler.getProgress() > 0) {
-                statistics += " Average time for one object: " + resultHandler.getAverageTime() + " milliseconds.";
+                statistics += " Average time for one object: " + resultHandler.getAverageTime() + " milliseconds" +
+                    " (wall clock time average: " + resultHandler.getWallAverageTime() + " ms).";
             }
 	
 	        opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);

@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -149,6 +150,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			shadow.setDead(true);
 			
 			Collection<? extends ItemDelta> deadDeltas = PropertyDelta.createModificationReplacePropertyCollection(ShadowType.F_DEAD, shadow.asPrismObject().getDefinition(), true);
+			ConstraintsChecker.onShadowModifyOperation(deadDeltas);
 			cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), deadDeltas, result);
 			
 			ResourceObjectShadowChangeDescription change = createResourceObjectShadowChangeDescription(shadow,
@@ -213,6 +215,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			OperationResult handleGetErrorResult = result.createSubresult("Discovery for situation: Object not found on the " + ObjectTypeUtil.toShortString(shadow.getResource()));
 			
 			Collection<? extends ItemDelta> deadModification = PropertyDelta.createModificationReplacePropertyCollection(ShadowType.F_DEAD, shadow.asPrismObject().getDefinition(), true);
+			ConstraintsChecker.onShadowModifyOperation(deadModification);
 			cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), deadModification, result);
 			
 			shadow.setDead(true);

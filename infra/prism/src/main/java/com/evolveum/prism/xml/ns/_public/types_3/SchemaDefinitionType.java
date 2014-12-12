@@ -113,7 +113,8 @@ public class SchemaDefinitionType implements Cloneable, Serializable {
     public SchemaDefinitionType clone() throws CloneNotSupportedException {
         SchemaDefinitionType clone = (SchemaDefinitionType) super.clone();
         if (schema != null) {
-            clone.schema = (Element) schema.cloneNode(true);
+            //clone.schema = (Element) schema.cloneNode(true);
+            clone.schema = schema;
         }
         return clone;
     }

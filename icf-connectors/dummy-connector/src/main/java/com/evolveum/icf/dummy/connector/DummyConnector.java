@@ -15,6 +15,7 @@
  */
 package com.evolveum.icf.dummy.connector;
 
+import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
@@ -32,6 +33,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.GuardedString.Accessor;
@@ -1140,6 +1142,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException {
 		log.ok("Create attributes: {0}", createAttributes);
 		String userName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
+		if (configuration.getUpCaseName()) {
+			userName = StringUtils.upperCase(userName);
+		}
 		log.ok("Username {0}", userName);
 		final DummyAccount newAccount = new DummyAccount(userName);
 		
@@ -1198,6 +1203,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	
 	private DummyGroup convertToGroup(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException {
 		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
+		if (configuration.getUpCaseName()) {
+			icfName = StringUtils.upperCase(icfName);
+		}
 		final DummyGroup newGroup = new DummyGroup(icfName);
 
 		Boolean enabled = null;
@@ -1244,6 +1252,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	
 	private DummyPrivilege convertToPriv(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException {
 		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
+		if (configuration.getUpCaseName()) {
+			icfName = StringUtils.upperCase(icfName);
+		}
 		final DummyPrivilege newPriv = new DummyPrivilege(icfName);
 
 		Boolean enabled = null;

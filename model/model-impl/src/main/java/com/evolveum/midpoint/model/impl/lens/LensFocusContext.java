@@ -97,9 +97,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	public ObjectDelta<O> getProjectionWavePrimaryDelta() throws SchemaException {
     	if (getProjectionWave() == 0) {
-    		return getPrimaryDelta();
+    		return getFixedPrimaryDelta();
     	} else {
-    		return secondaryDeltas.getMergedDeltas(getPrimaryDelta(), getProjectionWave());
+    		return secondaryDeltas.getMergedDeltas(getFixedPrimaryDelta(), getProjectionWave());
     	}
     }
 	
@@ -212,9 +212,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     	if (wave == 0) {
     		// Primary delta is executed only in the first wave (wave 0)
     		if (LensUtil.isSyncChannel(getLensContext().getChannel())){
-    			return ObjectDelta.union(getPrimaryDelta(), getWaveSecondaryDelta(wave));
+    			return ObjectDelta.union(getFixedPrimaryDelta(), getWaveSecondaryDelta(wave));
     		} else {
-    			return ObjectDelta.union(getPrimaryDelta(), getWaveSecondaryDelta(wave), getWaveSecondaryDelta(1));
+    			return ObjectDelta.union(getFixedPrimaryDelta(), getWaveSecondaryDelta(wave), getWaveSecondaryDelta(1));
     		}
     	} else {
     		return getWaveSecondaryDelta(wave);
@@ -223,8 +223,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     
     public ObjectDelta<O> getWaveExecutableDelta(int wave) throws SchemaException {
     	if (wave == 0){
-    		if (getPrimaryDelta() != null && getPrimaryDelta().isAdd()){
-    			ObjectDelta delta = getPrimaryDelta();
+    		if (getFixedPrimaryDelta() != null && getFixedPrimaryDelta().isAdd()){
+    			ObjectDelta delta = getFixedPrimaryDelta();
     			for (ObjectDelta<O> secondary : getSecondaryDeltas()){
     				if (secondary != null){
     					secondary.applyTo(delta.getObjectToAdd());

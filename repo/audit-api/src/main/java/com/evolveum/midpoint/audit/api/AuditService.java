@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.audit.api;
 
+import java.util.List;
+import java.util.Map;
+
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
@@ -35,4 +38,6 @@ public interface AuditService {
      */
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult);
 
+    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params);
+    
 }

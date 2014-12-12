@@ -182,9 +182,10 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	 */
 	@Test
 	public void test003Connection() throws Exception {
-		TestUtil.displayTestTile("test003Connection");
+		final String TEST_NAME = "test003Connection";
+		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test003Connection");
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"."+TEST_NAME);
 		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
 		assertNotNull("No connector ref OID",resourceTypeBefore.getConnectorRef().getOid());
@@ -1369,6 +1370,27 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			assertEquals("Wrong uid (index "+i+")", expectedUids[i], uid);
 			i++;
 		}
+	}
+	
+	@Test
+	public void test250CountObjects() throws Exception {
+		final String TEST_NAME = "test250CountObjects";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
+                QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+
+		// WHEN
+		Integer count = provisioningService.countObjects(ShadowType.class, query, result);
+		
+		// THEN
+		result.computeStatus();
+		assertSuccess(result);
+		
+		assertEquals("Unexpected number of search results", (Integer)14, count);
 	}
 	
 	/**

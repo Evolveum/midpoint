@@ -44,7 +44,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ProtectedStringType")
-public class ProtectedStringType extends ProtectedDataType<String> {
+public class ProtectedStringType extends ProtectedDataType<String> implements Cloneable {
 
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ProtectedStringType");
 	
