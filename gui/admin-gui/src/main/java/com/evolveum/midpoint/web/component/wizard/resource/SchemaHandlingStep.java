@@ -45,6 +45,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -337,30 +338,14 @@ public class SchemaHandlingStep extends WizardStep {
         addDisabledClassModifier(editorDependency);
         editor.add(editorDependency);
 
+        AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
+        autoCompleteSettings.setShowListOnEmptyInput(true);
         AutoCompleteTextField<String> editorObjectClass = new AutoCompleteTextField<String>(ID_EDITOR_OBJECT_CLASS,
-                new PropertyModel<String>(model, SchemaHandlingDto.F_SELECTED_OBJECT_CLASS)) {
+                new PropertyModel<String>(model, SchemaHandlingDto.F_SELECTED_OBJECT_CLASS), autoCompleteSettings) {
 
             @Override
             protected Iterator<String> getChoices(String input) {
-                if(Strings.isEmpty(input)){
-                    List<String> emptyList = Collections.emptyList();
-                    return emptyList.iterator();
-                }
-
-                List<QName> resourceObjectClassList = model.getObject().getObjectClassList();
-                List<String> choices = new ArrayList<>(AUTO_COMPLETE_LIST_SIZE);
-
-                for(QName q: resourceObjectClassList){
-                    if(q.getLocalPart().toLowerCase().startsWith(input.toLowerCase())){
-                        choices.add(q.getLocalPart());
-
-                        if(choices.size() == AUTO_COMPLETE_LIST_SIZE){
-                            break;
-                        }
-                    }
-                }
-
-                return choices.iterator();
+                return getObjectClassChoices(input);
             }
         };
         editorObjectClass.add(createObjectClassValidator(new LoadableModel<List<QName>>(false) {
@@ -554,6 +539,35 @@ public class SchemaHandlingStep extends WizardStep {
         Label credentialsTooltip = new Label(ID_T_CREDENTIALS);
         credentialsTooltip.add(new InfoTooltipBehavior());
         editor.add(credentialsTooltip);
+    }
+
+    private Iterator<String> getObjectClassChoices(String input) {
+        List<QName> resourceObjectClassList = model.getObject().getObjectClassList();
+        List<String> choices = new ArrayList<>(AUTO_COMPLETE_LIST_SIZE);
+
+        if(Strings.isEmpty(input)){
+            for(QName q: resourceObjectClassList){
+                choices.add(q.getLocalPart());
+
+                if(choices.size() == AUTO_COMPLETE_LIST_SIZE){
+                    break;
+                }
+            }
+
+            return choices.iterator();
+        }
+
+        for(QName q: resourceObjectClassList){
+            if(q.getLocalPart().toLowerCase().startsWith(input.toLowerCase())){
+                choices.add(q.getLocalPart());
+
+                if(choices.size() == AUTO_COMPLETE_LIST_SIZE){
+                    break;
+                }
+            }
+        }
+
+        return choices.iterator();
     }
 
     private void addDisabledClassModifier(Component component){
