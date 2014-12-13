@@ -19,7 +19,7 @@
 <suite name="unit" parallel="false">
     <test name="Default" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
-            <class name="com.evolveum.midpoint.report.BasicReportTest"/> 
+<!--             <class name="com.evolveum.midpoint.report.BasicReportTest"/>  -->
         </classes>
     </test>
 </suite>
