@@ -81,7 +81,8 @@ public class PrismIdentifierGenerator {
                 val.setId(nextId);
                 usedIds.add(nextId);
 
-                if (!Operation.ADD_WITH_OVERWRITE.equals(operation)) {
+                if (!Operation.ADD_WITH_OVERWRITE.equals(operation)
+                        && !Operation.MODIFY.equals(operation)) {
                     result.getValues().add(val);
                 }
             }
