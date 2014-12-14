@@ -46,6 +46,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -88,6 +89,7 @@ public class QueryConvertor {
 	public static final QName KEY_FILTER_SUBSTRING = new QName(NS_QUERY, "substring");
 	public static final QName KEY_FILTER_ORG = new QName(NS_QUERY, "org");
 	public static final QName KEY_FILTER_TYPE = new QName(NS_QUERY, "type");
+	public static final QName KEY_FILTER_IN_OID = new QName(NS_QUERY, "inOid");
 	
 	private static final QName KEY_FILTER_EQUAL_PATH = new QName(NS_QUERY, "path");
 	private static final QName KEY_FILTER_EQUAL_MATCHING = new QName(NS_QUERY, "matching");
@@ -222,6 +224,10 @@ public class QueryConvertor {
 		if (QNameUtil.match(filterQName, KEY_FILTER_TYPE)) {
 			return parseTypeFilter(xsubnode, pcd, preliminaryParsingOnly, prismContext);
 		}
+		
+		if (QNameUtil.match(filterQName, KEY_FILTER_IN_OID)) {
+			return parseInOidFilter(xsubnode, pcd, preliminaryParsingOnly, prismContext);
+		}
 
 		throw new UnsupportedOperationException("Unsupported query filter " + filterQName);
 
@@ -339,6 +345,14 @@ public class QueryConvertor {
 
 	}
 	
+	private static InOidFilter parseInOidFilter(XNode xnode, PrismContainerDefinition pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
+	
+		MapXNode xmap = toMap(xnode);
+		ExpressionWrapper expression = parseExpression(xmap, prismContext);
+		InOidFilter inOidFilter = InOidFilter.createInOid(expression);
+		
+		return inOidFilter;
+	}
 	
 	private static TypeFilter parseTypeFilter(XNode xnode, PrismContainerDefinition pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
 		MapXNode xmap = toMap(xnode);
@@ -407,17 +421,18 @@ public class QueryConvertor {
 				return RefFilter.createReferenceEqual(itemPath, ref, expressionWrapper);
 			
 		} else {
-			Entry<QName, XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
-
-			KEY_FILTER_EQUAL_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
-			if (expressionEntry != null) {
-				PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor()
-						.parsePrismPropertyFromGlobalXNodeValue(expressionEntry);
+			ExpressionWrapper expressionWrapper = parseExpression(xmap, prismContext);
+//			Entry<QName, XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
+//
+//			KEY_FILTER_EQUAL_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
+			if (expressionWrapper != null) {
+//				PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor()
+//						.parsePrismPropertyFromGlobalXNodeValue(expressionEntry);
 				if (preliminaryParsingOnly) {
 					return null;
 				} else {
-					ExpressionWrapper expressionWrapper = new ExpressionWrapper();
-					expressionWrapper.setExpression(expressionPropertyValue.getValue());
+//					ExpressionWrapper expressionWrapper = new ExpressionWrapper();
+//					expressionWrapper.setExpression(expressionPropertyValue.getValue());
 					return RefFilter.createReferenceEqual(itemPath,
 							(PrismReferenceDefinition) itemDefinition, expressionWrapper);
 				}
@@ -425,12 +440,28 @@ public class QueryConvertor {
 				if (preliminaryParsingOnly) {
 					return null;
 				} else {
-					ExpressionWrapper expressionWrapper = null;
+//					ExpressionWrapper expressionWrapper = null;
 					return RefFilter.createReferenceEqual(itemPath,
 							(PrismReferenceDefinition) itemDefinition, expressionWrapper);
 				}
 			}
 		}
+
+	}
+	
+	private static ExpressionWrapper parseExpression(MapXNode xmap, PrismContext prismContext) throws SchemaException {
+		Entry<QName, XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
+
+		KEY_FILTER_EQUAL_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
+		if (expressionEntry != null) {
+			PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor()
+					.parsePrismPropertyFromGlobalXNodeValue(expressionEntry);
+			ExpressionWrapper expressionWrapper = new ExpressionWrapper();
+			expressionWrapper.setExpression(expressionPropertyValue.getValue());
+			return expressionWrapper;
+		}
+
+		return null;
 
 	}
 

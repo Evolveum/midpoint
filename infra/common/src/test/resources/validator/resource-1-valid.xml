@@ -36,13 +36,11 @@
 	<connectorRef type="ConnectorType">
 		<description>Search for LDAP connector type, resolved during import</description>
 		<filter>
-			<q:and>
-				<q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType" />
 				<q:equal>
                     <q:path>connectorType</q:path>
 					<q:value>org.identityconnectors.ldap.LdapConnector</q:value>
 				</q:equal>
-			</q:and>
+			
 		</filter>
 	</connectorRef>
 
