@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -69,7 +70,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 	}
 
     @Override
-	public <T> List<PrismPropertyValue<T>> evaluate(ScriptExpressionEvaluatorType expressionType,
+	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType,
 			ExpressionVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType, 
 			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
@@ -95,7 +96,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         Object evaluatedExpression = evaluate(returnType, codeString, variables, objectResolver, functions,
         		contextDescription, result);
 
-        List<PrismPropertyValue<T>> propertyValues;
+        List<V> propertyValues;
         
         boolean scalar = !outputDefinition.isMultiValue();
         if (expressionType.getReturnType() != null) {
@@ -116,9 +117,9 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         			evaluatedExpression = evaluatedExpressionNodeList.item(0);
         		}
         	}
-        	propertyValues = new ArrayList<PrismPropertyValue<T>>(1);
-        	PrismPropertyValue<T> pval = convertScalar(type, returnType, evaluatedExpression, contextDescription);
-        	if (!isNothing(pval.getValue())) {
+        	propertyValues = new ArrayList<V>(1);
+        	V pval = convertScalar(type, returnType, evaluatedExpression, contextDescription);
+        	if (pval instanceof PrismPropertyValue && !isNothing(((PrismPropertyValue<T>)pval).getValue())) {
         		propertyValues.add(pval);
         	}
         } else {
@@ -128,7 +129,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         	propertyValues = convertList(type, (NodeList) evaluatedExpression, contextDescription);
         }
         
-        return (List<PrismPropertyValue<T>>) PrismValue.cloneCollection(propertyValues);
+        return (List<V>) PrismValue.cloneCollection(propertyValues);
     }
 
 	private boolean isScalar(ScriptExpressionReturnTypeType returnType) {
@@ -337,10 +338,14 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         throw new ExpressionEvaluationException("Unsupported return type " + type);
     }
 */
-    private <T> PrismPropertyValue<T> convertScalar(Class<T> type, QName returnType, Object value,
+    private <T, V extends PrismValue> V convertScalar(Class<T> type, QName returnType, Object value,
             String contextDescription) throws ExpressionEvaluationException {
-        if (type.isAssignableFrom(value.getClass())) {
-            return new PrismPropertyValue<T>((T) value);
+        if (value instanceof ObjectReferenceType){
+        	return (V) ((ObjectReferenceType) value).asReferenceValue();
+        }
+    	
+    	if (type.isAssignableFrom(value.getClass())) {
+            return (V) new PrismPropertyValue<T>((T) value);
         }
         try {
         	T resultValue = null;
@@ -358,7 +363,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
             }
             PrismUtil.recomputeRealValue(resultValue, prismContext);
             
-            return new PrismPropertyValue<T>(resultValue);
+            return (V) new PrismPropertyValue<T>(resultValue);
         } catch (SchemaException e) {
             throw new ExpressionEvaluationException("Error converting result of "
                     + contextDescription + ": " + e.getMessage(), e);
@@ -368,9 +373,9 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         }
     }
 
-    private <T> List<PrismPropertyValue<T>> convertList(Class<T> type, NodeList valueNodes, String contextDescription) throws
+    private <T, V extends PrismValue> List<V> convertList(Class<T> type, NodeList valueNodes, String contextDescription) throws
             ExpressionEvaluationException {
-        List<PrismPropertyValue<T>> values = new ArrayList<PrismPropertyValue<T>>();
+        List<V> values = new ArrayList<V>();
         if (valueNodes == null) {
             return values;
         }
@@ -378,10 +383,13 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         try {
             List<T> list = XmlTypeConverter.convertValueElementAsList(valueNodes, type);
             for (T item : list) {
+            	if (item instanceof ObjectReferenceType){
+            		values.add((V)((ObjectReferenceType) item).asReferenceValue());
+            	}
                 if (isNothing(item)) {
                     continue;
                 }
-                values.add(new PrismPropertyValue<T>(item));
+                values.add((V) new PrismPropertyValue<T>(item));
             }
             return values;
         } catch (SchemaException e) {
