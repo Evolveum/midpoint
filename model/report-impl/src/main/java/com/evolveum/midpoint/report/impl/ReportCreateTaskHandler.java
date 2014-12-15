@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.report.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -25,11 +27,9 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import net.sf.jasperreports.engine.JRDataSource;
-import net.sf.jasperreports.engine.JRDataSourceProvider;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExporterParameter;
-import net.sf.jasperreports.engine.JRParameter;
+import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -45,19 +45,23 @@ import net.sf.jasperreports.engine.export.oasis.JROdtExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRDocxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRPptxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
-import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
+import net.sf.jasperreports.engine.xml.JRXmlTemplateLoader;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.BooleanUtils;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -69,6 +73,7 @@ import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -77,6 +82,7 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -93,7 +99,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Component
 public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextAware  {
 
-    public static final String REPORT_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/create/handler-1";
+	public static final String REPORT_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/create/handler-1";
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportCreateTaskHandler.class);
     
@@ -104,6 +110,10 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
     private static final String CREATE_REPORT = CLASS_NAME_WITH_DOT + "createReport";
     
     private static final String CREATE_REPORT_OUTPUT_TYPE = CLASS_NAME_WITH_DOT + "createReportOutputType";
+    
+    private static String PARAMETER_REPORT_OID = "reportOid";
+    private static String PARAMETER_OPERATION_RESULT = "operationResult";
+    private static String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
     
     
 
@@ -121,6 +131,18 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
     
     @Autowired
 	private SessionFactory sessionFactory;
+    
+    @Autowired(required=true)
+    private ExpressionFactory expressionFactory;
+    
+    @Autowired(required=true)
+    private ObjectResolver objectResolver;
+    
+    @Autowired(required=true)
+    private MidpointFunctions midpointFunctions;
+    
+    @Autowired(required=true)
+    private AuditService auditService;
     
     private ApplicationContext context;
 
@@ -140,7 +162,7 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
     
     private Map<String, Object> getSubreportParameters(SubreportType subreportType, OperationResult subResult)
     {
-    	Map<String, Object> subreports = new HashMap<String, Object>();
+    	Map<String, Object> reportParams = new HashMap<String, Object>();
     	try
 		{
 			ReportType reportType = ReportUtils.getReport(subreportType.getReportRef().getOid(), subResult, modelService);
@@ -148,18 +170,21 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
 			PrismSchema reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);
     		PrismContainer<Containerable> parameterConfiguration = ReportUtils.getParametersContainer(reportType, reportSchema);    		
 
-    		Map<String, Object> parameters = ReportUtils.getReportParameters(reportType, parameterConfiguration, reportSchema, subResult);
-			subreports.putAll(parameters);
+    		Map<String, Object> parameters = prepareReportParameters(reportType, subResult);
+    		reportParams.putAll(parameters);
 		   	
 		   	JasperReport jasperReport = ReportUtils.getJasperReport(reportType, parameterConfiguration, reportSchema);
-       		subreports.put(subreportType.getName(), jasperReport);
+		   	reportParams.put(subreportType.getName(), jasperReport);
        	 		
+       		Map<String, Object> subReportParams = processSubreportParameters(reportType, subResult);
+       		reportParams.putAll(subReportParams);
+       		
        	 		
 		} catch (Exception ex) {
 				LOGGER.error("Error read subreport parameter {} :", ex);
 		}
 		 
-		return subreports;
+		return reportParams;
     }
 	
    
@@ -194,7 +219,7 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
     	recordProgress(task, 0, opResult);
     	long progress = task.getProgress();
     	
-    	Map<String, Object> params = new HashMap<String, Object>();
+		Map<String, Object> params = new HashMap<String, Object>();
     	JasperReport jasperReport;
     	try
     	{  
@@ -210,67 +235,28 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
     		LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
     		
     		
-    		Map<String, Object> parameters = ReportUtils.getReportParameters(reportType, parameterConfiguration, reportSchema, subResult);
+    		Map<String, Object> parameters = prepareReportParameters(reportType, opResult); 
+//    				ReportUtils.getReportParameters(modelService, taskManager, prismContext, reportType, parameterConfiguration, reportSchema, subResult);
     		params.putAll(parameters);
     		LOGGER.trace("create report params : {}", parameters);
     		
     		OperationResult subreportResult = opResult.createSubresult("get report subreport");
-    		Map<String, Object> subreportParameters = new HashMap<String, Object>();
-    		
-    		for(SubreportType subreport : reportType.getSubreport())
-    		{
-    			Map<String, Object> subreportParam = getSubreportParameters(subreport, subreportResult);
-    			LOGGER.trace("create subreport params : {}", subreportParam);
-    			subreportParameters.putAll(subreportParam);
-    		}
+    		Map<String, Object> subreportParameters = processSubreportParameters(reportType, subreportResult);
     		subreportResult.computeStatus();
     		
     		//params.put("subreportParameters", subreportParameters);   		
     		params.putAll(subreportParameters);
-    		
-    		Session session = sessionFactory.openSession();
-			session.beginTransaction();
-			
-    		if (BooleanUtils.isTrue(reportType.isUseHibernateSession()))
-    		{	     
-    			params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
-    		}
-    		if (reportType.getDataSource() != null)
-    		{
-    			LOGGER.trace("create report datasource provider : {}", reportType);
-        		
-    			JRDataSourceProvider dsrp = null;
-    			Class<?> dataSourceProviderClass = Class.forName(reportType.getDataSource().getProviderClass());
-    			if (BooleanUtils.isTrue(reportType.getDataSource().isSpringBean()))
-    			{
-    				dsrp = (JRDataSourceProvider)context.getBean(dataSourceProviderClass);
-    			} else {
-    				dsrp = (JRDataSourceProvider)dataSourceProviderClass.newInstance();
-    			}
-    			JRDataSource dataSource = null;
-    			if (dsrp instanceof ConfigurableDSProvider)
-    			{
-    				dataSource = ((ConfigurableDSProvider)dsrp).create(jasperReport, params);
-    			}else {
-    				dataSource = dsrp.create(jasperReport);
-    			}
-    			// skusit vopchat provider
-    			params.put(JRParameter.REPORT_DATA_SOURCE, dataSource);
-    		}	
+    		ReportFunctions reportFunctions = new ReportFunctions(prismContext, modelService, taskManager, auditService);
+    		params.put(MidPointQueryExecutorFactory.PARAMETER_REPORT_FUNCTIONS, reportFunctions);
     		
     		LOGGER.trace("All Report parameters : {}", params);
-    		
-    		
     		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
     		LOGGER.trace("fill report : {}", jasperPrint);
 
     		String reportFilePath = generateReport(reportType, jasperPrint);
     		LOGGER.trace("generate report : {}", reportFilePath);
-    		
-    		session.getTransaction().commit();
- 	       	session.close();
-    		
- 	       	saveReportOutputType(reportFilePath, reportType, task, subResult);
+
+    		saveReportOutputType(reportFilePath, reportType, task, subResult);
     		LOGGER.trace("create report output type : {}", reportFilePath);
     
     		subResult.computeStatus();
@@ -291,6 +277,50 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
     	return runResult;
     }
    
+    private Map<String, Object> prepareReportParameters(ReportType reportType, OperationResult parentResult){
+    	Map<String, Object> params = new HashMap<String, Object>();
+		if (reportType.getTemplateStyle() != null)
+		{	 
+			byte[] reportTemplateStyleBase64 = reportType.getTemplateStyle();
+			byte[] reportTemplateStyle = Base64.decodeBase64(reportTemplateStyleBase64);
+			try{
+				LOGGER.trace("Style template string {}", new String(reportTemplateStyle));
+		    	InputStream inputStreamJRTX = new ByteArrayInputStream(reportTemplateStyle);
+	    		JRTemplate templateStyle = JRXmlTemplateLoader.load(inputStreamJRTX);
+				params.put(PARAMETER_TEMPLATE_STYLES, templateStyle);
+				LOGGER.trace("Style template parameter {}", templateStyle);
+				
+			} catch (Exception ex) {
+				LOGGER.error("Error create style template parameter {}", ex.getMessage());
+				throw new SystemException(ex);
+			}
+			
+		 } 
+		
+		// for our special datasource
+		params.put(PARAMETER_REPORT_OID, reportType.getOid());
+		params.put(PARAMETER_OPERATION_RESULT, parentResult);
+		params.put(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION, modelService);
+		params.put(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, prismContext);
+		params.put(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER, taskManager);
+		params.put(MidPointQueryExecutorFactory.PARAMETER_EXPRESSION_FACTORY, expressionFactory);
+		params.put(MidPointQueryExecutorFactory.PARAMETER_AUDIT_SERVICE, auditService);
+		
+		return params;
+    }
+    
+    private Map<String, Object> processSubreportParameters(ReportType reportType, OperationResult subreportResult){
+    	Map<String, Object> subreportParameters = new HashMap<String, Object>();
+    	for(SubreportType subreport : reportType.getSubreport())
+		{
+			Map<String, Object> subreportParam = getSubreportParameters(subreport, subreportResult);
+			LOGGER.trace("create subreport params : {}", subreportParam);
+			subreportParameters.putAll(subreportParam);
+				
+		}
+    	return subreportParameters;
+    }
+    
     @Override
     public Long heartbeat(Task task) {
         return null;
@@ -541,6 +571,7 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
     	
     	subResult.computeStatus();    	
    }
+
 
 }
 

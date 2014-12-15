@@ -334,4 +334,10 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		return sb.toString();
 	}
 
+	@Override
+	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

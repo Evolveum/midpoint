@@ -3,6 +3,7 @@ package com.evolveum.midpoint.report.impl;
 import java.util.Map;
 
 import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.JRDataSourceProvider;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import net.sf.jasperreports.engine.JasperReport;
@@ -15,7 +16,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 
 @Service
-public class DataSourceReportProvider implements ConfigurableDSProvider {
+public class DataSourceReportProvider implements JRDataSourceProvider {
 		
 	@Autowired
 	private PrismContext prismContext;
@@ -115,12 +116,12 @@ public class DataSourceReportProvider implements ConfigurableDSProvider {
 			return report.getFields();
 		}
 
-		@Override
-		public JRDataSource create(JasperReport report, Map params) {
-			
-			return new DataSourceReport(params, prismContext, modelService);
-			
-		}
+//		@Override
+//		public JRDataSource create(JasperReport report, Map params) {
+//			
+//			return new DataSourceReport(params, prismContext, modelService);
+//			
+//		}
 
 	}
 

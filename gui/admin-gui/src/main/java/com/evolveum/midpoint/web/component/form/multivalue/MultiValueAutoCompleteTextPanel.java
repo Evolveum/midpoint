@@ -21,6 +21,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -77,30 +78,14 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Sim
             @Override
             protected void populateItem(final ListItem<T> item) {
 
+                AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
+                autoCompleteSettings.setShowListOnEmptyInput(true);
                 AutoCompleteTextField<String> autoCompleteEditor = new AutoCompleteTextField<String>(ID_TEXT,
-                        createTextModel(item.getModel())) {
+                        createTextModel(item.getModel()), autoCompleteSettings) {
 
                     @Override
                     protected Iterator<String> getChoices(String input) {
-                        if(Strings.isEmpty(input)){
-                            List<String> emptyList = Collections.emptyList();
-                            return emptyList.iterator();
-                        }
-
-                        List<T> list = createObjectList();
-                        List<String> choices = new ArrayList<>(AUTO_COMPLETE_LIST_SIZE);
-
-                        for(T object: list){
-                            if(createAutoCompleteObjectLabel(object).toLowerCase().startsWith(input.toLowerCase())){
-                                choices.add(createAutoCompleteObjectLabel(object));
-
-                                if(choices.size() == AUTO_COMPLETE_LIST_SIZE){
-                                    break;
-                                }
-                            }
-                        }
-
-                        return choices.iterator();
+                        return createAutocompleteObjectList(input);
                     }
                 };
                 autoCompleteEditor.add(createAutoCompleteValidator());
@@ -119,6 +104,35 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Sim
             }
         };
         add(repeater);
+    }
+
+    private Iterator<String> createAutocompleteObjectList(String input) {
+        List<T> list = createObjectList();
+        List<String> choices = new ArrayList<>(AUTO_COMPLETE_LIST_SIZE);
+
+        if(Strings.isEmpty(input)){
+            for(T object: list){
+                choices.add(createAutoCompleteObjectLabel(object));
+
+                if(choices.size() == AUTO_COMPLETE_LIST_SIZE){
+                    break;
+                }
+            }
+
+            return choices.iterator();
+        }
+
+        for(T object: list){
+            if(createAutoCompleteObjectLabel(object).toLowerCase().startsWith(input.toLowerCase())){
+                choices.add(createAutoCompleteObjectLabel(object));
+
+                if(choices.size() == AUTO_COMPLETE_LIST_SIZE){
+                    break;
+                }
+            }
+        }
+
+        return choices.iterator();
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {

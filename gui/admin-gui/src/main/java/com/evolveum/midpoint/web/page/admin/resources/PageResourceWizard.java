@@ -54,9 +54,14 @@ public class PageResourceWizard extends PageAdminResources {
     private static final String ID_WIZARD = "wizard";
     private IModel<PrismObject<ResourceType>> model;
     private PageParameters parameters;
+    private boolean isNewResource;
 
     public PageResourceWizard(PageParameters parameters) {
         this.parameters = parameters;
+
+        if(!isResourceOidAvailable()){
+            isNewResource = true;
+        }
 
         model = new LoadableModel<PrismObject<ResourceType>>(false) {
 
@@ -66,7 +71,6 @@ public class PageResourceWizard extends PageAdminResources {
                     if (!isResourceOidAvailable()) {
                         ResourceType resource = new ResourceType();
                         PageResourceWizard.this.getPrismContext().adopt(resource);
-
                         return resource.asPrismObject();
                     }
 
@@ -140,7 +144,7 @@ public class PageResourceWizard extends PageAdminResources {
     private void initLayout() {
         WizardModel wizardModel = new WizardModel();
         wizardModel.add(new NameStep(model));
-        wizardModel.add(new ConfigurationStep(model));
+        wizardModel.add(new ConfigurationStep(model, isNewResource));
         wizardModel.add(new SchemaStep(model));
         wizardModel.add(new SchemaHandlingStep(model));
         wizardModel.add(new CapabilityStep(model));

@@ -31,9 +31,14 @@ import com.evolveum.midpoint.util.DebugUtil;
 public class InOidFilter extends ObjectFilter {
 
 	private Collection<String> oids;
+	private ExpressionWrapper expression;
 	
 	InOidFilter(Collection<String> oids) {
 		this.oids = oids;
+	}
+	
+	InOidFilter(ExpressionWrapper expression){
+		this.expression = expression;
 	}
 	
 	public static InOidFilter createInOid(Collection<String> oids){
@@ -43,6 +48,10 @@ public class InOidFilter extends ObjectFilter {
 	public static InOidFilter createInOid(String... oids){
 		return new InOidFilter(Arrays.asList(oids));
 	}
+	
+	public static InOidFilter createInOid(ExpressionWrapper expression){
+		return new InOidFilter(expression);
+	}
 		
 	public Collection<String> getOids() {
 		return oids;
@@ -50,6 +59,14 @@ public class InOidFilter extends ObjectFilter {
 	
 	public void setOids(Collection<String> oids) {
 		this.oids = oids;
+	}
+	
+	public ExpressionWrapper getExpression() {
+		return expression;
+	}
+	
+	public void setExpression(ExpressionWrapper expression) {
+		this.expression = expression;
 	}
 	
 	@Override
@@ -103,7 +120,9 @@ public class InOidFilter extends ObjectFilter {
 
 	@Override
 	public InOidFilter clone() {
-		return new InOidFilter(getOids());
+		InOidFilter inOid = new InOidFilter(getOids());
+		inOid.setExpression(getExpression());
+		return inOid;
 	}
 
 	@Override

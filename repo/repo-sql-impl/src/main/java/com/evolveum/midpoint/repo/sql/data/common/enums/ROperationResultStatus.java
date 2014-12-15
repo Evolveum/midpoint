@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /**
@@ -40,6 +41,10 @@ public enum ROperationResultStatus implements SchemaEnum<OperationResultStatusTy
         this.status = status;
     }
 
+    public OperationResultStatus getStatus(){
+    	return OperationResultStatus.parseStatusType(status);
+    }
+    
     @Override
     public OperationResultStatusType getSchemaValue() {
         return status;

@@ -34,15 +34,18 @@
      http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd"
 	default-lazy-init="false" default-autowire="byName">
 
-    <import resource="ctx-model.xml"/>
+  <import resource="ctx-model.xml"/>
     <import resource="ctx-model-test.xml"/>
+    <import resource="ctx-provisioning.xml"/>
+    
+    <import resource="ctx-task.xml"/>
+    <import resource="ctx-audit.xml"/>
+    <import resource="ctx-common.xml"/>
+    <import resource="ctx-security.xml"/>
     <import resource="classpath*:ctx-repository.xml"/>
     <import resource="ctx-repo-cache.xml"/>
     <import resource="ctx-configuration-test.xml"/>
-    <import resource="ctx-provisioning.xml"/>
-    <import resource="ctx-common.xml"/>
-    <import resource="ctx-security.xml"/>
-    <import resource="ctx-task.xml"/>
-    <import resource="ctx-audit.xml"/>
+
+    
     <import resource="ctx-report.xml"/>
 </beans>

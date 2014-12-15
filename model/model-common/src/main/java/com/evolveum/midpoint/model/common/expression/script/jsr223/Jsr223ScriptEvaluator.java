@@ -49,7 +49,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
@@ -96,7 +98,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 	}
 	
 	@Override
-	public <T> List<PrismPropertyValue<T>> evaluate(ScriptExpressionEvaluatorType expressionType,
+	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType,
 			ExpressionVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType, 
 			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
@@ -136,22 +138,32 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			javaReturnType = prismContext.getSchemaRegistry().getCompileTimeClass(xsdReturnType);
 		}
         
-		List<PrismPropertyValue<T>> pvals = new ArrayList<PrismPropertyValue<T>>();
+		List<V> pvals = new ArrayList<V>();
 		
 		if (evalRawResult instanceof Collection) {
 			for(Object evalRawResultElement : (Collection)evalRawResult) {
 				T evalResult = convertScalarResult(javaReturnType, evalRawResultElement, contextDescription);
+				V pval = null;
 				if (allowEmptyValues || !isEmpty(evalResult)) {
-					PrismPropertyValue<T> pval = new PrismPropertyValue<T>(evalResult);
+					if (outputDefinition instanceof PrismReferenceDefinition){
+						pval = (V) ((ObjectReferenceType)evalResult).asReferenceValue();
+					} else {
+						pval = (V) new PrismPropertyValue<T>(evalResult);
+					}
 					pvals.add(pval);
 				}
 			}
 		} else if (evalRawResult instanceof PrismProperty<?>) {
-			pvals.addAll(PrismPropertyValue.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
+			pvals.addAll((Collection<? extends V>) PrismPropertyValue.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
 		} else {
 			T evalResult = convertScalarResult(javaReturnType, evalRawResult, contextDescription);
+			V pval = null;
 			if (allowEmptyValues || !isEmpty(evalResult)) {
-				PrismPropertyValue<T> pval = new PrismPropertyValue<T>(evalResult);
+				if (outputDefinition instanceof PrismReferenceDefinition){
+					pval = (V) ((ObjectReferenceType)evalResult).asReferenceValue();
+				} else {
+					pval = (V) new PrismPropertyValue<T>(evalResult);
+				}
 				pvals.add(pval);
 			}
 		}
@@ -162,6 +174,37 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 //		}
 				
 		return pvals;
+	}
+	
+	public <T> Object evaluateReportScript(String codeString, ExpressionVariables variables, ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
+			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
+			ObjectNotFoundException, ExpressionSyntaxException {
+		
+		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, result);
+		
+//		String codeString = code;
+		if (codeString == null) {
+			throw new ExpressionEvaluationException("No script code in " + contextDescription);
+		}
+
+		boolean allowEmptyValues = true;
+//		if (expressionType.isAllowEmptyValues() != null) {
+//			allowEmptyValues = expressionType.isAllowEmptyValues();
+//		}
+		
+		CompiledScript compiledScript = createCompiledScript(codeString, contextDescription);
+		
+		Object evalRawResult;
+		try {
+			InternalMonitor.recordScriptExecution();
+			evalRawResult = compiledScript.eval(bindings);
+		} catch (ScriptException e) {
+			throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
+		}
+		
+		
+				
+		return evalRawResult;
 	}
 	
 	private CompiledScript createCompiledScript(String codeString, String contextDescription) throws ExpressionEvaluationException {
