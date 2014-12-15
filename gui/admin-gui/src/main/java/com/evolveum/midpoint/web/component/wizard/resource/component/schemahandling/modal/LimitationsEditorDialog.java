@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -72,7 +73,6 @@ public class LimitationsEditorDialog extends ModalWindow{
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_T_LAYERS = "layersTooltip";
     private static final String ID_T_PROPERTY = "propertyAccessTooltip";
-    private static final String ID_T_OTHER = "otherTooltip";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-8";
@@ -215,7 +215,7 @@ public class LimitationsEditorDialog extends ModalWindow{
         form.add(save);
     }
 
-    private void initLimitationBody(WebMarkupContainer body, ListItem<PropertyLimitationsTypeDto> item){
+    private void initLimitationBody(final WebMarkupContainer body, ListItem<PropertyLimitationsTypeDto> item){
         CheckFormGroup schema = new CheckFormGroup(ID_LAYER_SCHEMA, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_SCHEMA),
                 createStringResource("LimitationsEditorDialog.label.schema"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         schema.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
@@ -259,16 +259,24 @@ public class LimitationsEditorDialog extends ModalWindow{
         body.add(ignore);
 
         Label layersTooltip = new Label(ID_T_LAYERS);
-        layersTooltip.add(new InfoTooltipBehavior(true));
+        layersTooltip.add(new InfoTooltipBehavior(true){
+
+            @Override
+            public String getModalContainer(Component component) {
+                return body.getMarkupId();
+            }
+        });
         body.add(layersTooltip);
 
         Label propertyTooltip = new Label(ID_T_PROPERTY);
-        propertyTooltip.add(new InfoTooltipBehavior(true));
-        body.add(propertyTooltip);
+        propertyTooltip.add(new InfoTooltipBehavior(true){
 
-        Label otherTooltip = new Label(ID_T_OTHER);
-        otherTooltip.add(new InfoTooltipBehavior(true));
-        body.add(otherTooltip);
+            @Override
+            public String getModalContainer(Component component) {
+                return body.getMarkupId();
+            }
+        });
+        body.add(propertyTooltip);
     }
 
     private AjaxFormComponentUpdatingBehavior prepareAjaxOnComponentTagUpdateBehavior(){
