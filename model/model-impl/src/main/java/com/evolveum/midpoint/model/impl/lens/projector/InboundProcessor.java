@@ -136,7 +136,8 @@ public class InboundProcessor {
         try {
             for (LensProjectionContext accountContext : context.getProjectionContexts()) {
             	if (!accountContext.isCanProject()){
-            		LOGGER.trace("Skipping processing of inbound expressions for account {}: there is a limit to propagate changes only from resource", context.getTriggeredResourceOid());
+            		LOGGER.trace("Skipping processing of inbound expressions for account {}: there is a limit to propagate changes only from resource {}",
+							accountContext.getResourceShadowDiscriminator(), context.getTriggeredResourceOid());
             		continue;
             	}
             	ResourceShadowDiscriminator rat = accountContext.getResourceShadowDiscriminator();
@@ -156,7 +157,6 @@ public class InboundProcessor {
                             + " not found in the context, but it should be there");
                 }
 
-                
                 processInboundExpressionsForAccount(context, accountContext, accountDefinition, aPrioriDelta, task, now, result);
             }
 
@@ -210,8 +210,10 @@ public class InboundProcessor {
             }
             
             List<MappingType> inboundMappingTypes = attrDef.getInboundMappingTypes();
-            LOGGER.trace("Processing inbound for {} in {}; ({} mappings)", new Object[]{
-            		PrettyPrinter.prettyPrint(accountAttributeName), accContext.getResourceShadowDiscriminator(), (inboundMappingTypes != null ? inboundMappingTypes.size() : 0)});
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Processing inbound for {} in {}; ({} mappings)", new Object[]{
+						PrettyPrinter.prettyPrint(accountAttributeName), accContext.getResourceShadowDiscriminator(), inboundMappingTypes.size()});
+			}
 
             if (!inboundMappingTypes.isEmpty()) {
             	
@@ -237,7 +239,7 @@ public class InboundProcessor {
 	            	//  * if we do NOT have a delta then we will proceed in absolute mode. In that mode we will apply the
 	            	//    mappings to the absolute projection state that we got from provisioning. This is a kind of "inbound reconciliation".
 	            	
-	            	PrismObject<F> focus = null;
+	            	PrismObject<F> focus;
 	            	if (context.getFocusContext().getObjectCurrent() != null){
 	            		focus = context.getFocusContext().getObjectCurrent();
 	            	} else {
@@ -252,21 +254,11 @@ public class InboundProcessor {
 	                } else if (accountCurrent != null) {
 	                	if (!accContext.isFullShadow()) {
 	                		LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", accContext.getOid());      // todo change to trace level eventually
-                            Throwable failure = null;
                             try {
                                 LensUtil.loadFullAccount(context, accContext, provisioningService, result);
                                 accountCurrent = accContext.getObjectCurrent(); 
-                            } catch (ObjectNotFoundException e) {
-                                failure = e;
-                            } catch (SecurityViolationException e) {
-                                failure = e;
-                            } catch (CommunicationException e) {
-                                failure = e;
-                            } catch (ConfigurationException e) {
-                                failure = e;
-                            }
-                            if (failure != null) {
-                                LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and skipping inbound processing on it", accContext.getOid(), failure.getMessage());
+                            } catch (ObjectNotFoundException|SecurityViolationException|CommunicationException|ConfigurationException e) {
+                                LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and skipping inbound processing on it", accContext.getOid(), e.getMessage());
                                 accContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
                                 return;
                             }
@@ -297,11 +289,11 @@ public class InboundProcessor {
 	            }
             }
         }
-        
-        if (isDeleteAccountDelta(accContext)){
+
+		if (isDeleteAccountDelta(accContext)){
 //   		 we don't need to do inbound if account was deleted
-   		return;
-   	}
+			return;
+		}
         processSpecialPropertyInbound(accountDefinition.getCredentialsInbound(), SchemaConstants.PATH_PASSWORD_VALUE,
         		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, task, now, result);
         
@@ -415,6 +407,7 @@ public class InboundProcessor {
 	                }
 	
 	                //if property is not multi value replace existing attribute
+					// TODO check for multiple additions here? [med]
 	                if (targetFocusProperty != null && !targetFocusProperty.getDefinition().isMultiValue() && !targetFocusProperty.isEmpty()) {
 	                    Collection<PrismPropertyValue<U>> replace = new ArrayList<PrismPropertyValue<U>>();
 	                    replace.add(value.clone());
@@ -451,7 +444,7 @@ public class InboundProcessor {
 		            	outputUserPropertydelta.merge(diffDelta);
 		            }
 		        } else {
-		            if (sourceProperty != null) {
+		            if (sourceProperty != null) {	// actually sourceProperty is never null here [med]
 		                LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value)");
 		                //if user property doesn't exist we have to add it (as delta), because inbound say so
 		                outputUserPropertydelta.addValuesToAdd(sourceProperty.getClonedValues());
@@ -461,10 +454,10 @@ public class InboundProcessor {
 		        }
 	        }
 	        
-    	} else { // tripple == null
+    	} else { // triple == null
     		
-    			if (accountAttributeDelta == null && LensUtil.isSyncChannel(context.getChannel())){
-    			// This is the case of "inbound reconciliation" which is quite special. The tripple returned null
+   			if (accountAttributeDelta == null && LensUtil.isSyncChannel(context.getChannel())){
+    			// This is the case of "inbound reconciliation" which is quite special. The triple returned null
     			// which means that there was nothing in the input and (unsurprisingly) no change. If the input was empty
     			// then we need to make sure that the output (focus property) is also empty. Otherwise we miss the
     			// re-sets of projection values to empty values and cannot propagate them.

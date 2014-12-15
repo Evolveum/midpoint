@@ -34,22 +34,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.common.expression.Expression;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.common.expression.Source;
-import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
-import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
@@ -57,17 +49,13 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -76,21 +64,15 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -223,8 +205,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				return;
 			}
 			
-			//check if the kind/intent in the syncPolicy satisfy constaints defined in task
-			if (!satisfyTaskConstaints(synchronizationPolicy, task)){
+			//check if the kind/intent in the syncPolicy satisfy constraints defined in task
+			if (!satisfyTaskConstraints(synchronizationPolicy, task)){
 				LOGGER.trace("SYNCHRONIZATION skipping {} because it does not match kind/intent defined in task",new Object[] {
 						applicableShadow});
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
@@ -252,7 +234,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 					object = change.getOldShadow();
 				}
 				
-				XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 				Collection modifications = SynchronizationSituationUtil
 						.createSynchronizationSituationAndDescriptionDelta(object,
 								situation.getSituation(), task.getChannel(), false);
@@ -264,7 +245,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				return;
 			}
 			
-			//must be here, bacause when the reaction has no action, the situation will be not set.
+			//must be here, because when the reaction has no action, the situation will be not set.
 			PrismObject<ShadowType> newCurrentShadow = saveSyncMetadata((PrismObject<ShadowType>) currentShadow, 
 					situation, change, synchronizationPolicy, parentResult);
 			if (newCurrentShadow != null) {
@@ -284,7 +265,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 	}
 	
-	private boolean satisfyTaskConstaints(ObjectSynchronizationType synchronizationPolicy, Task task) {
+	private boolean satisfyTaskConstraints(ObjectSynchronizationType synchronizationPolicy, Task task) {
 		PrismProperty<ShadowKindType> kind = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_KIND);
 		if (kind != null && !kind.isEmpty()){
 			ShadowKindType kindValue = kind.getRealValue();
@@ -363,7 +344,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		Validate.notNull(shadowObjectClass, "No objectClass in currentShadow");
 		List<QName> policyObjectClasses = synchronizationPolicy.getObjectClass();
 		if (policyObjectClasses != null && !policyObjectClasses.isEmpty()) {
-			if (!policyObjectClasses.contains(shadowObjectClass)) {
+			if (!policyObjectClasses.contains(shadowObjectClass)) {	// TODO relaxed QName match [med]
 				return false;
 			}
 		}
@@ -376,6 +357,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 		
 		// intent
+		// TODO is the intent always present in shadow at this time? [med]
 		String shadowIntent = currentShadowType.getIntent();
 		String policyIntent = synchronizationPolicy.getIntent();
 		if (policyIntent != null && shadowIntent != null && !MiscSchemaUtil.equalsIntent(shadowIntent, policyIntent)) {
@@ -480,7 +462,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				case DELETE:
 					state = SynchronizationSituationType.DELETED;
 				}
-				situation = new SynchronizationSituation<F>(ownerType, null, state);
+				situation = new SynchronizationSituation<>(ownerType, null, state);
 			} else {
 				LOGGER.trace("Resource object shadow doesn't have owner.");
 				situation = determineSituationWithCorrelation(focusType, change, synchronizationPolicy, owner, configurationType, task, result);
@@ -546,7 +528,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 		if (ChangeType.DELETE.equals(getModificationType(change))) {
 			// account was deleted and we know it didn't have owner
-			return new SynchronizationSituation<F>(owner == null ? null : owner.asObjectable(), 
+			return new SynchronizationSituation<>(owner == null ? null : owner.asObjectable(),
 					null, SynchronizationSituationType.DELETED);
 		}
 
@@ -570,7 +552,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		List<PrismObject<F>> users = correlationConfirmationEvaluator.findFocusesByCorrelationRule(
 				focusType, resourceShadow.asObjectable(), synchronizationPolicy.getCorrelation(), resource, configurationType, task, result);
 		if (users == null) {
-			users = new ArrayList<PrismObject<F>>();
+			users = new ArrayList<>();
 		}
 
 		if (users.size() > 1) {
@@ -643,13 +625,14 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			LOGGER.trace("No reaction is defined for situation {} in {}", situation.getSituation(), resource);
 			return;
 		}
-		
-		PrismObject<? extends ObjectType> shadow = null;
-		if (change.getCurrentShadow() != null) {
-			shadow = change.getCurrentShadow();
-		} else if (change.getOldShadow() != null) {
-			shadow = change.getOldShadow();
-		}
+
+		// seems to be unused so commented it out [med]
+//		PrismObject<? extends ObjectType> shadow = null;
+//		if (change.getCurrentShadow() != null) {
+//			shadow = change.getCurrentShadow();
+//		} else if (change.getOldShadow() != null) {
+//			shadow = change.getOldShadow();
+//		}
 		
 		Boolean doReconciliation = determineReconciliation(synchronizationPolicy, reactionDefinition);
 		if (doReconciliation == null) {
@@ -712,11 +695,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		
 		if (StringUtils.isNotBlank(channel)){
 			QName channelQName = QNameUtil.uriToQName(channel);
-			// discovery channel is used when compensating some inconsistent
-			// state. Therefe we do not want to propagate changes to other
-			// resource. We only want to resolve the problem and continue in
-			// previous provisioning/synchronization during which his
-			// compensation was triggered
+			// Discovery channel is used when compensating some inconsistent
+			// state. Therefore we do not want to propagate changes to other
+			// resources. We only want to resolve the problem and continue in
+			// previous provisioning/synchronization during which this
+			// compensation was triggered.
 			if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(channelQName) && SynchronizationSituationType.DELETED != reactionDefinition.getSituation()){
 				return true;
 			}
@@ -878,7 +861,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		for (SynchronizationReactionType reaction: synchronizationPolicy.getReaction()) {
 			SynchronizationSituationType reactionSituation = reaction.getSituation();
 			if (reactionSituation == null) {
-				throw new ConfigurationException("No situation definined for a reaction in "+resource);
+				throw new ConfigurationException("No situation defined for a reaction in "+resource);
 			}
 			if (reactionSituation.equals(situation.getSituation())) {
 				if (reaction.getChannel() != null && !reaction.getChannel().isEmpty()) {
@@ -912,7 +895,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		
 		ShadowType shadowType = shadow.asObjectable();
 		// new situation description
-		XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 		List<PropertyDelta<?>> deltas = SynchronizationSituationUtil
 				.createSynchronizationSituationAndDescriptionDelta(shadow, situation.getSituation(), change.getSourceChannel(), true);
 		// refresh situation
@@ -952,16 +934,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			// If the shadow is gone then it is gone. No point in recording the situation any more.
 			LOGGER.debug("Could not update situation in account, because shadow {} does not exist any more (this may be harmless)", shadow.getOid());
 			parentResult.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
-		} catch (ObjectAlreadyExistsException ex) {
-			LoggingUtils.logException(LOGGER,
-					"### SYNCHRONIZATION # notifyChange(..): Save of synchronization situation failed: could not modify shadow "
-							+ shadow.getOid() + ": "+ex.getMessage(), ex);
-			parentResult.recordFatalError(
-					"Save of synchronization situation failed: could not modify shadow "
-							+ shadow.getOid() + ": "+ex.getMessage(), ex);
-			throw new SystemException("Save of synchronization situation failed: could not modify shadow "
-					+ shadow.getOid() + ": "+ex.getMessage(), ex);
-		} catch (SchemaException ex) {
+		} catch (ObjectAlreadyExistsException|SchemaException ex) {
 			LoggingUtils.logException(LOGGER,
 					"### SYNCHRONIZATION # notifyChange(..): Save of synchronization situation failed: could not modify shadow "
 							+ shadow.getOid() + ": "+ex.getMessage(), ex);
