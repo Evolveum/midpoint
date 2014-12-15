@@ -707,7 +707,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         OperationResult subResult = result.createMinorSubresult(COUNT_OBJECTS);
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
-        
+
         if (query != null) {
         	ObjectFilter filter = query.getFilter();
         	filter = ObjectQueryUtil.simplify(filter);
@@ -775,7 +775,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
         // subResult.addParam("paging", paging);
-        
+
         if (query != null) {
         	ObjectFilter filter = query.getFilter();
         	filter = ObjectQueryUtil.simplify(filter);
@@ -1445,7 +1445,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         OperationResult subResult = result.createSubresult(SEARCH_OBJECTS_ITERATIVE);
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
-        
+
         if (query != null) {
         	ObjectFilter filter = query.getFilter();
         	filter = ObjectQueryUtil.simplify(filter);
