@@ -121,6 +121,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	private static final File USER_ESTEVAN_FILE = new File(TEST_DIR, "user-estevan.xml");
 	private static final String USER_ESTEVAN_OID = "00000000-0000-0000-0000-110000000012";
+	
+	private static final File USER_ANGELICA_FILE = new File(TEST_DIR, "user-angelica.xml");
+	private static final String USER_ANGELICA_OID = "00000000-0000-0000-0000-110000000013";
 
 	private static final String USER_RUM_ROGERS_NAME = "rum";
 	
@@ -176,6 +179,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE = new File(TEST_DIR, "role-filter-object-user-location-shadows.xml");
 	protected static final String ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_OID = "00000000-0000-0000-0000-00000000aa0e";
 	
+	protected static final File ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE = new File(TEST_DIR, "role-filter-object-user-type-shadow.xml");
+	protected static final String ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_OID = "00000000-0000-0000-0000-00000000aa0h";
+	
 	protected static final File ROLE_END_USER_FILE = new File(TEST_DIR, "role-end-user.xml");
 	protected static final String ROLE_END_USER_OID = "00000000-0000-0000-0000-00000000aa0f";
 	
@@ -193,6 +199,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_CONDITIONAL_FILE = new File(TEST_DIR, "role-conditional.xml");
 	protected static final String ROLE_CONDITIONAL_OID = "00000000-0000-0000-0000-00000000aac1";
+	
+	protected static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
+	protected static final String ROLE_BASIC_OID = "00000000-0000-0000-0000-00000000aad1";
 
 	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
 	private static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
@@ -224,12 +233,14 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_ASSIGN_APPLICATION_ROLES_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE, RoleType.class, initResult);
 		
 		repoAddObjectFromFile(ROLE_APPLICATION_1_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_APPLICATION_2_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BUSINESS_1_FILE, RoleType.class, initResult);
 		
 		repoAddObjectFromFile(ROLE_CONDITIONAL_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_BASIC_FILE, RoleType.class, initResult);
 		
 		repoAddObjectFromFile(ROLE_END_USER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_MODIFY_USER_FILE, RoleType.class, initResult);
@@ -1165,7 +1176,28 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetAllow(ShadowType.class, accountRedOid);
 	}
 
-	
+
+    /**
+     * creates user and assigns role at the same time
+     * @throws Exception
+     */
+    @Test(enabled=false)
+    public void test261AutzAngelicaObjectFilterLocationCreateUserShadowRole() throws Exception {
+		final String TEST_NAME = "test261AutzJackObjectFilterLocationCreateUserShadowRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_OID);
+        login(USER_JACK_USERNAME);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        addObject(USER_ANGELICA_FILE);
+        
+        // WHEN
+	}
+    
 	@Test
     public void test270AutzJackAssignApplicationRoles() throws Exception {
 		final String TEST_NAME = "test270AutzJackAssignApplicationRoles";
