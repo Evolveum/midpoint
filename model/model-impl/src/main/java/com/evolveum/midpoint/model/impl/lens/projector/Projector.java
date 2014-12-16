@@ -158,7 +158,7 @@ public class Projector {
 	        	LOGGER.trace("WAVE {} (maxWaves={}, executionWave={})", new Object[]{
 	        			context.getProjectionWave(), maxWaves, context.getExecutionWave()});
 	        	
-	        	//just make sure everythink is loaded and set as needed
+	        	//just make sure everything is loaded and set as needed
 				dependencyProcessor.preprocessDependencies(context);
 	        	
 	        	// Process the focus-related aspects of the context. That means inbound, focus activation,
@@ -316,6 +316,7 @@ public class Projector {
     	}
 	}
 
+	// TODO projectionValuesProcessor is a singleton so its conflictingContexts property is de-facto a global variable!
 	private <F extends ObjectType> void addConflictingContexts(LensContext<F> context) {
 		List<LensProjectionContext> conflictingContexts = projectionValuesProcessor.getConflictingContexts();
 		if (conflictingContexts != null || !conflictingContexts.isEmpty()){

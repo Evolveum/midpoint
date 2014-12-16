@@ -559,7 +559,7 @@ public class ProjectionValuesProcessor {
 		RefinedObjectClassDefinition rAccountDef = accountContext.getRefinedAccountDefinition();
 		if (rAccountDef == null) {
 			throw new SchemaException("No definition for account type '"
-					+accountContext.getResourceShadowDiscriminator().getIntent()+"' in "+accountContext.getResource());
+					+accountContext.getResourceShadowDiscriminator()+"' in "+accountContext.getResource());
 		}
 		
 		if (primaryDelta.isAdd()) {

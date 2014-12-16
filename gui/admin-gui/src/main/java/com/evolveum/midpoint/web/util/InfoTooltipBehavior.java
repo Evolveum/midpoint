@@ -34,6 +34,18 @@ public class InfoTooltipBehavior extends TooltipBehavior {
         this.isContainerModal = isContainerModal;
     }
 
+    @Override
+    public String getModalContainer(Component component) {
+        String id = component.getMarkupId();
+
+        if(component.getParent() != null){
+            Component parent = component.getParent();
+
+            id = parent.getParent() != null? parent.getParent().getMarkupId() : parent.getMarkupId();
+        }
+
+        return id;
+    }
 
     @Override
     public void onConfigure(Component component) {

@@ -574,19 +574,17 @@ mainCycle:
         boolean interruptsAlways = taskManagerImpl.getConfiguration().getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS;
         boolean interruptsMaybe = taskManagerImpl.getConfiguration().getUseThreadInterrupt() != UseThreadInterrupt.NEVER;
         if (task != null) {
-            synchronized (task) {
-                task.unsetCanRun();
-                for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
-                    TaskQuartzImpl subtaskq = (TaskQuartzImpl) subtask;
-                    subtaskq.unsetCanRun();
-                    // if we want to cancel the Future using interrupts, we have to do it now
-                    // because after calling cancel(false) subsequent calls to cancel(true) have no effect whatsoever
-                    subtaskq.getLightweightHandlerFuture().cancel(interruptsMaybe);
-                }
+            task.unsetCanRun();
+            for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+                TaskQuartzImpl subtaskq = (TaskQuartzImpl) subtask;
+                subtaskq.unsetCanRun();
+                // if we want to cancel the Future using interrupts, we have to do it now
+                // because after calling cancel(false) subsequent calls to cancel(true) have no effect whatsoever
+                subtaskq.getLightweightHandlerFuture().cancel(interruptsMaybe);
             }
-		    if (interruptsAlways) {
-                sendThreadInterrupt(false);         // subtasks were interrupted by their futures
-            }
+        }
+        if (interruptsAlways) {
+            sendThreadInterrupt(false);         // subtasks were interrupted by their futures
         }
 	}
 
@@ -594,6 +592,7 @@ mainCycle:
         sendThreadInterrupt(true);
     }
 
+    // beware: Do not touch task prism here, because this method can be called asynchronously
     public void sendThreadInterrupt(boolean alsoSubtasks) {
         if (executingThread != null) {			// in case this method would be (mistakenly?) called after the execution is over
             LOGGER.trace("Calling Thread.interrupt on thread {}.", executingThread);
@@ -601,11 +600,9 @@ mainCycle:
             LOGGER.trace("Thread.interrupt was called on thread {}.", executingThread);
         }
         if (alsoSubtasks) {
-            synchronized (task) {
-                for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
-                    LOGGER.trace("Calling Future.cancel(mayInterruptIfRunning:=true) on a future for LAT subtask {}", subtask);
-                    ((TaskQuartzImpl) subtask).getLightweightHandlerFuture().cancel(true);
-                }
+            for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+                //LOGGER.trace("Calling Future.cancel(mayInterruptIfRunning:=true) on a future for LAT subtask {}", subtask);
+                ((TaskQuartzImpl) subtask).getLightweightHandlerFuture().cancel(true);
             }
         }
     }

@@ -426,13 +426,13 @@ public class DependencyProcessor {
 						// We do not want to throw exception here. That will stop entire projection.
 						// Let's just mark the projection as broken and skip it.
 						LOGGER.warn("Unsatisfied dependency of account "+projContext.getResourceShadowDiscriminator()+
-								" dependent on "+refRat+": Account not provisioned in dependency check (execution wave "+context.getExecutionWave()+", account wave "+projContext.getWave() + ", depenedency account wave "+dependencyAccountContext.getWave()+")");
+								" dependent on "+refRat+": Account not provisioned in dependency check (execution wave "+context.getExecutionWave()+", account wave "+projContext.getWave() + ", dependency account wave "+dependencyAccountContext.getWave()+")");
 						projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 						return false;
 					}
 				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
 					// we don't care what happened, just go on
-					return true;
+					return true;		// TODO why return here? shouldn't we check other dependencies as well? [med]
 				} else {
 					throw new IllegalArgumentException("Unknown dependency strictness "+dependency.getStrictness()+" in "+refRat);
 				}
@@ -443,7 +443,7 @@ public class DependencyProcessor {
 	
 	public <F extends ObjectType> void preprocessDependencies(LensContext<F> context){
 		
-		//in the first wave we do not have enougth information to preprocess connetxts
+		//in the first wave we do not have enough information to preprocess contexts
 		if (context.getExecutionWave() == 0){
 			return;
 		}

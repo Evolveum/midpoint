@@ -114,7 +114,7 @@ public class PasswordPolicyProcessor {
 		}
 
 		PrismProperty<PasswordType> password = null;
-		PrismObject<F> user = null;
+		PrismObject<F> user;
 		if (ChangeType.ADD == userDelta.getChangeType()) {
 			user = focusContext.getDelta().getObjectToAdd();
 			if (user != null) {
@@ -127,7 +127,7 @@ public class PasswordPolicyProcessor {
 				}
 			}
 		} else if (ChangeType.MODIFY == userDelta.getChangeType()) {
-			PropertyDelta<PasswordType> passwordValueDelta = null;
+			PropertyDelta<PasswordType> passwordValueDelta;
 			if (userDelta != null) {
 				passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
 				if (passwordValueDelta == null) {
@@ -148,7 +148,7 @@ public class PasswordPolicyProcessor {
 			}
 		}
 		
-		ValuePolicyType passwordPolicy = null;
+		ValuePolicyType passwordPolicy;
 		if (focusContext.getOrgPasswordPolicy() == null){
 			passwordPolicy = determineValuePolicy(userDelta, focusContext.getObjectAny(), context, result);
 			focusContext.setOrgPasswordPolicy(passwordPolicy);
