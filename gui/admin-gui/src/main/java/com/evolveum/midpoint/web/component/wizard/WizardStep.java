@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -43,6 +44,8 @@ import java.util.List;
  * @author lazyman
  */
 public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
+
+    private OperationResult result;
 
     public WizardStep() {
         setTitleModel(new StringResourceModel("WizardStep.title", this, null, "WizardStep.title"));
@@ -142,5 +145,13 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
                 }
             }
         };
+    }
+
+    public OperationResult getResult() {
+        return result;
+    }
+
+    public void setResult(OperationResult result) {
+        this.result = result;
     }
 }

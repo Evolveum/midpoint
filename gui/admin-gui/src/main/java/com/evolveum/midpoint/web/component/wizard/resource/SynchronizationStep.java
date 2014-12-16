@@ -764,11 +764,11 @@ public class SynchronizationStep extends WizardStep {
             result.recordFatalError(getString("SynchronizationStep.message.cantSave", e));
         } finally {
             result.computeStatusIfUnknown();
+            setResult(result);
         }
 
-        if(result.isSuccess()){
-            setResponsePage(PageResources.class);
-            getPageBase().showResultInSession(result);
+        if(WebMiscUtil.showResultInPage(result)){
+            getPageBase().showResult(result);
         }
     }
 
