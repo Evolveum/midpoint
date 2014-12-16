@@ -1097,18 +1097,28 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         SQLException sqlException = findSqlException(ex);
         if (sqlException != null) {
-            LOGGER.debug("ConstraintViolationException = {}, embedded SQL exception = {}", ex, sqlException.getNextException());
+            SQLException nextException = sqlException.getNextException();
+            LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", new Object[] {ex, sqlException, nextException});
             String[] ok = new String[] {
                     "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
                     "duplicate key value violates unique constraint \"m_reference_pkey\""
             };
+            String msg1;
             if (sqlException.getMessage() != null) {
-                String msg = sqlException.getMessage();
-                for (int i = 0; i < ok.length; i++) {
-                    if (msg.contains(ok[i])) {
-                        rollbackTransaction(session, ex, result, false);
-                        throw new SerializationRelatedException(ex);
-                    }
+                msg1 = sqlException.getMessage();
+            } else {
+                msg1 = "";
+            }
+            String msg2;
+            if (nextException != null && nextException.getMessage() != null) {
+                msg2 = nextException.getMessage();
+            } else {
+                msg2 = "";
+            }
+            for (int i = 0; i < ok.length; i++) {
+                if (msg1.contains(ok[i]) || msg2.contains(ok[i])) {
+                    rollbackTransaction(session, ex, result, false);
+                    throw new SerializationRelatedException(ex);
                 }
             }
         }
