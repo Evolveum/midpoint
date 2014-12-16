@@ -182,6 +182,7 @@ public class ConfigurationStep extends WizardStep {
             result.recordFatalError("Couldn't save configuration changes.", ex);
         } finally {
             result.computeStatusIfUnknown();
+            setResult(result);
         }
 
         if (WebMiscUtil.showResultInPage(result)) {

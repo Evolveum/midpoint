@@ -16,14 +16,49 @@
 
 package com.evolveum.midpoint.web.component.wizard;
 
-import org.apache.wicket.extensions.wizard.IWizard;
+import org.apache.wicket.extensions.wizard.*;
+import org.apache.wicket.markup.html.form.IFormSubmittingComponent;
+import org.apache.wicket.markup.html.panel.Panel;
 
 /**
  * @author lazyman
  */
-public class WizardButtonBar extends org.apache.wicket.extensions.wizard.WizardButtonBar {
+public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 
     public WizardButtonBar(String id, IWizard wizard) {
-        super(id, wizard);
+        super(id);
+        add(new PreviousButton("previous", wizard));
+        add(new NextButton("next", wizard));
+        add(new LastButton("last", wizard));
+        add(new CancelButton("cancel", wizard));
+        add(new FinishButton("finish", wizard){
+
+            /*
+            *   Finish button is always enabled, so user don't have to
+            *   click through every step of wizard every time it is used
+            * */
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
+        });
+    }
+
+    @Override
+    public IFormSubmittingComponent getDefaultButton(IWizardModel model) {
+
+        if (model.isNextAvailable()){
+            return (IFormSubmittingComponent)get("next");
+        }
+
+        else if (model.isLastAvailable()){
+            return (IFormSubmittingComponent)get("last");
+        }
+
+        else if (model.isLastStep(model.getActiveStep())){
+            return (IFormSubmittingComponent)get("finish");
+        }
+
+        return null;
     }
 }

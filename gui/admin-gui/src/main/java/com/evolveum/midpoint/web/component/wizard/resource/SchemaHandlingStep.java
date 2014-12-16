@@ -717,6 +717,7 @@ public class SchemaHandlingStep extends WizardStep {
             result.computeStatusIfUnknown();
         }
 
+        setResult(result);
         if(WebMiscUtil.showResultInPage(result)){
             getPageBase().showResult(result);
         }
