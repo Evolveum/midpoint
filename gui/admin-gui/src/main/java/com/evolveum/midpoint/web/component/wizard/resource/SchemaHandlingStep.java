@@ -50,6 +50,7 @@ import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTe
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -162,7 +163,7 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private ResourceObjectTypeDefinitionType createPlaceholderObjectType(){
-        // temporary fix - think about better solution
+        //TODO temporary fix - think about better solution
         ResourceObjectTypeDefinitionType placeholder = new ResourceObjectTypeDefinitionType();
         placeholder.getAttribute().add(new ResourceAttributeDefinitionType());
         placeholder.getAssociation().add(new ResourceObjectAssociationType());
@@ -398,6 +399,13 @@ public class SchemaHandlingStep extends WizardStep {
             protected boolean buttonsDisabled(){
                 return !isAnySelected();
             }
+
+            @Override
+            protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<ResourceAttributeDefinitionType> item) {
+                WebMarkupContainer newContainer = new WebMarkupContainer(ID_THIRD_ROW_CONTAINER);
+                getThirdRowContainer().replaceWith(newContainer);
+                target.add(getThirdRowContainer());
+            }
         };
         editor.add(editorAttributes);
 
@@ -441,6 +449,13 @@ public class SchemaHandlingStep extends WizardStep {
             @Override
             protected boolean buttonsDisabled(){
                 return !isAnySelected();
+            }
+
+            @Override
+            protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<ResourceObjectAssociationType> item) {
+                WebMarkupContainer newContainer = new WebMarkupContainer(ID_THIRD_ROW_CONTAINER);
+                getThirdRowContainer().replaceWith(newContainer);
+                target.add(getThirdRowContainer());
             }
         };
         editor.add(editorAssociations);
