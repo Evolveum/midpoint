@@ -59,19 +59,19 @@
 
     <!-- Synchronize and Reconcile-->
     <div class="row">
-        <div class="col-xs-6">
+        <div class="col-xs-7">
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SynchronizationReactionEditor.label.synchronize" /></label>
                     <i wicket:id="synchronizeTooltip" wicket:message="title:SynchronizationStep.reaction.tooltip.synchronize"/>
                 </dt>
                 <dd>
-                    <input wicket:id="synchronize" type="checkbox" value="checked"/>
+                    <div wicket:id="synchronize" />
                 </dd>
             </dl>
         </div>
 
-        <div class="col-xs-6">
+        <div class="col-xs-5">
             <dl class="dl-horizontal">
                 <dt>
                     <label><wicket:message key="SynchronizationReactionEditor.label.reconcile" /></label>
