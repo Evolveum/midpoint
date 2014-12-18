@@ -230,7 +230,7 @@ public class PageDebugView extends PageAdminConfiguration {
                 	setResponsePage(requestPage);
                 	getSession().setAttribute("requestPage", null);
                 } else {
-                	setResponsePage(PageDebugList.class);
+                	setResponsePage(new PageDebugList(false));
                 }
             }
         };
@@ -309,7 +309,7 @@ public class PageDebugView extends PageAdminConfiguration {
             target.add(getFeedbackPanel());
         } else {
             showResultInSession(result);
-            setResponsePage(PageDebugList.class);
+            setResponsePage(new PageDebugList(false));
         }
     }
 }

@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xjc.AnyArrayList;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -35,8 +34,6 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.RoleApprovalFormType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
-import com.sun.org.apache.xerces.internal.dom.TextImpl;
 
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
@@ -430,7 +427,7 @@ public class PrismValuePanel extends Panel {
         return panel;
     }
 
-    //TODO - try to get rid of <br> attributes when creating new lines in association attibutes pop-up
+    //TODO - try to get rid of <br> attributes when creating new lines in association attributes pop-up
     private String createAssociationTooltipText(PrismProperty property){
         StringBuilder sb = new StringBuilder();
         sb.append(getString("prismValuePanel.message.association.attributes")).append("<br>");

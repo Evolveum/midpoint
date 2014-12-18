@@ -35,6 +35,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -66,10 +68,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	private final long startTime;
 	private AtomicLong progressLastUpdated = new AtomicLong();
 
-	private OperationResult collectedResults;
-
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeResultHandler.class);
 	private volatile boolean allItemsSubmitted = false;
+
+	private List<OperationResult> workerSpecificResults;
 
 	public AbstractSearchIterativeResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
 			String contextDesc, TaskManager taskManager) {
@@ -199,10 +201,14 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	}
 
 	public void updateOperationResult(OperationResult opResult) {
-		if (collectedResults != null) {								// not null in the parallelized case
-			collectedResults.computeStatus();
+		if (workerSpecificResults != null) {								// not null in the parallelized case
+			for (OperationResult workerSpecificResult : workerSpecificResults) {
+				workerSpecificResult.computeStatus();
+				workerSpecificResult.summarize();
+				opResult.addSubresult(workerSpecificResult);
+			}
 		}
-		opResult.computeStatus("Errors during processing");			// collectedResults is a subresult of opResult
+		opResult.computeStatus("Errors during processing");
 
 		if (getErrors() > 0) {
 			opResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
@@ -216,6 +222,12 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	}
 
 	class WorkerHandler implements LightweightTaskHandler {
+		private OperationResult workerSpecificResult;
+
+		public WorkerHandler(OperationResult workerSpecificResult) {
+			this.workerSpecificResult = workerSpecificResult;
+		}
+
 		@Override
 		public void run(Task workerTask) {
 			while (workerTask.canRun()) {
@@ -227,7 +239,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					return;
 				}
 				if (request != null) {
-					processRequest(request, workerTask, collectedResults);
+					processRequest(request, workerTask, workerSpecificResult);
 				} else {
 					if (allItemsSubmitted) {
 						LOGGER.trace("queue is empty and nothing more is expected - exiting");
@@ -286,9 +298,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
-			parentResult.summarize();					// to prevent parent result from growing above reasonable size
-			                                            // it is here (before modifying the task) to make the task smaller
-			                                            // (although I doubt it has any real effect)
+			// parentResult is worker-thread-specific result (because of concurrency issues)
+			// or parentResult as obtained in handle(..) method in single-thread scenario
+			parentResult.summarize();
 
 			if (shouldReportProgress()) {
 				try {
@@ -393,16 +405,22 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		int queueSize = threadsCount*2;				// actually, size of threadsCount should be sufficient but it doesn't hurt if queue is larger
 		requestQueue = new ArrayBlockingQueue<>(queueSize);
 
+		workerSpecificResults = new ArrayList<>(threadsCount);
+
 		for (int i = 0; i < threadsCount; i++) {
-			Task subtask = coordinatorTask.createSubtask(new WorkerHandler());
+			// we intentionally do not put worker specific result under main operation result until the handler is done
+			// (because of concurrency issues - adding subresults vs e.g. putting main result into the task)
+			OperationResult workerSpecificResult = new OperationResult(taskOperationPrefix + ".handleAsynchronously");
+			workerSpecificResult.addContext("subtask", i);
+			workerSpecificResults.add(workerSpecificResult);
+
+			Task subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));
 			subtask.setCategory(coordinatorTask.getCategory());
 			subtask.setResult(new OperationResult(taskOperationPrefix + ".executeWorker", OperationResultStatus.IN_PROGRESS, null));
 			subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);
 			subtask.startLightweightHandler();
 			LOGGER.trace("Worker subtask {} created", subtask);
 		}
-
-		collectedResults = opResult.createSubresult(taskOperationPrefix + ".handleAsynchronously");
 	}
 
 	protected Integer getWorkerThreadsCount(Task task) {

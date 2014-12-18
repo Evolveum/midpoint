@@ -19,12 +19,10 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentSearchDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceSearchDto;
 
-import java.io.Serializable;
-
 /**
  *  @author shood
  * */
-public class ResourcesStorage implements Serializable{
+public class ResourcesStorage extends PageStorage{
 
     /**
      *  DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.resources.PageResources}
