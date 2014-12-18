@@ -264,7 +264,8 @@ public class PageAccounts extends PageAdminConfiguration {
         ObjectDataProvider provider = new ObjectDataProvider(this, ShadowType.class);
         provider.setOptions(SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         provider.setQuery(ObjectQuery.createObjectQuery(createResourceQueryFilter()));
-        TablePanel accounts = new TablePanel(ID_ACCOUNTS, provider, createAccountsColumns(), UserProfileStorage.TableId.CONF_PAGE_ACCOUNTS);
+        TablePanel accounts = new TablePanel(ID_ACCOUNTS, provider, createAccountsColumns(),
+                UserProfileStorage.TableId.CONF_PAGE_ACCOUNTS, getItemsPerPage(UserProfileStorage.TableId.CONF_PAGE_ACCOUNTS));
         accounts.add(new VisibleEnableBehaviour() {
 
             @Override

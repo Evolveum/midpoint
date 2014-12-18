@@ -134,7 +134,7 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
 
     @Override
     public void onCancel() {
-        setResponsePage(PageResources.class);
+        setResponsePage(new PageResources(false));
         warn(getString("Wizard.message.cancel"));
     }
 
@@ -150,7 +150,7 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
             }
         }
 
-        setResponsePage(PageResources.class);
+        setResponsePage(new PageResources(false));
     }
 
     private void changeStep(AjaxRequestTarget target, WizardStepDto dto){
