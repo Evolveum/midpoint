@@ -15,46 +15,11 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.SecurityConfig;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.web.FilterInvocation;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -75,10 +40,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -102,6 +64,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author semancik
@@ -123,7 +105,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	private static final String USER_ESTEVAN_OID = "00000000-0000-0000-0000-110000000012";
 	
 	private static final File USER_ANGELICA_FILE = new File(TEST_DIR, "user-angelica.xml");
-	private static final String USER_ANGELICA_OID = "00000000-0000-0000-0000-110000000013";
+	private static final String USER_ANGELICA_NAME = "angelika";
 
 	private static final String USER_RUM_ROGERS_NAME = "rum";
 	
@@ -1181,7 +1163,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
      * creates user and assigns role at the same time
      * @throws Exception
      */
-    @Test(enabled=false)
+    @Test
     public void test261AutzAngelicaObjectFilterLocationCreateUserShadowRole() throws Exception {
 		final String TEST_NAME = "test261AutzJackObjectFilterLocationCreateUserShadowRole";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -1192,10 +1174,27 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         login(USER_JACK_USERNAME);
         
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
-        addObject(USER_ANGELICA_FILE);
-        
-        // WHEN
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+		assertAllow("add user angelica", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				addObject(USER_ANGELICA_FILE, task, result);
+			}
+		});
+
+        // THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		login(USER_ADMINISTRATOR_USERNAME);                 // user jack seemingly has no rights to search for angelika
+
+		PrismObject<UserType> angelica = findUserByUsername(USER_ANGELICA_NAME);
+		display("angelica", angelica);
+		assertUser(angelica, null, USER_ANGELICA_NAME, "angelika", "angelika", "angelika");
+		assertAssignedRole(angelica, ROLE_BASIC_OID);
+		assertAccount(angelica, RESOURCE_DUMMY_OID);
 	}
     
 	@Test
@@ -1213,7 +1212,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow();
+        assertReadAllow(10);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -1269,7 +1268,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow();
+        assertReadAllow(10);
         assertAddDeny();
         assertModifyAllow();
         assertDeleteDeny();
@@ -1309,7 +1308,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow();
+        assertReadAllow(10);
         assertAddDeny();
         assertModifyAllow();
         assertDeleteDeny();
@@ -1894,7 +1893,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	private <O extends ObjectType> void assertAllow(String opname, Attempt attempt) throws Exception {
-		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertDeny."+opname);
+		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertAllow."+opname);
         OperationResult result = task.getResult();
         try {
         	logAttempt(opname);

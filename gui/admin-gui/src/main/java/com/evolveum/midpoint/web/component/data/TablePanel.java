@@ -30,6 +30,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -108,7 +109,7 @@ public class TablePanel<T> extends Panel {
 
         add(table);
 
-        NavigatorPanel nb2 = new NavigatorPanel(ID_PAGING, table, showPagedPaging(provider));
+        NavigatorPanel nb2 = new NavigatorPanel(ID_PAGING, table, showPagedPagingModel(provider));
         addVisibleBehaviour(nb2, showPaging);
         add(nb2);
     }
@@ -127,13 +128,18 @@ public class TablePanel<T> extends Panel {
         });
     }
 
-    private boolean showPagedPaging(ISortableDataProvider provider) {
+    private IModel<Boolean> showPagedPagingModel(ISortableDataProvider provider) {
         if (!(provider instanceof BaseSortableDataProvider)) {
-            return true;
+            return new AbstractReadOnlyModel<Boolean>() {
+                @Override
+                public Boolean getObject() {
+                    return true;
+                }
+            };
         }
 
         BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) provider;
-        return baseProvider.isSizeAvailable();
+        return baseProvider.isSizeAvailableModel();
     }
 
     public DataTable getDataTable() {

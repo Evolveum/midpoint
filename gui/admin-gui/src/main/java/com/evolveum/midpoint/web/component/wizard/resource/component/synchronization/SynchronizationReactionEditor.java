@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueDropDownPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
+import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -147,7 +148,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
         };
         add(channel);
 
-        CheckBox synchronize = new CheckBox(ID_SYNCHRONIZE, new PropertyModel<Boolean>(getModel(), "synchronize"));
+        ThreeStateBooleanPanel synchronize = new ThreeStateBooleanPanel(ID_SYNCHRONIZE, new PropertyModel<Boolean>(getModel(), "synchronize"));
         add(synchronize);
 
         CheckBox reconcile = new CheckBox(ID_RECONCILE, new PropertyModel<Boolean>(getModel(), "reconcile"));

@@ -69,24 +69,24 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
 
     private IModel<String> resourceOid;
     private IModel<QName> objectClass;
-    private IModel<Boolean> useConnectorPagingModel;
+    private IModel<Boolean> useObjectCountingModel;
     private Integer cachedSize;
 
-    public AccountContentDataProvider(Component component, IModel<String> resourceOid, IModel<QName> objectClass, IModel<Boolean> useConnectorPagingModel) {
+    public AccountContentDataProvider(Component component, IModel<String> resourceOid, IModel<QName> objectClass, IModel<Boolean> useObjectCountingModel) {
         super(component, false, false);     // don't use cache, don't use default sorting field (c:name)
 
         Validate.notNull(resourceOid, "Resource oid model must not be null.");
         Validate.notNull(objectClass, "Object class model must not be null.");
-        Validate.notNull(useConnectorPagingModel, "'Use connector paging' model must not be null.");
+        Validate.notNull(useObjectCountingModel, "'Use object counting' model must not be null.");
         this.resourceOid = resourceOid;
         this.objectClass = objectClass;
-        this.useConnectorPagingModel = useConnectorPagingModel;
+        this.useObjectCountingModel = useObjectCountingModel;
     }
 
     @Override
     public Iterator<AccountContentDto> internalIterator(long first, long count) {
-        boolean useConnectorPaging = isUseConnectorPaging();
-        LOGGER.trace("begin::iterator() from {} count {} useConnectorPaging {}.", new Object[]{first, count, useConnectorPaging});
+        boolean useObjectCounting = isUseObjectCounting();
+        LOGGER.trace("begin::iterator() from {} count {} useObjectCounting {}.", new Object[]{first, count, useObjectCounting});
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
@@ -126,8 +126,8 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
         return getAvailableData().iterator();
     }
 
-    private boolean isUseConnectorPaging() {
-        return Boolean.TRUE.equals(useConnectorPagingModel.getObject());
+    private boolean isUseObjectCounting() {
+        return Boolean.TRUE.equals(useObjectCountingModel.getObject());
     }
 
     private ObjectQuery getObjectQuery() throws SchemaException {
@@ -155,7 +155,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
 
     @Override
     protected int internalSize() {
-        if (!isUseConnectorPaging()) {
+        if (!isUseObjectCounting()) {
             return Integer.MAX_VALUE;
         }
         if (cachedSize != null) {
@@ -163,7 +163,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
             return cachedSize;
         }
 
-        LOGGER.trace("begin::internalSize() useConnectorPaging is TRUE.");
+        LOGGER.trace("begin::internalSize() useObjectCounting is TRUE.");
 
         OperationResult result = new OperationResult(OPERATION_COUNT_ACCOUNTS);
         Task task = getPage().createSimpleTask(OPERATION_COUNT_ACCOUNTS);
@@ -243,7 +243,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
     }
 
     @Override
-    public boolean isSizeAvailable() {
-        return false;
+    public IModel<Boolean> isSizeAvailableModel() {
+        return useObjectCountingModel;
     }
 }

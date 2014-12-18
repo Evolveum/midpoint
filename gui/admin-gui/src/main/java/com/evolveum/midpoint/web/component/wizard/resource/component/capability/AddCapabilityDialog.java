@@ -56,6 +56,7 @@ public class AddCapabilityDialog extends ModalWindow{
         super(id);
 
         model = new LoadableModel<CapabilityStepDto>() {
+
             @Override
             protected CapabilityStepDto load() {
                 return loadModel(capabilityModel);
@@ -107,7 +108,7 @@ public class AddCapabilityDialog extends ModalWindow{
             return new CapabilityDto<>(new DeleteCapabilityType(), "Delete", true);
         } else if(capabilityClass.equals(ReadCapabilityType.class)){
             return new CapabilityDto<>(new ReadCapabilityType(), "Read", true);
-        } else if(capabilityClass.equals(DeleteCapabilityType.class)){
+        } else if(capabilityClass.equals(CreateCapabilityType.class)){
             return new CapabilityDto<>(new CreateCapabilityType(), "Create", true);
         } else if(capabilityClass.equals(UpdateCapabilityType.class)){
             return new CapabilityDto<>(new UpdateCapabilityType(), "Update", true);

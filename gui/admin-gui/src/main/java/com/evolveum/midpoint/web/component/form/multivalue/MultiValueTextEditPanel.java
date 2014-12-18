@@ -176,6 +176,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
         List<T> objects = getModelObject();
         objects.add(createNewEmptyItem());
 
+        performAddValueHook(target);
         target.add(this);
     }
 
@@ -209,6 +210,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
             }
         }
 
+        performRemoveValueHook(target, item);
         target.add(this);
     }
 
@@ -218,5 +220,19 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
 
     protected boolean buttonsDisabled(){
         return false;
+    }
+
+    /**
+     *  Override to provide custom hook when adding new value
+     * */
+    protected void performAddValueHook(AjaxRequestTarget target){
+
+    }
+
+    /**
+     *  Override to provide custom hook when removing value from list
+     * */
+    protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<T> item){
+
     }
 }
