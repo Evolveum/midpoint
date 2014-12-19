@@ -268,6 +268,11 @@ public class InboundProcessor {
                             		LOGGER.trace("Skipped load of higher-order account with shadow OID {} skipping inbound processing on it", accContext.getOid());
                             		return;
                             	}
+								// TODO: is it good to mark as broken? what is
+								// the resorce is down?? if there is no
+								// assignment and the account was added directly
+								// it can cause that the account will be
+								// unlinked from the user FIXME
                                 LOGGER.warn("Couldn't load account with shadow OID {}, setting context as broken and skipping inbound processing on it", accContext.getOid());
                                 accContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
                                 return;
