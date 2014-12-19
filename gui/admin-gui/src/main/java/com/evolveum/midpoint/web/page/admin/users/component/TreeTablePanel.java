@@ -330,20 +330,22 @@ public class TreeTablePanel extends SimplePanel<String> {
                 return createTableQuery();
             }
         };
+
+        //TODO - fix the problem with getting itemsPerPage during layout construction
         tableProvider.setOptions(WebModelUtils.createMinimalOptions());
         List<IColumn<OrgTableDto, String>> tableColumns = createTableColumns();
         TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns,
-                UserProfileStorage.TableId.TREE_TABLE_PANEL, getItemsPerPage(UserProfileStorage.TableId.TREE_TABLE_PANEL));
+                UserProfileStorage.TableId.TREE_TABLE_PANEL, UserProfileStorage.DEFAULT_PAGING_SIZE);
         table.setOutputMarkupId(true);
         form.add(table);
     }
 
-    public long getItemsPerPage(UserProfileStorage.TableId tableId){
-
-        SessionStorage storage = getPageBase().getSessionStorage();
-        UserProfileStorage userProfile = storage.getUserProfile();
-        return userProfile.getPagingSize(tableId);
-    }
+//    public long getItemsPerPage(UserProfileStorage.TableId tableId){
+//
+//        SessionStorage storage = getPageBase().getSessionStorage();
+//        UserProfileStorage userProfile = storage.getUserProfile();
+//        return userProfile.getPagingSize(tableId);
+//    }
 
     private void initSearch() {
         Form form = new Form(ID_SEARCH_FORM);
