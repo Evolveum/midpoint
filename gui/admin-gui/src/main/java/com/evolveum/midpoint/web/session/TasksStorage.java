@@ -18,12 +18,10 @@ package com.evolveum.midpoint.web.session;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.page.admin.server.dto.TasksSearchDto;
 
-import java.io.Serializable;
-
 /**
  *  @author shood
  * */
-public class TasksStorage implements Serializable{
+public class TasksStorage extends PageStorage{
 
     /**
      *  DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.server.PageTasks}

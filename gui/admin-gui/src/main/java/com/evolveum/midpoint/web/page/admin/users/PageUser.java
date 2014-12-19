@@ -1017,7 +1017,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         if (PageOrgTree.PARAM_ORG_RETURN.equals(orgReturn.toString())) {
             setResponsePage(PageOrgTree.class);
         } else {
-            setResponsePage(PageUsers.class);
+            setResponsePage(new PageUsers(false));
         }
 
         // }
@@ -1456,7 +1456,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                     && PageOrgTree.PARAM_ORG_RETURN.equals(returnPage.toString())) {
                 setResponsePage(PageOrgTree.class);
             } else {
-                setResponsePage(PageUsers.class);
+                setResponsePage(new PageUsers(false));
             }
         } else {
             showResult(result);

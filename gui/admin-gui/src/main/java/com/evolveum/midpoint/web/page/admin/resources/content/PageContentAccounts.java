@@ -238,7 +238,8 @@ public class PageContentAccounts extends PageAdminResources {
         provider.setQuery(createQuery());
 
         List<IColumn> columns = initColumns();
-        TablePanel table = new TablePanel(ID_TABLE, provider, columns, UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL);
+        TablePanel table = new TablePanel(ID_TABLE, provider, columns,
+                UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL));
         table.setOutputMarkupId(true);
         mainForm.add(table);
 

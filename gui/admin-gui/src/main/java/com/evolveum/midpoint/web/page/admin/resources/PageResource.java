@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -141,8 +140,8 @@ public class PageResource extends PageAdminResources {
         SortableDataProvider<ResourceObjectTypeDto, String> provider = new ListDataProvider<>(this,
                 new PropertyModel<List<ResourceObjectTypeDto>>(model, "objectTypes"));
         provider.setSort("displayName", SortOrder.ASCENDING);
-        TablePanel objectTypes = new TablePanel<>(ID_TABLE_OBJECT_TYPE, provider,
-                initObjectTypesColumns(), UserProfileStorage.TableId.PAGE_RESOURCE_PANEL);
+        TablePanel objectTypes = new TablePanel<>(ID_TABLE_OBJECT_TYPE, provider, initObjectTypesColumns(),
+                UserProfileStorage.TableId.PAGE_RESOURCE_PANEL, getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCE_PANEL));
         objectTypes.setShowPaging(true);
         objectTypes.setOutputMarkupId(true);
         mainForm.add(objectTypes);
@@ -327,7 +326,7 @@ public class PageResource extends PageAdminResources {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                setResponsePage(PageResources.class);
+                setResponsePage(new PageResources(false));
             }
         };
         mainForm.add(back);

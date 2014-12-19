@@ -18,12 +18,10 @@ package com.evolveum.midpoint.web.session;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.page.admin.roles.dto.RolesSearchDto;
 
-import java.io.Serializable;
-
 /**
  *  @author shood
  * */
-public class RolesStorage implements Serializable{
+public class RolesStorage extends PageStorage{
 
     /**
      *  DTO used for search in {@link com.evolveum.midpoint.web.page.admin.roles.PageRoles}

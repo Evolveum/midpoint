@@ -213,7 +213,22 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 			objectResolver.searchIterative(targetTypeClass, query, options, handler, result);
 		} catch (SchemaException | CommunicationException | ConfigurationException 
 				| SecurityViolationException e) {
-			throw new ExpressionEvaluationException("Unexpected expressione exception "+e+": "+e.getMessage(), e);
+			if (BooleanUtils.isTrue(getExpressionEvaluatorType().isSearchOnResource())) {
+				options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+				try {
+					objectResolver.searchIterative(targetTypeClass, query, options, handler, result);
+				} catch (SchemaException | CommunicationException | ConfigurationException
+						| SecurityViolationException e1) {
+					// TODO improve handling of exception.. we do not want to
+					// stop whole projection computation, but what to do if the
+					// shadow for group doesn't exist? (MID-2107)
+					throw new ExpressionEvaluationException("Unexpected expression exception "+e+": "+e.getMessage(), e);
+				} 
+			} else {
+					throw new ExpressionEvaluationException("Unexpected expression exception "+e+": "+e.getMessage(), e);
+				}
+			
+			
 		} catch (ObjectNotFoundException e) {
 			throw e;
 		}

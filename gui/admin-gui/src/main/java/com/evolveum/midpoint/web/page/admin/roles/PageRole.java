@@ -510,7 +510,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
                 progressReporter.isAllSuccess() &&
                 WebMiscUtil.isSuccessOrHandledErrorOrInProgress(result)) {
             showResultInSession(result);
-            setResponsePage(PageRoles.class);
+            setResponsePage(new PageRoles(false));
         } else {
             showResult(result);
             target.add(getFeedbackPanel());
@@ -542,6 +542,6 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
     }
 
     private void backPerformed(AjaxRequestTarget target){
-        setResponsePage(PageRoles.class);
+        setResponsePage(new PageRoles(false));
     }
 }
