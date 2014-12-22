@@ -20,11 +20,13 @@
 <wicket:extend>
     <div wicket:id="confirmDeletePopup" />
 
-    <form class="form-inline pull-right search-form" wicket:id="searchForm">
-        <select multiple="multiple" class="multiselect" wicket:id="searchType"/>
+    <div class="clearfix">
+        <form class="form-inline pull-right search-form" wicket:id="searchForm">
+            <select multiple="multiple" class="multiselect" wicket:id="searchType"/>
 
-        <div wicket:id="basicSearch"/>
-    </form>
+            <div wicket:id="basicSearch"/>
+        </form>
+    </div>
 
     <form wicket:id="mainForm" class="clearfix form-horizontal">
         <div wicket:id="table"/>
