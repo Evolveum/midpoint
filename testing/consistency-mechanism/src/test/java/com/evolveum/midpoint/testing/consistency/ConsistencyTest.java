@@ -43,6 +43,7 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -71,6 +72,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -1533,6 +1535,73 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 //		openDJController.stop();
 	}
+	
+	
+	@Test
+	public void test200deleteUserAlice() throws Exception{
+		String TEST_NAME = "test200getDiscoveryModifyCommunicationProblemDirectAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		OperationResult parentResult = new OperationResult(TEST_NAME);
+		Task task = taskManager.createTaskInstance();
+		
+		ObjectDelta<UserType> deleteAliceDelta = ObjectDelta.createDeleteDelta(UserType.class, USER_ALICE_OID, prismContext);
+		
+		modelService.executeChanges(createDeltaCollection(deleteAliceDelta), null, task, parentResult);
+		
+		try {
+			modelService.getObject(UserType.class, USER_ALICE_OID, null, task, parentResult);
+			fail("Expected object not found error, but haven't got one. Something went wrong while deleting user alice");
+		} catch (ObjectNotFoundException ex){
+			//this is expected
+			
+		}
+		
+		
+	}
+	
+	@Test
+	public void test201getDiscoveryModifyCommunicationProblemDirectAccount() throws Exception{
+		TestUtil.displayTestTile("test200getDiscoveryModifyCommunicationProblemDirectAccount");
+		OperationResult parentResult = new OperationResult("test200getDiscoveryModifyCommunicationProblemDirectAccount");
+		
+		//prepare user 
+		repoAddObjectFromFile(USER_ALICE_FILENAME, UserType.class, parentResult);
+		
+		assertUserNoAccountRef(USER_ALICE_OID, parentResult);
+
+		Task task = taskManager.createTaskInstance();
+		//and add account to the user while resource is UP
+		
+		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY, USER_ALICE_OID, UserType.class, task, null, parentResult);
+		
+		//then stop openDJ
+		openDJController.stop();
+		
+		String accountOid = assertUserOneAccountRef(USER_ALICE_OID);
+
+		//and make some modifications to the account while resource is DOWN
+		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountOid, ShadowType.class, task, null, parentResult);
+
+		//check the state after execution
+		checkPostponedAccountBasic(accountOid, FailedOperationTypeType.MODIFY, true, parentResult);
+
+		//start openDJ
+		openDJController.start();
+		//and set the resource availability status to UP
+//		modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, parentResult);
+		ObjectDelta<UserType> emptyAliceDelta = ObjectDelta.createEmptyDelta(UserType.class, USER_ALICE_OID, prismContext, ChangeType.MODIFY);
+		modelService.executeChanges(createDeltaCollection(emptyAliceDelta), ModelExecuteOptions.createReconcile(), task, parentResult);
+		accountOid = assertUserOneAccountRef(USER_ALICE_OID);
+		
+		//and then try to get account -> result is that the modifications will be applied to the account
+//		ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, parentResult);
+//		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+
+		//and finally stop openDJ
+//		openDJController.stop();
+	}
+
 	
 	private void checkNormalizedShadowWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, String employeeType, boolean modify, Task task, OperationResult parentResult) throws Exception{
 		ShadowType resourceAccount = checkNormalizedShadowBasic(accountOid, uid, modify, null, task, parentResult);

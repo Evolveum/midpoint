@@ -19,12 +19,10 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputSearchDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
 
-import java.io.Serializable;
-
 /**
  * @author shood
  */
-public class ReportsStorage implements Serializable {
+public class ReportsStorage extends PageStorage {
 
     /**
      * DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.reports.PageReports}

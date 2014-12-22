@@ -453,6 +453,7 @@ public class NameStep extends WizardStep {
             result.recordFatalError("Couldn't save resource, reason: " + ex.getMessage(), ex);
         } finally {
             result.computeStatus();
+            setResult(result);
         }
 
         if (WebMiscUtil.showResultInPage(result)) {

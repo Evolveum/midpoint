@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.wizard.resource;
+package com.evolveum.midpoint.web.session;
 
-import com.evolveum.midpoint.web.component.wizard.WizardButtonBar;
-import org.apache.wicket.Component;
-import org.apache.wicket.extensions.wizard.IWizardModel;
-import org.apache.wicket.extensions.wizard.Wizard;
+import java.io.Serializable;
 
 /**
- * @author lazyman
- */
-public class ResourceWizard extends Wizard {
+ *  @author shood
+ * */
+public class PageStorage implements Serializable{
 
-    public ResourceWizard(String id, IWizardModel wizardModel) {
-        super(id, wizardModel);
-    }
-
-    @Override
-    protected Component newButtonBar(String id) {
-        return new WizardButtonBar(id, this);
-    }
 }

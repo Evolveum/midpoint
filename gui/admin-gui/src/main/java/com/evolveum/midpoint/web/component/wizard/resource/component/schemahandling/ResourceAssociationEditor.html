@@ -35,7 +35,7 @@
                 </h4>
             </div>
 
-            <div id="main" class="panel-collapse collapse in">
+            <div id="main" class="panel-collapse collapse">
                 <div class="panel-body">
 
                     <dl class="dl-horizontal">
@@ -112,30 +112,10 @@
                 </h4>
             </div>
 
-            <div id="other" class="panel-collapse collapse">
+            <div id="other" class="panel-collapse collapse in">
                 <div class="panel-body">
 
-                    <dl wicket:id="schemaRefPanel" class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="ResourceAssociationEditor.label.reference" /></label>
-                            <i wicket:id="referenceTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.reference"/>
-                        </dt>
-                        <dd>
-                            <select wicket:id="referenceSelect" class="form-control input-sm"></select>
-                        </dd>
-                    </dl>
-
-                    <div wicket:id="nonSchemaReferencePanel" />
-
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="ResourceAssociationEditor.label.allow" /></label>
-                            <i wicket:id="allowTooltip" wicket:message="title:SchemaHandlingStep.attribute.tooltip.allow"/>
-                        </dt>
-                        <dd>
-                            <input wicket:id="allowRef" type="checkbox" value="checked"/>
-                        </dd>
-                    </dl>
+                    <div wicket:id="associationAttributePanel" />
 
                     <dl class="dl-horizontal">
                         <dt>

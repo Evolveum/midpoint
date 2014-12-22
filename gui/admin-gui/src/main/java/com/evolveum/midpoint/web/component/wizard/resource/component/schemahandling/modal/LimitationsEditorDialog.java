@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.schemahand
 
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.PropertyLimitationsTypeDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -71,7 +73,6 @@ public class LimitationsEditorDialog extends ModalWindow{
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_T_LAYERS = "layersTooltip";
     private static final String ID_T_PROPERTY = "propertyAccessTooltip";
-    private static final String ID_T_OTHER = "otherTooltip";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-8";
@@ -214,7 +215,7 @@ public class LimitationsEditorDialog extends ModalWindow{
         form.add(save);
     }
 
-    private void initLimitationBody(WebMarkupContainer body, ListItem<PropertyLimitationsTypeDto> item){
+    private void initLimitationBody(final WebMarkupContainer body, ListItem<PropertyLimitationsTypeDto> item){
         CheckFormGroup schema = new CheckFormGroup(ID_LAYER_SCHEMA, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_SCHEMA),
                 createStringResource("LimitationsEditorDialog.label.schema"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         schema.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
@@ -230,19 +231,16 @@ public class LimitationsEditorDialog extends ModalWindow{
         presentation.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(presentation);
 
-        CheckFormGroup add = new CheckFormGroup(ID_ACCESS_ADD, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.add"),
-                createStringResource("LimitationsEditorDialog.label.add"), ID_LABEL_SIZE, ID_INPUT_SIZE);
-        add.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
+        ThreeStateBooleanPanel add = new ThreeStateBooleanPanel(ID_ACCESS_ADD, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.add"),
+                "LimitationsEditorDialog.allow", "LimitationsEditorDialog.inherit", "LimitationsEditorDialog.deny", null);
         body.add(add);
 
-        CheckFormGroup read = new CheckFormGroup(ID_ACCESS_READ, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.read"),
-                createStringResource("LimitationsEditorDialog.label.read"), ID_LABEL_SIZE, ID_INPUT_SIZE);
-        read.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
+        ThreeStateBooleanPanel read = new ThreeStateBooleanPanel(ID_ACCESS_READ, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.read"),
+                "LimitationsEditorDialog.allow", "LimitationsEditorDialog.inherit", "LimitationsEditorDialog.deny", null);
         body.add(read);
 
-        CheckFormGroup modify = new CheckFormGroup(ID_ACCESS_MODIFY, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.modify"),
-                createStringResource("LimitationsEditorDialog.label.modify"), ID_LABEL_SIZE, ID_INPUT_SIZE);
-        modify.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
+        ThreeStateBooleanPanel modify = new ThreeStateBooleanPanel(ID_ACCESS_MODIFY, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.modify"),
+                "LimitationsEditorDialog.allow", "LimitationsEditorDialog.inherit", "LimitationsEditorDialog.deny", null);
         body.add(modify);
 
         TextFormGroup minOccurs = new TextFormGroup(ID_MIN_OCCURS, new PropertyModel<String>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".minOccurs"),
@@ -261,16 +259,24 @@ public class LimitationsEditorDialog extends ModalWindow{
         body.add(ignore);
 
         Label layersTooltip = new Label(ID_T_LAYERS);
-        layersTooltip.add(new InfoTooltipBehavior(true));
+        layersTooltip.add(new InfoTooltipBehavior(true){
+
+            @Override
+            public String getModalContainer(Component component) {
+                return body.getMarkupId();
+            }
+        });
         body.add(layersTooltip);
 
         Label propertyTooltip = new Label(ID_T_PROPERTY);
-        propertyTooltip.add(new InfoTooltipBehavior(true));
-        body.add(propertyTooltip);
+        propertyTooltip.add(new InfoTooltipBehavior(true){
 
-        Label otherTooltip = new Label(ID_T_OTHER);
-        otherTooltip.add(new InfoTooltipBehavior(true));
-        body.add(otherTooltip);
+            @Override
+            public String getModalContainer(Component component) {
+                return body.getMarkupId();
+            }
+        });
+        body.add(propertyTooltip);
     }
 
     private AjaxFormComponentUpdatingBehavior prepareAjaxOnComponentTagUpdateBehavior(){

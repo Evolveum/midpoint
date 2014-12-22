@@ -89,7 +89,10 @@ public class PageRoles extends PageAdminRoles {
     private IModel<RolesSearchDto> searchModel;
 
     public PageRoles() {
+        this(true);
+    }
 
+    public PageRoles(boolean clearPagingInSession){
         searchModel = new LoadableModel<RolesSearchDto>() {
 
             @Override
@@ -105,6 +108,7 @@ public class PageRoles extends PageAdminRoles {
             }
         };
 
+        getSessionStorage().clearPagingInSession(clearPagingInSession);
         initLayout();
     }
 
@@ -128,8 +132,10 @@ public class PageRoles extends PageAdminRoles {
         provider.setQuery(createQuery());
 
         List<IColumn<RoleType, String>> columns = initColumns();
-        TablePanel table = new TablePanel<>(ID_TABLE, provider, columns, UserProfileStorage.TableId.TABLE_ROLES);
+        TablePanel table = new TablePanel<>(ID_TABLE, provider, columns,
+                UserProfileStorage.TableId.TABLE_ROLES, getItemsPerPage(UserProfileStorage.TableId.TABLE_ROLES));
         table.setOutputMarkupId(true);
+
         RolesStorage storage = getSessionStorage().getRoles();
         table.setCurrentPage(storage.getRolesPaging());
 
@@ -181,7 +187,7 @@ public class PageRoles extends PageAdminRoles {
     }
 
     private List<IColumn<RoleType, String>> initColumns() {
-        List<IColumn<RoleType, String>> columns = new ArrayList<IColumn<RoleType, String>>();
+        List<IColumn<RoleType, String>> columns = new ArrayList<>();
 
         IColumn column = new CheckBoxHeaderColumn<RoleType>();
         columns.add(column);

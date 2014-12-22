@@ -20,18 +20,18 @@
 
     <dl class="dl-horizontal">
         <dt>
-            <label><wicket:message key="QNameEditor.label.attribute" /></label>
-            <i wicket:id="attributeTooltip" wicket:message="title:QNameEditor.tooltip.attribute"/>
+            <label wicket:id="localPartLabel"></label>
+            <i wicket:id="localPartTooltip" />
         </dt>
         <dd>
-            <input wicket:id="attribute" type="text" class="form-control input-sm"/>
+            <input wicket:id="localPart" type="text" class="form-control input-sm"/>
         </dd>
     </dl>
 
     <dl class="dl-horizontal">
         <dt>
-            <label><wicket:message key="QNameEditor.label.namespace" /></label>
-            <i wicket:id="namespaceTooltip" wicket:message="title:QNameEditor.tooltip.namespace"/>
+            <label wicket:id="namespaceLabel"></label>
+            <i wicket:id="namespaceTooltip" />
         </dt>
         <dd>
             <select wicket:id="namespace" class="form-control input-sm"></select>

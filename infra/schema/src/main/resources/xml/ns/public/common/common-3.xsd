@@ -7516,7 +7516,7 @@
              <xsd:element name="oidNameBoundMode" type="xsd:boolean" minOccurs="0" default="false">
              	<xsd:annotation>
              		<xsd:documentation>
-             			A mode in which OID and name of the speciefied object are the same.
+             			A mode in which OID and name of the specified object are the same.
              		</xsd:documentation>
              		<xsd:appinfo>
              			<a:deprecated>true</a:deprecated>

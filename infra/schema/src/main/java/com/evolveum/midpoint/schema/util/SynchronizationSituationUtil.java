@@ -98,7 +98,6 @@ public class SynchronizationSituationUtil {
 			String sourceChannel, boolean full){
 		XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 		
-		
 		List<PropertyDelta<?>> delta = createSynchronizationSituationDescriptionDelta(object, situation, timestamp, sourceChannel, full);
 			
 		PropertyDelta timestampDelta = createSynchronizationTimestampDelta(object, ShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestamp);
@@ -141,9 +140,7 @@ public class SynchronizationSituationUtil {
 			deltas.add(syncSituationDelta);
 		}
 		
-		
 		return deltas;
-
 	}
 	
 	private static List<PrismPropertyValue<SynchronizationSituationDescriptionType>> getSituationFromSameChannel(PrismObject prismObject, String channel){

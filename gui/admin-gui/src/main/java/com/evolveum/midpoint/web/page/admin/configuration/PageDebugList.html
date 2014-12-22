@@ -21,14 +21,16 @@
 	<div wicket:id="confirmDeletePopup" />
     <div wicket:id="confirmDeleteAll" />
 
-    <form wicket:id="searchForm" class="form-inline pull-right search-form">
-        <div class="form-group">
-            <label class="sr-only"><wicket:message key="pageDebugList.objectType"/></label>
-            <select class="form-control input-sm" wicket:id="choice"/>
-        </div>
+    <div class="clearfix">
+        <form wicket:id="searchForm" class="form-inline pull-right search-form">
+            <div class="form-group">
+                <label class="sr-only"><wicket:message key="pageDebugList.objectType"/></label>
+                <select class="form-control input-sm" wicket:id="choice"/>
+            </div>
 
-        <div wicket:id="basicSearch" />
-    </form>
+            <div wicket:id="basicSearch" />
+        </form>
+    </div>
 
     <form wicket:id="mainForm" class="clearfix form-horizontal">
         <div wicket:id="table"/>

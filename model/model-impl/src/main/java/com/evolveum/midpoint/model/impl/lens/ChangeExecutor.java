@@ -877,8 +877,16 @@ public class ChangeExecutor {
 				LensFocusContext<F> focusContext = (LensFocusContext<F>) context.getFocusContext();
 				if (focusContext == null) {
 					return null;
-				} else {
+				} else if (focusContext.getObjectNew() != null) {
+					// If we create both owner and shadow in the same operation (see e.g. MID-2027), we have to provide object new
+					// Moreover, if the authorization would be based on a property that is being changed along with the
+					// the change being authorized, we would like to use changed version.
+					return focusContext.getObjectNew();
+				} else if (focusContext.getObjectCurrent() != null) {
+					// This could be useful if the owner is being deleted.
 					return focusContext.getObjectCurrent();
+				} else {
+					return null;
 				}
 			}
 		};

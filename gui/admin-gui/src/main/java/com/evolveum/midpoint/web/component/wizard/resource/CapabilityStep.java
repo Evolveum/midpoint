@@ -398,6 +398,7 @@ public class CapabilityStep extends WizardStep {
             result.recordFatalError("Couldn't save capabilities", e);
         } finally {
             result.computeStatusIfUnknown();
+            setResult(result);
         }
 
         if(WebMiscUtil.showResultInPage(result)){

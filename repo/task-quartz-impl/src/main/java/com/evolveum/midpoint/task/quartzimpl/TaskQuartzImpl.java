@@ -117,8 +117,10 @@ public class TaskQuartzImpl implements Task {
 	/**
 	 * Lightweight asynchronous subtasks.
 	 * Each task here is a LAT, i.e. transient and with assigned lightweight handler.
+	 *
+	 * This must be synchronized, because interrupt() method uses it.
 	 */
-    private Set<TaskQuartzImpl> lightweightAsynchronousSubtasks = new HashSet<>();
+    private Set<TaskQuartzImpl> lightweightAsynchronousSubtasks = Collections.synchronizedSet(new HashSet<TaskQuartzImpl>());
 
     /*
      * Task result is stored here as well as in task prism.
@@ -2220,7 +2222,7 @@ public class TaskQuartzImpl implements Task {
 	 */
 
 	public void unsetCanRun() {
-		LOGGER.trace("canRun set to false for task " + this + " (" + System.identityHashCode(this) + ")");
+		// beware: Do not touch task prism here, because this method can be called asynchronously
 		canRun = false;
 	}
 
@@ -2489,6 +2491,7 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public Set<? extends Task> getRunningLightweightAsynchronousSubtasks() {
+		// beware: Do not touch task prism here, because this method can be called asynchronously
 		Set<Task> retval = new HashSet<>();
 		for (Task subtask : getLightweightAsynchronousSubtasks()) {
 			if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE && subtask.lightweightHandlerStartRequested()) {
