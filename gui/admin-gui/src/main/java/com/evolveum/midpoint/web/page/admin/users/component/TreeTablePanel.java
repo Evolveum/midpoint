@@ -175,7 +175,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
             @Override
             public ObjectQuery createRootQuery(){
-                ArrayList<String> oids = new ArrayList<String>();
+                ArrayList<String> oids = new ArrayList<>();
                 ObjectQuery query = new ObjectQuery();
 
                 if(isMovingRoot() && getRootFromProvider() != null){
@@ -191,8 +191,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                         for(OrgTableDto dto: objects){
                             oids.add(dto.getOid());
 
-                            //TODO - uncomment this, if parentOrgOid filtering is also required (see issue MID-1780)
-                            //oids.addAll(getOrgParentOids(dto.getOid()));
+                            oids.addAll(getOrgParentOids(dto.getOid()));
                         }
                     }
                 }
@@ -300,7 +299,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private List<String> getOrgParentOids(String orgOid){
-        List<String> parentOids = new ArrayList<String>();
+        List<String> parentOids = new ArrayList<>();
         OperationResult result = new OperationResult(OPERATION_LOAD_PARENTS);
         PrismObject<OrgType> org = WebModelUtils.loadObject(OrgType.class, orgOid, result, getPageBase());
         OrgType orgObject = org.asObjectable();
