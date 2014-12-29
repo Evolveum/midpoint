@@ -132,8 +132,13 @@ public class LocalePanel extends Panel {
             return null;
         }
 
+        // The second condition is a fix attempt for issue MID-2075, where firefox
+        // returns 'sk' as a locale from session, while other browsers return 'sk_SK'.
+        // This is the reason, why in firefox selected locale is ignored (the commented
+        // condition is not met) so we are adding second condition to overcome this issue.
         for (LocaleDescriptor desc : AVAILABLE_LOCALES) {
-            if (locale.equals(desc.getLocale())) {
+//            if (locale.equals(desc.getLocale())
+            if (locale.equals(desc.getLocale()) || locale.getLanguage().equals(desc.getFlag())) {
                 return desc;
             }
         }
