@@ -75,8 +75,10 @@ import java.util.*;
 @Repository
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
+    public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
+
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
-    private static final Trace LOGGER_SQL = TraceManager.getTrace("org.hibernate.SQL");
+    private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(PERFORMANCE_LOG_NAME);
 
     private static final int MAX_CONSTRAINT_NAME_LENGTH = 40;
     private static final String IMPLEMENTATION_SHORT_NAME = "SQL";
@@ -228,7 +230,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                                                    Collection<SelectorOptions<GetOperationOptions>> options,
                                                                    OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        LOGGER_SQL.debug("> get object {}, oid={}", type.getSimpleName(), oid);
+        LOGGER_PERFORMANCE.debug("> get object {}, oid={}", type.getSimpleName(), oid);
         PrismObject<T> objectType = null;
 
         Session session = null;
@@ -239,7 +241,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
-        	GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
             rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
             throw ex;
         } catch (SchemaException ex) {
@@ -288,7 +290,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <F extends FocusType> PrismObject<F> searchShadowOwnerAttempt(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException {
-        LOGGER_SQL.debug("> search shadow owner for oid={}", shadowOid);
+        LOGGER_PERFORMANCE.debug("> search shadow owner for oid={}", shadowOid);
         PrismObject<F> owner = null;
         Session session = null;
         try {
@@ -323,7 +325,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
-        	GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
             rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
             throw ex;
         } catch (SchemaException | RuntimeException ex) {
@@ -361,7 +363,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private PrismObject<UserType> listAccountShadowOwnerAttempt(String accountOid, OperationResult result)
             throws ObjectNotFoundException {
-        LOGGER_SQL.debug("> list account shadow owner oid={}", accountOid);
+        LOGGER_PERFORMANCE.debug("> list account shadow owner oid={}", accountOid);
         PrismObject<UserType> userType = null;
         Session session = null;
         try {
@@ -456,12 +458,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
                                                            OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {
-        LOGGER_SQL.debug("> add object {}, oid={}, overwrite={}",
+        LOGGER_PERFORMANCE.debug("> add object {}, oid={}, overwrite={}",
                 new Object[]{object.getCompileTimeClass().getSimpleName(), object.getOid(), options.isOverwrite()});
         String oid = null;
         Session session = null;
         OrgClosureManager.Context closureContext = null;
-                // it is needed to keep the original oid for example for import options. if we do not keep it
+        // it is needed to keep the original oid for example for import options. if we do not keep it
         // and it was null it can bring some error because the oid is set when the object contains orgRef
         // or it is org. and by the import we do not know it so it will be trying to delete non-existing object
         String originalOid = object.getOid();
@@ -671,7 +673,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
-        LOGGER_SQL.debug("> delete object {}, oid={}", new Object[]{type.getSimpleName(), oid});
+        LOGGER_PERFORMANCE.debug("> delete object {}, oid={}", new Object[]{type.getSimpleName(), oid});
         Session session = null;
         OrgClosureManager.Context closureContext = null;
         try {
@@ -717,14 +719,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("query", query);
 
         if (query != null) {
-        	ObjectFilter filter = query.getFilter();
-        	filter = ObjectQueryUtil.simplify(filter);
-        	if (filter instanceof NoneFilter) {
-        		subResult.recordSuccess();
-        		return 0;
-        	}
-        	query = query.cloneEmpty();
-        	query.setFilter(filter);
+            ObjectFilter filter = query.getFilter();
+            filter = ObjectQueryUtil.simplify(filter);
+            if (filter instanceof NoneFilter) {
+                subResult.recordSuccess();
+                return 0;
+            }
+            query = query.cloneEmpty();
+            query.setFilter(filter);
         }
 
         final String operation = "counting";
@@ -740,7 +742,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private <T extends ObjectType> int countObjectsAttempt(Class<T> type, ObjectQuery query, OperationResult result) {
-        LOGGER_SQL.debug("> count objects {}", new Object[]{type.getSimpleName()});
+        LOGGER_PERFORMANCE.debug("> count objects {}", new Object[]{type.getSimpleName()});
 
         int count = 0;
 
@@ -774,8 +776,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @Override
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                     OperationResult result) throws SchemaException {
+                                                                                 Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                                 OperationResult result) throws SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
@@ -787,14 +789,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // subResult.addParam("paging", paging);
 
         if (query != null) {
-        	ObjectFilter filter = query.getFilter();
-        	filter = ObjectQueryUtil.simplify(filter);
-        	if (filter instanceof NoneFilter) {
-        		subResult.recordSuccess();
-        		return new SearchResultList(new ArrayList<PrismObject<T>>(0));
-        	}
-        	query = query.cloneEmpty();
-        	query.setFilter(filter);
+            ObjectFilter filter = query.getFilter();
+            filter = ObjectQueryUtil.simplify(filter);
+            if (filter instanceof NoneFilter) {
+                subResult.recordSuccess();
+                return new SearchResultList(new ArrayList<PrismObject<T>>(0));
+            }
+            query = query.cloneEmpty();
+            query.setFilter(filter);
         }
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
@@ -839,9 +841,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
-                                                                             Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                             OperationResult result) throws SchemaException {
-        LOGGER_SQL.debug("> search objects {}", new Object[]{type.getSimpleName()});
+                                                                                         Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                                         OperationResult result) throws SchemaException {
+        LOGGER_PERFORMANCE.debug("> search objects {}", new Object[]{type.getSimpleName()});
         List<PrismObject<T>> list = new ArrayList<>();
         Session session = null;
         try {
@@ -1030,7 +1032,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                                             OperationResult result) throws ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException, SerializationRelatedException {
         LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
-        LOGGER_SQL.debug("> modify object {}, oid={}, modifications={}",
+        LOGGER_PERFORMANCE.debug("> modify object {}, oid={}, modifications={}",
                 new Object[]{type.getSimpleName(), oid, modifications});
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Modifications:\n{}", new Object[]{DebugUtil.debugDump(modifications)});
@@ -1115,8 +1117,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         SQLException sqlException = findSqlException(ex);
         if (sqlException != null) {
             SQLException nextException = sqlException.getNextException();
-            LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", new Object[] {ex, sqlException, nextException});
-            String[] ok = new String[] {
+            LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", new Object[]{ex, sqlException, nextException});
+            String[] ok = new String[]{
                     "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
                     "duplicate key value violates unique constraint \"m_reference_pkey\""
             };
@@ -1180,7 +1182,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             String resourceOid, Class<T> resourceObjectShadowType, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
-        LOGGER_SQL.debug("> list resource object shadows {}, for resource oid={}",
+        LOGGER_PERFORMANCE.debug("> list resource object shadows {}, for resource oid={}",
                 new Object[]{resourceObjectShadowType.getSimpleName(), resourceOid});
         List<PrismObject<T>> list = new ArrayList<>();
         Session session = null;
@@ -1429,7 +1431,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> String getVersionAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        LOGGER_SQL.debug("> get version {}, oid={}", new Object[]{type.getSimpleName(), oid});
+        LOGGER_PERFORMANCE.debug("> get version {}, oid={}", new Object[]{type.getSimpleName(), oid});
 
         String version = null;
         Session session = null;
@@ -1460,9 +1462,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      */
     @Override
     public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-                                                              ResultHandler<T> handler,
-                                                              Collection<SelectorOptions<GetOperationOptions>> options,
-                                                              OperationResult result) throws SchemaException {
+                                                                              ResultHandler<T> handler,
+                                                                              Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                              OperationResult result) throws SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(handler, "Result handler must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
@@ -1474,14 +1476,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("query", query);
 
         if (query != null) {
-        	ObjectFilter filter = query.getFilter();
-        	filter = ObjectQueryUtil.simplify(filter);
-        	if (filter instanceof NoneFilter) {
-        		subResult.recordSuccess();
-        		return null;
-        	}
-        	query = query.cloneEmpty();
-        	query.setFilter(filter);
+            ObjectFilter filter = query.getFilter();
+            filter = ObjectQueryUtil.simplify(filter);
+            if (filter instanceof NoneFilter) {
+                subResult.recordSuccess();
+                return null;
+            }
+            query = query.cloneEmpty();
+            query.setFilter(filter);
         }
 
         if (getConfiguration().isIterativeSearchByPaging()) {
@@ -1596,8 +1598,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-	public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
-		Validate.notNull(upperOrgOid, "upperOrgOid must not be null.");
+    public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
+        Validate.notNull(upperOrgOid, "upperOrgOid must not be null.");
         Validate.notNull(lowerObjectOids, "lowerObjectOids must not be null.");
 
         if (LOGGER.isTraceEnabled())
