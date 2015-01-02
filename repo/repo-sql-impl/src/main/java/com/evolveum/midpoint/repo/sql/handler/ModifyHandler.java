@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sql.handler;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;

@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sql.handler;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -28,7 +28,7 @@ import java.util.Collection;
  *         synchronizationSituation
  *         REPLACE: LINKED
  */
-public class SyncSituationModifyHandler implements ModifyHandler {
+public class SyncSituationHandler implements ModifyHandler {
 
     @Override
     public <T extends ObjectType> boolean canHandle(Class<T> type, String oid,

@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sql.handler;
 
 /**
  * @author lazyman
@@ -26,7 +26,7 @@ import java.util.Collection;
  *         metadata/modifierRef
  *         REPLACE: oid=00000000-0000-0000-0000-00000000000
  */
-public class MetadataModifyHandler implements ModifyHandler {
+public class MetadataHandler implements ModifyHandler {
 
     @Override
     public <T extends ObjectType> boolean canHandle(Class<T> type, String oid,
