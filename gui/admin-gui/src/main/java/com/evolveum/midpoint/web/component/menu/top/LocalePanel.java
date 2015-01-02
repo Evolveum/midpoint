@@ -138,7 +138,7 @@ public class LocalePanel extends Panel {
         // condition is not met) so we are adding second condition to overcome this issue.
         for (LocaleDescriptor desc : AVAILABLE_LOCALES) {
 //            if (locale.equals(desc.getLocale())
-            if (locale.equals(desc.getLocale()) || locale.getLanguage().equals(desc.getFlag())) {
+            if (locale.equals(desc.getLocale()) || locale.getLanguage().equals(desc.getLocale().getLanguage())) {
                 return desc;
             }
         }
