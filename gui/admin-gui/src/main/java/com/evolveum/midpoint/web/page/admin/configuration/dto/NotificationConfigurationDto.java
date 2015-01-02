@@ -15,33 +15,31 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
 
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *  @author shood
- *
- *  TODO - contains only fields for e-mail configuration
  * */
 public class NotificationConfigurationDto implements Serializable{
 
-    private static final Trace LOGGER = TraceManager.getTrace(NotificationConfigurationDto.class);
+    public static final String F_DEFAULT_FROM = "defaultFrom";
+    public static final String F_DEBUG = "debug";
+    public static final String F_REDIRECT_TO_FILE = "redirectToFile";
+    public static final String F_SERVERS = "servers";
+    public static final String F_SELECTED_SERVER = "selectedServer";
 
     private String defaultFrom;
     private boolean debug;
     private String redirectToFile;
-    private String host;
-    private Integer port;
-    private String username;
-    private String password;
-    private MailTransportSecurityType mailTransportSecurityType;
+    private List<MailServerConfigurationTypeDto> servers;
+    private MailServerConfigurationTypeDto selectedServer;
 
     public NotificationConfigurationDto(){}
 
@@ -60,31 +58,10 @@ public class NotificationConfigurationDto implements Serializable{
 
             redirectToFile = mailConfig.getRedirectToFile();
 
-            if(mailConfig.getServer() != null && !mailConfig.getServer().isEmpty() && mailConfig.getServer().get(0) != null){
-                MailServerConfigurationType serverConfig = mailConfig.getServer().get(0);
-
-                host = serverConfig.getHost();
-                port = serverConfig.getPort();
-                username = serverConfig.getUsername();
-
-                if(serverConfig.getPassword() != null){
-                    password = "";
-                } else {
-                    password = null;
-                }
-
-                mailTransportSecurityType = serverConfig.getTransportSecurity();
+            for(MailServerConfigurationType serverConfig : mailConfig.getServer()){
+                getServers().add(new MailServerConfigurationTypeDto(serverConfig));
             }
         }
-    }
-
-    public boolean isConfigured(){
-        if(defaultFrom == null && redirectToFile == null && host == null
-                && port == null && username == null && password == null && mailTransportSecurityType == null){
-            return false;
-        }
-
-        return true;
     }
 
     public String getDefaultFrom() {
@@ -111,43 +88,48 @@ public class NotificationConfigurationDto implements Serializable{
         this.redirectToFile = redirectToFile;
     }
 
-    public String getHost() {
-        return host;
+    public List<MailServerConfigurationTypeDto> getServers() {
+        if(servers == null){
+            servers = new ArrayList<>();
+        }
+
+        return servers;
     }
 
-    public void setHost(String host) {
-        this.host = host;
+    public void setServers(List<MailServerConfigurationTypeDto> servers) {
+        this.servers = servers;
     }
 
-    public Integer getPort() {
-        return port;
+    public MailServerConfigurationTypeDto getSelectedServer() {
+        return selectedServer;
     }
 
-    public void setPort(Integer port) {
-        this.port = port;
+    public void setSelectedServer(MailServerConfigurationTypeDto selectedServer) {
+        this.selectedServer = selectedServer;
     }
 
-    public String getUsername() {
-        return username;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NotificationConfigurationDto that = (NotificationConfigurationDto) o;
+
+        if (debug != that.debug) return false;
+        if (defaultFrom != null ? !defaultFrom.equals(that.defaultFrom) : that.defaultFrom != null) return false;
+        if (redirectToFile != null ? !redirectToFile.equals(that.redirectToFile) : that.redirectToFile != null)
+            return false;
+        if (servers != null ? !servers.equals(that.servers) : that.servers != null) return false;
+
+        return true;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public MailTransportSecurityType getMailTransportSecurityType() {
-        return mailTransportSecurityType;
-    }
-
-    public void setMailTransportSecurityType(MailTransportSecurityType mailTransportSecurityType) {
-        this.mailTransportSecurityType = mailTransportSecurityType;
+    @Override
+    public int hashCode() {
+        int result = defaultFrom != null ? defaultFrom.hashCode() : 0;
+        result = 31 * result + (debug ? 1 : 0);
+        result = 31 * result + (redirectToFile != null ? redirectToFile.hashCode() : 0);
+        result = 31 * result + (servers != null ? servers.hashCode() : 0);
+        return result;
     }
 }

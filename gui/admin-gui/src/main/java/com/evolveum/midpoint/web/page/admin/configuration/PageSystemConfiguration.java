@@ -286,7 +286,6 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         return config;
     }
 
-    //TODO - save the rest of systemConfig
     private void savePerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(TASK_UPDATE_SYSTEM_CONFIG);
         String oid = SystemObjectsType.SYSTEM_CONFIGURATION.value();
@@ -406,10 +405,6 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         systemConfig.getDefaultObjectPolicyConfiguration().addAll(confList);
     }
 
-    /*
-    *   TODO - currently, we are saving changes to MailServerConfigType on index 0 in ArrayList. This will
-    *   change when GUI is update to define multiple mailServer or even SMS notifications
-    * */
     private SystemConfigurationType saveNotificationConfiguration(SystemConfigurationType config){
         NotificationConfigurationDto dto;
         NotificationConfigurationType notificationConfig;
@@ -435,31 +430,21 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             mailConfig.setDefaultFrom(dto.getDefaultFrom());
             mailConfig.setRedirectToFile(dto.getRedirectToFile());
 
-            if(!mailConfig.getServer().isEmpty() && mailConfig.getServer().get(0) != null){
-                mailServerConfig = mailConfig.getServer().get(0);
-            } else {
-                mailServerConfig = new MailServerConfigurationType();
-            }
+            mailConfig.getServer().clear();
+            for(MailServerConfigurationTypeDto serverDto: dto.getServers()){
+                MailServerConfigurationType newConfig = new MailServerConfigurationType();
+                newConfig.setHost(serverDto.getHost());
+                newConfig.setPort(serverDto.getPort());
+                newConfig.setUsername(serverDto.getUsername());
+                newConfig.setTransportSecurity(serverDto.getMailTransportSecurityType());
 
-            mailServerConfig.setHost(dto.getHost());
-            mailServerConfig.setPort(dto.getPort());
-            mailServerConfig.setUsername(dto.getUsername());
-            mailServerConfig.setTransportSecurity(dto.getMailTransportSecurityType());
+                if(serverDto.getPassword() != null && StringUtils.isNotEmpty(serverDto.getPassword())){
+                    ProtectedStringType pass = new ProtectedStringType();
+                    pass.setClearValue(serverDto.getPassword());
+                    newConfig.setPassword(pass);
+                }
 
-            if(dto.getPassword() != null && StringUtils.isNotEmpty(dto.getPassword())){
-                ProtectedStringType pass = new ProtectedStringType();
-                pass.setClearValue(dto.getPassword());
-                mailServerConfig.setPassword(pass);
-            }
-
-            if(mailConfig.getServer().isEmpty()){
-                if(dto.isConfigured())
-                    mailConfig.getServer().add(0, mailServerConfig);
-            } else {
-                if(dto.isConfigured())
-                    mailConfig.getServer().set(0, mailServerConfig);
-                else
-                    mailConfig.getServer().remove(0);
+                mailConfig.getServer().add(newConfig);
             }
 
             notificationConfig.setMail(mailConfig);

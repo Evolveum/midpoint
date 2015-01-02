@@ -87,9 +87,9 @@
             </div>
 
             <!-- TODO - move this into webapps/js and change selector to attribute rather than to class -->
-            <script>
-                $('.btn-xs').tooltip();
-            </script>
+            <!--<script>-->
+                <!--$('.btn-xs').tooltip();-->
+<!--//            </script>-->
 
             <div class="col-md-6">
                 <h3>
@@ -121,47 +121,69 @@
                 </div>
 
                 <hr style="margin-right: 20px;"/>
+
                 <div class="form-group">
                     <label class="col-lg-4 control-label">
-                        <wicket:message key="SystemConfigPanel.mail.host"/>
+                        <wicket:message key="SystemConfigPanel.mail.server"/>
+                        <i wicket:id="serverConfigTooltip" wicket:message="title:SystemConfigPanel.mail.server.tooltip"/>
                     </label>
 
                     <div class="col-lg-4">
-                        <input type="text" class="form-control input-sm" wicket:id="host"
-                               wicket:message="placeholder:SystemConfigPanel.mail.host">
+                        <select class="form-control input-sm" wicket:id="mailServer">
+                        </select>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-lg-4 control-label">
-                        <wicket:message key="SystemConfigPanel.mail.port"/>
-                    </label>
 
                     <div class="col-lg-2">
-                        <input type="text" class="form-control input-sm" wicket:id="port"
-                               wicket:message="placeholder:SystemConfigPanel.mail.port">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-lg-4 control-label">
-                        <wicket:message key="SystemConfigPanel.mail.username"/>
-                    </label>
-
-                    <div class="col-lg-4">
-                        <input type="text" class="form-control input-sm" wicket:id="username" autocomplete="off"
-                               wicket:message="placeholder:SystemConfigPanel.mail.username">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-lg-4 control-label">
-                        <wicket:message key="SystemConfigPanel.mail.password"/>
-                    </label>
-
-                    <div class="col-lg-4">
-                        <input type="password" class="form-control input-sm" wicket:id="password" autocomplete="off">
+                        <span class="btn-group">
+                            <a class="btn btn-danger btn-sm" wicket:id="removeConfigButton"><i class="glyphicon glyphicon-minus"/></a>
+                            <a class="btn btn-success btn-sm" wicket:id="addNewConfigButton"><i class="glyphicon glyphicon-plus"/></a>
+                        </span>
                     </div>
                 </div>
 
-                <div class="form-group" wicket:id="transportSecurity" />
+                <div wicket:id="mailServerConfigContainer">
+                    <div class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <wicket:message key="SystemConfigPanel.mail.host"/>
+                        </label>
+
+                        <div class="col-lg-4">
+                            <input type="text" class="form-control input-sm" wicket:id="host"
+                                   wicket:message="placeholder:SystemConfigPanel.mail.host">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <wicket:message key="SystemConfigPanel.mail.port"/>
+                        </label>
+
+                        <div class="col-lg-2">
+                            <input type="text" class="form-control input-sm" wicket:id="port"
+                                   wicket:message="placeholder:SystemConfigPanel.mail.port">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <wicket:message key="SystemConfigPanel.mail.username"/>
+                        </label>
+
+                        <div class="col-lg-4">
+                            <input type="text" class="form-control input-sm" wicket:id="username" autocomplete="off"
+                                   wicket:message="placeholder:SystemConfigPanel.mail.username">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <wicket:message key="SystemConfigPanel.mail.password"/>
+                        </label>
+
+                        <div class="col-lg-4">
+                            <input type="password" class="form-control input-sm" wicket:id="password" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="form-group" wicket:id="transportSecurity" />
+                </div>
 
                 <hr style="margin-right: 20px;"/>
 
