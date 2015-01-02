@@ -76,6 +76,8 @@ import java.util.*;
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
+    private static final Trace LOGGER_SQL = TraceManager.getTrace("org.hibernate.SQL");
+
     private static final int MAX_CONSTRAINT_NAME_LENGTH = 40;
     private static final String IMPLEMENTATION_SHORT_NAME = "SQL";
     private static final String IMPLEMENTATION_DESCRIPTION = "Implementation that stores data in generic relational" +
@@ -226,6 +228,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                                                    Collection<SelectorOptions<GetOperationOptions>> options,
                                                                    OperationResult result)
             throws ObjectNotFoundException, SchemaException {
+        LOGGER_SQL.debug("> get object {}, oid={}", type.getSimpleName(), oid);
         PrismObject<T> objectType = null;
 
         Session session = null;
@@ -285,6 +288,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <F extends FocusType> PrismObject<F> searchShadowOwnerAttempt(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException {
+        LOGGER_SQL.debug("> search shadow owner for oid={}", shadowOid);
         PrismObject<F> owner = null;
         Session session = null;
         try {
@@ -357,6 +361,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private PrismObject<UserType> listAccountShadowOwnerAttempt(String accountOid, OperationResult result)
             throws ObjectNotFoundException {
+        LOGGER_SQL.debug("> list account shadow owner oid={}", accountOid);
         PrismObject<UserType> userType = null;
         Session session = null;
         try {
@@ -451,6 +456,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
                                                            OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {
+        LOGGER_SQL.debug("> add object {}, oid={}, overwrite={}",
+                new Object[]{object.getCompileTimeClass().getSimpleName(), object.getOid(), options.isOverwrite()});
         String oid = null;
         Session session = null;
         OrgClosureManager.Context closureContext = null;
@@ -664,6 +671,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
+        LOGGER_SQL.debug("> delete object {}, oid={}", new Object[]{type.getSimpleName(), oid});
         Session session = null;
         OrgClosureManager.Context closureContext = null;
         try {
@@ -732,6 +740,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private <T extends ObjectType> int countObjectsAttempt(Class<T> type, ObjectQuery query, OperationResult result) {
+        LOGGER_SQL.debug("> count objects {}", new Object[]{type.getSimpleName()});
+
         int count = 0;
 
         Session session = null;
@@ -831,6 +841,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
                                                                              Collection<SelectorOptions<GetOperationOptions>> options,
                                                                              OperationResult result) throws SchemaException {
+        LOGGER_SQL.debug("> search objects {}", new Object[]{type.getSimpleName()});
         List<PrismObject<T>> list = new ArrayList<>();
         Session session = null;
         try {
@@ -1019,6 +1030,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                                             OperationResult result) throws ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException, SerializationRelatedException {
         LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+        LOGGER_SQL.debug("> modify object {}, oid={}, modifications={}",
+                new Object[]{type.getSimpleName(), oid, modifications});
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Modifications:\n{}", new Object[]{DebugUtil.debugDump(modifications)});
         }
@@ -1167,6 +1180,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             String resourceOid, Class<T> resourceObjectShadowType, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
+        LOGGER_SQL.debug("> list resource object shadows {}, for resource oid={}",
+                new Object[]{resourceObjectShadowType.getSimpleName(), resourceOid});
         List<PrismObject<T>> list = new ArrayList<>();
         Session session = null;
         try {
@@ -1414,6 +1429,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> String getVersionAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
+        LOGGER_SQL.debug("> get version {}, oid={}", new Object[]{type.getSimpleName(), oid});
+
         String version = null;
         Session session = null;
         try {
