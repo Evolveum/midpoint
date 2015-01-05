@@ -19,26 +19,28 @@
 <wicket:extend>
     <div wicket:id="confirmDeletePopup" />
 
-    <form wicket:id="searchForm" class="form-inline pull-right search-form">
-        <div class="form-group">
-            <label class="sr-only">
-                <wicket:message key="pageCreatedReports.filter.reportType" />
-            </label>
-            <select class="form-control input-sm" wicket:id="reportType" />
-        </div>
+    <div class="clearfix">
+        <form wicket:id="searchForm" class="form-inline pull-right search-form">
+            <div class="form-group">
+                <label class="sr-only">
+                    <wicket:message key="pageCreatedReports.filter.reportType" />
+                </label>
+                <select class="form-control input-sm" wicket:id="reportType" />
+            </div>
 
-        <!-- REMOVE COMMENT WHEN FILETYPE IS IN ReportOutputType -->
-        <!--
-        <div class="form-group">
-            <label class="sr-only">
-                <wicket:message key="pageCreatedReports.filter.filetype"/>
-            </label>
-            <select class="form-control input-sm" wicket:id="filetype" />
-        </div>
-        -->
+            <!-- REMOVE COMMENT WHEN FILETYPE IS IN ReportOutputType -->
+            <!--
+            <div class="form-group">
+                <label class="sr-only">
+                    <wicket:message key="pageCreatedReports.filter.filetype"/>
+                </label>
+                <select class="form-control input-sm" wicket:id="filetype" />
+            </div>
+            -->
 
-        <div wicket:id="basicSearch" />
-    </form>
+            <div wicket:id="basicSearch" />
+        </form>
+    </div>
 
     <form wicket:id="mainForm" class="clearfix">
         <div wicket:id="table"/>

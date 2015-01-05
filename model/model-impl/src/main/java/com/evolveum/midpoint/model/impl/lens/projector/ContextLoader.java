@@ -658,7 +658,7 @@ public class ContextLoader {
 				LensProjectionContext accountContext = null;
 				PrismObject<ShadowType> account = null;
 				if (oid == null) {
-					throw new SchemaException("Cannot delete account ref withot an oid in " + focus);
+					throw new SchemaException("Cannot delete account ref without an oid in " + focus);
 				} else {
 					try {
 						// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
@@ -671,7 +671,7 @@ public class ContextLoader {
 						accountContext.setExists(true);
 					} catch (ObjectNotFoundException e) {
 						try{
-						// Broken accountRef. We need to try again with raw options, because the error should be thrown becaue of non-existent resource
+						// Broken accountRef. We need to try again with raw options, because the error should be thrown because of non-existent resource
 						Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 						account = provisioningService.getObject(ShadowType.class, oid, options, null, result);
 						accountContext = getOrCreateBrokenAccountContext(context, oid);

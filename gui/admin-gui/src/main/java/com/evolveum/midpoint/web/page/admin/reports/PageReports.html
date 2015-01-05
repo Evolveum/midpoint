@@ -19,17 +19,19 @@
 <body>
 <wicket:extend>
 
-    <form wicket:id="searchForm" class="form-inline pull-right search-form">
+    <div class="clearfix">
+        <form wicket:id="searchForm" class="form-inline pull-right search-form">
 
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" wicket:id="subReportCheckbox"/>
-                <wicket:message key="PageReports.search.showSubreports" />
-            </label>
-        </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" wicket:id="subReportCheckbox"/>
+                    <wicket:message key="PageReports.search.showSubreports" />
+                </label>
+            </div>
 
-        <div wicket:id="basicSearch" />
-    </form>
+            <div wicket:id="basicSearch" />
+        </form>
+    </div>
 
 	<form wicket:id="mainForm" class="clearfix form-horizontal">
         <div wicket:id="reportsTable"/>

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
@@ -33,13 +34,23 @@ import java.util.List;
  * */
 public class QNameEditorPanel extends SimplePanel<QName>{
 
-    private static final String ID_ATTRIBUTE = "attribute";
+    private static final String ID_LOCAL_PART = "localPart";
     private static final String ID_NAMESPACE = "namespace";
-    private static final String ID_T_ATTRIBUTE = "attributeTooltip";
+    private static final String ID_LOCAL_PART_LABEL = "localPartLabel";
+    private static final String ID_NAMESPACE_LABEL = "namespaceLabel";
+    private static final String ID_T_LOCAL_PART = "localPartTooltip";
     private static final String ID_T_NAMESPACE = "namespaceTooltip";
 
     public QNameEditorPanel(String id, IModel<QName> model){
+        this(id, model, "QNameEditor.label.localPart", "QNameEditor.tooltip.localPart",
+                "QNameEditor.label.namespace", "QNameEditor.tooltip.namespace");
+    }
+
+    public QNameEditorPanel(String id, IModel<QName> model, String localPartLabelKey, String localPartTooltipKey,
+                            String namespaceLabelKey, String namespaceTooltipKey){
         super(id, model);
+
+        initLayout(localPartLabelKey, localPartTooltipKey, namespaceLabelKey, namespaceTooltipKey);
     }
 
     @Override
@@ -54,14 +65,24 @@ public class QNameEditorPanel extends SimplePanel<QName>{
         return model;
     }
 
-    @Override
-    protected void initLayout(){
+    protected void initLayout(String localPartLabelKey, String localPartTooltipKey,
+                              String namespaceLabelKey, String namespaceTooltipKey){
 
-        TextField attribute = new TextField<>(ID_ATTRIBUTE, new PropertyModel<String>(getModel(), "localPart"));
-        attribute.setOutputMarkupId(true);
-        attribute.setOutputMarkupPlaceholderTag(true);
-        attribute.setRequired(true);
-        add(attribute);
+        Label localPartLabel = new Label(ID_LOCAL_PART_LABEL, getString(localPartLabelKey));
+        localPartLabel.setOutputMarkupId(true);
+        localPartLabel.setOutputMarkupPlaceholderTag(true);
+        add(localPartLabel);
+
+        Label namespaceLabel = new Label(ID_NAMESPACE_LABEL, getString(namespaceLabelKey));
+        namespaceLabel.setOutputMarkupId(true);
+        namespaceLabel.setOutputMarkupPlaceholderTag(true);
+        add(namespaceLabel);
+
+        TextField localPart = new TextField<>(ID_LOCAL_PART, new PropertyModel<String>(getModel(), "localPart"));
+        localPart.setOutputMarkupId(true);
+        localPart.setOutputMarkupPlaceholderTag(true);
+        localPart.setRequired(isLocalPartRequired());
+        add(localPart);
 
         DropDownChoice namespace = new DropDownChoice<>(ID_NAMESPACE, new PropertyModel<String>(getModel(), "namespaceURI"),
                 prepareNamespaceList());
@@ -71,17 +92,23 @@ public class QNameEditorPanel extends SimplePanel<QName>{
         namespace.setRequired(true);
         add(namespace);
 
-        Label attrTooltip = new Label(ID_T_ATTRIBUTE);
-        attrTooltip.add(new InfoTooltipBehavior());
-        attrTooltip.setOutputMarkupPlaceholderTag(true);
-        add(attrTooltip);
+        Label localPartTooltip = new Label(ID_T_LOCAL_PART);
+        localPartTooltip.add(new AttributeAppender("data-original-title", getString(localPartTooltipKey)));
+        localPartTooltip.add(new InfoTooltipBehavior());
+        localPartTooltip.setOutputMarkupPlaceholderTag(true);
+        add(localPartTooltip);
 
         Label namespaceTooltip = new Label(ID_T_NAMESPACE);
+        namespaceTooltip.add(new AttributeAppender("data-original-title", getString(namespaceTooltipKey)));
         namespaceTooltip.add(new InfoTooltipBehavior());
         namespaceTooltip.setOutputMarkupPlaceholderTag(true);
         add(namespaceTooltip);
     }
 
+    /**
+     *  Override to provide custom list of namespaces
+     *  for QName editor
+     * */
     protected List<String> prepareNamespaceList(){
         List<String> list = new ArrayList<>();
 
@@ -93,7 +120,10 @@ public class QNameEditorPanel extends SimplePanel<QName>{
         return list;
     }
 
-//    public boolean isRequired(){
-//        return false;
-//    }
+    /**
+     *  Should localPart of QName be required?
+     * */
+    public boolean isLocalPartRequired(){
+        return false;
+    }
 }

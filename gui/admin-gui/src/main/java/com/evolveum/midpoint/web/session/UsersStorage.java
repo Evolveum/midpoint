@@ -20,12 +20,10 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgUnitSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 
-import java.io.Serializable;
-
 /**
  * @author lazyman
  */
-public class UsersStorage implements Serializable {
+public class UsersStorage extends PageStorage {
 
     /**
      * DTO used for search in {@link com.evolveum.midpoint.web.page.admin.users.PageUsers}

@@ -110,7 +110,11 @@ public class PageUsers extends PageAdminUsers {
     private LoadableModel<UsersDto> model;
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
-    public PageUsers() {
+    public PageUsers(){
+        this(true);
+    }
+
+    public PageUsers(boolean clearPagingInSession) {
         model = new LoadableModel<UsersDto>(false) {
 
             @Override
@@ -132,6 +136,8 @@ public class PageUsers extends PageAdminUsers {
                 return new ExecuteChangeOptionsDto();
             }
         };
+
+        getSessionStorage().clearPagingInSession(clearPagingInSession);
         initLayout();
     }
 
@@ -307,7 +313,8 @@ public class PageUsers extends PageAdminUsers {
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         provider.setOptions(options);
 
-        TablePanel table = new TablePanel(ID_TABLE, provider, columns, UserProfileStorage.TableId.PAGE_USERS_PANEL);
+        TablePanel table = new TablePanel(ID_TABLE, provider, columns,
+                UserProfileStorage.TableId.PAGE_USERS_PANEL, getItemsPerPage(UserProfileStorage.TableId.PAGE_USERS_PANEL));
         table.setOutputMarkupId(true);
 
         UsersStorage storage = getSessionStorage().getUsers();

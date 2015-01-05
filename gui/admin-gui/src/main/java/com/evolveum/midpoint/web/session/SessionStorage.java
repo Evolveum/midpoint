@@ -20,6 +20,8 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -36,17 +38,16 @@ public class SessionStorage implements Serializable {
     private PageParameters previousPageParams;
 
     /**
-     * place to store informations in session for "configuration" pages
+     * place to store information in session for various pages
      */
-    private ConfigurationStorage configuration;
-    /**
-     * Store sessions information for "users" and other pages
-     */
-    private UsersStorage users;
-    private ReportsStorage reports;
-    private ResourcesStorage resources;
-    private RolesStorage roles;
-    private TasksStorage tasks;
+    private Map<String, PageStorage> pageStorageMap = new HashMap<>();
+
+    private static final String KEY_CONFIGURATION = "configuration";
+    private static final String KEY_USERS = "users";
+    private static final String KEY_REPORTS = "reports";
+    private static final String KEY_RESOURCES = "resources";
+    private static final String KEY_ROLES = "roles";
+    private static final String KEY_TASKS = "tasks";
 
     /**
     *   Store session information for user preferences about paging size in midPoint GUI
@@ -70,45 +71,45 @@ public class SessionStorage implements Serializable {
     }
 
     public ConfigurationStorage getConfiguration() {
-        if (configuration == null) {
-            configuration = new ConfigurationStorage();
+        if (pageStorageMap.get(KEY_CONFIGURATION) == null) {
+            pageStorageMap.put(KEY_CONFIGURATION, new ConfigurationStorage());
         }
-        return configuration;
+        return (ConfigurationStorage)pageStorageMap.get(KEY_CONFIGURATION);
     }
 
     public UsersStorage getUsers() {
-        if (users == null) {
-            users = new UsersStorage();
+        if (pageStorageMap.get(KEY_USERS) == null) {
+            pageStorageMap.put(KEY_USERS, new UsersStorage());
         }
-        return users;
+        return (UsersStorage)pageStorageMap.get(KEY_USERS);
     }
 
     public ResourcesStorage getResources() {
-        if (resources == null) {
-            resources = new ResourcesStorage();
+        if (pageStorageMap.get(KEY_RESOURCES) == null) {
+            pageStorageMap.put(KEY_RESOURCES, new ResourcesStorage());
         }
-        return resources;
+        return (ResourcesStorage)pageStorageMap.get(KEY_RESOURCES);
     }
 
     public RolesStorage getRoles() {
-        if (roles == null) {
-            roles = new RolesStorage();
+        if (pageStorageMap.get(KEY_ROLES) == null) {
+            pageStorageMap.put(KEY_ROLES, new RolesStorage());
         }
-        return roles;
+        return (RolesStorage)pageStorageMap.get(KEY_ROLES);
     }
 
     public TasksStorage getTasks() {
-        if (tasks == null) {
-            tasks = new TasksStorage();
+        if (pageStorageMap.get(KEY_TASKS) == null) {
+            pageStorageMap.put(KEY_TASKS, new TasksStorage());
         }
-        return tasks;
+        return (TasksStorage)pageStorageMap.get(KEY_TASKS);
     }
 
     public ReportsStorage getReports() {
-        if (reports == null) {
-            reports = new ReportsStorage();
+        if (pageStorageMap.get(KEY_REPORTS) == null) {
+            pageStorageMap.put(KEY_REPORTS, new ReportsStorage());
         }
-        return reports;
+        return (ReportsStorage)pageStorageMap.get(KEY_REPORTS);
     }
 
     public UserProfileStorage getUserProfile(){
@@ -120,5 +121,11 @@ public class SessionStorage implements Serializable {
 
     public void setUserProfile(UserProfileStorage profile){
         userProfile = profile;
+    }
+
+    public void clearPagingInSession(boolean clearPaging){
+        if(clearPaging){
+            pageStorageMap.clear();
+        }
     }
 }

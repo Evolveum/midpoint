@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.component.wizard;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
@@ -133,7 +134,7 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
 
     @Override
     public void onCancel() {
-        setResponsePage(PageResources.class);
+        setResponsePage(new PageResources(false));
         warn(getString("Wizard.message.cancel"));
     }
 
@@ -142,10 +143,14 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
         if(getModel() != null && getModel().getObject() != null){
             IWizardStep activeStep = getModel().getObject().getActiveStep();
 
-            if(activeStep != null && activeStep instanceof SynchronizationStep){
-                activeStep.applyState();
+            if(activeStep != null){
+                OperationResult result = ((WizardStep)activeStep).getResult();
+
+                getPageBase().showResultInSession(result);
             }
         }
+
+        setResponsePage(new PageResources(false));
     }
 
     private void changeStep(AjaxRequestTarget target, WizardStepDto dto){

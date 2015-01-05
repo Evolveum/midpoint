@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.data.paging;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -48,12 +49,21 @@ public class NavigatorPanel extends Panel {
     private static final String ID_NEXT_LINK = "nextLink";
 
     private final IPageable pageable;
-    private final boolean showPageListing;
+    private final IModel<Boolean> showPageListingModel;
 
-    public NavigatorPanel(String id, IPageable pageable, boolean showPageListing) {
+    public NavigatorPanel(String id, IPageable pageable, final boolean showPageListing) {
+        this(id, pageable, new AbstractReadOnlyModel<Boolean>() {
+            @Override
+            public Boolean getObject() {
+                return showPageListing;
+            }
+        });
+    }
+
+    public NavigatorPanel(String id, IPageable pageable, IModel<Boolean> showPageListingModel) {
         super(id);
         this.pageable = pageable;
-        this.showPageListing = showPageListing;
+        this.showPageListingModel = showPageListingModel;
 
         setOutputMarkupId(true);
         add(new VisibleEnableBehaviour() {
@@ -107,7 +117,7 @@ public class NavigatorPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                return showPageListing && showFirstAndDots();
+                return BooleanUtils.isTrue(showPageListingModel.getObject()) && showFirstAndDots();
             }
         });
         add(first);
@@ -125,7 +135,7 @@ public class NavigatorPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                return showPageListing && showFirstAndDots();
+                return BooleanUtils.isTrue(showPageListingModel.getObject()) && showFirstAndDots();
             }
         });
         add(dots);
@@ -172,7 +182,7 @@ public class NavigatorPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                return showPageListing;
+                return BooleanUtils.isTrue(showPageListingModel.getObject());
             }
         });
         add(navigation);

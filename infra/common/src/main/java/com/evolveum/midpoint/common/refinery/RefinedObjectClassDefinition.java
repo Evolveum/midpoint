@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -839,11 +840,15 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 
     public PagedSearchCapabilityType getPagedSearches() {
-        return ResourceTypeUtil.getEffectiveCapability(resourceType, schemaHandlingObjectTypeDefinitionType, PagedSearchCapabilityType.class);
+        return getEffectiveCapability(PagedSearchCapabilityType.class);
     }
 
     public boolean isPagedSearchEnabled() {
         return getPagedSearches() != null;          // null means nothing or disabled
+    }
+
+    public boolean isObjectCountingEnabled() {
+        return getEffectiveCapability(CountObjectsCapabilityType.class) != null;
     }
 
 }

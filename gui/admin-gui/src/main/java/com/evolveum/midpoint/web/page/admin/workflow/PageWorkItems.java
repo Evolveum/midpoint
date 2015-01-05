@@ -92,7 +92,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 
         List<IColumn<WorkItemDto, String>> workItemColumns = initWorkItemColumns();
         TablePanel<WorkItemDto> workItemTable = new TablePanel<>("workItemTable", new WorkItemDtoProvider(PageWorkItems.this, assigned),
-                workItemColumns, UserProfileStorage.TableId.PAGE_WORK_ITEMS);
+                workItemColumns, UserProfileStorage.TableId.PAGE_WORK_ITEMS, getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS));
         workItemTable.setOutputMarkupId(true);
         mainForm.add(workItemTable);
 

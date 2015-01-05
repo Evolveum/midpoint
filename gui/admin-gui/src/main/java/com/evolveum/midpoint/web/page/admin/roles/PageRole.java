@@ -439,14 +439,10 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         OperationResult result = new OperationResult(OPERATION_SAVE_ROLE);
         try {
             WebMiscUtil.revive(model, getPrismContext());
-
-            ModelService modelService = getModelService();
-
             PrismObject<RoleType> newRole = model.getObject();
 
             delta = null;
             if (!isEditing()) {
-                delta = saveExtension(result);
 
                 //handle assignments
                 PrismObjectDefinition orgDef = newRole.getDefinition();
@@ -458,6 +454,8 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
                 PrismContainerDefinition inducementDef = orgDef.findContainerDefinition(RoleType.F_INDUCEMENT);
                 AssignmentTablePanel inducementPanel = (AssignmentTablePanel)get(createComponentPath(ID_MAIN_FORM, ID_INDUCEMENTS));
                 inducementPanel.handleAssignmentsWhenAdd(newRole, inducementDef, newRole.asObjectable().getInducement());
+
+                delta = ObjectDelta.createAddDelta(newRole);
 
             } else {
                 PrismObject<RoleType> oldRole = WebModelUtils.loadObject(RoleType.class, newRole.getOid(), result, this);
@@ -510,7 +508,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
                 progressReporter.isAllSuccess() &&
                 WebMiscUtil.isSuccessOrHandledErrorOrInProgress(result)) {
             showResultInSession(result);
-            setResponsePage(PageRoles.class);
+            setResponsePage(new PageRoles(false));
         } else {
             showResult(result);
             target.add(getFeedbackPanel());
@@ -542,6 +540,6 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
     }
 
     private void backPerformed(AjaxRequestTarget target){
-        setResponsePage(PageRoles.class);
+        setResponsePage(new PageRoles(false));
     }
 }

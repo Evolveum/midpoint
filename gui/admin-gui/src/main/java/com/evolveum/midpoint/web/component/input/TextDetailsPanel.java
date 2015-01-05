@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -55,7 +56,7 @@ public class TextDetailsPanel<T> extends InputPanel{
                 return createAssociationTooltip();
             }
         }));
-        details.add(new TooltipBehavior(){
+        details.add(new InfoTooltipBehavior(){
 
             @Override
             public String getDataPlacement(){

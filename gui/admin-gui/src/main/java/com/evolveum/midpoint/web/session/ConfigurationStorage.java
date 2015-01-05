@@ -21,12 +21,10 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AccountDetailsSearchDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 
-import java.io.Serializable;
-
 /**
  * @author lazyman
  */
-public class ConfigurationStorage implements Serializable {
+public class ConfigurationStorage extends PageStorage {
 
     private DebugSearchDto debugSearchDto;
     private AccountDetailsSearchDto accountSearchDto;

@@ -166,7 +166,7 @@ public class AssignmentProcessor {
     }
     
     /**
-     * Processing user-account assignments (including roles). Specific user-account method.
+     * Processing focus-projection assignments (including roles).
      */
     private <F extends FocusType> void processAssignmentsProjectionsWithFocus(LensContext<F> context, XMLGregorianCalendar now, 
     		Task task, OperationResult result) throws SchemaException,
@@ -201,7 +201,7 @@ public class AssignmentProcessor {
 
         // Initializing assignment evaluator. This will be used later to process all the assignments including the nested
         // assignments (roles).
-        AssignmentEvaluator<F> assignmentEvaluator = new AssignmentEvaluator<F>();
+        AssignmentEvaluator<F> assignmentEvaluator = new AssignmentEvaluator<>();
         assignmentEvaluator.setRepository(repositoryService);
         assignmentEvaluator.setFocusOdo(focusContext.getObjectDeltaObject());
         assignmentEvaluator.setLensContext(context);
@@ -217,8 +217,10 @@ public class AssignmentProcessor {
         // It forms a kind of delta set triple for the account constructions.
         DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple = new DeltaMapTriple<>();
 
-        LOGGER.trace("Current assignments {}", SchemaDebugUtil.prettyPrint(assignmentsCurrent));
-        LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Current assignments {}", SchemaDebugUtil.prettyPrint(assignmentsCurrent));
+			LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
+		}
 
 //        ObjectType source = determineSource(focusContext);
         ObjectType source = null;
@@ -425,7 +427,7 @@ public class AssignmentProcessor {
 		            	if (LOGGER.isTraceEnabled()) {
 		            		LOGGER.trace("Processing unchanged assignment {}", new Object[]{SchemaDebugUtil.prettyPrint(assignmentCVal)});
 		            	}
-		            	boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
+		            	boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);   // TODO unused: why? [med]
 		            	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                if (evaluatedAssignment == null) {
 		                	continue;
@@ -502,7 +504,7 @@ public class AssignmentProcessor {
 				}
 				
 				if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))){
-					LOGGER.trace("Processing of shadow identified by {} will be skipped because of limitation for discovery channel.");
+					LOGGER.trace("Processing of shadow identified by {} will be skipped because of limitation for discovery channel.");	// TODO is this message OK? [med]
 					processOnlyExistingProjCxts = true;
 				}
             }
@@ -985,7 +987,7 @@ public class AssignmentProcessor {
 				AssignmentPolicyEnforcementType enforcementType = projectionContext.getAssignmentPolicyEnforcementType();
 				
 				if (enforcementType == AssignmentPolicyEnforcementType.FULL) {
-					LOGGER.trace("Projection {} illegal: no assginment in FULL enforcement", desc);
+					LOGGER.trace("Projection {} illegal: no assignment in FULL enforcement", desc);
 					// What is not explicitly allowed is illegal in FULL enforcement mode
 					projectionContext.setLegal(false);
 					// We need to set the old value for legal to false. There was no assignment delta for it.
@@ -1247,8 +1249,7 @@ public class AssignmentProcessor {
 	/**
      * Returns delta of user assignments, both primary and secondary (merged together).
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
-     * Only works for UserType now.
-     * 
+     *
      * This is relative to execution wave to avoid re-processing of already executed assignments.
      */
 	private <F extends FocusType> ContainerDelta<AssignmentType> getExecutionWaveAssignmentDelta(LensFocusContext<F> focusContext) throws SchemaException {

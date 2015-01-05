@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -113,7 +114,11 @@ public class PageResources extends PageAdminResources {
     private IModel<ResourceSearchDto> searchModel;
     private ResourceDto singleDelete;
 
-    public PageResources() {
+    public PageResources(){
+        this(true);
+    }
+
+    public PageResources(boolean clearSessionPaging) {
 
         searchModel = new LoadableModel<ResourceSearchDto>() {
 
@@ -130,6 +135,7 @@ public class PageResources extends PageAdminResources {
             }
         };
 
+        getSessionStorage().clearPagingInSession(clearSessionPaging);
         initLayout();
     }
 
@@ -143,8 +149,12 @@ public class PageResources extends PageAdminResources {
         add(mainForm);
 
         TablePanel resources = new TablePanel<>(ID_TABLE, initResourceDataProvider(), initResourceColumns(),
-                UserProfileStorage.TableId.PAGE_RESOURCES_PANEL);
+                UserProfileStorage.TableId.PAGE_RESOURCES_PANEL, getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCES_PANEL));
         resources.setOutputMarkupId(true);
+
+        ResourcesStorage storage = getSessionStorage().getResources();
+        resources.setCurrentPage(storage.getResourcePaging());
+
         mainForm.add(resources);
 
         TablePanel connectorHosts = new TablePanel<>(ID_CONNECTOR_TABLE,
@@ -206,6 +216,12 @@ public class PageResources extends PageAdminResources {
             @Override
             public ResourceDto createDataObjectWrapper(PrismObject<ResourceType> obj) {
                 return createRowDto(obj);
+            }
+
+            @Override
+            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+                ResourcesStorage storage = getSessionStorage().getResources();
+                storage.setResourcePaging(paging);
             }
         };
 

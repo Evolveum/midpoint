@@ -58,6 +58,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -229,6 +230,24 @@ public class BasicExpressionFunctions {
 		}
 
 		return whatever.toString();
+	}
+	
+	public Collection<String> getOids(Collection<ObjectReferenceType> refs){
+		if (refs == null){
+			return null;
+		}
+		
+		Collection<String> oids = new ArrayList<String>();
+		for (ObjectReferenceType ort : refs){
+			if (ort.getOid() != null){
+				oids.add(ort.getOid());
+			} else if (ort.asReferenceValue().getObject() != null){
+				oids.add(ort.asReferenceValue().getObject().getOid());
+			}
+		}
+		
+		return oids;
+		
 	}
 	
 	public boolean isEmpty(Object whatever) {

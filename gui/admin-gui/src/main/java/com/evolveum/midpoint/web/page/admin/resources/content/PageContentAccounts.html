@@ -21,24 +21,26 @@
     <div wicket:id="ownerChangePopup" />
     <div wicket:id="confirmDeletePopup" />
 
-    <form class="form-inline pull-right search-form" wicket:id="searchForm">
+    <div class="clearfix">
+        <form class="form-inline pull-right search-form" wicket:id="searchForm">
 
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" wicket:id="nameCheck"/>
-                <wicket:message key="pageContentAccounts.name"/>
-            </label>
-        </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" wicket:id="nameCheck"/>
+                    <wicket:message key="pageContentAccounts.name"/>
+                </label>
+            </div>
 
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" wicket:id="identifiersCheck"/>
-                <wicket:message key="pageContentAccounts.identifiers"/>
-            </label>
-        </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" wicket:id="identifiersCheck"/>
+                    <wicket:message key="pageContentAccounts.identifiers"/>
+                </label>
+            </div>
 
-        <div wicket:id="basicSearch" />
-    </form>
+            <div wicket:id="basicSearch" />
+        </form>
+    </div>
 
     <form class="clearfix form-horizontal" wicket:id="mainForm">
         <div wicket:id="table"/>
