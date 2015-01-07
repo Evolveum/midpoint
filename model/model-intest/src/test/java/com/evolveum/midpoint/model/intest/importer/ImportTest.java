@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.intest.importer;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -48,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -57,6 +60,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.io.File;
@@ -107,6 +111,9 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 	private static String guybrushOid;
 	private static String hermanOid;
 	
+	@Autowired
+	private Clock clock;
+	
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -146,11 +153,13 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		FileInputStream stream = new FileInputStream(CONNECTOR_DBTABLE_FILE);
 		
 		dummyAuditService.clear();
+		XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 		
 		// WHEN
 		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
 		// THEN
+		XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
 		display("Result after good import", result);
 		TestUtil.assertSuccess("Import has failed (result)", result);
@@ -162,6 +171,8 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 //		assertEquals("ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
 		assertEquals(CONNECTOR_NAMESPACE, connector.getNamespace());
 		assertEquals("org.identityconnectors.databasetable.DatabaseTableConnector", connector.getConnectorType());
+	
+		assertMetadata(connector, startTime, endTime);
 		
 		// Check audit
         display("Audit", dummyAuditService);
@@ -173,8 +184,6 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
         dummyAuditService.assertExecutionSuccess();
 	}
 
-	
-	
 	@Test
 	public void test003ImportUsers() throws Exception {
 		TestUtil.displayTestTile(this,"test003ImportUsers");
@@ -184,11 +193,13 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		FileInputStream stream = new FileInputStream(IMPORT_USERS_FILE);
 		
 		dummyAuditService.clear();
+		XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
 		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
 		// THEN
+		XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
 		display("Result after good import", result);
 		TestUtil.assertSuccess("Import has failed (result)", result);
@@ -206,6 +217,8 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		assertNull("Arrgh! Pirate sectrets were revealed!",protectedString.getClearValue());
 		assertNotNull("Er? The pirate sectrets were lost!",protectedString.getEncryptedDataType());
 
+		assertMetadata(jack, startTime, endTime);
+		
 		// Check import with generated OID
 //		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "guybrush");
 //		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
@@ -222,6 +235,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		PrismAsserts.assertEqualsPolyString("wrong givenName", "Guybrush", guybrush.getGivenName());
 		PrismAsserts.assertEqualsPolyString("wrong familyName", "Threepwood", guybrush.getFamilyName());
 		PrismAsserts.assertEqualsPolyString("wrong fullName", "Guybrush Threepwood", guybrush.getFullName());
+		assertMetadata(guybrush, startTime, endTime);
 		
 		assertUsers(4);
 		
@@ -679,6 +693,15 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		assertNotNull("No configurationProperties in resource", configurationPropertiesContainer);
 		
 		return configurationPropertiesContainer;
+	}
+
+	private <O extends ObjectType> void assertMetadata(O objectType, XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
+		MetadataType metadata = objectType.getMetadata();
+		assertNotNull("No metadata in "+objectType, metadata);
+		XMLGregorianCalendar createTimestamp = metadata.getCreateTimestamp();
+		assertNotNull("No createTimestamp in metadata of "+objectType, createTimestamp);
+		IntegrationTestTools.assertBetween("Wrong createTimestamp in metadata of "+objectType, startTime, endTime, createTimestamp);
+		assertEquals("Wrong channel in metadata of "+objectType, SchemaConstants.CHANNEL_OBJECT_IMPORT_URI, metadata.getCreateChannel());
 	}
 
 }

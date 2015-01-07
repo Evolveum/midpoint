@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.importer;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
@@ -33,8 +34,10 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -108,6 +111,8 @@ public class ObjectImporter {
 	private RepositoryService repository;
     @Autowired(required = true)
     private ModelService modelService;
+    @Autowired(required = true)
+    private Clock clock;
     
     private Migrator migrator = new Migrator();
 
@@ -173,6 +178,17 @@ public class ObjectImporter {
 					} catch (EncryptionException e) {
 						opResult.recordFatalError(e);
 					}
+                }
+                
+                if (options == null || (options != null && !BooleanUtils.isTrue(options.isKeepMetadata()))) {
+                	MetadataType metaData = new MetadataType();
+            		String channel = SchemaConstants.CHANNEL_OBJECT_IMPORT_URI;
+            		metaData.setCreateChannel(channel);
+            		metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
+            		if (task.getOwner() != null) {
+            			metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
+            		}
+            		object.asObjectable().setMetadata(metaData);
                 }
 
                 objectResult.computeStatus();
