@@ -306,6 +306,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private static final File REQUEST_ACCOUNT_MODIFY_ATTRS_FILE = new File(REQUEST_DIR, "account-modify-attrs.xml");
     private static final File REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_FILE = new File(REQUEST_DIR, "account-modify-roomnumber.xml");
+    private static final File REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_EXPLICIT_TYPE_FILE = new File(REQUEST_DIR, "account-modify-roomnumber-explicit-type.xml");
     private static final File REQUEST_ACCOUNT_MODIFY_BAD_PATH_FILE = new File(REQUEST_DIR, "account-modify-bad-path.xml");
 
     private static final String LDIF_WILL_FILENAME = REQUEST_DIR_NAME + "will.ldif";
@@ -1138,13 +1139,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     private OperationResultType modifyObjectViaModelWS(ObjectDeltaType objectChange) throws FaultMessage {
-//        throw new UnsupportedOperationException("Implement later");
     	ObjectDeltaListType deltaList = new ObjectDeltaListType();
-//    	ObjectDeltaType objectDelta = new ObjectDeltaType();
-//    	objectDelta.setChangeType(ChangeTypeType.MODIFY);
-//    	objectDelta.getItemDelta().add(objectChange);
-//    	objectDelta.setOid(oid);
-//    	objectDelta.setObjectType(typeQName);
     	deltaList.getDelta().add(objectChange);
     	ObjectDeltaOperationListType list = modelWeb.executeChanges(deltaList, null);
         return getOdoFromDeltaOperationList(list, objectChange).getExecutionResult();
@@ -1554,14 +1549,23 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
     
     @Test
-    public void test028ModifyAccountDj() throws Exception {
-    	final String TEST_NAME = "test028ModifyAccountDj";
+    public void test027ModifyAccountDj() throws Exception {
+    	final String TEST_NAME = "test027ModifyAccountDj";
+        testModifyAccountDjRoomNumber(TEST_NAME, REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_FILE, "quarterdeck");
+    }
+
+    @Test
+    public void test028ModifyAccountDjExplicitType() throws Exception {
+    	final String TEST_NAME = "test028ModifyAccountDjExplicitType";
+        testModifyAccountDjRoomNumber(TEST_NAME, REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_EXPLICIT_TYPE_FILE, "upperdeck");
+    }
+
+    public void testModifyAccountDjRoomNumber(final String TEST_NAME, File reqFile, String expectedVal) throws Exception {
         TestUtil.displayTestTile(TEST_NAME);
         // GIVEN
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallValueFromFile(
-                REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_FILE, ObjectDeltaType.class);
+        ObjectDeltaType objectChange = unmarshallValueFromFile(reqFile, ObjectDeltaType.class);
         objectChange.setOid(accountShadowOidOpendj);
 
         // WHEN
@@ -1587,9 +1591,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check if LDAP account was updated
         SearchResultEntry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
-        OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", "quarterdeck");
+        OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", expectedVal);
     }
 
+    
     @Test
     public void test029ModifyAccountDjBadPath() throws Exception {
     	final String TEST_NAME = "test029ModifyAccountDjBadPath";
@@ -1633,7 +1638,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check if LDAP account was updated
         SearchResultEntry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
-        OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", "quarterdeck");
+        OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", "upperdeck");
     }
 
     /**

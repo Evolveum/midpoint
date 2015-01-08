@@ -246,6 +246,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR + "/account-shadow-guybrush-dummy.xml";
 	public static final String ACCOUNT_SHADOW_GUYBRUSH_OID = "22226666-2200-6666-6666-444400004444";
 	public static final String ACCOUNT_GUYBRUSH_DUMMY_USERNAME = "guybrush";
+	public static final String ACCOUNT_GUYBRUSH_DUMMY_FULLNAME = "Guybrush Threepwood";
 	public static final File ACCOUNT_GUYBRUSH_DUMMY_FILE = new File (COMMON_DIR, "account-guybrush-dummy.xml");
 	public static final String ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME = COMMON_DIR + "/account-guybrush-dummy-red.xml";
 	
