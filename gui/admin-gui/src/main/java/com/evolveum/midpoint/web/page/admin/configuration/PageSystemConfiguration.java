@@ -409,7 +409,6 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         NotificationConfigurationDto dto;
         NotificationConfigurationType notificationConfig;
         MailConfigurationType mailConfig;
-        MailServerConfigurationType mailServerConfig;
 
         if(systemConfigPanel != null && systemConfigPanel.getModel().getObject().getNotificationConfig() != null){
             dto = systemConfigPanel.getModel().getObject().getNotificationConfig();
@@ -442,6 +441,8 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
                     ProtectedStringType pass = new ProtectedStringType();
                     pass.setClearValue(serverDto.getPassword());
                     newConfig.setPassword(pass);
+                } else {
+                    newConfig.setPassword(serverDto.getOldConfig().getPassword());
                 }
 
                 mailConfig.getServer().add(newConfig);
