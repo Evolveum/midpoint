@@ -408,7 +408,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 			throw new IllegalStateException("Null values in ResourceAttributeContainer");
 		}
 		if (values.isEmpty()) {
-			throw new IllegalStateException("Empty values in ResourceAttributeContainer");
+			return;
 		}
 		if (values.size() > 1) {
 			throw new IllegalStateException(values.size()+" values in ResourceAttributeContainer, expected just one");
