@@ -32,6 +32,7 @@ public class MailServerConfigurationTypeDto implements Serializable {
     public static final String F_PASSWORD = "password";
     public static final String F_MAIL_TRANSPORT_SECURITY_TYPE = "mailTransportSecurityType";
 
+    private MailServerConfigurationType oldConfig;
     private String host;
     private Integer port;
     private String username;
@@ -42,6 +43,7 @@ public class MailServerConfigurationTypeDto implements Serializable {
 
     public MailServerConfigurationTypeDto(MailServerConfigurationType config){
 
+        oldConfig = config;
         host = config.getHost();
         port = config.getPort();
         username = config.getUsername();
@@ -95,15 +97,24 @@ public class MailServerConfigurationTypeDto implements Serializable {
         this.mailTransportSecurityType = mailTransportSecurityType;
     }
 
+    public MailServerConfigurationType getOldConfig() {
+        return oldConfig;
+    }
+
+    public void setOldConfig(MailServerConfigurationType oldConfig) {
+        this.oldConfig = oldConfig;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof MailServerConfigurationTypeDto)) return false;
 
         MailServerConfigurationTypeDto that = (MailServerConfigurationTypeDto) o;
 
         if (host != null ? !host.equals(that.host) : that.host != null) return false;
         if (mailTransportSecurityType != that.mailTransportSecurityType) return false;
+        if (oldConfig != null ? !oldConfig.equals(that.oldConfig) : that.oldConfig != null) return false;
         if (password != null ? !password.equals(that.password) : that.password != null) return false;
         if (port != null ? !port.equals(that.port) : that.port != null) return false;
         if (username != null ? !username.equals(that.username) : that.username != null) return false;
@@ -113,7 +124,8 @@ public class MailServerConfigurationTypeDto implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = host != null ? host.hashCode() : 0;
+        int result = oldConfig != null ? oldConfig.hashCode() : 0;
+        result = 31 * result + (host != null ? host.hashCode() : 0);
         result = 31 * result + (port != null ? port.hashCode() : 0);
         result = 31 * result + (username != null ? username.hashCode() : 0);
         result = 31 * result + (password != null ? password.hashCode() : 0);

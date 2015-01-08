@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -144,6 +145,18 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                PasswordTextField passwordField = (PasswordTextField)get(ID_MAIN_FORM + ":" + ID_MAIL_SERVER_CONFIG_CONTAINER + ":" + ID_PASSWORD);
+
+                if(getModelObject() != null){
+                    if(getModelObject().getNotificationConfig().getSelectedServer() != null &&
+                            getModelObject().getNotificationConfig().getSelectedServer().getPassword() != null){
+
+                        passwordField.add(new AttributeModifier("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.set")));
+                    } else {
+                        passwordField.add(new AttributeModifier("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.empty")));
+                    }
+                }
+
                 target.add(SystemConfigPanel.this);
             }
         });
@@ -174,16 +187,6 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         TextField<String> userNameField = new TextField<>(ID_USERNAME, new PropertyModel<String>(getModel(), "notificationConfig.selectedServer.username"));
         PasswordTextField passwordField = new PasswordTextField(ID_PASSWORD, new PropertyModel<String>(getModel(), "notificationConfig.selectedServer.password"));
         passwordField.setRequired(false);
-
-        if(getModelObject() != null){
-            if(getModelObject().getNotificationConfig().getSelectedServer() != null &&
-                    getModelObject().getNotificationConfig().getSelectedServer().getPassword() != null){
-
-                passwordField.add(new AttributeAppender("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.set")));
-            } else {
-                passwordField.add(new AttributeAppender("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.empty")));
-            }
-        }
 
         TextField<String> redirectToFileField = new TextField<>(ID_REDIRECT_TO_FILE, new PropertyModel<String>(getModel(), "notificationConfig.redirectToFile"));
 
