@@ -170,6 +170,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectAlreadyExistsFaultType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -207,6 +208,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
 	private static final String REPO_DIR_NAME = "src/test/resources/repo/";
 	private static final String REQUEST_DIR_NAME = "src/test/resources/request/";
+	private static final File REQUEST_DIR = new File(REQUEST_DIR_NAME);
 
     private static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
     private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
@@ -302,7 +304,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static final String REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_1_FILENAME = REQUEST_DIR_NAME + "user-modify-delete-role-captain-1.xml";
     private static final String REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_2_FILENAME = REQUEST_DIR_NAME + "user-modify-delete-role-captain-2.xml";
 
-    private static final String REQUEST_ACCOUNT_MODIFY_ATTRS_FILENAME = REQUEST_DIR_NAME + "account-modify-attrs.xml";
+    private static final File REQUEST_ACCOUNT_MODIFY_ATTRS_FILE = new File(REQUEST_DIR, "account-modify-attrs.xml");
+    private static final File REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_FILE = new File(REQUEST_DIR, "account-modify-roomnumber.xml");
+    private static final File REQUEST_ACCOUNT_MODIFY_BAD_PATH_FILE = new File(REQUEST_DIR, "account-modify-bad-path.xml");
 
     private static final String LDIF_WILL_FILENAME = REQUEST_DIR_NAME + "will.ldif";
     private static final File LDIF_WILL_MODIFY_FILE = new File (REQUEST_DIR_NAME, "will-modify.ldif");
@@ -1548,6 +1552,89 @@ public class TestSanity extends AbstractModelIntegrationTest {
         }
         lastJacksLdapPassword = ldapPasswordAfter;
     }
+    
+    @Test
+    public void test028ModifyAccountDj() throws Exception {
+    	final String TEST_NAME = "test028ModifyAccountDj";
+        TestUtil.displayTestTile(TEST_NAME);
+        // GIVEN
+        assertNoRepoCache();
+
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
+                REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_FILE, ObjectDeltaType.class);
+        objectChange.setOid(accountShadowOidOpendj);
+
+        // WHEN
+        OperationResultType result = modifyObjectViaModelWS(objectChange);
+
+        // THEN
+        assertNoRepoCache();
+        displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
+        TestUtil.assertSuccess("modifyObject has failed", result);
+        
+        OperationResult repoResult = new OperationResult("getObject");
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, null, repoResult);
+        repoResult.computeStatus();
+        TestUtil.assertSuccess("getObject(repo) has failed", repoResult);
+        display("repository shadow", repoShadow);
+        AssertJUnit.assertNotNull(repoShadow);
+        ShadowType repoShadowType = repoShadow.asObjectable();
+        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
+
+        // check attributes in the shadow: should be only identifiers (ICF UID)
+
+        String uid = checkRepoShadow(repoShadow);
+
+        // Check if LDAP account was updated
+        SearchResultEntry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
+        OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", "quarterdeck");
+    }
+
+    @Test
+    public void test029ModifyAccountDjBadPath() throws Exception {
+    	final String TEST_NAME = "test029ModifyAccountDjBadPath";
+        TestUtil.displayTestTile(TEST_NAME);
+        // GIVEN
+        assertNoRepoCache();
+
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
+                REQUEST_ACCOUNT_MODIFY_BAD_PATH_FILE, ObjectDeltaType.class);
+        objectChange.setOid(accountShadowOidOpendj);
+
+        OperationResultType result;
+        try {
+	        // WHEN
+	        result = modifyObjectViaModelWS(objectChange);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (FaultMessage f) {
+        	// this is expected
+        	FaultType faultInfo = f.getFaultInfo();
+        	result = faultInfo.getOperationResult();
+        }
+
+        // THEN
+        assertNoRepoCache();
+        displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
+        TestUtil.assertFailure(result);
+        
+        OperationResult repoResult = new OperationResult("getObject");
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, null, repoResult);
+        repoResult.computeStatus();
+        TestUtil.assertSuccess("getObject(repo) has failed", repoResult);
+        display("repository shadow", repoShadow);
+        AssertJUnit.assertNotNull(repoShadow);
+        ShadowType repoShadowType = repoShadow.asObjectable();
+        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
+
+        // check attributes in the shadow: should be only identifiers (ICF UID)
+
+        String uid = checkRepoShadow(repoShadow);
+
+        // Check if LDAP account was updated
+        SearchResultEntry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
+        OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", "quarterdeck");
+    }
 
     /**
      * Try to disable user. As the user has an account, the account should be disabled as well.
@@ -2327,7 +2414,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // GIVEN
 
         ObjectDeltaType objectChange = unmarshallValueFromFile(
-                REQUEST_ACCOUNT_MODIFY_ATTRS_FILENAME, ObjectDeltaType.class);
+                REQUEST_ACCOUNT_MODIFY_ATTRS_FILE, ObjectDeltaType.class);
         objectChange.setOid(accountShadowOidGuybrushOpendj);
 
         // WHEN ObjectTypes.SHADOW.getTypeQName(), 
