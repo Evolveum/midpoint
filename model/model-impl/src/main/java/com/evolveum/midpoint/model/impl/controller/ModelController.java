@@ -981,7 +981,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                     case WORKFLOW: throw new UnsupportedOperationException();
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
                 }
-				result.recordSuccess();
+				result.computeStatus();
 				result.cleanupResult();
 			} catch (CommunicationException e) {
 				processSearchException(e, rootOptions, searchProvider, result);

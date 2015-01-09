@@ -29,6 +29,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -40,6 +41,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -93,6 +96,10 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 	private static final File RESOURCE_DUMMY_NO_CONFIGURATION_FILE = new File (TEST_DIR, "resource-dummy-no-configuration.xml");
 	private static final String RESOURCE_DUMMY_NO_CONFIGURATION_OID = "10000000-0000-0000-0000-666600660006";
+	
+	private static final File RESOURCE_DUMMY_UNACCESSIBLE_FILE = new File (TEST_DIR, "resource-dummy-unaccessible.xml");
+	private static final String RESOURCE_DUMMY_UNACCESSIBLE_NAME = "unaccessible";
+	private static final String RESOURCE_DUMMY_UNACCESSIBLE_OID = "10000000-0000-0000-0000-666600660007";
 
 	private static final String ACCOUNT_SHADOW_JACK_CSVFILE_FILENAME = TEST_DIR + "/account-shadow-jack-csvfile.xml";
 	private static final String ACCOUNT_SHADOW_JACK_CSVFILE_OID = "ef2bc95b-76e0-1111-d3ad-3d4f12120001";
@@ -110,6 +117,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	protected static DummyResourceContoller dummyResourceCtl;
 	protected ResourceType resourceDummyType;
 	protected PrismObject<ResourceType> resourceDummy;
+	
+	protected static DummyResource dummyResourceUnaccessible;
+	protected static DummyResourceContoller dummyResourceUnaccessibleCtl;
 	
 	protected UserType userTypeJack;
 	
@@ -131,10 +141,14 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
-		
 		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
 		resourceDummyType = resourceDummy.asObjectable();
 		dummyResourceCtl.setResource(resourceDummy);
+		
+		dummyResourceUnaccessibleCtl = DummyResourceContoller.create(RESOURCE_DUMMY_UNACCESSIBLE_NAME);
+		dummyResourceUnaccessibleCtl.extendSchemaPirate();
+		dummyResourceUnaccessible = dummyResourceUnaccessibleCtl.getDummyResource();
+		dummyResourceUnaccessible.setBreakMode(BreakMode.NETWORK);
 		
 		importObjectFromFile(RESOURCE_CSVFILE_BROKEN_FILENAME, initResult);
 		importObjectFromFile(RESOURCE_CSVFILE_NOTFOUND_FILENAME, initResult);
@@ -188,6 +202,12 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		
         // TODO: better asserts
 		assertNotNull("Null resource", resource);
+	}
+	
+	@Test
+    public void test030ListResources() throws Exception {
+		final String TEST_NAME = "test030ListResources";
+		testListResources(TEST_NAME, 4);
 	}
 
 	@Test
@@ -585,6 +605,12 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	}
 
 	@Test
+    public void test368ListResources() throws Exception {
+		final String TEST_NAME = "test368ListResources";
+		testListResources(TEST_NAME, 5);
+	}
+	
+	@Test
     public void test369DeleteResourceNoConfiguration() throws Exception {
 		final String TEST_NAME = "test369DeleteResourceNoConfiguration";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -605,6 +631,60 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
 		
 		assertNoObject(ResourceType.class, RESOURCE_DUMMY_NO_CONFIGURATION_OID, task, result);
+	}
+
+	@Test
+    public void test370ListResources() throws Exception {
+		final String TEST_NAME = "test370ListResources";
+		testListResources(TEST_NAME, 4);
+	}
+
+	@Test
+    public void test371ImportUnaccessibleResource() throws Exception {
+		final String TEST_NAME = "test371ImportUnaccessibleResource";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        importObjectFromFile(RESOURCE_DUMMY_UNACCESSIBLE_FILE, task, result);
+		
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+
+	@Test
+    public void test372ListResources() throws Exception {
+		final String TEST_NAME = "test372ListResources";
+		testListResources(TEST_NAME, 5);
+	}
+	
+	@Test
+    public void test373GetResourceNoConfiguration() throws Exception {
+		final String TEST_NAME = "test373GetResourceNoConfiguration";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_UNACCESSIBLE_OID, null, task, result);
+		
+		// THEN
+		display("getObject resource", resource);
+		result.computeStatus();
+		display("getObject result", result);
+		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		
+		OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+		display("resource.fetchResult", fetchResult);
+		assertEquals("Expected partial errror in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+		
+		assertNotNull("Null resource", resource);
 	}
 	
 	/**
@@ -663,5 +743,46 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         assertNotNull("No jack dummy account", jackDummyAccount);
 	}
 
+	public void testListResources(final String TEST_NAME, int expectedNumber) throws Exception {
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN (1)
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN (1)
+		final SearchResultList<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
+		
+		// THEN (1)
+		result.computeStatus();
+		display("getObject result", result);
+		assertEquals("Expected partial error (search)", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		display("Got resources: "+resources);
+		assertEquals("Wrong number of resources", expectedNumber, resources.size());
+		
+		// GIVEN (2)
+		resources.clear();
+		task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        result = task.getResult();
+        
+		ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
+			@Override
+			public boolean handle(PrismObject<ResourceType> object, OperationResult parentResult) {
+				resources.add(object);
+				return true;
+			}
+		};
+		
+		// WHEN (2)
+		modelService.searchObjectsIterative(ResourceType.class, null, handler, null, task, result);
+		
+		// THEN (2)
+		result.computeStatus();
+		display("getObject result", result);
+		assertEquals("Expected partial error (searchIterative)", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		display("Got resources: "+resources);
+		assertEquals("Wrong number of resources", expectedNumber, resources.size());
+        
+	}
 	
 }
