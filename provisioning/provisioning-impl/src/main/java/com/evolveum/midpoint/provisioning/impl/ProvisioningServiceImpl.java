@@ -226,6 +226,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// Not resource
 		
 			PrismObject<T> repositoryObject = getRepoObject(type, oid, rootOptions, result);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDump());
+			}
 		
 			if (GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isRaw(rootOptions)) {
 			

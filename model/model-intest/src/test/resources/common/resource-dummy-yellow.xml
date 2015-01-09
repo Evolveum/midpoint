@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<!-- yellow resource - same as resource-dummy but with strong asIs administrativeStatus mapping -->
+<!-- yellow resource - almost same as resource-dummy but with strong asIs administrativeStatus mapping 
+                       also has a modified synchronization section: just correlation but no reactions -->
 
 <resource oid="10000000-0000-0000-0000-000000000704"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -396,23 +397,6 @@ end
 					</expression>
 				</q:equal>
 			</correlation>
-			<reaction>
-	            <situation>linked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
-	        </reaction>
         </objectSynchronization>
 	</synchronization>
 

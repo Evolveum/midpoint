@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 package com.evolveum.midpoint.model.intest.negative;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.test.util.TestUtil.assertFailure;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -27,6 +29,7 @@ import java.util.Iterator;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
@@ -42,11 +45,16 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -68,10 +76,20 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	private static final String USER_LEMONHEAD_FULLNAME = "Lemonhead";
 	private static final String USER_SHARPTOOTH_NAME = "sharptooth";
 	private static final String USER_SHARPTOOTH_FULLNAME = "Sharptooth";
-	
+	private static final String USER_REDSKULL_NAME = "redskull";
+	private static final String USER_REDSKULL_FULLNAME = "Red Skull";
+
+	private static final String USER_AFET_NAME = "afet";
+	private static final String USER_AFET_FULLNAME = "Alfredo Fettucini";
+	private static final String USER_BFET_NAME = "bfet";
+	private static final String USER_BFET_FULLNAME = "Bill Fettucini";
+	private static final String USER_CFET_NAME = "cfet";
+	private static final String USER_CFET_FULLNAME = "Carlos Fettucini";
+
 	protected static final Trace LOGGER = TraceManager.getTrace(TestAssignmentErrors.class);
 
 	private PrismObject<ResourceType> resource;
+	private String userLemonheadOid;
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -179,6 +197,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         
         PrismObject<UserType> user = createUser(USER_LEMONHEAD_NAME, USER_LEMONHEAD_FULLNAME);
         addObject(user);
+        userLemonheadOid = user.getOid();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(user.getOid(), RESOURCE_DUMMY_OID, null, true);
@@ -207,6 +226,42 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.assertExecutionMessage();
 		
 	}
+	
+	// PARTIAL_ERROR: Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.
+	// TODO: timeout or explicit retry
+//	@Test
+//    public void test205UserLemonheadRecovery() throws Exception {
+//		final String TEST_NAME = "test205UserLemonheadRecovery";
+//        TestUtil.displayTestTile(this, TEST_NAME);
+//
+//        // GIVEN
+//        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+//        OperationResult result = task.getResult();
+//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+//                
+//        dummyResource.setBreakMode(BreakMode.NONE);
+//        dummyAuditService.clear();
+//                
+//		// WHEN
+//		//not expected that it fails, instead the error in the result is expected
+//        modelService.recompute(UserType.class, userLemonheadOid, task, result);
+//        
+//        result.computeStatus();
+//        
+//        display(result);
+//        // This has to be a partial error as some changes were executed (user) and others were not (account)
+//        TestUtil.assertSuccess(result);
+//        
+//        // Check audit
+//        display("Audit", dummyAuditService);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertTarget(userLemonheadOid);
+//        dummyAuditService.assertExecutionOutcome(OperationResultStatus.HANDLED_ERROR);
+//        dummyAuditService.assertExecutionMessage();
+//		
+//	}
 
 	@Test
     public void test210UserSharptoothAssignAccountBrokenGeneric() throws Exception {
@@ -262,6 +317,214 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ObjectDeltaOperation<? extends ObjectType> deltaop2 = i.next();
         assertEquals("Unexpected result of second executed deltas", OperationResultStatus.FATAL_ERROR, deltaop2.getExecutionResult().getStatus());
         
+	}
+	
+	/**
+	 * Assign account to user, delete the account shadow (not the account), recompute the user. 
+	 * We expect that the shadow will be re-created and re-linked.
+	 * 
+	 * This is tried on the default dummy resource where synchronization is enabled.
+	 */
+	@Test
+    public void test220UserAssignAccountDeletedShadowRecomputeSync() throws Exception {
+		final String TEST_NAME = "test220UserAssignAccountDeletedShadowRecomputeSync";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		//GIVEN
+		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_OID, null,
+				USER_AFET_NAME, USER_AFET_FULLNAME);
+		String shadowOidBefore = getSingleLinkOid(user);
+		Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+		
+		// WHEN
+        modelService.recompute(UserType.class, user.getOid(), task, result);
+        
+		// THEN
+        result.computeStatus();
+        display("Recompute result", result);
+        TestUtil.assertSuccess(result,2);
+        
+        user = getUser(user.getOid());
+        display("User after", user);
+        String shadowOidAfter = getSingleLinkOid(user);
+        display("Shadow OID after", shadowOidAfter);
+        PrismObject<ShadowType> shadowAfter = repositoryService.getObject(ShadowType.class, shadowOidAfter, null, result);
+        display("Shadow after", shadowAfter);
+        
+        assertFalse("New and old shadow OIDs are the same", shadowOidBefore.equals(shadowOidAfter));
+        
+        // ... and again ...
+        
+        task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        result = task.getResult();
+		
+		// WHEN
+        modelService.recompute(UserType.class, user.getOid(), task, result);
+        
+		// THEN
+        result.computeStatus();
+        display("Recompute result", result);
+        TestUtil.assertSuccess(result,2);
+        
+        user = getUser(user.getOid());
+        display("User after", user);
+        String shadowOidAfterAfter = getSingleLinkOid(user);
+        display("Shadow OID after the second time", shadowOidAfterAfter);
+
+        assertEquals("The shadow OIDs has changed after second recompute", shadowOidAfter, shadowOidAfterAfter);
+	}
+	
+	/**
+	 * Assign account to user, delete the account shadow (not the account), recompute the user. 
+	 * We expect ObjectAlreadyExistsException.
+	 * 
+	 * This is tried on the red dummy resource where there is no synchronization.
+	 */
+	@Test
+    public void test222UserAssignAccountDeletedShadowRecomputeNoSync() throws Exception {
+		final String TEST_NAME = "test222UserAssignAccountDeletedShadowRecomputeNoSync";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		//GIVEN
+		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_RED_OID, RESOURCE_DUMMY_RED_NAME,
+				USER_BFET_NAME, USER_BFET_FULLNAME);
+		Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        try {
+	        // WHEN
+	        modelService.recompute(UserType.class, user.getOid(), task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (ObjectAlreadyExistsException e) {
+        	// this is expected
+        	result.computeStatus();
+        	TestUtil.assertFailure(result);
+        }
+        
+        user = getUser(user.getOid());
+        display("User after", user);
+        assertNoLinkedAccount(user);
+        
+        // and again ...
+        
+        task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        result = task.getResult();
+        
+        try {
+	        // WHEN
+	        modelService.recompute(UserType.class, user.getOid(), task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (ObjectAlreadyExistsException e) {
+        	// this is expected
+        	result.computeStatus();
+        	TestUtil.assertFailure(result);
+        }
+        
+        user = getUser(user.getOid());
+        display("User after", user);
+        assertNoLinkedAccount(user);
+        
+	}
+	
+	/**
+	 * Assign account to user, delete the account shadow (not the account), recompute the user. 
+	 * We expect that the shadow will be re-created and re-linked.
+	 * 
+	 * This is tried on the yellow dummy resource where there is reduced synchronization config.
+	 */
+	@Test
+    public void test224UserAssignAccountDeletedShadowRecomputeReducedSync() throws Exception {
+		final String TEST_NAME = "test224UserAssignAccountDeletedShadowRecomputeReducedSync";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		//GIVEN
+		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, 
+				RESOURCE_DUMMY_YELLOW_OID, RESOURCE_DUMMY_YELLOW_NAME,
+				USER_CFET_NAME, USER_CFET_FULLNAME);
+		String shadowOidBefore = getSingleLinkOid(user);
+		Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+		
+		// WHEN
+        modelService.recompute(UserType.class, user.getOid(), task, result);
+        
+		// THEN
+        result.computeStatus();
+        display("Recompute result", result);
+        TestUtil.assertSuccess(result,2);
+        
+        user = getUser(user.getOid());
+        display("User after", user);
+        String shadowOidAfter = getSingleLinkOid(user);
+        display("Shadow OID after", shadowOidAfter);
+        PrismObject<ShadowType> shadowAfter = repositoryService.getObject(ShadowType.class, shadowOidAfter, null, result);
+        display("Shadow after", shadowAfter);
+        
+        assertFalse("New and old shadow OIDs are the same", shadowOidBefore.equals(shadowOidAfter));
+        
+        // ... and again ...
+        
+        task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        result = task.getResult();
+		
+		// WHEN
+        modelService.recompute(UserType.class, user.getOid(), task, result);
+        
+		// THEN
+        result.computeStatus();
+        display("Recompute result", result);
+        TestUtil.assertSuccess(result,2);
+        
+        user = getUser(user.getOid());
+        display("User after", user);
+        String shadowOidAfterAfter = getSingleLinkOid(user);
+        display("Shadow OID after the second time", shadowOidAfterAfter);
+
+        assertEquals("The shadow OIDs has changed after second recompute", shadowOidAfter, shadowOidAfterAfter);
+        
+	}
+		
+	private PrismObject<UserType> setupUserAssignAccountDeletedShadowRecompute(final String TEST_NAME, String dummyResourceOid, 
+			String dummyResourceName, String userName, String userFullName) throws Exception {
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyResource.resetBreakMode();
+        
+        PrismObject<UserType> user = createUser(userName, userFullName);
+        AssignmentType assignmentType = createAssignment(dummyResourceOid, ShadowKindType.ACCOUNT, null);
+        user.asObjectable().getAssignment().add(assignmentType);
+        ActivationType activationType = new ActivationType();
+        activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
+		user.asObjectable().setActivation(activationType);
+        addObject(user);
+        
+        // precondition
+        assertDummyAccount(dummyResourceName, userName, userFullName, true);
+        
+        // Re-read user to get the links
+        user = getUser(user.getOid());
+        display("User before", user);
+        String shadowOidBefore = getSingleLinkOid(user);
+        
+        // precondition
+        PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, shadowOidBefore, null, result);
+        display("Shadow before", shadowBefore);
+        
+        // delete just the shadow, not the account
+        repositoryService.deleteObject(ShadowType.class, shadowOidBefore, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoRepoCache();        
+        dummyAuditService.clear();
+        
+        return user;        		
 	}
 
 }
