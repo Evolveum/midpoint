@@ -732,10 +732,10 @@ public class OrgClosureManager {
     // Checks that there is no edge=(D,A) such that A->D exists in the transitive closure
     // (this would yield a cycle D->A->D in the graph)
     private void checkForCycles(List<Edge> edges, Session session) {
-        String queryText = "select t.descendant_oid, t.ancestor_oid from " + CLOSURE_TABLE_NAME + " t where " + getWhereClauseForCycleCheck(edges);
+        String queryText = "select descendant_oid, ancestor_oid from " + CLOSURE_TABLE_NAME + " where " + getWhereClauseForCycleCheck(edges);
         Query query = session.createSQLQuery(queryText)
-                .addScalar("t.descendant_oid", StringType.INSTANCE)
-                .addScalar("t.ancestor_oid", StringType.INSTANCE);
+                .addScalar("descendant_oid", StringType.INSTANCE)
+                .addScalar("ancestor_oid", StringType.INSTANCE);
         long start = System.currentTimeMillis();
         List list = query.list();
         LOGGER.trace("Cycles checked in {} ms, {} conflicts found", System.currentTimeMillis()-start, list.size());
@@ -774,8 +774,8 @@ public class OrgClosureManager {
             }
             checkOidSyntax(edge.getAncestor());
             checkOidSyntax(edge.getDescendant());
-            whereClause.append("(t.ancestor_oid = '").append(edge.getDescendant()).append("'");
-            whereClause.append(" and t.descendant_oid = '").append(edge.getAncestor()).append("')");
+            whereClause.append("(ancestor_oid = '").append(edge.getDescendant()).append("'");
+            whereClause.append(" and descendant_oid = '").append(edge.getAncestor()).append("')");
         }
         return whereClause.toString();
     }
