@@ -39,7 +39,9 @@ public class MailServerConfigurationTypeDto implements Serializable {
     private String password;
     private MailTransportSecurityType mailTransportSecurityType;
 
-    public MailServerConfigurationTypeDto(){}
+    public MailServerConfigurationTypeDto(){
+        oldConfig = new MailServerConfigurationType();
+    }
 
     public MailServerConfigurationTypeDto(MailServerConfigurationType config){
 
