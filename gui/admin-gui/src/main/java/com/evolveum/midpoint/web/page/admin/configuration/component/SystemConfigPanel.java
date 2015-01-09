@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -141,6 +142,13 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
             }
         });
         mailServerConfigChooser.setNullValid(true);
+        mailServerConfigChooser.add(new AjaxFormSubmitBehavior("onclick"){
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                getForm().onFormSubmitted();
+            }
+        });
         mailServerConfigChooser.add(new OnChangeAjaxBehavior() {
 
             @Override
