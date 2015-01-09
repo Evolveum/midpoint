@@ -21,6 +21,7 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.F
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -132,6 +133,9 @@ public class ChangeExecutor {
     @Autowired(required = false)
     private WorkflowManager workflowManager;
     
+    @Autowired(required = true)
+    private Clock clock;
+    
     private PrismObjectDefinition<UserType> userDefinition = null;
     private PrismObjectDefinition<ShadowType> shadowDefinition = null;
     
@@ -232,7 +236,7 @@ public class ChangeExecutor {
 				
 				ObjectDelta<ShadowType> accDelta = accCtx.getExecutableDelta();
 				if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
-					if (syncContext.getFocusContext().getDelta() != null
+					if (syncContext.getFocusContext() != null && syncContext.getFocusContext().getDelta() != null
 							&& syncContext.getFocusContext().getDelta().isDelete()
 							&& syncContext.getOptions() != null
 							&& ModelExecuteOptions.isForce(syncContext.getOptions())) {
@@ -1036,7 +1040,7 @@ public class ChangeExecutor {
 		MetadataType metaData = new MetadataType();
 		String channel = getChannel(context, task);
 		metaData.setCreateChannel(channel);
-		metaData.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+		metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
 		if (task.getOwner() != null) {
 			metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
 		}

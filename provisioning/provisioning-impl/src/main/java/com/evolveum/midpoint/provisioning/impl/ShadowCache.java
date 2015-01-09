@@ -1388,14 +1388,21 @@ public abstract class ShadowCache {
 			applyAttributesDefinition(delta.getObjectToAdd(), resource);
 		} else if (delta.isModify()) {
 			ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
-			for(ItemDelta<?> modification: delta.getModifications()) {
-				if (modification.getDefinition() == null && attributesPath.equivalent(modification.getParentPath())) {
-					QName attributeName = modification.getElementName();
+			for(ItemDelta<?> itemDelta: delta.getModifications()) {
+				ItemDefinition itemDef = itemDelta.getDefinition();
+				if ((itemDef == null || !(itemDef instanceof ResourceAttributeDefinition)) && attributesPath.equivalent(itemDelta.getParentPath())) {
+					QName attributeName = itemDelta.getElementName();
 					ResourceAttributeDefinition attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
 					if (attributeDefinition == null) {
 						throw new SchemaException("No definition for attribute "+attributeName+" in object delta "+delta);
 					}
-					modification.applyDefinition(attributeDefinition);
+					if (itemDef != null) {
+						// We are going to rewrite the definition anyway. Let's just do some basic checks first
+						if (!QNameUtil.match(itemDef.getTypeName(),attributeDefinition.getTypeName())) {
+							throw new SchemaException("The value of type "+itemDef.getTypeName()+" cannot be applied to attribute "+attributeName+" which is of type "+attributeDefinition.getTypeName());
+						}
+					}
+					itemDelta.applyDefinition(attributeDefinition);
 				}
 			}
 		}

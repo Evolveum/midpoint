@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,6 +170,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectAlreadyExistsFaultType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -207,6 +208,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
 	private static final String REPO_DIR_NAME = "src/test/resources/repo/";
 	private static final String REQUEST_DIR_NAME = "src/test/resources/request/";
+	private static final File REQUEST_DIR = new File(REQUEST_DIR_NAME);
 
     private static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
     private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
@@ -302,7 +304,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static final String REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_1_FILENAME = REQUEST_DIR_NAME + "user-modify-delete-role-captain-1.xml";
     private static final String REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_2_FILENAME = REQUEST_DIR_NAME + "user-modify-delete-role-captain-2.xml";
 
-    private static final String REQUEST_ACCOUNT_MODIFY_ATTRS_FILENAME = REQUEST_DIR_NAME + "account-modify-attrs.xml";
+    private static final File REQUEST_ACCOUNT_MODIFY_ATTRS_FILE = new File(REQUEST_DIR, "account-modify-attrs.xml");
+    private static final File REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_FILE = new File(REQUEST_DIR, "account-modify-roomnumber.xml");
+    private static final File REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_EXPLICIT_TYPE_FILE = new File(REQUEST_DIR, "account-modify-roomnumber-explicit-type.xml");
+    private static final File REQUEST_ACCOUNT_MODIFY_BAD_PATH_FILE = new File(REQUEST_DIR, "account-modify-bad-path.xml");
 
     private static final String LDIF_WILL_FILENAME = REQUEST_DIR_NAME + "will.ldif";
     private static final File LDIF_WILL_MODIFY_FILE = new File (REQUEST_DIR_NAME, "will-modify.ldif");
@@ -1134,13 +1139,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     private OperationResultType modifyObjectViaModelWS(ObjectDeltaType objectChange) throws FaultMessage {
-//        throw new UnsupportedOperationException("Implement later");
     	ObjectDeltaListType deltaList = new ObjectDeltaListType();
-//    	ObjectDeltaType objectDelta = new ObjectDeltaType();
-//    	objectDelta.setChangeType(ChangeTypeType.MODIFY);
-//    	objectDelta.getItemDelta().add(objectChange);
-//    	objectDelta.setOid(oid);
-//    	objectDelta.setObjectType(typeQName);
     	deltaList.getDelta().add(objectChange);
     	ObjectDeltaOperationListType list = modelWeb.executeChanges(deltaList, null);
         return getOdoFromDeltaOperationList(list, objectChange).getExecutionResult();
@@ -1445,8 +1444,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * should be also applied to the account (by schemaHandling).
      */
     @Test
-    public void test022ChangePassword() throws Exception {
-    	final String TEST_NAME = "test022ChangePassword";
+    public void test022ChangeUserPassword() throws Exception {
+    	final String TEST_NAME = "test022ChangeUserPassword";
         TestUtil.displayTestTile(TEST_NAME);
         // GIVEN
 
@@ -1467,8 +1466,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Similar to previous test just the request is constructed a bit differently.
      */
     @Test
-    public void test023ChangePasswordJAXB() throws Exception {
-    	final String TEST_NAME = "test023ChangePasswordJAXB";
+    public void test023ChangeUserPasswordJAXB() throws Exception {
+    	final String TEST_NAME = "test023ChangeUserPasswordJAXB";
         TestUtil.displayTestTile(TEST_NAME);
         
         // GIVEN
@@ -1548,14 +1547,107 @@ public class TestSanity extends AbstractModelIntegrationTest {
         }
         lastJacksLdapPassword = ldapPasswordAfter;
     }
+    
+    @Test
+    public void test027ModifyAccountDj() throws Exception {
+    	final String TEST_NAME = "test027ModifyAccountDj";
+        testModifyAccountDjRoomNumber(TEST_NAME, REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_FILE, "quarterdeck");
+    }
+
+    @Test
+    public void test028ModifyAccountDjExplicitType() throws Exception {
+    	final String TEST_NAME = "test028ModifyAccountDjExplicitType";
+        testModifyAccountDjRoomNumber(TEST_NAME, REQUEST_ACCOUNT_MODIFY_ROOM_NUMBER_EXPLICIT_TYPE_FILE, "upperdeck");
+    }
+
+    public void testModifyAccountDjRoomNumber(final String TEST_NAME, File reqFile, String expectedVal) throws Exception {
+        TestUtil.displayTestTile(TEST_NAME);
+        // GIVEN
+        assertNoRepoCache();
+
+        ObjectDeltaType objectChange = unmarshallValueFromFile(reqFile, ObjectDeltaType.class);
+        objectChange.setOid(accountShadowOidOpendj);
+
+        // WHEN
+        OperationResultType result = modifyObjectViaModelWS(objectChange);
+
+        // THEN
+        assertNoRepoCache();
+        displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
+        TestUtil.assertSuccess("modifyObject has failed", result);
+        
+        OperationResult repoResult = new OperationResult("getObject");
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, null, repoResult);
+        repoResult.computeStatus();
+        TestUtil.assertSuccess("getObject(repo) has failed", repoResult);
+        display("repository shadow", repoShadow);
+        AssertJUnit.assertNotNull(repoShadow);
+        ShadowType repoShadowType = repoShadow.asObjectable();
+        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
+
+        // check attributes in the shadow: should be only identifiers (ICF UID)
+
+        String uid = checkRepoShadow(repoShadow);
+
+        // Check if LDAP account was updated
+        SearchResultEntry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
+        OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", expectedVal);
+    }
+
+    
+    @Test
+    public void test029ModifyAccountDjBadPath() throws Exception {
+    	final String TEST_NAME = "test029ModifyAccountDjBadPath";
+        TestUtil.displayTestTile(TEST_NAME);
+        // GIVEN
+        assertNoRepoCache();
+
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
+                REQUEST_ACCOUNT_MODIFY_BAD_PATH_FILE, ObjectDeltaType.class);
+        objectChange.setOid(accountShadowOidOpendj);
+
+        OperationResultType result;
+        try {
+	        // WHEN
+	        result = modifyObjectViaModelWS(objectChange);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (FaultMessage f) {
+        	// this is expected
+        	FaultType faultInfo = f.getFaultInfo();
+        	result = faultInfo.getOperationResult();
+        }
+
+        // THEN
+        assertNoRepoCache();
+        displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
+        TestUtil.assertFailure(result);
+        
+        OperationResult repoResult = new OperationResult("getObject");
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, null, repoResult);
+        repoResult.computeStatus();
+        TestUtil.assertSuccess("getObject(repo) has failed", repoResult);
+        display("repository shadow", repoShadow);
+        AssertJUnit.assertNotNull(repoShadow);
+        ShadowType repoShadowType = repoShadow.asObjectable();
+        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
+
+        // check attributes in the shadow: should be only identifiers (ICF UID)
+
+        String uid = checkRepoShadow(repoShadow);
+
+        // Check if LDAP account was updated
+        SearchResultEntry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
+        OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", "upperdeck");
+    }
 
     /**
      * Try to disable user. As the user has an account, the account should be disabled as well.
      */
     @Test
-    public void test030Disable() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException {
-        TestUtil.displayTestTile("test030Disable");
+    public void test030DisableUser() throws Exception {
+    	final String TEST_NAME = "test030DisableUser";
+        TestUtil.displayTestTile(TEST_NAME);
         // GIVEN
 
         ObjectDeltaType objectChange = unmarshallValueFromFile(
@@ -1661,9 +1753,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Try to enable user after it has been disabled. As the user has an account, the account should be enabled as well.
      */
     @Test
-    public void test031Enable() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException {
-        TestUtil.displayTestTile("test031Enable");
+    public void test031EnableUser() throws Exception {
+    	final String TEST_NAME = "test031EnableUser";
+        TestUtil.displayTestTile(TEST_NAME);
         // GIVEN
 
         ObjectDeltaType objectChange = unmarshallValueFromFile(
@@ -2036,10 +2128,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test050AssignRolePirate() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException,
-            ObjectAlreadyExistsException {
-        TestUtil.displayTestTile("test050AssignRolePirate");
+    public void test100AssignRolePirate() throws Exception {
+    	final String TEST_NAME = "test100AssignRolePirate";
+        TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
 
@@ -2133,8 +2224,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test051AccountOwnerAfterRole() throws FaultMessage {
-        TestUtil.displayTestTile("test051AccountOwnerAfterRole");
+    public void test101AccountOwnerAfterRole() throws Exception {
+    	final String TEST_NAME = "test101AccountOwnerAfterRole";
+        TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
 
@@ -2159,9 +2251,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
 
     @Test
-    public void test052AssignRoleCaptain() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
-        TestUtil.displayTestTile("test052AssignRoleCaptain");
+    public void test102AssignRoleCaptain() throws Exception {
+    	final String TEST_NAME = "test102AssignRoleCaptain";
+        TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
 
@@ -2241,9 +2333,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Assign the same "captain" role again, this time with a slightly different assignment parameters.
      */
     @Test
-    public void test053AssignRoleCaptainAgain() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
-        TestUtil.displayTestTile("test053AssignRoleCaptain");
+    public void test103AssignRoleCaptainAgain() throws Exception {
+    	final String TEST_NAME = "test103AssignRoleCaptainAgain";
+        TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
 
@@ -2320,20 +2412,21 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
 
     @Test
-    public void test055ModifyAccount() throws Exception {
-        TestUtil.displayTestTile("test055ModifyAccount");
+    public void test105ModifyAccount() throws Exception {
+    	final String TEST_NAME = "test105ModifyAccount";
+        TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
 
         ObjectDeltaType objectChange = unmarshallValueFromFile(
-                REQUEST_ACCOUNT_MODIFY_ATTRS_FILENAME, ObjectDeltaType.class);
+                REQUEST_ACCOUNT_MODIFY_ATTRS_FILE, ObjectDeltaType.class);
         objectChange.setOid(accountShadowOidGuybrushOpendj);
 
         // WHEN ObjectTypes.SHADOW.getTypeQName(), 
         OperationResultType result = modifyObjectViaModelWS(objectChange);
         
         Task task = taskManager.createTaskInstance();
-        OperationResult parentResult = new OperationResult("test55ModifyAccount-get after first modify");
+        OperationResult parentResult = new OperationResult(TEST_NAME + "-get after first modify");
         PrismObject<ShadowType> shadow= modelService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj, null, task, parentResult);
         assertNotNull("shadow must not be null", shadow);
         
@@ -2404,9 +2497,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Judge role excludes pirate role. This assignment should fail. 
      */
     @Test
-    public void test054AssignRoleJudge() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
-        TestUtil.displayTestTile("test054AssignRoleJudge");
+    public void test104AssignRoleJudge() throws Exception {
+    	final String TEST_NAME = "test104AssignRoleJudge";
+        TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
 
@@ -2449,9 +2542,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
 
     @Test
-    public void test057UnassignRolePirate() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
-        TestUtil.displayTestTile("test057UnassignRolePirate");
+    public void test107UnassignRolePirate() throws Exception {
+    	final String TEST_NAME = "test107UnassignRolePirate";
+        TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
 
@@ -2532,9 +2625,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test058UnassignRoleCaptain() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
-        TestUtil.displayTestTile("test058UnassignRoleCaptain");
+    public void test108UnassignRoleCaptain() throws Exception {
+    	final String TEST_NAME = "test108UnassignRoleCaptain";
+        TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
 
@@ -2620,9 +2713,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Captain role was assigned twice. It has to also be unassigned twice.
      */
     @Test
-    public void test059UnassignRoleCaptainAgain() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
-        TestUtil.displayTestTile("test059UnassignRoleCaptain");
+    public void test109UnassignRoleCaptainAgain() throws Exception {
+    	final String TEST_NAME = "test109UnassignRoleCaptainAgain";
+        TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
 
@@ -2687,8 +2780,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * check if the cycle executes No changes are synchronized yet.
      */
     @Test
-    public void test100LiveSyncInit() throws Exception {
-        TestUtil.displayTestTile("test100LiveSyncInit");
+    public void test300LiveSyncInit() throws Exception {
+    	final String TEST_NAME = "test300LiveSyncInit";
+        TestUtil.displayTestTile(TEST_NAME);
         // Now it is the right time to add task definition to the repository
         // We don't want it there any sooner, as it may interfere with the
         // previous tests
@@ -2701,7 +2795,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.POSITIVE);
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test100Synchronization");
+                + "." + TEST_NAME);
 
         repoAddObjectFromFile(TASK_OPENDJ_SYNC_FILENAME, TaskType.class, result);
 
@@ -2790,13 +2884,14 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * should be created in repo.
      */
     @Test
-    public void test101LiveSyncCreate() throws Exception {
-        TestUtil.displayTestTile("test101LiveSyncCreate");
+    public void test301LiveSyncCreate() throws Exception {
+    	final String TEST_NAME = "test301LiveSyncCreate";
+        TestUtil.displayTestTile(TEST_NAME);
         // Sync task should be running (tested in previous test), so just create
         // new LDAP object.
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test101LiveSyncCreate");
+                + "." + TEST_NAME);
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
@@ -2828,11 +2923,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test102LiveSyncModify() throws Exception {
-        TestUtil.displayTestTile("test102LiveSyncModify");
+    public void test302LiveSyncModify() throws Exception {
+    	final String TEST_NAME = "test302LiveSyncModify";
+        TestUtil.displayTestTile(TEST_NAME);
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test102LiveSyncModify");
+                + "." + TEST_NAME);
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
@@ -2860,8 +2956,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test103LiveSyncLink() throws Exception {
-        TestUtil.displayTestTile("test103LiveSyncLink");
+    public void test303LiveSyncLink() throws Exception {
+    	final String TEST_NAME = "test303LiveSyncLink";
+        TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
         assertNoRepoCache();
@@ -2885,7 +2982,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         //WHEN
         //create account for e which should be correlated
         final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test103LiveSyncLink");
+                + "." + TEST_NAME);
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
@@ -2921,13 +3018,14 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Also location (ldap l) should be updated through outbound
      */
     @Test
-    public void test104LiveSyncCreateNoLocation() throws Exception {
-        TestUtil.displayTestTile("test104LiveSyncCreateNoLocation");
+    public void test304LiveSyncCreateNoLocation() throws Exception {
+    	final String TEST_NAME = "test304LiveSyncCreateNoLocation";
+        TestUtil.displayTestTile(TEST_NAME);
         // Sync task should be running (tested in previous test), so just create
         // new LDAP object.
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test104LiveSyncCreateNoLocation");
+                + "." + TEST_NAME);
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
         AssertJUnit.assertNotNull(syncCycle);
 
@@ -2994,10 +3092,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Not really a test. Just cleans up after live sync.
      */
     @Test
-    public void test199LiveSyncCleanup() throws Exception {
-        TestUtil.displayTestTile("test199LiveSyncCleanup");
+    public void test399LiveSyncCleanup() throws Exception {
+    	final String TEST_NAME = "test399LiveSyncCleanup";
+        TestUtil.displayTestTile(TEST_NAME);
         final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test199LiveSyncCleanup");
+                + "." + TEST_NAME);
 
         taskManager.deleteTask(TASK_OPENDJ_SYNC_OID, result);
 
@@ -3005,8 +3104,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test200ImportFromResource() throws Exception {
-    	final String TEST_NAME = "test200ImportFromResource";
+    public void test400ImportFromResource() throws Exception {
+    	final String TEST_NAME = "test400ImportFromResource";
         TestUtil.displayTestTile(TEST_NAME);
         // GIVEN
         checkAllShadows();
@@ -3212,12 +3311,13 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test300RecomputeUsers() throws Exception {
-        TestUtil.displayTestTile("test300RecomputeUsers");
+    public void test420RecomputeUsers() throws Exception {
+    	final String TEST_NAME = "test420RecomputeUsers";
+        TestUtil.displayTestTile(TEST_NAME);
         // GIVEN
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test300RecomputeUsers");
+                + "." + TEST_NAME);
 
         // Assign role to a user, but we do this using a repository instead of model.
         // The role assignment will not be executed and this created an inconsistent state.
@@ -3354,12 +3454,13 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test310ReconcileResourceOpenDj() throws Exception {
-        TestUtil.displayTestTile("test310ReconcileResourceOpenDj");
+    public void test440ReconcileResourceOpenDj() throws Exception {
+    	final String TEST_NAME = "test440ReconcileResourceOpenDj";
+        TestUtil.displayTestTile(TEST_NAME);
         // GIVEN
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test310ReconcileResourceOpenDj");
+                + "." + TEST_NAME);
 
         // Create LDAP account without an owner. The liveSync is off, so it will not be picked up
 
@@ -3572,8 +3673,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
     
     @Test
-    public void test400ListResources() throws Exception {
-    	final String TEST_NAME = "test400ListResources";
+    public void test480ListResources() throws Exception {
+    	final String TEST_NAME = "test480ListResources";
         TestUtil.displayTestTile(TEST_NAME);
         // GIVEN
         OperationResultType result = new OperationResultType();
@@ -3599,8 +3700,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
     
     @Test
-    public void test410ListResourcesWithBrokenResource() throws Exception {
-        TestUtil.displayTestTile("test410ListResourcesWithBrokenResource");
+    public void test485ListResourcesWithBrokenResource() throws Exception {
+        TestUtil.displayTestTile("test485ListResourcesWithBrokenResource");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSanity.class.getName() + ".test410ListResourcesWithBrokenResource");

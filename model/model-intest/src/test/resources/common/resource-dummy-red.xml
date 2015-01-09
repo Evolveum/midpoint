@@ -16,7 +16,8 @@
   -->
 
 <!-- RED dummy resource for testing. It is used in multi-resource tests. It also
-     has mostly STRONG mappings, therefore it is used in strong mapping tests. -->
+     has mostly STRONG mappings, therefore it is used in strong mapping tests.
+     It also has pre-create and delayed delete configuration. -->
 
 <resource oid="10000000-0000-0000-0000-000000000104"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

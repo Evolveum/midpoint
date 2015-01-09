@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest.sync;
 import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -66,6 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
@@ -79,6 +81,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
+	private static final File TEST_DIR = new File("src/test/resources/sync");
+
+	protected static final File ROLE_RED_JUDGE_FILE = new File(TEST_DIR, "role-red-judge.xml");
+	protected static final String ROLE_RED_JUDGE_OID = "12345111-1111-2222-1111-121212111222";
+	
 	private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 00, 00);
 
 	private XMLGregorianCalendar drakeValidFrom;
@@ -87,7 +94,9 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
+		repoAddObjectFromFile(ROLE_RED_JUDGE_FILE, RoleType.class, initResult);
+
 		DebugUtil.setDetailedDebugDump(true);
 	}
 
@@ -216,11 +225,12 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	    
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, activationType, task, result);
+        assignRole(USER_JACK_OID, ROLE_RED_JUDGE_OID, activationType, task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_JACK_USERNAME);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -232,7 +242,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
-        assertLinks(user, 1);
+        assertLinks(user, 2);
         assert11xUserOk(user);
         
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
@@ -247,7 +257,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	    
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, activationType, task, result);
+        assignRole(USER_JACK_OID, ROLE_RED_JUDGE_OID, activationType, task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -260,6 +270,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertNoDummyAccount(null, USER_JACK_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
@@ -291,8 +302,9 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
-        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, activationType, task, result);
+        assignRole(USER_JACK_OID, ROLE_RED_JUDGE_OID, activationType, task, result);
         assertDummyAccount(null, USER_JACK_USERNAME);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME);
         AssignmentType judgeAssignment = getJudgeAssignment(USER_JACK_OID);
         
         // WHEN
@@ -310,6 +322,9 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
         assertNoDummyAccount(null, USER_JACK_USERNAME);
+        
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_JACK_FULL_NAME, false);
+        
         assert11xUserOk(user);
 	}
 	
