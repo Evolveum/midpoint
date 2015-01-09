@@ -620,14 +620,17 @@ public class OpenDJController extends AbstractResourceController {
 		for (String value: values) {
 			boolean found = false;
 			Iterator<AttributeValue> iterator = attribute.iterator();
+			List<String> attrVals = new ArrayList<String>();
 			while (iterator.hasNext()) {
 				AttributeValue attributeValue = iterator.next();
-				if (attributeValue.toString().equals(value)) {
+				String attrVal = attributeValue.toString();
+				attrVals.add(attrVal);
+				if (attrVal.equals(value)) {
 					found = true;
 				}
 			}
 			if (!found) {
-				AssertJUnit.fail("Attribute "+name+" does not contain value "+value);
+				AssertJUnit.fail("Attribute "+name+" does not contain value "+value+", it has values: "+attrVals);
 			}
 		}
 	}
