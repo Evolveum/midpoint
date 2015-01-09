@@ -153,18 +153,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                PasswordTextField passwordField = (PasswordTextField)get(ID_MAIN_FORM + ":" + ID_MAIL_SERVER_CONFIG_CONTAINER + ":" + ID_PASSWORD);
-
-                if(getModelObject() != null){
-                    if(getModelObject().getNotificationConfig().getSelectedServer() != null &&
-                            getModelObject().getNotificationConfig().getSelectedServer().getPassword() != null){
-
-                        passwordField.add(new AttributeModifier("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.set")));
-                    } else {
-                        passwordField.add(new AttributeModifier("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.empty")));
-                    }
-                }
-
+                preparePasswordFieldPlaceholder();
                 target.add(SystemConfigPanel.this);
             }
         });
@@ -225,6 +214,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
                     getModelObject().getNotificationConfig().setSelectedServer(newConfig);
                 }
 
+                preparePasswordFieldPlaceholder();
                 target.add(SystemConfigPanel.this, getPageBase().getFeedbackPanel());
             }
 
@@ -273,6 +263,20 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
             }
         }));
         form.add(removeMailServerConfig);
+    }
+
+    private void preparePasswordFieldPlaceholder(){
+        PasswordTextField passwordField = (PasswordTextField)get(ID_MAIN_FORM + ":" + ID_MAIL_SERVER_CONFIG_CONTAINER + ":" + ID_PASSWORD);
+
+        if(getModelObject() != null){
+            if(getModelObject().getNotificationConfig().getSelectedServer() != null &&
+                    getModelObject().getNotificationConfig().getSelectedServer().getPassword() != null){
+
+                passwordField.add(new AttributeModifier("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.set")));
+            } else {
+                passwordField.add(new AttributeModifier("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.empty")));
+            }
+        }
     }
 
     private void createTooltip(String id, WebMarkupContainer parent) {

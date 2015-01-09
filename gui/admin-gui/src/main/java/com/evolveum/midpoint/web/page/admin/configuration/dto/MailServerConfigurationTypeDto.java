@@ -88,6 +88,10 @@ public class MailServerConfigurationTypeDto implements Serializable {
     }
 
     public void setPassword(String password) {
+        if(password == null || password.isEmpty()){
+            return;
+        }
+
         this.password = password;
     }
 
