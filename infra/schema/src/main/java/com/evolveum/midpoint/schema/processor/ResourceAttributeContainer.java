@@ -416,7 +416,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 		PrismContainerValue value = values.get(0);
 		List<Item<?>> items = value.getItems();
 		if (items == null) {
-			throw new IllegalStateException("Null items in ResourceAttributeContainer");
+			return;
 		}
 		for (Item item: items) {
 			if (!(item instanceof ResourceAttribute)) {
