@@ -550,7 +550,7 @@ public class ShadowManager {
 		}
 		EqualFilter<T> eqFilter = (EqualFilter)filter;
 		ItemPath parentPath = eqFilter.getParentPath();
-		if (parentPath == null || !parentPath.equals(SchemaConstants.PATH_ATTRIBUTES)) {
+		if (parentPath == null || !parentPath.equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
 			return;
 		}
 		QName attrName = eqFilter.getElementName();
@@ -575,6 +575,10 @@ public class ShadowManager {
 		eqFilter.getValues().addAll((Collection) newValues);
 		LOGGER.trace("Replacing values for attribute {} in search filter with normalized values because there is a matching rule, normalized values: {}",
 				attrName, newValues);
+		if (eqFilter.getMatchingRule() == null) {
+			eqFilter.setMatchingRule(matchingRuleQName);
+			LOGGER.trace("Setting matching rule to {}", matchingRuleQName);
+		}
 	}
 
 	/**
