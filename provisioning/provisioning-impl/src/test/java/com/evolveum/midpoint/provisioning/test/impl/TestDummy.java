@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1032,7 +1032,7 @@ public class TestDummy extends AbstractDummyTest {
 				+ ".test101AddAccountWithoutName");
 		syncServiceMock.reset();
 
-		ShadowType account = parseObjectTypeFromFile(ACCOUNT_MORGAN_FILENAME, ShadowType.class);
+		ShadowType account = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
 
 		display("Adding shadow", account.asPrismObject());
 

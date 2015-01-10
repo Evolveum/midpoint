@@ -39,7 +39,9 @@ public class MailServerConfigurationTypeDto implements Serializable {
     private String password;
     private MailTransportSecurityType mailTransportSecurityType;
 
-    public MailServerConfigurationTypeDto(){}
+    public MailServerConfigurationTypeDto(){
+        oldConfig = new MailServerConfigurationType();
+    }
 
     public MailServerConfigurationTypeDto(MailServerConfigurationType config){
 
@@ -86,6 +88,10 @@ public class MailServerConfigurationTypeDto implements Serializable {
     }
 
     public void setPassword(String password) {
+        if(password == null || password.isEmpty()){
+            return;
+        }
+
         this.password = password;
     }
 
