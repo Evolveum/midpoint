@@ -39,7 +39,7 @@ import java.util.Collection;
  */
 @Entity
 @ForeignKey(name = "fk_role")
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_name_norm", columnNames = {"name_norm"}))
 public class RRole extends RAbstractRole<RoleType> {
 
     private RPolyString name;

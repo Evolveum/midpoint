@@ -184,7 +184,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RCreateApproverRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
-//    @JoinTable(foreignKey = @ForeignKey(name = "none"))
+//    @JoinTable(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getCreateApproverRef() {
         if (createApproverRef == null) {

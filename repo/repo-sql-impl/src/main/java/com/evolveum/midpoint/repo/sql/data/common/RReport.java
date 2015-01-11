@@ -19,7 +19,7 @@ import javax.persistence.*;
 import java.util.Collection;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_name_norm", columnNames = {"name_norm"}))
 @ForeignKey(name = "fk_report")
 public class RReport extends RObject<ReportType> {
 

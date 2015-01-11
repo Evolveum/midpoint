@@ -42,6 +42,7 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
 import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -103,6 +104,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @Id
+    @org.hibernate.annotations.ForeignKey(name = "fk_assignment_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinTable(foreignKey = @ForeignKey(name = "fk_assignment_owner"))
@@ -141,14 +143,14 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return tenantRef;
     }
 
+    @org.hibernate.annotations.ForeignKey(name = "none")
     @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
     @OneToOne(optional = true, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     @JoinColumns(value = {
             @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
             @JoinColumn(name = "extId", referencedColumnName = "owner_id")
-    })
-//    , foreignKey = @ForeignKey(name = "none"))
+    }, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     public RAssignmentExtension getExtension() {
         return extension;
     }
@@ -165,8 +167,9 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "=" + RACreateApproverRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
+    @org.hibernate.annotations.ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-//    @JoinTable(foreignKey = @ForeignKey(name = "none"))
+    //@JoinTable(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     public Set<RAssignmentReference> getCreateApproverRef() {
         if (createApproverRef == null) {
             createApproverRef = new HashSet<>();

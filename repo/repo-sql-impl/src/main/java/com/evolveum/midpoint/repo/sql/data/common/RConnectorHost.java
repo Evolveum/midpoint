@@ -50,7 +50,7 @@ import javax.persistence.UniqueConstraint;
  */
 @Entity
 @ForeignKey(name = "fk_connector_host")
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_name_norm", columnNames = {"name_norm"}))
 public class RConnectorHost extends RObject<ConnectorHostType> {
 
     private RPolyString name;
