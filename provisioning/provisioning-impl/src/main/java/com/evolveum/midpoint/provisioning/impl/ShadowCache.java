@@ -887,7 +887,7 @@ public abstract class ShadowCache {
     }
 
     private SearchResultMetadata searchObjectsIterativeRepository(
-			RefinedObjectClassDefinition objectClassDef,
+			final RefinedObjectClassDefinition objectClassDef,
 			final ResourceType resourceType, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options,
 			final ShadowHandler<ShadowType> shadowHandler, OperationResult parentResult) throws SchemaException {
@@ -898,6 +898,7 @@ public abstract class ShadowCache {
 					OperationResult parentResult) {
 				try {
 					applyAttributesDefinition(object, resourceType);
+					resouceObjectConverter.setProtectedFlag(resourceType, objectClassDef, object);		// fixing MID-1640; hoping that the protected object filter uses only identifiers (that are stored in repo)
 					boolean cont = shadowHandler.handle(object.asObjectable());
 					parentResult.recordSuccess();
 					return cont;

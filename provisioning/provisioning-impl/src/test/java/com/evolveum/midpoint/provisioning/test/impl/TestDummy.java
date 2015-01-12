@@ -1321,8 +1321,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		assertEquals(4, foundObjects.size());
 		checkConsistency(foundObjects);
-		// MID-1640
-//		assertProtected(foundObjects, 1);
+		assertProtected(foundObjects, 1);       // MID-1640
 		
 		assertSteadyResource();
 	}
