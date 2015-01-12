@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -150,20 +151,22 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     }
 
     public static <T extends AbstractRoleType> void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole<T> repo,
-                                                                 PrismContext prismContext) throws DtoTranslationException {
-        RFocus.copyFromJAXB(jaxb, repo, prismContext);
+                                                                 PrismContext prismContext,
+                                                                 IdGeneratorResult generatorResult)
+            throws DtoTranslationException {
+        RFocus.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
         repo.setRequestable(jaxb.isRequestable());
 
         for (AssignmentType inducement : jaxb.getInducement()) {
             RAssignment rInducement = new RAssignment(repo, RAssignmentOwner.ABSTRACT_ROLE);
-            RAssignment.copyFromJAXB(inducement, rInducement, jaxb, prismContext);
+            RAssignment.copyFromJAXB(inducement, rInducement, jaxb, prismContext, generatorResult);
 
             repo.getAssignments().add(rInducement);
         }
 
         for (ExclusionType exclusion : jaxb.getExclusion()) {
             RExclusion rExclusion = new RExclusion(repo);
-            RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext);
+            RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext, generatorResult);
 
             repo.getExclusion().add(rExclusion);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,13 @@ import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -249,12 +251,12 @@ public class TestDummyNegative extends AbstractDummyTest {
 	
 	@Test
 	public void test221DeleteAccountResourceNotFound() throws Exception {
-		TestUtil.displayTestTile("test221DeleteAccountResourceNotFound");
+		final String TEST_NAME = "test221DeleteAccountResourceNotFound";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
-				+ ".test221DeleteAccountResourceNotFound");
-		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
-				+ ".test221DeleteAccountResourceNotFound");
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
 		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME, ShadowType.class);
@@ -280,5 +282,44 @@ public class TestDummyNegative extends AbstractDummyTest {
 //		syncServiceMock.assertNotifyFailureOnly();
 	}
 
+	/**
+	 * Try to get an account when a shadow has been deleted (but the account exists). 
+	 * Proper ObjectNotFoundException is expected, compensation should not run. 
+	 */
+	@Test
+	public void test230GetAccountDeletedShadow() throws Exception {
+		final String TEST_NAME = "test230GetAccountDeletedShadow";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_MORGAN_FILE);
+		String shadowOid = provisioningService.addObject(account, null, null, task, result);
+		
+		repositoryService.deleteObject(ShadowType.class, shadowOid, result);
+		
+		// reset
+		task = taskManager.createTaskInstance(TestDummyNegative.class.getName() + "." + TEST_NAME);
+		result = task.getResult();
+		syncServiceMock.reset();
+
+		try {
+			// WHEN
+			provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (ObjectNotFoundException e) {
+			// this is expected
+			display("Expected exception", e);
+			result.computeStatus();
+			display("Result", result);
+			TestUtil.assertFailure(result);
+			
+		}
+
+		syncServiceMock.assertNoNotifyChange();
+	}
 
 }

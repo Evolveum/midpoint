@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -31,6 +30,7 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,6 +42,9 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.util.HashSet;
@@ -53,10 +56,9 @@ import java.util.Set;
 @JaxbType(type = AssignmentType.class)
 @Entity
 @IdClass(RContainerId.class)
-@org.hibernate.annotations.Table(appliesTo = "m_assignment",
-        indexes = {@Index(name = "iAssignmentAdministrative", columnNames = "administrativeStatus"),
-                @Index(name = "iAssignmentEffective", columnNames = "effectiveStatus")})
-@ForeignKey(name = "fk_assignment")
+@Table(name = "m_assignment", indexes = {
+        @Index(name = "iAssignmentAdministrative", columnList = "administrativeStatus"),
+        @Index(name = "iAssignmentEffective", columnList = "effectiveStatus")})
 public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     public static final String F_OWNER = "owner";
@@ -67,6 +69,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     public static final String F_ASSIGNMENT_OWNER = "assignmentOwner";
 
     private static final Trace LOGGER = TraceManager.getTrace(RAssignment.class);
+
+    private Boolean trans;
 
     private RObject owner;
     private String ownerOid;
@@ -100,9 +104,10 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @Id
-    @ForeignKey(name = "fk_assignment_owner")
+    @org.hibernate.annotations.ForeignKey(name = "fk_assignment_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinTable(foreignKey = @ForeignKey(name = "fk_assignment_owner"))
     public RObject getOwner() {
         return owner;
     }
@@ -138,14 +143,14 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return tenantRef;
     }
 
+    @org.hibernate.annotations.ForeignKey(name = "none")
     @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
     @OneToOne(optional = true, orphanRemoval = true)
-    @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    @JoinColumns({
+    @JoinColumns(value = {
             @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
             @JoinColumn(name = "extId", referencedColumnName = "owner_id")
-    })
+    }, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     public RAssignmentExtension getExtension() {
         return extension;
     }
@@ -162,8 +167,9 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "=" + RACreateApproverRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
+    @org.hibernate.annotations.ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    //@JoinTable(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     public Set<RAssignmentReference> getCreateApproverRef() {
         if (createApproverRef == null) {
             createApproverRef = new HashSet<>();
@@ -191,7 +197,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "=" + RAModifyApproverRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
+//    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAssignmentReference> getModifyApproverRef() {
         if (modifyApproverRef == null) {
@@ -206,6 +212,17 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     public XMLGregorianCalendar getModifyTimestamp() {
         return modifyTimestamp;
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     public void setOwner(RObject owner) {
@@ -313,10 +330,12 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return result;
     }
 
-    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, PrismContext prismContext)
-            throws DtoTranslationException {
+    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
+
+        repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
 
         repo.setOwnerOid(parent.getOid());
         repo.setId(RUtil.toShort(jaxb.getId()));

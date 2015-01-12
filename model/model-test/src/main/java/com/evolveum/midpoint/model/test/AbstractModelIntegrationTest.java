@@ -278,14 +278,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		subResult.addParam("filename", file);
 		LOGGER.trace("importObjectFromFile: {}", file);
 		Task task = taskManager.createTaskInstance();
-		FileInputStream stream = new FileInputStream(file);
-		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, subResult);
+		importObjectFromFile(file, task, result);
 		subResult.computeStatus();
 		if (subResult.isError()) {
 			LOGGER.error("Import of file "+file+" failed:\n{}", subResult.debugDump());
 			Throwable cause = findCause(subResult);
 			throw new SystemException("Import of file "+file+" failed: "+subResult.getMessage(), cause);
 		}
+	}
+	
+	protected void importObjectFromFile(File file, Task task, OperationResult result) throws FileNotFoundException {
+		FileInputStream stream = new FileInputStream(file);
+		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
 	}
 	
 	protected Throwable findCause(OperationResult result) {

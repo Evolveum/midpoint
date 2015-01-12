@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -141,22 +142,18 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
             }
         });
         mailServerConfigChooser.setNullValid(true);
+        mailServerConfigChooser.add(new AjaxFormSubmitBehavior("onclick"){
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                getForm().onFormSubmitted();
+            }
+        });
         mailServerConfigChooser.add(new OnChangeAjaxBehavior() {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                PasswordTextField passwordField = (PasswordTextField)get(ID_MAIN_FORM + ":" + ID_MAIL_SERVER_CONFIG_CONTAINER + ":" + ID_PASSWORD);
-
-                if(getModelObject() != null){
-                    if(getModelObject().getNotificationConfig().getSelectedServer() != null &&
-                            getModelObject().getNotificationConfig().getSelectedServer().getPassword() != null){
-
-                        passwordField.add(new AttributeModifier("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.set")));
-                    } else {
-                        passwordField.add(new AttributeModifier("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.empty")));
-                    }
-                }
-
+                preparePasswordFieldPlaceholder();
                 target.add(SystemConfigPanel.this);
             }
         });
@@ -217,6 +214,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
                     getModelObject().getNotificationConfig().setSelectedServer(newConfig);
                 }
 
+                preparePasswordFieldPlaceholder();
                 target.add(SystemConfigPanel.this, getPageBase().getFeedbackPanel());
             }
 
@@ -265,6 +263,20 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
             }
         }));
         form.add(removeMailServerConfig);
+    }
+
+    private void preparePasswordFieldPlaceholder(){
+        PasswordTextField passwordField = (PasswordTextField)get(ID_MAIN_FORM + ":" + ID_MAIL_SERVER_CONFIG_CONTAINER + ":" + ID_PASSWORD);
+
+        if(getModelObject() != null){
+            if(getModelObject().getNotificationConfig().getSelectedServer() != null &&
+                    getModelObject().getNotificationConfig().getSelectedServer().getPassword() != null){
+
+                passwordField.add(new AttributeModifier("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.set")));
+            } else {
+                passwordField.add(new AttributeModifier("placeholder", createStringResource("SystemConfigPanel.mail.password.placeholder.empty")));
+            }
+        }
     }
 
     private void createTooltip(String id, WebMarkupContainer parent) {

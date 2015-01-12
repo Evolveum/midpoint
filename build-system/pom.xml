@@ -62,7 +62,7 @@
         <testng.version>6.8.8</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <cron4j.version>2.2.3</cron4j.version>
-        <hibernate.version>4.1.12.Final</hibernate.version>
+        <hibernate.version>4.3.8.Final</hibernate.version>
         <h2.version>1.3.171</h2.version>
         <jdbc.postgres>9.3-1102-jdbc41</jdbc.postgres>
         <jdbc.mysql>5.1.31</jdbc.mysql>

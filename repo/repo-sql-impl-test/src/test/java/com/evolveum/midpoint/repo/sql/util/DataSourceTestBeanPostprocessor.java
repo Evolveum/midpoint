@@ -46,11 +46,16 @@ public class DataSourceTestBeanPostprocessor implements BeanPostProcessor, Appli
             return bean;
         }
 
+        TestSqlRepositoryFactory factory = context.getBean("testSqlRepositoryFactory", TestSqlRepositoryFactory.class);
+        SqlRepositoryConfiguration config = factory.getSqlConfiguration();
+
+        if (!config.isUsingH2()) {
+            return bean;
+        }
+
         System.out.println("Changing hibernate.hbm2ddl.auto to update");
         LOGGER.info("Changing hibernate.hbm2ddl.auto to update");
 
-        TestSqlRepositoryFactory factory = context.getBean("testSqlRepositoryFactory", TestSqlRepositoryFactory.class);
-        SqlRepositoryConfiguration config = factory.getSqlConfiguration();
         config.setHibernateHbm2ddl("update");
 
         return bean;

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RObjectTemplateType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RIncludeRef;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -44,7 +45,7 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_object_template")
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_object_template_name", columnNames = {"name_norm"}))
 public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
     private RPolyString name;
@@ -110,10 +111,9 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         return result;
     }
 
-    public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, PrismContext prismContext) throws
-            DtoTranslationException {
-
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+    public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
 
         repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getElementName(), RObjectTemplateType.class));
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));

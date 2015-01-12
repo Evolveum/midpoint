@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -45,10 +46,12 @@ import javax.persistence.*;
 @Entity
 @IdClass(RObjectDeltaOperationId.class)
 @Table(name = RObjectDeltaOperation.TABLE_NAME)
-public class RObjectDeltaOperation implements OperationResultFull {
+public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
     public static final String TABLE_NAME = "m_audit_delta";
     public static final String COLUMN_RECORD_ID = "record_id";
+
+    private Boolean trans;
 
     private RAuditEventRecord record;
     private Long recordId;
@@ -122,6 +125,17 @@ public class RObjectDeltaOperation implements OperationResultFull {
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getStatus() {
         return status;
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     public void setRecord(RAuditEventRecord record) {

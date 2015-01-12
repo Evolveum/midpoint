@@ -5,6 +5,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
@@ -20,6 +21,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @JaxbType(type = TriggerType.class)
 @Entity
 @IdClass(RContainerId.class)
+//@Table(indexes = {@Index(name = "iTriggerTimestamp", columnList = RTrigger.C_TIMESTAMP)})
 @ForeignKey(name = "fk_trigger")
 @org.hibernate.annotations.Table(appliesTo = "m_trigger",
         indexes = {@Index(name = "iTriggerTimestamp", columnNames = RTrigger.C_TIMESTAMP)})
@@ -27,6 +29,8 @@ public class RTrigger implements Container {
 
     public static final String F_OWNER = "owner";
     public static final String C_TIMESTAMP = "timestampValue";
+
+    private Boolean trans;
 
     //identificator
     private RObject owner;
@@ -43,7 +47,6 @@ public class RTrigger implements Container {
     public RTrigger(RObject owner) {
         setOwner(owner);
     }
-
 
     @Id
     @ForeignKey(name = "fk_trigger_owner")
@@ -76,6 +79,17 @@ public class RTrigger implements Container {
     @Column(name = C_TIMESTAMP)
     public XMLGregorianCalendar getTimestamp() {
         return timestamp;
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     public void setOwner(RObject owner) {
@@ -133,10 +147,12 @@ public class RTrigger implements Container {
     }
 
     public static void copyFromJAXB(TriggerType jaxb, RTrigger repo, ObjectType parent,
-                                    PrismContext prismContext) throws DtoTranslationException {
+                                    PrismContext prismContext, IdGeneratorResult generatorResult)
+            throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
+        repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
         repo.setOwnerOid(parent.getOid());
         repo.setId(RUtil.toShort(jaxb.getId()));
 
