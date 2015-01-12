@@ -19,7 +19,7 @@ import javax.persistence.UniqueConstraint;
 import java.util.Collection;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_name_norm", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_security_policy_name", columnNames = {"name_norm"}))
 @ForeignKey(name = "fk_security_policy")
 public class RSecurityPolicy extends RObject<SecurityPolicyType> {
 

@@ -37,7 +37,7 @@ import java.util.Collection;
  */
 @Entity
 @ForeignKey(name = "fk_generic_object")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_name_norm", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_generic_object_name", columnNames = {"name_norm"}))
 public class RGenericObject extends RObject<GenericObjectType> {
 
     private RPolyString name;

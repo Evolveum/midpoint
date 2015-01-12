@@ -52,7 +52,7 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_resource")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_name_norm", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_resource_name", columnNames = {"name_norm"}))
 public class RResource extends RObject<ResourceType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);

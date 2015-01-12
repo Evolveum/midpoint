@@ -43,7 +43,7 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name="uc_name_norm", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name="uc_user_name", columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_user",
         indexes = {@Index(name = "iFullName", columnNames = "fullName_orig"),
                 @Index(name = "iFamilyName", columnNames = "familyName_orig"),
