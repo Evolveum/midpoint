@@ -345,6 +345,12 @@ It also contains inbound mappings and definition to enable synchronization.
 						<description>Source may have description</description>
 						<path>$user/name</path>
 					</source>
+					<!-- We need to put iterationToken here as well, otherwise effect described in MID-2139 occurs -->
+					<expression>
+						<script>
+							<code>name + iterationToken</code>
+						</script>
+					</expression>
 				</outbound>
 				<inbound>
 					<target>
