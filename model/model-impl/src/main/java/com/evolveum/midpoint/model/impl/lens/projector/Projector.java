@@ -181,7 +181,7 @@ public class Projector {
 			        	projectionContext.recompute();
 			        }
 		        }
-		        LensUtil.traceContext(LOGGER, activityDescription, "projection activation of all resources", false, context, false);
+		        LensUtil.traceContext(LOGGER, activityDescription, "projection activation of all resources", true, context, true);
 		
 		        dependencyProcessor.sortProjectionsToWaves(context);
 		        maxWaves = dependencyProcessor.computeMaxWaves(context);

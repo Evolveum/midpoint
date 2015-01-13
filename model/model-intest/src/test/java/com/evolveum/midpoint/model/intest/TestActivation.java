@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationStoryTest;
+import com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -73,7 +74,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
+ * 
+ * @see TestValidityRecomputeTask
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -242,7 +244,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertEnableTimestampShadow(accountModel, start, end);
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         assertDummyEnabled("jack");
         
@@ -855,7 +857,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertAdministrativeStatus(user, userStatus ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
 
         // Check account in dummy resource
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", accountStatus);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", accountStatus);
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", accountStatusYellow);
     }
 
@@ -1112,7 +1114,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOid, USER_LARGO_USERNAME, "Largo LaGrande");
         
         // Check account in dummy resource
-        assertDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", true);
+        assertDefaultDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", true);
 	}
 	
 	@Test
@@ -1150,7 +1152,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOid, USER_LARGO_USERNAME, "Largo LaGrande");
         
         // Check account in dummy resource
-        assertDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", false);
+        assertDefaultDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", false);
 	}
 	
 	@Test
@@ -1189,7 +1191,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOid, USER_LARGO_USERNAME, "Largo LaGrande");
         
         // Check account in dummy resource
-        assertDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", true);
+        assertDefaultDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", true);
 	}
 	
 	/**
@@ -1232,7 +1234,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOid, USER_LARGO_USERNAME, "Largo LaGrande");
         
         // Check account in dummy resource
-        assertDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", true);
+        assertDefaultDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", true);
 	}
 	
 	/**
@@ -1275,7 +1277,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOid, USER_LARGO_USERNAME, "Largo LaGrande");
         
         // Check account in dummy resource
-        assertDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", false);
+        assertDefaultDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", false);
 	}
 	
 	@Test
@@ -1312,7 +1314,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOid, USER_LARGO_USERNAME, "Largo LaGrande");
         
         // Check account in dummy resource
-        assertDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", true);
+        assertDefaultDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", true);
 	}
 	
 	@Test
@@ -1349,7 +1351,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOid, USER_LARGO_USERNAME, "Largo LaGrande");
         
         // Check account in dummy resource
-        assertDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", false);
+        assertDefaultDummyAccount(USER_LARGO_USERNAME, "Largo LaGrande", false);
 	}
 	
 	/**

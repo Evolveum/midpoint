@@ -121,7 +121,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertUserOrg(userJack, ORG_SCUMM_BAR_OID);
         
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();

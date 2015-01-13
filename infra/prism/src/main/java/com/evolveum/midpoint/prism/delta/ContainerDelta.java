@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,8 +201,20 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 			}
 		}
 	}
-
+	
     @Override
+	protected boolean isValueEquivalent(PrismContainerValue<V> a, PrismContainerValue<V> b) {
+		if (!super.isValueEquivalent(a, b)) {
+			return false;
+		}
+		if (a.getId() == null || b.getId() == null) {
+			return true;
+		} else {
+			return a.getId().equals(b.getId());
+		}
+	}
+
+	@Override
     public void checkConsistence(boolean requireDefinition, boolean prohibitRaw, ConsistencyCheckScope scope) {
         super.checkConsistence(requireDefinition, prohibitRaw, scope);
         checkDuplicateId(valuesToAdd);

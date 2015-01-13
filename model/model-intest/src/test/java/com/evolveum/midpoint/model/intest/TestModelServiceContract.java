@@ -288,7 +288,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
                 
         assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
         
@@ -767,7 +767,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         // The user is not associated with the account
         assertDummyScriptsAdd(null, accountModel, resourceDummyType);
@@ -835,7 +835,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -903,7 +903,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource (if it is unchanged)
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1075,7 +1075,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
         
@@ -1156,7 +1156,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         		"Queen Anne's Revenge");
         
         // Check account in dummy resource
-        assertDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
+        assertDefaultDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, 
         		"Queen Anne's Revenge");
         
@@ -1300,7 +1300,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
         
@@ -1385,7 +1385,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         assertNoProvisioningScripts();
         
@@ -1539,7 +1539,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
         
@@ -1750,7 +1750,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
         
@@ -1817,7 +1817,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         assertDummyScriptsNone();
         
@@ -2024,7 +2024,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
@@ -2153,7 +2153,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
-        assertDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
+        assertDefaultDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
         DummyAccount dummyAccount = getDummyAccount(null, USER_JACK_USERNAME);
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "smell");
         assertNull("Unexpected loot", dummyAccount.getAttributeValue("loot", Integer.class));
@@ -2276,7 +2276,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountShadowModel(accountModel, accountOid, USER_JACK_USERNAME, "Cpt. Jack Sparrow");
 
         // Check account in dummy resource
-        assertDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
+        assertDefaultDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
         DummyAccount dummyAccount = getDummyAccount(null, USER_JACK_USERNAME);
         display(dummyAccount.debugDump());
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "q");
@@ -2332,7 +2332,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Magnificent Captain Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
         
         assertDummyScriptsModify(userJack);
         
@@ -2395,7 +2395,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         IntegrationTestTools.assertNoAttribute(accountModel, dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
         
         assertDummyScriptsModify(userJack);
         
@@ -2494,7 +2494,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Magnificent Captain Jack Sparrow");
         
         // Check account in dummy resource - the original fullName should not be changed
-        assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
         
         assertNoProvisioningScripts();
         
@@ -2619,7 +2619,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
-        assertDummyAccount("blackbeard", "Edward Teach", true);
+        assertDefaultDummyAccount("blackbeard", "Edward Teach", true);
         DummyAccount dummyAccount = getDummyAccount(null, "blackbeard");
         assertEquals("Wrong loot", (Integer)10000, dummyAccount.getAttributeValue("loot", Integer.class));
         
@@ -2698,7 +2698,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
-        assertDummyAccount("morgan", "Sir Henry Morgan", true);
+        assertDefaultDummyAccount("morgan", "Sir Henry Morgan", true);
         
         assertDummyScriptsAdd(userMorgan, accountModel, resourceDummyType);
         
@@ -2763,7 +2763,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountShadowModel(accountModel, accountOid, "sirhenry", "Sir Henry Morgan");
         
         // Check account in dummy resource
-        assertDummyAccount("sirhenry", "Sir Henry Morgan", true);
+        assertDefaultDummyAccount("sirhenry", "Sir Henry Morgan", true);
         
         assertDummyScriptsModify(userMorgan);
         

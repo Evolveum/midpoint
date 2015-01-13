@@ -112,6 +112,12 @@ public class MidPointAsserts {
 		assertEquals("Unexepected number of assignments of type "+expectedType+" in "+user+": "+userType.getAssignment(), expectedNumber, actualAssignments);
 	}
 	
+	public static <F extends FocusType> void assertNoAssignments(PrismObject<F> user) {
+		F userType = user.asObjectable();
+		List<AssignmentType> assignments = userType.getAssignment();
+		assertTrue(user + " does have assignments "+assignments+" while not expecting it", assignments.isEmpty());
+	}
+	
 	public static <F extends FocusType> void assertAssignedRole(PrismObject<F> user, String roleOid) {
 		assertAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
 	}

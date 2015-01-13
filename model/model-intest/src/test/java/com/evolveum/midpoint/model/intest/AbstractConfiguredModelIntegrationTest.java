@@ -98,6 +98,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File RESOURCE_DUMMY_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
+	protected static final String RESOURCE_DUMMY_DRINK = "rum";
 	
 	// RED resource has STRONG mappings
 	protected static final String RESOURCE_DUMMY_RED_FILENAME = COMMON_DIR + "/resource-dummy-red.xml";
@@ -174,9 +175,15 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	// Excludes role "pirate"
 	protected static final File ROLE_JUDGE_FILE = new File(COMMON_DIR, "role-judge.xml");
 	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
+	protected static final String ROLE_JUDGE_TITLE = "Honorable Justice";
+	protected static final String ROLE_JUDGE_DRINK = "tea";
 
 	protected static final File ROLE_EMPTY_FILE = new File(COMMON_DIR, "role-empty.xml");
 	protected static final String ROLE_EMPTY_OID = "12345111-1111-2222-1111-121212111112";
+	
+	protected static final File ROLE_SAILOR_FILE = new File(COMMON_DIR, "role-sailor.xml");
+	protected static final String ROLE_SAILOR_OID = "12345111-1111-2222-1111-121212111113";
+	protected static final String ROLE_SAILOR_DRINK = "grog";
 
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
@@ -186,6 +193,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
 	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
 	protected static final String USER_BARBOSSA_USERNAME = "barbossa";
+	protected static final String USER_BARBOSSA_FULL_NAME = "Hector Barbossa";
 
 	protected static final File USER_GUYBRUSH_FILE = new File (COMMON_DIR, "user-guybrush.xml");
 	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";

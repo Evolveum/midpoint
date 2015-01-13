@@ -1252,7 +1252,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         }
 
         if (!assDelta.isEmpty()) {
-            userDelta.addModification(assDelta);
+        	assDelta = userDelta.addModification(assDelta);
         }
 
         // todo remove this block [lazyman] after model is updated - it has to

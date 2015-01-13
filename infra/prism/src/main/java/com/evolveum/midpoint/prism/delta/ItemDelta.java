@@ -381,12 +381,28 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		if (valuesToDelete == null) {
 			valuesToDelete = newValueCollection();
 		}
-		if (PrismValue.containsRealValue(valuesToDelete,newValue)) {
+		if (containsEquivalentValue(valuesToDelete,newValue)) {
 			return;
 		}
 		valuesToDelete.add(newValue);
 		newValue.setParent(this);
 		newValue.recompute();
+	}
+	
+	protected boolean containsEquivalentValue(Collection<V> collection, V value) {
+		if (collection == null) {
+			return false;
+		}
+		for (V colVal: collection) {
+			if (isValueEquivalent(colVal, value)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	protected boolean isValueEquivalent(V a, V b) {
+		return a.equalsRealValue(b);
 	}
 	
 	public void mergeValuesToDelete(Collection<V> newValues) {
