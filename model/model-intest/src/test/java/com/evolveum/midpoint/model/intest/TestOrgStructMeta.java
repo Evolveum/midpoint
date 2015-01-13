@@ -177,7 +177,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
         display("User after", user);
         assertUserOrg(user, ORG_SCUMM_BAR_OID);
         
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -202,7 +202,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
         assertUserOrg(user, ORG_SCUMM_BAR_OID);
         assertAssignedRole(user, ROLE_ORGANIZED_OID);
         
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Proud member of F0006");
         
@@ -228,7 +228,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
         display("User after", user);
         assertUserOrg(user, ORG_SCUMM_BAR_OID);
         
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
         
@@ -290,7 +290,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
         assertUserOrg(user, ORG_SCUMM_BAR_OID);
         assertAssignedRole(user, ROLE_ORGANIZED_OID);
         
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Proud member of F0006");
         

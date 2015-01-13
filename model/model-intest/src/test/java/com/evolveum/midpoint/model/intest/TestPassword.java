@@ -184,7 +184,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         assertDummyPassword("jack", USER_PASSWORD_1_CLEAR);
 	}

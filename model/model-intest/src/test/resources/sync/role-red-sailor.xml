@@ -13,40 +13,24 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="12345111-1111-2222-1111-121212111222"
+<role oid="12345111-1111-2222-1111-121212111223"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <name>Red Judge</name>
-    <inducement id="1113">
+    <name>Red Sailor</name>    
+    <inducement id="1111">
     	<construction>
     		<!-- Dummy RED -->
     		<resourceRef oid="10000000-0000-0000-0000-000000000104" type="ResourceType"/>
     		<kind>account</kind>
-    		<attribute>
-                <ref>ri:title</ref>
-                <outbound>
-                	<expression>
-						<value>Honorable Justice</value>
-					</expression>
-				</outbound>
-            </attribute>
             <attribute>
                 <ref>ri:drink</ref>
                 <outbound>
                 	<expression>
-						<value>tea</value>
+						<value>grog</value>
 					</expression>
 				</outbound>
             </attribute>
     	</construction>
     </inducement>
-    <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#punish</action>
-    </authorization>
-    <exclusion>
-    	<description>A judge cannot be a pirate at the same time. At least not openly.</description>
-    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
-    	<policy>enforce</policy>
-    </exclusion>
 </role>

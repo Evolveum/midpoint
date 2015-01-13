@@ -191,7 +191,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood");
         
         // Check account in dummy resource
-        assertDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
+        assertDefaultDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         
         result.computeStatus();
         display("executeChanges result", result);

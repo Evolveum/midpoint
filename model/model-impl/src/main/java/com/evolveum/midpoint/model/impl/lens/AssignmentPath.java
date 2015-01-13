@@ -132,6 +132,7 @@ public class AssignmentPath implements DebugDumpable {
 		} else {
 			sb.append(" (").append(segments.size()).append(")");
 			if (DebugUtil.isDetailedDebugDump()) {
+				sb.append("\n");
 				DebugUtil.debugDump(sb, segments, indent + 1, false);
 			} else {
 				for (AssignmentPathSegment segment: segments) {

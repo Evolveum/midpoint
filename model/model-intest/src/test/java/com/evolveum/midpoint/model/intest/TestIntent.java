@@ -128,7 +128,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -188,7 +188,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOidDefault, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow");
         
         // Check account in dummy resource: intent=default
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         
         // Check shadow: intent=test
         PrismObject<ShadowType> accountShadowTest = repositoryService.getObject(ShadowType.class, accountOidTest, null, result);
@@ -201,7 +201,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertEnableTimestampShadow(accountModelTest, startTime, endTime);
         
         // Check account in dummy resource: intent=test
-        assertDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow (test)", true);
+        assertDefaultDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow (test)", true);
         assertGroupMember(GROUP_DUMMY_TESTERS_NAME, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
         
         // Check audit
@@ -254,7 +254,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOidDefault, ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow");
         
         // Check account in dummy resource: intent=default
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow", true);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow", true);
         
         // Check shadow: intent=test
         PrismObject<ShadowType> accountShadowTest = repositoryService.getObject(ShadowType.class, accountOidTest, null, result);
@@ -265,7 +265,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModelTest, accountOidTest, "T"+ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow (test)");
         
         // Check account in dummy resource: intent=test
-        assertDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow (test)", true);
+        assertDefaultDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow (test)", true);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -324,7 +324,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModelTest, accountOidTest, "T"+ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow (test)");
         
         // Check account in dummy resource: intent=test
-        assertDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow (test)", true);
+        assertDefaultDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow (test)", true);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         

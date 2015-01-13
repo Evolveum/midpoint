@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,6 +198,22 @@ public class AssignmentProcessor {
         LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDump());
 
         Collection<PrismContainerValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
+        // Changes assignments may be "light", i.e. they may contain just the identifier. Make sure that we always have
+        // the full assignment data.
+        Iterator<PrismContainerValue<AssignmentType>> iterator = changedAssignments.iterator();
+        while (iterator.hasNext()) {
+        	PrismContainerValue<AssignmentType> changedAssignment = iterator.next();
+        	if (changedAssignment.getItems().isEmpty()) {
+        		if (changedAssignment.getId() != null) {
+        			for (PrismContainerValue<AssignmentType> assignmentCurrent: assignmentsCurrent) {
+        				if (changedAssignment.getId().equals(assignmentCurrent.getId())) {
+        					iterator.remove();
+        					changedAssignments.add(assignmentCurrent.clone());
+        				}
+        			}
+        		}
+        	}
+        }
 
         // Initializing assignment evaluator. This will be used later to process all the assignments including the nested
         // assignments (roles).
@@ -473,7 +489,7 @@ public class AssignmentProcessor {
         
         if (LOGGER.isTraceEnabled()) {
             // Dump the maps
-            LOGGER.trace("Projection maps:\n{}", constructionMapTriple.debugDump());
+            LOGGER.trace("constructionMapTriple:\n{}", constructionMapTriple.debugDump());
         }
         
         
@@ -511,8 +527,26 @@ public class AssignmentProcessor {
             
             String desc = rat.toHumanReadableString();
 
-            // SITUATION: The projection should exist (if valid), there is NO CHANGE in assignments
-            if (constructionMapTriple.getZeroMap().containsKey(rat)) {
+            // SITUATION: The projection is ASSIGNED
+            if (constructionMapTriple.getPlusMap().containsKey(rat)) {
+        	
+	        	ConstructionPack constructionPack = constructionMapTriple.getPlusMap().get(rat);
+	            if (constructionPack.hasValidAssignment()) {
+	            	LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+	            	projectionContext.setAssigned(true);
+	            	projectionContext.setLegalOld(false);
+	            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
+	            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
+	            		LOGGER.trace("Projection {} legal: assigned (valid)", desc);
+	            		projectionContext.setLegal(true);
+	            	}
+	            } else {
+	            	// Just ignore it, do not even create projection context
+	            	LOGGER.trace("Projection {} ignoring: assigned (invalid)", desc);
+	            }
+            
+            // SITUATION: The projection should exist (is valid), there is NO CHANGE in assignments
+            } else if (constructionMapTriple.getZeroMap().containsKey(rat) && constructionMapTriple.getZeroMap().get(rat).hasValidAssignment()) {
             	
                 LensProjectionContext projectionContext = context.findProjectionContext(rat);
                 if (projectionContext == null) {
@@ -524,19 +558,10 @@ public class AssignmentProcessor {
                 	// Pretend that the assignment was just added. That should do.
                 	projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
                 }
-                ConstructionPack constructionPack = constructionMapTriple.getZeroMap().get(rat);
-                if (constructionPack.hasValidAssignment()) {
-                	LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
-	            	projectionContext.setLegal(true);
-	            	projectionContext.setLegalOld(true);
-	            	projectionContext.setAssigned(true);
-                } else {
-                	LOGGER.trace("Projection {} illegal: unchanged (invalid)", desc);
-                	projectionContext.setLegal(false);
-	            	projectionContext.setLegalOld(false);
-	            	projectionContext.setAssigned(false);
-                }
-
+            	LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
+            	projectionContext.setLegal(true);
+            	projectionContext.setLegalOld(true);
+            	projectionContext.setAssigned(true);
                 
             // SITUATION: The projection is both ASSIGNED and UNASSIGNED
             } else if (constructionMapTriple.getPlusMap().containsKey(rat) && constructionMapTriple.getMinusMap().containsKey(rat)) {
@@ -613,29 +638,10 @@ public class AssignmentProcessor {
                 		LOGGER.trace("Projection {} nothing: both assigned and unassigned (valid->invalid) but not there", desc);
                 		// We have to delete something that is not there. Nothing to do.
                 	}
-	            	
+
             	} else {
             		throw new IllegalStateException("Whoops!?!");
             	}
-                
-
-            // SITUATION: The projection is ASSIGNED
-            } else if (constructionMapTriple.getPlusMap().containsKey(rat)) {
-            	
-            	ConstructionPack constructionPack = constructionMapTriple.getPlusMap().get(rat);
-                if (constructionPack.hasValidAssignment()) {
-	            	LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
-	            	projectionContext.setAssigned(true);
-	            	projectionContext.setLegalOld(false);
-	            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
-	            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
-	            		LOGGER.trace("Projection {} legal: assigned (valid)", desc);
-	            		projectionContext.setLegal(true);
-	            	}
-                } else {
-                	// Just ignore it, do not even create projection context
-                	LOGGER.trace("Projection {} ignoring: assigned (invalid)", desc);
-                }
 
         	// SITUATION: The projection is UNASSIGNED
             } else if (constructionMapTriple.getMinusMap().containsKey(rat)) {
@@ -661,15 +667,33 @@ public class AssignmentProcessor {
             		// We have to delete something that is not there. Nothing to do.
             	}
 
+            // SITUATION: The projection should exist (invalid), there is NO CHANGE in assignments
+            } else if (constructionMapTriple.getZeroMap().containsKey(rat) && !constructionMapTriple.getZeroMap().get(rat).hasValidAssignment()) {
+            	
+                LensProjectionContext projectionContext = context.findProjectionContext(rat);
+                if (projectionContext == null) {
+                	if (processOnlyExistingProjCxts){
+                		continue;
+                	}
+                	// The projection should exist before the change but it does not
+                	// This happens during reconciliation if there is an inconsistency. 
+                	// Pretend that the assignment was just added. That should do.
+                	projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+                }
+            	LOGGER.trace("Projection {} illegal: unchanged (invalid)", desc);
+            	projectionContext.setLegal(false);
+            	projectionContext.setLegalOld(false);
+            	projectionContext.setAssigned(false);
+
             } else {
                 throw new IllegalStateException("Projection " + desc + " went looney");
             }
 
             PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountDeltaSetTriple = 
             		new PrismValueDeltaSetTriple<PrismPropertyValue<Construction>>(
-            				getConstructions(constructionMapTriple.getZeroMap().get(rat)),
-            				getConstructions(constructionMapTriple.getPlusMap().get(rat)),
-            				getConstructions(constructionMapTriple.getMinusMap().get(rat)));
+            				getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
+            				getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
+            				getConstructions(constructionMapTriple.getMinusMap().get(rat), false));
             LensProjectionContext accountContext = context.findProjectionContext(rat);
             if (accountContext != null) {
             	// This can be null in a exotic case if we delete already deleted account
@@ -949,8 +973,11 @@ public class AssignmentProcessor {
 		throw new IllegalArgumentException("Construction not defined in the assigment.");
 	}
 
-	private Collection<PrismPropertyValue<Construction>> getConstructions(ConstructionPack accountConstructionPack) {
+	private Collection<PrismPropertyValue<Construction>> getConstructions(ConstructionPack accountConstructionPack, boolean validOnly) {
 		if (accountConstructionPack == null) {
+			return null;
+		}
+		if (validOnly && !accountConstructionPack.hasValidAssignment()) {
 			return null;
 		}
 		return accountConstructionPack.getConstructions();
