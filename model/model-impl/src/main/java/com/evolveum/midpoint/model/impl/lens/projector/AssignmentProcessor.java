@@ -545,8 +545,8 @@ public class AssignmentProcessor {
 	            	LOGGER.trace("Projection {} ignoring: assigned (invalid)", desc);
 	            }
             
-            // SITUATION: The projection should exist (if valid), there is NO CHANGE in assignments
-            } else if (constructionMapTriple.getZeroMap().containsKey(rat)) {
+            // SITUATION: The projection should exist (is valid), there is NO CHANGE in assignments
+            } else if (constructionMapTriple.getZeroMap().containsKey(rat) && constructionMapTriple.getZeroMap().get(rat).hasValidAssignment()) {
             	
                 LensProjectionContext projectionContext = context.findProjectionContext(rat);
                 if (projectionContext == null) {
@@ -558,19 +558,10 @@ public class AssignmentProcessor {
                 	// Pretend that the assignment was just added. That should do.
                 	projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
                 }
-                ConstructionPack constructionPack = constructionMapTriple.getZeroMap().get(rat);
-                if (constructionPack.hasValidAssignment()) {
-                	LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
-	            	projectionContext.setLegal(true);
-	            	projectionContext.setLegalOld(true);
-	            	projectionContext.setAssigned(true);
-                } else {
-                	LOGGER.trace("Projection {} illegal: unchanged (invalid)", desc);
-                	projectionContext.setLegal(false);
-	            	projectionContext.setLegalOld(false);
-	            	projectionContext.setAssigned(false);
-                }
-
+            	LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
+            	projectionContext.setLegal(true);
+            	projectionContext.setLegalOld(true);
+            	projectionContext.setAssigned(true);
                 
             // SITUATION: The projection is both ASSIGNED and UNASSIGNED
             } else if (constructionMapTriple.getPlusMap().containsKey(rat) && constructionMapTriple.getMinusMap().containsKey(rat)) {
@@ -647,7 +638,7 @@ public class AssignmentProcessor {
                 		LOGGER.trace("Projection {} nothing: both assigned and unassigned (valid->invalid) but not there", desc);
                 		// We have to delete something that is not there. Nothing to do.
                 	}
-	            	
+
             	} else {
             		throw new IllegalStateException("Whoops!?!");
             	}
@@ -675,6 +666,24 @@ public class AssignmentProcessor {
             		LOGGER.trace("Projection {} nothing: unassigned but not there", desc);
             		// We have to delete something that is not there. Nothing to do.
             	}
+
+            // SITUATION: The projection should exist (invalid), there is NO CHANGE in assignments
+            } else if (constructionMapTriple.getZeroMap().containsKey(rat) && !constructionMapTriple.getZeroMap().get(rat).hasValidAssignment()) {
+            	
+                LensProjectionContext projectionContext = context.findProjectionContext(rat);
+                if (projectionContext == null) {
+                	if (processOnlyExistingProjCxts){
+                		continue;
+                	}
+                	// The projection should exist before the change but it does not
+                	// This happens during reconciliation if there is an inconsistency. 
+                	// Pretend that the assignment was just added. That should do.
+                	projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+                }
+            	LOGGER.trace("Projection {} illegal: unchanged (invalid)", desc);
+            	projectionContext.setLegal(false);
+            	projectionContext.setLegalOld(false);
+            	projectionContext.setAssigned(false);
 
             } else {
                 throw new IllegalStateException("Projection " + desc + " went looney");
