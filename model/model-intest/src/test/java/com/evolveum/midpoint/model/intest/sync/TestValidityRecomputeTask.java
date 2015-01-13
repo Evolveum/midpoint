@@ -1181,7 +1181,10 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
-        // TODO: check attributes
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
@@ -1310,7 +1313,10 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
-        // TODO: attributes
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
@@ -1451,7 +1457,10 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
-        // TODO: check attributes
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME); // to be on the safe side
 
         user = getUser(USER_BARBOSSA_OID);
