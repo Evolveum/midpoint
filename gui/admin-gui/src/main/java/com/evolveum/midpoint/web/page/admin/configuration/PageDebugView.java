@@ -80,6 +80,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private AceEditor editor;
     private final IModel<Boolean> encrypt = new Model<Boolean>(true);
     private final IModel<Boolean> saveAsRaw = new Model<>(true);
+    private final IModel<Boolean> reevaluateSearchFilters = new Model<>(false);
     private final IModel<Boolean> validateSchema = new Model<Boolean>(false);
 
     public PageDebugView() {
@@ -174,6 +175,13 @@ public class PageDebugView extends PageAdminConfiguration {
         });
 
         mainForm.add(new AjaxCheckBox("saveAsRaw", saveAsRaw) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+
+        mainForm.add(new AjaxCheckBox("reevaluateSearchFilters", reevaluateSearchFilters) {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -291,6 +299,9 @@ public class PageDebugView extends PageAdminConfiguration {
                 ModelExecuteOptions options = new ModelExecuteOptions();
                 if (saveAsRaw.getObject()) {
                     options.setRaw(true);
+                }
+                if (reevaluateSearchFilters.getObject()) {
+                    options.setReevaluateSearchFilters(true);
                 }
                 if(!encrypt.getObject()) {
                 	options.setNoCrypt(true);

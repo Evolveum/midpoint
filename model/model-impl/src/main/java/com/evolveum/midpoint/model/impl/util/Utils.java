@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -40,10 +41,12 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -135,9 +138,20 @@ public final class Utils {
 			myPaging.setOffset(myPaging.getOffset() + blockSize);
 		}
 	}
-	
-	  public static <T extends ObjectType> void resolveReferences(final PrismObject<T> object, final RepositoryService repository,
-	    		final boolean enforceReferentialIntegrity, final PrismContext prismContext, final OperationResult result) {
+
+	/**
+	 * Resolves references contained in given PrismObject.
+	 *
+	 * @param object
+	 * @param repository
+	 * @param enforceReferentialIntegrity If true, missing reference causes fatal error when processing (if false, only warning is issued).
+	 * @param forceFilterReevaluation If true, references are reevaluated even if OID is present. (Given that filter is present as well, of course.)
+	 * @param prismContext
+	 * @param result
+	 */
+	public static <T extends ObjectType> void resolveReferences(final PrismObject<T> object, final RepositoryService repository,
+	    		final boolean enforceReferentialIntegrity, final boolean forceFilterReevaluation,
+				final PrismContext prismContext, final OperationResult result) {
 	    	
 	    	Visitor visitor = new Visitor() {
 				@Override
@@ -145,17 +159,69 @@ public final class Utils {
 					if (!(visitable instanceof PrismReferenceValue)) {
 						return;
 					}
-					resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, prismContext, object.toString(), result);
+					resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation, prismContext, object.toString(), result);
 				}
 			};
 			object.accept(visitor);
 	    }
-	    
 
-	    private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
-	    				boolean enforceReferentialIntegrity, PrismContext prismContext, String contextDesc, OperationResult parentResult) {
-	    	PrismReference reference = (PrismReference) refVal.getParent();
-	    	QName refName = reference.getElementName();
+	/**
+	 * Resolves references contained in ADD and REPLACE value sets for item modifications in a given ObjectDelta.
+	 * (specially treats collisions with values to be deleted)
+	 */
+
+	public static <T extends ObjectType> void resolveReferences(final ObjectDelta<T> objectDelta, final RepositoryService repository,
+																final boolean enforceReferentialIntegrity, final boolean forceFilterReevaluation,
+																final PrismContext prismContext, final OperationResult result) {
+
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				if (!(visitable instanceof PrismReferenceValue)) {
+					return;
+				}
+				resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation, prismContext, objectDelta.toString(), result);
+			}
+		};
+		// We could use objectDelta.accept(visitor), but we want to visit only values to add and replace
+		// (NOT values to delete! - otherwise very strange effects could result)
+
+		// Another problem is that it is possible that one of valuesToAdd became (after resolving)
+		// a value that is meant do be deleted. The result would be deletion of that value; definitely
+		// not what we would want or expect. So we have to check whether a value that was not among
+		// values to be deleted accidentally becomes one of values to be deleted.
+		if (objectDelta.isAdd()) {
+			objectDelta.getObjectToAdd().accept(visitor);
+		} else if (objectDelta.isModify()) {
+			for (ItemDelta<PrismValue> delta : objectDelta.getModifications()) {
+				applyVisitorToValues(delta.getValuesToAdd(), delta, visitor);
+				applyVisitorToValues(delta.getValuesToReplace(), delta, visitor);
+			}
+		}
+	}
+
+	// see description in caller
+	private static void applyVisitorToValues(Collection<PrismValue> values, ItemDelta<PrismValue> delta, Visitor visitor) {
+		Collection<PrismValue> valuesToDelete = delta.getValuesToDelete();
+		if (valuesToDelete == null) {
+            valuesToDelete = new ArrayList<>(0);		// just to simplify the code below
+        }
+		if (values != null) {
+            for (PrismValue pval : values) {
+                boolean isToBeDeleted = valuesToDelete.contains(pval);
+                pval.accept(visitor);
+                if (!isToBeDeleted && valuesToDelete.contains(pval)) {
+                    // value becomes 'to be deleted' -> we remove it from toBeDeleted list
+                    delta.removeValueToDelete(pval);
+                }
+            }
+        }
+	}
+
+	private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
+									   boolean enforceReferentialIntegrity, boolean forceFilterReevaluation,
+									   PrismContext prismContext, String contextDesc, OperationResult parentResult) {
+			QName refName = refVal.getParent().getElementName();
 	        OperationResult result = parentResult.createSubresult(OPERATION_RESOLVE_REFERENCE);
 	        result.addContext(OperationResult.CONTEXT_ITEM, refName);
 
@@ -179,9 +245,9 @@ public final class Utils {
 	            }
 	        }
 	        SearchFilterType filter = refVal.getFilter();
-	        
-	        if (!StringUtils.isBlank(refVal.getOid())) {
-	            // We have OID
+
+	        if (!StringUtils.isBlank(refVal.getOid()) && (!forceFilterReevaluation || filter == null)) {
+	            // We have OID (and "force filter reevaluation" is not requested or not possible)
 	            if (filter != null) {
 	                // We have both filter and OID. We will choose OID, but let's at
 	                // least log a warning
@@ -229,7 +295,7 @@ public final class Utils {
 	        }
 	        // No OID and we have filter. Let's check the filter a bit
 	        
-	        ObjectFilter objFilter =  null;
+	        ObjectFilter objFilter;
 	        try{
 	        	PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 	        	objFilter = QueryConvertor.parseFilter(filter, objDef);
@@ -239,16 +305,8 @@ public final class Utils {
 	        }
 	        
 	        LOGGER.trace("Resolving using filter {}", objFilter.debugDump());
-//	        NodeList childNodes = filter.getChildNodes();
-//	        if (childNodes.getLength() == 0) {
-	        if (objFilter == null){
-	            result.recordFatalError("OID not specified and filter is empty for property " + refName);
-	            return;
-	        }
 //	        // Let's do resolving
-//	        QueryType queryType = new QueryType();
-//	        queryType.setFilter(filter);
-	        List<PrismObject<? extends ObjectType>> objects = null;
+	        List<PrismObject<? extends ObjectType>> objects;
 	        QName objectType = refVal.getTargetType();
 	        if (objectType == null) {
 	            result.recordFatalError("Missing definition of type of reference " + refName);

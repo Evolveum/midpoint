@@ -437,11 +437,20 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
 		result.addParam(OperationResult.PARAM_OPTIONS, options);
-		
-		if (ModelExecuteOptions.isIsImport(options)){
-			for (ObjectDelta<? extends ObjectType> delta : deltas){
-				if (delta.isAdd()){
-					Utils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, prismContext, result);
+
+		// Search filters treatment: if reevaluation is requested, we have to deal with three cases:
+		// 1) for ADD operation: filters contained in object-to-be-added -> these are treated here
+		// 2) for MODIFY operation: filters contained in existing object (not touched by deltas) -> these are treated after the modify operation
+		// 3) for MODIFY operation: filters contained in deltas -> these have to be treated here, because if OID is missing from such a delta, the change would be rejected by the repository
+		if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
+			for (ObjectDelta<? extends ObjectType> delta : deltas) {
+				Utils.resolveReferences(delta, cacheRepositoryService, false, true, prismContext, result);
+			}
+		} else if (ModelExecuteOptions.isIsImport(options)) {
+			// if plain import is requested, we simply evaluate filters in ADD operation (and we do not force reevaluation if OID is already set)
+			for (ObjectDelta<? extends ObjectType> delta : deltas) {
+				if (delta.isAdd()) {
+					Utils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, false, prismContext, result);
 				}
 			}
 		}
@@ -506,6 +515,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
                             securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result1);
                             cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
                                     delta.getModifications(), result1);
+							if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {	// treat filters that already exist in the object (case #2 above)
+								reevaluateSearchFilters(delta.getObjectTypeClass(), delta.getOid(), result1);
+							}
                         } else {
                             throw new IllegalArgumentException("Wrong delta type "+delta.getChangeType()+" in "+delta);
                         }
@@ -521,10 +533,17 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				auditRecord.setEventStage(AuditEventStage.EXECUTION);
 				auditService.audit(auditRecord, task);
 				
-			} else {				
-				
+			} else {
+
 				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
-                context.setProgressListeners(statusListeners);
+
+				if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
+					String m = "ReevaluateSearchFilters option is not fully supported for non-raw operations yet. Filters already present in the object will not be touched.";
+					LOGGER.warn("{} Context = {}", m, context.debugDump());
+					result.createSubresult(CLASS_NAME_WITH_DOT+"reevaluateSearchFilters").recordWarning(m);
+				}
+
+				context.setProgressListeners(statusListeners);
 				// Note: Request authorization happens inside clockwork
 				clockwork.run(context, task, result);
 
@@ -579,7 +598,25 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
         return retval;
 	}
-	
+
+	private <T extends ObjectType> void reevaluateSearchFilters(Class<T> objectTypeClass, String oid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+		OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT+"reevaluateSearchFilters");
+		try {
+			PrismObject<T> storedObject = cacheRepositoryService.getObject(objectTypeClass, oid, null, result);
+			PrismObject<T> updatedObject = storedObject.clone();
+			Utils.resolveReferences(updatedObject, cacheRepositoryService, false, true, prismContext, result);
+			ObjectDelta<T> delta = storedObject.diff(updatedObject);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDump());
+			}
+			cacheRepositoryService.modifyObject(objectTypeClass, oid, delta.getModifications(), result);
+			result.recordSuccess();
+		} catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
+			result.recordFatalError("Couldn't reevaluate search filters: "+e.getMessage(), e);
+			throw e;
+		}
+	}
+
 	@Override
 	public <F extends ObjectType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 			
