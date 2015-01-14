@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -97,6 +98,8 @@ public class PageUsers extends PageAdminUsers {
     private static final String OPERATION_ENABLE_USER = DOT_CLASS + "enableUser";
     private static final String OPERATION_RECONCILE_USERS = DOT_CLASS + "reconcileUsers";
     private static final String OPERATION_RECONCILE_USER = DOT_CLASS + "reconcileUser";
+    private static final String OPERATION_UNLOCK_USERS = DOT_CLASS + "unlockUsers";
+    private static final String OPERATION_UNLOCK_USER = DOT_CLASS + "unlockUser";
     private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
 
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
@@ -273,6 +276,15 @@ public class PageUsers extends PageAdminUsers {
                     }
                 }));
 
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        unlockPerformed(target, null);
+                    }
+                }));
+
         headerMenuItems.add(new InlineMenuItem());
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete"), true,
@@ -365,6 +377,16 @@ public class PageUsers extends PageAdminUsers {
                     public void onClick(AjaxRequestTarget target) {
                         UserListItemDto rowDto = getRowModel().getObject();
                         reconcilePerformed(target, rowDto);
+                    }
+                }));
+
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"),
+                new ColumnMenuAction<UserListItemDto>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        UserListItemDto rowDto = getRowModel().getObject();
+                        unlockPerformed(target, rowDto);
                     }
                 }));
 
@@ -571,6 +593,37 @@ public class PageUsers extends PageAdminUsers {
         builder.append(")");
 
         return builder.toString();
+    }
+
+    private void unlockPerformed(AjaxRequestTarget target, UserListItemDto selectedUser) {
+        List<UserListItemDto> users = isAnythingSelected(target, selectedUser);
+        if (users.isEmpty()) {
+            return;
+        }
+        OperationResult result = new OperationResult(OPERATION_UNLOCK_USERS);
+        for (UserListItemDto user : users) {
+            String userShortString = toShortString(user);
+            OperationResult opResult = result.createSubresult(getString(OPERATION_UNLOCK_USER, userShortString));
+            try {
+                Task task = createSimpleTask(OPERATION_UNLOCK_USER + userShortString);
+                // TODO skip the operation if the user has no password credentials specified (otherwise this would create almost-empty password container)
+                ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
+                        new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS), getPrismContext(), 0);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                getModelService().executeChanges(deltas, null, task, opResult);
+                opResult.computeStatusIfUnknown();
+            } catch (Exception ex) {
+                opResult.recomputeStatus();
+                opResult.recordFatalError("Couldn't unlock user " + userShortString + ".", ex);
+                LoggingUtils.logException(LOGGER, "Couldn't unlock user " + userShortString + ".", ex);
+            }
+        }
+
+        result.recomputeStatus();
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+        target.add(getTable());
     }
 
     private void reconcilePerformed(AjaxRequestTarget target, UserListItemDto selectedUser) {
