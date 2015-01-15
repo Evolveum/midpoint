@@ -251,27 +251,27 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String ACCOUNT_HERMAN_OPENDJ_FILENAME = COMMON_DIR + "/account-herman-opendj.xml";
 	public static final String ACCOUNT_HERMAN_OPENDJ_OID = "22220000-2200-0000-0000-333300003333";
 	
-	public static final String ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR + "/account-shadow-guybrush-dummy.xml";
+	public static final File ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILE = new File(COMMON_DIR, "account-shadow-guybrush-dummy.xml");
 	public static final String ACCOUNT_SHADOW_GUYBRUSH_OID = "22226666-2200-6666-6666-444400004444";
 	public static final String ACCOUNT_GUYBRUSH_DUMMY_USERNAME = "guybrush";
 	public static final String ACCOUNT_GUYBRUSH_DUMMY_FULLNAME = "Guybrush Threepwood";
 	public static final File ACCOUNT_GUYBRUSH_DUMMY_FILE = new File (COMMON_DIR, "account-guybrush-dummy.xml");
-	public static final String ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME = COMMON_DIR + "/account-guybrush-dummy-red.xml";
+	public static final File ACCOUNT_GUYBRUSH_DUMMY_RED_FILE = new File(COMMON_DIR, "account-guybrush-dummy-red.xml");
 	
 	public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR + "/account-shadow-jack-dummy.xml";
 	
 	public static final String ACCOUNT_DAVIEJONES_DUMMY_USERNAME = "daviejones";
 	public static final String ACCOUNT_CALYPSO_DUMMY_USERNAME = "calypso";
 	
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME = COMMON_DIR + "/account-elaine-dummy.xml";
+	public static final File ACCOUNT_SHADOW_ELAINE_DUMMY_FILE = new File(COMMON_DIR, "account-elaine-dummy.xml");
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_USERNAME = USER_ELAINE_USERNAME;
 	
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILENAME = COMMON_DIR + "/account-elaine-dummy-red.xml";
+	public static final File ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILE = new File(COMMON_DIR, "account-elaine-dummy-red.xml");
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID = "c0c010c0-d34d-b33f-f00d-22220104000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_RED_USERNAME = USER_ELAINE_USERNAME;
 
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILENAME = COMMON_DIR + "/account-elaine-dummy-blue.xml";
+	public static final File ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILE = new File(COMMON_DIR, "account-elaine-dummy-blue.xml");
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID = "c0c010c0-d34d-b33f-f00d-22220204000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_BLUE_USERNAME = USER_ELAINE_USERNAME;
 	
@@ -283,6 +283,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String SHADOW_GROUP_DUMMY_TESTERS_OID = "20000000-0000-0000-3333-000000000002";
 	public static final String GROUP_DUMMY_TESTERS_NAME = "testers";
 	public static final String GROUP_DUMMY_TESTERS_DESCRIPTION = "To boldly go where no pirate has gone before";
+	
+	public static final File GROUP_SHADOW_JOKER_DUMMY_UPCASE_FILE = new File(COMMON_DIR, "group-shadow-dummy-upcase-joker.xml");
+	public static final String GROUP_SHADOW_JOKER_DUMMY_UPCASE_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
+	public static final String GROUP_SHADOW_JOKER_DUMMY_UPCASE_NAME = "joker";
+	public static final String GROUP_JOKER_DUMMY_UPCASE_NAME = "JOKER";
 	
 	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR + "/password-policy-global.xml";
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";

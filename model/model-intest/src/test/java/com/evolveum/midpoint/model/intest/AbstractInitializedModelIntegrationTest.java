@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -219,6 +219,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		resourceDummyUpcase = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_UPCASE_FILE, RESOURCE_DUMMY_UPCASE_OID, initTask, initResult);
 		resourceDummyUpcaseType = resourceDummyUpcase.asObjectable();
 		dummyResourceCtlUpcase.setResource(resourceDummyUpcase);
+		dummyResourceCtlUpcase.addGroup(GROUP_JOKER_DUMMY_UPCASE_NAME);
 
 		resourceDummySchemaless = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SCHEMALESS_FILENAME, RESOURCE_DUMMY_SCHEMALESS_OID, initTask, initResult); 
 		resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
@@ -240,11 +241,12 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_FILENAME, ObjectTemplateType.class, initResult);
 		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_INCLUDE_FILENAME, ObjectTemplateType.class, initResult);
 
-		// Accounts
-		repoAddObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, ShadowType.class, initResult);
-		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, ShadowType.class, initResult);
-		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILENAME, ShadowType.class, initResult);
-		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILENAME, ShadowType.class, initResult);
+		// Shadows
+		repoAddObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILE, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_FILE, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILE, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILE, ShadowType.class, initResult);
+		repoAddObjectFromFile(GROUP_SHADOW_JOKER_DUMMY_UPCASE_FILE, ShadowType.class, initResult);
 		
 		// Users
 		userTypeJack = repoAddObjectFromFile(USER_JACK_FILE, UserType.class, true, initResult).asObjectable();
@@ -398,16 +400,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	
 	protected ResultHandler<OrgType> getOrgSanityCheckHandler() {
 		return null;
-	}
-
-	protected void assertGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
-		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
-		IntegrationTestTools.assertGroupMember(group, accountId);
-	}
-
-	protected void assertNoGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
-		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
-		IntegrationTestTools.assertNoGroupMember(group, accountId);
 	}
      	
 }
