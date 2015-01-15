@@ -247,7 +247,7 @@ public class OrgUnitBrowser extends ModalWindow {
         }
 
         OperationResult result = new OperationResult(OPERATION_LOAD_PARENT_ORG_REFS);
-        List<String> oids = new ArrayList<String>();
+        List<String> oids = new ArrayList<>();
         try {
             for (OrgTableDto dto : selected) {
                 PrismObject object = WebModelUtils.loadObject(dto.getType(), dto.getOid(),
@@ -266,14 +266,17 @@ public class OrgUnitBrowser extends ModalWindow {
             result.computeStatusIfUnknown();
         }
 
-        //todo here we must create query which select object which have oid from oids list [lazyman]
-        //todo create IN(oids) filter in schema, objectfilter and repo implementation
-//        InOidFilter
-        return null;
+        //We must also exclude selected org. units from move options
+        for(OrgTableDto dto: selected){
+            oids.add(dto.getOid());
+        }
+
+        ObjectFilter oidFilter = InOidFilter.createInOid(oids);
+        return ObjectQuery.createObjectQuery(NotFilter.createNot(oidFilter));
     }
 
     private List<IColumn<OrgTableDto, String>> initColumns() {
-        List<IColumn<OrgTableDto, String>> columns = new ArrayList<IColumn<OrgTableDto, String>>();
+        List<IColumn<OrgTableDto, String>> columns = new ArrayList<>();
 
         columns.add(new LinkColumn<OrgTableDto>(createStringResource("ObjectType.name"), "name") {
 
@@ -301,13 +304,16 @@ public class OrgUnitBrowser extends ModalWindow {
     private ObjectQuery createSearchQuery(){
         OrgUnitSearchDto dto = searchModel.getObject();
         ObjectQuery query = null;
+        ObjectQuery moveQuery;
 
         if(StringUtils.isEmpty(dto.getText())){
-            if(createRootQuery() != null){
-                return createRootQuery();
-            } else {
-                return null;
-            }
+           if(isMovingRoot()){
+               moveQuery = createRootQuery();
+           } else {
+               moveQuery = createQueryFromSelected();
+           }
+
+           return moveQuery != null ? moveQuery : null;
         }
 
         try{
@@ -317,8 +323,14 @@ public class OrgUnitBrowser extends ModalWindow {
             SubstringFilter substring = SubstringFilter.createSubstring(OrgType.F_NAME, OrgType.class,
                     getPageBase().getPrismContext(), PolyStringNormMatchingRule.NAME, normalized);
 
-            if(createRootQuery() != null){
-                AndFilter and = AndFilter.createAnd(createRootQuery().getFilter(), substring);
+            if(isMovingRoot()){
+                moveQuery = createRootQuery();
+            } else {
+                moveQuery = createQueryFromSelected();
+            }
+
+            if(moveQuery != null){
+                AndFilter and = AndFilter.createAnd(moveQuery.getFilter(), substring);
                 query = ObjectQuery.createObjectQuery(and);
             } else {
                 query = ObjectQuery.createObjectQuery(substring);
