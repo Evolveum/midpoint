@@ -193,16 +193,24 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         return modifications;
     }
 
-    public void addModification(ItemDelta itemDelta) {
+    /**
+     * Adds modification (itemDelta) and returns the modification that was added.
+     * NOTE: the modification that was added may be different from the modification that was
+     * passed into this method! E.g. in case if two modifications must be merged to keep the delta
+     * consistent. Therefore always use the returned modification after this method is invoked. 
+     */
+    public <D extends ItemDelta> D addModification(D itemDelta) {
     	if (getChangeType() != ChangeType.MODIFY) {
     		throw new IllegalStateException("Cannot add modifications to "+getChangeType()+" delta");
     	}
     	ItemPath itemPath = itemDelta.getPath();
-    	ItemDelta<?> existingModification = findModification(itemPath, itemDelta.getClass());
+    	D existingModification = (D) findModification(itemPath, itemDelta.getClass());
     	if (existingModification != null) {
     		existingModification.merge(itemDelta);
+    		return existingModification;
     	} else {
     		((Collection)modifications).add(itemDelta);
+    		return itemDelta;
     	}
     }
     
@@ -679,8 +687,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     
     public <X> PropertyDelta<X> createPropertyModification(QName name, PrismPropertyDefinition propertyDefinition) {
     	PropertyDelta<X> propertyDelta = new PropertyDelta<X>(name, propertyDefinition, prismContext);
-    	addModification(propertyDelta);
-    	return propertyDelta;
+    	return addModification(propertyDelta);
     }
     
     public <X> PropertyDelta<X> createPropertyModification(ItemPath path) {
@@ -698,8 +705,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     
     public ReferenceDelta createReferenceModification(QName name, PrismReferenceDefinition referenceDefinition) {
     	ReferenceDelta referenceDelta = new ReferenceDelta(name, referenceDefinition, prismContext);
-    	addModification(referenceDelta);
-    	return referenceDelta;
+    	return addModification(referenceDelta);
     }
     
     public <C extends Containerable> ContainerDelta<C> createContainerModification(ItemPath path) {
@@ -710,8 +716,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     
     public <C extends Containerable> ContainerDelta<C> createContainerModification(ItemPath path, PrismContainerDefinition<C> containerDefinition) {
     	ContainerDelta<C> containerDelta = new ContainerDelta<C>(path, containerDefinition, prismContext);
-    	addModification(containerDelta);
-    	return containerDelta;
+    	return addModification(containerDelta);
     }
     
     /**

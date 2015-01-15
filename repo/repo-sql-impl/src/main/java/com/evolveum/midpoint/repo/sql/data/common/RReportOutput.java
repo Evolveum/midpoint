@@ -5,6 +5,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -67,9 +68,10 @@ public class RReportOutput extends RObject<ReportOutputType> {
         return result;
     }
 
-    public static void copyFromJAXB(ReportOutputType jaxb, RReportOutput repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(ReportOutputType jaxb, RReportOutput repo, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult) throws
             DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setReportRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getReportRef(), prismContext));

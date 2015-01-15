@@ -1,0 +1,207 @@
+<jasperReport 
+    		xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+			xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+			name="reportUserList" 
+			pageWidth="842" 
+			pageHeight="595" 
+			orientation="Landscape" 
+			whenNoDataType="AllSectionsNoDetail" 
+			columnWidth="802" 
+			leftMargin="20" 
+			rightMargin="20" 
+			topMargin="20" 
+			bottomMargin="20" 
+			uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+			<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+			<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
+			<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="title"/>
+			<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value="pageFooter"/>
+			<parameter name="activation" class="java.lang.Integer"/>
+			<parameter name="activationDescription" class="java.lang.String"/>
+			<parameter name="userName" class="java.lang.String"/>
+			<parameter name="role" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+			<parameter name="org" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+			<parameter name="account" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+			<parameter name="hqlQueryRoles" class="java.lang.String" isForPrompting="false"/>
+			<parameter name="hqlQueryAccounts" class="java.lang.String" isForPrompting="false"/>
+			<parameter name="hqlQueryOrgs" class="java.lang.String" isForPrompting="false"/>
+			<parameter name="hqlQuery" class="java.lang.String" isForPrompting="false"/>
+			
+			<queryString language="mql">
+				<![CDATA[
+					<filter xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+						<type>
+							<type>c:UserType</type>
+						</type>
+						
+					</filter>
+				]]>
+			</queryString>
+			<field name="userOid" class="java.lang.String"/>
+			<field name="name" class="com.evolveum.midpoint.prism.polystring.PolyString"/>
+			<field name="firstName" class="com.evolveum.midpoint.prism.polystring.PolyString"/>
+			<field name="lastName" class="com.evolveum.midpoint.prism.polystring.PolyString"/>
+			<field name="linkRef" class="java.util.List"/>
+			<field name="activationField" class="com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus">
+				<fieldDescription><![CDATA[activationField]]></fieldDescription>
+			</field>
+			<background>
+				<band height="30" splitType="Stretch"/>
+			</background>
+			<title>
+				<band height="110" splitType="Stretch">
+					<frame>
+						<reportElement   mode="Opaque" x="1" y="0" width="799" height="67" backcolor="#267994" uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553"/>
+						<staticText>
+							<reportElement   x="10" y="13" width="266" height="38" uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c"/>
+							<textElement verticalAlignment="Middle"/>
+							<text><![CDATA[User Report]]></text>
+						</staticText>
+					</frame>
+					<staticText>
+						<reportElement   x="400" y="87" width="150" height="20" uuid="3ff78fbf-8fce-4072-b691-7af047ea92a7"/>
+						<textElement verticalAlignment="Middle"/>
+						<text><![CDATA[Number of records:]]></text>
+					</staticText>
+					<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
+						<reportElement   x="550" y="67" width="250" height="20" uuid="09a7e272-204e-4078-8a5e-e472757424c1"/>
+						<textElement textAlignment="Right" verticalAlignment="Middle">
+							<font isBold="false"/>
+						</textElement>
+						<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+					</textField>
+					<staticText>
+						<reportElement   x="400" y="67" width="150" height="20" uuid="b0b9714f-96f5-4f58-824b-c81fd4d321f7"/>
+						<textElement verticalAlignment="Middle"/>
+						<text><![CDATA[Report generated on:]]></text>
+					</staticText>
+					<textField evaluationTime="Report" isBlankWhenNull="true">
+						<reportElement   x="550" y="87" width="250" height="20" uuid="89251211-3f49-471d-b88d-5564c1bd04d1"/>
+						<textElement textAlignment="Right" verticalAlignment="Middle">
+							<font isBold="false"/>
+						</textElement>
+						<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+					</textField>
+					
+				</band>
+			</title>
+			<pageHeader>
+				<band splitType="Stretch"/>
+			</pageHeader>
+			<columnHeader>
+				<band height="24" splitType="Stretch">
+					<frame>
+						<reportElement   mode="Transparent" x="1" y="5" width="800" height="19" isRemoveLineWhenBlank="true" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
+						<staticText>
+							<reportElement   x="0" y="0" width="119" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+							<textElement verticalAlignment="Middle"/>
+							<text><![CDATA[Name]]></text>
+						</staticText>
+						<staticText>
+							<reportElement   x="119" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+							<textElement verticalAlignment="Middle"/>
+							<text><![CDATA[First name]]></text>
+						</staticText>
+						<staticText>
+							<reportElement   x="219" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+							<textElement verticalAlignment="Middle"/>
+							<text><![CDATA[Last name]]></text>
+						</staticText>
+						<staticText>
+							<reportElement   x="319" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
+							<textElement verticalAlignment="Middle"/>
+							<text><![CDATA[Activation]]></text>
+						</staticText>
+						<staticText>
+							<reportElement   x="419" y="0" width="100" height="18" uuid="2ffd228b-8b87-4bc6-a9d2-31e8a2d5dbb7"/>
+							<textElement verticalAlignment="Middle"/>
+							<text><![CDATA[Role]]></text>
+						</staticText>
+						<staticText>
+							<reportElement   x="519" y="0" width="100" height="18" uuid="2c4faeb3-d19c-4c1e-bfbf-1b10cece8ae8"/>
+							<textElement verticalAlignment="Middle"/>
+							<text><![CDATA[Organization]]></text>
+						</staticText>
+						<staticText>
+							<reportElement   x="619" y="0" width="181" height="18" uuid="442eeb24-6e46-48f7-8aa0-cb3ab3b8cb83"/>
+							<textElement verticalAlignment="Middle"/>
+							<text><![CDATA[Accounts]]></text>
+						</staticText>
+					</frame>
+				</band>
+			</columnHeader>
+			<detail>
+				<band height="20" splitType="Stretch">
+					<frame>
+						<reportElement   x="0" y="1" width="800" height="19" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement   x="0" y="1" width="120" height="18" uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement   x="120" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{firstName}]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement   x="220" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{lastName}]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement   x="320" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{activationField}.getSchemaValue()]]></textFieldExpression>
+						</textField>
+						<subreport isUsingCache="true">
+							<reportElement positionType="Float" x="420" y="0" width="100" height="18" isPrintWhenDetailOverflows="true" uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9"/>
+							
+							<subreportParameter name="shadowOids">
+								<subreportParameterExpression><![CDATA[$F{linkRef}]]></subreportParameterExpression>
+							</subreportParameter>
+							
+						</subreport>
+						<line>
+							<reportElement positionType="FixRelativeToBottom" x="0" y="17" width="800" height="1" uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043"/>
+							<graphicElement>
+								<pen lineWidth="0.5" lineColor="#999999"/>
+							</graphicElement>
+						</line>
+					</frame>
+				</band>
+			</detail>
+			<columnFooter>
+				<band height="7" splitType="Stretch">
+					<line>
+						<reportElement positionType="FixRelativeToBottom" x="0" y="3" width="800" height="1" uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043"/>
+						<graphicElement>
+							<pen lineWidth="0.5" lineColor="#999999"/>
+						</graphicElement>
+					</line>
+				</band>
+			</columnFooter>
+			<pageFooter>
+				<band height="32" splitType="Stretch">
+					<frame>
+						<reportElement   mode="Transparent" x="0" y="1" width="800" height="24" uuid="fbe8aae4-6500-468a-b1e8-700b569139a1"/>
+						<textField>
+							<reportElement   x="680" y="1" width="80" height="20" uuid="5c062c66-ba45-4288-9dcd-246e28c5af75"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+						</textField>
+						<textField pattern="EEEEE dd MMMMM yyyy">
+							<reportElement   x="2" y="1" width="197" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+						</textField>
+						<textField evaluationTime="Report">
+							<reportElement   x="760" y="1" width="40" height="20" uuid="934b16e8-c3eb-4017-866a-0b7735bf2917"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+						</textField>
+					</frame>
+				</band>
+			</pageFooter>
+		</jasperReport>

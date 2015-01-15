@@ -80,6 +80,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private AceEditor editor;
     private final IModel<Boolean> encrypt = new Model<Boolean>(true);
     private final IModel<Boolean> saveAsRaw = new Model<>(true);
+    private final IModel<Boolean> reevaluateSearchFilters = new Model<>(false);
     private final IModel<Boolean> validateSchema = new Model<Boolean>(false);
 
     public PageDebugView() {
@@ -180,6 +181,13 @@ public class PageDebugView extends PageAdminConfiguration {
             }
         });
 
+        mainForm.add(new AjaxCheckBox("reevaluateSearchFilters", reevaluateSearchFilters) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+
         mainForm.add(new AjaxCheckBox("validateSchema", validateSchema) {
 
 			@Override
@@ -230,7 +238,7 @@ public class PageDebugView extends PageAdminConfiguration {
                 	setResponsePage(requestPage);
                 	getSession().setAttribute("requestPage", null);
                 } else {
-                	setResponsePage(PageDebugList.class);
+                	setResponsePage(new PageDebugList(false));
                 }
             }
         };
@@ -292,6 +300,9 @@ public class PageDebugView extends PageAdminConfiguration {
                 if (saveAsRaw.getObject()) {
                     options.setRaw(true);
                 }
+                if (reevaluateSearchFilters.getObject()) {
+                    options.setReevaluateSearchFilters(true);
+                }
                 if(!encrypt.getObject()) {
                 	options.setNoCrypt(true);
                 }
@@ -309,7 +320,7 @@ public class PageDebugView extends PageAdminConfiguration {
             target.add(getFeedbackPanel());
         } else {
             showResultInSession(result);
-            setResponsePage(PageDebugList.class);
+            setResponsePage(new PageDebugList(false));
         }
     }
 }

@@ -1,0 +1,74 @@
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="00000000-0000-0000-0000-000000000111"
+        version="0">
+   <name>Shadow owner subreport</name>
+   <description>Shadow owner subreport for reconciliation report</description>
+   <parent>false</parent>
+   <template>UEdwaGMzQmxjbEpsY0c5eWRDQU5DaUFnSUNBSkNYaHRiRzV6UFNKb2RIUndPaTh2YW1GemNHVnljbVZ3YjNKMGN5NXpiM1Z5WTJWbWIzSm5aUzV1WlhRdmFtRnpjR1Z5Y21Wd2IzSjBjeUlnRFFvSkNRbDRiV3h1Y3pwNGMyazlJbWgwZEhBNkx5OTNkM2N1ZHpNdWIzSm5Mekl3TURFdldFMU1VMk5vWlcxaExXbHVjM1JoYm1ObElpQU5DZ2tKQ1hoemFUcHpZMmhsYldGTWIyTmhkR2x2YmowaWFIUjBjRG92TDJwaGMzQmxjbkpsY0c5eWRITXVjMjkxY21ObFptOXlaMlV1Ym1WMEwycGhjM0JsY25KbGNHOXlkSE1nYUhSMGNEb3ZMMnBoYzNCbGNuSmxjRzl5ZEhNdWMyOTFjbU5sWm05eVoyVXVibVYwTDNoelpDOXFZWE53WlhKeVpYQnZjblF1ZUhOa0lpQU5DZ2tKQ1c1aGJXVTlJbkpsY0c5eWRGTm9ZV1J2ZDA5M2JtVnlJaUFOQ2drSkNYQmhaMlZYYVdSMGFEMGlNVGd3SWlBTkNna0pDWEJoWjJWSVpXbG5hSFE5SWpFNElpQU5DZ2tKQ1hkb1pXNU9iMFJoZEdGVWVYQmxQU0pCYkd4VFpXTjBhVzl1YzA1dlJHVjBZV2xzSWlBTkNna0pDV052YkhWdGJsZHBaSFJvUFNJNE9TSWdEUW9KQ1FsamIyeDFiVzVUY0dGamFXNW5QU0l4SWlBTkNna0pDV3hsWm5STllYSm5hVzQ5SWpBaUlBMEtDUWtKY21sbmFIUk5ZWEpuYVc0OUlqQWlJQTBLQ1FrSmRHOXdUV0Z5WjJsdVBTSXdJaUFOQ2drSkNXSnZkSFJ2YlUxaGNtZHBiajBpTUNJZ0RRb0pDUWwxZFdsa1BTSTJOMlUwTmpWak5TMDBObVZoTFRRd1pESXRZbVZoTUMwME5qbGpObU5tTXpnNU16Y2lQZzBLQ1FrSlBIQnliM0JsY25SNUlHNWhiV1U5SW01bGRDNXpaaTVxWVhOd1pYSnlaWEJ2Y25SekxtRjNkQzVwWjI1dmNtVXViV2x6YzJsdVp5NW1iMjUwSWlCMllXeDFaVDBpZEhKMVpTSXZQZzBLQ1FrSlBIQnliM0JsY25SNUlHNWhiV1U5SW01bGRDNXpaaTVxWVhOd1pYSnlaWEJ2Y25SekxtVjRjRzl5ZEM1d1pHWXVabTl5WTJVdWJHbHVaV0p5WldGckxuQnZiR2xqZVNJZ2RtRnNkV1U5SW5SeWRXVWlMejROQ2drSkNUeHpkSGxzWlNCbWIyNTBUbUZ0WlQwaVJHVnFZVloxSUZOaGJuTWlJR1p2Ym5SVGFYcGxQU0l4TUNJZ2FFRnNhV2R1UFNKTVpXWjBJaUJwYzBSbFptRjFiSFE5SW5SeWRXVWlJR2x6VUdSbVJXMWlaV1JrWldROUluUnlkV1VpSUEwS0NRa0pDU0FnSUc1aGJXVTlJa0poYzJVaUlIQmtaa1Z1WTI5a2FXNW5QU0pKWkdWdWRHbDBlUzFJSWlCd1pHWkdiMjUwVG1GdFpUMGlSR1ZxWVZaMVUyRnVjeTUwZEdZaUlIWkJiR2xuYmowaVRXbGtaR3hsSWo0TkNna0pDVHd2YzNSNWJHVStEUW9KQ1FrOGMzUjViR1VnYVhOQ2IyeGtQU0ptWVd4elpTSWdhWE5FWldaaGRXeDBQU0ptWVd4elpTSWdibUZ0WlQwaVJHVjBZV2xzSWlCemRIbHNaVDBpUW1GelpTSXZQZzBLQ1FrSlBIQmhjbUZ0WlhSbGNpQnVZVzFsUFNKemFHRmtiM2RQYVdRaUlHTnNZWE56UFNKcVlYWmhMbXhoYm1jdVUzUnlhVzVuSWk4K0RRb0pDUWs4Y0dGeVlXMWxkR1Z5SUc1aGJXVTlJbWh4YkZGMVpYSjVRV05qYjNWdWRITWlJR05zWVhOelBTSnFZWFpoTG14aGJtY3VVM1J5YVc1bklpOCtEUW9KQ1FrOGNYVmxjbmxUZEhKcGJtY2diR0Z1WjNWaFoyVTlJbTF4YkNJK1BDRmJRMFJCVkVGYkRRb0pDU0FnSUNBZ0lDQWdQR1pwYkhSbGNqNE5DaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnUEhSNWNHVStEUW9nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQThkSGx3WlQ1VmMyVnlWSGx3WlR3dmRIbHdaVDROQ2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJRHhtYVd4MFpYSStEUW9nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnUEhKbFpqNE5DaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ1BIQmhkR2crYkdsdWExSmxaand2Y0dGMGFENE5DaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ1BHVjRjSEpsYzNOcGIyNCtEUW9nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0E4YzJOeWFYQjBQZzBLSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lEeGpiMlJsUGcwS0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJR2x0Y0c5eWRDQmpiMjB1WlhadmJIWmxkVzB1Yldsa2NHOXBiblF1ZUcxc0xtNXpMbDl3ZFdKc2FXTXVZMjl0Ylc5dUxtTnZiVzF2Ymw4ekxsTm9ZV1J2ZDFSNWNHVTdEUW9nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ2FXMXdiM0owSUdOdmJTNWxkbTlzZG1WMWJTNXRhV1J3YjJsdWRDNTRiV3d1Ym5NdVgzQjFZbXhwWXk1amIyMXRiMjR1WTI5dGJXOXVYek11VDJKcVpXTjBVbVZtWlhKbGJtTmxWSGx3WlRzTkNpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lBMEtJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUU5aWFtVmpkRkpsWm1WeVpXNWpaVlI1Y0dVZ2IzSjBJRDBnYm1WM0lFOWlhbVZqZEZKbFptVnlaVzVqWlZSNWNHVW9LVHNOQ2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQnZjblF1YzJWMFQybGtLSE5vWVdSdmQwOXBaQ2s3RFFvZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdiM0owTG5ObGRGUjVjR1VvVTJoaFpHOTNWSGx3WlM1RFQwMVFURVZZWDFSWlVFVXBPdzBLSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lISmxkSFZ5YmlCdmNuUTdEUW9nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ1BDOWpiMlJsUGcwS0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ1BDOXpZM0pwY0hRK0RRb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUR3dlpYaHdjbVZ6YzJsdmJqNE5DaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0E4TDNKbFpqNE5DaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lEd3ZabWxzZEdWeVBnMEtJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0E4TDNSNWNHVStEUW9nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdQQzltYVd4MFpYSStEUW9KQ1FsZFhUNDhMM0YxWlhKNVUzUnlhVzVuUGcwS0NRa0pQR1pwWld4a0lHNWhiV1U5SW01aGJXVWlJR05zWVhOelBTSmpiMjB1WlhadmJIWmxkVzB1Yldsa2NHOXBiblF1Y0hKcGMyMHVjRzlzZVhOMGNtbHVaeTVRYjJ4NVUzUnlhVzVuSWk4K0RRb0pDUWs4Wm1sbGJHUWdibUZ0WlQwaWNtVnpiM1Z5WTJWT1lXMWxJaUJqYkdGemN6MGlhbUYyWVM1c1lXNW5MbE4wY21sdVp5SXZQZzBLQ1FrSlBHUmxkR0ZwYkQ0TkNna0pDUWs4WW1GdVpDQm9aV2xuYUhROUlqRTRJaUJ6Y0d4cGRGUjVjR1U5SWxOMGNtVjBZMmdpUGcwS0NRa0pDUWs4Wm5KaGJXVStEUW9KQ1FrSkNRazhjbVZ3YjNKMFJXeGxiV1Z1ZENCMWRXbGtQU0l6WlRobVpHUTJaQzFoTm1abUxUUTBNRGN0T1dFeFpTMDFaRFppTkRjd05qTXdNR0VpSUhCdmMybDBhVzl1Vkhsd1pUMGlSbXh2WVhRaUlITjBlV3hsUFNKRVpYUmhhV3dpSUcxdlpHVTlJazl3WVhGMVpTSWdlRDBpTUNJZ2VUMGlNU0lnZDJsa2RHZzlJakU0TUNJZ2FHVnBaMmgwUFNJeE55SXZQZzBLQ1FrSkNRa0pQSFJsZUhSR2FXVnNaQ0JwYzFOMGNtVjBZMmhYYVhSb1QzWmxjbVpzYjNjOUluUnlkV1VpUGcwS0NRa0pDUWtKQ1R4eVpYQnZjblJGYkdWdFpXNTBJSFYxYVdROUltVmlZV1ZtTVRaa0xUSTVNRE10TkRBeU9TMDVZVFppTFdRMFpESTBORFUxT0dGbE9TSWdjRzl6YVhScGIyNVVlWEJsUFNKR2JHOWhkQ0lnYzNSeVpYUmphRlI1Y0dVOUlsSmxiR0YwYVhabFZHOVVZV3hzWlhOMFQySnFaV04wSWlCemRIbHNaVDBpUkdWMFlXbHNJaUI0UFNJd0lpQjVQU0l5SWlCM2FXUjBhRDBpTVRnd0lpQm9aV2xuYUhROUlqRXpJaTgrRFFvSkNRa0pDUWtKUEhSbGVIUkZiR1Z0Wlc1MElIWmxjblJwWTJGc1FXeHBaMjV0Wlc1MFBTSk5hV1JrYkdVaUx6NGdEUW9KQ1FrSkNRa0pQSFJsZUhSR2FXVnNaRVY0Y0hKbGMzTnBiMjQrUENGYlEwUkJWRUZiSkVaN2JtRnRaWDB1WjJWMFQzSnBaeWdwWFYwK1BDOTBaWGgwUm1sbGJHUkZlSEJ5WlhOemFXOXVQZzBLQ1FrSkNRa0pQQzkwWlhoMFJtbGxiR1ErRFFvSkNRa0pDVHd2Wm5KaGJXVStEUW9KQ1FrSlBDOWlZVzVrUGcwS0NRa0pQQzlrWlhSaGFXdytEUW9KQ1R3dmFtRnpjR1Z5VW1Wd2IzSjBQZz09</template>
+   <orientation>landscape</orientation>
+   <export>pdf</export>
+   <field>
+      <nameReport>name</nameReport>
+      <nameHeader>Name</nameHeader>
+      <c:itemPath xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:name</c:itemPath>
+      <width>100</width>
+      <classType xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">t:PolyStringType</classType>
+   </field>
+   <configuration xmlns:gen795="http://midpoint.evolveum.com/xml/ns/public/report">
+      <gen795:hqlQueryAccounts>
+    		select r.name.orig as resourceName, 
+			s.name.orig as accountName 
+			from RObjectReference as o, 
+			RShadow as s, 
+			RResource as r 
+			where s.resourceRef.targetOid = r.oid and o.owner.oid = $P{userOid} and o.type = 6 and o.targetOid = s.oid and s.kind = 0 
+			order by r.name.orig, s.name.orig
+		</gen795:hqlQueryAccounts>
+   </configuration>
+   <configurationSchema>
+      <definition>
+         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
+                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     elementFormDefault="qualified"
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
+
+				        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+				        <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+				        <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
+
+				        <xsd:complexType name="ConfigurationType">
+					          <xsd:annotation>
+						            <xsd:appinfo>
+							              <a:container/>
+						            </xsd:appinfo>
+					          </xsd:annotation>
+					          <xsd:sequence>
+						<!-- HQL query for jasper design (queryString element) -->
+						<xsd:element name="hqlQueryAccounts" type="xsd:string"/>
+					          </xsd:sequence>
+				        </xsd:complexType>
+				        <xsd:element name="configuration" type="r:ConfigurationType"/>
+			      </xsd:schema>
+      </definition>
+   </configurationSchema>
+</report>

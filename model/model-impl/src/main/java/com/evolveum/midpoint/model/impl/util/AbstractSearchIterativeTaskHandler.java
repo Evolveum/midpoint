@@ -217,7 +217,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
         if (logFinishInfo) {
 	        String finishMessage = "Finished " + taskName + " (" + coordinatorTask + "). ";
-	        String statistics = "Processed " + resultHandler.getProgress() + " objects, got " + resultHandler.getErrors() + " errors.";
+	        String statistics = "Processed " + resultHandler.getProgress() + " objects in " + resultHandler.getWallTime()/1000 + " seconds, got " + resultHandler.getErrors() + " errors.";
             if (resultHandler.getProgress() > 0) {
                 statistics += " Average time for one object: " + resultHandler.getAverageTime() + " milliseconds" +
                     " (wall clock time average: " + resultHandler.getWallAverageTime() + " ms).";

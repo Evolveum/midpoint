@@ -34,7 +34,7 @@ public class LoggingUtils {
 		
 		List<Object> args = new ArrayList<Object>();
 		args.addAll(Arrays.asList(objects));
-		args.add(ex.getMessage());
+		args.add(ex.getMessage() + " (" + ex.getClass() + ")");
 
 		LOGGER.error(message + ", reason: {}", args.toArray());
 		// Add exception to the list. It will be the last argument without {} in the message,

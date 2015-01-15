@@ -94,7 +94,7 @@ public class HibernateToSqlTranslator {
                 createQueryTranslator(
                         hqlQueryText,
                         hqlQueryText,
-                        Collections.EMPTY_MAP, factory
+                        Collections.EMPTY_MAP, factory, null
                 );
         translator.compile(Collections.EMPTY_MAP, false);
         return translator.getSQLString();

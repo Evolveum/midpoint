@@ -16,9 +16,12 @@
 package com.evolveum.midpoint.prism.util;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.SerializationUtils;
 
 import com.evolveum.midpoint.prism.Definition;
@@ -29,6 +32,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import org.springframework.util.ClassUtils;
 
 import javax.xml.namespace.QName;
 
@@ -37,14 +41,19 @@ import javax.xml.namespace.QName;
  *
  */
 public class CloneUtil {
+
+	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 	
 	public static <T> T clone(T orig) {
 		if (orig == null) {
 			return null;
 		}
 		Class<? extends Object> origClass = orig.getClass();
-		if (origClass.isPrimitive()) {
+		if (ClassUtils.isPrimitiveOrWrapper(origClass)) {
 			return orig;
+		}
+		if (origClass.isArray()) {
+			return cloneArray(orig);
 		}
 		if (orig instanceof PolyString) {
 			// PolyString is immutable
@@ -54,6 +63,13 @@ public class CloneUtil {
             // ...and so is String
             return orig;
         }
+		if (orig instanceof QName) {
+			// the same here
+			return orig;
+		}
+		if (origClass.isEnum()) {
+			return orig;
+		}
 //        if (orig.getClass().equals(QName.class)) {
 //            QName origQN = (QName) orig;
 //            return (T) new QName(origQN.getNamespaceURI(), origQN.getLocalPart(), origQN.getPrefix());
@@ -87,27 +103,30 @@ public class CloneUtil {
 		}
 		if (orig instanceof Serializable) {
 			// Brute force
+			if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
+				PERFORMANCE_ADVISOR.debug("Cloning a Serializable ({}). It could harm performance.", orig.getClass());
+			}
 			return (T)SerializationUtils.clone((Serializable)orig);
 		}
 		throw new IllegalArgumentException("Cannot clone "+orig+" ("+origClass+")");
 	}
-	
+
+	private static <T> T cloneArray(T orig) {
+		int length = Array.getLength(orig);
+		T clone = (T) Array.newInstance(orig.getClass().getComponentType(), length);
+		System.arraycopy(orig, 0, clone, 0, length);
+		return clone;
+	}
+
 	public static <T> T javaLangClone(T orig) {
 		try {
 			Method cloneMethod = orig.getClass().getMethod("clone");
 			Object clone = cloneMethod.invoke(orig);
 			return (T) clone;
-		} catch (SecurityException e) {
-			return null;
-		} catch (NoSuchMethodException e) {
-			return null;
-		} catch (IllegalArgumentException e) {
-			return null;
-		} catch (IllegalAccessException e) {
-			return null;
-		} catch (InvocationTargetException e) {
-			return null;
-		} catch (RuntimeException e) {
+		} catch (NoSuchMethodException|IllegalAccessException|InvocationTargetException|RuntimeException e) {
+			if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
+				PERFORMANCE_ADVISOR.debug("Error when cloning {}, will try serialization instead.", orig.getClass(), e);
+			}
 			return null;
 		}
 	}

@@ -914,7 +914,7 @@ public class PageTaskEdit extends PageAdminTasks {
             getModelService().executeChanges(prepareChanges(updatedTask), null, operationTask, result);
 
 			edit = false;
-			setResponsePage(PageTasks.class);
+			setResponsePage(new PageTasks(false));
 			result.recomputeStatus();
 		} catch (Exception ex) {
 			result.recomputeStatus();
@@ -1068,7 +1068,7 @@ public class PageTaskEdit extends PageAdminTasks {
         }
 
         showResultInSession(result);
-        setResponsePage(PageTasks.class);
+        setResponsePage(new PageTasks(false));
     }
 
     private void resumePerformed(AjaxRequestTarget target) {
@@ -1086,7 +1086,7 @@ public class PageTaskEdit extends PageAdminTasks {
         }
 
         showResultInSession(result);
-        setResponsePage(PageTasks.class);
+        setResponsePage(new PageTasks(false));
     }
 
     private void runNowPerformed(AjaxRequestTarget target) {
@@ -1104,7 +1104,7 @@ public class PageTaskEdit extends PageAdminTasks {
         }
 
         showResultInSession(result);
-        setResponsePage(PageTasks.class);
+        setResponsePage(new PageTasks(false));
     }
 
     private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {

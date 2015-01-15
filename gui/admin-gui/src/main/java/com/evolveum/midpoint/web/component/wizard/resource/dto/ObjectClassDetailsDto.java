@@ -41,7 +41,6 @@ public class ObjectClassDetailsDto implements Serializable{
     private String intent = VALUE_NOT_SPECIFIED;
     private String nativeObjectClass = VALUE_NOT_SPECIFIED;
     private boolean isDefault;
-    private boolean isKindDefault;
 
     public ObjectClassDetailsDto(RefinedObjectClassDefinition definition){
         if(definition != null){
@@ -54,8 +53,7 @@ public class ObjectClassDetailsDto implements Serializable{
 
             intent = definition.getIntent() != null ? definition.getIntent() : VALUE_NOT_SPECIFIED;
             nativeObjectClass = definition.getNativeObjectClass() != null ? definition.getNativeObjectClass() : VALUE_NOT_SPECIFIED;
-            isDefault = definition.isDefault();
-            isKindDefault = definition.isDefaultInAKind();
+            isDefault = definition.isDefaultInAKind();
         }
     }
 
@@ -83,10 +81,6 @@ public class ObjectClassDetailsDto implements Serializable{
         return isDefault;
     }
 
-    public boolean isKindDefault() {
-        return isKindDefault;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -95,7 +89,6 @@ public class ObjectClassDetailsDto implements Serializable{
         ObjectClassDetailsDto that = (ObjectClassDetailsDto) o;
 
         if (isDefault != that.isDefault) return false;
-        if (isKindDefault != that.isKindDefault) return false;
         if (description != null ? !description.equals(that.description) : that.description != null) return false;
         if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
         if (intent != null ? !intent.equals(that.intent) : that.intent != null) return false;
@@ -114,7 +107,6 @@ public class ObjectClassDetailsDto implements Serializable{
         result = 31 * result + (intent != null ? intent.hashCode() : 0);
         result = 31 * result + (nativeObjectClass != null ? nativeObjectClass.hashCode() : 0);
         result = 31 * result + (isDefault ? 1 : 0);
-        result = 31 * result + (isKindDefault ? 1 : 0);
         return result;
     }
 }

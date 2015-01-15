@@ -70,16 +70,8 @@ public class TooltipBehavior extends Behavior {
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
-    private String getModalContainer(Component component){
-        String id = component.getMarkupId();
-
-        if(component.getParent() != null){
-            Component parent = component.getParent();
-
-            id = parent.getParent() != null? parent.getParent().getMarkupId() : parent.getMarkupId();
-        }
-
-        return id;
+    public String getModalContainer(Component component){
+        return component.getMarkupId();
     }
 
     public String getDataPlacement(){

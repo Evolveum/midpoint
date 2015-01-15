@@ -55,6 +55,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.*;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -174,7 +175,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
             @Override
             public ObjectQuery createRootQuery(){
-                ArrayList<String> oids = new ArrayList<String>();
+                ArrayList<String> oids = new ArrayList<>();
                 ObjectQuery query = new ObjectQuery();
 
                 if(isMovingRoot() && getRootFromProvider() != null){
@@ -190,8 +191,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                         for(OrgTableDto dto: objects){
                             oids.add(dto.getOid());
 
-                            //TODO - uncomment this, if parentOrgOid filtering is also required (see issue MID-1780)
-                            //oids.addAll(getOrgParentOids(dto.getOid()));
+                            oids.addAll(getOrgParentOids(dto.getOid()));
                         }
                     }
                 }
@@ -299,7 +299,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private List<String> getOrgParentOids(String orgOid){
-        List<String> parentOids = new ArrayList<String>();
+        List<String> parentOids = new ArrayList<>();
         OperationResult result = new OperationResult(OPERATION_LOAD_PARENTS);
         PrismObject<OrgType> org = WebModelUtils.loadObject(OrgType.class, orgOid, result, getPageBase());
         OrgType orgObject = org.asObjectable();
@@ -329,12 +329,22 @@ public class TreeTablePanel extends SimplePanel<String> {
                 return createTableQuery();
             }
         };
+
+        //TODO - fix the problem with getting itemsPerPage during layout construction
         tableProvider.setOptions(WebModelUtils.createMinimalOptions());
         List<IColumn<OrgTableDto, String>> tableColumns = createTableColumns();
-        TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, UserProfileStorage.TableId.TREE_TABLE_PANEL);
+        TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns,
+                UserProfileStorage.TableId.TREE_TABLE_PANEL, UserProfileStorage.DEFAULT_PAGING_SIZE);
         table.setOutputMarkupId(true);
         form.add(table);
     }
+
+//    public long getItemsPerPage(UserProfileStorage.TableId tableId){
+//
+//        SessionStorage storage = getPageBase().getSessionStorage();
+//        UserProfileStorage userProfile = storage.getUserProfile();
+//        return userProfile.getPagingSize(tableId);
+//    }
 
     private void initSearch() {
         Form form = new Form(ID_SEARCH_FORM);

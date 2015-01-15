@@ -23,11 +23,15 @@ import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -42,10 +46,12 @@ import javax.persistence.*;
 @Entity
 @IdClass(RObjectDeltaOperationId.class)
 @Table(name = RObjectDeltaOperation.TABLE_NAME)
-public class RObjectDeltaOperation implements OperationResultFull {
+public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
     public static final String TABLE_NAME = "m_audit_delta";
     public static final String COLUMN_RECORD_ID = "record_id";
+
+    private Boolean trans;
 
     private RAuditEventRecord record;
     private Long recordId;
@@ -119,6 +125,17 @@ public class RObjectDeltaOperation implements OperationResultFull {
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getStatus() {
         return status;
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     public void setRecord(RAuditEventRecord record) {
@@ -220,4 +237,24 @@ public class RObjectDeltaOperation implements OperationResultFull {
 
         return auditDelta;
     }
+    
+   	public static ObjectDeltaOperation fromRepo(RObjectDeltaOperation operation, PrismContext prismContext) throws DtoTranslationException {
+   		ObjectDeltaOperation odo = new ObjectDeltaOperation();
+   		try{
+   		
+   			if (operation.getDelta() !=null){
+   		ObjectDeltaType delta = prismContext.parseAtomicValue(operation.getDelta(), ObjectDeltaType.COMPLEX_TYPE);
+   		odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
+   			}
+   			if (operation.getFullResult() != null){
+   		OperationResultType resultType = prismContext.parseAtomicValue(operation.getFullResult(), OperationResultType.COMPLEX_TYPE);
+   		
+   		odo.setExecutionResult(OperationResult.createOperationResult(resultType));
+   			}
+   		} catch (Exception ex) {
+   			throw new DtoTranslationException(ex.getMessage(), ex);
+   		}
+   		
+   		return odo;
+   	}
 }

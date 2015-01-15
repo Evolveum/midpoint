@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -42,7 +43,7 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name="uc_user_name", columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_user",
         indexes = {@Index(name = "iFullName", columnNames = "fullName_orig"),
                 @Index(name = "iFamilyName", columnNames = "familyName_orig"),
@@ -363,9 +364,9 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         return result;
     }
 
-    public static void copyFromJAXB(UserType jaxb, RUser repo, PrismContext prismContext) throws
-            DtoTranslationException {
-        RFocus.copyFromJAXB(jaxb, repo, prismContext);
+    public static void copyFromJAXB(UserType jaxb, RUser repo, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+        RFocus.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setFullName(RPolyString.copyFromJAXB(jaxb.getFullName()));

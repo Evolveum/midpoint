@@ -132,6 +132,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected ResourceType resourceDummyOrangeType;
 	protected PrismObject<ResourceType> resourceDummyOrange;
 
+	protected DummyResource dummyResourceUpcase;
+	protected DummyResourceContoller dummyResourceCtlUpcase;
+	protected ResourceType resourceDummyUpcaseType;
+	protected PrismObject<ResourceType> resourceDummyUpcase;
+
 	protected ResourceType resourceDummySchemalessType;
 	protected PrismObject<ResourceType> resourceDummySchemaless;
 	
@@ -208,6 +213,12 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		resourceDummyOrangeType = resourceDummyOrange.asObjectable();
 		dummyResourceCtlOrange.setResource(resourceDummyOrange);
 
+		dummyResourceCtlUpcase = DummyResourceContoller.create(RESOURCE_DUMMY_UPCASE_NAME, resourceDummyUpcase);
+		dummyResourceCtlUpcase.extendSchemaPirate();
+		dummyResourceUpcase = dummyResourceCtlUpcase.getDummyResource();
+		resourceDummyUpcase = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_UPCASE_FILE, RESOURCE_DUMMY_UPCASE_OID, initTask, initResult);
+		resourceDummyUpcaseType = resourceDummyUpcase.asObjectable();
+		dummyResourceCtlUpcase.setResource(resourceDummyUpcase);
 
 		resourceDummySchemaless = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SCHEMALESS_FILENAME, RESOURCE_DUMMY_SCHEMALESS_OID, initTask, initResult); 
 		resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
@@ -247,6 +258,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_JUDGE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_EMPTY_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_SAILOR_FILE, RoleType.class, initResult);
 		
 		// Orgstruct
 		if (doAddOrgstruct()) {

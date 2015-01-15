@@ -56,7 +56,7 @@ public class SchemaStep extends WizardStep {
     }
 
     private void initLayout() {
-        List<ITab> tabs = new ArrayList<ITab>();
+        List<ITab> tabs = new ArrayList<>();
         tabs.add(createSimpleSchemaView());
         tabs.add(createSchemaEditor());
 

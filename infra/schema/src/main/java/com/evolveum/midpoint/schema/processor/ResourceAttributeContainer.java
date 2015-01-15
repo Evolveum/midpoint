@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -395,6 +396,33 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	protected void copyValues(ResourceAttributeContainer clone) {
 		super.copyValues(clone);
 		// Nothing to copy
+	}
+
+	
+	@Override
+	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw,
+			ConsistencyCheckScope scope) {
+		super.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw, scope);
+		List<PrismContainerValue> values = getValues();
+		if (values == null) {
+			throw new IllegalStateException("Null values in ResourceAttributeContainer");
+		}
+		if (values.isEmpty()) {
+			return;
+		}
+		if (values.size() > 1) {
+			throw new IllegalStateException(values.size()+" values in ResourceAttributeContainer, expected just one");
+		}
+		PrismContainerValue value = values.get(0);
+		List<Item<?>> items = value.getItems();
+		if (items == null) {
+			return;
+		}
+		for (Item item: items) {
+			if (!(item instanceof ResourceAttribute)) {
+				throw new IllegalStateException("Found illegal item in ResourceAttributeContainer: "+item+" ("+item.getClass()+")");
+			}
+		}
 	}
 
 	/**

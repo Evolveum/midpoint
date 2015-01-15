@@ -266,7 +266,7 @@ public class ModelCrudService {
 		// Task task = taskManager.createTaskInstance(); // in the future, this
 		// task instance will come from GUI
 
-		Utils.resolveReferences(object, repository, false, prismContext, result);
+		Utils.resolveReferences(object, repository, false, false, prismContext, result);
         
 		
 		RepositoryCache.enter();

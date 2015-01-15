@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RExclusionPolicy;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -43,6 +44,9 @@ import javax.persistence.*;
 public class RExclusion implements Container {
 
     public static final String F_OWNER = "owner";
+
+    private Boolean trans;
+
     //owner
     private RObject owner;
     private String ownerOid;
@@ -92,6 +96,17 @@ public class RExclusion implements Container {
     @Embedded
     public REmbeddedReference getTargetRef() {
         return targetRef;
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     public void setOwner(RObject owner) {
@@ -150,11 +165,12 @@ public class RExclusion implements Container {
         }
     }
 
-    public static void copyFromJAXB(ExclusionType jaxb, RExclusion repo, ObjectType parent, PrismContext prismContext)
-            throws DtoTranslationException {
+    public static void copyFromJAXB(ExclusionType jaxb, RExclusion repo, ObjectType parent, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
+        repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
         repo.setOwnerOid(parent.getOid());
         repo.setId(RUtil.toShort(jaxb.getId()));
 

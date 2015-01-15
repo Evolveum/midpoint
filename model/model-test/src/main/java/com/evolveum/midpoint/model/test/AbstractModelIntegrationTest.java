@@ -278,14 +278,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		subResult.addParam("filename", file);
 		LOGGER.trace("importObjectFromFile: {}", file);
 		Task task = taskManager.createTaskInstance();
-		FileInputStream stream = new FileInputStream(file);
-		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, subResult);
+		importObjectFromFile(file, task, result);
 		subResult.computeStatus();
 		if (subResult.isError()) {
 			LOGGER.error("Import of file "+file+" failed:\n{}", subResult.debugDump());
 			Throwable cause = findCause(subResult);
 			throw new SystemException("Import of file "+file+" failed: "+subResult.getMessage(), cause);
 		}
+	}
+	
+	protected void importObjectFromFile(File file, Task task, OperationResult result) throws FileNotFoundException {
+		FileInputStream stream = new FileInputStream(file);
+		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
 	}
 	
 	protected Throwable findCause(OperationResult result) {
@@ -1173,6 +1177,32 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
 	}
 	
+	protected AssignmentType getUserAssignment(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<UserType> user = getUser(userOid);
+		List<AssignmentType> assignments = user.asObjectable().getAssignment();
+		for (AssignmentType assignment: assignments) {
+			ObjectReferenceType targetRef = assignment.getTargetRef();
+			if (targetRef != null && roleOid.equals(targetRef.getOid())) {
+				return assignment;
+			}
+		}
+		return null;
+	}
+	
+	protected <F extends FocusType> void assertNoAssignments(PrismObject<F> user) {
+		MidPointAsserts.assertNoAssignments(user);
+	}
+	
+	protected void assertNoAssignments(String userOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		assertNoAssignments(user);
+	}
+	
+	protected void assertNoAssignments(String userOid) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoShadow");
+		assertNoAssignments(userOid, result);
+	}
+	
 	protected void assertAssignedRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedRole(user, roleOid);
@@ -1679,7 +1709,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void waitForTaskFinish(Task task, boolean checkSubresult, final int timeout) throws Exception {
-		waitForTaskFinish(task, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT, DEFAULT_TASK_SLEEP_TIME);
+		waitForTaskFinish(task, checkSubresult, timeout, DEFAULT_TASK_SLEEP_TIME);
 	}
 	
 	protected void waitForTaskFinish(final Task task, final boolean checkSubresult, final int timeout, long sleepTime) throws Exception {
@@ -2137,7 +2167,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
-	protected void assertDummyAccount(String username, String fullname, boolean active) {
+	protected void assertDefaultDummyAccount(String username, String fullname, boolean active) {
 		assertDummyAccount(null, username, fullname, active);
 	}
 	
@@ -2199,7 +2229,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		}
 	}
-	
+
+	protected void assertNoDummyAccountAttribute(String dummyInstanceName, String username, String attributeName) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy account for username "+username, account);
+		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
+		if (values == null || values.isEmpty()) {
+			return;
+		}
+		AssertJUnit.fail("Expected no value in attribute "+attributeName+" of dummy account "+username+
+						". Values found: "+values);
+	}
+
 	protected void assertDummyAccountAttributeGenerated(String dummyInstanceName, String username) {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);

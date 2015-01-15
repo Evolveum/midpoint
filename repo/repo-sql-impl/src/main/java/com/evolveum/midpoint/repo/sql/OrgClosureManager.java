@@ -732,7 +732,7 @@ public class OrgClosureManager {
     // Checks that there is no edge=(D,A) such that A->D exists in the transitive closure
     // (this would yield a cycle D->A->D in the graph)
     private void checkForCycles(List<Edge> edges, Session session) {
-        String queryText = "select descendant_oid, ancestor_oid from " + CLOSURE_TABLE_NAME + " T where " + getWhereClauseForCycleCheck(edges);
+        String queryText = "select descendant_oid, ancestor_oid from " + CLOSURE_TABLE_NAME + " where " + getWhereClauseForCycleCheck(edges);
         Query query = session.createSQLQuery(queryText)
                 .addScalar("descendant_oid", StringType.INSTANCE)
                 .addScalar("ancestor_oid", StringType.INSTANCE);
@@ -774,8 +774,8 @@ public class OrgClosureManager {
             }
             checkOidSyntax(edge.getAncestor());
             checkOidSyntax(edge.getDescendant());
-            whereClause.append("(t.ancestor_oid = '").append(edge.getDescendant()).append("'");
-            whereClause.append(" and t.descendant_oid = '").append(edge.getAncestor()).append("')");
+            whereClause.append("(ancestor_oid = '").append(edge.getDescendant()).append("'");
+            whereClause.append(" and descendant_oid = '").append(edge.getAncestor()).append("')");
         }
         return whereClause.toString();
     }
@@ -1031,8 +1031,8 @@ public class OrgClosureManager {
             // with serializable transactions it is not possible to create index within the transaction (after inserting data)
             start = System.currentTimeMillis();
             Query createTableQuery = session.createSQLQuery("create table " + deltaTempTableName + " (" +
-                    "descendant_oid NVARCHAR(36), " +
-                    "ancestor_oid NVARCHAR(36), " +
+                    "descendant_oid NVARCHAR(36) COLLATE database_default, " +
+                    "ancestor_oid NVARCHAR(36) COLLATE database_default, " +
                     "val INT, " +
                     "PRIMARY KEY (descendant_oid, ancestor_oid))");
             createTableQuery.executeUpdate();

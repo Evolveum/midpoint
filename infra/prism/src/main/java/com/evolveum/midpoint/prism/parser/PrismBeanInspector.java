@@ -207,6 +207,17 @@ public class PrismBeanInspector {
         });
     }
 
+    private Map<Class,Map<String,String>> _findEnumFieldValue = Collections.synchronizedMap(new HashMap());
+
+    <T> String findEnumFieldValue(Class<T> classType, String toStringValue) {
+        return find2(_findEnumFieldValue, classType, toStringValue, new Getter2<String,Class,String>() {
+            @Override
+            public String get(Class c, String v) {
+                return findEnumFieldValueUncached(c, v);
+            }
+        });
+    }
+
     private Map<Field,Map<Class<? extends Object>,Map<String,QName>>> _findFieldTypeName = Collections.synchronizedMap(new HashMap());
 
     QName findFieldTypeName(Field field, Class<? extends Object> beanClass, String defaultNamespacePlaceholder) {
@@ -524,6 +535,16 @@ public class PrismBeanInspector {
             XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
             if (xmlEnumValue != null && xmlEnumValue.value() != null && xmlEnumValue.value().equals(primValue)) {
                 return field.getName();
+            }
+        }
+        return null;
+    }
+
+    public static String findEnumFieldValueUncached(Class classType, String toStringValue){
+        for (Field field: classType.getDeclaredFields()) {
+            XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
+            if (xmlEnumValue != null && field.getName().equals(toStringValue)) {
+                return xmlEnumValue.value();
             }
         }
         return null;

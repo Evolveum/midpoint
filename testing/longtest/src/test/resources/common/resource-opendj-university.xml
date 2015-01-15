@@ -53,8 +53,8 @@
 				<c:clearValue>secret</c:clearValue>
 			</icfcldap:credentials>
 			<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
-			<icfcldap:useBlocks>true</icfcldap:useBlocks>
-			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+			<!-- <icfcldap:useBlocks>true</icfcldap:useBlocks>
+			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl> -->
 			<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
 		</icfc:configurationProperties>
 	</connectorConfiguration>
@@ -369,7 +369,7 @@
                         </expression>
                       </outbound>-->
 					<inbound>
-
+						<strength>weak</strength>
 						<expression>
 							<generate/>
 						</expression>

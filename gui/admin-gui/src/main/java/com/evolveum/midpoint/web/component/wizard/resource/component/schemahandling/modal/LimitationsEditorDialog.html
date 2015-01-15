@@ -64,13 +64,36 @@
                                 <wicket:message key="LimitationsEditorDialog.label.propertyAccess" />
                                 <i wicket:id="propertyAccessTooltip" wicket:message="title:SchemaHandlingStep.limitations.tooltip.propertyAccess"/>
                             </h4>
-                            <div class="form-group" wicket:id="addAccess" />
-                            <div class="form-group" wicket:id="readAccess" />
-                            <div class="form-group" wicket:id="modifyAccess" />
+
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="LimitationsEditorDialog.label.add" /></label>
+                                </dt>
+                                <dd>
+                                    <div wicket:id="addAccess" />
+                                </dd>
+                            </dl>
+
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="LimitationsEditorDialog.label.read" /></label>
+                                </dt>
+                                <dd>
+                                    <div wicket:id="readAccess" />
+                                </dd>
+                            </dl>
+
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="LimitationsEditorDialog.label.modify" /></label>
+                                </dt>
+                                <dd>
+                                    <div wicket:id="modifyAccess" />
+                                </dd>
+                            </dl>
 
                             <h4>
                                 <wicket:message key="LimitationsEditorDialog.label.other" />
-                                <i wicket:id="otherTooltip" wicket:message="title:SchemaHandlingStep.limitations.tooltip.other"/>
                             </h4>
                             <div class="form-group" wicket:id="minOccurs" />
                             <div class="form-group" wicket:id="maxOccurs" />

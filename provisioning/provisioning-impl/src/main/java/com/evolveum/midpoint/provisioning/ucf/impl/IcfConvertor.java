@@ -119,7 +119,9 @@ public class IcfConvertor {
 		ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
 		shadow.setObjectClass(attributesContainerDefinition.getTypeName());
 
-		LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.debugDump());
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.debugDump());
+		}
 
 		// Uid is always there
 		Uid uid = co.getUid();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -165,7 +166,7 @@ public class AssignmentProcessor {
     }
     
     /**
-     * Processing user-account assignments (including roles). Specific user-account method.
+     * Processing focus-projection assignments (including roles).
      */
     private <F extends FocusType> void processAssignmentsProjectionsWithFocus(LensContext<F> context, XMLGregorianCalendar now, 
     		Task task, OperationResult result) throws SchemaException,
@@ -197,10 +198,26 @@ public class AssignmentProcessor {
         LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDump());
 
         Collection<PrismContainerValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
+        // Changes assignments may be "light", i.e. they may contain just the identifier. Make sure that we always have
+        // the full assignment data.
+        Iterator<PrismContainerValue<AssignmentType>> iterator = changedAssignments.iterator();
+        while (iterator.hasNext()) {
+        	PrismContainerValue<AssignmentType> changedAssignment = iterator.next();
+        	if (changedAssignment.getItems().isEmpty()) {
+        		if (changedAssignment.getId() != null) {
+        			for (PrismContainerValue<AssignmentType> assignmentCurrent: assignmentsCurrent) {
+        				if (changedAssignment.getId().equals(assignmentCurrent.getId())) {
+        					iterator.remove();
+        					changedAssignments.add(assignmentCurrent.clone());
+        				}
+        			}
+        		}
+        	}
+        }
 
         // Initializing assignment evaluator. This will be used later to process all the assignments including the nested
         // assignments (roles).
-        AssignmentEvaluator<F> assignmentEvaluator = new AssignmentEvaluator<F>();
+        AssignmentEvaluator<F> assignmentEvaluator = new AssignmentEvaluator<>();
         assignmentEvaluator.setRepository(repositoryService);
         assignmentEvaluator.setFocusOdo(focusContext.getObjectDeltaObject());
         assignmentEvaluator.setLensContext(context);
@@ -216,8 +233,10 @@ public class AssignmentProcessor {
         // It forms a kind of delta set triple for the account constructions.
         DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple = new DeltaMapTriple<>();
 
-        LOGGER.trace("Current assignments {}", SchemaDebugUtil.prettyPrint(assignmentsCurrent));
-        LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Current assignments {}", SchemaDebugUtil.prettyPrint(assignmentsCurrent));
+			LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
+		}
 
 //        ObjectType source = determineSource(focusContext);
         ObjectType source = null;
@@ -241,6 +260,7 @@ public class AssignmentProcessor {
         for (PrismContainerValue<AssignmentType> assignmentCVal : allAssignments) {
             AssignmentType assignmentType = assignmentCVal.asContainerable();
             PrismContainerValue<AssignmentType> assignmentCValOld = assignmentCVal;
+            PrismContainerValue<AssignmentType> assignmentCValNew = assignmentCVal;
             ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
             assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
             
@@ -266,6 +286,8 @@ public class AssignmentProcessor {
 	            	forceRecon = true;
 	            	
 	            	isAssignmentChanged = true;
+	            	PrismContainer<AssignmentType> assContNew = focusContext.getObjectNew().findContainer(FocusType.F_ASSIGNMENT);
+	            	assignmentCValNew = assContNew.getValue(assignmentCVal.getId());
             	}
             }
             
@@ -378,12 +400,13 @@ public class AssignmentProcessor {
 		                	// of provisioning/deprovisioning of the projections. So check that explicitly. Other changes are
 		                	// not significant, i.e. reconciliation can handle them.
 		                	boolean isValidOld = LensUtil.isValid(assignmentCValOld.asContainerable(), now, activationComputer);
-		                	boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
+		                	boolean isValid = LensUtil.isValid(assignmentCValNew.asContainerable(), now, activationComputer);
 		                	if (isValid == isValidOld) {
 		                		// No change in validity -> right to the zero set
 			                	// The change is not significant for assignment applicability. Recon will sort out the details.
 		                		if (LOGGER.isTraceEnabled()) {
-				            		LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}", new Object[]{isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrint(assignmentCVal)});
+				            		LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}", 
+				            				new Object[]{isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
 		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
@@ -393,7 +416,8 @@ public class AssignmentProcessor {
 		                	} else if (isValid) {
 		                		// Assignment became valid. We need to place it in plus set to initiate provisioning
 		                		if (LOGGER.isTraceEnabled()) {
-				            		LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}", new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
+				            		LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}", 
+				            				new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
 		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
@@ -403,7 +427,8 @@ public class AssignmentProcessor {
 		                	} else {
 		                		// Assignment became invalid. We need to place is in minus set to initiate deprovisioning
 		                		if (LOGGER.isTraceEnabled()) {
-				            		LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}", new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
+				            		LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}", 
+				            				new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
 		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
@@ -418,7 +443,7 @@ public class AssignmentProcessor {
 		            	if (LOGGER.isTraceEnabled()) {
 		            		LOGGER.trace("Processing unchanged assignment {}", new Object[]{SchemaDebugUtil.prettyPrint(assignmentCVal)});
 		            	}
-		            	boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
+		            	boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);   // TODO unused: why? [med]
 		            	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                if (evaluatedAssignment == null) {
 		                	continue;
@@ -464,7 +489,7 @@ public class AssignmentProcessor {
         
         if (LOGGER.isTraceEnabled()) {
             // Dump the maps
-            LOGGER.trace("Projection maps:\n{}", constructionMapTriple.debugDump());
+            LOGGER.trace("constructionMapTriple:\n{}", constructionMapTriple.debugDump());
         }
         
         
@@ -495,15 +520,33 @@ public class AssignmentProcessor {
 				}
 				
 				if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))){
-					LOGGER.trace("Processing of shadow identified by {} will be skipped because of limitation for discovery channel.");
+					LOGGER.trace("Processing of shadow identified by {} will be skipped because of limitation for discovery channel.");	// TODO is this message OK? [med]
 					processOnlyExistingProjCxts = true;
 				}
             }
             
             String desc = rat.toHumanReadableString();
 
-            // SITUATION: The projection should exist (if valid), there is NO CHANGE in assignments
-            if (constructionMapTriple.getZeroMap().containsKey(rat)) {
+            // SITUATION: The projection is ASSIGNED
+            if (constructionMapTriple.getPlusMap().containsKey(rat)) {
+        	
+	        	ConstructionPack constructionPack = constructionMapTriple.getPlusMap().get(rat);
+	            if (constructionPack.hasValidAssignment()) {
+	            	LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+	            	projectionContext.setAssigned(true);
+	            	projectionContext.setLegalOld(false);
+	            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
+	            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
+	            		LOGGER.trace("Projection {} legal: assigned (valid)", desc);
+	            		projectionContext.setLegal(true);
+	            	}
+	            } else {
+	            	// Just ignore it, do not even create projection context
+	            	LOGGER.trace("Projection {} ignoring: assigned (invalid)", desc);
+	            }
+            
+            // SITUATION: The projection should exist (is valid), there is NO CHANGE in assignments
+            } else if (constructionMapTriple.getZeroMap().containsKey(rat) && constructionMapTriple.getZeroMap().get(rat).hasValidAssignment()) {
             	
                 LensProjectionContext projectionContext = context.findProjectionContext(rat);
                 if (projectionContext == null) {
@@ -515,19 +558,10 @@ public class AssignmentProcessor {
                 	// Pretend that the assignment was just added. That should do.
                 	projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
                 }
-                ConstructionPack constructionPack = constructionMapTriple.getZeroMap().get(rat);
-                if (constructionPack.hasValidAssignment()) {
-                	LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
-	            	projectionContext.setLegal(true);
-	            	projectionContext.setLegalOld(true);
-	            	projectionContext.setAssigned(true);
-                } else {
-                	LOGGER.trace("Projection {} illegal: unchanged (invalid)", desc);
-                	projectionContext.setLegal(false);
-	            	projectionContext.setLegalOld(false);
-	            	projectionContext.setAssigned(false);
-                }
-
+            	LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
+            	projectionContext.setLegal(true);
+            	projectionContext.setLegalOld(true);
+            	projectionContext.setAssigned(true);
                 
             // SITUATION: The projection is both ASSIGNED and UNASSIGNED
             } else if (constructionMapTriple.getPlusMap().containsKey(rat) && constructionMapTriple.getMinusMap().containsKey(rat)) {
@@ -604,29 +638,10 @@ public class AssignmentProcessor {
                 		LOGGER.trace("Projection {} nothing: both assigned and unassigned (valid->invalid) but not there", desc);
                 		// We have to delete something that is not there. Nothing to do.
                 	}
-	            	
+
             	} else {
             		throw new IllegalStateException("Whoops!?!");
             	}
-                
-
-            // SITUATION: The projection is ASSIGNED
-            } else if (constructionMapTriple.getPlusMap().containsKey(rat)) {
-            	
-            	ConstructionPack constructionPack = constructionMapTriple.getPlusMap().get(rat);
-                if (constructionPack.hasValidAssignment()) {
-	            	LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
-	            	projectionContext.setAssigned(true);
-	            	projectionContext.setLegalOld(false);
-	            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
-	            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
-	            		LOGGER.trace("Projection {} legal: assigned (valid)", desc);
-	            		projectionContext.setLegal(true);
-	            	}
-                } else {
-                	// Just ignore it, do not even create projection context
-                	LOGGER.trace("Projection {} ignoring: assigned (invalid)", desc);
-                }
 
         	// SITUATION: The projection is UNASSIGNED
             } else if (constructionMapTriple.getMinusMap().containsKey(rat)) {
@@ -652,15 +667,33 @@ public class AssignmentProcessor {
             		// We have to delete something that is not there. Nothing to do.
             	}
 
+            // SITUATION: The projection should exist (invalid), there is NO CHANGE in assignments
+            } else if (constructionMapTriple.getZeroMap().containsKey(rat) && !constructionMapTriple.getZeroMap().get(rat).hasValidAssignment()) {
+            	
+                LensProjectionContext projectionContext = context.findProjectionContext(rat);
+                if (projectionContext == null) {
+                	if (processOnlyExistingProjCxts){
+                		continue;
+                	}
+                	// The projection should exist before the change but it does not
+                	// This happens during reconciliation if there is an inconsistency. 
+                	// Pretend that the assignment was just added. That should do.
+                	projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+                }
+            	LOGGER.trace("Projection {} illegal: unchanged (invalid)", desc);
+            	projectionContext.setLegal(false);
+            	projectionContext.setLegalOld(false);
+            	projectionContext.setAssigned(false);
+
             } else {
                 throw new IllegalStateException("Projection " + desc + " went looney");
             }
 
             PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountDeltaSetTriple = 
             		new PrismValueDeltaSetTriple<PrismPropertyValue<Construction>>(
-            				getConstructions(constructionMapTriple.getZeroMap().get(rat)),
-            				getConstructions(constructionMapTriple.getPlusMap().get(rat)),
-            				getConstructions(constructionMapTriple.getMinusMap().get(rat)));
+            				getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
+            				getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
+            				getConstructions(constructionMapTriple.getMinusMap().get(rat), false));
             LensProjectionContext accountContext = context.findProjectionContext(rat);
             if (accountContext != null) {
             	// This can be null in a exotic case if we delete already deleted account
@@ -940,8 +973,11 @@ public class AssignmentProcessor {
 		throw new IllegalArgumentException("Construction not defined in the assigment.");
 	}
 
-	private Collection<PrismPropertyValue<Construction>> getConstructions(ConstructionPack accountConstructionPack) {
+	private Collection<PrismPropertyValue<Construction>> getConstructions(ConstructionPack accountConstructionPack, boolean validOnly) {
 		if (accountConstructionPack == null) {
+			return null;
+		}
+		if (validOnly && !accountConstructionPack.hasValidAssignment()) {
 			return null;
 		}
 		return accountConstructionPack.getConstructions();
@@ -978,7 +1014,7 @@ public class AssignmentProcessor {
 				AssignmentPolicyEnforcementType enforcementType = projectionContext.getAssignmentPolicyEnforcementType();
 				
 				if (enforcementType == AssignmentPolicyEnforcementType.FULL) {
-					LOGGER.trace("Projection {} illegal: no assginment in FULL enforcement", desc);
+					LOGGER.trace("Projection {} illegal: no assignment in FULL enforcement", desc);
 					// What is not explicitly allowed is illegal in FULL enforcement mode
 					projectionContext.setLegal(false);
 					// We need to set the old value for legal to false. There was no assignment delta for it.
@@ -1240,8 +1276,7 @@ public class AssignmentProcessor {
 	/**
      * Returns delta of user assignments, both primary and secondary (merged together).
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
-     * Only works for UserType now.
-     * 
+     *
      * This is relative to execution wave to avoid re-processing of already executed assignments.
      */
 	private <F extends FocusType> ContainerDelta<AssignmentType> getExecutionWaveAssignmentDelta(LensFocusContext<F> focusContext) throws SchemaException {

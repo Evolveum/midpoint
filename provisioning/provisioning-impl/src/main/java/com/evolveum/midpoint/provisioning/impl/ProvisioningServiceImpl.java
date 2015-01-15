@@ -24,8 +24,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
+import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.RetrieveOption;
 
@@ -223,6 +226,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// Not resource
 		
 			PrismObject<T> repositoryObject = getRepoObject(type, oid, rootOptions, result);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDump());
+			}
 		
 			if (GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isRaw(rootOptions)) {
 			
@@ -1288,6 +1294,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
                                 .createModificationReplacePropertyCollection(ShadowType.F_RESULT,
                                         getResourceObjectShadowDefinition(), handleResult.createOperationResultType());
                         try {
+							ConstraintsChecker.onShadowModifyOperation(shadowModificationType);
                             cacheRepositoryService.modifyObject(ShadowType.class, shadowType.getOid(),
                                     shadowModificationType, result);
                         } catch (ObjectNotFoundException ex) {
@@ -1546,6 +1553,44 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.cleanupResult();
 	}
 
+	@Override
+	public ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition,
+													  PrismObject<ShadowType> shadowObject,
+													  ResourceType resourceType,
+													  String shadowOid,
+													  ResourceShadowDiscriminator resourceShadowDiscriminator,
+													  ConstraintViolationConfirmer constraintViolationConfirmer,
+													  OperationResult parentResult) throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
+		ConstraintsChecker checker = new ConstraintsChecker();
+		checker.setCacheRepositoryService(cacheRepositoryService);
+		checker.setProvisioningService(this);
+		checker.setPrismContext(prismContext);
+		checker.setShadowDefinition(shadowDefinition);
+		checker.setShadowObject(shadowObject);
+		checker.setResourceType(resourceType);
+		checker.setShadowOid(shadowOid);
+		checker.setResourceShadowDiscriminator(resourceShadowDiscriminator);
+		checker.setConstraintViolationConfirmer(constraintViolationConfirmer);
+		try {
+			ConstraintsCheckingResult retval = checker.check(result);
+			result.computeStatus();
+			return retval;
+		} catch (CommunicationException|ObjectAlreadyExistsException|SchemaException|SecurityViolationException|ConfigurationException|ObjectNotFoundException|RuntimeException e) {
+			result.recordFatalError(e.getMessage(), e);
+			throw e;
+		}
+	}
+
+	@Override
+	public void enterConstraintsCheckerCache() {
+		ConstraintsChecker.enterCache();
+	}
+
+	@Override
+	public void exitConstraintsCheckerCache() {
+		ConstraintsChecker.exitCache();
+	}
 
 	private PrismObjectDefinition<ShadowType> getResourceObjectShadowDefinition() {
 		if (resourceObjectShadowDefinition == null) {

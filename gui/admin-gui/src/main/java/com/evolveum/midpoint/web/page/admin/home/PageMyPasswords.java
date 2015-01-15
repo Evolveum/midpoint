@@ -277,7 +277,9 @@ public class PageMyPasswords extends PageAdminHome {
                 PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);
 
                 Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
+                
                 deltas.add(ObjectDelta.createModifyDelta(accDto.getOid(), delta, type, getPrismContext()));
+                
             }
             getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD), result);
 

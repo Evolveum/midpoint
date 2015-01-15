@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 
 	protected static final String ACCOUNT_DAVIEJONES_USERNAME = "daviejones";
 
-	protected static final String ACCOUNT_MORGAN_FILENAME = TEST_DIR + "account-morgan.xml";
+	protected static final File ACCOUNT_MORGAN_FILE = new File(TEST_DIR, "account-morgan.xml");
 	protected static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
 	protected static final String ACCOUNT_MORGAN_NAME = "morgan";
 	
@@ -240,7 +240,19 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected File getAccountWillFile() {
 		return new File(ACCOUNT_WILL_FILENAME);
 	}
+			
+	protected String transformNameFromResource(String origName) {
+		return origName;
+	}
 	
+	protected void assertShadowName(PrismObject<ShadowType> shadow, String expectedName) {
+		PrismAsserts.assertEqualsPolyString("Shadow name is wrong in "+shadow, expectedName, shadow.asObjectable().getName());
+	}
+
+	protected void assertShadowName(ShadowType shadowType, String expectedName) {
+		assertShadowName(shadowType.asPrismObject(), expectedName);
+	}
+
 	protected boolean supportsActivation() {
 		return true;
 	}

@@ -64,6 +64,11 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
     Boolean overwrite;
     
     Boolean isImport;
+
+	/**
+	 * Causes reevaluation of search filters (producing partial errors on failure).
+	 */
+	Boolean reevaluateSearchFilters;
     
     /**
      * Option to limit propagation only for the source resource
@@ -234,7 +239,6 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setLimitPropagation(true);
 		return opts;
-
 	}
     
     public void setLimitPropagation(Boolean limitPropagation) {
@@ -257,7 +261,31 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         return opts;
     }
 
-    public ModelExecuteOptionsType toModelExecutionOptionsType() {
+	public Boolean getReevaluateSearchFilters() {
+		return reevaluateSearchFilters;
+	}
+
+	public void setReevaluateSearchFilters(Boolean reevaluateSearchFilters) {
+		this.reevaluateSearchFilters = reevaluateSearchFilters;
+	}
+
+	public static boolean isReevaluateSearchFilters(ModelExecuteOptions options){
+		if (options == null){
+			return false;
+		}
+		if (options.reevaluateSearchFilters == null){
+			return false;
+		}
+		return options.reevaluateSearchFilters;
+	}
+
+	public static ModelExecuteOptions createReevaluateSearchFilters(){
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setReevaluateSearchFilters(true);
+		return opts;
+	}
+
+	public ModelExecuteOptionsType toModelExecutionOptionsType() {
         ModelExecuteOptionsType retval = new ModelExecuteOptionsType();
         retval.setForce(force);
         retval.setRaw(raw);
@@ -267,6 +295,7 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         retval.setOverwrite(overwrite);
         retval.setIsImport(isImport);
         retval.setLimitPropagation(limitPropagation);
+		retval.setReevaluateSearchFilters(reevaluateSearchFilters);
         return retval;
     }
 
@@ -283,6 +312,7 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         retval.setOverwrite(type.isOverwrite());
         retval.setIsImport(type.isIsImport());
         retval.setLimitPropagation(type.isLimitPropagation());
+		retval.setReevaluateSearchFilters(type.isReevaluateSearchFilters());
         return retval;
     }
     
@@ -312,11 +342,14 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
     			retVal.setReconcile(true);
     		}
     		if (ModelExecuteOptionsType.F_IS_IMPORT.getLocalPart().equals(option)){
-    			retVal.setIsImport(true);;
+    			retVal.setIsImport(true);
     		}
     		if (ModelExecuteOptionsType.F_LIMIT_PROPAGATION.getLocalPart().equals(option)){
-    			retVal.setIsImport(true);;
+    			retVal.setIsImport(true);
     		}
+			if (ModelExecuteOptionsType.F_REEVALUATE_SEARCH_FILTERS.getLocalPart().equals(option)){
+				retVal.setReevaluateSearchFilters(true);
+			}
     	}
     	
     	return retVal;
@@ -328,7 +361,8 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 				+ ",reconcile=" + reconcile
 				+ ",executeImmediatelyAfterApproval="
 				+ executeImmediatelyAfterApproval + ",overwrite=" + overwrite
-				+ "limitPropagation="+limitPropagation+"]";
+				+ "limitPropagation="+limitPropagation
+				+ "reevaluateSearchFilters="+reevaluateSearchFilters+"]";
     }
 
     public ModelExecuteOptions clone() {

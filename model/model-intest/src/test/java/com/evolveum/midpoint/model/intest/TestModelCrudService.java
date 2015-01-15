@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,10 +113,11 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	
 	@Test
     public void test100ModifyUserAddAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test100ModifyUserAddAccount");
+		final String TEST_NAME = "test100ModifyUserAddAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test100ModifyUserAddAccount");
+        Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
@@ -153,7 +154,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 	}
 		
 	@Test
@@ -230,7 +231,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 	}
 	
 	@Test
@@ -266,7 +267,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 	}
 
 
@@ -308,7 +309,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource (if it is unchanged)
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 	}
 	
 	@Test
@@ -370,7 +371,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDummyAccountShadowModel(accountModel, accountOid, "blackbeard", "Edward Teach");
         
         // Check account in dummy resource
-        assertDummyAccount("blackbeard", "Edward Teach", true);
+        assertDefaultDummyAccount("blackbeard", "Edward Teach", true);
 	}
 
 	
@@ -406,7 +407,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDummyAccountShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan");
         
         // Check account in dummy resource
-        assertDummyAccount("morgan", "Sir Henry Morgan", true);
+        assertDefaultDummyAccount("morgan", "Sir Henry Morgan", true);
 	}
 
 }

@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.Validate;
@@ -210,5 +211,10 @@ public abstract class PageBase extends PageTemplate {
         validator.validateObject(xmlObject, result);
 
         result.computeStatus();
+    }
+
+    public long getItemsPerPage(UserProfileStorage.TableId tableId){
+        UserProfileStorage userProfile = getSessionStorage().getUserProfile();
+        return userProfile.getPagingSize(tableId);
     }
 }

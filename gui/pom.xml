@@ -50,12 +50,10 @@
         <module>admin-gui</module>
         <module>admin-gui-en-US</module>
 	    <module>admin-gui-sk-SK</module>
-<<<<<<< HEAD
-		<module>admin-gui-tr-TR</module>
-=======
+
         <module>admin-gui-tr-TR</module>
         <module>admin-gui-es-ES</module>
->>>>>>> 8c40b6357c84954baae145e3163c952b025fea74
+
     </modules>
 
 </project>

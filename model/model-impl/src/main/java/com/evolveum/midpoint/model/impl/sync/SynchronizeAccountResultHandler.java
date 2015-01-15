@@ -56,7 +56,9 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizeAccountResultHandler.class);
 	
 	private ResourceObjectChangeListener objectChangeListener;
-	private ResourceType resource;
+	private String resourceOid;
+	private ThreadLocal<ResourceType> resourceWorkingCopy = new ThreadLocal<>();       // because PrismContainer is not thread safe even for reading, each thread must have its own copy
+	private ResourceType resourceReadOnly;				// this is a "master copy", not to be touched by getters - its content is copied into resourceWorkingCopy content when needed
 	private ObjectClassComplexTypeDefinition objectClass;
 	private QName sourceChannel;
 	private boolean forceAdd;
@@ -66,7 +68,8 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			TaskManager taskManager) {
 		super(coordinatorTask, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource, taskManager);
 		this.objectChangeListener = objectChangeListener;
-		this.resource = resource;
+		this.resourceReadOnly = resource;
+		this.resourceOid = resource.getOid();
 		this.objectClass = objectClass;
 		forceAdd = false;
 	}
@@ -87,8 +90,17 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		this.sourceChannel = sourceChannel;
 	}
 	
-	public ResourceType getResource() {
-		return resource;
+	public String getResourceOid() {
+		return resourceOid;
+	}
+
+	public ResourceType getResourceWorkingCopy() {
+		ResourceType retval = resourceWorkingCopy.get();
+		if (retval == null) {
+			retval = resourceReadOnly.clone();
+			resourceWorkingCopy.set(retval);
+		}
+		return retval;
 	}
 
 	public ObjectClassComplexTypeDefinition getObjectClass() {
@@ -106,36 +118,36 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	 */
 	@Override
 	protected boolean handleObject(PrismObject<ShadowType> accountShadow, Task workerTask, OperationResult result) {
-				
+
 		ShadowType newShadowType = accountShadow.asObjectable();
 		if (newShadowType.isProtectedObject() != null && newShadowType.isProtectedObject()) {
-			LOGGER.trace("{} skipping {} because it is protected",new Object[] {
+			LOGGER.trace("{} skipping {} because it is protected", new Object[]{
 					getProcessShortNameCapitalized(), accountShadow});
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
 			return true;
 		}
-		
-		if (objectClass != null && (objectClass instanceof RefinedObjectClassDefinition) 
-				&& !((RefinedObjectClassDefinition)objectClass).matches(newShadowType)) {
-			LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent",new Object[] {
+
+		if (objectClass != null && (objectClass instanceof RefinedObjectClassDefinition)
+				&& !((RefinedObjectClassDefinition) objectClass).matches(newShadowType)) {
+			LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent", new Object[]{
 					getProcessShortNameCapitalized(), accountShadow});
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
 			return true;
 		}
-		
+
 		if (objectChangeListener == null) {
 			LOGGER.warn("No object change listener set for {} task, ending the task", getProcessShortName());
-			result.recordFatalError("No object change listener set for "+getProcessShortName()+" task, ending the task");
+			result.recordFatalError("No object change listener set for " + getProcessShortName() + " task, ending the task");
 			return false;
 		}
 
 		// We are going to pretend that all of the objects were just created.
 		// That will efficiently import them to the IDM repository
-			
+
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 		change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
-		change.setResource(resource.asPrismObject());
-		
+		change.setResource(getResourceWorkingCopy().asPrismObject());
+
 		if (forceAdd) {
 			// We should provide shadow in the state before the change. But we are
 			// pretending that it has
@@ -149,7 +161,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			change.setObjectDelta(shadowDelta);
 			// Need to also set current shadow. This will get reflected in "old" object in lens context
 			change.setCurrentShadow(accountShadow);
-			
+
 		} else {
 			// No change, therefore the delta stays null. But we will set the current
 			change.setCurrentShadow(accountShadow);
@@ -159,17 +171,17 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			change.checkConsistence();
 		} catch (RuntimeException ex) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Check consistence failed: {}\nChange:\n{}",ex,change.debugDump());
+				LOGGER.trace("Check consistence failed: {}\nChange:\n{}", ex, change.debugDump());
 			}
 			throw ex;
 		}
-		
+
 		// Invoke the change notification
-        Utils.clearRequestee(workerTask);
-        objectChangeListener.notifyChange(change, workerTask, result);
-        
-        // No exception thrown here. The error is indicated in the result. Will be processed by superclass.
-        
+		Utils.clearRequestee(workerTask);
+		objectChangeListener.notifyChange(change, workerTask, result);
+
+		// No exception thrown here. The error is indicated in the result. Will be processed by superclass.
+
 		return workerTask.canRun();
 	}
 }

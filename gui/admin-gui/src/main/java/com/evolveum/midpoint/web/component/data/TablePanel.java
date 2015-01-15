@@ -30,6 +30,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -43,41 +44,33 @@ public class TablePanel<T> extends Panel {
     private static final String ID_TABLE = "table";
     private static final String ID_PAGING = "paging";
 
-    private IModel<Boolean> showPaging = new Model<Boolean>(true);
-    private IModel<Boolean> showCount = new Model<Boolean>(true);
+    private IModel<Boolean> showPaging = new Model<>(true);
+    private IModel<Boolean> showCount = new Model<>(true);
 
     private UserProfileStorage.TableId tableId;
 
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
-        this(id, provider, columns, null);
+        this(id, provider, columns, null, UserProfileStorage.DEFAULT_PAGING_SIZE);
     }
 
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-                      UserProfileStorage.TableId tableId) {
+                      UserProfileStorage.TableId tableId, long pageSize){
         super(id);
         Validate.notNull(provider, "Object type must not be null.");
         Validate.notNull(columns, "Columns must not be null.");
 
-        add(AttributeModifier.prepend("style", "display: table; width: 100%;"));
-
         this.tableId = tableId;
 
-        initLayout(columns, provider);
+        initLayout(columns, provider, pageSize);
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-
-        DataTable table = (DataTable) get(ID_TABLE);
-        PageBase page = (PageBase) getPage();
-        UserProfileStorage userProfile = page.getSessionStorage().getUserProfile();
-        table.setItemsPerPage(userProfile.getPagingSize(tableId));
     }
 
-    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider) {
-        DataTable<T, String> table = new SelectableDataTable<T>(ID_TABLE, columns, provider,
-                UserProfileStorage.DEFAULT_PAGING_SIZE);
+    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, long pageSize) {
+        DataTable<T, String> table = new SelectableDataTable<>(ID_TABLE, columns, provider, (int)pageSize);
 
         table.setOutputMarkupId(true);
 
@@ -108,7 +101,7 @@ public class TablePanel<T> extends Panel {
 
         add(table);
 
-        NavigatorPanel nb2 = new NavigatorPanel(ID_PAGING, table, showPagedPaging(provider));
+        NavigatorPanel nb2 = new NavigatorPanel(ID_PAGING, table, showPagedPagingModel(provider));
         addVisibleBehaviour(nb2, showPaging);
         add(nb2);
     }
@@ -127,13 +120,18 @@ public class TablePanel<T> extends Panel {
         });
     }
 
-    private boolean showPagedPaging(ISortableDataProvider provider) {
+    private IModel<Boolean> showPagedPagingModel(ISortableDataProvider provider) {
         if (!(provider instanceof BaseSortableDataProvider)) {
-            return true;
+            return new AbstractReadOnlyModel<Boolean>() {
+                @Override
+                public Boolean getObject() {
+                    return true;
+                }
+            };
         }
 
         BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) provider;
-        return baseProvider.isSizeAvailable();
+        return baseProvider.isSizeAvailableModel();
     }
 
     public DataTable getDataTable() {

@@ -6267,6 +6267,23 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Indication of the level of risk associated with the persissions that this role assigns.
+                    			This may be a numeric value, textual label are any other suitable machine-processable indication.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+					<xsd:element name="ownerRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Owner of this role. The owner is a person (or group) that is responsible for maintenance of
+                                role definition.
+                                This reference may point to object of type UserType of OrgType.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
 					<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -7532,7 +7549,7 @@
              <xsd:element name="oidNameBoundMode" type="xsd:boolean" minOccurs="0" default="false">
              	<xsd:annotation>
              		<xsd:documentation>
-             			A mode in which OID and name of the speciefied object are the same.
+             			A mode in which OID and name of the specified object are the same.
              		</xsd:documentation>
              		<xsd:appinfo>
              			<a:deprecated>true</a:deprecated>
@@ -8702,6 +8719,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Option to limit change computation and execution only for the source resource.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reevaluateSearchFilters" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Causes reevaluation of search filters.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

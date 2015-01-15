@@ -181,7 +181,7 @@ public class PageResourceEdit extends PageAdminResources {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                setResponsePage(PageResources.class);
+                setResponsePage(new PageResources(false));
             }
         };
         mainForm.add(backButton);
@@ -243,7 +243,7 @@ public class PageResourceEdit extends PageAdminResources {
 
         if (WebMiscUtil.isSuccessOrHandledError(result)) {
             showResultInSession(result);
-            setResponsePage(PageResources.class);
+            setResponsePage(new PageResources(false));
         } else {
             showResult(result);
             target.add(getFeedbackPanel());

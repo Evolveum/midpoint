@@ -21,6 +21,7 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.F
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -131,6 +133,9 @@ public class ChangeExecutor {
     @Autowired(required = false)
     private WorkflowManager workflowManager;
     
+    @Autowired(required = true)
+    private Clock clock;
+    
     private PrismObjectDefinition<UserType> userDefinition = null;
     private PrismObjectDefinition<ShadowType> shadowDefinition = null;
     
@@ -231,7 +236,7 @@ public class ChangeExecutor {
 				
 				ObjectDelta<ShadowType> accDelta = accCtx.getExecutableDelta();
 				if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
-					if (syncContext.getFocusContext().getDelta() != null
+					if (syncContext.getFocusContext() != null && syncContext.getFocusContext().getDelta() != null
 							&& syncContext.getFocusContext().getDelta().isDelete()
 							&& syncContext.getOptions() != null
 							&& ModelExecuteOptions.isForce(syncContext.getOptions())) {
@@ -876,8 +881,16 @@ public class ChangeExecutor {
 				LensFocusContext<F> focusContext = (LensFocusContext<F>) context.getFocusContext();
 				if (focusContext == null) {
 					return null;
-				} else {
+				} else if (focusContext.getObjectNew() != null) {
+					// If we create both owner and shadow in the same operation (see e.g. MID-2027), we have to provide object new
+					// Moreover, if the authorization would be based on a property that is being changed along with the
+					// the change being authorized, we would like to use changed version.
+					return focusContext.getObjectNew();
+				} else if (focusContext.getObjectCurrent() != null) {
+					// This could be useful if the owner is being deleted.
 					return focusContext.getObjectCurrent();
+				} else {
+					return null;
 				}
 			}
 		};
@@ -928,6 +941,8 @@ public class ChangeExecutor {
             }
             result.addReturn("createdAccountOid", oid);
         } else {
+			FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
+
         	RepoAddOptions addOpt = new RepoAddOptions();
         	if (ModelExecuteOptions.isOverwrite(options)){
         		addOpt.setOverwrite(true);
@@ -1016,6 +1031,7 @@ public class ChangeExecutor {
                 change.setOid(oid);
             }
         } else {
+			FocusConstraintsChecker.clearCacheForDelta(change.getModifications());
             cacheRepositoryService.modifyObject(objectTypeClass, change.getOid(), change.getModifications(), result);
         }
     }
@@ -1024,7 +1040,7 @@ public class ChangeExecutor {
 		MetadataType metaData = new MetadataType();
 		String channel = getChannel(context, task);
 		metaData.setCreateChannel(channel);
-		metaData.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+		metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
 		if (task.getOwner() != null) {
 			metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
 		}

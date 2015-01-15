@@ -99,6 +99,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 		LOGGER.trace("Normalizing shadow: change description: {}", delta.debugDump());
 		// prismContext.adopt(shadow);
 		try {
+			ConstraintsChecker.onShadowModifyOperation(delta.getModifications());
 			getRepositoryService().modifyObject(ShadowType.class, oldShadow.getOid(), delta.getModifications(),
 					parentResult);
 		} catch (SchemaException ex) {

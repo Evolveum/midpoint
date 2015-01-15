@@ -349,6 +349,7 @@ public class ShadowManager {
 				newShadow = createNewAccountFromChange(change, resource, objectClassDefinition, parentResult);
 
 				try {
+					ConstraintsChecker.onShadowAddOperation(newShadow.asObjectable());
 					String oid = repositoryService.addObject(newShadow, null, parentResult);
 					newShadow.setOid(oid);
 					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
@@ -371,6 +372,7 @@ public class ShadowManager {
 							.createModificationReplacePropertyCollection(ShadowType.F_DEAD,
 									newShadow.getDefinition(), true);
 					try {
+						ConstraintsChecker.onShadowModifyOperation(deadDeltas);
 						repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas,
 								parentResult);
 					} catch (ObjectAlreadyExistsException e) {
@@ -548,7 +550,7 @@ public class ShadowManager {
 		}
 		EqualFilter<T> eqFilter = (EqualFilter)filter;
 		ItemPath parentPath = eqFilter.getParentPath();
-		if (parentPath == null || !parentPath.equals(SchemaConstants.PATH_ATTRIBUTES)) {
+		if (parentPath == null || !parentPath.equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
 			return;
 		}
 		QName attrName = eqFilter.getElementName();
@@ -573,6 +575,10 @@ public class ShadowManager {
 		eqFilter.getValues().addAll((Collection) newValues);
 		LOGGER.trace("Replacing values for attribute {} in search filter with normalized values because there is a matching rule, normalized values: {}",
 				attrName, newValues);
+		if (eqFilter.getMatchingRule() == null) {
+			eqFilter.setMatchingRule(matchingRuleQName);
+			LOGGER.trace("Setting matching rule to {}", matchingRuleQName);
+		}
 	}
 
 	/**

@@ -16,10 +16,15 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
@@ -33,6 +38,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -40,8 +46,12 @@ import java.util.List;
  */
 public class AssignmentEditorDto extends SelectableBean implements Comparable<AssignmentEditorDto> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(AssignmentEditorDto.class);
+
     private static final String DOT_CLASS = AssignmentEditorDto.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_TENANT = DOT_CLASS + "loadTenantOrg";
+    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
+    private static final String OPERATION_LOAD_ATTRIBUTES = DOT_CLASS + "loadAttributes";
 
     public static final String F_TYPE = "type";
     public static final String F_NAME = "name";
@@ -90,6 +100,92 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
         this.name = getNameForTargetObject(targetObject);
         this.altName = getAlternativeName(assignment);
+
+        this.attributes = prepareAssignmentAttributes(assignment, pageBase);
+    }
+
+    private List<ACAttributeDto> prepareAssignmentAttributes(AssignmentType assignment, PageBase pageBase){
+        List<ACAttributeDto> acAtrList = new ArrayList<>();
+
+        if(assignment == null || assignment.getConstruction() == null || assignment.getConstruction().getAttribute() == null
+                || assignment.getConstruction() == null){
+            return acAtrList;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_ATTRIBUTES);
+        ConstructionType construction = assignment.getConstruction();
+
+        PrismObject<ResourceType> resource = construction.getResource() != null
+                ? construction.getResource().asPrismObject() : null;
+        if (resource == null) {
+            resource = getReference(construction.getResourceRef(), result, pageBase);
+        }
+
+        try {
+            PrismContext prismContext = pageBase.getPrismContext();
+            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+                    LayerType.PRESENTATION, prismContext);
+            RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
+
+            if(objectClassDefinition == null){
+                return attributes;
+            }
+
+            PrismContainerDefinition definition = objectClassDefinition.toResourceAttributeContainerDefinition();
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Refined definition for {}\n{}", construction, definition.debugDump());
+            }
+
+            Collection<ItemDefinition> definitions = definition.getDefinitions();
+            for(ResourceAttributeDefinitionType attribute: assignment.getConstruction().getAttribute()){
+
+                for(ItemDefinition attrDef: definitions){
+                    if (attrDef instanceof PrismPropertyDefinition) {
+                        PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) attrDef;
+
+                        if (propertyDef.isOperational() || propertyDef.isIgnored()) {
+                            continue;
+                        }
+
+                        if(attribute.getRef().equals(propertyDef.getName())){
+                            acAtrList.add(ACAttributeDto.createACAttributeDto(propertyDef, attribute, prismContext));
+                            break;
+                        }
+                    }
+                }
+            }
+
+            result.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Exception occurred during assignment attribute loading", ex);
+            result.recordFatalError("Exception occurred during assignment attribute loading.", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+
+        return acAtrList;
+    }
+
+    private PrismObject getReference(ObjectReferenceType ref, OperationResult result, PageBase pageBase) {
+        OperationResult subResult = result.createSubresult(OPERATION_LOAD_RESOURCE);
+        subResult.addParam("targetRef", ref.getOid());
+        PrismObject target = null;
+        try {
+            Task task = pageBase.createSimpleTask(OPERATION_LOAD_RESOURCE);
+            Class type = ObjectType.class;
+            if (ref.getType() != null){
+                type = pageBase.getPrismContext().getSchemaRegistry().determineCompileTimeClass(ref.getType());
+            }
+            target = pageBase.getModelService().getObject(type, ref.getOid(), null, task,
+                    subResult);
+            subResult.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't get account construction resource ref", ex);
+            subResult.recordFatalError("Couldn't get account construction resource ref.", ex);
+        }
+
+        return target;
     }
 
     private ObjectViewDto loadTenantReference(ObjectType object, AssignmentType assignment, PageBase page){

@@ -21,8 +21,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -635,7 +634,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		for (PrismObject<ShadowType> shadow : shadows) {
 			OperationResult provisioningResult = new OperationResult(OperationConstants.RECONCILIATION+".finishOperation");
 			try {
-				
+				RepositoryCache.enter();
+
 				ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
                 Utils.clearRequestee(task);
 				provisioningService.finishOperation(shadow, options, task, provisioningResult);
@@ -651,6 +651,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				} catch(Exception e) {
                     LoggingUtils.logException(LOGGER, "Failed to record finish operation failure with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()), e);
 				}
+			} finally {
+				RepositoryCache.exit();
 			}
 
             incrementAndRecordProgress(task, opResult);

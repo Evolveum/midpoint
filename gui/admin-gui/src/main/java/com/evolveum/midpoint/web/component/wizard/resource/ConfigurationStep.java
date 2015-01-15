@@ -20,6 +20,8 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -45,6 +47,8 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.util.Collection;
+
 /**
  * @author lazyman
  */
@@ -61,10 +65,13 @@ public class ConfigurationStep extends WizardStep {
     private static final String ID_TEST_CONNECTION = "testConnection";
 
     private IModel<PrismObject<ResourceType>> resourceModel;
+    private boolean isNewResource;
     private IModel<ObjectWrapper> configurationProperties;
 
-    public ConfigurationStep(IModel<PrismObject<ResourceType>> resourceModel) {
+    public ConfigurationStep(IModel<PrismObject<ResourceType>> resourceModel, boolean isNewResource) {
         this.resourceModel = resourceModel;
+        this.isNewResource = isNewResource;
+
         this.configurationProperties = new LoadableModel<ObjectWrapper>(false) {
 
             @Override
@@ -155,8 +162,14 @@ public class ConfigurationStep extends WizardStep {
 
             page.getPrismContext().adopt(newResource);
 
-            PrismObject<ResourceType> oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(),
-                    result, page);
+            PrismObject<ResourceType> oldResource;
+
+            if(isNewResource){
+                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+                oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), options, result, page);
+            } else {
+                oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, page);
+            }
 
             delta = DiffUtil.diff(oldResource, newResource);
 
@@ -169,6 +182,7 @@ public class ConfigurationStep extends WizardStep {
             result.recordFatalError("Couldn't save configuration changes.", ex);
         } finally {
             result.computeStatusIfUnknown();
+            setResult(result);
         }
 
         if (WebMiscUtil.showResultInPage(result)) {

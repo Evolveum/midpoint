@@ -1017,7 +1017,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         if (PageOrgTree.PARAM_ORG_RETURN.equals(orgReturn.toString())) {
             setResponsePage(PageOrgTree.class);
         } else {
-            setResponsePage(PageUsers.class);
+            setResponsePage(new PageUsers(false));
         }
 
         // }
@@ -1252,7 +1252,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         }
 
         if (!assDelta.isEmpty()) {
-            userDelta.addModification(assDelta);
+        	assDelta = userDelta.addModification(assDelta);
         }
 
         // todo remove this block [lazyman] after model is updated - it has to
@@ -1456,7 +1456,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                     && PageOrgTree.PARAM_ORG_RETURN.equals(returnPage.toString())) {
                 setResponsePage(PageOrgTree.class);
             } else {
-                setResponsePage(PageUsers.class);
+                setResponsePage(new PageUsers(false));
             }
         } else {
             showResult(result);

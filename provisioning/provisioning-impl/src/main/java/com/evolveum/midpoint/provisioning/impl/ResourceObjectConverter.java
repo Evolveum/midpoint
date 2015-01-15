@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 
@@ -985,16 +986,22 @@ public class ResourceObjectConverter {
 		ResultHandler<ShadowType> innerResultHandler = new ResultHandler<ShadowType>() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
+				// in order to utilize the cache right from the beginning...
+				RepositoryCache.enter();
 				try {
-					shadow = postProcessResourceObjectRead(connector, resourceType, shadow, objectClassDef, fetchAssociations, parentResult);
-				} catch (SchemaException e) {
-					throw new TunnelException(e);
-				} catch (CommunicationException e) {
-					throw new TunnelException(e);
-				} catch (GenericFrameworkException e) {
-					throw new TunnelException(e);
+					try {
+						shadow = postProcessResourceObjectRead(connector, resourceType, shadow, objectClassDef, fetchAssociations, parentResult);
+					} catch (SchemaException e) {
+						throw new TunnelException(e);
+					} catch (CommunicationException e) {
+						throw new TunnelException(e);
+					} catch (GenericFrameworkException e) {
+						throw new TunnelException(e);
+					}
+					return resultHandler.handle(shadow);
+				} finally {
+					RepositoryCache.exit();
 				}
-				return resultHandler.handle(shadow);
 			}
 		};
 		

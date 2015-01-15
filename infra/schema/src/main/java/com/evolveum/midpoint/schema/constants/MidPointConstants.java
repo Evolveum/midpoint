@@ -60,6 +60,9 @@ public class MidPointConstants {
 	public static final String FUNCTION_LIBRARY_BASIC_VARIABLE_NAME = "basic";
 	public static final String NS_FUNC_BASIC = NS_MIDPOINT_PUBLIC_PREFIX+"/function/basic-3";
 	
+	public static final String FUNCTION_LIBRARY_MIDPOINT_VARIABLE_NAME = "midpoint";
+	public static final String NS_FUNC_MIDPOINT = NS_MIDPOINT_PUBLIC_PREFIX+"/function/midpoint-3";
+	
 	public static final String FUNCTION_LIBRARY_LOG_VARIABLE_NAME = "log";
 	public static final String NS_FUNC_LOG = NS_MIDPOINT_PUBLIC_PREFIX+"/function/log-3";
 

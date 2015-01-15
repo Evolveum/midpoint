@@ -29,7 +29,6 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPan
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
@@ -39,10 +38,8 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -71,10 +68,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
     private static final String ID_VALUE_ATTRIBUTE = "valueAttribute";
     private static final String ID_EXPLICIT_REF_INTEGRITY = "explicitRefIntegrity";
 
-    private static final String ID_SCHEMA_REF_PANEL = "schemaRefPanel";
-    private static final String ID_NON_SCHEMA_REF_PANEL = "nonSchemaReferencePanel";
-    private static final String ID_REFERENCE_SELECT = "referenceSelect";
-    private static final String ID_REFERENCE_ALLOW = "allowRef";
+    private static final String ID_ASSOCIATION_ATTRIBUTE_PANEL = "associationAttributePanel";
     private static final String ID_DISPLAY_NAME = "displayName";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXCLUSIVE_STRONG = "exclusiveStrong";
@@ -90,8 +84,6 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
     private static final String ID_MODAL_LIMITATIONS = "limitationsEditor";
     private static final String ID_MODAL_MAPPING = "mappingEditor";
 
-    private static final String ID_T_REF = "referenceTooltip";
-    private static final String ID_T_ALLOW = "allowTooltip";
     private static final String ID_T_LIMITATIONS = "limitationsTooltip";
     private static final String ID_T_EXCLUSIVE_STRONG = "exclusiveStrongTooltip";
     private static final String ID_T_TOLERANT = "tolerantTooltip";
@@ -110,7 +102,6 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
     private PrismObject<ResourceType> resource;
     private ResourceObjectTypeDefinitionType objectType;
-    private boolean nonSchemaRefValueAllowed = false;
 
     public ResourceAssociationEditor(String id, IModel<ResourceObjectAssociationType> model,
                                      ResourceObjectTypeDefinitionType objectType, PrismObject<ResourceType> resource){
@@ -205,77 +196,12 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                 new PropertyModel<Boolean>(getModel(), "explicitReferentialIntegrity"));
         add(explicitRefIntegrity);
 
-        QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_NON_SCHEMA_REF_PANEL, new PropertyModel<QName>(getModel(), "ref"));
-
+        QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_ASSOCIATION_ATTRIBUTE_PANEL, new PropertyModel<QName>(getModel(), "ref"),
+                "SchemaHandlingStep.association.label.associationName", "SchemaHandlingStep.association.tooltip.associationLocalPart",
+                "SchemaHandlingStep.association.label.associationNamespace", "SchemaHandlingStep.association.tooltip.associationNamespace");
         nonSchemaRefPanel.setOutputMarkupId(true);
         nonSchemaRefPanel.setOutputMarkupPlaceholderTag(true);
-        nonSchemaRefPanel.add(new VisibleEnableBehaviour(){
-
-            @Override
-            public boolean isVisible() {
-                return nonSchemaRefValueAllowed;
-            }
-        });
         add(nonSchemaRefPanel);
-
-        WebMarkupContainer schemaRefPanel = new WebMarkupContainer(ID_SCHEMA_REF_PANEL);
-        schemaRefPanel.setOutputMarkupId(true);
-        schemaRefPanel.setOutputMarkupPlaceholderTag(true);
-        schemaRefPanel.add(new VisibleEnableBehaviour(){
-
-            @Override
-            public boolean isVisible() {
-                return !nonSchemaRefValueAllowed;
-            }
-        });
-        add(schemaRefPanel);
-
-        Label refTooltip = new Label(ID_T_REF);
-        refTooltip.add(new InfoTooltipBehavior());
-        refTooltip.setOutputMarkupId(true);
-        refTooltip.setOutputMarkupId(true);
-        schemaRefPanel.add(refTooltip);
-
-        DropDownChoice refSelect = new DropDownChoice<>(ID_REFERENCE_SELECT, new PropertyModel<QName>(getModel(), "ref"),
-                new AbstractReadOnlyModel<List<QName>>() {
-
-                    @Override
-                    public List<QName> getObject() {
-                        return loadObjectReferences(true);
-                    }
-                }, new IChoiceRenderer<QName>() {
-
-            @Override
-            public Object getDisplayValue(QName object) {
-                return prepareReferenceDisplayValue(object);
-            }
-
-            @Override
-            public String getIdValue(QName object, int index) {
-                return Integer.toString(index);
-            }
-        });
-        refSelect.setOutputMarkupId(true);
-        refSelect.setOutputMarkupPlaceholderTag(true);
-        refSelect.add(new VisibleEnableBehaviour(){
-
-            @Override
-            public boolean isVisible() {
-                return !nonSchemaRefValueAllowed;
-            }
-
-        });
-        schemaRefPanel.add(refSelect);
-
-        CheckBox allowNonSchema = new CheckBox(ID_REFERENCE_ALLOW, new PropertyModel<Boolean>(this, "nonSchemaRefValueAllowed"));
-        allowNonSchema.add(new AjaxFormComponentUpdatingBehavior("onchange") {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                target.add(get(ID_SCHEMA_REF_PANEL), get(ID_NON_SCHEMA_REF_PANEL));
-            }
-        });
-        add(allowNonSchema);
 
         TextField displayName = new TextField<>(ID_DISPLAY_NAME, new PropertyModel<String>(getModel(), "displayName"));
         add(displayName);
@@ -416,10 +342,6 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
         Label integrityTooltip = new Label(ID_T_EXPLICIT_REF_INTEGRITY);
         integrityTooltip.add(new InfoTooltipBehavior());
         add(integrityTooltip);
-
-        Label allowTooltip = new Label(ID_T_ALLOW);
-        allowTooltip.add(new InfoTooltipBehavior());
-        add(allowTooltip);
 
         Label limitationsTooltip = new Label(ID_T_LIMITATIONS);
         limitationsTooltip.add(new InfoTooltipBehavior());
