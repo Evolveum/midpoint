@@ -700,9 +700,10 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                 	List<PrismProperty> associations = new ArrayList<>(associationContainer.getValues().size());
                 	for (PrismContainerValue associationVal : associationContainer.getValues()){
                 		ShadowAssociationType associationType = (ShadowAssociationType) associationVal.asContainerable();
-                		PrismObject<ShadowType> association = getModelService().getObject(ShadowType.class, associationType.getShadowRef().getOid(), null, task, subResult);
+                        // we can safely eliminate fetching from resource, because we need only the name
+                		PrismObject<ShadowType> association = getModelService().getObject(ShadowType.class, associationType.getShadowRef().getOid(),
+                                SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, subResult);
                 		associations.add(association.findProperty(ShadowType.F_NAME));
-                		
                 	}
                 	
                 	wrapper.setAssociations(associations);
