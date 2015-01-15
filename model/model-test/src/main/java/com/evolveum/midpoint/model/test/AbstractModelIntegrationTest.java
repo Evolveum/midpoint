@@ -233,7 +233,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected DummyAuditService dummyAuditService;
 	
-	protected boolean verbose = false; 
+	protected boolean verbose = false;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 			
@@ -1883,17 +1883,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	private boolean isError(OperationResult result, boolean checkSubresult) {
 		OperationResult subresult = getSubresult(result, checkSubresult);
-		return subresult.isError();
+		return subresult != null ? subresult.isError() : false;
 	}
 	
 	private boolean isUknown(OperationResult result, boolean checkSubresult) {
 		OperationResult subresult = getSubresult(result, checkSubresult);
-		return subresult.isUnknown();
+		return subresult != null ? subresult.isUnknown() : false;			// TODO or return true?
 	}
 
 	private boolean isInProgress(OperationResult result, boolean checkSubresult) {
 		OperationResult subresult = getSubresult(result, checkSubresult);
-		return subresult.isInProgress();
+		return subresult != null ? subresult.isInProgress() : true;		// "true" if there are no subresults
 	}
 
 	private OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
