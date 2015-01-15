@@ -406,7 +406,6 @@ public abstract class PageTemplate extends WebPage {
             @Override
             protected void respond(AjaxRequestTarget target) {
                 modal.close(target);
-
             }
         });
 

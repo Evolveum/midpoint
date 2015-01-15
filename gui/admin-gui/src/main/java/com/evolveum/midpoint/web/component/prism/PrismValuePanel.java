@@ -434,31 +434,24 @@ public class PrismValuePanel extends Panel {
 
         if(property.getParent() != null && property.getParent().getParent() != null){
             PrismObject<ShadowType> shadowPrism = (PrismObject<ShadowType>)property.getParent().getParent();
-            ShadowType shadow = shadowPrism.asObjectable();
 
             Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadowPrism);
             if (attributes == null || attributes.isEmpty()){
             	return sb.toString();
             }
-            
+
+            //TODO - this is a dirty fix for situation, when attribute value is too long and it is a string without white chars,
+            //thus it will not break in tooltip. break-all is also not good, since it can brake in the middle of words. What we
+            //are doing here is replacing every, with ,&#8203;, &#8203; (the same with @) is a zero-width space, so the attribute value
+            //will break after comma. This dirty fix will be removed when association editor is completed.
             for (ResourceAttribute<?> attr : attributes){
             	for (Object realValue : attr.getRealValues()){
             		sb.append(getAttributeName(attr));
                 	sb.append(":");
-            		sb.append(realValue);
+            		sb.append(((String)realValue).replace(",", ",&#8203;").replace("@", "@&#8203;"));
             		sb.append("<br>");
             	}
             }
-//            if(shadow.getAttributes() != null){
-//                ShadowAttributesType attributes = shadow.getAttributes();
-//                AnyArrayList attrs = (AnyArrayList)attributes.getAny();
-//
-//                for(Object o: attrs){
-//                    ElementNSImpl element = (ElementNSImpl)o;
-//                    sb.append(element.getLocalName() + ": ");
-//                    sb.append(((TextImpl)element.getFirstChild()).getData() + "<br>");
-//                }
-//            }
         }
 
         return sb.toString();
