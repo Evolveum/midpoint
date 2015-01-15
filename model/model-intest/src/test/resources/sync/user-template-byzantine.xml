@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<objectTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111"
+                xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+    <name>Default User Template 1</name>
+
+    <!-- Demonstrates the problem where values created during execution of object template cannot be used in the template itself -->
+    <!-- (i.e. chaining of mappings) -->
+
+    <!-- HonorificPrefix is such a value. -->
+
+    <mapping>
+        <name>Honorific prefix mapping</name>
+        <expression>
+            <script>
+                <code>
+                    'Mr'
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>honorificPrefix</path>
+        </target>
+    </mapping>
+
+    <mapping>
+        <name>Email address mapping</name>
+        <source>
+            <path>honorificPrefix</path>
+        </source>
+        <source>
+            <path>name</path>
+        </source>
+        <expression>
+            <script>
+                <code>name + '.' + honorificPrefix + '@test.com'</code>
+            </script>
+        </expression>
+        <target>
+            <path>emailAddress</path>
+        </target>
+    </mapping>
+
+    <mapping>
+        <name>Org assignment</name>
+        <source>
+            <path>honorificPrefix</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:OrgType</targetType>
+                <oid>00000000-8888-6666-0000-100000000001</oid>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+    </mapping>
+
+</objectTemplate>

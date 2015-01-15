@@ -925,14 +925,17 @@ public abstract class ShadowCache {
 				parentResult);
 
 		if (repoShadow == null) {
-			LOGGER.trace(
-					"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
-					SchemaDebugUtil.prettyPrint(resourceShadow));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(
+						"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
+						SchemaDebugUtil.prettyPrint(resourceShadow));
+			}
 
 			repoShadow = createShadowInRepository(connector, resourceShadow, objectClassDef, resourceType, parentResult);
 		} else {
-			LOGGER.trace("Found shadow object in the repository {}",
-					SchemaDebugUtil.prettyPrint(repoShadow));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Found shadow object in the repository {}", SchemaDebugUtil.prettyPrint(repoShadow));
+			}
 		}
 		
 		return repoShadow;
