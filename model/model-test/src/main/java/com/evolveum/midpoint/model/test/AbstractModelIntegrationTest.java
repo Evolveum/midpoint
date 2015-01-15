@@ -2305,6 +2305,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
+    protected void assertDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+    	DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
+		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
+		IntegrationTestTools.assertGroupMember(group, accountId);
+	}
+	
+	protected void assertDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+		assertDummyGroupMember(null, dummyGroupName, accountId);
+	}
+
+	protected void assertNoDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
+		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
+		IntegrationTestTools.assertNoGroupMember(group, accountId);
+	}
+	
+	protected void assertNoDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+		assertNoDummyGroupMember(null, dummyGroupName, accountId);
+	}
+    
 	protected void assertDummyAccountNoAttribute(String dummyInstanceName, String username, String attributeName) {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);

@@ -202,7 +202,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         
         // Check account in dummy resource: intent=test
         assertDefaultDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow (test)", true);
-        assertGroupMember(GROUP_DUMMY_TESTERS_NAME, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
+        assertDefaultDummyGroupMember(GROUP_DUMMY_TESTERS_NAME, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
         
         // Check audit
         display("Audit", dummyAuditService);

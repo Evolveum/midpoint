@@ -128,8 +128,16 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/caseignore");
 	
+	protected static final String ACCOUNT_JACK_DUMMY_UPCASE_NAME = "JACK";
+	
 	protected static final File ROLE_X_FILE = new File(TEST_DIR, "role-x.xml");
 	protected static final String ROLE_X_OID = "ef7edff4-813c-11e4-b893-3c970e467874";
+	
+	protected static final File ROLE_JOKER_FILE = new File(TEST_DIR, "role-joker.xml");
+	protected static final String ROLE_JOKER_OID = "0a736ff6-9ca8-11e4-b820-001e8c717e5b";
+	
+	protected static final File ROLE_UPCASE_BASIC_FILE = new File(TEST_DIR, "role-upcase-basic.xml");
+	protected static final String ROLE_UPCASE_BASIC_OID = "008a071a-9cc2-11e4-913d-001e8c717e5b";
 	
 	@Autowired(required = true)
 	protected MatchingRuleRegistry matchingRuleRegistry;
@@ -146,6 +154,8 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
         repoAddObjectFromFile(ROLE_X_FILE, RoleType.class, initResult);
+        repoAddObjectFromFile(ROLE_JOKER_FILE, RoleType.class, initResult);
+        repoAddObjectFromFile(ROLE_UPCASE_BASIC_FILE, RoleType.class, initResult);
         
 		InternalMonitor.reset();
 		InternalMonitor.setTraceShadowFetchOperation(true);
@@ -333,8 +343,8 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertShadowFetchOperationCountIncrement(1);
         assertAccountShadowModel(accountModel, accountOid, "x-jack", resourceDummyUpcaseType, uidMatchingRule);
         
-        assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, "X-JACK", ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, "X-JACK", "title", "XXX");
+        assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, "X-"+ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, "X-"+ACCOUNT_JACK_DUMMY_UPCASE_NAME, "title", "XXX");
 	}
 
 	@Test
@@ -373,10 +383,295 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertShadowFetchOperationCountIncrement(1);
         assertAccountShadowModel(accountModel, accountOid, "x-jack", resourceDummyUpcaseType, uidMatchingRule);
         
-        assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, "X-JACK", ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, "X-JACK", "title", "XXX");
+        assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, "X-"+ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, "X-"+ACCOUNT_JACK_DUMMY_UPCASE_NAME, "title", "XXX");
+	}
+	
+	@Test
+    public void test159JackUnAssignRoleX() throws Exception {
+		final String TEST_NAME = "test159JackUnAssignRoleX";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        unassignRole(USER_JACK_OID, ROLE_X_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        // Make sure this is repository so we do not destroy the "evidence" yet.
+        PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+        
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+		assertNoAssignments(userJack);
+        assertLinks(userJack, 0);
+                
+        assertNoDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, "X-"+ACCOUNT_JACK_DUMMY_UPCASE_NAME);
 	}
 
+	@Test
+    public void test160JackAssignRoleBasic() throws Exception {
+		final String TEST_NAME = "test160JackAssignRoleBasic";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, ROLE_UPCASE_BASIC_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        // Make sure this is repository so we do not destroy the "evidence" yet.
+        PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+        
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+        assertAssignedRole(userJack, ROLE_UPCASE_BASIC_OID);
+        accountOid = getSingleLinkOid(userJack);
+        
+		// Check shadow
+        rememberShadowFetchOperationCount();
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Repo shadow", accountShadow);
+        assertShadowFetchOperationCountIncrement(0);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyUpcaseType);
+        
+        // Check account
+        rememberShadowFetchOperationCount();
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        display("Model shadow", accountModel);
+        assertShadowFetchOperationCountIncrement(1);
+        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyUpcaseType, uidMatchingRule);
+        
+        assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, "title");
+        assertNoDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
+	}
+	
+	@Test
+    public void test161JackAssignRoleJoker() throws Exception {
+		final String TEST_NAME = "test161JackAssignRoleJoker";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        // Make sure this is repository so we do not destroy the "evidence" yet.
+        PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+        
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+        assertAssignedRole(userJack, ROLE_JOKER_OID);
+        assertAssignedRole(userJack, ROLE_UPCASE_BASIC_OID);
+        accountOid = getSingleLinkOid(userJack);
+        
+		// Check shadow
+        rememberShadowFetchOperationCount();
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Repo shadow", accountShadow);
+        assertShadowFetchOperationCountIncrement(0);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyUpcaseType);
+        
+        // Check account
+        rememberShadowFetchOperationCount();
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        display("Model shadow", accountModel);
+        assertShadowFetchOperationCountIncrement(1);
+        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyUpcaseType, uidMatchingRule);
+        
+        assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, "title", "JoKeR");
+        assertDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
+	}
+	
+	@Test
+    public void test165JackUnAssignRoleJoker() throws Exception {
+		final String TEST_NAME = "test165JackUnAssignRoleJoker";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        // Make sure this is repository so we do not destroy the "evidence" yet.
+        PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+        
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+        assertAssignedRole(userJack, ROLE_UPCASE_BASIC_OID);
+        accountOid = getSingleLinkOid(userJack);
+        
+		// Check shadow
+        rememberShadowFetchOperationCount();
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Repo shadow", accountShadow);
+        assertShadowFetchOperationCountIncrement(0);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyUpcaseType);
+        
+        // Check account
+        rememberShadowFetchOperationCount();
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        display("Model shadow", accountModel);
+        assertShadowFetchOperationCountIncrement(1);
+        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyUpcaseType, uidMatchingRule);
+        
+        assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, "title");
+        assertNoDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
+	}
+	
+	@Test
+    public void test169JackUnAssignRoleBasic() throws Exception {
+		final String TEST_NAME = "test169JackUnAssignRoleBasic";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, ROLE_UPCASE_BASIC_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        // Make sure this is repository so we do not destroy the "evidence" yet.
+        PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+        
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+		assertUserJack(userJack);
+		assertNoAssignments(userJack);
+        assertLinks(userJack, 0);
+                
+        assertNoDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
+        assertNoDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
+	}
+	
+	@Test
+    public void test170JackAssignRoleJoker() throws Exception {
+		final String TEST_NAME = "test170JackAssignRoleJoker";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        // Make sure this is repository so we do not destroy the "evidence" yet.
+        PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+        
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+        assertAssignedRole(userJack, ROLE_JOKER_OID);
+        accountOid = getSingleLinkOid(userJack);
+        
+		// Check shadow
+        rememberShadowFetchOperationCount();
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Repo shadow", accountShadow);
+        assertShadowFetchOperationCountIncrement(0);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyUpcaseType);
+        
+        // Check account
+        rememberShadowFetchOperationCount();
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        display("Model shadow", accountModel);
+        assertShadowFetchOperationCountIncrement(1);
+        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyUpcaseType, uidMatchingRule);
+        
+        assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, "title", "JoKeR");
+        assertDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
+	}
+	
+	@Test
+    public void test179JackUnAssignRoleJoker() throws Exception {
+		final String TEST_NAME = "test179JackUnAssignRoleJoker";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        // Make sure this is repository so we do not destroy the "evidence" yet.
+        PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+        
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+		assertUserJack(userJack);
+		assertNoAssignments(userJack);
+        assertLinks(userJack, 0);
+                
+        assertNoDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
+        // MID-2147
+//        assertNoDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
+	}
 	
 	private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		assumeAssignmentPolicy(enforcementPolicy);

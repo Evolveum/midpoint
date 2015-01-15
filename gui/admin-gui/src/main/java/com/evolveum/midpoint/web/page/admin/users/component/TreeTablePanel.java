@@ -55,7 +55,6 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.*;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -182,20 +181,6 @@ public class TreeTablePanel extends SimplePanel<String> {
                     oids.add(getRootFromProvider().getOid());
                 }
 
-                //Selection from table, but only if we are not moving root
-                if(!isMovingRoot()){
-                    oids.remove(getRootFromProvider().getOid());
-
-                    List<OrgTableDto> objects = WebMiscUtil.getSelectedData(getTable());
-                    if(!objects.isEmpty()){
-                        for(OrgTableDto dto: objects){
-                            oids.add(dto.getOid());
-
-                            oids.addAll(getOrgParentOids(dto.getOid()));
-                        }
-                    }
-                }
-
                 if(oids.isEmpty()){
                     return null;
                 }
@@ -238,7 +223,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         treeHeader.add(treeMenu);
 
         ISortableTreeProvider provider = new OrgTreeProvider(this, getModel());
-        List<IColumn<OrgTreeDto, String>> columns = new ArrayList<IColumn<OrgTreeDto, String>>();
+        List<IColumn<OrgTreeDto, String>> columns = new ArrayList<>();
         columns.add(new TreeColumn<OrgTreeDto, String>(createStringResource("TreeTablePanel.hierarchy")));
 
         WebMarkupContainer treeContainer = new WebMarkupContainer(ID_TREE_CONTAINER) {
@@ -367,7 +352,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private List<InlineMenuItem> createTreeMenu() {
-        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+        List<InlineMenuItem> items = new ArrayList<>();
 
         InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.collapseAll"),
                 new InlineMenuItemAction() {
@@ -457,7 +442,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private List<IColumn<OrgTableDto, String>> createTableColumns() {
-        List<IColumn<OrgTableDto, String>> columns = new ArrayList<IColumn<OrgTableDto, String>>();
+        List<IColumn<OrgTableDto, String>> columns = new ArrayList<>();
 
         columns.add(new CheckBoxHeaderColumn<OrgTableDto>());
         columns.add(new IconColumn<OrgTableDto>(createStringResource("")) {
@@ -504,7 +489,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private List<InlineMenuItem> initInlineMenu() {
-        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+        List<InlineMenuItem> headerMenuItems = new ArrayList<>();
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addOrgUnit"), false,
                 new HeaderMenuAction(this) {
 

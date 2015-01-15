@@ -31,6 +31,7 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
+import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
@@ -314,6 +315,13 @@ public class DummyResourceContoller extends AbstractResourceController {
 		account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, fullName);
 		account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, location);
 		dummyResource.addAccount(account);
+	}
+	
+	public void addGroup(String name) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException {
+		assertExtendedSchema();
+		DummyGroup group = new DummyGroup(name);
+		group.setEnabled(true);
+		dummyResource.addGroup(group);
 	}
 
 }
