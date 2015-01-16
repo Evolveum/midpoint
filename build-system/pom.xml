@@ -72,7 +72,7 @@
         <activiti-spring.version>5.15.1</activiti-spring.version>
         <commons-email.version>1.3</commons-email.version>
         <xmlsec.version>2.0.1</xmlsec.version>
-        <connid.version>1.4.1.0-SNAPSHOT</connid.version>
+        <connid.version>1.4.0.49</connid.version>
     </properties>
     <dependencyManagement>
         <dependencies>
