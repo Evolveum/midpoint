@@ -405,18 +405,26 @@ public class InboundProcessor {
     	if (triple != null) {
     		
 	        if (triple.getPlusSet() != null) {
-	            for (PrismPropertyValue<U> value : triple.getPlusSet()) {
-	
+
+				boolean alreadyReplaced = false;
+
+				for (PrismPropertyValue<U> value : triple.getPlusSet()) {
+
 	                if (targetFocusProperty != null && targetFocusProperty.hasRealValue(value)) {
 	                    continue;
 	                }
 	
 	                //if property is not multi value replace existing attribute
-					// TODO check for multiple additions here? [med]
 	                if (targetFocusProperty != null && !targetFocusProperty.getDefinition().isMultiValue() && !targetFocusProperty.isEmpty()) {
 	                    Collection<PrismPropertyValue<U>> replace = new ArrayList<PrismPropertyValue<U>>();
 	                    replace.add(value.clone());
 	                    outputUserPropertydelta.setValuesToReplace(replace);
+
+						if (alreadyReplaced) {
+							LOGGER.warn("Multiple values for a single-valued property {}; duplicate value = {}", targetFocusProperty, value);
+						} else {
+							alreadyReplaced = true;
+						}
 	                } else {
 	                    outputUserPropertydelta.addValueToAdd(value.clone());
 	                }

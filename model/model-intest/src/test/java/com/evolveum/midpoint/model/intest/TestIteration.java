@@ -1772,10 +1772,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertUserNick(ACCOUNT_CHARLES_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".1");
 		assertUserNick(ACCOUNT_SHINETOP_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".2", "Melee Island");
 	}
-	
-	/*
-	 * Create account with fullname LeChuck. User with name LeChuck.2 should be created (second conflict).
-	 */
+
 	@Test
     public void test716DarkVioletDeleteCharles() throws Exception {
 		final String TEST_NAME = "test716DarkVioletDeleteCharles";

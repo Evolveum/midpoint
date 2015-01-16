@@ -29,6 +29,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.query.OrgFilter;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
@@ -67,6 +69,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * @author semancik
@@ -401,5 +405,17 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected ResultHandler<OrgType> getOrgSanityCheckHandler() {
 		return null;
 	}
-     	
+
+	protected void assertShadowOperationalData(PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation, Long timeBeforeSync) {
+		ShadowType shadowType = shadow.asObjectable();
+		SynchronizationSituationType actualSituation = shadowType.getSynchronizationSituation();
+		assertEquals("Wrong situation in shadow "+shadow, expectedSituation, actualSituation);
+		XMLGregorianCalendar actualTimestampCal = shadowType.getSynchronizationTimestamp();
+		assert actualTimestampCal != null : "No synchronization timestamp in shadow "+shadow;
+		if (timeBeforeSync != null) {
+			long actualTimestamp = XmlTypeConverter.toMillis(actualTimestampCal);
+			assert actualTimestamp >= timeBeforeSync : "Synchronization timestamp was not updated in shadow " + shadow;
+		}
+		// TODO: assert sync description
+	}
 }
