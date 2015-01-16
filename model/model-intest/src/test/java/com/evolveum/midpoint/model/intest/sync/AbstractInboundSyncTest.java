@@ -76,8 +76,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 		
 	protected static final String ACCOUNT_WALLY_DUMMY_USERNAME = "wally";
 	protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
-	private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
-	private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
+	protected static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
+	protected static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
 	
 	protected static String userWallyOid;
 	
