@@ -35,10 +35,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.DefaultGuiProgressListener;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.Behavior;
@@ -219,13 +219,14 @@ public class ProgressReporter implements Serializable {
     private void startRefreshingProgressPanel(AjaxRequestTarget target) {
         if (refreshingBehavior == null) {       // i.e. refreshing behavior has not been set yet
             refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(refreshInterval)) {
+
                 @Override
                 protected void onPostProcessTarget(AjaxRequestTarget target) {
                     super.onPostProcessTarget(target);
                     if (asyncOperationResult != null) {         // by checking this we know that async operation has been finished
                         asyncOperationResult.recomputeStatus(); // because we set it to in-progress
 
-                        //stopRefreshingProgressPanel();        // does not work as expected
+                        stopRefreshingProgressPanel();
 
                         if (asyncOperationResult.isFatalError()) {
                             saveButton.setVisible(true);            // enable re-saving after fixing (potential) error
@@ -238,13 +239,17 @@ public class ProgressReporter implements Serializable {
                         asyncOperationResult = null;
                     }
                 }
+
+                @Override
+                public boolean isEnabled(Component component) {
+                    return component != null;
+                }
             };
             progressPanel.add(refreshingBehavior);
             target.add(progressPanel);
         }
     }
 
-    // does not work for some reason (NPE in wicket)
     private void stopRefreshingProgressPanel() {
         if (refreshingBehavior != null) {
             progressPanel.remove(refreshingBehavior);
