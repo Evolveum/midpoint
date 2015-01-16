@@ -393,7 +393,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>1.4.0.1-SNAPSHOT</version>
+                <version>1.4.0.49</version>
             </dependency>
             <!-- End connectors -->
             <dependency>
