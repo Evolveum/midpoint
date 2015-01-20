@@ -223,6 +223,15 @@ public class PageResources extends PageAdminResources {
                 ResourcesStorage storage = getSessionStorage().getResources();
                 storage.setResourcePaging(paging);
             }
+
+            @Override
+            protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
+                if(result.isPartialError()){
+                    showResult(result);
+                } else {
+                    super.handleNotSuccessOrHandledErrorInIterator(result);
+                }
+            }
         };
 
         Collection<SelectorOptions<GetOperationOptions>> options =
@@ -268,7 +277,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private List<IColumn<ResourceDto, String>> initResourceColumns() {
-        List<IColumn<ResourceDto, String>> columns = new ArrayList<IColumn<ResourceDto, String>>();
+        List<IColumn<ResourceDto, String>> columns = new ArrayList<>();
 
         IColumn column = new CheckBoxHeaderColumn<ResourceDto>();
         columns.add(column);
@@ -295,6 +304,7 @@ public class PageResources extends PageAdminResources {
 
                     @Override
                     public String getObject() {
+//                        testResourcePerformed(getRequestCycle().find(AjaxRequestTarget.class), rowModel);
                         ResourceDto dto = rowModel.getObject();
                         ResourceController.updateLastAvailabilityState(dto.getState(),
                                 dto.getLastAvailabilityStatus());
@@ -361,7 +371,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private List<InlineMenuItem> initInlineMenu() {
-        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+        List<InlineMenuItem> headerMenuItems = new ArrayList<>();
         headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
                 new HeaderMenuAction(this) {
 
@@ -375,7 +385,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private List<IColumn<ConnectorHostType, String>> initConnectorHostsColumns() {
-        List<IColumn<ConnectorHostType, String>> columns = new ArrayList<IColumn<ConnectorHostType, String>>();
+        List<IColumn<ConnectorHostType, String>> columns = new ArrayList<>();
 
         IColumn column = new CheckBoxHeaderColumn<ConnectorHostType>();
         columns.add(column);
@@ -407,7 +417,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private List<InlineMenuItem> initInlineHostsMenu() {
-        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+        List<InlineMenuItem> headerMenuItems = new ArrayList<>();
         headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
                 new HeaderMenuAction(this) {
 
@@ -535,7 +545,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private void deleteResourceConfirmedPerformed(AjaxRequestTarget target) {
-        List<ResourceDto> selected = new ArrayList<ResourceDto>();
+        List<ResourceDto> selected = new ArrayList<>();
 
         if(singleDelete != null){
             selected.add(singleDelete);

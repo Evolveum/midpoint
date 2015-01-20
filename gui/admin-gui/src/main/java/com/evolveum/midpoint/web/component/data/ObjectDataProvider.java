@@ -91,12 +91,16 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         }
 
         if (!WebMiscUtil.isSuccessOrHandledError(result)) {
-            getPage().showResultInSession(result);
-            throw new RestartResponseException(PageError.class);
+            handleNotSuccessOrHandledErrorInIterator(result);
         }
 
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
+    }
+
+    protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
+        getPage().showResultInSession(result);
+        throw new RestartResponseException(PageError.class);
     }
 
     public W createDataObjectWrapper(PrismObject<T> obj) {
