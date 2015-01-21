@@ -1567,7 +1567,20 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	
 	private <T extends ObjectType> void postProcessObjects(Collection<PrismObject<T>> objects, GetOperationOptions options, OperationResult result) throws SecurityViolationException, SchemaException {
 		for (PrismObject<T> object: objects) {
-			postProcessObject(object, options, result);
+			OperationResult subresult = new OperationResult(ModelController.class.getName()+".postProcessObject");
+			try {			
+				postProcessObject(object, options, subresult);
+			} catch (IllegalArgumentException|IllegalStateException|SchemaException|SecurityViolationException e) {
+				LOGGER.error("Error post-processing object {}: {}", new Object[]{object, e.getMessage(), e});
+				OperationResultType fetchResult = object.asObjectable().getFetchResult();
+				if (fetchResult == null) {
+					fetchResult = subresult.createOperationResultType();
+					object.asObjectable().setFetchResult(fetchResult);
+				} else {
+					fetchResult.getPartialResults().add(subresult.createOperationResultType());
+				}
+				fetchResult.setStatus(OperationResultStatusType.FATAL_ERROR);
+			}
 		}
 	}
 	
