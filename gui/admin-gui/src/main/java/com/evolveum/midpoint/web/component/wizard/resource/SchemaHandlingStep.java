@@ -135,6 +135,11 @@ public class SchemaHandlingStep extends WizardStep {
 
         if(resourceModel != null && resourceModel.getObject() != null
                 && resourceModel.getObject().asObjectable() != null){
+
+            if(resourceModel.getObject().asObjectable().getSchemaHandling() == null){
+                resourceModel.getObject().asObjectable().setSchemaHandling(new SchemaHandlingType());
+            }
+
             SchemaHandlingType schemaHandling = resourceModel.getObject().asObjectable().getSchemaHandling();
 
             ResourceObjectTypeDefinitionTypeDto obj;
@@ -789,6 +794,7 @@ public class SchemaHandlingStep extends WizardStep {
         dto.setSelected(true);
         model.getObject().setSelected(dto.getObjectType());
         model.getObject().getObjectTypeList().add(dto);
+        resourceModel.getObject().asObjectable().getSchemaHandling().getObjectType().add(objectType);
         insertEmptyThirdRow();
         target.add(getObjectListTable(), getNavigator(), getObjectTypeEditor(), getThirdRowContainer());
     }
