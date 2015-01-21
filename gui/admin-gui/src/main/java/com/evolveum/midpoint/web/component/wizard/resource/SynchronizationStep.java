@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.synchroniza
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.SynchronizationReactionEditor;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectSynchronizationTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceSynchronizationDto;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -138,6 +137,10 @@ public class SynchronizationStep extends WizardStep {
 
         if(resourceModel != null && resourceModel.getObject() != null &&
                 resourceModel.getObject().asObjectable() != null){
+
+            if(resourceModel.getObject().asObjectable().getSynchronization() == null){
+                resourceModel.getObject().asObjectable().setSynchronization(new SynchronizationType());
+            }
 
             SynchronizationType sync = resourceModel.getObject().asObjectable().getSynchronization();
 
@@ -816,6 +819,7 @@ public class SynchronizationStep extends WizardStep {
         dto.setSelected(true);
         model.getObject().setSelected(dto.getSyncType());
         model.getObject().getObjectSyncList().add(dto);
+        resourceModel.getObject().asObjectable().getSynchronization().getObjectSynchronization().add(syncObject);
         insertEmptyThirdRow();
         target.add(getSyncObjectTable(), getNavigator(), getSyncObjectEditor(), getThirdRowContainer());
     }
