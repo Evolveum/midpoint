@@ -80,6 +80,7 @@ It also contains inbound mappings and definition to enable synchronization.
 				<icfcldap:groupMemberAttribute>member</icfcldap:groupMemberAttribute>
 				<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 				<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+				<icfcldap:vlvSortOrderingRule>2.5.13.3</icfcldap:vlvSortOrderingRule>
 				<icfcldap:useBlocks>true</icfcldap:useBlocks>
 				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
 			</icfc:configurationProperties>
