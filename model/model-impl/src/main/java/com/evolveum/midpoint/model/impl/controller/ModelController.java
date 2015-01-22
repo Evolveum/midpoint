@@ -609,7 +609,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDump());
 			}
-			cacheRepositoryService.modifyObject(objectTypeClass, oid, delta.getModifications(), result);
+			if (!delta.isEmpty()) {
+				cacheRepositoryService.modifyObject(objectTypeClass, oid, delta.getModifications(), result);
+			}
 			result.recordSuccess();
 		} catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
 			result.recordFatalError("Couldn't reevaluate search filters: "+e.getMessage(), e);
