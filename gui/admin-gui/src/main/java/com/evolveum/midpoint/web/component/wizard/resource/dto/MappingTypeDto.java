@@ -163,17 +163,10 @@ public class MappingTypeDto implements Serializable {
             mappingObject.setTarget(mappingTarget);
         }
 
-        List<String> existingSources = new ArrayList<>();
-        for(MappingSourceDeclarationType s: mappingObject.getSource()){
-            if(s.getPath() != null && s.getPath().getItemPath() != null){
-                existingSources.add(s.getPath().getItemPath().toString());
-            }
-        }
-
+        mappingObject.getSource().clear();
         List<MappingSourceDeclarationType> mappingSourceList = new ArrayList<>();
         for(String s: source){
-
-            if(s == null || existingSources.contains(s)){
+            if(s == null){
                 continue;
             }
 

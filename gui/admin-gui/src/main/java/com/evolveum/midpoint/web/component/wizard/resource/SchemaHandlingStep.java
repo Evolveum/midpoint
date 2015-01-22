@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -832,7 +833,158 @@ public class SchemaHandlingStep extends WizardStep {
                 }
                 objectType.getAssociation().clear();
                 objectType.getAssociation().addAll(newAssociationList);
+
+                prepareActivation(objectType.getActivation());
             }
         }
+    }
+
+    private void prepareActivation(ResourceActivationDefinitionType activation){
+        if(activation == null){
+            return;
+        }
+
+        if(activation.getAdministrativeStatus() != null){
+            ResourceBidirectionalMappingType administrativeStatus = activation.getAdministrativeStatus();
+
+            List<MappingType> inbounds = administrativeStatus.getInbound();
+            List<MappingType> outbounds = administrativeStatus.getOutbound();
+
+            List<MappingType> newInbounds = prepareActivationMappings(inbounds,
+                    ResourceActivationEditor.ADM_STATUS_IN_SOURCE_DEFAULT, ResourceActivationEditor.ADM_STATUS_IN_TARGET_DEFAULT);
+            administrativeStatus.getInbound().clear();
+            administrativeStatus.getInbound().addAll(newInbounds);
+
+            List<MappingType> newOutbounds = prepareActivationMappings(outbounds,
+                    ResourceActivationEditor.ADM_STATUS_OUT_SOURCE_DEFAULT, ResourceActivationEditor.ADM_STATUS_OUT_TARGET_DEFAULT);
+            administrativeStatus.getOutbound().clear();
+            administrativeStatus.getOutbound().addAll(newOutbounds);
+
+            if(isBidirectionalMappingEmpty(administrativeStatus)){
+                activation.setAdministrativeStatus(null);
+            }
+        }
+
+        if(activation.getValidTo() != null){
+            ResourceBidirectionalMappingType validTo = activation.getValidTo();
+
+            List<MappingType> inbounds = validTo.getInbound();
+            List<MappingType> outbounds = validTo.getOutbound();
+
+            List<MappingType> newInbounds = prepareActivationMappings(inbounds,
+                    ResourceActivationEditor.VALID_TO_IN_SOURCE_DEFAULT, ResourceActivationEditor.VALID_TO_IN_TARGET_DEFAULT);
+            validTo.getInbound().clear();
+            validTo.getInbound().addAll(newInbounds);
+
+            List<MappingType> newOutbounds = prepareActivationMappings(outbounds,
+                    ResourceActivationEditor.VALID_TO_OUT_SOURCE_DEFAULT, ResourceActivationEditor.VALID_TO_OUT_TARGET_DEFAULT);
+            validTo.getOutbound().clear();
+            validTo.getOutbound().addAll(newOutbounds);
+
+            if(isBidirectionalMappingEmpty(validTo)){
+                activation.setValidTo(null);
+            }
+        }
+
+        if(activation.getValidFrom() != null){
+            ResourceBidirectionalMappingType validFrom = activation.getValidFrom();
+
+            List<MappingType> inbounds = validFrom.getInbound();
+            List<MappingType> outbounds = validFrom.getOutbound();
+
+            List<MappingType> newInbounds = prepareActivationMappings(inbounds,
+                    ResourceActivationEditor.VALID_FROM_IN_SOURCE_DEFAULT, ResourceActivationEditor.VALID_FROM_IN_TARGET_DEFAULT);
+            validFrom.getInbound().clear();
+            validFrom.getInbound().addAll(newInbounds);
+
+            List<MappingType> newOutbounds = prepareActivationMappings(outbounds,
+                    ResourceActivationEditor.VALID_FROM_OUT_SOURCE_DEFAULT, ResourceActivationEditor.VALID_FROM_OUT_TARGET_DEFAULT);
+            validFrom.getOutbound().clear();
+            validFrom.getOutbound().addAll(newOutbounds);
+
+            if(isBidirectionalMappingEmpty(validFrom)){
+                activation.setValidFrom(null);
+            }
+        }
+
+        if(activation.getExistence() != null){
+            ResourceBidirectionalMappingType existence = activation.getExistence();
+
+            List<MappingType> inbounds = existence.getInbound();
+            List<MappingType> newInbounds = new ArrayList<>();
+
+            for(MappingType inbound: inbounds){
+                if(inbound.equals(new MappingType())){
+                    continue;
+                }
+
+                if(inbound.getSource().size() == 0 && compareItemPath(inbound.getSource().get(0).getPath(), ResourceActivationEditor.EXISTENCE_DEFAULT_SOURCE)){
+                    newInbounds.add(new MappingType());
+                    continue;
+                }
+
+                newInbounds.add(inbound);
+            }
+
+            existence.getInbound().clear();
+            existence.getInbound().addAll(newInbounds);
+
+            List<MappingType> outbounds = existence.getOutbound();
+            List<MappingType> newOutbounds = existence.getOutbound();
+
+            for(MappingType outbound: outbounds){
+                if(!outbound.equals(new MappingType())){
+                    newOutbounds.add(outbound);
+                }
+            }
+
+            existence.getOutbound().clear();
+            existence.getOutbound().addAll(newOutbounds);
+
+            if(isBidirectionalMappingEmpty(existence)){
+                activation.setExistence(null);
+            }
+        }
+    }
+
+    private boolean isBidirectionalMappingEmpty(ResourceBidirectionalMappingType mapping){
+        return mapping.getFetchStrategy() == null && mapping.getInbound().isEmpty() && mapping.getOutbound().isEmpty();
+
+    }
+
+    private List<MappingType> prepareActivationMappings(List<MappingType> list, String defaultSource, String defaultTarget){
+        List<MappingType> newMappings = new ArrayList<>();
+
+        for(MappingType mapping: list){
+            if(mapping.equals(new MappingType())){
+                continue;
+            }
+
+            if(mapping.getTarget() != null){
+                if(compareItemPath(mapping.getTarget().getPath(), defaultTarget)){
+                    mapping.setTarget(null);
+                }
+            }
+
+            if(mapping.getSource().size() == 1){
+                if(compareItemPath(mapping.getSource().get(0).getPath(), defaultSource)){
+                    mapping.getSource().clear();
+                }
+            }
+
+            newMappings.add(mapping);
+        }
+
+        return newMappings;
+    }
+
+    private boolean compareItemPath(ItemPathType itemPath, String comparePath){
+        if(itemPath != null && itemPath.getItemPath() != null){
+            if(comparePath.equals(itemPath.getItemPath().toString())){
+                return true;
+            }
+        }
+
+        return false;
     }
 }
