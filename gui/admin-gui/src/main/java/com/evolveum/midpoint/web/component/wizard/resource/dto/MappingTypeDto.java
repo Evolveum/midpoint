@@ -73,7 +73,9 @@ public class MappingTypeDto implements Serializable {
         }
 
         if(mapping == null){
-            mappingObject = new MappingType();
+            MappingType newMapping = new MappingType();
+            newMapping.setAuthoritative(true);
+            mappingObject = newMapping;
         } else {
             mappingObject = mapping;
         }

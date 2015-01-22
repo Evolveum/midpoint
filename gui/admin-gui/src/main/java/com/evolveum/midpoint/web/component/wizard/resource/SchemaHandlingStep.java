@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
+import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.*;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceObjectTypeDefinitionTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SchemaHandlingDto;
@@ -916,7 +917,7 @@ public class SchemaHandlingStep extends WizardStep {
             List<MappingType> newInbounds = new ArrayList<>();
 
             for(MappingType inbound: inbounds){
-                if(inbound.equals(new MappingType())){
+                if(WizardUtil.isEmptyMapping(inbound)){
                     continue;
                 }
 
@@ -935,7 +936,7 @@ public class SchemaHandlingStep extends WizardStep {
             List<MappingType> newOutbounds = existence.getOutbound();
 
             for(MappingType outbound: outbounds){
-                if(!outbound.equals(new MappingType())){
+                if(!WizardUtil.isEmptyMapping(outbound)){
                     newOutbounds.add(outbound);
                 }
             }
@@ -958,7 +959,7 @@ public class SchemaHandlingStep extends WizardStep {
         List<MappingType> newMappings = new ArrayList<>();
 
         for(MappingType mapping: list){
-            if(mapping.equals(new MappingType())){
+            if(WizardUtil.isEmptyMapping(mapping)){
                 continue;
             }
 
