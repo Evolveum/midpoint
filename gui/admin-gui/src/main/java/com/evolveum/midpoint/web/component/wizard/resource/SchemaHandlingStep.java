@@ -393,7 +393,9 @@ public class SchemaHandlingStep extends WizardStep {
 
             @Override
             protected ResourceAttributeDefinitionType createNewEmptyItem(){
-                return new ResourceAttributeDefinitionType();
+                ResourceAttributeDefinitionType attribute = new ResourceAttributeDefinitionType();
+                attribute.setTolerant(true);
+                return attribute;
             }
 
             @Override
