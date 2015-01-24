@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPan
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
@@ -308,7 +309,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
             @Override
             protected MappingType createNewEmptyItem(){
-                return new MappingType();
+                return WizardUtil.createEmptyMapping();
             }
 
             @Override
