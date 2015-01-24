@@ -408,7 +408,7 @@ to "false". The only way of resetting the flag is to change user's password.
 <task oid="91919191-76e0-59e2-86d6-444f02d3ffff">
 	<name>Synchronization: Active Directory</name>
 	<description>
-            Definition of a live sychnronization task. It will poll changelog and pull in changes
+            Definition of a live synchronization task. It will poll changelog and pull in changes
 	</description>
 	<taskIdentifier>91919191-76e0-59e2-86d6-444f02d3ffff</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>

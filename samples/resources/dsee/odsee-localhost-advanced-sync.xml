@@ -382,7 +382,7 @@ object.
 
 		<name>Synchronization: Embedded Test Oracle DSEE7</name>
 		<description>
-            Definition of a live sychnronization task. It will poll changelog and pull in changes
+            Definition of a live synchronization task. It will poll changelog and pull in changes
 		</description>
 
 		<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3afaf</taskIdentifier>
