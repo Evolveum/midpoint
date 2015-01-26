@@ -87,6 +87,9 @@ object.
             </icfc:connectorPoolConfiguration>
 
             <icfc:producerBufferSize>100</icfc:producerBufferSize>
+            <icfc:resultsHandlerConfiguration>
+                <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            </icfc:resultsHandlerConfiguration>
 
         </c:connectorConfiguration>
 

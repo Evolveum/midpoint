@@ -64,8 +64,11 @@ This resource definition contains only the very basic definitions for midPoint t
 				<icfi:vlvSortAttribute>uid</icfi:vlvSortAttribute>
 				<icfi:usePagedResultControl>true</icfi:usePagedResultControl>
 			</icfc:configurationProperties>
-		
-		</connectorConfiguration>
+            <icfc:resultsHandlerConfiguration>
+                <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            </icfc:resultsHandlerConfiguration>
+
+        </connectorConfiguration>
 
         <!-- Resource schema definition.
              It defines all the object classes that are available to midPoint

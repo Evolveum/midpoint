@@ -107,6 +107,9 @@ object.
 				<icfc:sync>-1</icfc:sync>
 				<icfc:schema>-1</icfc:schema>
 			</icfc:timeouts>
+			<icfc:resultsHandlerConfiguration>
+				<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			</icfc:resultsHandlerConfiguration>
 		</connectorConfiguration>
 
 
