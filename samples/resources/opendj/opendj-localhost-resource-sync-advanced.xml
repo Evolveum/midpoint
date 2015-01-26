@@ -269,7 +269,6 @@ object.
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Distinguished Name</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<limitations>
 					<minOccurs>0</minOccurs>
 					<access>
@@ -278,6 +277,7 @@ object.
 						<modify>false</modify>
 					</access>
 				</limitations>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -361,13 +361,13 @@ object.
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
                 <limitations>
                     <access>
                         <read>true</read>
                         <add>true</add>
                     </access>
                 </limitations>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<source>
 						<description>Source may have description</description>
