@@ -769,17 +769,13 @@ public class SchemaHandlingStep extends WizardStep {
         list.remove(objectType);
 
         if(objectType.isSelected()){
-            model.getObject().setSelected(createPlaceholderObjectType());
             insertEmptyThirdRow();
             target.add(getThirdRowContainer());
         }
 
         if(list.isEmpty()){
-            ResourceObjectTypeDefinitionType newObj = new ResourceObjectTypeDefinitionType();
-            newObj.setDisplayName(getString("SchemaHandlingStep.label.newObjectType"));
-            ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(newObj);
-            dto.setSelected(true);
-            list.add(dto);
+            insertEmptyThirdRow();
+            target.add(getThirdRowContainer());
         }
 
         target.add(getObjectTypeEditor(), getObjectListTable(), getNavigator());
@@ -791,6 +787,10 @@ public class SchemaHandlingStep extends WizardStep {
         objectType.getAssociation().add(createEmptyAssociationObject());
         objectType.setDisplayName(getString("SchemaHandlingStep.label.newObjectType"));
         ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(objectType);
+
+        if(model.getObject().getObjectTypeList().isEmpty()){
+            objectType.setDefault(true);
+        }
 
         resetSelected();
         dto.setSelected(true);
