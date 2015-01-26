@@ -824,6 +824,12 @@ public class SchemaHandlingStep extends WizardStep {
                 objectType.getAttribute().clear();
                 objectType.getAttribute().addAll(newAttributeList);
 
+                for(ResourceAttributeDefinitionType attr: objectType.getAttribute()){
+                    List<MappingType> newInbounds = clearEmptyMappings(attr.getInbound());
+                    attr.getInbound().clear();
+                    attr.getInbound().addAll(newInbounds);
+                }
+
                 //Clear obsolete containers from associations
                 List<ResourceObjectAssociationType> newAssociationList = new ArrayList<>();
                 newAssociationList.addAll(objectType.getAssociation());
@@ -835,9 +841,27 @@ public class SchemaHandlingStep extends WizardStep {
                 objectType.getAssociation().clear();
                 objectType.getAssociation().addAll(newAssociationList);
 
+                for(ResourceObjectAssociationType association: objectType.getAssociation()){
+                    List<MappingType> newInbounds = clearEmptyMappings(association.getInbound());
+                    association.getInbound().clear();
+                    association.getInbound().addAll(newInbounds);
+                }
+
                 prepareActivation(objectType.getActivation());
             }
         }
+    }
+
+    private List<MappingType> clearEmptyMappings(List<MappingType> list){
+        List<MappingType> newList = new ArrayList<>();
+
+        for(MappingType mapping: list){
+            if(!WizardUtil.isEmptyMapping(mapping)){
+                newList.add(mapping);
+            }
+        }
+
+        return newList;
     }
 
     private void prepareActivation(ResourceActivationDefinitionType activation){
