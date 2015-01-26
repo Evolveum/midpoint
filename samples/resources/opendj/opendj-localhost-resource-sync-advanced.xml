@@ -37,7 +37,8 @@ object.
          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
          xmlns:my="http://whatever.com/my"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		 xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
 
 
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
@@ -268,6 +269,7 @@ object.
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Distinguished Name</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<limitations>
 					<minOccurs>0</minOccurs>
 					<access>
@@ -359,6 +361,7 @@ object.
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
                 <limitations>
                     <access>
                         <read>true</read>
