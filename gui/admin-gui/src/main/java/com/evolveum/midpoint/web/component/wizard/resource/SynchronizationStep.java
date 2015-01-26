@@ -169,7 +169,6 @@ public class SynchronizationStep extends WizardStep {
         dto.setSelected(createPlaceholderObjectType());
         dto.setObjectSyncList(list);
         dto.setObjectClassList(loadResourceObjectClassList(resourceModel, LOGGER, getString("SynchronizationStep.message.errorLoadingObjectSyncList")));
-
         return dto;
     }
 
@@ -318,17 +317,7 @@ public class SynchronizationStep extends WizardStep {
 
             @Override
             protected IModel<String> createTextModel(final IModel<QName> model) {
-                return new Model<String>(){
-
-                    @Override
-                    public String getObject(){
-                        if(model.getObject() != null){
-                            return model.getObject().getLocalPart();
-                        }
-
-                        return " - ";
-                    }
-                };
+                return new PropertyModel<>(model, "localPart");
             }
 
             @Override
@@ -749,6 +738,8 @@ public class SynchronizationStep extends WizardStep {
         ModelService modelService = getPageBase().getModelService();
         ObjectDelta delta;
 
+        prepareResourceToSave(newResource.asObjectable());
+
         try{
             oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, getPageBase());
             if(oldResource != null){
@@ -775,6 +766,35 @@ public class SynchronizationStep extends WizardStep {
         }
     }
 
+    private void prepareResourceToSave(ResourceType resource){
+        if(resource.getSynchronization() == null){
+            return;
+        }
+
+        if(model == null || model.getObject() == null){
+            return;
+        }
+
+        ResourceSynchronizationDto dto = model.getObject();
+
+        SynchronizationType sync = resource.getSynchronization();
+        for(ObjectSynchronizationType syncObject: sync.getObjectSynchronization()){
+            List<QName> newObjectClassList = new ArrayList<>();
+
+            for(QName objectClass: syncObject.getObjectClass()){
+                for(QName objClazz: dto.getObjectClassList()){
+                    if(objClazz.getLocalPart().equals(objectClass.getLocalPart())){
+                        QName newObjectClass = new QName(objClazz.getNamespaceURI(), objClazz.getLocalPart());
+                        newObjectClassList.add(newObjectClass);
+                    }
+                }
+            }
+
+            syncObject.getObjectClass().clear();
+            syncObject.getObjectClass().addAll(newObjectClassList);
+        }
+    }
+
     private void editSyncObjectPerformed(AjaxRequestTarget target, ObjectSynchronizationTypeDto syncObject){
         resetSelected();
         syncObject.setSelected(true);
@@ -785,22 +805,18 @@ public class SynchronizationStep extends WizardStep {
     }
 
     private void deleteSyncObjectPerformed(AjaxRequestTarget target, ObjectSynchronizationTypeDto syncObject){
-        ArrayList<ObjectSynchronizationTypeDto> list = (ArrayList<ObjectSynchronizationTypeDto>)model.getObject().getObjectSyncList();
+        ArrayList<ObjectSynchronizationTypeDto> list = (ArrayList<ObjectSynchronizationTypeDto>) model.getObject().getObjectSyncList();
 
         list.remove(syncObject);
 
         if(syncObject.isSelected()){
-            model.getObject().setSelected(createPlaceholderObjectType());
             insertEmptyThirdRow();
             target.add(getThirdRowContainer());
         }
 
         if(list.isEmpty()){
-            ObjectSynchronizationType newObj = new ObjectSynchronizationType();
-            newObj.setName(getString("SynchronizationStep.label.newObjectType"));
-            ObjectSynchronizationTypeDto dto = new ObjectSynchronizationTypeDto(newObj);
-            dto.setSelected(true);
-            list.add(dto);
+            insertEmptyThirdRow();
+            target.add(getThirdRowContainer());
         }
 
         target.add(getSyncObjectEditor(), getSyncObjectTable(), getNavigator());

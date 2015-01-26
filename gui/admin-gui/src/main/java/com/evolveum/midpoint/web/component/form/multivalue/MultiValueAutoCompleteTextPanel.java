@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.form.multivalue;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
@@ -77,7 +78,6 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Sim
 
             @Override
             protected void populateItem(final ListItem<T> item) {
-
                 AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
                 autoCompleteSettings.setShowListOnEmptyInput(true);
                 AutoCompleteTextField<String> autoCompleteEditor = new AutoCompleteTextField<String>(ID_TEXT,
@@ -85,10 +85,15 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Sim
 
                     @Override
                     protected Iterator<String> getChoices(String input) {
-                        return createAutocompleteObjectList(input);
+                        return createAutoCompleteObjectList(input);
                     }
                 };
                 autoCompleteEditor.add(createAutoCompleteValidator());
+                autoCompleteEditor.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {}
+                });
                 item.add(autoCompleteEditor);
 
                 autoCompleteEditor.add(AttributeAppender.replace("placeholder", createEmptyItemPlaceholder()));
@@ -106,7 +111,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Sim
         add(repeater);
     }
 
-    private Iterator<String> createAutocompleteObjectList(String input) {
+    private Iterator<String> createAutoCompleteObjectList(String input) {
         List<T> list = createObjectList();
         List<String> choices = new ArrayList<>(AUTO_COMPLETE_LIST_SIZE);
 
