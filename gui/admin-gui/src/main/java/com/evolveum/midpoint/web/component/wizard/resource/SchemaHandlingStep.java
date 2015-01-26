@@ -150,11 +150,11 @@ public class SchemaHandlingStep extends WizardStep {
 
                     // temporary fix - think about better solution
                     if(objectType.getAttribute().isEmpty()){
-                        objectType.getAttribute().add(new ResourceAttributeDefinitionType());
+                        objectType.getAttribute().add(createEmptyAttributeObject());
                     }
 
                     if(objectType.getAssociation().isEmpty()){
-                        objectType.getAssociation().add(new ResourceObjectAssociationType());
+                        objectType.getAssociation().add(createEmptyAssociationObject());
                     }
 
                     obj = new ResourceObjectTypeDefinitionTypeDto(objectType);
@@ -172,8 +172,8 @@ public class SchemaHandlingStep extends WizardStep {
     private ResourceObjectTypeDefinitionType createPlaceholderObjectType(){
         //TODO temporary fix - think about better solution
         ResourceObjectTypeDefinitionType placeholder = new ResourceObjectTypeDefinitionType();
-        placeholder.getAttribute().add(new ResourceAttributeDefinitionType());
-        placeholder.getAssociation().add(new ResourceObjectAssociationType());
+        placeholder.getAttribute().add(createEmptyAttributeObject());
+        placeholder.getAssociation().add(createEmptyAssociationObject());
 
         return placeholder;
     }
@@ -394,9 +394,7 @@ public class SchemaHandlingStep extends WizardStep {
 
             @Override
             protected ResourceAttributeDefinitionType createNewEmptyItem(){
-                ResourceAttributeDefinitionType attribute = new ResourceAttributeDefinitionType();
-                attribute.setTolerant(true);
-                return attribute;
+                return createEmptyAttributeObject();
             }
 
             @Override
@@ -447,7 +445,7 @@ public class SchemaHandlingStep extends WizardStep {
 
             @Override
             protected ResourceObjectAssociationType createNewEmptyItem(){
-                return new ResourceObjectAssociationType();
+                return createEmptyAssociationObject();
             }
 
             @Override
@@ -752,11 +750,11 @@ public class SchemaHandlingStep extends WizardStep {
         objectType.setSelected(true);
 
         if(objectType.getObjectType().getAssociation().isEmpty()){
-            objectType.getObjectType().getAssociation().add(new ResourceObjectAssociationType());
+            objectType.getObjectType().getAssociation().add(createEmptyAssociationObject());
         }
 
         if(objectType.getObjectType().getAttribute().isEmpty()){
-            objectType.getObjectType().getAttribute().add(new ResourceAttributeDefinitionType());
+            objectType.getObjectType().getAttribute().add(createEmptyAttributeObject());
         }
 
         model.getObject().setSelected(objectType.getObjectType());
@@ -789,8 +787,8 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void addObjectTypePerformed(AjaxRequestTarget target){
         ResourceObjectTypeDefinitionType objectType = new ResourceObjectTypeDefinitionType();
-        objectType.getAttribute().add(new ResourceAttributeDefinitionType());
-        objectType.getAssociation().add(new ResourceObjectAssociationType());
+        objectType.getAttribute().add(createEmptyAttributeObject());
+        objectType.getAssociation().add(createEmptyAssociationObject());
         objectType.setDisplayName(getString("SchemaHandlingStep.label.newObjectType"));
         ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(objectType);
 
@@ -989,5 +987,17 @@ public class SchemaHandlingStep extends WizardStep {
         }
 
         return false;
+    }
+
+    private ResourceObjectAssociationType createEmptyAssociationObject(){
+        ResourceObjectAssociationType association = new ResourceObjectAssociationType();
+        association.setTolerant(true);
+        return association;
+    }
+
+    private ResourceAttributeDefinitionType createEmptyAttributeObject(){
+        ResourceAttributeDefinitionType attribute = new ResourceAttributeDefinitionType();
+        attribute.setTolerant(true);
+        return attribute;
     }
 }
