@@ -1277,6 +1277,9 @@ public abstract class ShadowCache {
 
 			// FIXME: hack. the object delta must have oid specified.
 			if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("No OID present, assuming delta of type DELETE; change = {}\nobjectDelta: {}", change, change.getObjectDelta().debugDump());
+				}
 				ObjectDelta<ShadowType> objDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.DELETE, prismContext);
 				change.setObjectDelta(objDelta);
 				change.getObjectDelta().setOid(oldShadow.getOid());
