@@ -47,7 +47,7 @@ public class PageInternals extends PageAdminConfiguration {
     @SpringBean(name = "clock")
     private Clock clock;
 
-    private IModel<XMLGregorianCalendar> model;
+    private LoadableModel<XMLGregorianCalendar> model;
     private IModel<InternalsConfigDto> internalsModel;
 
     public PageInternals() {
@@ -83,6 +83,20 @@ public class PageInternals extends PageAdminConfiguration {
             }
         };
         mainForm.add(saveButton);
+
+        AjaxSubmitButton resetButton = new AjaxSubmitButton("reset", createStringResource("PageInternals.button.resetTimeChange")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                resetPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(resetButton);
 
         initDebugUtilForm();
         initInternalsConfigForm();
@@ -163,5 +177,15 @@ public class PageInternals extends PageAdminConfiguration {
         showResult(result);
         target.add(getFeedbackPanel());
 
+    }
+
+    private void resetPerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(PageInternals.class.getName() + ".changeTimeReset");
+        clock.resetOverride();
+        model.reset();
+        result.recordSuccess();
+        showResult(result);
+        target.add(this);
+        target.add(getFeedbackPanel());
     }
 }
