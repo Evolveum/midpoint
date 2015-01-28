@@ -80,22 +80,10 @@ public class MappingTypeDto implements Serializable {
             mappingObject = mapping;
         }
 
-        if(mappingObject.getChannel().isEmpty()){
-            mappingObject.getChannel().add(new String());
-        }
-
-        if(mappingObject.getExceptChannel().isEmpty()){
-        mappingObject.getExceptChannel().add(new String());
-        }
-
         for(MappingSourceDeclarationType mappingSource: mappingObject.getSource()){
             if(mappingSource.getPath() != null && mappingSource.getPath().getItemPath() != null){
                 source.add(mappingSource.getPath().getItemPath().toString());
             }
-        }
-
-        if(source.isEmpty()){
-            source.add(new String());
         }
 
         if(mappingObject.getTarget() != null && mappingObject.getTarget().getPath() != null
@@ -375,5 +363,4 @@ public class MappingTypeDto implements Serializable {
 
         return sb.toString();
     }
-
 }

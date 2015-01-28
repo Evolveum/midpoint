@@ -198,7 +198,7 @@ public class MappingEditorDialog extends ModalWindow{
         form.add(strength);
 
         MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
-                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"), true, true){
+                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"), true){
 
             @Override
             protected String createNewEmptyItem() {
@@ -239,7 +239,7 @@ public class MappingEditorDialog extends ModalWindow{
         form.add(channel);
 
         MultiValueDropDownPanel exceptChannel = new MultiValueDropDownPanel<String>(ID_EXCEPT_CHANNEL,
-                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING +  ".exceptChannel"), true, true){
+                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING +  ".exceptChannel"), true){
 
             @Override
             protected String createNewEmptyItem() {

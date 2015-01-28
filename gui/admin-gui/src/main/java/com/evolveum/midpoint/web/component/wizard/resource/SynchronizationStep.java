@@ -147,11 +147,6 @@ public class SynchronizationStep extends WizardStep {
             ObjectSynchronizationTypeDto obj;
             if(sync != null && sync.getObjectSynchronization() != null){
                 for(ObjectSynchronizationType syncObject: sync.getObjectSynchronization()){
-
-                    if(syncObject.getObjectClass().isEmpty()){
-                        syncObject.getObjectClass().add(new QName(""));
-                    }
-
                     obj = new ObjectSynchronizationTypeDto(syncObject);
                     list.add(obj);
                 }
@@ -302,7 +297,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorIntent);
 
         MultiValueAutoCompleteTextPanel<QName> editorObjectClass = new MultiValueAutoCompleteTextPanel<QName>(ID_EDITOR_OBJECT_CLASS,
-                new PropertyModel<List<QName>>(model, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true, false){
+                new PropertyModel<List<QName>>(model, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<QName> model) {
@@ -813,7 +808,6 @@ public class SynchronizationStep extends WizardStep {
 
     private void addSyncObjectPerformed(AjaxRequestTarget target){
         ObjectSynchronizationType syncObject = new ObjectSynchronizationType();
-        syncObject.getObjectClass().add(new QName(""));
         syncObject.setName(getString("SynchronizationStep.label.newObjectType"));
 
         ObjectSynchronizationTypeDto dto = new ObjectSynchronizationTypeDto(syncObject);

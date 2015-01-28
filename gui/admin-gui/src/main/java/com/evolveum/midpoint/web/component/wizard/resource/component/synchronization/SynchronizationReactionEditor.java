@@ -109,7 +109,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
         add(situation);
 
         MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
-                new PropertyModel<List<String>>(getModel(), "channel"), true, true){
+                new PropertyModel<List<String>>(getModel(), "channel"), true){
 
             @Override
             protected String createNewEmptyItem() {

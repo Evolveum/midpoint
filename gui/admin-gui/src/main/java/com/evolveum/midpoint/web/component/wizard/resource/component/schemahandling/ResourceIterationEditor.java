@@ -129,7 +129,6 @@ public class ResourceIterationEditor extends SimplePanel<IterationSpecificationT
                 @Override
                 protected IterationSpecificationTypeDto load() {
                     return new IterationSpecificationTypeDto(getModel().getObject());
-//                    return new IterationSpecificationTypeDto(getModel().getObject(), getPageBase().getPrismContext());
                 }
             };
         }
