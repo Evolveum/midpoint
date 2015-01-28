@@ -178,7 +178,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
         add(objectTemplateRef);
 
         MultiValueTextEditPanel action = new MultiValueTextEditPanel<SynchronizationActionType>(ID_ACTION,
-                new PropertyModel<List<SynchronizationActionType>>(getModel(), "action"), false, true){
+                new PropertyModel<List<SynchronizationActionType>>(getModel(), "action"), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationActionType> model) {

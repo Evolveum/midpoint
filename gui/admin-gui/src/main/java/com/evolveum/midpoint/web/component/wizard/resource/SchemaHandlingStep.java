@@ -44,6 +44,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -147,16 +148,6 @@ public class SchemaHandlingStep extends WizardStep {
             ResourceObjectTypeDefinitionTypeDto obj;
             if(schemaHandling != null && schemaHandling.getObjectType() != null){
                 for(ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()){
-
-                    // temporary fix - think about better solution
-                    if(objectType.getAttribute().isEmpty()){
-                        objectType.getAttribute().add(createEmptyAttributeObject());
-                    }
-
-                    if(objectType.getAssociation().isEmpty()){
-                        objectType.getAssociation().add(createEmptyAssociationObject());
-                    }
-
                     obj = new ResourceObjectTypeDefinitionTypeDto(objectType);
                     list.add(obj);
                 }
@@ -170,12 +161,7 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private ResourceObjectTypeDefinitionType createPlaceholderObjectType(){
-        //TODO temporary fix - think about better solution
-        ResourceObjectTypeDefinitionType placeholder = new ResourceObjectTypeDefinitionType();
-        placeholder.getAttribute().add(createEmptyAttributeObject());
-        placeholder.getAssociation().add(createEmptyAssociationObject());
-
-        return placeholder;
+        return new ResourceObjectTypeDefinitionType();
     }
 
     private boolean isAnySelected(){
@@ -356,6 +342,11 @@ public class SchemaHandlingStep extends WizardStep {
                 return getObjectClassChoices(input);
             }
         };
+        editorObjectClass.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {}
+        });
         editorObjectClass.add(createObjectClassValidator(new LoadableModel<List<QName>>(false) {
 
             @Override
@@ -367,7 +358,7 @@ public class SchemaHandlingStep extends WizardStep {
 
         MultiValueTextEditPanel editorAttributes = new MultiValueTextEditPanel<ResourceAttributeDefinitionType>(ID_EDITOR_ATTRIBUTES,
                 new PropertyModel<List<ResourceAttributeDefinitionType>>(model, SchemaHandlingDto.F_SELECTED + "." +
-                        ResourceObjectTypeDefinitionType.F_ATTRIBUTE.getLocalPart()), false, false){
+                        ResourceObjectTypeDefinitionType.F_ATTRIBUTE.getLocalPart()), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ResourceAttributeDefinitionType> model) {
@@ -418,7 +409,7 @@ public class SchemaHandlingStep extends WizardStep {
 
         MultiValueTextEditPanel editorAssociations = new MultiValueTextEditPanel<ResourceObjectAssociationType>(ID_EDITOR_ASSOCIATIONS,
                 new PropertyModel<List<ResourceObjectAssociationType>>(model, SchemaHandlingDto.F_SELECTED + "." +
-                        ResourceObjectTypeDefinitionType.F_ASSOCIATION.getLocalPart()), false, false){
+                        ResourceObjectTypeDefinitionType.F_ASSOCIATION.getLocalPart()), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ResourceObjectAssociationType> model) {
@@ -749,14 +740,6 @@ public class SchemaHandlingStep extends WizardStep {
         resetSelected();
         objectType.setSelected(true);
 
-        if(objectType.getObjectType().getAssociation().isEmpty()){
-            objectType.getObjectType().getAssociation().add(createEmptyAssociationObject());
-        }
-
-        if(objectType.getObjectType().getAttribute().isEmpty()){
-            objectType.getObjectType().getAttribute().add(createEmptyAttributeObject());
-        }
-
         model.getObject().setSelected(objectType.getObjectType());
 
         insertEmptyThirdRow();
@@ -783,8 +766,6 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void addObjectTypePerformed(AjaxRequestTarget target){
         ResourceObjectTypeDefinitionType objectType = new ResourceObjectTypeDefinitionType();
-        objectType.getAttribute().add(createEmptyAttributeObject());
-        objectType.getAssociation().add(createEmptyAssociationObject());
         objectType.setDisplayName(getString("SchemaHandlingStep.label.newObjectType"));
         ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(objectType);
 

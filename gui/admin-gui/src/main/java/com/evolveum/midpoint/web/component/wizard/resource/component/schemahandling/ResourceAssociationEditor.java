@@ -293,7 +293,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "inbound"), false, true){
+                new PropertyModel<List<MappingType>>(getModel(), "inbound"), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
