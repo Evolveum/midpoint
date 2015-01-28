@@ -152,14 +152,6 @@ public class SynchronizationStep extends WizardStep {
                         syncObject.getObjectClass().add(new QName(""));
                     }
 
-                    if(syncObject.getCorrelation().isEmpty()){
-                        syncObject.getCorrelation().add(new ConditionalSearchFilterType());
-                    }
-
-                    if(syncObject.getReaction().isEmpty()){
-                        syncObject.getReaction().add(new SynchronizationReactionType());
-                    }
-
                     obj = new ObjectSynchronizationTypeDto(syncObject);
                     list.add(obj);
                 }
@@ -173,10 +165,7 @@ public class SynchronizationStep extends WizardStep {
     }
 
     private ObjectSynchronizationType createPlaceholderObjectType(){
-        ObjectSynchronizationType syncObject = new ObjectSynchronizationType();
-        syncObject.getCorrelation().add(new ConditionalSearchFilterType());
-        syncObject.getReaction().add(new SynchronizationReactionType());
-        return syncObject;
+        return new ObjectSynchronizationType();
     }
 
     private boolean isAnySelected(){
@@ -432,7 +421,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorOpportunistic);
 
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
-                new PropertyModel<List<ConditionalSearchFilterType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".correlation"), false, false){
+                new PropertyModel<List<ConditionalSearchFilterType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".correlation"), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ConditionalSearchFilterType> model) {
@@ -474,7 +463,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorCorrelation);
 
         MultiValueTextEditPanel editorReaction = new MultiValueTextEditPanel<SynchronizationReactionType>(ID_EDITOR_REACTION,
-                new PropertyModel<List<SynchronizationReactionType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".reaction"), false, false){
+                new PropertyModel<List<SynchronizationReactionType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".reaction"), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationReactionType> model) {
@@ -824,8 +813,6 @@ public class SynchronizationStep extends WizardStep {
 
     private void addSyncObjectPerformed(AjaxRequestTarget target){
         ObjectSynchronizationType syncObject = new ObjectSynchronizationType();
-        syncObject.getCorrelation().add(new ConditionalSearchFilterType());
-        syncObject.getReaction().add(new SynchronizationReactionType());
         syncObject.getObjectClass().add(new QName(""));
         syncObject.setName(getString("SynchronizationStep.label.newObjectType"));
 
