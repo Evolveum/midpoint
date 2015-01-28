@@ -228,6 +228,7 @@ public class ProgressReporter implements Serializable {
 
                         stopRefreshingProgressPanel();
 
+                        // TODO this is a bit of heuristics - we give user a chance to retry the operation if the error is fatal (RETHINK/REVISE THIS "POLICY")
                         if (asyncOperationResult.isFatalError()) {
                             saveButton.setVisible(true);            // enable re-saving after fixing (potential) error
                             target.add(saveButton);
@@ -253,6 +254,7 @@ public class ProgressReporter implements Serializable {
     private void stopRefreshingProgressPanel() {
         if (refreshingBehavior != null) {
             progressPanel.remove(refreshingBehavior);
+            refreshingBehavior = null;              // causes re-adding this behavior when re-saving changes
         }
     }
 
