@@ -31,13 +31,6 @@
         <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
-	<repositories>
-        	<repository>
-			<!-- We need this for scannotation -->
-			<id>jboss</id>
-			<url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-        	</repository>
-    	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
@@ -75,10 +68,6 @@
 			<artifactId>commons-pool</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.scannotation</groupId>
-			<artifactId>scannotation</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>net.tirasa.connid</groupId>
 			<artifactId>connector-framework</artifactId>
