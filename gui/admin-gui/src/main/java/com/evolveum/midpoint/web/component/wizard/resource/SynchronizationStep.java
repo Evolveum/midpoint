@@ -707,6 +707,13 @@ public class SynchronizationStep extends WizardStep {
                 new Model<>(reaction));
         getThirdRowContainer().replaceWith(newContainer);
 
+        for(SynchronizationActionType action: reaction.getAction()){
+            if(action.getRef() != null){
+                warn(getString("SynchronizationStep.message.unsupportedActionFormat"));
+                break;
+            }
+        }
+
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
