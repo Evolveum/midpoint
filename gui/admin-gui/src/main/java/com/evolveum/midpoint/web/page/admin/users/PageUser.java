@@ -970,7 +970,13 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         ModalWindow window = createModalWindow(MODAL_ID_RESOURCE,
                 createStringResource("pageUser.title.selectResource"), 1100, 560);
 
-        final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel);
+        final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel){
+
+            @Override
+            protected void handlePartialError(OperationResult result) {
+                showResult(result);
+            }
+        };
         window.setContent(new ResourcesPopup(window.getContentId()) {
 
             @Override
