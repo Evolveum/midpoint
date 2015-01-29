@@ -242,7 +242,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
 
             @Override
             public void updateComponents(AjaxRequestTarget target){
-                target.add(SynchronizationReactionEditor.this);
+                target.add(SynchronizationReactionEditor.this.get(ID_ACTION));
             }
         };
         add(actionEditor);
@@ -288,5 +288,4 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
         window.updateModel(target, action);
         window.show(target);
     }
-
 }
