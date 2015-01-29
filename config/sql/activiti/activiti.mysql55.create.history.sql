@@ -3,20 +3,18 @@ create table ACT_HI_PROCINST (
     PROC_INST_ID_ varchar(64) not null,
     BUSINESS_KEY_ varchar(255),
     PROC_DEF_ID_ varchar(64) not null,
-    START_TIME_ timestamp not null,
-    END_TIME_ timestamp,
+    START_TIME_ datetime not null,
+    END_TIME_ datetime,
     DURATION_ bigint,
     START_USER_ID_ varchar(255),
     START_ACT_ID_ varchar(255),
     END_ACT_ID_ varchar(255),
     SUPER_PROCESS_INSTANCE_ID_ varchar(64),
-	  UNI_BUSINESS_KEY varchar (255)  not null  generated always as (case when "BUSINESS_KEY_" is null then "ID_" else "BUSINESS_KEY_" end),
-	  UNI_PROC_DEF_ID varchar (64)  not null  generated always as (case when "PROC_DEF_ID_" is null then "ID_" else "PROC_DEF_ID_" end),
     DELETE_REASON_ varchar(4000),
-    primary key (ID_)
-);
-
-alter table ACT_HI_PROCINST add constraint PROC_INST_ID_ unique(PROC_INST_ID_);
+    TENANT_ID_ varchar(255) default '',
+    primary key (ID_),
+    unique (PROC_INST_ID_)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
 create table ACT_HI_ACTINST (
     ID_ varchar(64) not null,
@@ -28,13 +26,13 @@ create table ACT_HI_ACTINST (
     CALL_PROC_INST_ID_ varchar(64),
     ACT_NAME_ varchar(255),
     ACT_TYPE_ varchar(255) not null,
-    OWNER_ varchar(64),
-    ASSIGNEE_ varchar(64),
-    START_TIME_ timestamp not null,
-    END_TIME_ timestamp,
+    ASSIGNEE_ varchar(255),
+    START_TIME_ datetime not null,
+    END_TIME_ datetime,
     DURATION_ bigint,
+    TENANT_ID_ varchar(255) default '',
     primary key (ID_)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
 create table ACT_HI_TASKINST (
     ID_ varchar(64) not null,
@@ -47,16 +45,18 @@ create table ACT_HI_TASKINST (
     DESCRIPTION_ varchar(4000),
     OWNER_ varchar(255),
     ASSIGNEE_ varchar(255),
-    START_TIME_ timestamp not null,
-    CLAIM_TIME_ timestamp,
-    END_TIME_ timestamp,
+    START_TIME_ datetime not null,
+    CLAIM_TIME_ datetime,
+    END_TIME_ datetime,
     DURATION_ bigint,
     DELETE_REASON_ varchar(4000),
     PRIORITY_ integer,
-    DUE_DATE_ timestamp,
+    DUE_DATE_ datetime,
     FORM_KEY_ varchar(255),
+    CATEGORY_ varchar(255),
+    TENANT_ID_ varchar(255) default '',
     primary key (ID_)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
 create table ACT_HI_VARINST (
     ID_ varchar(64) not null,
@@ -67,12 +67,14 @@ create table ACT_HI_VARINST (
     VAR_TYPE_ varchar(100),
     REV_ integer,
     BYTEARRAY_ID_ varchar(64),
-    DOUBLE_ double precision,
+    DOUBLE_ double,
     LONG_ bigint,
     TEXT_ varchar(4000),
     TEXT2_ varchar(4000),
+    CREATE_TIME_ datetime,
+    LAST_UPDATED_TIME_ datetime,
     primary key (ID_)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
 create table ACT_HI_DETAIL (
     ID_ varchar(64) not null,
@@ -84,27 +86,27 @@ create table ACT_HI_DETAIL (
     NAME_ varchar(255) not null,
     VAR_TYPE_ varchar(255),
     REV_ integer,
-    TIME_ timestamp not null,
+    TIME_ datetime not null,
     BYTEARRAY_ID_ varchar(64),
-    DOUBLE_ double precision,
+    DOUBLE_ double,
     LONG_ bigint,
     TEXT_ varchar(4000),
     TEXT2_ varchar(4000),
     primary key (ID_)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
 create table ACT_HI_COMMENT (
     ID_ varchar(64) not null,
     TYPE_ varchar(255),
-    TIME_ timestamp not null,
+    TIME_ datetime not null,
     USER_ID_ varchar(255),
     TASK_ID_ varchar(64),
     PROC_INST_ID_ varchar(64),
     ACTION_ varchar(255),
     MESSAGE_ varchar(4000),
-    FULL_MSG_ BLOB,
+    FULL_MSG_ LONGBLOB,
     primary key (ID_)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
 create table ACT_HI_ATTACHMENT (
     ID_ varchar(64) not null,
@@ -118,19 +120,18 @@ create table ACT_HI_ATTACHMENT (
     URL_ varchar(4000),
     CONTENT_ID_ varchar(64),
     primary key (ID_)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
 create table ACT_HI_IDENTITYLINK (
-    ID_ varchar(64) not null,
+    ID_ varchar(64),
     GROUP_ID_ varchar(255),
     TYPE_ varchar(255),
     USER_ID_ varchar(255),
     TASK_ID_ varchar(64),
     PROC_INST_ID_ varchar(64),
     primary key (ID_)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
-create unique index ACT_UNIQ_HI_BUS_KEY on ACT_HI_PROCINST(UNI_PROC_DEF_ID, UNI_BUSINESS_KEY);
 create index ACT_IDX_HI_PRO_INST_END on ACT_HI_PROCINST(END_TIME_);
 create index ACT_IDX_HI_PRO_I_BUSKEY on ACT_HI_PROCINST(BUSINESS_KEY_);
 create index ACT_IDX_HI_ACT_INST_START on ACT_HI_ACTINST(START_TIME_);

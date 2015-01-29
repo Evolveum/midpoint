@@ -1,3 +1,7 @@
+# Activiti scripts are for MySQL 5.6.4+
+# see http://jira.codehaus.org/browse/ACT-1867 for more information
+#------------------------------
+
 # use for db create
 # CREATE DATABASE <database name>
 #   CHARACTER SET utf8
@@ -1219,10 +1223,10 @@ create table ACT_GE_PROPERTY (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
 insert into ACT_GE_PROPERTY
-values ('schema.version', '5.13', 1);
+values ('schema.version', '5.15.1', 1);
 
 insert into ACT_GE_PROPERTY
-values ('schema.history', 'create(5.13)', 1);
+values ('schema.history', 'create(5.15.1)', 1);
 
 insert into ACT_GE_PROPERTY
 values ('next.dbid', '1', 1);
@@ -1241,6 +1245,7 @@ create table ACT_RE_DEPLOYMENT (
   ID_ varchar(64),
   NAME_ varchar(255),
   CATEGORY_ varchar(255),
+  TENANT_ID_ varchar(255) default '',
   DEPLOY_TIME_ timestamp,
   primary key (ID_)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
@@ -1258,6 +1263,7 @@ create table ACT_RE_MODEL (
   DEPLOYMENT_ID_ varchar(64),
   EDITOR_SOURCE_VALUE_ID_ varchar(64),
   EDITOR_SOURCE_EXTRA_VALUE_ID_ varchar(64),
+  TENANT_ID_ varchar(255) default '',
   primary key (ID_)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
@@ -1276,8 +1282,8 @@ create table ACT_RU_EXECUTION (
   IS_EVENT_SCOPE_ TINYINT,
   SUSPENSION_STATE_ integer,
   CACHED_ENT_STATE_ integer,
-  primary key (ID_),
-  unique ACT_UNIQ_RU_BUS_KEY (PROC_DEF_ID_, BUSINESS_KEY_)
+  TENANT_ID_ varchar(255) default '',
+  primary key (ID_)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
 create table ACT_RU_JOB (
@@ -1297,6 +1303,7 @@ create table ACT_RU_JOB (
   REPEAT_ varchar(255),
   HANDLER_TYPE_ varchar(255),
   HANDLER_CFG_ varchar(4000),
+  TENANT_ID_ varchar(255) default '',
   primary key (ID_)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
@@ -1313,6 +1320,7 @@ create table ACT_RE_PROCDEF (
   DESCRIPTION_ varchar(4000),
   HAS_START_FORM_KEY_ TINYINT,
   SUSPENSION_STATE_ integer,
+  TENANT_ID_ varchar(255) default '',
   primary key (ID_)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
@@ -1332,7 +1340,9 @@ create table ACT_RU_TASK (
   PRIORITY_ integer,
   CREATE_TIME_ timestamp,
   DUE_DATE_ datetime,
+  CATEGORY_ varchar(255),
   SUSPENSION_STATE_ integer,
+  TENANT_ID_ varchar(255) default '',
   primary key (ID_)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
@@ -1373,7 +1383,9 @@ create table ACT_RU_EVENT_SUBSCR (
   PROC_INST_ID_ varchar(64),
   ACTIVITY_ID_ varchar(64),
   CONFIGURATION_ varchar(255),
-  CREATED_ timestamp not null,
+  CREATED_ timestamp not null DEFAULT CURRENT_TIMESTAMP,
+  PROC_DEF_ID_ varchar(64),
+  TENANT_ID_ varchar(255) default '',
   primary key (ID_)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
@@ -1392,7 +1404,7 @@ references ACT_RE_DEPLOYMENT (ID_);
 
 alter table ACT_RE_PROCDEF
 add constraint ACT_UNIQ_PROCDEF
-unique (KEY_,VERSION_);
+unique (KEY_,VERSION_, TENANT_ID_);
 
 alter table ACT_RU_EXECUTION
 add constraint ACT_FK_EXE_PROCINST
@@ -1497,9 +1509,9 @@ create table ACT_HI_PROCINST (
   END_ACT_ID_ varchar(255),
   SUPER_PROCESS_INSTANCE_ID_ varchar(64),
   DELETE_REASON_ varchar(4000),
+  TENANT_ID_ varchar(255) default '',
   primary key (ID_),
-  unique (PROC_INST_ID_),
-  unique ACT_UNIQ_HI_BUS_KEY (PROC_DEF_ID_, BUSINESS_KEY_)
+  unique (PROC_INST_ID_)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
 create table ACT_HI_ACTINST (
@@ -1512,10 +1524,11 @@ create table ACT_HI_ACTINST (
   CALL_PROC_INST_ID_ varchar(64),
   ACT_NAME_ varchar(255),
   ACT_TYPE_ varchar(255) not null,
-  ASSIGNEE_ varchar(64),
+  ASSIGNEE_ varchar(255),
   START_TIME_ datetime not null,
   END_TIME_ datetime,
   DURATION_ bigint,
+  TENANT_ID_ varchar(255) default '',
   primary key (ID_)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
@@ -1538,6 +1551,8 @@ create table ACT_HI_TASKINST (
   PRIORITY_ integer,
   DUE_DATE_ datetime,
   FORM_KEY_ varchar(255),
+  CATEGORY_ varchar(255),
+  TENANT_ID_ varchar(255) default '',
   primary key (ID_)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
@@ -1554,6 +1569,8 @@ create table ACT_HI_VARINST (
   LONG_ bigint,
   TEXT_ varchar(4000),
   TEXT2_ varchar(4000),
+  CREATE_TIME_ datetime,
+  LAST_UPDATED_TIME_ datetime,
   primary key (ID_)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
 
