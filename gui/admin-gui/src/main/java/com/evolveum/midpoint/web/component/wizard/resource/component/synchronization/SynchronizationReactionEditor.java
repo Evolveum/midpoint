@@ -188,11 +188,21 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
                     public String getObject() {
                         SynchronizationActionType action = model.getObject();
 
-                        if(action != null){
-                            return action.getName() != null ? action.getName() : " - ";
-                        } else {
+                        if(action == null){
                             return null;
                         }
+
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(action.getName() != null ? action.getName() : " - ");
+
+                        if(action.getHandlerUri() != null){
+                            String[] handlerUriSplit = action.getHandlerUri().split("#");
+                            sb.append("(");
+                            sb.append(handlerUriSplit[handlerUriSplit.length - 1]);
+                            sb.append(")");
+                        }
+
+                        return sb.toString();
                     }
                 };
             }
