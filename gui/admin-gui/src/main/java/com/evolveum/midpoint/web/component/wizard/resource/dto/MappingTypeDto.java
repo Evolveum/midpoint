@@ -53,6 +53,7 @@ public class MappingTypeDto implements Serializable {
     private static MappingStrengthType DEFAULT_MAPPING_STRENGTH = MappingStrengthType.NORMAL;
 
     private MappingType mappingObject;
+    private MappingType oldMappingObject;
     private String expression;
     private String condition;
     private String target;
@@ -79,6 +80,8 @@ public class MappingTypeDto implements Serializable {
         } else {
             mappingObject = mapping;
         }
+
+        oldMappingObject = mappingObject.clone();
 
         for(MappingSourceDeclarationType mappingSource: mappingObject.getSource()){
             if(mappingSource.getPath() != null && mappingSource.getPath().getItemPath() != null){
@@ -139,6 +142,18 @@ public class MappingTypeDto implements Serializable {
 
     private JAXBElement<?> deserializeExpression(PrismContext prismContext, String xmlCode) throws SchemaException{
         return prismContext.parseAnyValueAsJAXBElement(xmlCode, PrismContext.LANG_XML);
+    }
+
+    public void cancelChanges(){
+        mappingObject.setName(oldMappingObject.getName());
+        mappingObject.setDescription(oldMappingObject.getDescription());
+        mappingObject.setAuthoritative(oldMappingObject.isAuthoritative());
+        mappingObject.setExclusive(oldMappingObject.isExclusive());
+        mappingObject.setStrength(oldMappingObject.getStrength());
+        mappingObject.getChannel().clear();
+        mappingObject.getChannel().addAll(oldMappingObject.getChannel());
+        mappingObject.getExceptChannel().clear();
+        mappingObject.getExceptChannel().addAll(oldMappingObject.getExceptChannel());
     }
 
     public MappingType prepareDtoToSave(PrismContext prismContext) throws SchemaException{
@@ -301,7 +316,7 @@ public class MappingTypeDto implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof MappingTypeDto)) return false;
 
         MappingTypeDto that = (MappingTypeDto) o;
 
@@ -317,6 +332,8 @@ public class MappingTypeDto implements Serializable {
         if (expressionType != that.expressionType) return false;
         if (mappingObject != null ? !mappingObject.equals(that.mappingObject) : that.mappingObject != null)
             return false;
+        if (oldMappingObject != null ? !oldMappingObject.equals(that.oldMappingObject) : that.oldMappingObject != null)
+            return false;
         if (source != null ? !source.equals(that.source) : that.source != null) return false;
         if (target != null ? !target.equals(that.target) : that.target != null) return false;
 
@@ -326,6 +343,7 @@ public class MappingTypeDto implements Serializable {
     @Override
     public int hashCode() {
         int result = mappingObject != null ? mappingObject.hashCode() : 0;
+        result = 31 * result + (oldMappingObject != null ? oldMappingObject.hashCode() : 0);
         result = 31 * result + (expression != null ? expression.hashCode() : 0);
         result = 31 * result + (condition != null ? condition.hashCode() : 0);
         result = 31 * result + (target != null ? target.hashCode() : 0);
@@ -339,9 +357,6 @@ public class MappingTypeDto implements Serializable {
         return result;
     }
 
-    /**
-     *  TODO - find a better place for this method, it probably shouldn't be here
-     * */
     public static String createMappingLabel(MappingType mapping, Trace LOGGER, PrismContext context,
                                             String placeholder, String nameNotSpecified ){
         if(mapping == null){

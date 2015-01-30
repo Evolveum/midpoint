@@ -573,6 +573,12 @@ public class MappingEditorDialog extends ModalWindow{
     }
 
     private void cancelPerformed(AjaxRequestTarget target){
+        if(inputModel != null && model.getObject() != null){
+            model.getObject().cancelChanges();
+        }
+
+        updateComponents(target);
+        target.add(getPageBase().getFeedbackPanel());
         close(target);
     }
 
@@ -595,7 +601,8 @@ public class MappingEditorDialog extends ModalWindow{
         close(target);
     }
 
-    public void updateComponents(AjaxRequestTarget target){
-        //Override this if update of component(s) holding this modal window is needed
-    }
+    /**
+     *  Override this if update of component(s) holding this modal window is needed
+     * */
+    public void updateComponents(AjaxRequestTarget target){}
 }

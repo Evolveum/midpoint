@@ -51,7 +51,6 @@ import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -411,18 +410,14 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
         for(ObjectClassComplexTypeDefinition def: schema.getObjectClassDefinitions()){
             if(restrictObjectClass){
                 if(objectType != null && def.getTypeName().equals(objectType.getObjectClass())){
-                    Iterator it = def.getAttributeDefinitions().iterator();
 
-                    while(it.hasNext()){
-                        ResourceAttributeDefinition attributeDefinition = (ResourceAttributeDefinition)it.next();
+                    for(ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
                         references.add(attributeDefinition.getName());
                     }
                 }
             } else {
-                Iterator it = def.getAttributeDefinitions().iterator();
 
-                while(it.hasNext()){
-                    ResourceAttributeDefinition attributeDefinition = (ResourceAttributeDefinition)it.next();
+                for(ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
                     references.add(attributeDefinition.getName());
                 }
             }
