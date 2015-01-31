@@ -20,14 +20,21 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.SchemaListPanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.XmlEditorPanel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -43,12 +50,17 @@ import java.util.List;
  */
 public class SchemaStep extends WizardStep {
 
-    private static final String ID_TABPANEL = "tabPanel";
+    private static final Trace LOGGER = TraceManager.getTrace(SchemaStep.class);
+    private static final String DOT_CLASS = SchemaStep.class.getName() + ".";
+    private static final String OPERATION_RELOAD_RESOURCE_SCHEMA = DOT_CLASS + "reloadResourceSchema";
+
+    private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_RELOAD = "reload";
     private IModel<PrismObject<ResourceType>> model;
 
     public SchemaStep(IModel<PrismObject<ResourceType>> model) {
         this.model = model;
+        setOutputMarkupId(true);
 
         initLayout();
     }
@@ -58,9 +70,9 @@ public class SchemaStep extends WizardStep {
         tabs.add(createSimpleSchemaView());
         tabs.add(createSchemaEditor());
 
-        TabbedPanel tabpanel = new TabbedPanel(ID_TABPANEL, tabs);
-        tabpanel.setOutputMarkupId(true);
-        add(tabpanel);
+        TabbedPanel tabPanel = new TabbedPanel(ID_TAB_PANEL, tabs);
+        tabPanel.setOutputMarkupId(true);
+        add(tabPanel);
 
         AjaxButton reload = new AjaxButton(ID_RELOAD, createStringModel("SchemaStep.button.reload")) {
 
@@ -121,7 +133,35 @@ public class SchemaStep extends WizardStep {
     }
 
     private void reloadPerformed(AjaxRequestTarget target) {
-        //todo implement
+        if(model == null || model.getObject() == null){
+            return;
+        }
+
+        PrismObject<ResourceType> resource = model.getObject();
+        resource.asObjectable().setSchema(new XmlSchemaType());
+        OperationResult result = new OperationResult(OPERATION_RELOAD_RESOURCE_SCHEMA);
+
+        try {
+            resource = WebModelUtils.loadObject(ResourceType.class, resource.getOid(), result, getPageBase());
+            getPageBase().getPrismContext().adopt(resource);
+
+            model.getObject().asObjectable().setSchema(resource.asObjectable().getSchema());
+        } catch (SchemaException e) {
+            LOGGER.error(getString("SchemaStep.message.reload.fail", WebMiscUtil.getName(resource)));
+            result.recordFatalError(getString("SchemaStep.message.reload.fail", WebMiscUtil.getName(resource)));
+        }
+
+        result.computeStatusIfUnknown();
+        if(result.isSuccess()){
+            LOGGER.info(getString("SchemaStep.message.reload.ok", WebMiscUtil.getName(resource)));
+            result.recordSuccess();
+        } else {
+            LOGGER.error(getString("SchemaStep.message.reload.fail", WebMiscUtil.getName(resource)));
+            result.recordFatalError(getString("SchemaStep.message.reload.fail", WebMiscUtil.getName(resource)));
+        }
+
+        getPageBase().showResult(result);
+        target.add(getPageBase().getFeedbackPanel(), this);
     }
 
     private ITab createSchemaEditor() {
