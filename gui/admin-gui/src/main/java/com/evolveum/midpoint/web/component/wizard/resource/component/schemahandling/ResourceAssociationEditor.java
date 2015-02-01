@@ -82,8 +82,8 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
     private static final String ID_BUTTON_OUTBOUND = "buttonOutbound";
     private static final String ID_BUTTON_LIMITATIONS = "buttonLimitations";
     private static final String ID_MODAL_LIMITATIONS = "limitationsEditor";
-    private static final String ID_MODAL_MAPPING = "mappingEditor";
-
+    private static final String ID_MODAL_INBOUND = "inboundEditor";
+    private static final String ID_MODAL_OUTBOUND = "outboundEditor";
     private static final String ID_T_LIMITATIONS = "limitationsTooltip";
     private static final String ID_T_EXCLUSIVE_STRONG = "exclusiveStrongTooltip";
     private static final String ID_T_TOLERANT = "tolerantTooltip";
@@ -313,7 +313,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
             @Override
             protected void editPerformed(AjaxRequestTarget target, MappingType object){
-                mappingEditPerformed(target, object);
+                inboundEditPerformed(target, object);
             }
         };
         inbound.setOutputMarkupId(true);
@@ -387,16 +387,24 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                 new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
         add(limitationsEditor);
 
-        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null){
+        ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null){
 
             @Override
             public void updateComponents(AjaxRequestTarget target){
-                target.add(ResourceAssociationEditor.this.get(ID_INBOUND), ResourceAssociationEditor.this.get(ID_OUTBOUND_LABEL),
-                        ResourceAssociationEditor.this.get(ID_BUTTON_OUTBOUND));
+                target.add(ResourceAssociationEditor.this.get(ID_INBOUND));
             }
 
         };
-        add(mappingEditor);
+        add(inboundEditor);
+
+        ModalWindow outboundEditor = new MappingEditorDialog(ID_MODAL_OUTBOUND, null){
+
+            @Override
+            public void updateComponents(AjaxRequestTarget target) {
+                target.add(ResourceAssociationEditor.this.get(ID_OUTBOUND_LABEL), ResourceAssociationEditor.this.get(ID_BUTTON_OUTBOUND));
+            }
+        };
+        add(outboundEditor);
     }
 
     private List<QName> loadObjectReferences(boolean restrictObjectClass){
@@ -469,13 +477,13 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
     }
 
     private void outboundEditPerformed(AjaxRequestTarget target){
-        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_OUTBOUND);
         window.updateModel(target, new PropertyModel<MappingType>(getModel(), "outbound"));
         window.show(target);
     }
 
-    private void mappingEditPerformed(AjaxRequestTarget target, MappingType mapping){
-        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
+    private void inboundEditPerformed(AjaxRequestTarget target, MappingType mapping){
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_INBOUND);
         window.updateModel(target, mapping);
         window.show(target);
     }
