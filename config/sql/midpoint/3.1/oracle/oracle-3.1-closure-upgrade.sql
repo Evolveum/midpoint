@@ -10,10 +10,10 @@ BEGIN
 END;
 
 CREATE TABLE m_org_closure (
-  descendant_oid VARCHAR2(36 CHAR) NOT NULL,
   ancestor_oid   VARCHAR2(36 CHAR) NOT NULL,
-  val     NUMBER(10, 0) NOT NULL,
-  PRIMARY KEY (descendant_oid, ancestor_oid)
+  descendant_oid VARCHAR2(36 CHAR) NOT NULL,
+  val            NUMBER(10, 0),
+  PRIMARY KEY (ancestor_oid, descendant_oid)
 ) INITRANS 30;
 
 BEGIN
@@ -35,6 +35,8 @@ CREATE GLOBAL TEMPORARY TABLE m_org_closure_temp_delta (
 CREATE INDEX iAncestor ON m_org_closure (ancestor_oid) INITRANS 30;
 
 CREATE INDEX iDescendant ON m_org_closure (descendant_oid) INITRANS 30;
+
+CREATE INDEX iDescendantAncestor ON m_org_closure (descendant_oid, ancestor_oid) INITRANS 30;
 
 ALTER TABLE m_org_closure
 ADD CONSTRAINT fk_ancestor
