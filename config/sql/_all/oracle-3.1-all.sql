@@ -184,8 +184,7 @@ CREATE TABLE m_connector_host (
   name_orig VARCHAR2(255 CHAR),
   port      VARCHAR2(255 CHAR),
   oid       VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid),
-  UNIQUE (name_norm)
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_connector_target_system (
@@ -223,8 +222,7 @@ CREATE TABLE m_generic_object (
   name_orig  VARCHAR2(255 CHAR),
   objectType VARCHAR2(255 CHAR),
   oid        VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid),
-  UNIQUE (name_norm)
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_node (
@@ -232,8 +230,7 @@ CREATE TABLE m_node (
   name_orig      VARCHAR2(255 CHAR),
   nodeIdentifier VARCHAR2(255 CHAR),
   oid            VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid),
-  UNIQUE (name_norm)
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_object (
@@ -327,8 +324,7 @@ CREATE TABLE m_object_template (
   name_orig VARCHAR2(255 CHAR),
   type      NUMBER(10, 0),
   oid       VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid),
-  UNIQUE (name_norm)
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_org (
@@ -343,15 +339,14 @@ CREATE TABLE m_org (
   name_orig        VARCHAR2(255 CHAR),
   tenant           NUMBER(1, 0),
   oid              VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid),
-  UNIQUE (name_norm)
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_org_closure (
-  descendant_oid VARCHAR2(36 CHAR) NOT NULL,
   ancestor_oid   VARCHAR2(36 CHAR) NOT NULL,
-  val     NUMBER(10, 0) NOT NULL,
-  PRIMARY KEY (descendant_oid, ancestor_oid)
+  descendant_oid VARCHAR2(36 CHAR) NOT NULL,
+  val            NUMBER(10, 0),
+  PRIMARY KEY (ancestor_oid, descendant_oid)
 ) INITRANS 30;
 
 CREATE GLOBAL TEMPORARY TABLE m_org_closure_temp_delta (
@@ -383,8 +378,7 @@ CREATE TABLE m_report (
   parent              NUMBER(1, 0),
   useHibernateSession NUMBER(1, 0),
   oid                 VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid),
-  UNIQUE (name_norm)
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_report_output (
@@ -406,8 +400,7 @@ CREATE TABLE m_resource (
   name_orig                  VARCHAR2(255 CHAR),
   o16_lastAvailabilityStatus NUMBER(10, 0),
   oid                        VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid),
-  UNIQUE (name_norm)
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_role (
@@ -415,16 +408,14 @@ CREATE TABLE m_role (
   name_orig VARCHAR2(255 CHAR),
   roleType  VARCHAR2(255 CHAR),
   oid       VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid),
-  UNIQUE (name_norm)
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_security_policy (
   name_norm VARCHAR2(255 CHAR),
   name_orig VARCHAR2(255 CHAR),
   oid       VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid),
-  UNIQUE (name_norm)
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_shadow (
@@ -452,8 +443,7 @@ CREATE TABLE m_system_configuration (
   name_norm VARCHAR2(255 CHAR),
   name_orig VARCHAR2(255 CHAR),
   oid       VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid),
-  UNIQUE (name_norm)
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_task (
@@ -528,8 +518,7 @@ CREATE TABLE m_user (
   title_norm           VARCHAR2(255 CHAR),
   title_orig           VARCHAR2(255 CHAR),
   oid                  VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid),
-  UNIQUE (name_norm)
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_user_employee_type (
@@ -559,62 +548,159 @@ CREATE TABLE m_value_policy (
   name_norm VARCHAR2(255 CHAR),
   name_orig VARCHAR2(255 CHAR),
   oid       VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid),
-  UNIQUE (name_norm)
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE INDEX iRequestable ON m_abstract_role (requestable) INITRANS 30;
+
+CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus) INITRANS 30;
+
+CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus) INITRANS 30;
+
+CREATE INDEX iAExtensionDate ON m_assignment_ext_date (extensionType, eName, dateValue) INITRANS 30;
+
+CREATE INDEX iAExtensionLong ON m_assignment_ext_long (extensionType, eName, longValue) INITRANS 30;
+
+CREATE INDEX iAExtensionPolyString ON m_assignment_ext_poly (extensionType, eName, orig) INITRANS 30;
+
+CREATE INDEX iAExtensionReference ON m_assignment_ext_reference (extensionType, eName, targetoid) INITRANS 30;
+
+CREATE INDEX iAExtensionString ON m_assignment_ext_string (extensionType, eName, stringValue) INITRANS 30;
+
+CREATE INDEX iAssignmentReferenceTargetOid ON m_assignment_reference (targetOid) INITRANS 30;
+
+ALTER TABLE m_connector_host
+ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iFocusAdministrative ON m_focus (administrativeStatus) INITRANS 30;
+
+CREATE INDEX iFocusEffective ON m_focus (effectiveStatus) INITRANS 30;
+
+ALTER TABLE m_generic_object
+ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm) INITRANS 30;
+
+ALTER TABLE m_node
+ADD CONSTRAINT uc_node_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iObjectNameOrig ON m_object (name_orig) INITRANS 30;
+
+CREATE INDEX iObjectNameNorm ON m_object (name_norm) INITRANS 30;
+
+CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass) INITRANS 30;
+
+CREATE INDEX iObjectCreateTimestamp ON m_object (createTimestamp) INITRANS 30;
+
+CREATE INDEX iExtensionDate ON m_object_ext_date (ownerType, eName, dateValue) INITRANS 30;
+
+CREATE INDEX iExtensionDateDef ON m_object_ext_date (owner_oid, ownerType) INITRANS 30;
+
+CREATE INDEX iExtensionLong ON m_object_ext_long (ownerType, eName, longValue) INITRANS 30;
+
+CREATE INDEX iExtensionLongDef ON m_object_ext_long (owner_oid, ownerType) INITRANS 30;
+
+CREATE INDEX iExtensionPolyString ON m_object_ext_poly (ownerType, eName, orig) INITRANS 30;
+
+CREATE INDEX iExtensionPolyStringDef ON m_object_ext_poly (owner_oid, ownerType) INITRANS 30;
+
+CREATE INDEX iExtensionReference ON m_object_ext_reference (ownerType, eName, targetoid) INITRANS 30;
+
+CREATE INDEX iExtensionReferenceDef ON m_object_ext_reference (owner_oid, ownerType) INITRANS 30;
+
+CREATE INDEX iExtensionString ON m_object_ext_string (ownerType, eName, stringValue) INITRANS 30;
+
+CREATE INDEX iExtensionStringDef ON m_object_ext_string (owner_oid, ownerType) INITRANS 30;
+
+ALTER TABLE m_object_template
+ADD CONSTRAINT uc_object_template_name UNIQUE (name_norm) INITRANS 30;
+
+ALTER TABLE m_org
+ADD CONSTRAINT uc_org_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iDisplayOrder ON m_org (displayOrder) INITRANS 30;
+
+CREATE INDEX iAncestor ON m_org_closure (ancestor_oid) INITRANS 30;
+
+CREATE INDEX iDescendant ON m_org_closure (descendant_oid) INITRANS 30;
+
+CREATE INDEX iDescendantAncestor ON m_org_closure (descendant_oid, ancestor_oid) INITRANS 30;
+
+CREATE INDEX iReferenceTargetOid ON m_reference (targetOid) INITRANS 30;
+
+ALTER TABLE m_report
+ADD CONSTRAINT uc_report_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iReportParent ON m_report (parent) INITRANS 30;
+
+ALTER TABLE m_resource
+ADD CONSTRAINT uc_resource_name UNIQUE (name_norm) INITRANS 30;
+
+ALTER TABLE m_role
+ADD CONSTRAINT uc_role_name UNIQUE (name_norm) INITRANS 30;
+
+ALTER TABLE m_security_policy
+ADD CONSTRAINT uc_security_policy_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid) INITRANS 30;
+
+CREATE INDEX iShadowDead ON m_shadow (dead) INITRANS 30;
+
+ALTER TABLE m_system_configuration
+ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iParent ON m_task (parent) INITRANS 30;
+
+CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue) INITRANS 30;
+
+ALTER TABLE m_user
+ADD CONSTRAINT uc_user_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iEmployeeNumber ON m_user (employeeNumber) INITRANS 30;
+
+CREATE INDEX iFullName ON m_user (fullName_orig) INITRANS 30;
+
+CREATE INDEX iFamilyName ON m_user (familyName_orig) INITRANS 30;
+
+CREATE INDEX iGivenName ON m_user (givenName_orig) INITRANS 30;
+
+CREATE INDEX iLocality ON m_user (locality_orig) INITRANS 30;
+
+ALTER TABLE m_value_policy
+ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm) INITRANS 30;
 
 ALTER TABLE m_abstract_role
 ADD CONSTRAINT fk_abstract_role
 FOREIGN KEY (oid)
 REFERENCES m_focus;
 
-CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus) INITRANS 30;
-
-CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus) INITRANS 30;
-
 ALTER TABLE m_assignment
 ADD CONSTRAINT fk_assignment_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
-
-CREATE INDEX iAExtensionDate ON m_assignment_ext_date (extensionType, eName, dateValue) INITRANS 30;
 
 ALTER TABLE m_assignment_ext_date
 ADD CONSTRAINT fk_assignment_ext_date
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
 REFERENCES m_assignment_extension;
 
-CREATE INDEX iAExtensionLong ON m_assignment_ext_long (extensionType, eName, longValue) INITRANS 30;
-
 ALTER TABLE m_assignment_ext_long
 ADD CONSTRAINT fk_assignment_ext_long
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
 REFERENCES m_assignment_extension;
-
-CREATE INDEX iAExtensionPolyString ON m_assignment_ext_poly (extensionType, eName, orig) INITRANS 30;
 
 ALTER TABLE m_assignment_ext_poly
 ADD CONSTRAINT fk_assignment_ext_poly
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
 REFERENCES m_assignment_extension;
 
-CREATE INDEX iAExtensionReference ON m_assignment_ext_reference (extensionType, eName, targetoid) INITRANS 30;
-
 ALTER TABLE m_assignment_ext_reference
 ADD CONSTRAINT fk_assignment_ext_reference
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
 REFERENCES m_assignment_extension;
 
-CREATE INDEX iAExtensionString ON m_assignment_ext_string (extensionType, eName, stringValue) INITRANS 30;
-
 ALTER TABLE m_assignment_ext_string
 ADD CONSTRAINT fk_assignment_ext_string
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
 REFERENCES m_assignment_extension;
-
-CREATE INDEX iAssignmentReferenceTargetOid ON m_assignment_reference (targetOid) INITRANS 30;
 
 ALTER TABLE m_assignment_reference
 ADD CONSTRAINT fk_assignment_reference
@@ -646,10 +732,6 @@ ADD CONSTRAINT fk_exclusion_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
-CREATE INDEX iFocusAdministrative ON m_focus (administrativeStatus) INITRANS 30;
-
-CREATE INDEX iFocusEffective ON m_focus (effectiveStatus) INITRANS 30;
-
 ALTER TABLE m_focus
 ADD CONSTRAINT fk_focus
 FOREIGN KEY (oid)
@@ -665,53 +747,25 @@ ADD CONSTRAINT fk_node
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
-CREATE INDEX iObjectCreateTimestamp ON m_object (createTimestamp) INITRANS 30;
-
-CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass) INITRANS 30;
-
-CREATE INDEX iObjectNameOrig ON m_object (name_orig) INITRANS 30;
-
-CREATE INDEX iObjectNameNorm ON m_object (name_norm) INITRANS 30;
-
-CREATE INDEX iExtensionDate ON m_object_ext_date (ownerType, eName, dateValue) INITRANS 30;
-
-CREATE INDEX iExtensionDateDef ON m_object_ext_date (owner_oid, ownerType) INITRANS 30;
-
 ALTER TABLE m_object_ext_date
 ADD CONSTRAINT fk_object_ext_date
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
-
-CREATE INDEX iExtensionLong ON m_object_ext_long (ownerType, eName, longValue) INITRANS 30;
-
-CREATE INDEX iExtensionLongDef ON m_object_ext_long (owner_oid, ownerType) INITRANS 30;
 
 ALTER TABLE m_object_ext_long
 ADD CONSTRAINT fk_object_ext_long
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
-CREATE INDEX iExtensionPolyString ON m_object_ext_poly (ownerType, eName, orig) INITRANS 30;
-
-CREATE INDEX iExtensionPolyStringDef ON m_object_ext_poly (owner_oid, ownerType) INITRANS 30;
-
 ALTER TABLE m_object_ext_poly
 ADD CONSTRAINT fk_object_ext_poly
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
-CREATE INDEX iExtensionReference ON m_object_ext_reference (ownerType, eName, targetoid) INITRANS 30;
-
-CREATE INDEX iExtensionReferenceDef ON m_object_ext_reference (owner_oid, ownerType) INITRANS 30;
-
 ALTER TABLE m_object_ext_reference
 ADD CONSTRAINT fk_object_ext_reference
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
-
-CREATE INDEX iExtensionString ON m_object_ext_string (ownerType, eName, stringValue) INITRANS 30;
-
-CREATE INDEX iExtensionStringDef ON m_object_ext_string (owner_oid, ownerType) INITRANS 30;
 
 ALTER TABLE m_object_ext_string
 ADD CONSTRAINT fk_object_ext_string
@@ -723,16 +777,10 @@ ADD CONSTRAINT fk_object_template
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
-CREATE INDEX iDisplayOrder ON m_org (displayOrder) INITRANS 30;
-
 ALTER TABLE m_org
 ADD CONSTRAINT fk_org
 FOREIGN KEY (oid)
 REFERENCES m_abstract_role;
-
-CREATE INDEX iAncestor ON m_org_closure (ancestor_oid) INITRANS 30;
-
-CREATE INDEX iDescendant ON m_org_closure (descendant_oid) INITRANS 30;
 
 ALTER TABLE m_org_closure
 ADD CONSTRAINT fk_ancestor
@@ -749,14 +797,10 @@ ADD CONSTRAINT fk_org_org_type
 FOREIGN KEY (org_oid)
 REFERENCES m_org;
 
-CREATE INDEX iReferenceTargetOid ON m_reference (targetOid) INITRANS 30;
-
 ALTER TABLE m_reference
 ADD CONSTRAINT fk_reference_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
-
-CREATE INDEX iReportParent ON m_report (parent) INITRANS 30;
 
 ALTER TABLE m_report
 ADD CONSTRAINT fk_report
@@ -783,10 +827,6 @@ ADD CONSTRAINT fk_security_policy
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
-CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid) INITRANS 30;
-
-CREATE INDEX iShadowDead ON m_shadow (dead) INITRANS 30;
-
 ALTER TABLE m_shadow
 ADD CONSTRAINT fk_shadow
 FOREIGN KEY (oid)
@@ -796,8 +836,6 @@ ALTER TABLE m_system_configuration
 ADD CONSTRAINT fk_system_configuration
 FOREIGN KEY (oid)
 REFERENCES m_object;
-
-CREATE INDEX iParent ON m_task (parent) INITRANS 30;
 
 ALTER TABLE m_task
 ADD CONSTRAINT fk_task
@@ -809,22 +847,10 @@ ADD CONSTRAINT fk_task_dependent
 FOREIGN KEY (task_oid)
 REFERENCES m_task;
 
-CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue) INITRANS 30;
-
 ALTER TABLE m_trigger
 ADD CONSTRAINT fk_trigger_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
-
-CREATE INDEX iEmployeeNumber ON m_user (employeeNumber) INITRANS 30;
-
-CREATE INDEX iFullName ON m_user (fullName_orig) INITRANS 30;
-
-CREATE INDEX iFamilyName ON m_user (familyName_orig) INITRANS 30;
-
-CREATE INDEX iGivenName ON m_user (givenName_orig) INITRANS 30;
-
-CREATE INDEX iLocality ON m_user (locality_orig) INITRANS 30;
 
 ALTER TABLE m_user
 ADD CONSTRAINT fk_user
