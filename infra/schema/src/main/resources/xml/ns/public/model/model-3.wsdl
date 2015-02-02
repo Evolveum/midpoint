@@ -42,6 +42,8 @@
 
 	    <p>This a web service version of the IDM Model Interface represented in WSDL. As such it has some inherent limitations but it is
 	    usable for remote access to the Model services.</p>
+	    
+	    <p>Version: 3.1</p>
 
     </documentation>
 
