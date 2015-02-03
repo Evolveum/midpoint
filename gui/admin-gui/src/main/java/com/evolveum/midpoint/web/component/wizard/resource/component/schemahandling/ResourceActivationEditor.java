@@ -16,18 +16,18 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
@@ -72,6 +72,23 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
     private static final String ID_T_VALID_T_OUT = "validToOutboundTooltip";
     private static final String ID_T_VALID_T_IN = "validToInboundTooltip";
 
+    //Default mapping inbound/outbound sources/targets
+    public static final String EXISTENCE_DEFAULT_SOURCE = "&" + ExpressionConstants.VAR_LEGAL.getLocalPart();
+    public static final String ADM_STATUS_OUT_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS.getLocalPart() + "/activation/administrativeStatus";
+    public static final String ADM_STATUS_OUT_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION.getLocalPart() + "/activation/administrativeStatus";
+    public static final String ADM_STATUS_IN_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION.getLocalPart() + "/activation/administrativeStatus";
+    public static final String ADM_STATUS_IN_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS.getLocalPart() + "/activation/administrativeStatus";
+    public static final String VALID_TO_OUT_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS.getLocalPart() + "/activation/validTo";
+    public static final String VALID_TO_OUT_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION.getLocalPart() + "/activation/validTo";
+    public static final String VALID_TO_IN_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION.getLocalPart() + "/activation/validTo";
+    public static final String VALID_TO_IN_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS.getLocalPart() + "/activation/validTo";
+    public static final String VALID_FROM_OUT_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS.getLocalPart() + "/activation/validFrom";
+    public static final String VALID_FROM_OUT_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION.getLocalPart() + "/activation/validFrom";
+    public static final String VALID_FROM_IN_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION.getLocalPart() + "/activation/validFrom";
+    public static final String VALID_FROM_IN_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS.getLocalPart() + "/activation/validFrom";
+
+    private boolean isInitialized = false;
+
     public ResourceActivationEditor(String id, IModel<ResourceActivationDefinitionType> model){
         super(id, model);
     }
@@ -84,25 +101,110 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
             activationModel.setObject(new ResourceActivationDefinitionType());
         }
 
-        ResourceActivationDefinitionType activation = activationModel.getObject();
+        if(!isInitialized){
+            prepareActivationObject(activationModel.getObject());
+            isInitialized = true;
+        }
 
+        return activationModel;
+    }
+
+    private void prepareActivationObject(ResourceActivationDefinitionType activation){
         if(activation.getExistence() == null){
             activation.setExistence(new ResourceBidirectionalMappingType());
+        } else {
+            for(MappingType mapping: activation.getExistence().getInbound()){
+                if(mapping.equals(new MappingType())){
+                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                    source.setPath(new ItemPathType(EXISTENCE_DEFAULT_SOURCE));
+                    mapping.getSource().add(source);
+                }
+            }
         }
 
         if(activation.getAdministrativeStatus() == null){
             activation.setAdministrativeStatus(new ResourceBidirectionalMappingType());
+        } else {
+            for(MappingType outbound: activation.getAdministrativeStatus().getOutbound()){
+                if(outbound.equals(new MappingType())){
+                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                    source.setPath(new ItemPathType(ADM_STATUS_OUT_SOURCE_DEFAULT));
+                    outbound.getSource().add(source);
+
+                    MappingTargetDeclarationType target = new MappingTargetDeclarationType();
+                    target.setPath(new ItemPathType(ADM_STATUS_OUT_TARGET_DEFAULT));
+                    outbound.setTarget(target);
+                }
+            }
+
+            for(MappingType inbound: activation.getAdministrativeStatus().getInbound()){
+                if(inbound.equals(new MappingType())){
+                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                    source.setPath(new ItemPathType(ADM_STATUS_IN_SOURCE_DEFAULT));
+                    inbound.getSource().add(source);
+
+                    MappingTargetDeclarationType target = new MappingTargetDeclarationType();
+                    target.setPath(new ItemPathType(ADM_STATUS_IN_TARGET_DEFAULT));
+                    inbound.setTarget(target);
+                }
+            }
         }
 
         if(activation.getValidFrom() == null){
             activation.setValidFrom(new ResourceBidirectionalMappingType());
+        } else {
+            for(MappingType outbound: activation.getValidFrom().getOutbound()){
+                if(outbound.equals(new MappingType())){
+                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                    source.setPath(new ItemPathType(VALID_FROM_OUT_SOURCE_DEFAULT));
+                    outbound.getSource().add(source);
+
+                    MappingTargetDeclarationType target = new MappingTargetDeclarationType();
+                    target.setPath(new ItemPathType(VALID_FROM_OUT_TARGET_DEFAULT));
+                    outbound.setTarget(target);
+                }
+            }
+
+            for(MappingType inbound: activation.getValidFrom().getInbound()){
+                if(inbound.equals(new MappingType())){
+                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                    source.setPath(new ItemPathType(VALID_FROM_IN_SOURCE_DEFAULT));
+                    inbound.getSource().add(source);
+
+                    MappingTargetDeclarationType target = new MappingTargetDeclarationType();
+                    target.setPath(new ItemPathType(VALID_FROM_IN_TARGET_DEFAULT));
+                    inbound.setTarget(target);
+                }
+            }
         }
 
         if(activation.getValidTo() == null){
             activation.setValidTo(new ResourceBidirectionalMappingType());
-        }
+        } else {
+            for(MappingType outbound: activation.getValidTo().getOutbound()){
+                if(outbound.equals(new MappingType())){
+                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                    source.setPath(new ItemPathType(VALID_TO_OUT_SOURCE_DEFAULT));
+                    outbound.getSource().add(source);
 
-        return activationModel;
+                    MappingTargetDeclarationType target = new MappingTargetDeclarationType();
+                    target.setPath(new ItemPathType(VALID_TO_OUT_TARGET_DEFAULT));
+                    outbound.setTarget(target);
+                }
+            }
+
+            for(MappingType inbound: activation.getValidTo().getInbound()){
+                if(inbound.equals(new MappingType())){
+                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                    source.setPath(new ItemPathType(VALID_TO_IN_SOURCE_DEFAULT));
+                    inbound.getSource().add(source);
+
+                    MappingTargetDeclarationType target = new MappingTargetDeclarationType();
+                    target.setPath(new ItemPathType(VALID_TO_IN_TARGET_DEFAULT));
+                    inbound.setTarget(target);
+                }
+            }
+        }
     }
 
     @Override
@@ -175,10 +277,11 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), containerValue + ".fetchStrategy"),
                 WebMiscUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
+        fetchStrategy.setNullValid(true);
         add(fetchStrategy);
 
         MultiValueTextEditPanel outbound = new MultiValueTextEditPanel<MappingType>(outboundId,
-                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".outbound"), false, true){
+                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".outbound"), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -194,7 +297,7 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
 
             @Override
             protected MappingType createNewEmptyItem(){
-                return new MappingType();
+                return WizardUtil.createEmptyMapping();
             }
 
             @Override
@@ -205,7 +308,7 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(inboundId,
-                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".inbound"), false, true){
+                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".inbound"), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -221,7 +324,7 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
 
             @Override
             protected MappingType createNewEmptyItem(){
-                return new MappingType();
+                return WizardUtil.createEmptyMapping();
             }
 
             @Override

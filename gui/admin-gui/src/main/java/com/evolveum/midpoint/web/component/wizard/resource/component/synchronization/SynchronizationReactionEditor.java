@@ -109,7 +109,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
         add(situation);
 
         MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
-                new PropertyModel<List<String>>(getModel(), "channel"), true, true){
+                new PropertyModel<List<String>>(getModel(), "channel"), true){
 
             @Override
             protected String createNewEmptyItem() {
@@ -178,7 +178,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
         add(objectTemplateRef);
 
         MultiValueTextEditPanel action = new MultiValueTextEditPanel<SynchronizationActionType>(ID_ACTION,
-                new PropertyModel<List<SynchronizationActionType>>(getModel(), "action"), false, true){
+                new PropertyModel<List<SynchronizationActionType>>(getModel(), "action"), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationActionType> model) {
@@ -188,11 +188,21 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
                     public String getObject() {
                         SynchronizationActionType action = model.getObject();
 
-                        if(action != null){
-                            return action.getName() != null ? action.getName() : " - ";
-                        } else {
+                        if(action == null){
                             return null;
                         }
+
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(action.getName() != null ? action.getName() : " - ");
+
+                        if(action.getHandlerUri() != null){
+                            String[] handlerUriSplit = action.getHandlerUri().split("#");
+                            sb.append("(");
+                            sb.append(handlerUriSplit[handlerUriSplit.length - 1]);
+                            sb.append(")");
+                        }
+
+                        return sb.toString();
                     }
                 };
             }
@@ -242,7 +252,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
 
             @Override
             public void updateComponents(AjaxRequestTarget target){
-                target.add(SynchronizationReactionEditor.this);
+                target.add(SynchronizationReactionEditor.this.get(ID_ACTION));
             }
         };
         add(actionEditor);
@@ -288,5 +298,4 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
         window.updateModel(target, action);
         window.show(target);
     }
-
 }

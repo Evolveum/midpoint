@@ -354,7 +354,7 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
                 return null;
             }
 
-            return RefinedResourceSchema.getRefinedSchema(getModel().getObject(), getPageBase().getPrismContext());
+            return RefinedResourceSchema.getRefinedSchema(resource, getPageBase().getPrismContext());
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't parse resource schema.", ex);
             getSession().error(getString("SchemaListPanel.message.couldntParseSchema") + " " + ex.getMessage());

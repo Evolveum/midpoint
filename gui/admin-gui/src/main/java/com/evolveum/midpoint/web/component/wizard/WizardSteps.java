@@ -20,12 +20,13 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.component.WizardHelpDialog;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.wizard.IWizardStep;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -39,6 +40,7 @@ import java.util.List;
  */
 public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
 
+    private static final String ID_LINK_REPEATER = "linkRepeater";
     private static final String ID_LINK = "link";
     private static final String ID_LABEL = "label";
     private static final String ID_BUTTON_HELP = "help";
@@ -50,15 +52,23 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
 
     @Override
     protected void initLayout() {
-        ListView<WizardStepDto> link = new ListView<WizardStepDto>(ID_LINK, getModel()) {
+        ListView<WizardStepDto> linkContainer = new ListView<WizardStepDto>(ID_LINK_REPEATER, getModel()) {
 
             @Override
             protected void populateItem(ListItem<WizardStepDto> item) {
                 final WizardStepDto dto = item.getModelObject();
-                Label label = new Label(ID_LABEL, createLabelModel(dto.getName()));
-                item.add(label);
+                item.setRenderBodyOnly(true);
 
-                item.add(new VisibleEnableBehaviour() {
+                AjaxSubmitLink button = new AjaxSubmitLink(ID_LINK) {
+
+                    @Override
+                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        changeStepPerformed(target, dto);
+                    }
+                };
+                item.add(button);
+
+                button.add(new VisibleEnableBehaviour() {
 
                     @Override
                     public boolean isEnabled() {
@@ -71,8 +81,7 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
                     }
                 });
 
-
-                item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
+                button.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
 
                     @Override
                     public String getObject() {
@@ -80,16 +89,11 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
                     }
                 }));
 
-                item.add(new AjaxEventBehavior("onclick") {
-
-                    @Override
-                    protected void onEvent(AjaxRequestTarget target) {
-                        changeStepPerformed(target, dto);
-                    }
-                });
+                Label label = new Label(ID_LABEL, createLabelModel(dto.getName()));
+                button.add(label);
             }
         };
-        add(link);
+        add(linkContainer);
 
         AjaxLink help = new AjaxLink(ID_BUTTON_HELP) {
 

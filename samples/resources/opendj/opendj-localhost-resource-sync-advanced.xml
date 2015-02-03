@@ -37,7 +37,8 @@ object.
          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
          xmlns:my="http://whatever.com/my"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		 xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
 
 
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
@@ -69,7 +70,7 @@ object.
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-			 <connectorConfiguration>
+		<connectorConfiguration>
 		<icfc:configurationProperties
 			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
 			<icfcldap:port>1389</icfcldap:port>
@@ -107,8 +108,10 @@ object.
 			<icfc:sync>-1</icfc:sync>
 			<icfc:schema>-1</icfc:schema>
 		</icfc:timeouts>
-	</connectorConfiguration>
-       
+		<icfc:resultsHandlerConfiguration>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+		</icfc:resultsHandlerConfiguration>
+		</connectorConfiguration>
 
         <!-- Resource schema definition.
              It defines all the object classes that are available to midPoint
@@ -274,6 +277,7 @@ object.
 						<modify>false</modify>
 					</access>
 				</limitations>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -363,6 +367,7 @@ object.
                         <add>true</add>
                     </access>
                 </limitations>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<source>
 						<description>Source may have description</description>
@@ -613,7 +618,7 @@ object.
     <task oid="91919191-76e0-59e2-86d6-3d4f02d3ffff">
         <name>Synchronization: Embedded Test OpenDJ</name>
         <description>
-            Definition of a live sychnronization task. It will poll changelog and pull in changes
+            Definition of a live synchronization task. It will poll changelog and pull in changes
         </description>
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>

@@ -528,6 +528,7 @@ public final class Utils {
 	private static long cachedSystemConfigurationRetrieveTimestamp = 0;
 	private static final long CACHED_SYSTEM_CONFIGURATION_TTL = 120000L;		// just to avoid stalled data if version is not incremented for any reason
 
+	private static final String NO_SYSTEM_CONFIG_MSG = "System configuration object was not found (should not happen in production except for initial repository loading)";
 	public static PrismObject<SystemConfigurationType> getSystemConfiguration(RepositoryService repositoryService, OperationResult result) throws SchemaException {
 		PrismObject<SystemConfigurationType> systemConfiguration = null;
 		if (cachedSystemConfiguration != null && cachedSystemConfigurationRetrieveTimestamp + CACHED_SYSTEM_CONFIGURATION_TTL >= System.currentTimeMillis()) {
@@ -536,7 +537,7 @@ public final class Utils {
 				currentVersion = repositoryService.getVersion(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
 			} catch (ObjectNotFoundException e) {
 				// see below
-				LOGGER.warn("System configuration object was not found (should not happen!)");
+				LOGGER.warn(NO_SYSTEM_CONFIG_MSG);
 				return null;
 			}
 			if (currentVersion != null && currentVersion.equals(cachedSystemConfiguration.getVersion())) {
@@ -555,7 +556,7 @@ public final class Utils {
 		if (systemConfiguration == null) {
 		    // throw new SystemException("System configuration object is null (should not happen!)");
 		    // This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
-		    LOGGER.warn("System configuration object is null (should not happen!)");
+		    LOGGER.warn(NO_SYSTEM_CONFIG_MSG);
 		    return null;
 		}
 		cachedSystemConfiguration = systemConfiguration.clone();
