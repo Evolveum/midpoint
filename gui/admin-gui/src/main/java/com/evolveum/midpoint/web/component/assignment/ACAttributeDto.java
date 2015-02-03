@@ -130,7 +130,7 @@ public class ACAttributeDto implements Serializable {
 
         ResourceAttributeDefinitionType attrConstruction = new ResourceAttributeDefinitionType();
         attrConstruction.setRef(definition.getName());
-        MappingType outbound = new MappingType();
+        MappingType outbound = construction != null && construction.getOutbound() != null ? construction.getOutbound().clone() : new MappingType();
         attrConstruction.setOutbound(outbound);
 
         ExpressionType expression = new ExpressionType();
