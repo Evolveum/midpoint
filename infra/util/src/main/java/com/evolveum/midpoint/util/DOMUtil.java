@@ -47,6 +47,8 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.sun.org.apache.xml.internal.utils.XMLChar;
 
 import org.apache.commons.io.IOUtils;
@@ -73,6 +75,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
  * @since 0.1
  */
 public class DOMUtil {
+
+    public static final Trace LOGGER = TraceManager.getTrace(DOMUtil.class);
 
 	public static final String W3C_XML_SCHEMA_XMLNS_URI = "http://www.w3.org/2000/xmlns/";
 	public static final String W3C_XML_SCHEMA_XMLNS_PREFIX = "xmlns";
@@ -160,7 +164,11 @@ public class DOMUtil {
 	private static Random rnd = new Random();
 	
 	private static final DocumentBuilder loader;
-	
+
+    // Whether we want to tolerate undeclared XML prefixes in QNames
+    // This is here only for backward compatibility with versions 3.0-3.1.
+    // Will be set to false starting with 3.2 (MID-2191)
+    public static boolean tolerateUndeclaredPrefixes = false;
 
 	static {
 		try {
@@ -460,12 +468,24 @@ public class DOMUtil {
 			}
 		} else {
 			String namespace = findNamespace(domNode, qnameArray[0]);
+            if (namespace == null) {
+                reportUndeclaredNamespacePrefix(qnameArray[0], prefixNotation);
+            }
 			qname = new QName(namespace, qnameArray[1], qnameArray[0]);
 		}
 		return qname;
 	}
 
-	public static String findNamespace(Node domNode, String prefix) {
+    public static void reportUndeclaredNamespacePrefix(String prefix, String context) {
+        if (tolerateUndeclaredPrefixes) {
+            LOGGER.error("Undeclared namespace prefix '" + prefix+"' in '"+context+"'.");
+        } else {
+            throw new IllegalArgumentException("Undeclared namespace prefix '"+prefix+"' in '"+context+"'");
+        }
+    }
+
+
+    public static String findNamespace(Node domNode, String prefix) {
 		String ns = null;
 		if (domNode != null) {
 			if (prefix == null || prefix.isEmpty()) {
