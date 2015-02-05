@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -322,7 +323,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 //		LOGGER.trace("Assignments used for account construction for {} ({}): {}", new Object[]{this.resource,
 //				assignments.size(), assignments});
 		for (ResourceAttributeDefinitionType attribudeDefinitionType : constructionType.getAttribute()) {
-			QName attrName = attribudeDefinitionType.getRef();
+			QName attrName = ItemPathUtil.getOnlySegmentQName(attribudeDefinitionType.getRef());
 			if (attrName == null) {
 				throw new SchemaException("No attribute name (ref) in attribute definition in account construction in "+source);
 			}
@@ -343,7 +344,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	private Mapping<? extends PrismPropertyValue<?>> evaluateAttribute(ResourceAttributeDefinitionType attribudeDefinitionType,
 			Task task, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		QName attrName = attribudeDefinitionType.getRef();
+		QName attrName = ItemPathUtil.getOnlySegmentQName(attribudeDefinitionType.getRef());
 		if (attrName == null) {
 			throw new SchemaException("Missing 'ref' in attribute construction in account construction in "+ObjectTypeUtil.toShortString(source));
 		}
@@ -386,7 +387,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	private void evaluateAssociations(Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		associationMappings = new ArrayList<Mapping<PrismContainerValue<ShadowAssociationType>>>();
 		for (ResourceObjectAssociationType associationDefinitionType : constructionType.getAssociation()) {
-			QName assocName = associationDefinitionType.getRef();
+			QName assocName = ItemPathUtil.getOnlySegmentQName(associationDefinitionType.getRef());
 			if (assocName == null) {
 				throw new SchemaException("No association name (ref) in association definition in construction in "+source);
 			}
@@ -404,7 +405,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	private Mapping<PrismContainerValue<ShadowAssociationType>> evaluateAssociation(ResourceObjectAssociationType associationDefinitionType,
 			Task task, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		QName assocName = associationDefinitionType.getRef();
+		QName assocName = ItemPathUtil.getOnlySegmentQName(associationDefinitionType.getRef());
 		if (assocName == null) {
 			throw new SchemaException("Missing 'ref' in association in construction in "+source);
 		}

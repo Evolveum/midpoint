@@ -69,7 +69,7 @@ public class ValueDisplayUtil {
             return value.toString();
         } else if (value instanceof ResourceAttributeDefinitionType) {
             ResourceAttributeDefinitionType radt = (ResourceAttributeDefinitionType) value;
-            return "(a value or a more complex mapping for the '" + radt.getRef().getLocalPart() + "' attribute)";
+            return "(a value or a more complex mapping for the '" + radt.getRef() + "' attribute)";
         } else if (value instanceof QName) {
             QName qname = (QName) value;
             if (StringUtils.isNotEmpty(qname.getNamespaceURI())) {

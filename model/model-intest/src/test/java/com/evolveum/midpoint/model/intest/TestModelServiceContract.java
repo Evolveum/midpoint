@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.StringUtils;
@@ -2217,7 +2218,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         ConstructionType accountConstruction = createAccountConstruction(RESOURCE_DUMMY_OID, null);
         ResourceAttributeDefinitionType radt = new ResourceAttributeDefinitionType();
-        radt.setRef(gossipDefinition.getName());
+        radt.setRef(new ItemPathType(new ItemPath(gossipDefinition.getName())));
         MappingType outbound = new MappingType();
         radt.setOutbound(outbound);
 
