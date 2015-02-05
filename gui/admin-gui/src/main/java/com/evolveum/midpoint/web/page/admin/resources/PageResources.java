@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
@@ -270,6 +271,14 @@ public class PageResources extends PageAdminResources {
                     @Override
                     public void onClick(AjaxRequestTarget target){
                         editResourcePerformed(getRowModel());
+                    }
+                }));
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageResources.button.editAsXml"),
+                new ColumnMenuAction<ResourceDto>(){
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        editAsXmlPerformed(getRowModel());
                     }
                 }));
 
@@ -695,6 +704,13 @@ public class PageResources extends PageAdminResources {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, model.getObject().getOid());
         setResponsePage(new PageResourceWizard(parameters));
+    }
+
+    private void editAsXmlPerformed(IModel<ResourceDto> model){
+        PageParameters parameters = new PageParameters();
+        parameters.add(PageDebugView.PARAM_OBJECT_ID, model.getObject().getOid());
+        parameters.add(PageDebugView.PARAM_OBJECT_TYPE, ResourceType.class.getSimpleName());
+        setResponsePage(PageDebugView.class, parameters);
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target){

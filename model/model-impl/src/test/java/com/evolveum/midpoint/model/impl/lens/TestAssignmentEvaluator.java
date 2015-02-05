@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License");                                                                \
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -15,18 +15,33 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.ActivationComputer;
@@ -82,6 +97,13 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 
 	@Autowired(required=true)
 	private MappingFactory mappingFactory;
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+
+        addObjects(ROLE_CORP_FILES);
+    }
 	
 	@Test
 	public void testDirect() throws Exception {
@@ -93,13 +115,8 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		OperationResult result = task.getResult();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
-		
-		AssignmentType assignmentType = unmarshallValueFromFile(ASSIGNMENT_DIRECT_FILE, AssignmentType.class);
-		
-		// We need to make sure that the assignment has a parent
-		PrismContainerDefinition<AssignmentType> assignmentContainerDefinition = userTypeJack.asPrismObject().getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-		PrismContainer<AssignmentType> assignmentContainer = assignmentContainerDefinition.instantiate();
-		assignmentContainer.add(assignmentType.asPrismContainerValue().clone());
+
+        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_DIRECT_FILE);
 		
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
 		userOdo.recompute();
@@ -119,8 +136,8 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		TestUtil.assertSuccess(result);
 		
 		assertNotNull(evaluatedAssignment);
-		display("Evaluated assignment",evaluatedAssignment.debugDump());
-		assertEquals(1,evaluatedAssignment.getConstructions().size());
+		display("Evaluated assignment", evaluatedAssignment.debugDump());
+		assertEquals(1, evaluatedAssignment.getConstructions().size());
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 		
 		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
@@ -137,14 +154,9 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
-		
-		AssignmentType assignmentType = unmarshallValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE, AssignmentType.class);
-		
-		// We need to make sure that the assignment has a parent
-		PrismContainerDefinition<AssignmentType> assignmentContainerDefinition = userTypeJack.asPrismObject().getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-		PrismContainer<AssignmentType> assignmentContainer = assignmentContainerDefinition.instantiate();
-		assignmentContainer.add(assignmentType.asPrismContainerValue().clone());
-		
+
+        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_DIRECT_EXPRESSION_FILE);
+
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
 		userOdo.recompute();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
@@ -164,8 +176,8 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		TestUtil.assertSuccess(result);
 		
 		assertNotNull(evaluatedAssignment);
-		display("Evaluated assignment",evaluatedAssignment);
-		assertEquals(1,evaluatedAssignment.getConstructions().size());
+		display("Evaluated assignment", evaluatedAssignment);
+		assertEquals(1, evaluatedAssignment.getConstructions().size());
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 		
 		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
@@ -184,7 +196,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
 		AssignmentType assignmentType = unmarshallValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE, AssignmentType.class);
 		user.asObjectable().getAssignment().add(assignmentType.clone());
-		
+
 		// We need to make sure that the assignment has a parent
 		PrismContainerDefinition<AssignmentType> assignmentContainerDefinition = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 		PrismContainer<AssignmentType> assignmentContainer = assignmentContainerDefinition.instantiate();
@@ -228,8 +240,15 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, "The best captain the world has ever seen");
 	  	PrismAsserts.assertTripleMinus(outputTriple, "The best pirate the world has ever seen");
-		
-	}
+
+        // the same using other words
+
+        assertConstruction(evaluatedAssignment, ZERO, "title", ZERO);
+        assertConstruction(evaluatedAssignment, ZERO, "title", PLUS, "The best captain the world has ever seen");
+        assertConstruction(evaluatedAssignment, ZERO, "title", MINUS, "The best pirate the world has ever seen");
+        assertNoConstruction(evaluatedAssignment, PLUS, "title");
+        assertNoConstruction(evaluatedAssignment, MINUS, "title");
+    }
 	
 	@Test
 	public void testDirectExpressionReplaceDescriptionFromNull() throws Exception {
@@ -288,10 +307,356 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, "The best sailor the world has ever seen");
 	  	PrismAsserts.assertTripleMinus(outputTriple, "The best man the world has ever seen");
-		
+
+        // the same using other words
+
+        assertConstruction(evaluatedAssignment, ZERO, "title", ZERO);
+        assertConstruction(evaluatedAssignment, ZERO, "title", PLUS, "The best sailor the world has ever seen");
+        assertConstruction(evaluatedAssignment, ZERO, "title", MINUS, "The best man the world has ever seen");
+        assertNoConstruction(evaluatedAssignment, PLUS, "title");
+        assertNoConstruction(evaluatedAssignment, MINUS, "title");
 	}
-	
-	private AssignmentEvaluator<UserType> createAssignmentEvaluator() throws ObjectNotFoundException, SchemaException {
+
+    /*
+
+    Explanation for roles structure (copied from role-corp-generic-metarole.xml)
+
+        user-assignable roles:
+
+          roles of unspecified type
+          - Visitor
+          - Customer
+
+          roles of type: job
+          - Contractor
+          - Employee
+            - Engineer (induces Employee)
+            - Manager (induces Employee)
+
+        metaroles:
+
+          - Generic Metarole:                                   assigned to Visitor and Customer                            [ induces ri:location attribute - from user/locality ]
+            - Job Metarole (induces Generic Metarole):          assigned to Contractor, Employee, Engineer, Manager         [ induces ri:title attribute - from role/name ]
+
+     */
+
+    @Test
+    public void testRoleVisitor() throws Exception {
+        final String TEST_NAME = "testRoleVisitor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
+        PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
+
+        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_VISITOR_FILE);
+
+        ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
+        userOdo.recompute();
+
+        ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+        assignmentIdi.recompute();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        evaluatedAssignment.evaluateConstructions(userOdo, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNotNull(evaluatedAssignment);
+        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        assertEquals(1, evaluatedAssignment.getConstructions().size());
+        PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
+
+        assertConstruction(evaluatedAssignment, ZERO, "title", ZERO);
+        assertConstruction(evaluatedAssignment, ZERO, "title", PLUS);
+        assertConstruction(evaluatedAssignment, ZERO, "title", MINUS);
+        assertNoConstruction(evaluatedAssignment, PLUS, "title");
+        assertNoConstruction(evaluatedAssignment, MINUS, "title");
+        assertConstruction(evaluatedAssignment, ZERO, "location", ZERO, "Caribbean");
+        assertConstruction(evaluatedAssignment, ZERO, "location", PLUS);
+        assertConstruction(evaluatedAssignment, ZERO, "location", MINUS);
+        assertNoConstruction(evaluatedAssignment, PLUS, "location");
+        assertNoConstruction(evaluatedAssignment, MINUS, "location");
+    }
+
+    @Test
+    public void testRoleEngineer() throws Exception {
+        final String TEST_NAME = "testRoleEngineer";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
+        PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
+
+        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_ENGINEER_FILE);
+
+        ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
+        userOdo.recompute();
+
+        ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+        assignmentIdi.recompute();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testRoleEngineer", task, result);
+        evaluatedAssignment.evaluateConstructions(userOdo, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNotNull(evaluatedAssignment);
+        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        assertEquals(4, evaluatedAssignment.getConstructions().size());
+        PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
+
+        assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Employee", "Engineer");
+        assertConstruction(evaluatedAssignment, ZERO, "title", PLUS);
+        assertConstruction(evaluatedAssignment, ZERO, "title", MINUS);
+        assertNoConstruction(evaluatedAssignment, PLUS, "title");
+        assertNoConstruction(evaluatedAssignment, MINUS, "title");
+
+        assertConstruction(evaluatedAssignment, ZERO, "location", ZERO, "Caribbean");
+        assertConstruction(evaluatedAssignment, ZERO, "location", PLUS);
+        assertConstruction(evaluatedAssignment, ZERO, "location", MINUS);
+        assertNoConstruction(evaluatedAssignment, PLUS, "location");
+        assertNoConstruction(evaluatedAssignment, MINUS, "location");
+    }
+
+    @Test
+    public void testAddRoleEngineer() throws Exception {
+        final String TEST_NAME = "testAddRoleEngineer";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
+        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_ENGINEER_FILE);
+
+        AssignmentType assignmentForUser = assignmentType.clone();
+        assignmentForUser.asPrismContainerValue().setParent(null);
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddContainer(UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT, prismContext, assignmentForUser.asPrismContainerValue());
+        ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
+        userOdo.recompute();
+        AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
+        PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
+
+        ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+        assignmentIdi.recompute();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        evaluatedAssignment.evaluateConstructions(userOdo, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNotNull(evaluatedAssignment);
+        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        assertEquals(4, evaluatedAssignment.getConstructions().size());
+        PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
+
+        /*
+         *  Here we observe an important thing about AssignmentEvaluator/AssignmentProcessor.
+         *  The evaluator does not consider whether the assignment as such is being added or deleted or stays present.
+         *  In all these cases all the constructions go into the ZERO set of constructions.
+         *
+         *  However, it considers changes in data that are used by assignments - either in conditions or in mappings.
+         *  Changes of data used in mappings are demonstrated by testDirectExpressionReplaceDescription
+         *  and testDirectExpressionReplaceDescriptionFromNull. Changes of data used in conditions are demonstrated by
+         *  a couple of tests below.
+         *
+         *  Changes in assignment presence (add/delete) are reflected into plus/minus sets by AssignmentProcessor.
+         */
+
+        assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Employee", "Engineer");
+        assertConstruction(evaluatedAssignment, ZERO, "title", PLUS);
+        assertConstruction(evaluatedAssignment, ZERO, "title", MINUS);
+        assertNoConstruction(evaluatedAssignment, PLUS, "title");
+        assertNoConstruction(evaluatedAssignment, MINUS, "title");
+
+        assertConstruction(evaluatedAssignment, ZERO, "location", ZERO, "Caribbean");
+        assertConstruction(evaluatedAssignment, ZERO, "location", PLUS);
+        assertConstruction(evaluatedAssignment, ZERO, "location", MINUS);
+        assertNoConstruction(evaluatedAssignment, PLUS, "location");
+        assertNoConstruction(evaluatedAssignment, MINUS, "location");
+    }
+
+    /**
+     * jack has assigned role Manager.
+     *
+     * However, condition in job metarole for Manager is such that it needs "management"
+     * to be present in user/costCenter in order to be active.
+     */
+    @Test
+    public void testRoleManagerChangeCostCenter() throws Exception {
+        final String TEST_NAME = "testRoleManagerChangeCostCenter";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
+        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_MANAGER_FILE);
+
+        AssignmentType assignmentForUser = assignmentType.clone();
+        assignmentForUser.asPrismContainerValue().setParent(null);
+        user.asObjectable().getAssignment().add(assignmentForUser);
+
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+                UserType.F_COST_CENTER, prismContext, "management");
+        ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
+        userOdo.recompute();
+        AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
+        PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
+
+        ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+        assignmentIdi.recompute();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        evaluatedAssignment.evaluateConstructions(userOdo, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNotNull(evaluatedAssignment);
+        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        assertEquals(4, evaluatedAssignment.getConstructions().size());
+        PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
+
+        assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Employee");                   // because Employee's job metarole is active even if Manager's is not
+        assertConstruction(evaluatedAssignment, ZERO, "title", PLUS);
+        assertConstruction(evaluatedAssignment, ZERO, "title", MINUS);
+        assertConstruction(evaluatedAssignment, PLUS, "title", ZERO, "Manager");                    // because Manager's job metarole is originally not active
+        assertConstruction(evaluatedAssignment, PLUS, "title", PLUS);
+        assertConstruction(evaluatedAssignment, PLUS, "title", MINUS);
+        assertNoConstruction(evaluatedAssignment, MINUS, "title");
+
+        assertConstruction(evaluatedAssignment, ZERO, "location", ZERO, "Caribbean");               // because Generic Metarole is active all the time
+        assertConstruction(evaluatedAssignment, ZERO, "location", PLUS);
+        assertConstruction(evaluatedAssignment, ZERO, "location", MINUS);
+        assertNoConstruction(evaluatedAssignment, PLUS, "location");
+        assertNoConstruction(evaluatedAssignment, MINUS, "location");
+    }
+
+    /**
+     * jack has assigned role Manager.
+     *
+     * However, condition in job metarole for Manager is such that it needs "management"
+     * to be present in user/costCenter in order to be active.
+     *
+     * In this test we remove the value of "management" from jack.
+     */
+    @Test
+    public void testRoleManagerRemoveCostCenter() throws Exception {
+        final String TEST_NAME = "testRoleManagerRemoveCostCenter";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
+        user.asObjectable().setCostCenter("management");
+        AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_MANAGER_FILE);
+
+        AssignmentType assignmentForUser = assignmentType.clone();
+        assignmentForUser.asPrismContainerValue().setParent(null);
+        user.asObjectable().getAssignment().add(assignmentForUser);
+
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+                UserType.F_COST_CENTER, prismContext);
+        ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
+        userOdo.recompute();
+        AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
+        PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
+
+        ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+        assignmentIdi.recompute();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        evaluatedAssignment.evaluateConstructions(userOdo, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNotNull(evaluatedAssignment);
+        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        assertEquals(4, evaluatedAssignment.getConstructions().size());
+        PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
+
+        assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Employee");                   // because Employee's job metarole is active even if Manager's is not
+        assertConstruction(evaluatedAssignment, ZERO, "title", PLUS);
+        assertConstruction(evaluatedAssignment, ZERO, "title", MINUS);
+        assertConstruction(evaluatedAssignment, MINUS, "title", ZERO, "Manager");                    // because Manager's job metarole is not active any more
+        assertConstruction(evaluatedAssignment, MINUS, "title", PLUS);
+        assertConstruction(evaluatedAssignment, MINUS, "title", MINUS);
+        assertNoConstruction(evaluatedAssignment, PLUS, "title");
+
+        assertConstruction(evaluatedAssignment, ZERO, "location", ZERO, "Caribbean");               // because Generic Metarole is active all the time
+        assertConstruction(evaluatedAssignment, ZERO, "location", PLUS);
+        assertConstruction(evaluatedAssignment, ZERO, "location", MINUS);
+        assertNoConstruction(evaluatedAssignment, PLUS, "location");
+        assertNoConstruction(evaluatedAssignment, MINUS, "location");
+    }
+
+    private void assertNoConstruction(EvaluatedAssignment<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName) {
+        Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
+        for (Construction construction : constructions) {
+            Mapping<? extends PrismPropertyValue<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
+            assertNull("Unexpected mapping for " + attributeName, mapping);
+        }
+    }
+
+    private void assertConstruction(EvaluatedAssignment<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName, PlusMinusZero attributeSet, String... expectedValues) {
+        Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
+        Set<String> realValues = new HashSet<>();
+        for (Construction construction : constructions) {
+            Mapping<? extends PrismPropertyValue<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
+            if (mapping != null && mapping.getOutputTriple() != null) {
+                Collection<? extends PrismPropertyValue<?>> valsInMapping = mapping.getOutputTriple().getSet(attributeSet);
+                if (valsInMapping != null) {
+                    for (PrismPropertyValue value : valsInMapping) {
+                        if (value.getValue() instanceof String) {
+                            realValues.add((String) value.getValue());
+                        }
+                    }
+                }
+            }
+        }
+        AssertJUnit.assertEquals("Wrong values", new HashSet<String>(Arrays.asList(expectedValues)), realValues);
+    }
+
+    private AssignmentEvaluator<UserType> createAssignmentEvaluator() throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> userJack = userTypeJack.asPrismObject();
 		return createAssignmentEvaluator(new ObjectDeltaObject<UserType>(userJack, null, null));
 	}

@@ -1,4 +1,4 @@
-midPoint 3.0 "Newton"
+midPoint 3.1 "Sinan"
 ---------------------
 
 General informations:
@@ -9,7 +9,7 @@ MidPoint also makes the data available in unified form.
 
 The most important features of midPoint are:
    - User provisioning and deprovisioning
-   - Integration of Identity Connector Framework
+   - Integration of ConnId connector framework
    - Administration GUI
    - Identity repository implemention (SQL)
    - Custom schema extensibility
@@ -29,7 +29,6 @@ The most important features of midPoint are:
    - Notifications
    - Local Java APIs, Remote web service interface (SOAP), REST API
    - High availablity (HA) support
-  
 
 For more information please go to:
 

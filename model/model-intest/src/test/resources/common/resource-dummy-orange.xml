@@ -46,6 +46,7 @@
 			<icfi:instanceId>orange</icfi:instanceId>
 			<icfi:referentialIntegrity>true</icfi:referentialIntegrity>
 			<icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
+			<icfi:tolerateDuplicateValues>false</icfi:tolerateDuplicateValues>
 			<icfi:uselessGuardedString>
 				<clearValue>whatever</clearValue>
 			</icfi:uselessGuardedString>
