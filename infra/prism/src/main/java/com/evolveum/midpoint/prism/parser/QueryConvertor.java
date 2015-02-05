@@ -786,8 +786,7 @@ public class QueryConvertor {
 	
 	private static <T> PrimitiveXNode<T> createPrimitiveXNode(T val, QName type) {
 		PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
-		xprim.setValue(val);
-		xprim.setTypeQName(type);
+		xprim.setValue(val, type);
 		return xprim;
 	}
 	

@@ -1285,8 +1285,7 @@ public class ChangeExecutor {
 //				Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
 //				value.setTextContent(val.getValue());
 				PrimitiveXNode<String> prim = new PrimitiveXNode<>();
-				prim.setValue(val.getValue());
-				prim.setTypeQName(DOMUtil.XSD_STRING);
+				prim.setValue(val.getValue(), DOMUtil.XSD_STRING);
 				JAXBElement<RawType> el = new JAXBElement(SchemaConstants.C_VALUE, RawType.class, new RawType(prim, prismContext));
 				argument.getExpressionEvaluator().add(el);
 			}

@@ -33,7 +33,7 @@
     	</source>
     	<expression>
             <value>
-                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
             </value>
     	</expression>
     	<target>
@@ -79,7 +79,7 @@
     	</source>
     	<expression>
             <value>
-                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
             </value>
     	</expression>
     	<target>
@@ -107,10 +107,10 @@
     	</source>
     	<expression>
             <assignmentTargetSearch>
-            	<targetType>c:OrgType</targetType>
+            	<targetType>OrgType</targetType>
         		<filter>
 					<q:equal>
-						<q:path>c:name</q:path>
+						<q:path>name</q:path>
 						<expression>
 							<path>$organizationalUnit</path>
 						</expression>

@@ -168,7 +168,7 @@ public class DOMUtil {
     // Whether we want to tolerate undeclared XML prefixes in QNames
     // This is here only for backward compatibility with versions 3.0-3.1.
     // Will be set to false starting with 3.2 (MID-2191)
-    public static boolean tolerateUndeclaredPrefixes = false;
+    private static boolean tolerateUndeclaredPrefixes = false;
 
 	static {
 		try {
@@ -180,7 +180,15 @@ public class DOMUtil {
 		}
 	}
 
-	public static String serializeDOMToString(org.w3c.dom.Node node) {
+    public static boolean isTolerateUndeclaredPrefixes() {
+        return tolerateUndeclaredPrefixes;
+    }
+
+    public static void setTolerateUndeclaredPrefixes(boolean tolerateUndeclaredPrefixes) {
+        DOMUtil.tolerateUndeclaredPrefixes = tolerateUndeclaredPrefixes;
+    }
+
+    public static String serializeDOMToString(org.w3c.dom.Node node) {
 		return printDom(node).toString();
 	}
 	
@@ -447,15 +455,24 @@ public class DOMUtil {
 		return resolveQName(domNode, prefixNotation, null);
 	}
 
-	public static QName resolveQName(Node domNode, String prefixNotation, String defaultNamespacePrefix) {
-		if (StringUtils.isBlank(prefixNotation)) {
+    /**
+     * Resolves a QName.
+     *
+     * @param domNode Provides a context in which we will resolve namespace prefixes
+     * @param qnameStringRepresentation String representation of a QName (e.g. c:RoleType)
+     *
+     * @return parsed QName (or null if string representation is blank)
+     */
+
+	public static QName resolveQName(Node domNode, String qnameStringRepresentation, String defaultNamespacePrefix) {
+		if (StringUtils.isBlank(qnameStringRepresentation)) {
 			// No QName
 			return null;
 		}
-		String[] qnameArray = prefixNotation.split(":");
+		String[] qnameArray = qnameStringRepresentation.split(":");
 		if (qnameArray.length > 2) {
 			throw new IllegalArgumentException("Unsupported format: more than one colon in Qname: "
-					+ prefixNotation);
+					+ qnameStringRepresentation);
 		}
 		QName qname;
 		if (qnameArray.length == 1 || qnameArray[1] == null || qnameArray[1].isEmpty()) {
@@ -469,7 +486,7 @@ public class DOMUtil {
 		} else {
 			String namespace = findNamespace(domNode, qnameArray[0]);
             if (namespace == null) {
-                reportUndeclaredNamespacePrefix(qnameArray[0], prefixNotation);
+                reportUndeclaredNamespacePrefix(qnameArray[0], qnameStringRepresentation);
             }
 			qname = new QName(namespace, qnameArray[1], qnameArray[0]);
 		}
@@ -735,12 +752,43 @@ public class DOMUtil {
 	}
 
 	public static void setNamespaceDeclarations(Element element, Map<String, String> rootNamespaceDeclarations) {
+        if (rootNamespaceDeclarations == null) {
+            return;
+        }
 		for (Entry<String, String> entry : rootNamespaceDeclarations.entrySet()) {
 			setNamespaceDeclaration(element, entry.getKey(), entry.getValue());
 		}
 	}
-	
-	/**
+
+    /**
+     * Returns all namespace declarations visible from the given node.
+     * Uses recursion for simplicity.
+     */
+    public static Map<String,String> getAllVisibleNamespaceDeclarations(Node node) {
+        Map<String,String> retval;
+        Node parent = getParentNode(node);
+        if (parent != null) {
+            retval = getAllVisibleNamespaceDeclarations(parent);
+        } else {
+            retval = new HashMap<>();
+        }
+        if (node instanceof Element) {
+            retval.putAll(getNamespaceDeclarations((Element) node));
+        }
+        return retval;
+    }
+
+    // returns owner node - works also for attributes
+    private static Node getParentNode(Node node) {
+        if (node instanceof Attr) {
+            Attr attr = (Attr) node;
+            return attr.getOwnerElement();
+        } else {
+            return node.getParentNode();
+        }
+    }
+
+    /**
 	 * Take all the namespace declaration of parent elements and put them to this element.
 	 */
 	public static void fixNamespaceDeclarations(Element element) {

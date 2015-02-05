@@ -256,8 +256,9 @@ public abstract class AbstractParser implements Parser {
 		}
 			
 		T value = primitive.getValue();
-		if ( value == null){
+		if (value == null) {
 			value = (T) primitive.getStringValue();
+            // TODO write also namespace declarations!
 		}
 		if (nodeName == null) {
 			generator.writeObject(value);

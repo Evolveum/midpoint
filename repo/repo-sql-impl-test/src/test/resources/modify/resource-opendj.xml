@@ -293,7 +293,7 @@ object.
 				<outbound>
 					<source>
 						<path>
-							$c:user/c:fullName/t:orig
+							$c:user/c:fullName/orig
 						</path>
 					</source>
 				</outbound>
@@ -309,7 +309,7 @@ object.
 				<outbound>
 					<source>
 						<path>
-							$c:user/c:familyName/t:orig
+							$c:user/c:familyName/orig
 						</path>
 					</source>
 				</outbound>
@@ -325,7 +325,7 @@ object.
 				<outbound>
 					<source>
 						<path>
-							$c:user/c:givenName/t:orig
+							$c:user/c:givenName/orig
 						</path>
 					</source>
 				</outbound>

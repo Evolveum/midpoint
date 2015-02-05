@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -23,21 +24,25 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import java.io.File;
@@ -45,6 +50,7 @@ import java.io.IOException;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author semancik
@@ -107,6 +113,7 @@ public class TestParseObjectTemplate {
 		System.out.println(reparsedObject.debugDump());
 		
 		assertObjectTemplate(reparsedObject, elementName);
+        assertObjectTemplateInternals(reparsedObject, elementName);
 	}
 
 	private void assertObjectTemplate(PrismObject<ObjectTemplateType> object, QName elementName) {
@@ -129,16 +136,43 @@ public class TestParseObjectTemplate {
 		assertPropertyValue(object, "name", PrismTestUtil.createPolyString("Default User Template"));
 		assertPropertyDefinition(object, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 		
-		assertPropertyDefinition(object, "mapping", MappingType.COMPLEX_TYPE, 0, -1);
-		
+		assertPropertyDefinition(object, "mapping", ObjectTemplateMappingType.COMPLEX_TYPE, 0, -1);
+
 	}
-	
-	
-	private void assertSerializedObject(String xml, QName elementName) {
+
+    // checks raw values of mappings
+    // should be called only on reparsed values in order to catch some raw-data-related serialization issues (MID-2196)
+    private void assertObjectTemplateInternals(PrismObject<ObjectTemplateType> object, QName elementName) throws SchemaException {
+        boolean assignmentFound = false;
+        for (ObjectTemplateMappingType mappingType : object.asObjectable().getMapping()) {
+            if (mappingType.getExpression() != null) {
+                if (mappingType.getTarget() != null &&
+                        mappingType.getTarget().getPath() != null &&
+                        new ItemPath(UserType.F_ASSIGNMENT).equivalent(mappingType.getTarget().getPath().getItemPath())) {
+                    ItemDefinition assignmentDef =
+                            PrismTestUtil.getPrismContext().getSchemaRegistry()
+                                    .findObjectDefinitionByCompileTimeClass(UserType.class)
+                                    .findItemDefinition(UserType.F_ASSIGNMENT);
+                    for (JAXBElement evaluator : mappingType.getExpression().getExpressionEvaluator()) {
+                        if (evaluator.getValue() instanceof RawType) {
+                            RawType rawType = (RawType) evaluator.getValue();
+                            Item assignment = rawType.getParsedItem(assignmentDef);
+                            System.out.println("assignment:\n" + assignment.debugDump());
+                            assignmentFound = true;
+                        }
+                    }
+                }
+            }
+        }
+        assertTrue("no assignment found in mapping", assignmentFound);
+    }
+
+
+    private void assertSerializedObject(String xml, QName elementName) {
 		// TODO
 	}
 
-	
+
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
