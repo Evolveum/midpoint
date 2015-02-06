@@ -14,6 +14,12 @@ import java.sql.Timestamp;
  * @author Viliam Repan (lazyman)
  */
 @Entity
+@Table(indexes = {
+//todo create indexes after lookup api is created (when we know how we will search through lookup table [lazyman]
+//        @Index(name = "i_row_key", columnList = "key"),
+//        @Index(name = "i_row_label_orig", columnList = "label.orig"),
+//        @Index(name = "i_row_label_norm", columnList = "label.norm")
+})
 @IdClass(RLookupTableRowId.class)
 public class RLookupTableRow {
 
@@ -43,7 +49,7 @@ public class RLookupTableRow {
     }
 
     @Id
-    @Column(name = "key")
+    @Column(name = "row_key")
     public String getKey() {
         return key;
     }
@@ -68,6 +74,7 @@ public class RLookupTableRow {
         this.lastChangeTimestamp = lastChangeTimestamp;
     }
 
+    @Column(name = "row_value")
     public String getValue() {
         return value;
     }
