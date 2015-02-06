@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -44,19 +45,6 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -573,7 +561,7 @@ public class TestParseResource {
                 boolean foundDescription = false;
                 boolean foundDepartmentNumber = false;
                 for (ResourceAttributeDefinitionType attributeDefinitionType : accountType.getAttribute()) {
-                    if ("description".equals(attributeDefinitionType.getRef().getLocalPart())) {
+                    if ("description".equals(ItemPathUtil.getOnlySegmentQName(attributeDefinitionType.getRef()).getLocalPart())) {
                         foundDescription = true;
                         MappingType outbound = attributeDefinitionType.getOutbound();
                         JAXBElement<?> valueEvaluator = outbound.getExpression().getExpressionEvaluator().get(0);
@@ -581,7 +569,7 @@ public class TestParseResource {
                         assertNotNull("no expression evaluator for description", valueEvaluator);
                         assertEquals("wrong expression evaluator element name for description", SchemaConstantsGenerated.C_VALUE, valueEvaluator.getName());
                         assertEquals("wrong expression evaluator actual type for description", RawType.class, valueEvaluator.getValue().getClass());
-                    } else if ("departmentNumber".equals(attributeDefinitionType.getRef().getLocalPart())) {
+                    } else if ("departmentNumber".equals(ItemPathUtil.getOnlySegmentQName(attributeDefinitionType.getRef()).getLocalPart())) {
                         foundDepartmentNumber = true;
                         MappingType outbound = attributeDefinitionType.getOutbound();
                         MappingSourceDeclarationType source = outbound.getSource().get(0);

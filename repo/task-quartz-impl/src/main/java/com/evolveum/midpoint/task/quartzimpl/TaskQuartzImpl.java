@@ -59,6 +59,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -1309,7 +1310,7 @@ public class TaskQuartzImpl implements Task {
             ownerRef.getValue().setObject(owner);
             return owner;
 		} catch (ObjectNotFoundException e) {
-			LOGGER.warn("The owner of task "+getOid()+" cannot be found (owner OID: "+ownerRef.getOid()+")",e);
+            LoggingUtils.logExceptionAsWarning(LOGGER, "The owner of task {} cannot be found (owner OID: {})", e, getOid(), ownerRef.getOid());
 			return null;
 		}
 	}

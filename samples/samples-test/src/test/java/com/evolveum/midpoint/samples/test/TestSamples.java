@@ -142,7 +142,7 @@ public class TestSamples {
 		validator.setHandler(handler);
         FileInputStream fis = new FileInputStream(file);
         OperationResult result = new OperationResult(RESULT_OPERATION_NAME);
-        
+
 		validator.validate(fis, result, OBJECT_RESULT_OPERATION_NAME);
 
         if (!result.isSuccess()) {

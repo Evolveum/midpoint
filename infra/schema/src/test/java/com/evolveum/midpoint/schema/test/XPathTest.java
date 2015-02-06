@@ -219,7 +219,7 @@ public class XPathTest {
         // Given
         Element el1 = parseDataGetEl1();
 
-        String xpathString = "/:root/x:el1";
+        String xpathString = "declare namespace x='http://xx.com/'; /root/x:el1";
 
         // When
 

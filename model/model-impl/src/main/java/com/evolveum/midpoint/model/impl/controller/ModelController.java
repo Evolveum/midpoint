@@ -1622,6 +1622,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	private void removeDeniedItems(List<Item<? extends PrismValue>> items, ObjectSecurityConstraints securityContraints, AuthorizationDecisionType defaultDecision) {
+		if (items == null) {
+			return;
+		}
 		Iterator<Item<?>> iterator = items.iterator();
 		while (iterator.hasNext()) {
 			Item<? extends PrismValue> item = iterator.next();
@@ -1643,9 +1646,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 					while (vi.hasNext()) {
 						PrismContainerValue<?> cval = vi.next();
 						List<Item<?>> subitems = cval.getItems();
-						removeDeniedItems(subitems, securityContraints, subDefaultDecision);
-						if (cval.getItems().isEmpty()) {
-							vi.remove();
+						if (subitems != null) {
+							removeDeniedItems(subitems, securityContraints, subDefaultDecision);
+							if (subitems.isEmpty()) {
+								vi.remove();
+							}
 						}
 					}
 					if (item.isEmpty()) {

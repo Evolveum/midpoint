@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -50,6 +52,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,7 +125,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                 if(association.getDisplayName() == null && association.getRef() == null){
                     return getString("ResourceAssociationEditor.label.new");
                 } else {
-                    return getString("ResourceAssociationEditor.label.edit", association.getRef().getLocalPart());
+                    return getString("ResourceAssociationEditor.label.edit", ItemPathUtil.getOnlySegmentQName(association.getRef()).getLocalPart());
                 }
             }
         });

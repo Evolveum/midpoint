@@ -256,8 +256,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		MappingType conditionType = assignmentType.getCondition();
 		if (conditionType != null) {
+            AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 			PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateMappingAsCondition(conditionType,
-					assignmentType, source, task, result);
+					assignmentType, source, assignmentPathVariables, task, result);
 			boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
 			boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
 			PlusMinusZero condMode = ExpressionUtil.computeConditionResultMode(condOld, condNew);
@@ -432,8 +433,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		MappingType conditionType = roleType.getCondition();
 		if (conditionType != null) {
+            AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 			PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateMappingAsCondition(conditionType,
-					null, source, task, result);
+					null, source, assignmentPathVariables, task, result);
 			boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
 			boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
 			PlusMinusZero condMode = ExpressionUtil.computeConditionResultMode(condOld, condNew);
@@ -518,7 +520,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			assignment.addAuthorization(authorization);
 		}
 		
-		return mode != PlusMinusZero.MINUS;		
+		return mode != PlusMinusZero.MINUS;
+		
 	}
 
 
@@ -603,7 +606,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 	
 	public PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateMappingAsCondition(MappingType conditionType, 
-			AssignmentType sourceAssignment, ObjectType source, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			AssignmentType sourceAssignment, ObjectType source,
+            AssignmentPathVariables assignmentPathVariables,
+            Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		String desc;
 		if (sourceAssignment == null) {
 			desc = "condition in " + source; 
@@ -620,8 +625,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 		mapping.setRootNode(focusOdo);
 		mapping.setOriginType(OriginType.ASSIGNMENTS);
 		mapping.setOriginObject(source);
-		
-		// TODO: assignment path variables?
+
+        LensUtil.addAssignmentPathVariables(mapping, assignmentPathVariables);
 
 		ItemDefinition outputDefinition = new PrismPropertyDefinition<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
 		mapping.setDefaultTargetDefinition(outputDefinition);

@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -281,6 +282,10 @@ public class DomParser implements Parser {
             return element.getTextContent();
         }
         @Override
+        public Map<String, String> getPotentiallyRelevantNamespaces() {
+            return DOMUtil.getAllVisibleNamespaceDeclarations(element);
+        }
+        @Override
         public String toString() {
             return "ValueParser(DOMe, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(element))+": "+element.getTextContent()+")";
         }
@@ -313,7 +318,11 @@ public class DomParser implements Parser {
 			return "ValueParser(DOMa, " + PrettyPrinter.prettyPrint(DOMUtil.getQName(attr)) + ": "
 					+ attr.getTextContent() + ")";
 		}
-	
+
+        @Override
+        public Map<String, String> getPotentiallyRelevantNamespaces() {
+            return DOMUtil.getAllVisibleNamespaceDeclarations(attr);
+        }
     }
 
 	private <T> PrimitiveXNode<T> parsePrimitiveElement(final Element element) throws SchemaException {

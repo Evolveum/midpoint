@@ -443,13 +443,10 @@ public class XNodeProcessor {
             // Primitive elements may also have complex Java representations (e.g. enums)
             return prismContext.getBeanConverter().unmarshallPrimitive(xprim, typeName);
         } else {
-            if (!xprim.isParsed()) {
-                xprim.parseValue(typeName);
-            }
-            realValue = xprim.getValue();
+            realValue = xprim.getParsedValue(typeName);
         }
 
-        if (realValue == null){
+        if (realValue == null) {
             return realValue;
         }
 

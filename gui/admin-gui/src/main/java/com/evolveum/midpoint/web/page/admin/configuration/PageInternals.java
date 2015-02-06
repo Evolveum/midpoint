@@ -39,6 +39,7 @@ public class PageInternals extends PageAdminConfiguration {
     private static final String ID_CONSISTENCY_CHECKS = "consistencyChecks";
     private static final String ID_ENCRYPTION_CHECKS = "encryptionChecks";
     private static final String ID_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
+    private static final String ID_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
     private static final String ID_DETAILED_DEBUG_DUMP = "detailedDebugDump";
 
     private static final String LABEL_SIZE = "col-md-4";
@@ -145,6 +146,10 @@ public class PageInternals extends PageAdminConfiguration {
                 new PropertyModel<Boolean>(internalsModel, InternalsConfigDto.F_READ_ENCRYPTION_CHECKS),
                 createStringResource("PageInternals.checkReadEncrypion"), LABEL_SIZE, INPUT_SIZE);
         form.add(encryptionRead);
+        CheckFormGroup tolerateUndeclaredPrefixes = new CheckFormGroup(ID_TOLERATE_UNDECLARED_PREFIXES,
+                new PropertyModel<Boolean>(internalsModel, InternalsConfigDto.F_TOLERATE_UNDECLARED_PREFIXES),
+                createStringResource("PageInternals.tolerateUndeclaredPrefixes"), LABEL_SIZE, INPUT_SIZE);
+        form.add(tolerateUndeclaredPrefixes);
 
         AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE_INTERNALS_CONFIG,
                 createStringResource("PageBase.button.update")) {

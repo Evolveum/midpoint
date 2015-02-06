@@ -314,6 +314,7 @@ public class JaxbDomHack {
 					String stringValue = xprim.getStringValue();
 					Element element = DOMUtil.createElement(document, elementName);
 					element.setTextContent(stringValue);
+                    DOMUtil.setNamespaceDeclarations(element, xprim.getRelevantNamespaceDeclarations());
 					return element;
 				} else {
 					throw new IllegalArgumentException("Cannot convert raw element "+rawElement+" to xsd:any");

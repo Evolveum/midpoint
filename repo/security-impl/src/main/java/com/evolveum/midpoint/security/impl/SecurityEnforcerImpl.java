@@ -376,7 +376,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		SearchFilterType specFilterType = objectSpecType.getFilter();
 		ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
-		QName specTypeQName = objectSpecType.getType();
+		QName specTypeQName = objectSpecType.getType();     // now it does not matter if it's unqualified
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
 		
 		// Type
@@ -830,6 +830,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							
 							// Type
 							if (specTypeQName != null) {
+                                specTypeQName = prismContext.getSchemaRegistry().qualifyTypeName(specTypeQName);
 								PrismObjectDefinition<?> specObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(specTypeQName);
 								Class<?> specObjectClass = specObjectDef.getCompileTimeClass();
 								if (!objectType.isAssignableFrom(specObjectClass)) {

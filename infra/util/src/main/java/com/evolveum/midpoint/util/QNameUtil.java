@@ -156,4 +156,8 @@ public class QNameUtil {
 	public static QName nullNamespace(QName qname) {
 		return new QName(null, qname.getLocalPart(), qname.getPrefix());
 	}
+
+    public static boolean isUnqualified(QName targetTypeQName) {
+        return StringUtils.isBlank(targetTypeQName.getNamespaceURI());
+    }
 }

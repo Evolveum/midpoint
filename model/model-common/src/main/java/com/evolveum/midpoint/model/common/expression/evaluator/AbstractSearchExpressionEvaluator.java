@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -134,6 +135,10 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		if (targetTypeQName == null) {
 			targetTypeQName = getDefaultTargetType();
 		}
+        if (targetTypeQName != null && QNameUtil.isUnqualified(targetTypeQName)) {
+            targetTypeQName = getPrismContext().getSchemaRegistry().resolveUnqualifiedTypeName(targetTypeQName);
+        }
+
 		ObjectTypes targetType = ObjectTypes.getObjectTypeFromTypeQName(targetTypeQName);
 		if (targetType == null) {
 			throw new SchemaException("Unknown target type "+targetTypeQName+" in "+shortDebugDump());

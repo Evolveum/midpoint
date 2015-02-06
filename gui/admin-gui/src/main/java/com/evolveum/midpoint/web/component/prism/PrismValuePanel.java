@@ -449,7 +449,7 @@ public class PrismValuePanel extends Panel {
             		sb.append(getAttributeName(attr));
                 	sb.append(":");
                     if (realValue != null) {
-                        sb.append(realValue.toString().replace(",", ",&#8203;").replace("@", "@&#8203;"));
+                        sb.append(realValue.toString().replace(",", ",&#8203;").replace("@", "@&#8203;").replace("_", "@&#8203;"));
                     }
             		sb.append("<br>");
             	}
