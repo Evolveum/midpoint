@@ -192,7 +192,7 @@ public class DomSerializer {
             }
         }
 
-        if (typeQName == null) {
+        if (typeQName == null) {    // this means that either xprim is unparsed or it is empty
 			if (com.evolveum.midpoint.prism.PrismContext.isAllowSchemalessSerialization()) {
 				// We cannot correctly serialize without a type. But this is needed
 				// sometimes. So just default to string
@@ -200,6 +200,7 @@ public class DomSerializer {
 				if (stringValue != null) {
                     if (asAttribute) {
                         DOMUtil.setAttributeValue(parentElement, elementOrAttributeName.getLocalPart(), stringValue);
+                        DOMUtil.setNamespaceDeclarations(parentElement, xprim.getRelevantNamespaceDeclarations());
                     } else {
                         Element element;
                         try {
@@ -210,6 +211,7 @@ public class DomSerializer {
                         }
                         parentElement.appendChild(element);
                         DOMUtil.setElementTextContent(element, stringValue);
+                        DOMUtil.setNamespaceDeclarations(element, xprim.getRelevantNamespaceDeclarations());
                     }
 				}
                 return;
@@ -238,7 +240,7 @@ public class DomSerializer {
             }
 
         } else {
-            // not an ItemType
+            // not an ItemPathType
 
             if (!asAttribute) {
                 try {
@@ -251,7 +253,7 @@ public class DomSerializer {
             }
 
             if (typeQName.equals(DOMUtil.XSD_QNAME)) {
-                QName value = (QName) xprim.getParsedValueWithoutRecording(typeQName);
+                QName value = (QName) xprim.getParsedValueWithoutRecording(DOMUtil.XSD_QNAME);
                 if (asAttribute) {
                     try {
                         DOMUtil.setQNameAttribute(parentElement, elementOrAttributeName.getLocalPart(), value);

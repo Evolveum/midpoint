@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.BooleanUtils;
 
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
@@ -50,7 +51,7 @@ public class RefinedAssociationDefinition implements Serializable {
 	}
 
 	public QName getName() {
-		return resourceObjectAssociationType.getRef();
+		return ItemPathUtil.getOnlySegmentQName(resourceObjectAssociationType.getRef());
 	}
 	
 	public ShadowKindType getKind() {

@@ -1263,7 +1263,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class,
                     prismContext, PolyStringOrigMatchingRule.NAME, "a");
             count = repositoryService.countObjects(ObjectType.class, ObjectQuery.createObjectQuery(substring), result);
-            AssertJUnit.assertEquals(16, count);
+            AssertJUnit.assertEquals(17, count);
         } finally {
             close(session);
         }

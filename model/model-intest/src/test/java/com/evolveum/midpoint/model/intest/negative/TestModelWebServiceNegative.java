@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -225,7 +226,12 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 			public String getStringValue() {
 				return value;
 			}
-		};
+
+            @Override
+            public Map<String, String> getPotentiallyRelevantNamespaces() {
+                throw new UnsupportedOperationException();
+            }
+        };
 		xnode.setValueParser(valueParser);
 		if (type != null) {
 			xnode.setExplicitTypeDeclaration(true);

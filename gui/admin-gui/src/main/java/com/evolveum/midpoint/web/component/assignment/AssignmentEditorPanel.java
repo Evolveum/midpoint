@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePa
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -629,7 +631,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         }
 
         ResourceAttributeDefinitionType construction = new ResourceAttributeDefinitionType();
-        construction.setRef(attrDef.getName());
+        construction.setRef(new ItemPathType(new ItemPath(attrDef.getName())));
 
         return construction;
     }

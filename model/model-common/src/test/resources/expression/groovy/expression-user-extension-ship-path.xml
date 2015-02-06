@@ -19,6 +19,6 @@
 		xmlns:ext='http://midpoint.evolveum.com/xml/ns/test/extension'>
 	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
 	<code>
-		basic.getPropertyValue(user, 'extension/ext:ship')
+		basic.getPropertyValue(user, 'declare namespace ext="http://midpoint.evolveum.com/xml/ns/test/extension"; extension/ext:ship')
 	</code>
 </script>

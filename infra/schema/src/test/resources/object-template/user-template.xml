@@ -14,18 +14,22 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
+<!-- default namespace is undefined purposely here -->
+
 <userTemplate oid="10000000-0000-0000-0000-000000000002"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Default User Template</name>
     <mapping>
     	<strength>weak</strength>
     	<source>
+            <name>c:givenName</name>
     		<path>$user/givenName</path>
     	</source>
     	<source>
+            <name>familyName</name>
     		<path>$user/familyName</path>
     	</source>
     	<expression>
@@ -38,5 +42,26 @@
     	<target>
     		<path>fullName</path>
     	</target>
+    </mapping>
+
+    <!-- Unconditional automatic assignment of Blue Dummy resource -->
+    <mapping>
+        <expression>
+            <value>
+                <construction>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000204" type="c:ResourceType"/>
+                    <kind>account</kind>
+                </construction>
+            </value>
+            <value>
+                <construction>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000205" type="ResourceType"/>
+                    <kind>account</kind>
+                </construction>
+            </value>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
     </mapping>
 </userTemplate>

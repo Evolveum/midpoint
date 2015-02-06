@@ -15,31 +15,14 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * 
@@ -71,7 +54,7 @@ public class ModelUtils {
 		// Do not log at ERROR level. This is too harsh. Especially in object not found case.
 		// What model considers an error may be just a normal situation for the code is using model API.
 		// If this is really an error then it should be logged by the invoking code.
-		LoggingUtils.logErrorOnDebugLevel(LOGGER, message, e);
+		LoggingUtils.logExceptionOnDebugLevel(LOGGER, message, e);
 		result.recordFatalError(message, e);
 		result.cleanupResult(e);
 	}
@@ -84,7 +67,7 @@ public class ModelUtils {
 		// Do not log at ERROR level. This is too harsh. Especially in object not found case.
 		// What model considers an error may be just a normal situation for the code is using model API.
 		// If this is really an error then it should be logged by the invoking code.
-		LoggingUtils.logErrorOnDebugLevel(LOGGER, message, e);
+		LoggingUtils.logExceptionOnDebugLevel(LOGGER, message, e);
 		result.recordPartialError(message, e);
 		result.cleanupResult(e);
 	}
