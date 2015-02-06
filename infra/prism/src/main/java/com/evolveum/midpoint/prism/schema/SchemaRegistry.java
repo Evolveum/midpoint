@@ -178,25 +178,35 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	 * Must be called before call to initialize()
 	 */
 	public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage) throws SchemaException {
-		registerPrismSchemaResource(resourcePath, usualPrefix, compileTimeClassesPackage, false);
+		registerPrismSchemaResource(resourcePath, usualPrefix, compileTimeClassesPackage, false, false);
 	}
 
-	/**
+    /**
+     * Must be called before call to initialize()
+     */
+    public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage, boolean prefixDeclaredByDefault) throws SchemaException {
+        registerPrismSchemaResource(resourcePath, usualPrefix, compileTimeClassesPackage, false, prefixDeclaredByDefault);
+    }
+
+    /**
 	 * Must be called before call to initialize()
 	 */
 	public void registerPrismDefaultSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage) throws SchemaException {
-		registerPrismSchemaResource(resourcePath, usualPrefix, compileTimeClassesPackage, true);
+		registerPrismSchemaResource(resourcePath, usualPrefix, compileTimeClassesPackage, true, true);
 	}
 
 	/**
 	 * Must be called before call to initialize()
+     *
+     * @param prefixDeclaredByDefault Whether this prefix will be declared in top element in all XML serializations (MID-2198)
 	 */
-	public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage, 
-			boolean defaultSchema) throws SchemaException {
+	public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage,
+			boolean defaultSchema, boolean prefixDeclaredByDefault) throws SchemaException {
 		SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
 		desc.setUsualPrefix(usualPrefix);
 		desc.setPrismSchema(true);
 		desc.setDefault(defaultSchema);
+        desc.setDeclaredByDefault(prefixDeclaredByDefault);
 		desc.setCompileTimeClassesPackage(compileTimeClassesPackage);
 		registerSchemaDescription(desc);
 	}
@@ -238,6 +248,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	private void registerSchemaDescription(SchemaDescription desc) {
 		if (desc.getUsualPrefix() != null) {
 			namespacePrefixMapper.registerPrefix(desc.getNamespace(), desc.getUsualPrefix(), desc.isDefault());
+            if (desc.isDeclaredByDefault()) {
+                namespacePrefixMapper.addDeclaredByDefault(desc.getUsualPrefix());
+            }
 		}
 		parsedSchemas.put(desc.getNamespace(), desc);
 		schemaDescriptions.add(desc);

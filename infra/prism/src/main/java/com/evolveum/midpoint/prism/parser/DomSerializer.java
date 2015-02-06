@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.ibm.wsdl.extensions.schema.SchemaConstants;
 import com.sun.org.apache.xml.internal.utils.XMLChar;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Comment;
@@ -36,6 +37,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -48,8 +53,8 @@ public class DomSerializer {
 	private Element topElement;
 	private boolean serializeCompositeObjects = false;
 	private SchemaRegistry schemaRegistry;
-	
-	DomSerializer(DomParser parser, SchemaRegistry schemaRegistry) {
+
+    DomSerializer(DomParser parser, SchemaRegistry schemaRegistry) {
 		super();
 		this.schemaRegistry = schemaRegistry;
 	}
@@ -99,7 +104,7 @@ public class DomSerializer {
             typeQName = rootxnode.getSubnode().getTypeQName();
         }
 		if (typeQName != null && !schemaRegistry.hasImplicitTypeDefinition(rootElementName, typeQName)) {
-			DOMUtil.setXsiType(topElement, typeQName);
+            DOMUtil.setXsiType(topElement, setQNamePrefixExplicitIfNeeded(typeQName));
 		}
 		XNode subnode = rootxnode.getSubnode();
 		if (subnode instanceof PrimitiveXNode){
@@ -109,11 +114,14 @@ public class DomSerializer {
 		if (!(subnode instanceof MapXNode)) {
 			throw new SchemaException("Sub-root xnode is not map, cannot serialize to XML (it is "+subnode+")");
 		}
-		serializeMap((MapXNode)subnode, topElement);
+        // at this point we can put frequently used namespaces (e.g. c, t, q, ri) into the document to eliminate their use
+        // on many places inside the doc (MID-2198)
+        DOMUtil.setNamespaceDeclarations(topElement, getNamespacePrefixMapper().getNamespacesDeclaredByDefault());
+		serializeMap((MapXNode) subnode, topElement);
 		return topElement;
 	}
-	
-	public Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {
+
+    public Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {
 		initialize();
 		Element element = createElement(elementName, null);
         topElement = element;
@@ -149,7 +157,7 @@ public class DomSerializer {
 			Element element = createElement(elementName, parentElement);
             appendCommentIfPresent(element, xsubnode);
 			if (xsubnode.isExplicitTypeDeclaration() && xsubnode.getTypeQName() != null){
-				DOMUtil.setXsiType(element, xsubnode.getTypeQName());
+				DOMUtil.setXsiType(element, setQNamePrefixExplicitIfNeeded(xsubnode.getTypeQName()));
 			}
 			parentElement.appendChild(element);
 //			System.out.println("subnode " + xsubnode.debugDump());
@@ -254,6 +262,7 @@ public class DomSerializer {
 
             if (typeQName.equals(DOMUtil.XSD_QNAME)) {
                 QName value = (QName) xprim.getParsedValueWithoutRecording(DOMUtil.XSD_QNAME);
+                value = setQNamePrefixExplicitIfNeeded(value);
                 if (asAttribute) {
                     try {
                         DOMUtil.setQNameAttribute(parentElement, elementOrAttributeName.getLocalPart(), value);
@@ -276,7 +285,7 @@ public class DomSerializer {
 
         }
         if (!asAttribute && xprim.isExplicitTypeDeclaration()) {
-            DOMUtil.setXsiType(element, typeQName);
+            DOMUtil.setXsiType(element, setQNamePrefixExplicitIfNeeded(typeQName));
         }
 	}
 
@@ -323,6 +332,14 @@ public class DomSerializer {
 		}
 		return namespacePrefixMapper.setQNamePrefix(qname);
 	}
+
+    private QName setQNamePrefixExplicitIfNeeded(QName name) {
+        if (name != null && StringUtils.isNotBlank(name.getNamespaceURI()) && StringUtils.isBlank(name.getPrefix())) {
+            return setQNamePrefixExplicit(name);
+        } else {
+            return name;
+        }
+    }
 	
 	private QName setQNamePrefixExplicit(QName qname) {
 		DynamicNamespacePrefixMapper namespacePrefixMapper = getNamespacePrefixMapper();

@@ -22,6 +22,8 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Default User Template</name>
+    <includeRef oid="10000000-0000-0000-0000-000000000998" type="c:ObjectTemplateType" />
+    <includeRef oid="10000000-0000-0000-0000-000000000999" type="ObjectTemplateType" />
     <mapping>
     	<strength>weak</strength>
     	<source>

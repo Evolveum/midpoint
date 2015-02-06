@@ -111,15 +111,15 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/annotation-3.xsd", "a");
 
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-3.xsd", "t", 
-				com.evolveum.prism.xml.ns._public.types_3.ObjectFactory.class.getPackage());
+				com.evolveum.prism.xml.ns._public.types_3.ObjectFactory.class.getPackage(), true);          // declared by default
 
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-3.xsd", "q", 
-				com.evolveum.prism.xml.ns._public.query_3.ObjectFactory.class.getPackage());
+				com.evolveum.prism.xml.ns._public.query_3.ObjectFactory.class.getPackage(), true);          // declared by default
 		
 		
 		// midPoint schemas
 		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/public/common/common-3.xsd", "c", 
-				com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory.class.getPackage());
+				com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory.class.getPackage());         // declared by default
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-3.xsd", "apti",
 				com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectFactory.class.getPackage());
@@ -136,7 +136,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 				com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ObjectFactory.class.getPackage());
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/resource-schema-3.xsd", "icfs",
-				com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3.ObjectFactory.class.getPackage());
+				com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3.ObjectFactory.class.getPackage(), true); // declared by default
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/extension-3.xsd", "mext");
 
@@ -161,6 +161,10 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-extension-3.xsd", "connext");
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/extension-3.xsd", "se");
+
+        schemaRegistry.getNamespacePrefixMapper().registerPrefix(MidPointConstants.NS_RI, MidPointConstants.PREFIX_NS_RI, false);
+        schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault(MidPointConstants.PREFIX_NS_RI); // declared by default
+
     }
 	
 	private void setupDebug() {
