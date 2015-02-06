@@ -101,13 +101,13 @@ http://www.springframework.org/schema/security/spring-security-3.2.xsd">
         <authentication-provider ref="midPointAuthenticationProvider"/>
     </authentication-manager>
 	
-	<!-- For SSO CAS integration uncomment following and set CASSERVER address-->
+	<!-- For SSO CAS integration uncomment following and set CASSERVER address   and   change service url according to your needs-->
 	<!-- CAS CONFIG -->
 	<!--
 	<beans:bean id="serviceProperties"
         class="org.springframework.security.cas.ServiceProperties">
     <beans:property name="service"
-        value="http://katuska-pc:8080/midpoint/j_spring_cas_security_check"/>
+        value="http://localhost:8080/midpoint/j_spring_cas_security_check"/>
     <beans:property name="sendRenew" value="false"/>
   </beans:bean>
   
@@ -130,7 +130,7 @@ http://www.springframework.org/schema/security/spring-security-3.2.xsd">
       class="org.springframework.security.cas.authentication.CasAuthenticationProvider">
     <beans:property name="authenticationUserDetailsService">
       <beans:bean class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
-        <beans:constructor-arg ref="userService" />
+        <beans:constructor-arg ref="userDetailsService" />
       </beans:bean>
     </beans:property>
     <beans:property name="serviceProperties" ref="serviceProperties" />
@@ -141,10 +141,7 @@ http://www.springframework.org/schema/security/spring-security-3.2.xsd">
     </beans:property>
     <beans:property name="key" value="CAS_ID"/>
   </beans:bean>
-  
-  <user-service id="userService">
-    <user name="edemuser" password="aaa" authorities="ROLE_USER" />
-  </user-service>
+ 
 -->
 
 	<!-- For SLO CAS integration uncomment following and set CASSERVER address-->
