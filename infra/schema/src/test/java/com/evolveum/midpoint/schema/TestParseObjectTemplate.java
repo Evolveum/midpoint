@@ -143,7 +143,7 @@ public class TestParseObjectTemplate {
     // checks raw values of mappings
     // should be called only on reparsed values in order to catch some raw-data-related serialization issues (MID-2196)
     private void assertObjectTemplateInternals(PrismObject<ObjectTemplateType> object, QName elementName) throws SchemaException {
-        boolean assignmentFound = false;
+        int assignmentValuesFound = 0;
         for (ObjectTemplateMappingType mappingType : object.asObjectable().getMapping()) {
             if (mappingType.getExpression() != null) {
                 if (mappingType.getTarget() != null &&
@@ -158,13 +158,13 @@ public class TestParseObjectTemplate {
                             RawType rawType = (RawType) evaluator.getValue();
                             Item assignment = rawType.getParsedItem(assignmentDef);
                             System.out.println("assignment:\n" + assignment.debugDump());
-                            assignmentFound = true;
+                            assignmentValuesFound++;
                         }
                     }
                 }
             }
         }
-        assertTrue("no assignment found in mapping", assignmentFound);
+        assertEquals("wrong # of assignment values found in mapping", 2, assignmentValuesFound);
     }
 
 

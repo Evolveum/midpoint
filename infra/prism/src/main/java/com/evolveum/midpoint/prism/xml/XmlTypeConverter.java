@@ -192,7 +192,7 @@ public class XmlTypeConverter {
      * @throws SchemaException if no xsi:type or default type specified
      */
     public static TypedValue toTypedJavaValueWithDefaultType(Element xmlElement, QName defaultType) throws SchemaException {
-        QName xsiType = DOMUtil.resolveXsiType(xmlElement, null);
+        QName xsiType = DOMUtil.resolveXsiType(xmlElement);
         if (xsiType == null) {
             xsiType = defaultType;
             if (xsiType == null) {
@@ -241,18 +241,14 @@ public class XmlTypeConverter {
         if (type == null) {
             throw new IllegalArgumentException("No type mapping for conversion: " + val.getClass() + "(element " + elementName + ")");
         }
-//        if (JAXBUtil.isJaxbClass(type)) {
-//            JAXBElement jaxbElement = new JAXBElement(elementName, type, val);
-//            return jaxbElement;
-//        } else {
-            if (doc == null) {
-                doc = DOMUtil.getDocument();
-            }
-            Element element = doc.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
-            //TODO: switch to global namespace prefixes map
+        if (doc == null) {
+            doc = DOMUtil.getDocument();
+        }
+        Element element = doc.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
+        //TODO: switch to global namespace prefixes map
 //            element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(elementName.getNamespaceURI()));
-            toXsdElement(val, element, recordType);
-            return element;
+        toXsdElement(val, element, recordType);
+        return element;
     }
     
     public static void toXsdElement(Object val, Element element, boolean recordType) throws SchemaException {

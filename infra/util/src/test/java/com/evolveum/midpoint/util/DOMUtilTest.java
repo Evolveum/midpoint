@@ -24,6 +24,7 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
 /**
@@ -102,7 +103,7 @@ public class DOMUtilTest {
 		// GIVEN
 		Document doc = DOMUtil.getDocument();
 		
-		QName in = new QName(DEFAULT_NS,QNAME_IN_LOCAL);
+		QName in = new QName(DEFAULT_NS, QNAME_IN_LOCAL);
 		Element topElement = doc.createElementNS(DEFAULT_NS, ELEMENT_TOP_LOCAL);
 		// Make sure there is a default ns declaration
 		DOMUtil.setNamespaceDeclaration(topElement,"",DEFAULT_NS);
@@ -124,12 +125,76 @@ public class DOMUtilTest {
 		System.out.println(DOMUtil.serializeDOMToString(topElement));
 		
 		String content = e.getTextContent();
-		// Default namespace should be reused
-		AssertJUnit.assertFalse(content.contains(":"));
-		AssertJUnit.assertEquals(QNAME_IN_LOCAL, content);		
+		// Default namespace should NOT be reused
+		AssertJUnit.assertTrue(content.contains(":"));
+		AssertJUnit.assertTrue(content.contains(":" + QNAME_IN_LOCAL));
 	}
-	
-	@Test
+
+    @Test
+    public void testQNameDefaultNamespace2() {
+        System.out.println("===[ testQNameDefaultNamespace2 ]===");
+        // GIVEN
+        Document doc = DOMUtil.getDocument();
+
+        QName in = new QName(DEFAULT_NS, QNAME_IN_LOCAL, "f");          // the difference w.r.t. testQNameDefaultNamespace1
+        Element topElement = doc.createElementNS(DEFAULT_NS, ELEMENT_TOP_LOCAL);
+        // Make sure there is a default ns declaration
+        DOMUtil.setNamespaceDeclaration(topElement,"",DEFAULT_NS);
+        DOMUtil.setNamespaceDeclaration(topElement,"e",ELEMENT_NS);
+        doc.appendChild(topElement);
+        Element e = doc.createElementNS(ELEMENT_NS, ELEMENT_LOCAL);
+        e.setPrefix("e");
+        e.setTextContent("foofoo");
+        topElement.appendChild(e);
+
+        System.out.println(DOMUtil.serializeDOMToString(topElement));
+
+        // WHEN
+
+        DOMUtil.setQNameValue(e, in);
+
+        // THEN
+
+        System.out.println(DOMUtil.serializeDOMToString(topElement));
+
+        String content = e.getTextContent();
+        // Default namespace should NOT be reused
+        AssertJUnit.assertEquals("f:"+QNAME_IN_LOCAL, content);
+    }
+
+    @Test
+    public void testQNameNoNamespace() {
+        System.out.println("===[ testQNameNoNamespace ]===");
+        // GIVEN
+        Document doc = DOMUtil.getDocument();
+
+        QName in = new QName(XMLConstants.NULL_NS_URI, QNAME_IN_LOCAL);                 // no namespace
+        Element topElement = doc.createElementNS(DEFAULT_NS, ELEMENT_TOP_LOCAL);
+        // Make sure there is a default ns declaration
+        DOMUtil.setNamespaceDeclaration(topElement,"",DEFAULT_NS);
+        DOMUtil.setNamespaceDeclaration(topElement,"e",ELEMENT_NS);
+        doc.appendChild(topElement);
+        Element e = doc.createElementNS(ELEMENT_NS, ELEMENT_LOCAL);
+        e.setPrefix("e");
+        e.setTextContent("foofoo");
+        topElement.appendChild(e);
+
+        System.out.println(DOMUtil.serializeDOMToString(topElement));
+
+        // WHEN
+
+        DOMUtil.setQNameValue(e, in);
+
+        // THEN
+
+        System.out.println(DOMUtil.serializeDOMToString(topElement));
+
+        String content = e.getTextContent();
+        // There should be no namespace prefix
+        AssertJUnit.assertEquals(QNAME_IN_LOCAL, content);
+    }
+
+    @Test
 	public void testXsiType() {
 		System.out.println("===[ testXsiType ]===");
 		// GIVEN
@@ -138,13 +203,13 @@ public class DOMUtilTest {
 		Element el1 = DOMUtil.getFirstChildElement(root);
 		
 		// WHEN
-		QName xsiType = DOMUtil.resolveXsiType(el1, "def");
+		QName xsiType = DOMUtil.resolveXsiType(el1);
 		
 		// THEN
 		assertNotNull(xsiType);
 		AssertJUnit.assertTrue(XSD_INTEGER.equals(xsiType));
 		
-		AssertJUnit.assertTrue("Failed to detect xsi:type",DOMUtil.hasXsiType(el1));
+		AssertJUnit.assertTrue("Failed to detect xsi:type", DOMUtil.hasXsiType(el1));
 		
 	}
 	

@@ -49,6 +49,12 @@
                     <kind>account</kind>
                 </construction>
             </value>
+            <value>
+                <construction>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000205" type="ResourceType"/>
+                    <kind>account</kind>
+                </construction>
+            </value>
         </expression>
         <target>
             <path>assignment</path>
