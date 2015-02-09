@@ -773,8 +773,7 @@ public class PrismBeanConverter {
 
     private XNode marshalXmlAsStringType(XmlAsStringType bean) {
         PrimitiveXNode xprim = new PrimitiveXNode<>();
-        xprim.setValue(bean.getContentAsString());
-        xprim.setTypeQName(DOMUtil.XSD_STRING);
+        xprim.setValue(bean.getContentAsString(), DOMUtil.XSD_STRING);
         return xprim;
     }
 
@@ -901,8 +900,7 @@ public class PrismBeanConverter {
 	
 	private <T> PrimitiveXNode<T> createPrimitiveXNode(T value, QName fieldTypeName, boolean isAttribute){
 		PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
-		xprim.setValue(value);
-		xprim.setTypeQName(fieldTypeName);
+		xprim.setValue(value, fieldTypeName);
 		xprim.setAttribute(isAttribute);
 		return xprim;
 	}
@@ -919,8 +917,7 @@ public class PrismBeanConverter {
         PrimitiveXNode<ItemPath> xprim = new PrimitiveXNode<ItemPath>();
         if (itemPath != null){
             ItemPath path = itemPath.getItemPath();
-            xprim.setValue(path);
-            xprim.setTypeQName(ItemPathType.COMPLEX_TYPE);
+            xprim.setValue(path, ItemPathType.COMPLEX_TYPE);
         }
         return xprim;
     }

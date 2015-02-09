@@ -45,6 +45,8 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final Trace LOGGER = TraceManager.getTrace(StartupConfiguration.class);
     private static final String USER_HOME = "user.home";
     private static final String MIDPOINT_HOME = "midpoint.home";
+    private static final String MIDPOINT_SECTION = "midpoint";
+    private static final String SAFE_MODE = "safeMode";
     
     private static final String DEFAULT_CONFIG_FILE_NAME = "config.xml";
 	private static final String LOGBACK_CONFIG_FILENAME = "logback.xml";
@@ -169,6 +171,11 @@ public class StartupConfiguration implements MidpointConfiguration {
         File midpointHome = new File(midpointHomeString);
         setupInitialLogging(midpointHome);
         loadConfiguration(midpointHome);
+
+        if (isSafeMode()) {
+            LOGGER.info("Safe mode is ON; setting tolerateUndeclaredPrefixes to TRUE");
+            DOMUtil.setTolerateUndeclaredPrefixes(true);
+        }
     }
 
     /**
@@ -252,6 +259,15 @@ public class StartupConfiguration implements MidpointConfiguration {
     @Override
     public Document getXmlConfigAsDocument() {
         return xmlConfigAsDocument;
+    }
+
+    @Override
+    public boolean isSafeMode() {
+        Configuration c = getConfiguration(MIDPOINT_SECTION);
+        if (c == null) {
+            return false;           // should not occur
+        }
+        return c.getBoolean(SAFE_MODE, false);
     }
 
     @Override

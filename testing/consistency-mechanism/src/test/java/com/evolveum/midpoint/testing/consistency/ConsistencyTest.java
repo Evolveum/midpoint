@@ -148,6 +148,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -2026,7 +2027,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         mapping.setExpression(expression);
         
         ResourceAttributeDefinitionType attrDefType = new ResourceAttributeDefinitionType();
-        attrDefType.setRef(SchemaConstants.ICFS_NAME);
+        attrDefType.setRef(new ItemPathType(new ItemPath(SchemaConstants.ICFS_NAME)));
         attrDefType.setOutbound(mapping);
         
         ConstructionType construction = new ConstructionType();

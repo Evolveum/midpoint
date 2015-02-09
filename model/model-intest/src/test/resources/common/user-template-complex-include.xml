@@ -50,7 +50,7 @@
     	<expression>
             <value>
                 <construction>
-                    <resourceRef oid="10000000-0000-0000-0000-000000000204" type="c:ResourceType"/>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000204" type="ResourceType"/>
                     <kind>account</kind>
                 </construction>
             </value>

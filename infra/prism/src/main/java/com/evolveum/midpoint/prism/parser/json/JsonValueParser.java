@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.prism.parser.json;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -74,4 +75,8 @@ public class JsonValueParser<T> implements ValueParser<T> {
 		return "JsonValueParser(JSON value: "+node+")";
 	}
 
+    @Override
+    public Map<String, String> getPotentiallyRelevantNamespaces() {
+        return null;                // TODO implement
+    }
 }

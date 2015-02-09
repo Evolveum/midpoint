@@ -26,6 +26,8 @@ import java.util.Set;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -232,7 +234,9 @@ public class Expression<V extends PrismValue> {
 				throw new SchemaException("No variable name in expression in "+contextDescription);
 			}
 			if (variableDefType.getObjectRef() != null) {
-				ObjectType varObject = objectResolver.resolve(variableDefType.getObjectRef(), ObjectType.class, null, "variable "+varName+" in "+contextDescription, result);
+                ObjectReferenceType ref = variableDefType.getObjectRef();
+                ref.setType(prismContext.getSchemaRegistry().qualifyTypeName(ref.getType()));
+				ObjectType varObject = objectResolver.resolve(ref, ObjectType.class, null, "variable "+varName+" in "+contextDescription, result);
 				newVariables.addVariableDefinition(varName, varObject);
 			} else if (variableDefType.getValue() != null) {
 				// Only string is supported now

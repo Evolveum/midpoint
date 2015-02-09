@@ -20,6 +20,7 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -39,8 +40,8 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -63,6 +64,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.Strings;
 
 import javax.xml.namespace.QName;
+
 import java.util.*;
 
 /**
@@ -369,7 +371,7 @@ public class SchemaHandlingStep extends WizardStep {
                         StringBuilder sb = new StringBuilder();
 
                         if(model.getObject().getRef() != null){
-                            sb.append(model.getObject().getRef().getLocalPart());
+                            sb.append(ItemPathUtil.getOnlySegmentQName(model.getObject().getRef()).getLocalPart());
                         } else {
                             return null;
                         }
@@ -420,7 +422,7 @@ public class SchemaHandlingStep extends WizardStep {
                         StringBuilder sb = new StringBuilder();
 
                         if(model.getObject().getRef() != null){
-                            sb.append(model.getObject().getRef().getLocalPart());
+                            sb.append(ItemPathUtil.getOnlySegmentQName(model.getObject().getRef()).getLocalPart());
                         } else {
                             return null;
                         }

@@ -30,7 +30,9 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:my="http://myself.me/schemas/whatever">
+          xmlns:my="http://myself.me/schemas/whatever"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:mr="http://midpoint.evolveum.com/xml/ns/public/common/matching-rule-3">
 
     <!-- Resource printable name -->
     <name>

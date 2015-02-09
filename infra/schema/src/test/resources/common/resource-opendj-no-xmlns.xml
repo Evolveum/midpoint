@@ -25,7 +25,8 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:my="http://myself.me/schemas/whatever">
+          xmlns:my="http://myself.me/schemas/whatever"
+          xmlns:mr="http://midpoint.evolveum.com/xml/ns/public/common/matching-rule-3">
 
     <!-- Resource printable name -->
     <name>
@@ -498,7 +499,7 @@ This is now the only account type that midPoint can work with. -->
 					<expression>
 						<variable xmlns:my="http://whatever.com/my">
 							<name>my:defaultLocation</name>
-							<value xsi:type="xsd:string">middle of nowhere</value>
+							<value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:string">middle of nowhere</value>
 						</variable>
 						<script>
 							<description>XPath expression that is using a variable declared above</description>
