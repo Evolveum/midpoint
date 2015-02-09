@@ -8,6 +8,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.sql.Timestamp;
 
 /**
@@ -29,7 +30,7 @@ public class RLookupTableRow {
     private String key;
     private String value;
     private RPolyString label;
-    private Timestamp lastChangeTimestamp;
+    private XMLGregorianCalendar lastChangeTimestamp;
 
     @Id
     @ForeignKey(name = "fk_lookup_table")
@@ -66,11 +67,11 @@ public class RLookupTableRow {
         this.label = label;
     }
 
-    public Timestamp getLastChangeTimestamp() {
+    public XMLGregorianCalendar getLastChangeTimestamp() {
         return lastChangeTimestamp;
     }
 
-    public void setLastChangeTimestamp(Timestamp lastChangeTimestamp) {
+    public void setLastChangeTimestamp(XMLGregorianCalendar lastChangeTimestamp) {
         this.lastChangeTimestamp = lastChangeTimestamp;
     }
 
