@@ -818,7 +818,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	
 	@Override
 	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase) throws SchemaException {
-		PrismObjectDefinition<O> origDefinition = object.getDefinition();
+		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone();
 		// TODO: maybe we need to expose owner resolver in the interface?
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
 		if (LOGGER.isTraceEnabled()) {
@@ -827,24 +827,16 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		if (securityConstraints == null) {
 			return null;
 		}
-		PrismObjectDefinition<O> finalDefinition = applySecurityContraints(origDefinition, new ItemPath(), securityConstraints,
+		applySecurityContraints(objectDefinition, new ItemPath(), securityConstraints,
 				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
-		return finalDefinition;
+		return objectDefinition;
 	}
 	
-	private <D extends ItemDefinition> D applySecurityContraints(D origItemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
+	private <D extends ItemDefinition> void applySecurityContraints(D itemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
 			AuthorizationDecisionType defaultReadDecition, AuthorizationDecisionType defaultAddDecition, AuthorizationDecisionType defaultModifyDecition,
             AuthorizationPhaseType phase) {
-		D itemDefinition = (D) origItemDefinition.clone();
-		// We need to make a super-deep clone here. Even make sure that the complex types inside are cloned.
-		// Otherwise permissions from one part of the definition tree may be incorrectly propagated to another part
-		if (itemDefinition instanceof PrismContainerDefinition<?>) {
-			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
-			ComplexTypeDefinition origCtd = containerDefinition.getComplexTypeDefinition();
-			containerDefinition.setComplexTypeDefinition(origCtd.clone());
-		}
 		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecition, phase);
 		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecition, phase);
 		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecition, phase);
@@ -862,19 +854,16 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		if (itemDefinition instanceof PrismContainerDefinition<?>) {
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
 			// The items are still shallow-clonned, we need to deep-clone them
-			List<? extends ItemDefinition> origSubDefinitions = ((PrismContainerDefinition<?>)origItemDefinition).getDefinitions();
-			containerDefinition.getDefinitions().clear();
+			List<? extends ItemDefinition> origSubDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
 			for (ItemDefinition subDef: origSubDefinitions) {
                 // TODO fix this brutal hack - it is necessary to avoid endless recursion in the style of "Decision for authorization/object/owner/owner/......../owner/special: ALLOW"
                 // it's too late to come up with a serious solution
                 if (!(itemPath.lastNamed() != null && ObjectSpecificationType.F_OWNER.equals(itemPath.lastNamed().getName()) && ObjectSpecificationType.F_OWNER.equals(subDef.getName()))) {
-				    ItemDefinition newDef = applySecurityContraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
+				    applySecurityContraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
 						    readDecision, addDecision, modifyDecision, phase);
-				    containerDefinition.getComplexTypeDefinition().add(newDef);
                 }
 			}
 		}
-		return itemDefinition;
 	}
 		
     private AuthorizationDecisionType computeItemDecision(ObjectSecurityConstraints securityConstraints, ItemPath itemPath, String actionUrl,
