@@ -422,7 +422,12 @@ public class SchemaHandlingStep extends WizardStep {
                         StringBuilder sb = new StringBuilder();
 
                         if(model.getObject().getRef() != null){
-                            sb.append(ItemPathUtil.getOnlySegmentQName(model.getObject().getRef()).getLocalPart());
+                            ItemPathType itemPathType = model.getObject().getRef();
+                            if(itemPathType.getItemPath() != null){
+                                sb.append(itemPathType.getItemPath().toString());
+                            } else {
+                                sb.append(model.getObject().getRef());
+                            }
                         } else {
                             return null;
                         }

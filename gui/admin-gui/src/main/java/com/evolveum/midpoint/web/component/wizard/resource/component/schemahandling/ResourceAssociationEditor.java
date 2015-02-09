@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -39,6 +38,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -125,7 +125,10 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                 if(association.getDisplayName() == null && association.getRef() == null){
                     return getString("ResourceAssociationEditor.label.new");
                 } else {
-                    return getString("ResourceAssociationEditor.label.edit", ItemPathUtil.getOnlySegmentQName(association.getRef()).getLocalPart());
+                    if(association.getRef().getItemPath() != null){
+                        return getString("ResourceAssociationEditor.label.edit", association.getRef().getItemPath().toString());
+                    }
+                    return getString("ResourceAssociationEditor.label.edit", "");
                 }
             }
         });
@@ -199,7 +202,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                 new PropertyModel<Boolean>(getModel(), "explicitReferentialIntegrity"));
         add(explicitRefIntegrity);
 
-        QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_ASSOCIATION_ATTRIBUTE_PANEL, new PropertyModel<QName>(getModel(), "ref"),
+        QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_ASSOCIATION_ATTRIBUTE_PANEL, new PropertyModel<ItemPathType>(getModel(), "ref"),
                 "SchemaHandlingStep.association.label.associationName", "SchemaHandlingStep.association.tooltip.associationLocalPart",
                 "SchemaHandlingStep.association.label.associationNamespace", "SchemaHandlingStep.association.tooltip.associationNamespace");
         nonSchemaRefPanel.setOutputMarkupId(true);
