@@ -802,7 +802,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
         assertAssignmentsWithTargets(userJack, 1);
         
-        PrismObjectDefinition<UserType> userJackEditSchema = modelInteractionService.getEditObjectDefinition(userJack, null);
+        PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
         display("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
         assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
@@ -1909,5 +1909,15 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	interface Attempt {
 		void run(Task task, OperationResult result) throws Exception;
 	}
+	
+	private <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+		OperationResult result = new OperationResult(TestSecurity.class+".getEditObjectDefinition");
+		PrismObjectDefinition<O> editSchema = modelInteractionService.getEditObjectDefinition(object, null, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return editSchema;
+	}
+	
+    
 
 }

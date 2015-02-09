@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,8 +140,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -817,7 +819,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	@Override
-	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase) throws SchemaException {
+	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+		OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone();
 		// TODO: maybe we need to expose owner resolver in the interface?
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
@@ -825,12 +828,28 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
 		}
 		if (securityConstraints == null) {
+			// Nothing allowed => everything denied
+			result.setStatus(OperationResultStatus.NOT_APPLICABLE);
 			return null;
 		}
+		
+		ObjectTemplateType objectTemplateType;
+		try {
+			objectTemplateType = determineObjectTemplate(object, phase, result);
+		} catch (ConfigurationException | ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		if (objectTemplateType != null) {
+			// TODO
+		}
+		
 		applySecurityContraints(objectDefinition, new ItemPath(), securityConstraints,
 				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
+		
+		result.computeStatus();
 		return objectDefinition;
 	}
 	
@@ -876,6 +895,23 @@ public class ModelController implements ModelService, ModelInteractionService, T
     		return defaultDecision;
     	}
 	}
+    
+    public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfiguration(cacheRepositoryService, result);
+    	if (systemConfiguration == null) {
+    		return null;
+    	}
+    	ObjectPolicyConfigurationType objectPolicyConfiguration = ModelUtils.determineObjectPolicyConfiguration(object.getCompileTimeClass(), systemConfiguration.asObjectable());
+    	if (objectPolicyConfiguration == null) {
+    		return null;
+    	}
+    	ObjectReferenceType objectTemplateRef = objectPolicyConfiguration.getObjectTemplateRef();
+    	if (objectTemplateRef == null) {
+    		return null;
+    	}
+    	PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);
+    	return template.asObjectable();
+    }
     
     @Override
 	public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase)
