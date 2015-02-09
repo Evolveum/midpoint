@@ -420,15 +420,18 @@ public class ChangeExecutor {
         	
         	if (!focusContext.isDelete()) {
 	        	PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
-	        	PrismReference linkRef = objectCurrent.findReference(FocusType.F_LINK_REF);
-	        	if (linkRef != null) {
-	        		for (PrismReferenceValue linkRefVal: linkRef.getValues()) {
-	        			if (linkRefVal.getOid().equals(projOid)) {
-	                        // Linked, need to unlink
-	                        unlinkShadow(focusContext.getOid(), linkRefVal, focusObjectContext, task, result);
-	                    }
-	        		}
-	        	}
+                // it is possible that objectCurrent is null (and objectNew is non-null), in case of User ADD operation (MID-2176)
+                if (objectCurrent != null) {
+                    PrismReference linkRef = objectCurrent.findReference(FocusType.F_LINK_REF);
+                    if (linkRef != null) {
+                        for (PrismReferenceValue linkRefVal : linkRef.getValues()) {
+                            if (linkRefVal.getOid().equals(projOid)) {
+                                // Linked, need to unlink
+                                unlinkShadow(focusContext.getOid(), linkRefVal, focusObjectContext, task, result);
+                            }
+                        }
+                    }
+                }
         	}
             
     		if (projCtx.isDelete() || projCtx.isThombstone()) {
