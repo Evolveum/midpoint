@@ -105,6 +105,7 @@
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
+        
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
@@ -215,6 +216,44 @@
                                                   This is the only way I found to generate equals and hashCode methods with CXF.
                                                   If you find anything better please correct it. -->
                                     <wsdl>target/midpoint-schema/xml/ns/private/fake/fakeWrapper.wsdl</wsdl>
+                                    <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
+                                    <extraargs>
+                                        <extraarg>-impl</extraarg>
+                                        <extraarg>-verbose</extraarg>
+                                        <extraarg>-validate</extraarg>
+                                        <extraarg>-xjc-Xts</extraarg>
+<!--                                        <extraarg>-xjc-XhashCode</extraarg>
+                                         <extraarg>
+                                            -xjc-XhashCode-hashCodeStrategyClass=com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy
+                                        </extraarg> 
+                                        <extraarg>-xjc-Xequals</extraarg>
+                                         <extraarg>
+                                            -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
+                                        </extraarg> -->
+                                    </extraargs>
+                                </wsdlOption>
+                                
+                                <wsdlOption>
+                                    <wsdl>target/midpoint-schema/xml/ns/private/report/reportWrapper.wsdl</wsdl>
+                                    <wsdlLocation>classpath:xml/ns/private/report/reportWrapper.wsdl</wsdlLocation>
+                                    <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
+                                    <extraargs>
+                                        <extraarg>-impl</extraarg>
+                                        <extraarg>-verbose</extraarg>
+                                        <extraarg>-validate</extraarg>
+                                        <extraarg>-xjc-Xts</extraarg>
+<!--                                        <extraarg>-xjc-XhashCode</extraarg>
+                                        <extraarg>-xjc-Xequals</extraarg>
+                                          <extraarg>
+                                            -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
+                                        </extraarg>-->
+                                    </extraargs>
+                                </wsdlOption>
+                                <wsdlOption>
+                                    <!-- Ugly hack. The fake WSDL includes all the XSD files we need to compile
+                                                  This is the only way I found to generate equals and hashCode methods with CXF.
+                                                  If you find anything better please correct it. -->
+                                    <wsdl>target/midpoint-schema/xml/ns/private/fake/fakeWrapper-report.wsdl</wsdl>
                                     <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>

@@ -51,15 +51,13 @@
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/workflow-1.xsd" uri="../../../target/midpoint-schema/xml/ns/public/model/workflow-1.xsd" />
     -->
 
-    <!-- Model WSDL location -->
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../../../target/midpoint-schema/xml/ns/public/model/model-3.wsdl" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../../../target/midpoint-schema/xml/ns/public/model/model-3.wsdl" />
-    
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" />
-
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="../../../target/midpoint-schema/xml/ns/public/common/fault-3.wsdl" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="../../../target/midpoint-schema/xml/ns/public/common/fault-3.wsdl" />
+
+	<!-- Report WSDL location -->
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/report/model-3" uri="../../../target/midpoint-schema/xml/ns/public/report/report-3.wsdl" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/report/model-3" uri="../../../target/midpoint-schema/xml/ns/public/report/report-3.wsdl" />
+
 
     <!-- Bundled standard schemas -->
     <public publicId="datatypes" uri="../../../target/midpoint-schema/xml/ns/standard/datatypes.dtd" />

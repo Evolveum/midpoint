@@ -147,13 +147,13 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
     private ApplicationContext context;
 
     
-    @PostConstruct
-    private void initialize() {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Registering with taskManager as a handler for " + REPORT_CREATE_TASK_URI);
-        }
-        taskManager.registerHandler(REPORT_CREATE_TASK_URI, this);
-    }
+//    @PostConstruct
+//    private void initialize() {
+//        if (LOGGER.isTraceEnabled()) {
+//            LOGGER.trace("Registering with taskManager as a handler for " + REPORT_CREATE_TASK_URI);
+//        }
+//        taskManager.registerHandler(REPORT_CREATE_TASK_URI, this);
+//    }
 
     @Override
     public void setApplicationContext(ApplicationContext context) throws BeansException {

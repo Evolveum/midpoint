@@ -19,30 +19,14 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class MidPointDataSource implements JRDataSource{
-
+public class MidPointAbstractDataSource implements JRDataSource{
+	
 	List<PrismObject<? extends ObjectType>> resultList = null;
 	Iterator<PrismObject<? extends ObjectType>> iterator = null;
 	PrismObject<? extends ObjectType> currentObject = null; 
 	
-	public MidPointDataSource(List<PrismObject<? extends ObjectType>> results) {
-		this.resultList = results;
-		if (results != null){
-			iterator = results.iterator();
-		}
-	}
-	
-	public MidPointDataSource(ObjectListType results){
-		resultList = new ArrayList<>();
-		for (ObjectType objType : results.getObject()){
-			resultList.add(objType.asPrismObject());
-		}
-		iterator = resultList.iterator();
-	}
 	
 	@Override
 	public boolean next() throws JRException {
@@ -57,9 +41,6 @@ public class MidPointDataSource implements JRDataSource{
 		}
 
 		return hasNext;
-//		}
-//		throw new UnsupportedOperationException("dataSource.next() not supported");
-//		return false;
 	}
 
 	@Override
@@ -72,7 +53,6 @@ public class MidPointDataSource implements JRDataSource{
 		Item i = currentObject.findItem(new QName(fieldName));
 		if (i == null){
 			return null;
-//			throw new JRException("Object of type " + currentObject.getCompileTimeClass().getSimpleName() + " does not contain field " + fieldName +".");
 		}
 	
 		if (i instanceof PrismProperty){
@@ -104,8 +84,7 @@ public class MidPointDataSource implements JRDataSource{
 			
 		} else
 			throw new JRException("Could not get value of the fileld: " + fieldName);
-//		return 
-//		throw new UnsupportedOperationException("dataSource.getFiledValue() not supported");
 	}
+
 
 }
