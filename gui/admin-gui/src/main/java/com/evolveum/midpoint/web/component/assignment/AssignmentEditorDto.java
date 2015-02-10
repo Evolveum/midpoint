@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -60,6 +61,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     public static final String F_RELATION = "relation";
     public static final String F_TENANT_REF = "tenantRef";
     public static final String F_ALT_NAME = "altName";
+    public static final String F_IS_ORG_UNIT_MANAGER = "isOrgUnitManager";
 
     private String name;
     private String altName;
@@ -71,6 +73,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     private boolean showEmpty = false;
     private boolean minimized = true;
 
+    private Boolean isOrgUnitManager = Boolean.FALSE;
     private AssignmentType newAssignment;
     private List<ACAttributeDto> attributes;
 
@@ -102,6 +105,23 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         this.altName = getAlternativeName(assignment);
 
         this.attributes = prepareAssignmentAttributes(assignment, pageBase);
+        this.isOrgUnitManager = determineUserOrgRelation(assignment);
+    }
+
+    private Boolean determineUserOrgRelation(AssignmentType assignment){
+        if(!AssignmentEditorDtoType.ORG_UNIT.equals(getType())){
+            return Boolean.FALSE;
+        }
+
+        if(assignment == null || assignment.getTargetRef() == null || assignment.getTargetRef().getRelation() == null){
+            return Boolean.FALSE;
+        }
+
+        if(SchemaConstants.ORG_MANAGER.equals(assignment.getTargetRef().getRelation())){
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
     }
 
     private List<ACAttributeDto> prepareAssignmentAttributes(AssignmentType assignment, PageBase pageBase){
@@ -336,6 +356,14 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     }
 
     public PrismContainerValue getNewValue() throws SchemaException {
+        if(AssignmentEditorDtoType.ORG_UNIT.equals(getType())){
+            if(isOrgUnitManager()){
+                newAssignment.getTargetRef().setRelation(SchemaConstants.ORG_MANAGER);
+            } else {
+                newAssignment.getTargetRef().setRelation(null);
+            }
+        }
+
         //this removes activation element if it's empty
         ActivationType activation = newAssignment.getActivation();
         if (activation == null || activation.asPrismContainerValue().isEmpty()) {
@@ -386,6 +414,14 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
     public void setDescription(String description) {
         newAssignment.setDescription(description);
+    }
+
+    public Boolean isOrgUnitManager() {
+        return isOrgUnitManager;
+    }
+
+    public void setOrgUnitManager(Boolean orgUnitManager) {
+        isOrgUnitManager = orgUnitManager;
     }
 
     @Override
@@ -441,6 +477,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
         AssignmentEditorDto that = (AssignmentEditorDto) o;
 
+        if (isOrgUnitManager != that.isOrgUnitManager) return false;
         if (minimized != that.minimized) return false;
         if (showEmpty != that.showEmpty) return false;
         if (altName != null ? !altName.equals(that.altName) : that.altName != null) return false;
@@ -467,6 +504,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         result = 31 * result + (tenantRef != null ? tenantRef.hashCode() : 0);
         result = 31 * result + (showEmpty ? 1 : 0);
         result = 31 * result + (minimized ? 1 : 0);
+        result = 31 * result + (isOrgUnitManager ? 1 : 0);
         result = 31 * result + (newAssignment != null ? newAssignment.hashCode() : 0);
         result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
         return result;
