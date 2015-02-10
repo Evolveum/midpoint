@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1910,14 +1910,4 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		void run(Task task, OperationResult result) throws Exception;
 	}
 	
-	private <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException, ConfigurationException, ObjectNotFoundException {
-		OperationResult result = new OperationResult(TestSecurity.class+".getEditObjectDefinition");
-		PrismObjectDefinition<O> editSchema = modelInteractionService.getEditObjectDefinition(object, null, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
-		return editSchema;
-	}
-	
-    
-
 }

@@ -22,8 +22,10 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -272,10 +274,19 @@ public class ComplexTypeDefinition extends Definition {
 	}
 	
 	public ComplexTypeDefinition deepClone() {
-		ComplexTypeDefinition clone = clone();
+		return deepClone(new HashMap<QName, ComplexTypeDefinition>());
+	}
+	
+	ComplexTypeDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
+		ComplexTypeDefinition clone = ctdMap.get(this.getTypeName());
+		if (clone != null) {
+			return clone; // already cloned
+		}
+		clone = clone(); // shallow
+		ctdMap.put(this.getTypeName(), clone);
 		clone.itemDefinitions.clear();
 		for (ItemDefinition itemDef: this.itemDefinitions) {
-			clone.itemDefinitions.add(itemDef.deepClone());
+			clone.itemDefinitions.add(itemDef.deepClone(ctdMap));
 		}
 		return clone;
 	}

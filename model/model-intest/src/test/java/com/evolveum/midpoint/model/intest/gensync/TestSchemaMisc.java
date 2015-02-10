@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.gensync;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -28,8 +28,11 @@ import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.intest.TestModelServiceContract;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -68,7 +71,7 @@ import com.evolveum.midpoint.util.MiscUtil;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestIntent extends AbstractInitializedModelIntegrationTest {
+public class TestSchemaMisc extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/gensync");
 	private static final String ACCOUNT_INTENT_TEST = "test";
@@ -389,6 +392,57 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
         assertSteadyResources();
     }
+    
+    @Test
+    public void test200EditSchemaUser() throws Exception {
+		final String TEST_NAME="test200EditSchemaUser";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismObject<UserType> user = userDef.instantiate();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        PrismObjectDefinition<UserType> editDef = getEditObjectDefinition(user);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+        
+		// TODO
+
+        assertSteadyResources();
+    }
+
+    @Test
+    public void test210EditSchemaRole() throws Exception {
+		final String TEST_NAME="test210EditSchemaRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
+        PrismObject<RoleType> role = roleDef.instantiate();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        PrismObjectDefinition<RoleType> editDef = getEditObjectDefinition(role);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+        
+		// TODO
+
+        assertSteadyResources();
+    }
+
     
     private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		assumeAssignmentPolicy(enforcementPolicy);
