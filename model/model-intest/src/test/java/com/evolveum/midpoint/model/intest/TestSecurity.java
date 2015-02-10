@@ -60,10 +60,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -71,6 +73,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -250,7 +253,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong number of authorizations", 2, authorizations.size());
         AuthorizationType authRead = findAutz(authorizations, ModelAuthorizationAction.READ.getUrl());
         assertEquals("Wrong action in authorization", ModelAuthorizationAction.READ.getUrl(), authRead.getAction().get(0));
-        List<ObjectSpecificationType> objectSpecs = authRead.getObject();
+        List<OwnedObjectSpecificationType> objectSpecs = authRead.getObject();
         assertEquals("Wrong number of object specs in authorization", 1, objectSpecs.size());
         ObjectSpecificationType objectSpec = objectSpecs.get(0);
         List<SpecialObjectSpecificationType> specials = objectSpec.getSpecial();

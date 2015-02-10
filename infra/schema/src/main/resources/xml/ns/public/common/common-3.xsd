@@ -6357,7 +6357,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="object" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
+        	<xsd:element name="object" type="tns:OwnedObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Object part from the (subject,action,object) authorization triple.
@@ -6373,7 +6373,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="target" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
+        	<xsd:element name="target" type="tns:OwnedObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Target of the operation. E.g. an role that is being assigned. It can be considered an operation
@@ -6493,16 +6493,33 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-	        <xsd:element name="owner" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="1">
-				<xsd:annotation>
-					<xsd:documentation>
-						The object matches the specification if it has an owner specified by this element.
-						The "owner" means a focus that has a link to the object.
-					</xsd:documentation>
-				</xsd:annotation>
-	        </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="OwnedObjectSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects some objects from all the objects in midPoint.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:ObjectSpecificationType">
+		        <xsd:sequence>
+			        <xsd:element name="owner" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								The object matches the specification if it has an owner specified by this element.
+								The "owner" means a focus that has a link to the object.
+							</xsd:documentation>
+						</xsd:annotation>
+			        </xsd:element>
+		        </xsd:sequence>        	
+        	</xsd:extension>
+        </xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:simpleType name="SpecialObjectSpecificationType">
@@ -6899,7 +6916,7 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:ItemRefinedDefinitionType">
         		<xsd:sequence>
-	            <xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
+	            <xsd:element name="mapping" type="tns:ObjectTemplateMappingType" minOccurs="0" maxOccurs="unbounded">
 	                <xsd:annotation>
 	                    <xsd:documentation>
 	                        Defines how any of the object property value should

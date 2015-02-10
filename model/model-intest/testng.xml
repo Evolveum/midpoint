@@ -44,7 +44,8 @@
             <class name="com.evolveum.midpoint.model.intest.TestScriptHooks"/>
             <class name="com.evolveum.midpoint.model.intest.TestEntitlements"/>
             <class name="com.evolveum.midpoint.model.intest.TestCaseIgnore"/>
-            <class name="com.evolveum.midpoint.model.intest.gensync.TestSchemaMisc"/>
+            <class name="com.evolveum.midpoint.model.intest.TestIntent"/>
+            <class name="com.evolveum.midpoint.model.intest.gensync.TestEditSchema"/>
             <class name="com.evolveum.midpoint.model.intest.gensync.TestRoleEntitlement"/>
         </classes>
     </test>
