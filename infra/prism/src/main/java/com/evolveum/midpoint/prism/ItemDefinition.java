@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -316,6 +318,10 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	}
 
 	public ItemDefinition deepClone() {
+		return clone();
+	}
+	
+	ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
 		return clone();
 	}
 	
