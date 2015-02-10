@@ -125,6 +125,9 @@ public class ModelUtils {
 		// Deprecated method to specify user template. For compatibility only
 		if (objectClass == UserType.class) {
 			ObjectReferenceType templateRef = systemConfigurationType.getDefaultUserTemplateRef();
+			if (templateRef == null) {
+				return null;
+			}
 			ObjectPolicyConfigurationType policy = new ObjectPolicyConfigurationType();
 			policy.setObjectTemplateRef(templateRef.clone());
 			return policy;
