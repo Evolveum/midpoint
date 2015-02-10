@@ -278,12 +278,17 @@ public class ComplexTypeDefinition extends Definition {
 	}
 	
 	ComplexTypeDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
-		ComplexTypeDefinition clone = ctdMap.get(this.getTypeName());
-		if (clone != null) {
-			return clone; // already cloned
+		ComplexTypeDefinition clone;
+		if (ctdMap != null) {
+			clone = ctdMap.get(this.getTypeName());
+			if (clone != null) {
+				return clone; // already cloned
+			}
 		}
 		clone = clone(); // shallow
-		ctdMap.put(this.getTypeName(), clone);
+		if (ctdMap != null) {
+			ctdMap.put(this.getTypeName(), clone);
+		}
 		clone.itemDefinitions.clear();
 		for (ItemDefinition itemDef: this.itemDefinitions) {
 			clone.itemDefinitions.add(itemDef.deepClone(ctdMap));

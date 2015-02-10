@@ -357,12 +357,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     }
     
     @Override
-	public ItemDefinition deepClone() {
-    	return deepClone(new HashMap<QName, ComplexTypeDefinition>());
-    }
-    
-    @Override
-	public ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
+	ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
 		PrismContainerDefinition<V> clone = clone();
 		ComplexTypeDefinition ctd = getComplexTypeDefinition();
 		if (ctd != null) {

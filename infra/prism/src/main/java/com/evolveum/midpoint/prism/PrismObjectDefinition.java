@@ -63,8 +63,8 @@ public class PrismObjectDefinition<O extends Objectable> extends PrismContainerD
 	}
 	
 	@Override
-	public PrismObjectDefinition<O> deepClone() {
-		return (PrismObjectDefinition<O>) super.deepClone();
+	public PrismObjectDefinition<O> deepClone(boolean ultraDeep) {
+		return (PrismObjectDefinition<O>) super.deepClone(ultraDeep);
 	}
 
 	public PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {

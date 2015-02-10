@@ -824,7 +824,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	@Override
 	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
 		OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
-		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone();
+		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone(true);
 		// TODO: maybe we need to expose owner resolver in the interface?
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
 		if (LOGGER.isTraceEnabled()) {
@@ -893,7 +893,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecition, phase);
 		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecition, phase);
 		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecition, phase);
-//		LOGGER.trace("Decision for {}: {}", itemPath, readDecision);
+		LOGGER.trace("Decision for {}: {}", itemPath, readDecision);
 		if (readDecision != AuthorizationDecisionType.ALLOW) {
 			itemDefinition.setCanRead(false);
 		}
@@ -908,12 +908,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
 			List<? extends ItemDefinition> origSubDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
 			for (ItemDefinition subDef: origSubDefinitions) {
-                // TODO fix this brutal hack - it is necessary to avoid endless recursion in the style of "Decision for authorization/object/owner/owner/......../owner/special: ALLOW"
-                // it's too late to come up with a serious solution
-                if (!(itemPath.lastNamed() != null && ObjectSpecificationType.F_OWNER.equals(itemPath.lastNamed().getName()) && ObjectSpecificationType.F_OWNER.equals(subDef.getName()))) {
-				    applySecurityConstraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
-						    readDecision, addDecision, modifyDecision, phase);
-                }
+			    applySecurityConstraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
+					    readDecision, addDecision, modifyDecision, phase);
 			}
 		}
 	}
