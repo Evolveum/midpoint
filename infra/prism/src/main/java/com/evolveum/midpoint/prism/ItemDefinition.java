@@ -315,6 +315,10 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		clone.operational = this.operational;
 	}
 
+	public ItemDefinition deepClone() {
+		return clone();
+	}
+	
 	@Override
 	public void revive(PrismContext prismContext) {
 		if (this.prismContext != null) {

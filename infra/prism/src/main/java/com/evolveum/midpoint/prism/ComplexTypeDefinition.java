@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -268,6 +268,15 @@ public class ComplexTypeDefinition extends Definition {
 	public ComplexTypeDefinition clone() {
 		ComplexTypeDefinition clone = new ComplexTypeDefinition(this.typeName, prismContext);
 		copyDefinitionData(clone);
+		return clone;
+	}
+	
+	public ComplexTypeDefinition deepClone() {
+		ComplexTypeDefinition clone = clone();
+		clone.itemDefinitions.clear();
+		for (ItemDefinition itemDef: this.itemDefinitions) {
+			clone.itemDefinitions.add(itemDef.deepClone());
+		}
 		return clone;
 	}
 	
