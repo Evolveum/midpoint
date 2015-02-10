@@ -29,6 +29,34 @@
     	<ref>additionalName</ref>
     	<displayName>Middle Name</displayName>
     </item>
+    
+    <item>
+    	<ref>costCenter</ref>
+    	<mapping>
+	    	<strength>weak</strength>
+	    	<expression>
+	            <value>G001</value>    	
+	    	</expression>
+	    	<evaluationPhase>afterAssignments</evaluationPhase>
+	    </mapping>
+	    <mapping>
+	    	<authoritative>true</authoritative>
+	    	<strength>strong</strength>
+	    	<source>
+	    		<path>employeeType</path>
+	    	</source>
+	    	<expression>
+	            <value>B666</value>    	
+	    	</expression>
+	    	<condition>
+	    		<script>
+	            	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+	            	<code>employeeType == 'BUCCANEER'</code>
+	            </script>
+			</condition>
+	    </mapping> 	
+    </item>
+    
 
     <!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
     <mapping>
@@ -148,37 +176,8 @@
     		<path>assignment</path>
     	</target>
     </mapping>
+        
     
-    <mapping>
-    	<strength>weak</strength>
-    	<expression>
-            <value>G001</value>    	
-    	</expression>
-    	<target>
-    		<path>costCenter</path>
-    	</target>
-    	<evaluationPhase>afterAssignments</evaluationPhase>
-    </mapping>
-
-    <mapping>
-    	<authoritative>true</authoritative>
-    	<strength>strong</strength>
-    	<source>
-    		<path>employeeType</path>
-    	</source>
-    	<expression>
-            <value>B666</value>    	
-    	</expression>
-    	<target>
-    		<path>costCenter</path>
-    	</target>
-    	<condition>
-    		<script>
-            	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>employeeType == 'BUCCANEER'</code>
-            </script>
-		</condition>
-    </mapping>
     
     <!-- Negative condition. This is tricky to evaluate. -->
     <mapping>

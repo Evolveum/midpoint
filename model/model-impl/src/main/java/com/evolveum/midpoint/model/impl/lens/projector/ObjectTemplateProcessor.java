@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -61,7 +62,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingTargetDeclarationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
@@ -226,7 +230,7 @@ public class ObjectTemplateProcessor {
 		}
 		
 		// Process own mappings
-		Collection<ObjectTemplateMappingType> mappings = objectTemplateType.getMapping();
+		Collection<ObjectTemplateMappingType> mappings = collectMapings(objectTemplateType);
 		XMLGregorianCalendar templateNextRecomputeTime = collectTripleFromMappings(mappings, phase, context, objectTemplateType, userOdo, 
 				outputTripleMap, iteration, iterationToken, now, contextDesc, task, result);
 		if (templateNextRecomputeTime != null) {
@@ -239,6 +243,23 @@ public class ObjectTemplateProcessor {
 	}
 	
 	
+	private Collection<ObjectTemplateMappingType> collectMapings(ObjectTemplateType objectTemplateType) {
+		List<ObjectTemplateMappingType> mappings = new ArrayList<ObjectTemplateMappingType>();
+		mappings.addAll(objectTemplateType.getMapping());
+		for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {
+			for (ObjectTemplateMappingType mapping: templateItemDefType.getMapping()) {
+				MappingTargetDeclarationType target = mapping.getTarget();
+				if (target == null) {
+					target = new MappingTargetDeclarationType();
+					target.setPath(templateItemDefType.getRef());
+					mapping.setTarget(target);
+				}
+				mappings.add(mapping);
+			}
+		}
+		return mappings;
+	}
+
 	private <V extends PrismValue, F extends FocusType> XMLGregorianCalendar collectTripleFromMappings(
 			Collection<ObjectTemplateMappingType> mappings, ObjectTemplateMappingEvaluationPhaseType phase, LensContext<F> context,
 			ObjectTemplateType objectTemplateType, ObjectDeltaObject<F> userOdo,

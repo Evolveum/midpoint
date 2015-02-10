@@ -6899,7 +6899,7 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:ItemRefinedDefinitionType">
         		<xsd:sequence>
-	            <xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
+	            <xsd:element name="mapping" type="tns:ObjectTemplateMappingType" minOccurs="0" maxOccurs="unbounded">
 	                <xsd:annotation>
 	                    <xsd:documentation>
 	                        Defines how any of the object property value should
