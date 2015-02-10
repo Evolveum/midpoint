@@ -11,11 +11,13 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -32,6 +34,9 @@ public class RLookupTable extends RObject<LookupTableType> {
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RLookupTableRow> getRows() {
+        if (rows == null) {
+            rows = new HashSet<>();
+        }
         return rows;
     }
 
@@ -70,6 +75,20 @@ public class RLookupTable extends RObject<LookupTableType> {
             rRow.setValue(row.getValue());
 
             repo.getRows().add(rRow);
+        }
+    }
+
+    protected static <T extends ObjectType> void copyToJAXB(RLookupTable repo, LookupTableType jaxb, PrismContext prismContext,
+                                                            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
+
+        //todo wtf with this
+
+        RObject.copyToJAXB(repo, jaxb, prismContext, options);
+
+        if (repo.getRows() != null && !repo.getRows().isEmpty()) {
+
+
         }
     }
 
