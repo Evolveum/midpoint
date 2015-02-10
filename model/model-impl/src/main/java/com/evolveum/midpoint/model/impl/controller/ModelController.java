@@ -845,7 +845,6 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 		applyObjectTemplateToDefinition(objectDefinition, objectTemplateType, result);
 		
-		
 		applySecurityConstraints(objectDefinition, new ItemPath(), securityConstraints,
 				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
@@ -893,7 +892,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecition, phase);
 		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecition, phase);
 		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecition, phase);
-		LOGGER.trace("Decision for {}: {}", itemPath, readDecision);
+//		LOGGER.trace("Decision for {}: {}", itemPath, readDecision);
 		if (readDecision != AuthorizationDecisionType.ALLOW) {
 			itemDefinition.setCanRead(false);
 		}

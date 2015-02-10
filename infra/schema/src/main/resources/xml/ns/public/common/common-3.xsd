@@ -3601,6 +3601,17 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="valueEnumerationRef" type="c:ObjectReferenceType" minOccurs="0">
+            	<xsd:annotation>
+	                <xsd:documentation>
+	                    Reference to an object that directly or indirectly represents possible values for
+						this item. We do not define here what exactly the object has to be. It can be a lookup
+						table, script that dynamically produces the values or anything similar. 
+						The object must produce the values of the correct type for this item otherwise an
+						error occurs.
+	                </xsd:documentation>
+	            </xsd:annotation>
+	       	</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
