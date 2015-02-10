@@ -65,6 +65,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
     private boolean canAdd = true;
     private boolean canRead = true;
     private boolean canModify = true;
+    private PrismReferenceValue valueEnumerationRef;
 
 	// TODO: annotations
 
@@ -242,7 +243,22 @@ public abstract class ItemDefinition extends Definition implements Serializable 
         return canAdd;
     }
 
-    public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
+    /**
+     * Reference to an object that directly or indirectly represents possible values for
+     * this item. We do not define here what exactly the object has to be. It can be a lookup
+     * table, script that dynamically produces the values or anything similar. 
+     * The object must produce the values of the correct type for this item otherwise an
+     * error occurs.
+     */
+    public PrismReferenceValue getValueEnumerationRef() {
+		return valueEnumerationRef;
+	}
+
+	public void setValueEnumerationRef(PrismReferenceValue valueEnumerationRef) {
+		this.valueEnumerationRef = valueEnumerationRef;
+	}
+
+	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
         return isValidFor(elementQName, clazz, false);
     }
 
