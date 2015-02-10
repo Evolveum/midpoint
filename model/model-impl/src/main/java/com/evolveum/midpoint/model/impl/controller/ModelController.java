@@ -143,10 +143,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -157,6 +159,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * This used to be an interface, but it was switched to class for simplicity. I
@@ -840,11 +843,10 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			result.recordFatalError(e);
 			throw e;
 		}
-		if (objectTemplateType != null) {
-			// TODO
-		}
+		applyObjectTemplateToDefinition(objectDefinition, objectTemplateType, result);
 		
-		applySecurityContraints(objectDefinition, new ItemPath(), securityConstraints,
+		
+		applySecurityConstraints(objectDefinition, new ItemPath(), securityConstraints,
 				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
@@ -853,7 +855,39 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		return objectDefinition;
 	}
 	
-	private <D extends ItemDefinition> void applySecurityContraints(D itemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
+	private <O extends ObjectType> void applyObjectTemplateToDefinition(PrismObjectDefinition<O> objectDefinition, ObjectTemplateType objectTemplateType, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		if (objectTemplateType == null) {
+			return;
+		}
+		for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
+			PrismObject<ObjectTemplateType> subTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, includeRef.getOid(), null, result);
+			applyObjectTemplateToDefinition(objectDefinition, subTemplate.asObjectable(), result);
+		}
+		for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {
+			ItemPathType ref = templateItemDefType.getRef();
+			if (ref == null) {
+				throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
+			}
+			ItemPath itemPath = ref.getItemPath();
+			ItemDefinition itemDef = objectDefinition.findItemDefinition(itemPath);
+			if (itemDef == null) {
+				throw new SchemaException("No definition for item "+itemPath+" in object type "+objectDefinition.getTypeName()+" as specified in item definition in "+objectTemplateType);
+			}
+			String displayName = templateItemDefType.getDisplayName();
+			if (displayName != null) {
+				itemDef.setDisplayName(displayName);
+			}
+			List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
+			if (limitations != null) {
+				// TODO
+			}
+			
+			// TODO
+			
+		}
+	}
+	
+	private <D extends ItemDefinition> void applySecurityConstraints(D itemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
 			AuthorizationDecisionType defaultReadDecition, AuthorizationDecisionType defaultAddDecition, AuthorizationDecisionType defaultModifyDecition,
             AuthorizationPhaseType phase) {
 		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecition, phase);
@@ -872,13 +906,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		
 		if (itemDefinition instanceof PrismContainerDefinition<?>) {
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
-			// The items are still shallow-clonned, we need to deep-clone them
 			List<? extends ItemDefinition> origSubDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
 			for (ItemDefinition subDef: origSubDefinitions) {
                 // TODO fix this brutal hack - it is necessary to avoid endless recursion in the style of "Decision for authorization/object/owner/owner/......../owner/special: ALLOW"
                 // it's too late to come up with a serious solution
                 if (!(itemPath.lastNamed() != null && ObjectSpecificationType.F_OWNER.equals(itemPath.lastNamed().getName()) && ObjectSpecificationType.F_OWNER.equals(subDef.getName()))) {
-				    applySecurityContraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
+				    applySecurityConstraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
 						    readDecision, addDecision, modifyDecision, phase);
                 }
 			}
