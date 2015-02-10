@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2707,5 +2707,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ConfigAttribute> attrs = new ArrayList<ConfigAttribute>();
 		attrs.add(new SecurityConfig(action));
 		return attrs;
+	}
+	
+	protected <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class+".getEditObjectDefinition");
+		PrismObjectDefinition<O> editSchema = modelInteractionService.getEditObjectDefinition(object, null, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return editSchema;
 	}
 }
