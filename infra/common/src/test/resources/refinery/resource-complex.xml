@@ -134,7 +134,13 @@
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="mail" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary" />
 					<xsd:element minOccurs="0" name="displayName" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayOrder>120</a:displayOrder>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPassword" type="xsd:base64Binary" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="physicalDeliveryOfficeName" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="manager" type="xsd:string" />
@@ -150,7 +156,7 @@
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="userCertificate" type="xsd:base64Binary" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="teletexTerminalIdentifier" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="jpegPhoto" type="xsd:base64Binary" />
-					<xsd:element ref="icfs:name" />
+					<xsd:element ref="icfs:name"/>
 					<xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalCode" type="xsd:string" />
@@ -159,7 +165,13 @@
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="carLicense" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="registeredAddress" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" name="sn" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" name="sn" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayOrder>130</a:displayOrder>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="secretary" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="mobile" type="xsd:string" />
@@ -167,7 +179,7 @@
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber" type="xsd:string" />
-					<xsd:element ref="icfs:uid" />
+					<xsd:element ref="icfs:uid"/>
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator" type="xsd:string" />
@@ -229,6 +241,7 @@
 			<attribute>
 				<ref>ri:cn</ref>
 				<displayName>Common Name</displayName>
+				<displayOrder>1</displayOrder>
 				<limitations>
 					<maxOccurs>1</maxOccurs>
 					<access>
@@ -305,6 +318,7 @@
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
+				<displayOrder>2</displayOrder>
 				<limitations>
 					<minOccurs>1</minOccurs>
 					<maxOccurs>1</maxOccurs>
