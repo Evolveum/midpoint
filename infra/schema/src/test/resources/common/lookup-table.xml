@@ -31,10 +31,10 @@
             <key>2 key</key>
             <value>2 value</value>
             <label>
-                <t:orig>2 label</t:orig>
-                <t:norm>2 label</t:norm>
+                <t:orig>second ľábeľ</t:orig>
+                <t:norm>second label</t:norm>
             </label>
-            <lastChangeTimestamp>2013-05-07T10:38:21.350+02:00</lastChangeTimestamp>
+            <lastChangeTimestamp>2013-05-07T10:40:21.350+02:00</lastChangeTimestamp>
         </row>
     </table>
 </lookupTable>

@@ -185,9 +185,17 @@ public class PrismTestUtil {
 		return polyString;
 	}
 
+    public static PolyString createPolyString(String orig, String norm) {
+        return new PolyString(orig, norm);
+    }
+
 	public static PolyStringType createPolyStringType(String string) {
 		return new PolyStringType(createPolyString(string));
 	}
+
+    public static PolyStringType createPolyStringType(String orig, String norm) {
+        return new PolyStringType(createPolyString(orig, norm));
+    }
 
 	public static void displayTestTitle(String testName) {
 		System.out.println("\n\n===[ "+testName+" ]===\n");
