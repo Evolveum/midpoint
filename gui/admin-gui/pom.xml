@@ -526,13 +526,6 @@
         <dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
-			<version>6.0.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>xml-apis</groupId>
-  					<artifactId>xml-apis</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 	<groupId>commons-javaflow</groupId>

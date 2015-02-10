@@ -90,7 +90,10 @@ public class ProcessInstanceDto extends Selectable {
     }
 
     public String getAnswer() {
-        return processInstance.getAnswer();
+        if (processInstanceState == null) {
+            return null;
+        }
+        return processInstanceState.getAnswer();
     }
 
     public boolean isAnswered() {

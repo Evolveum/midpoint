@@ -17,13 +17,17 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -124,4 +128,20 @@ public class ModifyUser extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(UserType.class, userBigOid, delta.getModifications(), new OperationResult("asdf"));
     }
+
+    @Test(enabled = false)
+    public void test100ModifyUserApproverMetadata() throws Exception {
+        PrismObjectDefinition userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        ReferenceDelta delta1 = ReferenceDelta.createModificationAdd(
+                new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF),
+                userDefinition,
+                new PrismReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));
+        ReferenceDelta delta2 = ReferenceDelta.createModificationAdd(
+                new ItemPath(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF),
+                userDefinition,
+                new PrismReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));            // the same as in delta1
+
+        repositoryService.modifyObject(UserType.class, userOid, Arrays.asList(delta1, delta2), new OperationResult("asdf"));
+    }
+
 }

@@ -10184,13 +10184,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="answer" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The result of the workflow process instance (if any).
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="state" type="tns:ObjectType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
