@@ -108,6 +108,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertNotNull("No definition for additionalName in user", additionalNameDef);
 		assertEquals("Wrong additionalName displayName", "Middle Name", additionalNameDef.getDisplayName());
 		assertTrue("additionalName not readable", additionalNameDef.canRead());
+		
+		PrismPropertyDefinition costCenterDef = editDef.findPropertyDefinition(UserType.F_COST_CENTER);
+		assertNotNull("No definition for costCenter in user", costCenterDef);
+		assertEquals("Wrong costCenter displayOrder", (Integer)123, costCenterDef.getDisplayOrder());
+		assertTrue("costCenter not readable", costCenterDef.canRead());
 
 		PrismContainerDefinition<CredentialsType> credentialsDef = editDef.findContainerDefinition(UserType.F_CREDENTIALS);
 		assertNotNull("No definition for credentials in user", credentialsDef);

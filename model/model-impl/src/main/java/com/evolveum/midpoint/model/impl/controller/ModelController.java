@@ -115,6 +115,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -872,13 +873,26 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			if (itemDef == null) {
 				throw new SchemaException("No definition for item "+itemPath+" in object type "+objectDefinition.getTypeName()+" as specified in item definition in "+objectTemplateType);
 			}
+			
 			String displayName = templateItemDefType.getDisplayName();
 			if (displayName != null) {
 				itemDef.setDisplayName(displayName);
 			}
+			
+			Integer displayOrder = templateItemDefType.getDisplayOrder();
+			if (displayOrder != null) {
+				itemDef.setDisplayOrder(displayOrder);
+			}
+			
 			List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
 			if (limitations != null) {
 				// TODO
+			}
+			
+			ObjectReferenceType valueEnumerationRef = templateItemDefType.getValueEnumerationRef();
+			if (valueEnumerationRef != null) {
+				PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
+				itemDef.setValueEnumerationRef(valueEnumerationRVal);
 			}
 			
 			// TODO
