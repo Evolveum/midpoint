@@ -273,7 +273,11 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                     return createStringResource("pageUser.subTitle.newUser").getObject();
                 }
 
-                String name = userModel.getObject().getObject().asObjectable().getName().getOrig();
+                String name = null;
+                if(userModel != null && userModel.getObject() != null && userModel.getObject().getObject() != null){
+                    name = WebMiscUtil.getName(userModel.getObject().getObject());
+                }
+
                 return createStringResource("pageUser.subTitle.edituser", name).getObject();
             }
         };

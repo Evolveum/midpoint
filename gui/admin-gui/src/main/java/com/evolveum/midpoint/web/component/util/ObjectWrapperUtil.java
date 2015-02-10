@@ -6,6 +6,9 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -26,7 +29,8 @@ public class ObjectWrapperUtil {
 	public static <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName, String description, PrismObject<O> object, ContainerStatus status, boolean delayContainerCreation, PageBase pageBase) {
 		try {
 			
-			PrismContainerDefinition objectDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectDefinition(object, AuthorizationPhaseType.REQUEST);
+			OperationResult result = new OperationResult(ObjectWrapperUtil.class+".createObjectWrapper");
+			PrismContainerDefinition objectDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectDefinition(object, AuthorizationPhaseType.REQUEST, result);
 			RefinedObjectClassDefinition objectClassDefinitionForEditing = null;
 			if (isShadow(object)) {
 				PrismReference resourceRef = object.findReference(ShadowType.F_RESOURCE_REF);
@@ -36,7 +40,7 @@ public class ObjectWrapperUtil {
 			
 		    ObjectWrapper wrapper = new ObjectWrapper(displayName, description, object, objectDefinitionForEditing, objectClassDefinitionForEditing, status, delayContainerCreation, pageBase);
 		    return wrapper;
-		} catch (SchemaException ex){
+		} catch (SchemaException | ConfigurationException | ObjectNotFoundException ex){
 			throw new SystemException(ex);
 		}
 	}

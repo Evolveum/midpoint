@@ -356,7 +356,18 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         clone.compileTimeClass = this.compileTimeClass;
     }
     
-    public PrismContainerDefinition<V> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
+    @Override
+	public ItemDefinition deepClone() {
+		PrismContainerDefinition<V> clone = clone();
+		ComplexTypeDefinition ctd = getComplexTypeDefinition();
+		if (ctd != null) {
+			ctd = ctd.deepClone();
+			clone.setComplexTypeDefinition(ctd);
+		}
+		return clone;
+	}
+
+	public PrismContainerDefinition<V> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
     	PrismContainerDefinition<V> clone = clone();
     	ComplexTypeDefinition originalComplexTypeDefinition = getComplexTypeDefinition();
         ComplexTypeDefinition cloneComplexTypeDefinition = originalComplexTypeDefinition.clone();

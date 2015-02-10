@@ -15,14 +15,24 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * 
@@ -86,6 +96,44 @@ public class ModelUtils {
 			return ModelAuthorizationAction.DELETE.getUrl();
 		}
 		throw new IllegalArgumentException("Unknown delta type "+delta);
+	}
+	
+	public static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(Class<O> objectClass, SystemConfigurationType systemConfigurationType) throws ConfigurationException {
+		for (ObjectPolicyConfigurationType aPolicyConfigurationType: systemConfigurationType.getDefaultObjectPolicyConfiguration()) {
+			QName typeQName = aPolicyConfigurationType.getType();
+			ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
+			if (objectType == null) {
+				throw new ConfigurationException("Unknown type "+typeQName+" in default object policy definition in system configuration");
+			}
+			if (objectType.getClassDefinition() == objectClass) {
+				return aPolicyConfigurationType;
+			}
+		}
+
+		// Deprecated
+		for (ObjectPolicyConfigurationType aPolicyConfigurationType: systemConfigurationType.getObjectTemplate()) {
+			QName typeQName = aPolicyConfigurationType.getType();
+			ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
+			if (objectType == null) {
+				throw new ConfigurationException("Unknown type "+typeQName+" in object template definition in system configuration");
+			}
+			if (objectType.getClassDefinition() == objectClass) {
+				return aPolicyConfigurationType;
+			}
+		}
+		
+		// Deprecated method to specify user template. For compatibility only
+		if (objectClass == UserType.class) {
+			ObjectReferenceType templateRef = systemConfigurationType.getDefaultUserTemplateRef();
+			if (templateRef == null) {
+				return null;
+			}
+			ObjectPolicyConfigurationType policy = new ObjectPolicyConfigurationType();
+			policy.setObjectTemplateRef(templateRef.clone());
+			return policy;
+		}
+		
+		return null;
 	}
 
 }

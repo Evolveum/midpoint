@@ -53,8 +53,9 @@ import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextTyp
  */
 public interface ModelInteractionService {
 	
-	String CLASS_NAME_WITH_DOT = ModelInteractionService.class.getName() + ".";
-	String PREVIEW_CHANGES = CLASS_NAME_WITH_DOT + "previewChanges";
+	static final String CLASS_NAME_WITH_DOT = ModelInteractionService.class.getName() + ".";
+	static final String PREVIEW_CHANGES = CLASS_NAME_WITH_DOT + "previewChanges";
+	static final String GET_EDIT_OBJECT_DEFINITION = CLASS_NAME_WITH_DOT + "getEditObjectDefinition";
 	
 	/**
 	 * Computes the most likely changes triggered by the provided delta. The delta may be any change of any object, e.g.
@@ -100,7 +101,7 @@ public interface ModelInteractionService {
      * @return schema with correctly set constraint parts or null
      * @throws SchemaException 
      */
-    <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase) throws SchemaException;
+    <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
 
     RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase) throws SchemaException;
 
