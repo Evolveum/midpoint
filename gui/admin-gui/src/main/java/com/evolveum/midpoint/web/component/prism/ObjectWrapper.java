@@ -325,7 +325,7 @@ public class ObjectWrapper implements Serializable, Revivable {
 				containers.addAll(createContainerWrapper(object, null, pageBase));
 			}
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Error occurred during container wrapping", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during container wrapping", ex);
 			result.recordFatalError("Error occurred during container wrapping, reason: " + ex.getMessage(), ex);
 		}
 
@@ -428,22 +428,28 @@ public class ObjectWrapper implements Serializable, Revivable {
             }
 
 			ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
-			
-			PrismContainer prismContainer = null;
-			 prismContainer = parent.findContainer(def.getName());
-			 
-			 ContainerWrapper container;
-			if (prismContainer != null && !prismContainer.getElementName().equals(CredentialsType.F_PASSWORD)) {
-                container = new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING, newPath, pageBase);
-			} else {
-				prismContainer = containerDef.instantiate();
-				container = new ContainerWrapper(this, prismContainer, ContainerStatus.ADDING, newPath, pageBase);
-			}
-            addSubresult(container.getResult());
-            wrappers.add(container);
 
-            if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName()) ||  !ShadowType.F_ASSOCIATION.equals(parent.getElementName())){      // do not show internals of Assignments (e.g. activation)
-			    wrappers.addAll(createContainerWrapper(prismContainer, newPath, pageBase));
+            // [med]
+            // The following code fails to work when parent is multivalued.
+            // Therefore (as a brutal hack), for multivalued parents we simply
+            // skip it.
+            if (parent.size() != 1) {
+                PrismContainer prismContainer = null;
+                prismContainer = parent.findContainer(def.getName());
+
+                ContainerWrapper container;
+                if (prismContainer != null && !prismContainer.getElementName().equals(CredentialsType.F_PASSWORD)) {
+                    container = new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING, newPath, pageBase);
+                } else {
+                    prismContainer = containerDef.instantiate();
+                    container = new ContainerWrapper(this, prismContainer, ContainerStatus.ADDING, newPath, pageBase);
+                }
+                addSubresult(container.getResult());
+                wrappers.add(container);
+
+                if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName()) || !ShadowType.F_ASSOCIATION.equals(parent.getElementName())) {      // do not show internals of Assignments (e.g. activation)
+                    wrappers.addAll(createContainerWrapper(prismContainer, newPath, pageBase));
+                }
             }
 		}
 
