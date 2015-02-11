@@ -38,6 +38,7 @@
             <xsd:appinfo>
                 <a:access>read</a:access>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:displayName>ConnId UID</a:displayName>
                 <a:displayOrder>100</a:displayOrder>
             </xsd:appinfo>
         </xsd:annotation>
@@ -50,6 +51,7 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:maxOccurs>1</a:maxOccurs>
+            	<a:displayName>ConnId Name</a:displayName>
             	<a:displayOrder>110</a:displayOrder>
             </xsd:appinfo>
         </xsd:annotation>

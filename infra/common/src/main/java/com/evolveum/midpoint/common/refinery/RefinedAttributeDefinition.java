@@ -319,21 +319,20 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 
         RefinedAttributeDefinition rAttrDef = new RefinedAttributeDefinition(schemaAttrDef, prismContext);
 
-        if (schemaHandlingAttrDefType != null) {
-        	if (schemaHandlingAttrDefType.getDisplayName() != null) {
-	            rAttrDef.setDisplayName(schemaHandlingAttrDefType.getDisplayName());
-	        } else {
-	            if (schemaAttrDef.getDisplayName() != null) {
-	                rAttrDef.setDisplayName(schemaAttrDef.getDisplayName());
-	            }
-	        }
-        	if (schemaHandlingAttrDefType.getDisplayOrder() != null) {
+        if (schemaHandlingAttrDefType != null && schemaHandlingAttrDefType.getDisplayName() != null) {
+            rAttrDef.setDisplayName(schemaHandlingAttrDefType.getDisplayName());
+        } else {
+            if (schemaAttrDef.getDisplayName() != null) {
+                rAttrDef.setDisplayName(schemaAttrDef.getDisplayName());
+            }
+        }
+        
+        if (schemaHandlingAttrDefType != null && schemaHandlingAttrDefType.getDisplayOrder() != null) {
 	            rAttrDef.setDisplayOrder(schemaHandlingAttrDefType.getDisplayOrder());
-	        } else {
-	            if (schemaAttrDef.getDisplayOrder() != null) {
-	                rAttrDef.setDisplayOrder(schemaAttrDef.getDisplayOrder());
-	            }
-	        }
+        } else {
+            if (schemaAttrDef.getDisplayOrder() != null) {
+                rAttrDef.setDisplayOrder(schemaAttrDef.getDisplayOrder());
+            }
         }
 
         if (schemaHandlingAttrDefType != null) {
