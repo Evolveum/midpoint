@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -64,7 +65,7 @@ public class OrgTableDto extends Selectable implements OrgDto, InlineMenuable {
                 object.getPropertyRealValue(OrgType.F_DISPLAY_NAME, PolyString.class));
         dto.identifier = object.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
 
-        //todo add relation [lazyman]
+        dto.relation = WebMiscUtil.isObjectOrgManager(object) ? SchemaConstants.ORG_MANAGER : null;
 
         return dto;
     }

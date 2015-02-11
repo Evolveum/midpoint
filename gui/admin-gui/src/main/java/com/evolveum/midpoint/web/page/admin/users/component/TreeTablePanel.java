@@ -451,7 +451,13 @@ public class TreeTablePanel extends SimplePanel<String> {
             protected IModel<String> createIconModel(IModel<OrgTableDto> rowModel) {
                 OrgTableDto dto = rowModel.getObject();
 
-                ObjectTypeGuiDescriptor descr = ObjectTypeGuiDescriptor.getDescriptor(dto.getType());
+                ObjectTypeGuiDescriptor descr = null;
+                if(dto.getRelation() == null) {
+                    descr = ObjectTypeGuiDescriptor.getDescriptor(dto.getType());
+                } else {
+                    descr = ObjectTypeGuiDescriptor.getDescriptor(dto.getRelation());
+                }
+
                 String icon = descr != null ? descr.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
 
                 return new Model(icon);
