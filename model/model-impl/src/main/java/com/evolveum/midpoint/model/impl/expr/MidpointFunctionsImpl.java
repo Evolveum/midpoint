@@ -165,6 +165,22 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         return retval;
     }
+    
+    @Override
+    public Collection<UserType> getManagersByOrgType(UserType user, String orgType) throws SchemaException, ObjectNotFoundException {
+        Set<UserType> retval = new HashSet<UserType>();
+        Collection<String> orgOids = getOrgUnits(user);
+        for (String orgOid : orgOids) {
+        	if (orgType != null) {
+	        	OrgType org = getOrgByOid(orgOid);
+	        	if (!org.getOrgType().contains(orgType)) {
+	        		continue;
+	        	}
+        	}
+            retval.addAll(getManagersOfOrg(orgOid));
+        }
+        return retval;
+    }
 
     @Override
     public UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException {
@@ -263,6 +279,19 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+	public boolean isManagerOfOrgType(UserType user, String orgType) throws SchemaException {
+        for (ObjectReferenceType objectReferenceType : user.getParentOrgRef()) {
+            if (SchemaConstants.ORG_MANAGER.equals(objectReferenceType.getRelation())) {
+            	OrgType org = getOrgByOid(objectReferenceType.getOid());
+            	if (org.getOrgType().contains(orgType)) {
+            		return true;
+            	}
+            }
+        }
+        return false;
+	}
+
+	@Override
     public boolean isMemberOf(UserType user, String orgOid) {
         for (ObjectReferenceType objectReferenceType : user.getParentOrgRef()) {
             if (orgOid.equals(objectReferenceType.getOid())) {
