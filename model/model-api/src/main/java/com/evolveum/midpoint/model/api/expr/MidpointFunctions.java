@@ -877,7 +877,15 @@ public interface MidpointFunctions {
 
     Collection<UserType> getManagersOfOrg(String orgOid) throws SchemaException;
 
+    /**
+     * Returns true if user is a manager of specified organiational unit. 
+     */
     boolean isManagerOf(UserType user, String orgOid);
+    
+    /**
+     * Returns true if user is a manager of any organizational unit.
+     */
+    boolean isManager(UserType user);
 
     boolean isMemberOf(UserType user, String orgOid);
 

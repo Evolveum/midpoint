@@ -251,6 +251,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         return false;
     }
+    
+    @Override
+    public boolean isManager(UserType user) {
+        for (ObjectReferenceType objectReferenceType : user.getParentOrgRef()) {
+            if (SchemaConstants.ORG_MANAGER.equals(objectReferenceType.getRelation())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     public boolean isMemberOf(UserType user, String orgOid) {
