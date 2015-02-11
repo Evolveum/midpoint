@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest.gensync;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.model.intest.TestModelServiceContract;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -105,7 +107,22 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		PrismPropertyDefinition additionalNameDef = editDef.findPropertyDefinition(UserType.F_ADDITIONAL_NAME);
 		assertNotNull("No definition for additionalName in user", additionalNameDef);
 		assertEquals("Wrong additionalName displayName", "Middle Name", additionalNameDef.getDisplayName());
+		assertTrue("additionalName not readable", additionalNameDef.canRead());
+		
+		PrismPropertyDefinition costCenterDef = editDef.findPropertyDefinition(UserType.F_COST_CENTER);
+		assertNotNull("No definition for costCenter in user", costCenterDef);
+		assertEquals("Wrong costCenter displayOrder", (Integer)123, costCenterDef.getDisplayOrder());
+		assertTrue("costCenter not readable", costCenterDef.canRead());
 
+		PrismContainerDefinition<CredentialsType> credentialsDef = editDef.findContainerDefinition(UserType.F_CREDENTIALS);
+		assertNotNull("No definition for credentials in user", credentialsDef);
+		assertTrue("Credentials not readable", credentialsDef.canRead());
+		
+		ItemPath passwdValPath = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+		PrismPropertyDefinition passwdValDef = editDef.findPropertyDefinition(passwdValPath);
+		assertNotNull("No definition for "+passwdValPath+" in user", passwdValDef);
+		assertTrue("Password not readable", passwdValDef.canRead());
+		
         assertSteadyResources();
     }
 

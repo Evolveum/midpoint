@@ -115,6 +115,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -824,7 +825,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	@Override
 	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
 		OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
-		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone();
+		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone(true);
 		// TODO: maybe we need to expose owner resolver in the interface?
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
 		if (LOGGER.isTraceEnabled()) {
@@ -844,7 +845,6 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			throw e;
 		}
 		applyObjectTemplateToDefinition(objectDefinition, objectTemplateType, result);
-		
 		
 		applySecurityConstraints(objectDefinition, new ItemPath(), securityConstraints,
 				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase),
@@ -873,13 +873,26 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			if (itemDef == null) {
 				throw new SchemaException("No definition for item "+itemPath+" in object type "+objectDefinition.getTypeName()+" as specified in item definition in "+objectTemplateType);
 			}
+			
 			String displayName = templateItemDefType.getDisplayName();
 			if (displayName != null) {
 				itemDef.setDisplayName(displayName);
 			}
+			
+			Integer displayOrder = templateItemDefType.getDisplayOrder();
+			if (displayOrder != null) {
+				itemDef.setDisplayOrder(displayOrder);
+			}
+			
 			List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
 			if (limitations != null) {
 				// TODO
+			}
+			
+			ObjectReferenceType valueEnumerationRef = templateItemDefType.getValueEnumerationRef();
+			if (valueEnumerationRef != null) {
+				PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
+				itemDef.setValueEnumerationRef(valueEnumerationRVal);
 			}
 			
 			// TODO
@@ -908,12 +921,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
 			List<? extends ItemDefinition> origSubDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
 			for (ItemDefinition subDef: origSubDefinitions) {
-                // TODO fix this brutal hack - it is necessary to avoid endless recursion in the style of "Decision for authorization/object/owner/owner/......../owner/special: ALLOW"
-                // it's too late to come up with a serious solution
-                if (!(itemPath.lastNamed() != null && ObjectSpecificationType.F_OWNER.equals(itemPath.lastNamed().getName()) && ObjectSpecificationType.F_OWNER.equals(subDef.getName()))) {
-				    applySecurityConstraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
-						    readDecision, addDecision, modifyDecision, phase);
-                }
+			    applySecurityConstraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
+					    readDecision, addDecision, modifyDecision, phase);
 			}
 		}
 	}
