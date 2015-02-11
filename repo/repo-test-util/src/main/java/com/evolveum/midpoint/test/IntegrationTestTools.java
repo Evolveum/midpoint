@@ -757,10 +757,12 @@ public class IntegrationTestTools {
 		assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
 
 		
-		ResourceAttributeDefinition icfAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
-		assertNotNull("No definition for attribute "+SchemaTestConstants.ICFS_UID, icfAttributeDefinition);
-		assertTrue("Attribute "+SchemaTestConstants.ICFS_UID+" in not an identifier",icfAttributeDefinition.isIdentifier(accountDefinition));
-		assertTrue("Attribute "+SchemaTestConstants.ICFS_UID+" in not in identifiers list",identifiers.contains(icfAttributeDefinition));
+		ResourceAttributeDefinition uidAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
+		assertNotNull("No definition for attribute "+SchemaTestConstants.ICFS_UID, uidAttributeDefinition);
+		assertTrue("Attribute "+SchemaTestConstants.ICFS_UID+" in not an identifier",uidAttributeDefinition.isIdentifier(accountDefinition));
+		assertTrue("Attribute "+SchemaTestConstants.ICFS_UID+" in not in identifiers list",identifiers.contains(uidAttributeDefinition));
+		assertEquals("Wrong displayName for attribute "+SchemaTestConstants.ICFS_UID, "ConnId UID", uidAttributeDefinition.getDisplayName());
+		assertEquals("Wrong displayOrder for attribute "+SchemaTestConstants.ICFS_UID, (Integer)100, uidAttributeDefinition.getDisplayOrder());
 		
 		Collection<? extends ResourceAttributeDefinition> secondaryIdentifiers = accountDefinition.getSecondaryIdentifiers();
 		assertNotNull("Null secondary identifiers for " + objectClassQname, secondaryIdentifiers);
@@ -770,6 +772,8 @@ public class IntegrationTestTools {
 		assertNotNull("No definition for attribute "+SchemaTestConstants.ICFS_NAME, nameAttributeDefinition);
 		assertTrue("Attribute "+SchemaTestConstants.ICFS_NAME+" in not an identifier",nameAttributeDefinition.isSecondaryIdentifier(accountDefinition));
 		assertTrue("Attribute "+SchemaTestConstants.ICFS_NAME+" in not in identifiers list",secondaryIdentifiers.contains(nameAttributeDefinition));
+		assertEquals("Wrong displayName for attribute "+SchemaTestConstants.ICFS_NAME, "ConnId Name", nameAttributeDefinition.getDisplayName());
+		assertEquals("Wrong displayOrder for attribute "+SchemaTestConstants.ICFS_NAME, (Integer)110, nameAttributeDefinition.getDisplayOrder());
 
 		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
 		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
@@ -787,6 +791,8 @@ public class IntegrationTestTools {
 		assertFalse("UID has update",uidDef.canModify());
 		assertTrue("No UID read",uidDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
+		assertEquals("Wrong refined displayName for attribute "+SchemaTestConstants.ICFS_UID, "ConnId UID", uidDef.getDisplayName());
+		assertEquals("Wrong refined displayOrder for attribute "+SchemaTestConstants.ICFS_UID, (Integer)100, uidDef.getDisplayOrder());
 
 		ResourceAttributeDefinition nameDef = accountDef
 				.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
@@ -797,6 +803,8 @@ public class IntegrationTestTools {
 		assertTrue("No NAME update",nameDef.canModify());
 		assertTrue("No NAME read",nameDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
+		assertEquals("Wrong refined displayName for attribute "+SchemaTestConstants.ICFS_NAME, "ConnId Name", nameDef.getDisplayName());
+		assertEquals("Wrong refined displayOrder for attribute "+SchemaTestConstants.ICFS_NAME, (Integer)110, nameDef.getDisplayOrder());
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
 	}
