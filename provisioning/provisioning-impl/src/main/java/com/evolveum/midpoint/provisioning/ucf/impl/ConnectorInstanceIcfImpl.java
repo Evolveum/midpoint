@@ -651,10 +651,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Make it read-only
 			uidDefinition.setReadOnly();
 			// Set a default display name
-			uidDefinition.setDisplayName("ICF UID");
+			uidDefinition.setDisplayName(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_NAME);
+			uidDefinition.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
 			// Uid is a primary identifier of every object (this is the ICF way)
 			((Collection<ResourceAttributeDefinition>)roDefinition.getIdentifiers()).add(uidDefinition);
 
+			int displayOrder = ConnectorFactoryIcfImpl.ATTR_DISPLAY_ORDER_START;
 			// Let's iterate over all attributes in this object class ...
 			Set<AttributeInfo> attributeInfoSet = objectClassInfo.getAttributeInfo();
 			for (AttributeInfo attributeInfo : attributeInfoSet) {
@@ -710,8 +712,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					// Set a better display name for __NAME__. The "name" is s very
 					// overloaded term, so let's try to make things
 					// a bit clearer
-					attrDef.setDisplayName("ICF NAME");
+					attrDef.setDisplayName(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_NAME);
+					attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_ORDER);
 					((Collection<ResourceAttributeDefinition>)roDefinition.getSecondaryIdentifiers()).add(attrDef);
+				} else {
+					attrDef.setDisplayOrder(displayOrder);
+					displayOrder += ConnectorFactoryIcfImpl.ATTR_DISPLAY_ORDER_INCREMENT;
 				}
 
 				// Now we are going to process flags such as optional and
