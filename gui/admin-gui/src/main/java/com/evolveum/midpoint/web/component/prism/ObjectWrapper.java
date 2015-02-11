@@ -433,7 +433,7 @@ public class ObjectWrapper implements Serializable, Revivable {
             // The following code fails to work when parent is multivalued.
             // Therefore (as a brutal hack), for multivalued parents we simply
             // skip it.
-            if (parent.size() != 1) {
+            if (parent.size() <= 1) {
                 PrismContainer prismContainer = null;
                 prismContainer = parent.findContainer(def.getName());
 
