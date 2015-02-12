@@ -165,13 +165,16 @@ public class Main {
 //			System.out.println(roles);
 
             String seaSuperuserRole = createRoleFromSystemResource(modelPort, "role-sea-superuser.xml");
-            System.out.println("Created role Sea Superuser, OID: "+seaSuperuserRole);
+            System.out.println("Created role Sea Superuser, OID: " + seaSuperuserRole);
 
             assignRoles(modelPort, userLeChuckOid, seaSuperuserRole);
             System.out.println("Assigned role Sea Superuser to LeChuck");
 
+            modifyRoleModifyInducement(modelPort, seaSuperuserRole);
+            System.out.println("Modified role Sea Superuser - modified resource inducement");
+
             modifyRoleReplaceInducement(modelPort, seaSuperuserRole, 2, ROLE_CAPTAIN_OID);
-            System.out.println("Modified role Sea Superuser");
+            System.out.println("Modified role Sea Superuser - changed role inducement");
 
             reconcileUser(modelPort, userLeChuckOid);
             System.out.println("LeChuck reconciled.");
@@ -464,6 +467,37 @@ public class Main {
             }
         }
 	}
+
+    private static void modifyRoleModifyInducement(ModelPortType modelPort, String roleOid) throws IOException, SAXException, FaultMessage {
+        ItemDeltaType inducementDelta = new ItemDeltaType();
+        inducementDelta.setModificationType(ModificationTypeType.ADD);
+        inducementDelta.setPath(ModelClientUtil.createItemPathType("inducement[3]/construction/attribute"));
+        inducementDelta.getValue().add(ModelClientUtil.parseElement("<value>\n" +
+                "        <ref xmlns:ri=\"http://midpoint.evolveum.com/xml/ns/public/resource/instance-3\">ri:pager</ref>\n" +
+                "        <outbound>\n" +
+                "            <expression>\n" +
+                "                <value>00-000-001</value>\n" +
+                "                <value>00-000-003</value>\n" +
+                "            </expression>\n" +
+                "        </outbound>\n" +
+                "    </value>"));
+
+        ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(RoleType.class));
+        deltaType.setChangeType(ChangeTypeType.MODIFY);
+        deltaType.setOid(roleOid);
+        deltaType.getItemDelta().add(inducementDelta);
+
+        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
+        deltaListType.getDelta().add(deltaType);
+        ObjectDeltaOperationListType objectDeltaOperationList = modelPort.executeChanges(deltaListType, null);
+        for (ObjectDeltaOperationType objectDeltaOperation : objectDeltaOperationList.getDeltaOperation()) {
+            if (!OperationResultStatusType.SUCCESS.equals(objectDeltaOperation.getExecutionResult().getStatus())) {
+                System.out.println("*** Operation result = " + objectDeltaOperation.getExecutionResult().getStatus() + ": " + objectDeltaOperation.getExecutionResult().getMessage());
+            }
+        }
+    }
+
 
     // removes inducement with a given ID and replaces it with a new one
     private static void modifyRoleReplaceInducement(ModelPortType modelPort, String roleOid, int oldId, String newInducementOid) throws FaultMessage, IOException, SAXException {

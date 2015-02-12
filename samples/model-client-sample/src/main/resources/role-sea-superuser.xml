@@ -27,4 +27,9 @@
     <inducement id="2">
         <targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="RoleType"/>     <!-- Pirate -->
     </inducement>
+    <inducement id="3">
+        <construction>
+            <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" />     <!-- OpenDJ Localhost -->
+        </construction>
+    </inducement>
 </role>
