@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,7 +49,12 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -675,6 +681,96 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         }
 	}
 	
+	/**
+	 * Add new user Jack with an assignments as an manager and also a member of ministry of offense.
+	 */
+	@Test
+    public void test400AddJackAsMinistryOfOffenseManager() throws Exception {
+		final String TEST_NAME = "test400AddJackAsMinistryOfOffenseManager";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        
+        AssignmentType assignmentType = new AssignmentType();
+        ObjectReferenceType targetRef = new ObjectReferenceType();
+        targetRef.setOid(ORG_MINISTRY_OF_OFFENSE_OID);
+        targetRef.setType(OrgType.COMPLEX_TYPE);
+		assignmentType.setTargetRef(targetRef);
+		userJack.asObjectable().getAssignment().add(assignmentType);
+		
+        assignmentType = new AssignmentType();
+        targetRef = new ObjectReferenceType();
+        targetRef.setOid(ORG_MINISTRY_OF_OFFENSE_OID);
+        targetRef.setType(OrgType.COMPLEX_TYPE);
+        targetRef.setRelation(SchemaConstants.ORG_MANAGER);
+		assignmentType.setTargetRef(targetRef);
+		userJack.asObjectable().getAssignment().add(assignmentType);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userJack.createAddDelta());
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+        
+        // THEN
+        userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+
+        assertManager(USER_JACK_OID, null, null, false);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	@Test
+    public void test410ElaineAssignGovernor() throws Exception {
+		final String TEST_NAME = "test410ElaineAssignGovernor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignOrg(USER_ELAINE_OID, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER, task, result);
+        
+        // THEN
+        PrismObject<UserType> userElaine = getUser(USER_ELAINE_OID);
+        display("User jack after", userElaine);
+        assertUserAssignedOrgs(userElaine, ORG_GOVERNOR_OFFICE_OID);
+        assertUserHasOrgs(userElaine, ORG_GOVERNOR_OFFICE_OID);
+        assertAssignedOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
+        assertHasOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
+        
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        
+        assertManager(USER_ELAINE_OID, null, null, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
 	protected void assertUserOrg(PrismObject<UserType> user, String... orgOids) throws Exception {
 		for (String orgOid: orgOids) {
 			assertAssignedOrg(user, orgOid);
@@ -702,6 +798,31 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 0);
         assertHasOrgs(user, 0);
 
+	}
+
+	private void assertManager(String userOid, String managerOid, String orgType, boolean allowSelf) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<UserType> user = getUser(userOid);
+		Collection<UserType> managers = libraryMidpointFunctions.getManagers(user.asObjectable(), orgType, allowSelf);
+		if (managerOid == null) {
+			if (managers == null || managers.isEmpty()) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected no manager for "+user+", but got "+managers);
+			}
+		} else {
+			if (managers == null) {
+				AssertJUnit.fail("Expected manager for "+user+", but got no manager");
+			} if (managers.size() != 1) {
+				AssertJUnit.fail("Expected one manager for "+user+", but got: "+managers);
+			} else {
+				UserType manager = managers.iterator().next();
+				if (manager.getOid().equals(managerOid)) {
+					return;
+				} else {
+					AssertJUnit.fail("Expected manager with OID "+managerOid+" for "+user+", but got "+manager);
+				}
+			}
+		}
 	}
 
 }

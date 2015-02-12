@@ -864,6 +864,8 @@ public interface MidpointFunctions {
     Collection<UserType> getManagers(UserType user) throws SchemaException, ObjectNotFoundException;
     
     Collection<UserType> getManagersByOrgType(UserType user, String orgType) throws SchemaException, ObjectNotFoundException;
+    
+    Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf) throws SchemaException, ObjectNotFoundException;
 
     UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException;
 

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -230,6 +231,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     
 	@Autowired(required=true)
 	private SecurityEnforcer securityEnforcer;
+	
+	@Autowired(required=true)
+	protected MidpointFunctions libraryMidpointFunctions;
 	
 	protected DummyAuditService dummyAuditService;
 	
