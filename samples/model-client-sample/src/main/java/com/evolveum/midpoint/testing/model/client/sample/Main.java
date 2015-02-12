@@ -663,7 +663,7 @@ public class Main {
 		System.out.println("Endpoint URL: "+endpointUrl);
 
         // uncomment this if you want to use Fiddler or any other proxy
-        ProxySelector.setDefault(new MyProxySelector("127.0.0.1", 8888));
+        //ProxySelector.setDefault(new MyProxySelector("127.0.0.1", 8888));
 		
 		ModelService modelService = new ModelService();
 		ModelPortType modelPort = modelService.getModelPort();

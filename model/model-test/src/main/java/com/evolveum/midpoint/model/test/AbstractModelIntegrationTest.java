@@ -1221,6 +1221,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertNotAssignedRole(user, roleOid);
 	}
 
+    protected <F extends FocusType> void assertNotAssignedOrg(PrismObject<F> user, String orgOid, QName relation) {
+        MidPointAsserts.assertNotAssignedOrg(user, orgOid, relation);
+    }
+
 	protected void assertAssignedOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedOrg(user, orgOid);

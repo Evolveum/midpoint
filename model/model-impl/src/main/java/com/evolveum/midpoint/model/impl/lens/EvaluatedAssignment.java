@@ -180,6 +180,10 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		DebugUtil.debugDumpLabel(sb, "EvaluatedAssignment", indent);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
+        if (forceRecon) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "forceRecon", forceRecon, indent + 1);
+        }
 		if (!constructions.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "Constructions", constructions, indent+1);

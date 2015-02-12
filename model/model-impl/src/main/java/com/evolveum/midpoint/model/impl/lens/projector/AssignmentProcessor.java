@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1116,32 +1117,85 @@ public class AssignmentProcessor {
 			return;
 		}
 
+        LOGGER.trace("Processing org assignments into parentOrgRef delta(s)");
+
         Class<F> focusClass = focusContext.getObjectTypeClass();
         PrismObjectDefinition<F> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass);
 		PrismReferenceDefinition orgRefDef = userDef.findReferenceDefinition(FocusType.F_PARENT_ORG_REF);
 		ItemPath orgRefPath = new ItemPath(FocusType.F_PARENT_ORG_REF);
-		
-		// Plus
-		for (EvaluatedAssignment assignment: evaluatedAssignmentTriple.getPlusSet()) {
-			Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
-			for (PrismReferenceValue org: orgs) {
-				ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
-				orgRefDelta.addValueToAdd(org.toCannonical());
-				focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
-			}
-		}
-		
-		// Minus
-		for (EvaluatedAssignment assignment: evaluatedAssignmentTriple.getMinusSet()) {
-			Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
-			for (PrismReferenceValue org: orgs) {
-				ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
-				orgRefDelta.addValueToDelete(org.toCannonical());
-				focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
-			}
-		}
-		
-		// TODO: zero set if reconciliation?
+
+        // check if recon is needed
+        boolean forceRecon = false;
+        for (EvaluatedAssignment assignment: evaluatedAssignmentTriple.getAllValues()) {
+            if (assignment.isForceRecon()) {
+                forceRecon = true;
+                break;
+            }
+        }
+
+        if (!forceRecon) {      // if no recon, we simply add/delete values as needed
+
+            LOGGER.trace("No reconciliation requested, processing plus and minus sets");
+
+            // A list of values that are _not_ to be removed - these are all the values from zero set,
+            // as well as values from plus set.
+            //
+            // Contrary to existing standard delta merge algorithm (where add+delete means "keep the current state"),
+            // we ignore any delete of values that should be existing or added.
+
+            Collection<PrismReferenceValue> notToBeDeletedCanonical = new HashSet<>();
+            for (EvaluatedAssignment assignment : evaluatedAssignmentTriple.getZeroSet()) {
+                Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
+                for (PrismReferenceValue org : orgs) {
+                    notToBeDeletedCanonical.add(org.toCannonical());
+                }
+            }
+
+            // Plus
+            for (EvaluatedAssignment assignment : evaluatedAssignmentTriple.getPlusSet()) {
+                Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
+                for (PrismReferenceValue org : orgs) {
+                    ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
+                    PrismReferenceValue orgCanonical = org.toCannonical();
+                    orgRefDelta.addValueToAdd(orgCanonical);
+                    focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
+
+                    notToBeDeletedCanonical.add(orgCanonical);
+                }
+            }
+
+            // Minus (except for these that are also in zero set)
+            for (EvaluatedAssignment assignment : evaluatedAssignmentTriple.getMinusSet()) {
+                Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
+                for (PrismReferenceValue org : orgs) {
+                    ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
+                    PrismReferenceValue orgCanonical = org.toCannonical();
+                    if (notToBeDeletedCanonical.contains(orgCanonical)) {
+                        LOGGER.trace("Not removing {} because it is in the zero or plus set", orgCanonical);
+                    } else {
+                        orgRefDelta.addValueToDelete(orgCanonical);
+                        focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
+                    }
+                }
+            }
+
+        } else {        // if reconciliation is requested, we recreate parentOrgRef from scratch
+
+            LOGGER.trace("Reconciliation requested, collecting all non-negative values");
+
+            ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
+            Set<PrismReferenceValue> valuesToReplace = new HashSet<>();
+
+            for (EvaluatedAssignment assignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+                Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
+                for (PrismReferenceValue org : orgs) {
+                    PrismReferenceValue canonical = org.toCannonical();
+                    valuesToReplace.add(canonical);     // if valuesToReplace would be a list, we should check for duplicates!
+                }
+            }
+            orgRefDelta.setValuesToReplace(valuesToReplace);
+            focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
+        }
 	}
 	
 	public <F extends ObjectType> void checkForAssignmentConflicts(LensContext<F> context, 
