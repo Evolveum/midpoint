@@ -27,6 +27,7 @@ import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -1124,10 +1125,13 @@ public class AssignmentProcessor {
 		PrismReferenceDefinition orgRefDef = userDef.findReferenceDefinition(FocusType.F_PARENT_ORG_REF);
 		ItemPath orgRefPath = new ItemPath(FocusType.F_PARENT_ORG_REF);
 
-        // check if recon is needed
+        // check if parentOrgRef recon is needed - it is when something inside OrgType assignment has changed
         boolean forceRecon = false;
         for (EvaluatedAssignment assignment: evaluatedAssignmentTriple.getAllValues()) {
-            if (assignment.isForceRecon()) {
+            if (assignment.isForceRecon() &&
+                    assignment.getAssignmentType() != null &&
+                    assignment.getAssignmentType().getTargetRef() != null &&
+                    OrgType.COMPLEX_TYPE.equals(assignment.getAssignmentType().getTargetRef().getType())) {
                 forceRecon = true;
                 break;
             }
