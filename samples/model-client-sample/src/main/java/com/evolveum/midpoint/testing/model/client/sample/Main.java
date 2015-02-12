@@ -66,11 +66,13 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.ProxySelector;
 import java.util.Collection;
 import java.util.HashMap;
@@ -82,6 +84,10 @@ import java.util.Map;
 
 /**
  * @author semancik
+ *
+ * Prerequisites:
+ * 1. OpenDJ resource, Pirate and Captain roles should exist.
+ * 2. Users lechuck and guybrush should NOT exist.
  *
  */
 public class Main {
@@ -106,15 +112,15 @@ public class Main {
 			SystemConfigurationType configurationType = getConfiguration(modelPort);
 			System.out.println("Got system configuration");
 //			System.out.println(configurationType);
-			
+
 			UserType userAdministrator = searchUserByName(modelPort, "administrator");
 			System.out.println("Got administrator user: "+userAdministrator.getOid());
 //			System.out.println(userAdministrator);
-			
+
 			RoleType sailorRole = searchRoleByName(modelPort, "Sailor");
 			System.out.println("Got Sailor role");
 //			System.out.println(sailorRole);
-	
+
 			Collection<ResourceType> resources = listResources(modelPort);
 			System.out.println("Resources ("+resources.size()+")");
 //			dump(resources);
@@ -133,35 +139,48 @@ public class Main {
 
             String userGuybrushoid = createUserGuybrush(modelPort, sailorRole);
 			System.out.println("Created user guybrush, OID: "+userGuybrushoid);
-			
+
 			UserType userGuybrush = getUser(modelPort, userGuybrushoid);
 			System.out.println("Fetched user guybrush:");
 //			System.out.println(userGuybrush);
 			System.out.println("Users fullName: " + ModelClientUtil.getOrig(userGuybrush.getFullName()));
-			
+
 			String userLeChuckOid = createUserFromSystemResource(modelPort, "user-lechuck.xml");
 			System.out.println("Created user lechuck, OID: "+userLeChuckOid);
-			
+
 			changeUserPassword(modelPort, userGuybrushoid, "MIGHTYpirate");
 			System.out.println("Changed user password");
 
             changeUserGivenName(modelPort, userLeChuckOid, "CHUCK");
             System.out.println("Changed user given name");
-			
+
 			assignRoles(modelPort, userGuybrushoid, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
 			System.out.println("Assigned roles");
-			
+
 			unAssignRoles(modelPort, userGuybrushoid, ROLE_CAPTAIN_OID);
 			System.out.println("Unassigned roles");
-			
+
 			Collection<RoleType> roles = listRequestableRoles(modelPort);
 			System.out.println("Found "+roles.size()+" requestable roles");
 //			System.out.println(roles);
-			
+
+            String seaSuperuserRole = createRoleFromSystemResource(modelPort, "role-sea-superuser.xml");
+            System.out.println("Created role Sea Superuser, OID: "+seaSuperuserRole);
+
+            assignRoles(modelPort, userLeChuckOid, seaSuperuserRole);
+            System.out.println("Assigned role Sea Superuser to LeChuck");
+
+            modifyRoleReplaceInducement(modelPort, seaSuperuserRole, 2, ROLE_CAPTAIN_OID);
+            System.out.println("Modified role Sea Superuser");
+
+            reconcileUser(modelPort, userLeChuckOid);
+            System.out.println("LeChuck reconciled.");
+
 			// Uncomment the following lines if you want to see what midPoint really did
 			// ... because deleting the user will delete also all the traces (except logs and audit of course).
 			deleteUser(modelPort, userGuybrushoid);
             deleteUser(modelPort, userLeChuckOid);
+            deleteRole(modelPort, seaSuperuserRole);
 			System.out.println("Deleted user(s)");
 			
 		} catch (Exception e) {
@@ -285,6 +304,12 @@ public class Main {
 		
 		return createUser(modelPort, user);
 	}
+
+    private static String createRoleFromSystemResource(ModelPortType modelPort, String resourcePath) throws FileNotFoundException, JAXBException, FaultMessage {
+        RoleType role = unmarshallResource(resourcePath);
+
+        return createRole(modelPort, role);
+    }
 	
 	private static <T> T unmarshallFile(File file) throws JAXBException, FileNotFoundException {
 		JAXBContext jc = ModelClientUtil.instantiateJaxbContext();
@@ -340,6 +365,18 @@ public class Main {
 		ObjectDeltaOperationListType operationListType = modelPort.executeChanges(deltaListType, null);
 		return ModelClientUtil.getOidFromDeltaOperationList(operationListType, deltaType);
 	}
+
+    private static String createRole(ModelPortType modelPort, RoleType roleType) throws FaultMessage {
+        ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(RoleType.class));
+        deltaType.setChangeType(ChangeTypeType.ADD);
+        deltaType.setObjectToAdd(roleType);
+
+        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
+        deltaListType.getDelta().add(deltaType);
+        ObjectDeltaOperationListType operationListType = modelPort.executeChanges(deltaListType, null);
+        return ModelClientUtil.getOidFromDeltaOperationList(operationListType, deltaType);
+    }
 	
 	private static void changeUserPassword(ModelPortType modelPort, String oid, String newPassword) throws FaultMessage {
 		ItemDeltaType passwordDelta = new ItemDeltaType();
@@ -376,7 +413,23 @@ public class Main {
         modelPort.executeChanges(deltaList, null);
     }
 
-	private static void assignRoles(ModelPortType modelPort, String userOid, String... roleOids) throws FaultMessage {
+    private static void reconcileUser(ModelPortType modelPort, String oid) throws FaultMessage {
+        Document doc = ModelClientUtil.getDocumnent();
+
+        ObjectDeltaType userDelta = new ObjectDeltaType();
+        userDelta.setOid(oid);
+        userDelta.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
+        userDelta.setChangeType(ChangeTypeType.MODIFY);
+
+        ObjectDeltaListType deltaList = new ObjectDeltaListType();
+        deltaList.getDelta().add(userDelta);
+
+        ModelExecuteOptionsType optionsType = new ModelExecuteOptionsType();
+        optionsType.setReconcile(true);
+        modelPort.executeChanges(deltaList, optionsType);
+    }
+
+    private static void assignRoles(ModelPortType modelPort, String userOid, String... roleOids) throws FaultMessage {
 		modifyRoleAssignment(modelPort, userOid, true, roleOids);
 	}
 	
@@ -411,6 +464,36 @@ public class Main {
             }
         }
 	}
+
+    // removes inducement with a given ID and replaces it with a new one
+    private static void modifyRoleReplaceInducement(ModelPortType modelPort, String roleOid, int oldId, String newInducementOid) throws FaultMessage, IOException, SAXException {
+
+        ItemDeltaType inducementDeleteDelta = new ItemDeltaType();
+        inducementDeleteDelta.setModificationType(ModificationTypeType.DELETE);
+        inducementDeleteDelta.setPath(ModelClientUtil.createItemPathType("inducement"));
+        inducementDeleteDelta.getValue().add(ModelClientUtil.parseElement("<value><id>"+oldId+"</id></value>"));
+
+        ItemDeltaType inducementAddDelta = new ItemDeltaType();
+        inducementAddDelta.setModificationType(ModificationTypeType.ADD);
+        inducementAddDelta.setPath(ModelClientUtil.createItemPathType("inducement"));
+        inducementAddDelta.getValue().add(createRoleAssignment(newInducementOid));
+
+        ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(RoleType.class));
+        deltaType.setChangeType(ChangeTypeType.MODIFY);
+        deltaType.setOid(roleOid);
+        deltaType.getItemDelta().add(inducementDeleteDelta);
+        deltaType.getItemDelta().add(inducementAddDelta);
+
+        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
+        deltaListType.getDelta().add(deltaType);
+        ObjectDeltaOperationListType objectDeltaOperationList = modelPort.executeChanges(deltaListType, null);
+        for (ObjectDeltaOperationType objectDeltaOperation : objectDeltaOperationList.getDeltaOperation()) {
+            if (!OperationResultStatusType.SUCCESS.equals(objectDeltaOperation.getExecutionResult().getStatus())) {
+                System.out.println("*** Operation result = " + objectDeltaOperation.getExecutionResult().getStatus() + ": " + objectDeltaOperation.getExecutionResult().getMessage());
+            }
+        }
+    }
 
 	private static AssignmentType createRoleAssignment(String roleOid) {
 		AssignmentType roleAssignment = new AssignmentType();
@@ -508,6 +591,20 @@ public class Main {
         modelPort.executeChanges(deltaListType, executeOptionsType);
 	}
 
+    private static void deleteRole(ModelPortType modelPort, String oid) throws FaultMessage {
+        ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(RoleType.class));
+        deltaType.setChangeType(ChangeTypeType.DELETE);
+        deltaType.setOid(oid);
+
+        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
+        deltaListType.getDelta().add(deltaType);
+
+        ModelExecuteOptionsType executeOptionsType = new ModelExecuteOptionsType();
+        executeOptionsType.setRaw(true);
+        modelPort.executeChanges(deltaListType, executeOptionsType);
+    }
+
     private static void deleteTask(ModelPortType modelPort, String oid) throws FaultMessage {
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(TaskType.class));
@@ -532,7 +629,7 @@ public class Main {
 		System.out.println("Endpoint URL: "+endpointUrl);
 
         // uncomment this if you want to use Fiddler or any other proxy
-        //ProxySelector.setDefault(new MyProxySelector("127.0.0.1", 8888));
+        ProxySelector.setDefault(new MyProxySelector("127.0.0.1", 8888));
 		
 		ModelService modelService = new ModelService();
 		ModelPortType modelPort = modelService.getModelPort();
