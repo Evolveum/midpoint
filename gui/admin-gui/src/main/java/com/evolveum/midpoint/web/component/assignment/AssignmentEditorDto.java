@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -168,7 +169,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
                             continue;
                         }
 
-                        if(attribute.getRef().equals(propertyDef.getName())){
+                        if(ItemPathUtil.getOnlySegmentQName(attribute.getRef()).equals(propertyDef.getName())){
                             acAtrList.add(ACAttributeDto.createACAttributeDto(propertyDef, attribute, prismContext));
                             break;
                         }
