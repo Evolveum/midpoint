@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
@@ -660,33 +663,37 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test349DeleteJack";
         TestUtil.displayTestTile(this, TEST_NAME);
 
+        executeDeleteJack(TEST_NAME);
+	}
+
+    protected void executeDeleteJack(String TEST_NAME) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, USER_JACK_OID, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-        
+
         // WHEN
         modelService.executeChanges(deltas, null, task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         try {
         	PrismObject<UserType> user = getUser(USER_JACK_OID);
         	AssertJUnit.fail("Jack survived!");
         } catch (ObjectNotFoundException e) {
         	// This is expected
         }
-	}
-	
-	/**
+    }
+
+    /**
 	 * Add new user Jack with an assignments as an manager and also a member of ministry of offense.
 	 */
 	@Test
-    public void test400AddJackAsMinistryOfOffenseManager() throws Exception {
-		final String TEST_NAME = "test400AddJackAsMinistryOfOffenseManager";
+    public void test350AddJackAsMinistryOfOffenseManager() throws Exception {
+		final String TEST_NAME = "test350AddJackAsMinistryOfOffenseManager";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -735,8 +742,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test410ElaineAssignGovernor() throws Exception {
-		final String TEST_NAME = "test410ElaineAssignGovernor";
+    public void test360ElaineAssignGovernor() throws Exception {
+		final String TEST_NAME = "test360ElaineAssignGovernor";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -770,8 +777,21 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // Postcondition
         assertMonkeyIslandOrgSanity();
 	}
-	
-	protected void assertUserOrg(PrismObject<UserType> user, String... orgOids) throws Exception {
+
+    @Test
+    public void test399DeleteJack() throws Exception {
+        final String TEST_NAME = "test399DeleteJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        executeDeleteJack(TEST_NAME);
+    }
+
+
+    // BEWARE, tests 400+ are executed in TestOrgStructMeta, so this class has to end with test399 and no jack present
+    // ---------------------------------------------------------------------------------------------------------------
+
+
+    protected void assertUserOrg(PrismObject<UserType> user, String... orgOids) throws Exception {
 		for (String orgOid: orgOids) {
 			assertAssignedOrg(user, orgOid);
 	        assertHasOrg(user, orgOid);
