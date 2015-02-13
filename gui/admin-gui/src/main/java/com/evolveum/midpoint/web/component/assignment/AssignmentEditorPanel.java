@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.TwoStateBooleanPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
@@ -57,7 +58,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -95,6 +95,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private static final String ID_ACTIVATION_BLOCK = "activationBlock";
     private static final String ID_BODY = "body";
     private static final String ID_DESCRIPTION = "description";
+    private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_RELATION = "relation";
     private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
     private static final String ID_VALID_FROM = "validFrom";
@@ -319,9 +320,30 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 new PropertyModel<String>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
         body.add(description);
 
-        TextField relation = new TextField<>(ID_RELATION, new PropertyModel<String>(getModel(), AssignmentEditorDto.F_RELATION));
-        relation.setEnabled(false);
-        body.add(relation);
+        WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
+        relationContainer.setOutputMarkupId(true);
+        relationContainer.setOutputMarkupPlaceholderTag(true);
+        relationContainer.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                AssignmentEditorDto dto = getModel().getObject();
+                if(dto != null){
+                    if(AssignmentEditorDtoType.ORG_UNIT.equals(dto.getType())){
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        });
+        body.add(relationContainer);
+
+        TwoStateBooleanPanel relation = new TwoStateBooleanPanel(ID_RELATION, new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_IS_ORG_UNIT_MANAGER),
+                "AssignmentEditorPanel.member", "AssignmentEditorPanel.manager", null);
+        relation.setOutputMarkupId(true);
+        relation.setOutputMarkupPlaceholderTag(true);
+        relationContainer.add(relation);
 
         WebMarkupContainer tenantRefContainer = new WebMarkupContainer(ID_CONTAINER_TENANT_REF);
         ChooseTypePanel tenantRef = new ChooseTypePanel(ID_TENANT_CHOOSER,

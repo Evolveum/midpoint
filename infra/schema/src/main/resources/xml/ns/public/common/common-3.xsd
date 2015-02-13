@@ -3582,6 +3582,7 @@
             </xsd:element>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="displayOrder" type="xsd:int" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="limitations" type="tns:PropertyLimitationsType" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -3601,6 +3602,17 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="valueEnumerationRef" type="c:ObjectReferenceType" minOccurs="0">
+            	<xsd:annotation>
+	                <xsd:documentation>
+	                    Reference to an object that directly or indirectly represents possible values for
+						this item. We do not define here what exactly the object has to be. It can be a lookup
+						table, script that dynamically produces the values or anything similar. 
+						The object must produce the values of the correct type for this item otherwise an
+						error occurs.
+	                </xsd:documentation>
+	            </xsd:annotation>
+	       	</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6357,7 +6369,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="object" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
+        	<xsd:element name="object" type="tns:OwnedObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Object part from the (subject,action,object) authorization triple.
@@ -6373,7 +6385,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="target" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
+        	<xsd:element name="target" type="tns:OwnedObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Target of the operation. E.g. an role that is being assigned. It can be considered an operation
@@ -6493,16 +6505,33 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-	        <xsd:element name="owner" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="1">
-				<xsd:annotation>
-					<xsd:documentation>
-						The object matches the specification if it has an owner specified by this element.
-						The "owner" means a focus that has a link to the object.
-					</xsd:documentation>
-				</xsd:annotation>
-	        </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="OwnedObjectSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects some objects from all the objects in midPoint.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:ObjectSpecificationType">
+		        <xsd:sequence>
+			        <xsd:element name="owner" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								The object matches the specification if it has an owner specified by this element.
+								The "owner" means a focus that has a link to the object.
+							</xsd:documentation>
+						</xsd:annotation>
+			        </xsd:element>
+		        </xsd:sequence>        	
+        	</xsd:extension>
+        </xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:simpleType name="SpecialObjectSpecificationType">
@@ -6899,7 +6928,7 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:ItemRefinedDefinitionType">
         		<xsd:sequence>
-	            <xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
+	            <xsd:element name="mapping" type="tns:ObjectTemplateMappingType" minOccurs="0" maxOccurs="unbounded">
 	                <xsd:annotation>
 	                    <xsd:documentation>
 	                        Defines how any of the object property value should
@@ -10153,13 +10182,6 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Is the instance finished? (TODO consider removing this and deriving from endTimestamp...)
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="answer" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The result of the workflow process instance (if any).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

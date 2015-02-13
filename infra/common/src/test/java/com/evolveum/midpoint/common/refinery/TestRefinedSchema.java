@@ -433,18 +433,18 @@ public class TestRefinedSchema {
         Collection<? extends RefinedAttributeDefinition> attrs = rAccount.getAttributeDefinitions();
         assertFalse(attrs.isEmpty());
 
-        assertAttributeDef(attrs, SchemaTestConstants.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", 
+        assertAttributeDef(attrs, SchemaTestConstants.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", 110,
         		true, false, 
         		true, true, validationLayer == LayerType.SCHEMA, // Access: create, read, update
         		sourceLayer, validationLayer);
         
-        assertAttributeDef(attrs, SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING, 1, 1, "Entry UUID", 
+        assertAttributeDef(attrs, SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING, 1, 1, "Entry UUID", 100,
         		false, false,
         		false, true, false, // Access: create, read, update
         		sourceLayer, validationLayer);
         
         assertAttributeDef(attrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"), DOMUtil.XSD_STRING, 
-        		1,  (validationLayer == LayerType.MODEL || validationLayer == LayerType.PRESENTATION) ? 1 : -1, "Common Name", 
+        		1,  (validationLayer == LayerType.MODEL || validationLayer == LayerType.PRESENTATION) ? 1 : -1, "Common Name", 1, 
         		true, validationLayer == LayerType.PRESENTATION, 
         		true, true, true, // Access: create, read, update
         		sourceLayer, validationLayer);
@@ -453,20 +453,20 @@ public class TestRefinedSchema {
         		DOMUtil.XSD_STRING, 
         		validationLayer == LayerType.SCHEMA ? 0 : 1 , // minOccurs 
         		validationLayer == LayerType.SCHEMA ? -1 : 1, // maxOccurs
-        		"Login Name",
+        		"Login Name", 2,
         		true, false,
         		true, true, validationLayer != LayerType.PRESENTATION, // Access: create, read, update
         		sourceLayer, validationLayer);
         
         assertAttributeDef(attrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "employeeNumber"), 
-        		DOMUtil.XSD_STRING, 0, 1, null,
+        		DOMUtil.XSD_STRING, 0, 1, null, null,
         		false, false,
         		true, true, true, // Access: create, read, update
         		sourceLayer, validationLayer);
     }
 
     private void assertAttributeDef(Collection<? extends RefinedAttributeDefinition> attrDefs, QName name,
-                                    QName typeName, int minOccurs, int maxOccurs, String displayName, 
+                                    QName typeName, int minOccurs, int maxOccurs, String displayName, Integer displayOrder,
                                     boolean hasOutbound, boolean ignore, boolean canCreate, boolean canRead, boolean canUpdate, 
                                     LayerType sourceLayer, LayerType validationLayer) {
         for (RefinedAttributeDefinition def : attrDefs) {
@@ -476,6 +476,7 @@ public class TestRefinedSchema {
                 assertEquals("Attribute " + name + " ("+sourceLayer+") maxOccurs mismatch", maxOccurs, def.getMaxOccurs());
                 if (validationLayer == LayerType.MODEL || validationLayer == LayerType.PRESENTATION) {
 	                assertEquals("Attribute " + name + " ("+sourceLayer+") displayName mismatch", displayName, def.getDisplayName());
+	                assertEquals("Attribute " + name + " ("+sourceLayer+") displayOrder mismatch", displayOrder, def.getDisplayOrder());
 	                assertEquals("Attribute " + name + " ("+sourceLayer+") outbound mismatch", hasOutbound, def.getOutboundMappingType() != null);
                 }
                 assertEquals("Attribute " + name + " ("+sourceLayer+") ignored flag mismatch", ignore, def.isIgnored());

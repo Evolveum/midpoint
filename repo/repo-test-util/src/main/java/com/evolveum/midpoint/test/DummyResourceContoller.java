@@ -237,6 +237,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertTrue("No fullname create", fullnameDef.canAdd());
 		assertTrue("No fullname update", fullnameDef.canModify());
 		assertTrue("No fullname read", fullnameDef.canRead());
+		assertEquals("Wrong displayOrder for attribute fullName", (Integer)200, fullnameDef.getDisplayOrder());
 		
 		// GROUP
 		ObjectClassComplexTypeDefinition groupObjectClass = resourceSchema.findObjectClassDefinition(SchemaTestConstants.GROUP_OBJECT_CLASS_LOCAL_NAME);

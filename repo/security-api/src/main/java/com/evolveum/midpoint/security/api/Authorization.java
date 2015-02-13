@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecificationType;
 
 /**
  * @author semancik
@@ -71,7 +72,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 		return authorizationType.getPhase();
 	}
 
-	public List<ObjectSpecificationType> getObject() {
+	public List<OwnedObjectSpecificationType> getObject() {
 		return authorizationType.getObject();
 	}
 
@@ -79,7 +80,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 		return authorizationType.getItem();
 	}
 
-	public List<ObjectSpecificationType> getTarget() {
+	public List<OwnedObjectSpecificationType> getTarget() {
 		return authorizationType.getTarget();
 	}
 

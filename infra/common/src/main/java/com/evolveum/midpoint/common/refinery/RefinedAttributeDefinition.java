@@ -326,6 +326,14 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
                 rAttrDef.setDisplayName(schemaAttrDef.getDisplayName());
             }
         }
+        
+        if (schemaHandlingAttrDefType != null && schemaHandlingAttrDefType.getDisplayOrder() != null) {
+	            rAttrDef.setDisplayOrder(schemaHandlingAttrDefType.getDisplayOrder());
+        } else {
+            if (schemaAttrDef.getDisplayOrder() != null) {
+                rAttrDef.setDisplayOrder(schemaAttrDef.getDisplayOrder());
+            }
+        }
 
         if (schemaHandlingAttrDefType != null) {
             rAttrDef.fetchStrategy = schemaHandlingAttrDefType.getFetchStrategy();

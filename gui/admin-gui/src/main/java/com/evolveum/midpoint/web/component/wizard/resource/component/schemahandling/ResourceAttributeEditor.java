@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -126,7 +127,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         });
         add(label);
 
-        QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_NON_SCHEMA_REF_PANEL, new PropertyModel<QName>(getModel(), "ref"),
+        QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_NON_SCHEMA_REF_PANEL, new PropertyModel<ItemPathType>(getModel(), "ref"),
                 "SchemaHandlingStep.attribute.label.attributeName", "SchemaHandlingStep.attribute.tooltip.attributeLocalPart",
                 "SchemaHandlingStep.attribute.label.attributeNamespace", "SchemaHandlingStep.attribute.tooltip.attributeNamespace");
 
@@ -160,22 +161,22 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         refTooltip.setOutputMarkupId(true);
         schemaRefPanel.add(refTooltip);
 
-        DropDownChoice refSelect = new DropDownChoice<>(ID_REFERENCE_SELECT, new PropertyModel<QName>(getModel(), "ref"),
-                new AbstractReadOnlyModel<List<QName>>() {
+        DropDownChoice refSelect = new DropDownChoice<>(ID_REFERENCE_SELECT, new PropertyModel<ItemPathType>(getModel(), "ref"),
+                new AbstractReadOnlyModel<List<ItemPathType>>() {
 
                     @Override
-                    public List<QName> getObject() {
+                    public List<ItemPathType> getObject() {
                         return loadObjectReferences();
                     }
-                }, new IChoiceRenderer<QName>() {
+                }, new IChoiceRenderer<ItemPathType>() {
 
             @Override
-            public Object getDisplayValue(QName object) {
+            public Object getDisplayValue(ItemPathType object) {
                 return prepareReferenceDisplayValue(object);
             }
 
             @Override
-            public String getIdValue(QName object, int index) {
+            public String getIdValue(ItemPathType object, int index) {
                 return Integer.toString(index);
             }
         });
@@ -378,8 +379,8 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         add(outboundEditor);
     }
 
-    private List<QName> loadObjectReferences(){
-        List<QName> references = new ArrayList<>();
+    private List<ItemPathType> loadObjectReferences(){
+        List<ItemPathType> references = new ArrayList<>();
 
         ResourceSchema schema = loadResourceSchema();
         if (schema == null) {
@@ -390,7 +391,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
             if(objectType != null && def.getTypeName().equals(objectType.getObjectClass())){
 
                 for (ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
-                    references.add(attributeDefinition.getName());
+                    references.add(new ItemPathType(attributeDefinition.getName().getLocalPart()));
                 }
             }
         }
@@ -418,21 +419,12 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         return null;
     }
 
-    private String prepareReferenceDisplayValue(QName object){
-        StringBuilder sb = new StringBuilder();
-
-        if(object != null){
-            sb.append(object.getLocalPart());
-
-            if(object.getNamespaceURI() != null){
-                sb.append(" (");
-                String[] ns = object.getNamespaceURI().split("/");
-                sb.append(ns[ns.length-1]);
-                sb.append(")");
-            }
+    private String prepareReferenceDisplayValue(ItemPathType object){
+        if(object != null && object.getItemPath() != null){
+            return object.getItemPath().toString();
         }
 
-        return sb.toString();
+        return "";
     }
 
     private void limitationsEditPerformed(AjaxRequestTarget target){

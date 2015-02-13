@@ -314,9 +314,13 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 			String otherStringVal = other.getStringValue();
 			return thisStringVal.equals(otherStringVal);
 		} else if (other.isParsed() && !isParsed()){
-			return other.value.equals(this.getStringValue());
+            String thisStringValue = this.getStringValue();
+            String otherStringValue = String.valueOf(other.value);
+			return otherStringValue.equals(thisStringValue);
 		} else if (!other.isParsed() && isParsed()){
-			return value.equals(other.getStringValue());
+            String thisStringValue = String.valueOf(value);;
+            String otherStringValue = other.getStringValue();
+			return thisStringValue.equals(otherStringValue);
 		}
 		
 		return false;

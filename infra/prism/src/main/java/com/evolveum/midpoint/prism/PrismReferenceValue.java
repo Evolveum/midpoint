@@ -498,6 +498,11 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 			sb.append(DebugUtil.formatElementName(getTargetType()));
 			sb.append(")");
 		}
+        if (getRelation() != null) {
+            sb.append("[");
+            sb.append(getRelation().getLocalPart());
+            sb.append("]");
+        }
 		return sb.toString();
 	}
     

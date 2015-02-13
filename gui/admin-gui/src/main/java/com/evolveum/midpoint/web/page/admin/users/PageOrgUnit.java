@@ -674,8 +674,12 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
             ObjectDelta extensionDelta = saveExtension(result);
             ObjectDelta extDelta = null;
 
-            if(!isEditing() && extensionDelta != null){
-                extDelta = delta.getObjectToAdd().diff(extensionDelta.getObjectToAdd());
+            if(extensionDelta != null){
+                if(isEditing()){
+                    extDelta = extensionDelta;
+                } else {
+                    extDelta = delta.getObjectToAdd().diff(extensionDelta.getObjectToAdd());
+                }
             }
 
             if(delta != null){

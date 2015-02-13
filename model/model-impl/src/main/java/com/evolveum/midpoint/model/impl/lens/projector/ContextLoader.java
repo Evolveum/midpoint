@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.impl.controller.ModelUtils;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
@@ -395,50 +396,19 @@ public class ContextLoader {
 		}
 		Class<F> focusType = focusContext.getObjectTypeClass();
 
-		ObjectReferenceType templateRef = null;
-		ObjectPolicyConfigurationType policyConfigurationType = null;
-		for (ObjectPolicyConfigurationType aPolicyConfigurationType: systemConfigurationType.getDefaultObjectPolicyConfiguration()) {
-			QName typeQName = aPolicyConfigurationType.getType();
-			ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
-			if (objectType == null) {
-				throw new ConfigurationException("Unknown type "+typeQName+" in default object policy definition in system configuration");
-			}
-			if (objectType.getClassDefinition() == focusType) {
-				templateRef = aPolicyConfigurationType.getObjectTemplateRef();
-				focusContext.setObjectPolicyConfigurationType(aPolicyConfigurationType);
-				policyConfigurationType = aPolicyConfigurationType;
-			}
-		}
-
+		ObjectPolicyConfigurationType policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(focusType, systemConfigurationType);
 		if (policyConfigurationType == null) {
-			// Deprecated
-			for (ObjectPolicyConfigurationType aPolicyConfigurationType: systemConfigurationType.getObjectTemplate()) {
-				QName typeQName = aPolicyConfigurationType.getType();
-				ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
-				if (objectType == null) {
-					throw new ConfigurationException("Unknown type "+typeQName+" in object template definition in system configuration");
-				}
-				if (objectType.getClassDefinition() == focusType) {
-					templateRef = aPolicyConfigurationType.getObjectTemplateRef();
-					focusContext.setObjectPolicyConfigurationType(aPolicyConfigurationType);
-					policyConfigurationType = aPolicyConfigurationType;
-				}
-			}
+			LOGGER.trace("No default object template");
+			return null;
 		}
-		
-		// Deprecated method to specify user template. For compatibility only
-		if (templateRef == null && context.getFocusClass() == UserType.class) {
-			templateRef = systemConfigurationType.getDefaultUserTemplateRef();
-		}
-		
+		ObjectReferenceType templateRef = policyConfigurationType.getObjectTemplateRef();
 		if (templateRef == null) {
 			LOGGER.trace("No default object template");
 			return null;
-		} else {
-			PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, templateRef.getOid(), null, result);
-		    return template;
 		}
-
+		
+		PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, templateRef.getOid(), null, result);
+	    return template;
 	}
 
 

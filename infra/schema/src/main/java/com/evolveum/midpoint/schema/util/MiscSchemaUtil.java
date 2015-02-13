@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
@@ -263,6 +264,20 @@ public class MiscSchemaUtil {
 			return false;
 		}
 		return a.equals(b);
+	}
+
+	public static PrismReferenceValue objectReferenceTypeToReferenceValue(ObjectReferenceType refType) {
+		if (refType == null) {
+			return null;
+		}
+		PrismReferenceValue rval = new PrismReferenceValue();
+		rval.setOid(refType.getOid());
+		rval.setDescription(refType.getDescription());
+		rval.setFilter(refType.getFilter());
+		rval.setRelation(refType.getRelation());
+		rval.setTargetType(refType.getType());
+		return rval;
+		
 	}
 
 }

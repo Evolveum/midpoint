@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.gensync;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -28,6 +28,7 @@ import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -69,38 +70,9 @@ import com.evolveum.midpoint.util.MiscUtil;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest {
+public class TestRoleEntitlement extends AbstractGenericSyncTest {
 	
-	public static final File TEST_DIR = new File("src/test/resources/gensync");
-
-    protected static final File ROLE_SWASHBUCKLER_FILE = new File(TEST_DIR, "role-swashbuckler.xml");
-    protected static final String ROLE_SWASHBUCKLER_OID = "12345678-d34d-b33f-f00d-5b5b5b5b5b5b";
-    protected static final String ROLE_SWASHBUCKLER_NAME = "Swashbuckler";
-    protected static final String ROLE_SWASHBUCKLER_DESCRIPTION = "Requestable role Swashbuckler";
-
-    protected static final String GROUP_SWASHBUCKLER_DUMMY_NAME = "swashbuckler";
-
-    protected static final File ROLE_META_DUMMYGROUP_FILE = new File(TEST_DIR, "role-meta-dummygroup.xml");
-    protected static final String ROLE_META_DUMMYGROUP_OID = "12348888-d34d-8888-8888-555555556666";
-
-	private static final File SYSTEM_CONFIGURATION_GENSYNC_FILE = new File(TEST_DIR, "system-configuration.xml");
-
-	private static final File OBJECT_TEMPLATE_ROLE_FILE = new File(TEST_DIR, "object-template-role.xml");
-
 	private static String groupOid;
-
-    @Override
-    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        super.initSystem(initTask, initResult);
-
-        repoAddObjectFromFile(OBJECT_TEMPLATE_ROLE_FILE, ObjectTemplateType.class, initResult);
-        repoAddObjectFromFile(ROLE_META_DUMMYGROUP_FILE, RoleType.class, initResult);
-    }
-    
-    @Override
-	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_GENSYNC_FILE;
-	}
 
     @Test
     public void test050GetRolePirate() throws Exception {

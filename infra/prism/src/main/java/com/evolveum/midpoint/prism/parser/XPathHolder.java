@@ -401,6 +401,7 @@ public class XPathHolder {
 		return toElement(elementQName.getNamespaceURI(), elementQName.getLocalPart(), document);
 	}
 
+    // really ugly implementation... (ignores overall context of serialization, so produces <c:path> elements even if common is default namespace) TODO rework [med]
 	public Element toElement(String elementNamespace, String localElementName, Document document) {
 		Element element = document.createElementNS(elementNamespace, localElementName);
 		if (!StringUtils.isBlank(elementNamespace)) {

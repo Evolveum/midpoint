@@ -512,9 +512,12 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 			return false;
 		PolyStringType other = (PolyStringType) obj;
 		if (any == null) {
-			if (other.any != null)
+			if (other.any != null && !other.any.isEmpty())          // because any is instantiated on get (so null and empty should be considered equivalent)
 				return false;
-		} else if (!any.equals(other.any))
+		} else if (any.isEmpty()) {
+            if (other.any != null && !other.any.isEmpty())
+                return false;
+        } else if (!any.equals(other.any))
 			return false;
 		if (norm == null) {
 			if (other.norm != null)

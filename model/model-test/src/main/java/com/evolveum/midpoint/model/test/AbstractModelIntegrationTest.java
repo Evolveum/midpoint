@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -230,6 +231,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     
 	@Autowired(required=true)
 	private SecurityEnforcer securityEnforcer;
+	
+	@Autowired(required=true)
+	protected MidpointFunctions libraryMidpointFunctions;
 	
 	protected DummyAuditService dummyAuditService;
 	
@@ -1220,6 +1224,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <F extends FocusType> void assertNotAssignedRole(PrismObject<F> user, String roleOid) {
 		MidPointAsserts.assertNotAssignedRole(user, roleOid);
 	}
+
+    protected <F extends FocusType> void assertNotAssignedOrg(PrismObject<F> user, String orgOid, QName relation) {
+        MidPointAsserts.assertNotAssignedOrg(user, orgOid, relation);
+    }
 
 	protected void assertAssignedOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
@@ -2707,5 +2715,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ConfigAttribute> attrs = new ArrayList<ConfigAttribute>();
 		attrs.add(new SecurityConfig(action));
 		return attrs;
+	}
+	
+	protected <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class+".getEditObjectDefinition");
+		PrismObjectDefinition<O> editSchema = modelInteractionService.getEditObjectDefinition(object, null, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return editSchema;
 	}
 }
