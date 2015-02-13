@@ -476,12 +476,19 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
             }
 
             ObjectDelta extensionDelta = saveExtension(result);
+            ObjectDelta extDelta = null;
+
+            if(extensionDelta != null){
+                if(isEditing()){
+                    extDelta = extensionDelta;
+                } else {
+                    extDelta = delta.getObjectToAdd().diff(extensionDelta.getObjectToAdd());
+                }
+            }
 
             if (delta != null) {
-                if(extensionDelta != null){
-                    for(ItemDelta itemDelta: (List<ItemDelta>)extensionDelta.getModifications()){
-                        delta.addModification(itemDelta);
-                    }
+                if(extDelta != null){
+                    delta = ObjectDelta.summarize(delta, extDelta);
                 }
 
                 ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();

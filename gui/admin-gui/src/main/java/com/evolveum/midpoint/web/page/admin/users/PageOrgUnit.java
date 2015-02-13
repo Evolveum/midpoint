@@ -670,7 +670,6 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
                 inducementPanel.handleAssignmentDeltas(delta, inducementDef, OrgType.F_INDUCEMENT);
             }
 
-            //TODO - improve this mess with extensionDeltas
             ObjectDelta extensionDelta = saveExtension(result);
             ObjectDelta extDelta = null;
 
