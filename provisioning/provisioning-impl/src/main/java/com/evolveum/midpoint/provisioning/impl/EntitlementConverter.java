@@ -241,10 +241,11 @@ class EntitlementConverter {
 		
 	}
 
+    // precondition: valueAttr has exactly one value
 	private <TV,TA> ObjectQuery createQuery(RefinedAssociationDefinition assocDefType, RefinedAttributeDefinition assocAttrDef, ResourceAttribute<TV> valueAttr) throws SchemaException{
 		MatchingRule<TA> matchingRule = matchingRuleRegistry.getMatchingRule(assocDefType.getResourceObjectAssociationType().getMatchingRule(),
 				assocAttrDef.getTypeName());
-		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getValue(), valueAttr.getDefinition(), assocAttrDef);
+		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getValue(0), valueAttr.getDefinition(), assocAttrDef);
 		PrismPropertyValue<TA> normalized = converted;
 		if (matchingRule != null) {
 			TA normalizedRealValue = matchingRule.normalize(converted.getValue());
