@@ -221,10 +221,10 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceTypeRepoAfter.toString(), prismContext);
 		assertNotNull("No schema after parsing",parsedSchema);
 		
-		ObjectClassComplexTypeDefinition accountDefinition = parsedSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDefinition.findAttributeDefinition(
+		ObjectClassComplexTypeDefinition inetOrgPersonDefinition = parsedSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+		assertNull("The _PASSSWORD_ attribute sneaked into schema", inetOrgPersonDefinition.findAttributeDefinition(
 				new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
-		assertNull("The userPassword attribute sneaked into schema", accountDefinition.findAttributeDefinition(
+		assertNull("The userPassword attribute sneaked into schema", inetOrgPersonDefinition.findAttributeDefinition(
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeRepoAfter),"userPassword")));
 		
 		assertShadows(1);

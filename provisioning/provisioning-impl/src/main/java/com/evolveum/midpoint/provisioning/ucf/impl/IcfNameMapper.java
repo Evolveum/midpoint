@@ -131,20 +131,24 @@ public class IcfNameMapper {
 	 * <p/>
 	 * TODO: mind the special characters in the ICF objectclass names.
 	 */
-	public QName objectClassToQname(String icfObjectClassString, String schemaNamespace) {
-		if (ObjectClass.ACCOUNT_NAME.equals(icfObjectClassString)) {
-			return new QName(schemaNamespace, ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME,
-					ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
-		} else if (ObjectClass.GROUP_NAME.equals(icfObjectClassString)) {
-			return new QName(schemaNamespace, ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME,
-					ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
+	public QName objectClassToQname(String icfObjectClassString, String schemaNamespace, boolean legacySchema) {
+		if (legacySchema) {
+			if (ObjectClass.ACCOUNT_NAME.equals(icfObjectClassString)) {
+				return new QName(schemaNamespace, ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME,
+						ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
+			} else if (ObjectClass.GROUP_NAME.equals(icfObjectClassString)) {
+				return new QName(schemaNamespace, ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME,
+						ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
+			} else {
+				return new QName(schemaNamespace, CUSTOM_OBJECTCLASS_PREFIX + icfObjectClassString
+						+ CUSTOM_OBJECTCLASS_SUFFIX, ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
+			}
 		} else {
-			return new QName(schemaNamespace, CUSTOM_OBJECTCLASS_PREFIX + icfObjectClassString
-					+ CUSTOM_OBJECTCLASS_SUFFIX, ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
+			return new QName(schemaNamespace, icfObjectClassString);
 		}
 	}
 
-	public ObjectClass objectClassToIcf(PrismObject<? extends ShadowType> object, String schemaNamespace, ConnectorType connectorType) {
+	public ObjectClass objectClassToIcf(PrismObject<? extends ShadowType> object, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
 
 		ShadowType shadowType = object.asObjectable();
 		QName qnameObjectClass = shadowType.getObjectClass();
@@ -158,7 +162,7 @@ public class IcfNameMapper {
 			qnameObjectClass = objectClassDefinition.getTypeName();
 		}
 
-		return objectClassToIcf(qnameObjectClass, schemaNamespace, connectorType);
+		return objectClassToIcf(qnameObjectClass, schemaNamespace, connectorType, legacySchema);
 	}
 
 	/**
@@ -169,30 +173,35 @@ public class IcfNameMapper {
 	 * <p/>
 	 * TODO: mind the special characters in the ICF objectclass names.
 	 */
-	public ObjectClass objectClassToIcf(ObjectClassComplexTypeDefinition objectClassDefinition, String schemaNamespace, ConnectorType connectorType) {
+	public ObjectClass objectClassToIcf(ObjectClassComplexTypeDefinition objectClassDefinition, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
 		QName qnameObjectClass = objectClassDefinition.getTypeName();
-		return objectClassToIcf(qnameObjectClass, schemaNamespace, connectorType);
+		return objectClassToIcf(qnameObjectClass, schemaNamespace, connectorType, legacySchema);
 	}
 
-	private ObjectClass objectClassToIcf(QName qnameObjectClass, String schemaNamespace, ConnectorType connectorType) {
+	private ObjectClass objectClassToIcf(QName qnameObjectClass, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
 		if (!schemaNamespace.equals(qnameObjectClass.getNamespaceURI())) {
 			throw new IllegalArgumentException("ObjectClass QName " + qnameObjectClass
 					+ " is not in the appropriate namespace for "
 					+ connectorType + ", expected: " + schemaNamespace);
 		}
+		
 		String lname = qnameObjectClass.getLocalPart();
-		if (ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
-			return ObjectClass.ACCOUNT;
-		} else if (ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
-			return ObjectClass.GROUP;
-		} else if (lname.startsWith(CUSTOM_OBJECTCLASS_PREFIX) && lname.endsWith(CUSTOM_OBJECTCLASS_SUFFIX)) {
-			String icfObjectClassName = lname.substring(CUSTOM_OBJECTCLASS_PREFIX.length(), lname.length()
-					- CUSTOM_OBJECTCLASS_SUFFIX.length());
-			return new ObjectClass(icfObjectClassName);
+		if (legacySchema) {
+			if (ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
+				return ObjectClass.ACCOUNT;
+			} else if (ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
+				return ObjectClass.GROUP;
+			} else if (lname.startsWith(CUSTOM_OBJECTCLASS_PREFIX) && lname.endsWith(CUSTOM_OBJECTCLASS_SUFFIX)) {
+				String icfObjectClassName = lname.substring(CUSTOM_OBJECTCLASS_PREFIX.length(), lname.length()
+						- CUSTOM_OBJECTCLASS_SUFFIX.length());
+				return new ObjectClass(icfObjectClassName);
+			} else {
+				throw new IllegalArgumentException("Cannot recognize objectclass QName " + qnameObjectClass
+						+ " for " + ObjectTypeUtil.toShortString(connectorType) + ", expected: "
+						+ schemaNamespace);
+			}
 		} else {
-			throw new IllegalArgumentException("Cannot recognize objectclass QName " + qnameObjectClass
-					+ " for " + ObjectTypeUtil.toShortString(connectorType) + ", expected: "
-					+ schemaNamespace);
+			return new ObjectClass(lname);
 		}
 	}
 

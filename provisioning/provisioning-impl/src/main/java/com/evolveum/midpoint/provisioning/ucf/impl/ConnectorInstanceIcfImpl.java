@@ -207,6 +207,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private PrismSchema connectorSchema;
 	private String description;
 	private boolean caseIgnoreAttributeNames = false;
+	private boolean legacySchema = false;
 
 	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
 			String schemaNamespace, PrismSchema connectorSchema, Protector protector,
@@ -617,12 +618,20 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// New instance of midPoint schema object
 		resourceSchema = new ResourceSchema(getSchemaNamespace(), prismContext);
 
-		// Let's convert every objectclass in the ICF schema ...
 		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
+		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
+			if (objectClassInfo.is(ObjectClass.ACCOUNT_NAME) || objectClassInfo.is(ObjectClass.GROUP_NAME)) {
+				legacySchema = true;
+				LOGGER.trace("This is legacy schema"); 
+				break;
+			}
+		}
+		
+		// Let's convert every objectclass in the ICF schema ...		
 		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
 
 			// "Flat" ICF object class names needs to be mapped to QNames
-			QName objectClassXsdName = icfNameMapper.objectClassToQname(objectClassInfo.getType(), getSchemaNamespace());
+			QName objectClassXsdName = icfNameMapper.objectClassToQname(objectClassInfo.getType(), getSchemaNamespace(), legacySchema);
 
 			if (!shouldBeGenerated(generateObjectClasses, objectClassXsdName)){
 				continue;
@@ -935,7 +944,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							+ identifiers + " from " + ObjectTypeUtil.toShortString(connectorType));
 		}
 
-		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
 		if (icfObjectClass == null) {
 			result.recordFatalError("Unable to determine object class from QName "
 					+ objectClassDefinition.getTypeName()
@@ -1140,7 +1149,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		result.addParam("additionalOperations", DebugUtil.debugDump(additionalOperations));         // because of serialization issues
 
 		// getting icf object class from resource object class
-		ObjectClass objectClass = icfNameMapper.objectClassToIcf(object, getSchemaNamespace(), connectorType);
+		ObjectClass objectClass = icfNameMapper.objectClassToIcf(object, getSchemaNamespace(), connectorType, legacySchema);
 
 		if (objectClass == null) {
 			result.recordFatalError("Couldn't get icf object class from " + object);
@@ -1300,7 +1309,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return new HashSet<PropertyModificationOperation>();
 		}
 
-		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
+		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
 		
 		Uid uid = getUid(identifiers);
 		if (uid == null) {
@@ -1653,7 +1662,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				+ ".deleteObject");
 		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
 
-		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
+		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
 		Uid uid = getUid(identifiers);
 
 		checkAndExecuteAdditionalOperation(additionalOperations, BeforeAfterType.BEFORE, result);
@@ -1712,7 +1721,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				+ ".fetchCurrentToken");
 		result.addParam("objectClass", objectClass);
 
-		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
 		
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
 		icfResult.addContext("connector", icfConnectorFacade.getClass());
@@ -1774,7 +1783,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		final List<SyncDelta> syncDeltas = new ArrayList<SyncDelta>();
 		// get icf object class
-		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
 
 		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
 		String[] attributesToGet = convertToIcfAttrsToGet(objectClass, attrsToReturn);
@@ -1878,7 +1887,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new IllegalArgumentException("objectClass not defined");
 		}
 
-		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
 		if (icfObjectClass == null) {
 			IllegalArgumentException ex = new IllegalArgumentException(
 					"Unable to determine object class from QName " + objectClassDefinition
@@ -2033,7 +2042,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
             throw new IllegalArgumentException("objectClass not defined");
         }
 
-        ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType);
+        ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
         if (icfObjectClass == null) {
             IllegalArgumentException ex = new IllegalArgumentException(
                     "Unable to determine object class from QName " + objectClassDefinition
@@ -2261,7 +2270,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (icfDelta.getObject() != null){
 				objClass = icfDelta.getObject().getObjectClass();
 			}
-				QName objectClass = icfNameMapper.objectClassToQname(objClass.getObjectClassValue(), getSchemaNamespace());
+				QName objectClass = icfNameMapper.objectClassToQname(objClass.getObjectClassValue(), getSchemaNamespace(), legacySchema);
 				ObjectClassComplexTypeDefinition objClassDefinition = (ObjectClassComplexTypeDefinition) schema
 				.findComplexTypeDefinition(objectClass);
 
