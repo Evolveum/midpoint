@@ -64,7 +64,13 @@ public enum ObjectTypeGuiDescriptor {
 
     SECURITY_POLICY(ObjectTypes.SECURITY_POLICY, "ObjectTypeGuiDescriptor.securityPolicy", ""),
 
-    USER_ORG_MANAGER(SchemaConstants.ORG_MANAGER, "ObjectTypeGuiDescriptor.orgManager", "silk-user_red");
+    USER_ORG_MANAGER(SchemaConstants.ORG_MANAGER, "ObjectTypeGuiDescriptor.orgManager", "silk-user_red"),
+
+    LOOKUP_TABLE(ObjectTypes.LOOKUP_TABLE, "ObjectTypeGuiDescriptor.lookupTable", ""),
+
+    ACCESS_CERTIFICATION_TYPE(ObjectTypes.ACCESS_CERTIFICATION_TYPE, "ObjectTypeGuiDescriptor.accessCertificationType", ""),
+
+    ACCESS_CERTIFICATION_RUN(ObjectTypes.ACCESS_CERTIFICATION_RUN, "ObjectTypeGuiDescriptor.accessCertificationRun", "");
 
     public static final String ERROR_ICON = "silk-error";
     public static final String ERROR_LOCALIZATION_KEY = "ObjectTypeGuiDescriptor.unknown";

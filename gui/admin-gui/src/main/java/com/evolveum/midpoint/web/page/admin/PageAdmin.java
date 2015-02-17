@@ -22,11 +22,12 @@ import com.evolveum.midpoint.web.component.menu.top.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
 import com.evolveum.midpoint.web.component.menu.top.UserMenuPanel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertificationRuns;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertificationTypes;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
@@ -97,6 +98,11 @@ public class PageAdmin extends PageBase {
             }
         }
 
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_URI)) {
+            items.add(createCertificationItems());
+        }
+
         if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL,
                 AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URI)) {
             items.add(createServerTasksItems());
@@ -155,6 +161,14 @@ public class PageAdmin extends PageBase {
         reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.created"), PageCreatedReports.class));
 
         return reports;
+    }
+
+    private MenuBarItem createCertificationItems() {
+        MenuBarItem certification = new MenuBarItem(createStringResource("PageAdmin.menu.top.certification"), null);
+        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.types"), PageCertificationTypes.class));
+        certification.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.certification.current"), PageCertificationRuns.class));
+
+        return certification;
     }
 
     private MenuBarItem createConfigurationItems() {

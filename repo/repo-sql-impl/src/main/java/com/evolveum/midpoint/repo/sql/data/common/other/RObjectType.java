@@ -26,7 +26,9 @@ public enum RObjectType {
     ABSTRACT_ROLE(RAbstractRole.class),
     FOCUS(RFocus.class),
     SECURITY_POLICY(RSecurityPolicy.class),
-    LOOKUP_TABLE(RLookupTable.class);
+    LOOKUP_TABLE(RLookupTable.class),
+    ACCESS_CERTIFICATION_TYPE(RAccessCertificationType.class),
+    ACCESS_CERTIFICATION_RUN(RAccessCertificationRun.class);
 
     private Class<? extends RObject> clazz;
 
