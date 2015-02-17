@@ -276,7 +276,18 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public Collection<UserType> getManagersOfOrg(String orgOid) throws SchemaException {
         Set<UserType> retval = new HashSet<UserType>();
         OperationResult result = new OperationResult("getManagerOfOrg");
-        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(orgOid, OrgFilter.Scope.ONE_LEVEL));
+        
+        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismReferenceDefinition parentOrgRefDef = userDef.findReferenceDefinition(ObjectType.F_PARENT_ORG_REF);
+        PrismReference parentOrgRef = parentOrgRefDef.instantiate();
+        PrismReferenceValue parentOrgRefVal = new PrismReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
+        parentOrgRefVal.setRelation(SchemaConstants.ORG_MANAGER);
+		parentOrgRef.add(parentOrgRefVal);
+        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(
+        		new ItemPath(ObjectType.F_PARENT_ORG_REF), parentOrgRef));
+
+        //        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(orgOid, OrgFilter.Scope.ONE_LEVEL));
+
         List<PrismObject<ObjectType>> members = repositoryService.searchObjects(ObjectType.class, objectQuery, null, result);
         for (PrismObject<ObjectType> member : members) {
             if (member.asObjectable() instanceof UserType) {
