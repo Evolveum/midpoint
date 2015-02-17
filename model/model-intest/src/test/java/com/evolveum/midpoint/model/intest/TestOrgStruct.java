@@ -79,6 +79,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         addObject(ROLE_DEFENDER_FILE);
+        addObject(USER_HERMAN_FILE);
         //DebugUtil.setDetailedDebugDump(true);
     }
 
@@ -906,7 +907,116 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertMonkeyIslandOrgSanity();
 	}
 	
+	@Test
+    public void test370BarbossaAssignOffenseMember() throws Exception {
+		final String TEST_NAME = "test370BarbossaAssignOffenseMember";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignOrg(USER_BARBOSSA_OID, ORG_MINISTRY_OF_OFFENSE_OID, null, task, result);
+        
+        // THEN
+        PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
+        display("User jack after", userBarbossa);
+        assertUserAssignedOrgs(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertUserHasOrgs(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrg(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrg(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
+        
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        
+        assertManager(USER_ELAINE_OID, null, null, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, null, true);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true);
+        
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, false);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, true);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, true);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
 	
+	@Test
+    public void test372HermanAssignSwashbucklerMember() throws Exception {
+		final String TEST_NAME = "test365GuybrushAssignSwashbucklerMember";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        PrismObject<UserType> userHerman = getUser(USER_HERMAN_OID);
+        assertHasNoOrg(userHerman);
+        
+        // WHEN
+        assignOrg(USER_HERMAN_OID, ORG_SWASHBUCKLER_SECTION_OID, null, task, result);
+        
+        // THEN
+        userHerman = getUser(USER_HERMAN_OID);
+        display("User jack after", userHerman);
+        assertUserAssignedOrgs(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
+        assertUserHasOrgs(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
+        assertAssignedOrg(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
+        assertHasOrg(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
+        
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        
+        assertManager(USER_ELAINE_OID, null, null, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, null, true);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true);
+        
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, false);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, true);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, true);
+
+        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, null, false);
+        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_HERMAN_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, null, true);
+        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_HERMAN_OID, null, ORG_TYPE_PROJECT, true);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
 
     @Test
     public void test399DeleteJack() throws Exception {

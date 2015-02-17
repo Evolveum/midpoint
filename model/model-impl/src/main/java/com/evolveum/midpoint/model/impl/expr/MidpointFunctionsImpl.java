@@ -292,9 +292,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         for (PrismObject<ObjectType> member : members) {
             if (member.asObjectable() instanceof UserType) {
                 UserType user = (UserType) member.asObjectable();
-                if (isManagerOf(user, orgOid)) {
+//                if (isManagerOf(user, orgOid)) {
                     retval.add(user);
-                }
+//                }
             }
         }
         return retval;
