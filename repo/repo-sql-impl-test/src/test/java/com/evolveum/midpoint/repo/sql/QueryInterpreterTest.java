@@ -19,7 +19,6 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -35,18 +34,12 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
-import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
-import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query.RQuery;
-import com.evolveum.midpoint.repo.sql.query.RQueryCriteriaImpl;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -54,8 +47,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.*;
 import org.hibernate.sql.JoinType;
@@ -945,7 +936,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             addFullObjectProjectionList("o", projections, false);
             main.setProjection(projections);
 
-            DetachedCriteria detached = DetachedCriteria.forClass(RParentOrgRef.class, "p");
+            DetachedCriteria detached = DetachedCriteria.forClass(RObjectReference.class, "p");
+            detached.add(Restrictions.eq("referenceType", 0));
             detached.setProjection(Projections.distinct(Projections.property("p.ownerOid")));
             detached.add(Restrictions.eq("p.targetOid", "some oid"));
 
@@ -1140,7 +1132,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            DetachedCriteria detached = DetachedCriteria.forClass(RParentOrgRef.class, "p");
+            DetachedCriteria detached = DetachedCriteria.forClass(RObjectReference.class, "p");
+            detached.add(Restrictions.eq("referenceType", 0));
             detached.setProjection(Projections.distinct(Projections.property("p.ownerOid")));
             detached.add(Property.forName("targetOid").in(
                     DetachedCriteria.forClass(ROrgClosure.class, "cl")

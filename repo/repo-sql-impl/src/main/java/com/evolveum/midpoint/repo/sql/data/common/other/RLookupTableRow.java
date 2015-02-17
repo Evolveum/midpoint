@@ -14,14 +14,14 @@ import java.sql.Timestamp;
 /**
  * @author Viliam Repan (lazyman)
  */
-//@Entity
-//@Table(indexes = {
+@Entity
+@Table(indexes = {
 //todo create indexes after lookup api is created (when we know how we will search through lookup table [lazyman]
 //        @Index(name = "i_row_key", columnList = "key"),
 //        @Index(name = "i_row_label_orig", columnList = "label.orig"),
 //        @Index(name = "i_row_label_norm", columnList = "label.norm")
-//})
-//@IdClass(RLookupTableRowId.class)
+})
+@IdClass(RLookupTableRowId.class)
 public class RLookupTableRow {
 
     private RLookupTable owner;
@@ -33,7 +33,7 @@ public class RLookupTableRow {
     private XMLGregorianCalendar lastChangeTimestamp;
 
     @Id
-    @ForeignKey(name = "fk_lookup_table")
+    @ForeignKey(name = "fk_lookup_table_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RLookupTable getOwner() {

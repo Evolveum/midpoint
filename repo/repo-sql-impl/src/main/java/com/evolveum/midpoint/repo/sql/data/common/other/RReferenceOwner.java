@@ -16,10 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.other;
 
-import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.type.*;
-import org.apache.commons.lang.Validate;
-
 /**
  * This is just helper enumeration for different types of reference entities
  * used in many relationships.
@@ -28,84 +24,23 @@ import org.apache.commons.lang.Validate;
  */
 public enum RReferenceOwner {
 
-    /**
-     * this constant also have to be changed in
-     * {@link com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef}
-     */
-    OBJECT_PARENT_ORG(RParentOrgRef.class, RParentOrgRef.DISCRIMINATOR),
-    /**
-     * this constant also have to be changed in
-     * {@link com.evolveum.midpoint.repo.sql.data.common.type.RLinkRef}
-     */
-    USER_ACCOUNT(RLinkRef.class, RLinkRef.DISCRIMINATOR),
-    /**
-     * this constant also have to be changed in
-     * {@link com.evolveum.midpoint.repo.sql.data.common.type.RResourceApproverRef}
-     */
-    RESOURCE_BUSINESS_CONFIGURATON_APPROVER(RResourceApproverRef.class, RResourceApproverRef.DISCRIMINATOR),
-    /**
-     * this constant also have to be changed in
-     * {@link com.evolveum.midpoint.repo.sql.data.common.type.RRoleApproverRef}
-     */
-    ROLE_APPROVER(RRoleApproverRef.class, RRoleApproverRef.DISCRIMINATOR),
-    /**
-     * this constant also have to be changed in
-     * {@link com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef}
-     */
-    CREATE_APPROVER(RCreateApproverRef.class, RCreateApproverRef.DISCRIMINATOR),
-    /**
-     * this constant also have to be changed in
-     * {@link com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef}
-     */
-    MODIFY_APPROVER(RModifyApproverRef.class, RModifyApproverRef.DISCRIMINATOR),
-    /**
-     * this constant also have to be changed in
-     * {@link com.evolveum.midpoint.repo.sql.data.common.type.RIncludeRef}
-     */
-    INCLUDE(RIncludeRef.class, RIncludeRef.DISCRIMINATOR);
+    OBJECT_PARENT_ORG,
 
-    private String discriminator;
-    private Class<? extends RObjectReference> clazz;
+    USER_ACCOUNT,
 
-    private RReferenceOwner(Class<? extends RObjectReference> clazz, String discriminator) {
-        this.discriminator = discriminator;
-        this.clazz = clazz;
-    }
+    RESOURCE_BUSINESS_CONFIGURATON_APPROVER,
+
+    ROLE_APPROVER,
 
     /**
-     * This is used for {@link org.hibernate.SessionFactory} fix in
-     * {@link com.evolveum.midpoint.repo.sql.util.RUtil#fixCompositeIDHandling(org.hibernate.SessionFactory)}
-     *
-     * @return class based on reference type
+     * @deprecated
      */
-    public Class<? extends RObjectReference> getClazz() {
-        return clazz;
-    }
+    @Deprecated
+    SYSTEM_CONFIGURATION_ORG_ROOT,
 
-    public String getDiscriminator() {
-        return discriminator;
-    }
+    CREATE_APPROVER,
 
-    public static RObjectReference createObjectReference(RReferenceOwner owner) {
-        Validate.notNull(owner, "Reference owner must not be null.");
+    MODIFY_APPROVER,
 
-        switch (owner) {
-            case OBJECT_PARENT_ORG:
-                return new RParentOrgRef();
-            case ROLE_APPROVER:
-                return new RRoleApproverRef();
-            case USER_ACCOUNT:
-                return new RLinkRef();
-            case RESOURCE_BUSINESS_CONFIGURATON_APPROVER:
-                return new RResourceApproverRef();
-            case CREATE_APPROVER:
-                return new RCreateApproverRef();
-            case MODIFY_APPROVER:
-                return new RModifyApproverRef();
-            case INCLUDE:
-                return new RIncludeRef();
-            default:
-                throw new IllegalArgumentException("This is unknown reference owner: " + owner);
-        }
-    }
+    INCLUDE;
 }

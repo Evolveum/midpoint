@@ -74,7 +74,7 @@ public class OrgFilterQuery extends CustomQuery {
         StringBuilder sb = new StringBuilder();
         if (OrgFilter.Scope.ONE_LEVEL.equals(filter.getScope())) {
             sb.append("select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from ");
-            sb.append(ClassMapper.getHQLType(type)).append(" as o where o.oid in (select distinct p.ownerOid from RParentOrgRef p where p.targetOid=:oid)");
+            sb.append(ClassMapper.getHQLType(type)).append(" as o where o.oid in (select distinct p.ownerOid from RObjectReference p where p.targetOid=:oid and p.referenceType=0)");
         } else {
             sb.append("select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from ");
             sb.append(ClassMapper.getHQLType(type)).append(" as o where o.oid in (");
