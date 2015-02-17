@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,6 +99,8 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -115,6 +117,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -140,11 +143,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -155,6 +163,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * This used to be an interface, but it was switched to class for simplicity. I
@@ -609,7 +618,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDump());
 			}
-			cacheRepositoryService.modifyObject(objectTypeClass, oid, delta.getModifications(), result);
+			if (!delta.isEmpty()) {
+				cacheRepositoryService.modifyObject(objectTypeClass, oid, delta.getModifications(), result);
+			}
 			result.recordSuccess();
 		} catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
 			result.recordFatalError("Couldn't reevaluate search filters: "+e.getMessage(), e);
@@ -815,34 +826,106 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	@Override
-	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase) throws SchemaException {
-		PrismObjectDefinition<O> origDefinition = object.getDefinition();
+	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+		OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
+		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone(true);
 		// TODO: maybe we need to expose owner resolver in the interface?
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
 		}
 		if (securityConstraints == null) {
+			// Nothing allowed => everything denied
+			result.setStatus(OperationResultStatus.NOT_APPLICABLE);
 			return null;
 		}
-		PrismObjectDefinition<O> finalDefinition = applySecurityContraints(origDefinition, new ItemPath(), securityConstraints,
+		
+		ObjectTemplateType objectTemplateType;
+		try {
+			objectTemplateType = determineObjectTemplate(object, phase, result);
+		} catch (ConfigurationException | ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		applyObjectTemplateToDefinition(objectDefinition, objectTemplateType, result);
+		
+		applySecurityConstraints(objectDefinition, new ItemPath(), securityConstraints,
 				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
-		return finalDefinition;
+		
+		result.computeStatus();
+		return objectDefinition;
 	}
 	
-	private <D extends ItemDefinition> D applySecurityContraints(D origItemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
+	private <O extends ObjectType> void applyObjectTemplateToDefinition(PrismObjectDefinition<O> objectDefinition, ObjectTemplateType objectTemplateType, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		if (objectTemplateType == null) {
+			return;
+		}
+		for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
+			PrismObject<ObjectTemplateType> subTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, includeRef.getOid(), null, result);
+			applyObjectTemplateToDefinition(objectDefinition, subTemplate.asObjectable(), result);
+		}
+		for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {
+			ItemPathType ref = templateItemDefType.getRef();
+			if (ref == null) {
+				throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
+			}
+			ItemPath itemPath = ref.getItemPath();
+			ItemDefinition itemDef = objectDefinition.findItemDefinition(itemPath);
+			if (itemDef == null) {
+				throw new SchemaException("No definition for item "+itemPath+" in object type "+objectDefinition.getTypeName()+" as specified in item definition in "+objectTemplateType);
+			}
+			
+			String displayName = templateItemDefType.getDisplayName();
+			if (displayName != null) {
+				itemDef.setDisplayName(displayName);
+			}
+			
+			Integer displayOrder = templateItemDefType.getDisplayOrder();
+			if (displayOrder != null) {
+				itemDef.setDisplayOrder(displayOrder);
+			}
+			
+			List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
+			if (limitations != null) {
+				PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, LayerType.PRESENTATION);
+				if (limitationsType != null) {
+					if (limitationsType.getMinOccurs() != null) {
+						itemDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));
+					}
+					if (limitationsType.getMaxOccurs() != null) {
+						itemDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMaxOccurs()));
+					}
+					if (limitationsType.isIgnore() != null) {
+						itemDef.setIgnored(limitationsType.isIgnore());
+					}
+					PropertyAccessType accessType = limitationsType.getAccess();
+					if (accessType != null) {
+						if (accessType.isAdd() != null) {
+							itemDef.setCanAdd(accessType.isAdd());
+						}
+						if (accessType.isModify() != null) {
+							itemDef.setCanModify(accessType.isModify());
+						}
+						if (accessType.isRead() != null) {
+							itemDef.setCanRead(accessType.isRead());
+						}
+					}
+				}
+			}
+			
+			ObjectReferenceType valueEnumerationRef = templateItemDefType.getValueEnumerationRef();
+			if (valueEnumerationRef != null) {
+				PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
+				itemDef.setValueEnumerationRef(valueEnumerationRVal);
+			}			
+		}
+	}
+	
+	private <D extends ItemDefinition> void applySecurityConstraints(D itemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
 			AuthorizationDecisionType defaultReadDecition, AuthorizationDecisionType defaultAddDecition, AuthorizationDecisionType defaultModifyDecition,
             AuthorizationPhaseType phase) {
-		D itemDefinition = (D) origItemDefinition.clone();
-		// We need to make a super-deep clone here. Even make sure that the complex types inside are cloned.
-		// Otherwise permissions from one part of the definition tree may be incorrectly propagated to another part
-		if (itemDefinition instanceof PrismContainerDefinition<?>) {
-			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
-			ComplexTypeDefinition origCtd = containerDefinition.getComplexTypeDefinition();
-			containerDefinition.setComplexTypeDefinition(origCtd.clone());
-		}
 		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecition, phase);
 		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecition, phase);
 		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecition, phase);
@@ -859,20 +942,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		
 		if (itemDefinition instanceof PrismContainerDefinition<?>) {
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
-			// The items are still shallow-clonned, we need to deep-clone them
-			List<? extends ItemDefinition> origSubDefinitions = ((PrismContainerDefinition<?>)origItemDefinition).getDefinitions();
-			containerDefinition.getDefinitions().clear();
+			List<? extends ItemDefinition> origSubDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
 			for (ItemDefinition subDef: origSubDefinitions) {
-                // TODO fix this brutal hack - it is necessary to avoid endless recursion in the style of "Decision for authorization/object/owner/owner/......../owner/special: ALLOW"
-                // it's too late to come up with a serious solution
-                if (!(itemPath.lastNamed() != null && ObjectSpecificationType.F_OWNER.equals(itemPath.lastNamed().getName()) && ObjectSpecificationType.F_OWNER.equals(subDef.getName()))) {
-				    ItemDefinition newDef = applySecurityContraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
-						    readDecision, addDecision, modifyDecision, phase);
-				    containerDefinition.getComplexTypeDefinition().add(newDef);
-                }
+			    applySecurityConstraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
+					    readDecision, addDecision, modifyDecision, phase);
 			}
 		}
-		return itemDefinition;
 	}
 		
     private AuthorizationDecisionType computeItemDecision(ObjectSecurityConstraints securityConstraints, ItemPath itemPath, String actionUrl,
@@ -885,6 +960,23 @@ public class ModelController implements ModelService, ModelInteractionService, T
     		return defaultDecision;
     	}
 	}
+    
+    public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfiguration(cacheRepositoryService, result);
+    	if (systemConfiguration == null) {
+    		return null;
+    	}
+    	ObjectPolicyConfigurationType objectPolicyConfiguration = ModelUtils.determineObjectPolicyConfiguration(object.getCompileTimeClass(), systemConfiguration.asObjectable());
+    	if (objectPolicyConfiguration == null) {
+    		return null;
+    	}
+    	ObjectReferenceType objectTemplateRef = objectPolicyConfiguration.getObjectTemplateRef();
+    	if (objectTemplateRef == null) {
+    		return null;
+    	}
+    	PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);
+    	return template.asObjectable();
+    }
     
     @Override
 	public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase)
@@ -1567,7 +1659,20 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	
 	private <T extends ObjectType> void postProcessObjects(Collection<PrismObject<T>> objects, GetOperationOptions options, OperationResult result) throws SecurityViolationException, SchemaException {
 		for (PrismObject<T> object: objects) {
-			postProcessObject(object, options, result);
+			OperationResult subresult = new OperationResult(ModelController.class.getName()+".postProcessObject");
+			try {			
+				postProcessObject(object, options, subresult);
+			} catch (IllegalArgumentException|IllegalStateException|SchemaException|SecurityViolationException e) {
+				LOGGER.error("Error post-processing object {}: {}", new Object[]{object, e.getMessage(), e});
+				OperationResultType fetchResult = object.asObjectable().getFetchResult();
+				if (fetchResult == null) {
+					fetchResult = subresult.createOperationResultType();
+					object.asObjectable().setFetchResult(fetchResult);
+				} else {
+					fetchResult.getPartialResults().add(subresult.createOperationResultType());
+				}
+				fetchResult.setStatus(OperationResultStatusType.FATAL_ERROR);
+			}
 		}
 	}
 	
@@ -1607,6 +1712,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	private void removeDeniedItems(List<Item<? extends PrismValue>> items, ObjectSecurityConstraints securityContraints, AuthorizationDecisionType defaultDecision) {
+		if (items == null) {
+			return;
+		}
 		Iterator<Item<?>> iterator = items.iterator();
 		while (iterator.hasNext()) {
 			Item<? extends PrismValue> item = iterator.next();
@@ -1628,9 +1736,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 					while (vi.hasNext()) {
 						PrismContainerValue<?> cval = vi.next();
 						List<Item<?>> subitems = cval.getItems();
-						removeDeniedItems(subitems, securityContraints, subDefaultDecision);
-						if (cval.getItems().isEmpty()) {
-							vi.remove();
+						if (subitems != null) {
+							removeDeniedItems(subitems, securityContraints, subDefaultDecision);
+							if (subitems.isEmpty()) {
+								vi.remove();
+							}
 						}
 					}
 					if (item.isEmpty()) {

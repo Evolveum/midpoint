@@ -198,7 +198,7 @@ public class MappingEditorDialog extends ModalWindow{
         form.add(strength);
 
         MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
-                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"), true, true){
+                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"), true){
 
             @Override
             protected String createNewEmptyItem() {
@@ -239,7 +239,7 @@ public class MappingEditorDialog extends ModalWindow{
         form.add(channel);
 
         MultiValueDropDownPanel exceptChannel = new MultiValueDropDownPanel<String>(ID_EXCEPT_CHANNEL,
-                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING +  ".exceptChannel"), true, true){
+                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING +  ".exceptChannel"), true){
 
             @Override
             protected String createNewEmptyItem() {
@@ -573,6 +573,12 @@ public class MappingEditorDialog extends ModalWindow{
     }
 
     private void cancelPerformed(AjaxRequestTarget target){
+        if(inputModel != null && model.getObject() != null){
+            model.getObject().cancelChanges();
+        }
+
+        updateComponents(target);
+        target.add(getPageBase().getFeedbackPanel());
         close(target);
     }
 
@@ -595,7 +601,8 @@ public class MappingEditorDialog extends ModalWindow{
         close(target);
     }
 
-    public void updateComponents(AjaxRequestTarget target){
-        //Override this if update of component(s) holding this modal window is needed
-    }
+    /**
+     *  Override this if update of component(s) holding this modal window is needed
+     * */
+    public void updateComponents(AjaxRequestTarget target){}
 }

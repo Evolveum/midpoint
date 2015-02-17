@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -25,14 +26,15 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  *  @author shood
+ *
+ *  TODO - this component should probably be renamed to ItemPathType editor
  * */
-public class QNameEditorPanel extends SimplePanel<QName>{
+public class QNameEditorPanel extends SimplePanel<ItemPathType>{
 
     private static final String ID_LOCAL_PART = "localPart";
     private static final String ID_NAMESPACE = "namespace";
@@ -41,12 +43,14 @@ public class QNameEditorPanel extends SimplePanel<QName>{
     private static final String ID_T_LOCAL_PART = "localPartTooltip";
     private static final String ID_T_NAMESPACE = "namespaceTooltip";
 
-    public QNameEditorPanel(String id, IModel<QName> model){
+    private String namespace;
+
+    public QNameEditorPanel(String id, IModel<ItemPathType> model){
         this(id, model, "QNameEditor.label.localPart", "QNameEditor.tooltip.localPart",
                 "QNameEditor.label.namespace", "QNameEditor.tooltip.namespace");
     }
 
-    public QNameEditorPanel(String id, IModel<QName> model, String localPartLabelKey, String localPartTooltipKey,
+    public QNameEditorPanel(String id, IModel<ItemPathType> model, String localPartLabelKey, String localPartTooltipKey,
                             String namespaceLabelKey, String namespaceTooltipKey){
         super(id, model);
 
@@ -54,12 +58,12 @@ public class QNameEditorPanel extends SimplePanel<QName>{
     }
 
     @Override
-    public IModel<QName> getModel() {
-        IModel<QName> model = super.getModel();
-        QName modelObject = model.getObject();
+    public IModel<ItemPathType> getModel() {
+        IModel<ItemPathType> model = super.getModel();
+        ItemPathType modelObject = model.getObject();
 
         if(modelObject == null){
-            model.setObject(new QName(""));
+            model.setObject(new ItemPathType());
         }
 
         return model;
@@ -78,13 +82,13 @@ public class QNameEditorPanel extends SimplePanel<QName>{
         namespaceLabel.setOutputMarkupPlaceholderTag(true);
         add(namespaceLabel);
 
-        TextField localPart = new TextField<>(ID_LOCAL_PART, new PropertyModel<String>(getModel(), "localPart"));
+        TextField localPart = new TextField<>(ID_LOCAL_PART, new PropertyModel<String>(getModel(), "itemPath"));
         localPart.setOutputMarkupId(true);
         localPart.setOutputMarkupPlaceholderTag(true);
         localPart.setRequired(isLocalPartRequired());
         add(localPart);
 
-        DropDownChoice namespace = new DropDownChoice<>(ID_NAMESPACE, new PropertyModel<String>(getModel(), "namespaceURI"),
+        DropDownChoice namespace = new DropDownChoice<>(ID_NAMESPACE, new PropertyModel<String>(this, "namespace"),
                 prepareNamespaceList());
         namespace.setOutputMarkupId(true);
         namespace.setOutputMarkupPlaceholderTag(true);

@@ -16,12 +16,13 @@
 package com.evolveum.midpoint.prism.xnode;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
@@ -33,11 +34,17 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.apache.commons.lang.Validate;
 
 public class PrimitiveXNode<T> extends XNode implements Serializable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrimitiveXNode.class);
-	
+
+    /*
+     * Invariants:
+     *   - At most one of value-valueParser may be null.
+     *   - If value is non-null, super.typeName must be non-null.
+     */
 	private T value;
 	private ValueParser<T> valueParser;
 	
@@ -58,6 +65,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 	}
 
 	public void parseValue(QName typeName) throws SchemaException {
+        Validate.notNull(typeName, "Cannot parse primitive XNode without knowing its type");
 		if (valueParser != null) {
 			value = valueParser.parse(typeName);
 			// Necessary. It marks that the value is parsed. It also frees some memory.
@@ -81,11 +89,24 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 	}
 
 	public void setValueParser(ValueParser<T> valueParser) {
+        Validate.notNull(valueParser, "Value parser cannot be null");
 		this.valueParser = valueParser;
+        this.value = null;
 	}
 
-	public void setValue(T value) {
+	public void setValue(T value, QName typeQName) {
+        if (value != null) {
+            if (typeQName == null) {
+                // last desperate attempt to determine type name from the value type
+                typeQName = XsdTypeMapper.getJavaToXsdMapping(value.getClass());
+                if (typeQName == null) {
+                    throw new IllegalStateException("Cannot determine type QName for a value of '" + value + "'");            // todo show only class? (security/size reasons)
+                }
+            }
+        }
+        this.setTypeQName(typeQName);
 		this.value = value;
+        this.valueParser = null;
 	}
 	
 	public boolean isParsed() {
@@ -121,6 +142,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
      * value based on wrong type name.
      */
     public T getParsedValueWithoutRecording(QName typeName) throws SchemaException {
+        Validate.notNull(typeName, "typeName");
         if (isParsed()) {
             return value;
         } else {
@@ -237,8 +259,47 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 			return valueParser.getStringValue();
 		}
 	}
-	
-	@Override
+
+    /**
+     * This method is used with conjunction with getStringValue, typically when serializing unparsed values.
+     * Because the string value can represent QName or ItemPath, we have to provide relevant namespace declarations.
+     *
+     * Because we cannot know for sure, we are allowed to return namespace declarations that are not actually used.
+     * We should minimize number of such declarations, however.
+     *
+     * Current implementation simply grabs all potential namespace declarations and searches
+     * the xnode's string value for any 'prefix:' substrings. I'm afraid it is all we can do for now.
+     *
+     * THIS METHOD SHOULD BE CALLED ONLY ON EITHER UNPARSED OR EMPTY NODES.
+     *
+     * @return
+     */
+    public Map<String, String> getRelevantNamespaceDeclarations() {
+        Map<String,String> retval = new HashMap<>();
+        if (isEmpty()) {
+            return retval;
+        }
+        if (valueParser == null) {
+            throw new IllegalStateException("getRelevantNamespaceDeclarations called on parsed primitive XNode: " + this);
+        }
+        Map<String,String> candidateNamespaces = valueParser.getPotentiallyRelevantNamespaces();
+        if (candidateNamespaces == null) {
+            return retval;
+        }
+        String stringValue = getStringValue();
+        if (stringValue == null) {
+            return retval;
+        }
+        for (Map.Entry<String,String> candidateNamespace : candidateNamespaces.entrySet()) {
+            String prefix = candidateNamespace.getKey();
+            if (stringValue.contains(prefix+":")) {
+                retval.put(candidateNamespace.getKey(), candidateNamespace.getValue());
+            }
+        }
+        return retval;
+    }
+
+    @Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof PrimitiveXNode)) {
 			return false;
@@ -248,13 +309,18 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 		if (other.isParsed() && isParsed()){
 			return value.equals(other.value);
 		} else if (!other.isParsed() && !isParsed()){
+            // TODO consider problem with namespaces (if string value is QName/ItemPath its meaning can depend on namespace declarations that are placed outside the element)
 			String thisStringVal = this.getStringValue();
 			String otherStringVal = other.getStringValue();
 			return thisStringVal.equals(otherStringVal);
 		} else if (other.isParsed() && !isParsed()){
-			return other.value.equals(this.getStringValue());
+            String thisStringValue = this.getStringValue();
+            String otherStringValue = String.valueOf(other.value);
+			return otherStringValue.equals(thisStringValue);
 		} else if (!other.isParsed() && isParsed()){
-			return value.equals(other.getStringValue());
+            String thisStringValue = String.valueOf(value);;
+            String otherStringValue = other.getStringValue();
+			return thisStringValue.equals(otherStringValue);
 		}
 		
 		return false;
@@ -272,6 +338,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
         if (isParsed()) {
             objectToHash = value;
         } else {
+            // TODO consider problem with namespaces (if string value is QName/ItemPath its meaning can depend on namespace declarations that are placed outside the element)
             objectToHash = getStringValue();
         }
         return objectToHash != null ? objectToHash.hashCode() : 0;

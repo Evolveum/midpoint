@@ -298,6 +298,7 @@ public class SchemaProcessor implements Processor {
         body = setType.body();
         JInvocation invocation = body.invoke(JExpr.invoke(getReference), "setTargetType");
         invocation.arg(setType.listParams()[0]);
+        invocation.arg(JExpr.lit(true));
     }
 
     private void updateObjectReferenceRelation(JDefinedClass definedClass, JMethod getReference) {

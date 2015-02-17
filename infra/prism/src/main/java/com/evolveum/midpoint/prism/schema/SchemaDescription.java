@@ -54,6 +54,7 @@ public class SchemaDescription implements DebugDumpable {
 	private Node node;
 	private boolean isPrismSchema = false;
 	private boolean isDefault = false;
+    private boolean isDeclaredByDefault = false;
 	private PrismSchema schema;
 	private Package compileTimeClassesPackage;
 	private Map<QName, Class<?>> xsdTypeTocompileTimeClassMap;
@@ -114,7 +115,15 @@ public class SchemaDescription implements DebugDumpable {
 		this.isDefault = isDefault;
 	}
 
-	public PrismSchema getSchema() {
+    public boolean isDeclaredByDefault() {
+        return isDeclaredByDefault;
+    }
+
+    public void setDeclaredByDefault(boolean isDeclaredByDefault) {
+        this.isDeclaredByDefault = isDeclaredByDefault;
+    }
+
+    public PrismSchema getSchema() {
 		return schema;
 	}
 

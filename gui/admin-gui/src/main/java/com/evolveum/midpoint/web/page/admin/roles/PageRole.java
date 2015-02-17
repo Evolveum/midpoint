@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.roles;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -476,12 +475,19 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
             }
 
             ObjectDelta extensionDelta = saveExtension(result);
+            ObjectDelta extDelta = null;
+
+            if(extensionDelta != null){
+                if(isEditing()){
+                    extDelta = extensionDelta;
+                } else {
+                    extDelta = delta.getObjectToAdd().diff(extensionDelta.getObjectToAdd());
+                }
+            }
 
             if (delta != null) {
-                if(extensionDelta != null){
-                    for(ItemDelta itemDelta: (List<ItemDelta>)extensionDelta.getModifications()){
-                        delta.addModification(itemDelta);
-                    }
+                if(extDelta != null){
+                    delta = ObjectDelta.summarize(delta, extDelta);
                 }
 
                 ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.TwoStateBooleanPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
@@ -42,6 +44,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePa
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -55,7 +58,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -93,6 +95,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private static final String ID_ACTIVATION_BLOCK = "activationBlock";
     private static final String ID_BODY = "body";
     private static final String ID_DESCRIPTION = "description";
+    private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_RELATION = "relation";
     private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
     private static final String ID_VALID_FROM = "validFrom";
@@ -317,9 +320,30 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 new PropertyModel<String>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
         body.add(description);
 
-        TextField relation = new TextField<>(ID_RELATION, new PropertyModel<String>(getModel(), AssignmentEditorDto.F_RELATION));
-        relation.setEnabled(false);
-        body.add(relation);
+        WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
+        relationContainer.setOutputMarkupId(true);
+        relationContainer.setOutputMarkupPlaceholderTag(true);
+        relationContainer.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                AssignmentEditorDto dto = getModel().getObject();
+                if(dto != null){
+                    if(AssignmentEditorDtoType.ORG_UNIT.equals(dto.getType())){
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        });
+        body.add(relationContainer);
+
+        TwoStateBooleanPanel relation = new TwoStateBooleanPanel(ID_RELATION, new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_IS_ORG_UNIT_MANAGER),
+                "AssignmentEditorPanel.member", "AssignmentEditorPanel.manager", null);
+        relation.setOutputMarkupId(true);
+        relation.setOutputMarkupPlaceholderTag(true);
+        relationContainer.add(relation);
 
         WebMarkupContainer tenantRefContainer = new WebMarkupContainer(ID_CONTAINER_TENANT_REF);
         ChooseTypePanel tenantRef = new ChooseTypePanel(ID_TENANT_CHOOSER,
@@ -629,7 +653,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         }
 
         ResourceAttributeDefinitionType construction = new ResourceAttributeDefinitionType();
-        construction.setRef(attrDef.getName());
+        construction.setRef(new ItemPathType(new ItemPath(attrDef.getName())));
 
         return construction;
     }

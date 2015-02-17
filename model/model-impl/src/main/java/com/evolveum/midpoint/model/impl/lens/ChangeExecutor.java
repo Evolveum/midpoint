@@ -420,15 +420,18 @@ public class ChangeExecutor {
         	
         	if (!focusContext.isDelete()) {
 	        	PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
-	        	PrismReference linkRef = objectCurrent.findReference(FocusType.F_LINK_REF);
-	        	if (linkRef != null) {
-	        		for (PrismReferenceValue linkRefVal: linkRef.getValues()) {
-	        			if (linkRefVal.getOid().equals(projOid)) {
-	                        // Linked, need to unlink
-	                        unlinkShadow(focusContext.getOid(), linkRefVal, focusObjectContext, task, result);
-	                    }
-	        		}
-	        	}
+                // it is possible that objectCurrent is null (and objectNew is non-null), in case of User ADD operation (MID-2176)
+                if (objectCurrent != null) {
+                    PrismReference linkRef = objectCurrent.findReference(FocusType.F_LINK_REF);
+                    if (linkRef != null) {
+                        for (PrismReferenceValue linkRefVal : linkRef.getValues()) {
+                            if (linkRefVal.getOid().equals(projOid)) {
+                                // Linked, need to unlink
+                                unlinkShadow(focusContext.getOid(), linkRefVal, focusObjectContext, task, result);
+                            }
+                        }
+                    }
+                }
         	}
             
     		if (projCtx.isDelete() || projCtx.isThombstone()) {
@@ -1045,7 +1048,8 @@ public class ChangeExecutor {
 			metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
 		}
         if (workflowManager != null) {
-            metaData.getCreateApproverRef().addAll(workflowManager.getApprovedBy(task, result));
+            // FIXME temporarily disabled because of MID-2178
+//            metaData.getCreateApproverRef().addAll(workflowManager.getApprovedBy(task, result));
         }
 
 		objectTypeToAdd.setMetadata(metaData);
@@ -1085,37 +1089,37 @@ public class ChangeExecutor {
                 approverReferenceValues.add(new PrismReferenceValue(approverRef.getOid()));
             }
         }
-
-        if (!approverReferenceValues.isEmpty()) {
-            ReferenceDelta refDelta = ReferenceDelta.createModificationReplace((new ItemPath(ObjectType.F_METADATA,
-                        MetadataType.F_MODIFY_APPROVER_REF)), def, approverReferenceValues);
-            ((Collection) change.getModifications()).add(refDelta);
-        } else {
-
-            // a bit of hack - we want to replace all existing values with empty set of values;
-            // however, it is not possible to do this using REPLACE, so we have to explicitly remove all existing values
-
-            if (objectContext != null && objectContext.getObjectOld() != null) {
-                // a null value of objectOld means that we execute MODIFY delta that is a part of primary ADD operation (in a wave greater than 0)
-                // i.e. there are NO modifyApprovers set (theoretically they could be set in previous waves, but because in these waves the data
-                // are taken from the same source as in this step - so there are none modify approvers).
-
-                if (objectContext.getObjectOld().asObjectable().getMetadata() != null) {
-                    List<ObjectReferenceType> existingModifyApproverRefs = objectContext.getObjectOld().asObjectable().getMetadata().getModifyApproverRef();
-                    LOGGER.trace("Original values of MODIFY_APPROVER_REF: {}", existingModifyApproverRefs);
-
-                    if (!existingModifyApproverRefs.isEmpty()) {
-                        List<PrismReferenceValue> valuesToDelete = new ArrayList<PrismReferenceValue>();
-                        for (ObjectReferenceType approverRef : objectContext.getObjectOld().asObjectable().getMetadata().getModifyApproverRef()) {
-                            valuesToDelete.add(approverRef.asReferenceValue().clone());
-                        }
-                        ReferenceDelta refDelta = ReferenceDelta.createModificationDelete((new ItemPath(ObjectType.F_METADATA,
-                                MetadataType.F_MODIFY_APPROVER_REF)), def, valuesToDelete);
-                        ((Collection) change.getModifications()).add(refDelta);
-                    }
-                }
-            }
-        }
+        // FIXME temporarily disabled because of MID-2178
+//        if (!approverReferenceValues.isEmpty()) {
+//            ReferenceDelta refDelta = ReferenceDelta.createModificationReplace((new ItemPath(ObjectType.F_METADATA,
+//                        MetadataType.F_MODIFY_APPROVER_REF)), def, approverReferenceValues);
+//            ((Collection) change.getModifications()).add(refDelta);
+//        } else {
+//
+//            // a bit of hack - we want to replace all existing values with empty set of values;
+//            // however, it is not possible to do this using REPLACE, so we have to explicitly remove all existing values
+//
+//            if (objectContext != null && objectContext.getObjectOld() != null) {
+//                // a null value of objectOld means that we execute MODIFY delta that is a part of primary ADD operation (in a wave greater than 0)
+//                // i.e. there are NO modifyApprovers set (theoretically they could be set in previous waves, but because in these waves the data
+//                // are taken from the same source as in this step - so there are none modify approvers).
+//
+//                if (objectContext.getObjectOld().asObjectable().getMetadata() != null) {
+//                    List<ObjectReferenceType> existingModifyApproverRefs = objectContext.getObjectOld().asObjectable().getMetadata().getModifyApproverRef();
+//                    LOGGER.trace("Original values of MODIFY_APPROVER_REF: {}", existingModifyApproverRefs);
+//
+//                    if (!existingModifyApproverRefs.isEmpty()) {
+//                        List<PrismReferenceValue> valuesToDelete = new ArrayList<PrismReferenceValue>();
+//                        for (ObjectReferenceType approverRef : objectContext.getObjectOld().asObjectable().getMetadata().getModifyApproverRef()) {
+//                            valuesToDelete.add(approverRef.asReferenceValue().clone());
+//                        }
+//                        ReferenceDelta refDelta = ReferenceDelta.createModificationDelete((new ItemPath(ObjectType.F_METADATA,
+//                                MetadataType.F_MODIFY_APPROVER_REF)), def, valuesToDelete);
+//                        ((Collection) change.getModifications()).add(refDelta);
+//                    }
+//                }
+//            }
+//        }
 
     }
 
@@ -1284,8 +1288,7 @@ public class ChangeExecutor {
 //				Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
 //				value.setTextContent(val.getValue());
 				PrimitiveXNode<String> prim = new PrimitiveXNode<>();
-				prim.setValue(val.getValue());
-				prim.setTypeQName(DOMUtil.XSD_STRING);
+				prim.setValue(val.getValue(), DOMUtil.XSD_STRING);
 				JAXBElement<RawType> el = new JAXBElement(SchemaConstants.C_VALUE, RawType.class, new RawType(prim, prismContext));
 				argument.getExpressionEvaluator().add(el);
 			}

@@ -536,15 +536,16 @@ public class ActivationProcessor {
             LOGGER.trace("No outbound definition in '{}' definition in activation in projection {}, skipping", desc, accCtxDesc);
             return;
         }
-        
-        ObjectDelta<ShadowType> projectionDelta = projCtx.getDelta();
-        PropertyDelta<T> shadowPropertyDelta = LensUtil.findAPrioriDelta(context, projCtx, projectionPropertyPath);
+
+		// commented out unused code
+//        ObjectDelta<ShadowType> projectionDelta = projCtx.getDelta();
+//        PropertyDelta<T> shadowPropertyDelta = LensUtil.findAPrioriDelta(context, projCtx, projectionPropertyPath);
         
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
-        PrismProperty<T> shadowPropertyNew = null;
-        if (shadowNew != null) {
-        	shadowPropertyNew = shadowNew.findProperty(projectionPropertyPath);
-        }
+//        PrismProperty<T> shadowPropertyNew = null;
+//        if (shadowNew != null) {
+//        	shadowPropertyNew = shadowNew.findProperty(projectionPropertyPath);
+//        }
    		        
         MappingInitializer<PrismPropertyValue<T>> initializer = new MappingInitializer<PrismPropertyValue<T>>() {
 			@Override

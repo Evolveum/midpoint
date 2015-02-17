@@ -373,7 +373,7 @@ public class PrismBeanConverter {
 			
 			if (setter != null) {
 				try {
-					setter.invoke(bean, wrapInJaxb(propValue, wrapInJaxbElement, objectFactory, elementMethod, propName, beanClass));
+					setter.invoke(bean, prepareValueToBeStored(propValue, wrapInJaxbElement, objectFactory, elementMethod, propName, beanClass));
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					throw new SystemException("Cannot invoke setter "+setter+" on bean of type "+beanClass+": "+e.getMessage(), e);
 				}
@@ -391,10 +391,10 @@ public class PrismBeanConverter {
 					throw new SystemException("Getter "+getter+" on bean of type "+beanClass+" returned "+getterReturn+" instead of collection");
 				}
 				if (propValue != null) {
-					col.add(wrapInJaxb(propValue, wrapInJaxbElement, objectFactory, elementMethod, propName, beanClass));
+					col.add(prepareValueToBeStored(propValue, wrapInJaxbElement, objectFactory, elementMethod, propName, beanClass));
 				} else if (propValues != null) {
 					for (Object propVal: propValues) {
-						col.add(wrapInJaxb(propVal, wrapInJaxbElement, objectFactory, elementMethod, propName, beanClass));
+						col.add(prepareValueToBeStored(propVal, wrapInJaxbElement, objectFactory, elementMethod, propName, beanClass));
 					}
 				} else {
 					throw new IllegalStateException("Strange. Multival property "+propName+" in "+beanClass+" produced null values list, parsed from "+xnode);
@@ -455,8 +455,14 @@ public class PrismBeanConverter {
 		}
 		return actualTypeArguments[0];
 	}
-	
-	private <T> Object wrapInJaxb(Object propVal, boolean wrapInJaxbElement, Object objectFactory, Method factoryMehtod, String propName, Class beanClass) {
+
+    // Prepares value to be stored into the bean - e.g. converts PolyString->PolyStringType, wraps a value to JAXB if specified, ...
+	private <T> Object prepareValueToBeStored(Object propVal, boolean wrapInJaxbElement, Object objectFactory, Method factoryMehtod, String propName, Class beanClass) {
+
+        if (propVal instanceof PolyString) {
+            propVal = new PolyStringType((PolyString) propVal);
+        }
+
 		if (wrapInJaxbElement) {
 			if (factoryMehtod == null) {
 				throw new IllegalArgumentException("Param type is JAXB element but no factory method found for it, property "+propName+" in "+beanClass);
@@ -464,7 +470,7 @@ public class PrismBeanConverter {
 			try {
 				return factoryMehtod.invoke(objectFactory, propVal);
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new SystemException("Unable to ivokeke factory method "+factoryMehtod+" on "+objectFactory.getClass()+" for property "+propName+" in "+beanClass);
+				throw new SystemException("Unable to invoke factory method "+factoryMehtod+" on "+objectFactory.getClass()+" for property "+propName+" in "+beanClass);
 			}
 		} else {
 			return propVal;
@@ -531,17 +537,22 @@ public class PrismBeanConverter {
 			RawType rawType = new RawType(xprim, prismContext);
 			return (T) rawType;
 		}
+
+        if (PolyStringType.class.isAssignableFrom(classType)) {
+            String value = (String) xprim.getParsedValue(DOMUtil.XSD_STRING);
+            PolyString polyString = new PolyString(value);
+            if (value != null) {
+                if (prismContext != null) {         // actually this should be always so [med]
+                    // TODO should we always use default normalizer?
+                    polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
+                }
+            }
+            return (T) new PolyStringType(polyString);
+        }
 		
 		if (ItemPathType.class.isAssignableFrom(classType)){
-			QName typeQName = xprim.getTypeQName();
-			if (typeQName == null) {
-				typeQName = DOMUtil.XSD_STRING;
-			}
 			Object parsedValue = xprim.getParsedValue(ItemPathType.COMPLEX_TYPE);
 			T primValue = postConvertUnmarshall(parsedValue);
-//			ItemPath itemPath = new RawType();
-//			rawType.setType(typeQName);
-//			rawType.setValue(parsedValue);
 			return (T) primValue;
 		}
 		
@@ -773,8 +784,7 @@ public class PrismBeanConverter {
 
     private XNode marshalXmlAsStringType(XmlAsStringType bean) {
         PrimitiveXNode xprim = new PrimitiveXNode<>();
-        xprim.setValue(bean.getContentAsString());
-        xprim.setTypeQName(DOMUtil.XSD_STRING);
+        xprim.setValue(bean.getContentAsString(), DOMUtil.XSD_STRING);
         return xprim;
     }
 
@@ -901,8 +911,7 @@ public class PrismBeanConverter {
 	
 	private <T> PrimitiveXNode<T> createPrimitiveXNode(T value, QName fieldTypeName, boolean isAttribute){
 		PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
-		xprim.setValue(value);
-		xprim.setTypeQName(fieldTypeName);
+		xprim.setValue(value, fieldTypeName);
 		xprim.setAttribute(isAttribute);
 		return xprim;
 	}
@@ -919,8 +928,7 @@ public class PrismBeanConverter {
         PrimitiveXNode<ItemPath> xprim = new PrimitiveXNode<ItemPath>();
         if (itemPath != null){
             ItemPath path = itemPath.getItemPath();
-            xprim.setValue(path);
-            xprim.setTypeQName(ItemPathType.COMPLEX_TYPE);
+            xprim.setValue(path, ItemPathType.COMPLEX_TYPE);
         }
         return xprim;
     }

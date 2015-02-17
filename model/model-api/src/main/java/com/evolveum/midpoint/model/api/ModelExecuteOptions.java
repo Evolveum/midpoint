@@ -361,8 +361,8 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 				+ ",reconcile=" + reconcile
 				+ ",executeImmediatelyAfterApproval="
 				+ executeImmediatelyAfterApproval + ",overwrite=" + overwrite
-				+ "limitPropagation="+limitPropagation
-				+ "reevaluateSearchFilters="+reevaluateSearchFilters+"]";
+				+ ",limitPropagation="+limitPropagation
+				+ ",reevaluateSearchFilters="+reevaluateSearchFilters+"]";
     }
 
     public ModelExecuteOptions clone() {

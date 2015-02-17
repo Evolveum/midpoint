@@ -18,11 +18,13 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.StringUtils;
@@ -129,8 +131,8 @@ public class ACAttributeDto implements Serializable {
         }
 
         ResourceAttributeDefinitionType attrConstruction = new ResourceAttributeDefinitionType();
-        attrConstruction.setRef(definition.getName());
-        MappingType outbound = new MappingType();
+        attrConstruction.setRef(new ItemPathType(new ItemPath(definition.getName())));
+        MappingType outbound = construction != null && construction.getOutbound() != null ? construction.getOutbound().clone() : new MappingType();
         attrConstruction.setOutbound(outbound);
 
         ExpressionType expression = new ExpressionType();

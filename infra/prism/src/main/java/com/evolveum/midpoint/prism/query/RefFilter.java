@@ -23,7 +23,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -36,8 +35,6 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -79,7 +76,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 			createNullRefFilter(path, referenceDefinition);
 		}
 		
-		List<PrismReferenceValue> refValues = new ArrayList<PrismReferenceValue>(oids.length);
+		List<PrismReferenceValue> refValues = new ArrayList<>(oids.length);
 		for (String oid : oids){
 			refValues.add(new PrismReferenceValue(oid));
 		}

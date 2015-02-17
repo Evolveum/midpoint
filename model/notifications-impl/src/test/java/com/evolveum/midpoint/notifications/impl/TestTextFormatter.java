@@ -222,12 +222,12 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
 
         // THEN
 
-        assertTrue("account name is not shown", jackFormattedHideNone.contains("name: jack"));
+        assertTrue("account name is not shown", jackFormattedHideNone.contains("Name: jack"));
         assertTrue("account password is not shown", jackFormattedHideNone.contains("(protected string)"));
         assertTrue("administrative status is not shown", jackFormattedHideNone.contains("Administrative Status: ENABLED"));
         assertTrue("effective status is not shown", jackFormattedHideNone.contains("Effective Status: ENABLED"));
 
-        assertTrue("account name is not shown", jackFormattedHideAux.contains("name: jack"));
+        assertTrue("account name is not shown", jackFormattedHideAux.contains("Name: jack"));
         assertTrue("account password is not shown", jackFormattedHideAux.contains("(protected string)"));
         assertTrue("administrative status is not shown", jackFormattedHideAux.contains("Administrative Status: ENABLED"));
         assertTrue("effective status is shown although it should be hidden", !jackFormattedHideAux.contains("Effective Status: ENABLED"));

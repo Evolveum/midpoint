@@ -84,6 +84,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -349,14 +350,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 	
-	private <O extends ObjectType> boolean isApplicable(List<ObjectSpecificationType> objectSpecTypes, PrismObject<O> object, 
+	private <O extends ObjectType> boolean isApplicable(List<OwnedObjectSpecificationType> objectSpecTypes, PrismObject<O> object, 
 			MidPointPrincipal midPointPrincipal, OwnerResolver ownerResolver, String desc) throws SchemaException {
 		if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
 			if (object == null) {
 				LOGGER.trace("  Authorization not applicable for null "+desc);
 				return false;
 			}
-			for (ObjectSpecificationType autzObject: objectSpecTypes) {
+			for (OwnedObjectSpecificationType autzObject: objectSpecTypes) {
 				if (isApplicable(autzObject, object, midPointPrincipal, ownerResolver, desc)) {
 					return true;
 				}
@@ -376,7 +377,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		SearchFilterType specFilterType = objectSpecType.getFilter();
 		ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
-		QName specTypeQName = objectSpecType.getType();
+		QName specTypeQName = objectSpecType.getType();     // now it does not matter if it's unqualified
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
 		
 		// Type
@@ -451,34 +452,36 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}			
 		}
 		
-		// Owner
-		ObjectSpecificationType ownerSpec = objectSpecType.getOwner();
-		if (ownerSpec != null) {
-			if (!object.canRepresent(ShadowType.class)) {
-				LOGGER.trace("  owner object spec not applicable for {}, object OID {} because it is not a shadow",
-						new Object[]{desc, object.getOid()});
-				return false;
-			}
-			if (ownerResolver == null) {
-				ownerResolver = userProfileService;
-				if (ownerResolver == null) {
-					LOGGER.trace("  owner object spec not applicable for {}, object OID {} because there is no owner resolver",
+		if (objectSpecType instanceof OwnedObjectSpecificationType) {
+			// Owner
+			ObjectSpecificationType ownerSpec = ((OwnedObjectSpecificationType)objectSpecType).getOwner();
+			if (ownerSpec != null) {
+				if (!object.canRepresent(ShadowType.class)) {
+					LOGGER.trace("  owner object spec not applicable for {}, object OID {} because it is not a shadow",
 							new Object[]{desc, object.getOid()});
 					return false;
 				}
+				if (ownerResolver == null) {
+					ownerResolver = userProfileService;
+					if (ownerResolver == null) {
+						LOGGER.trace("  owner object spec not applicable for {}, object OID {} because there is no owner resolver",
+								new Object[]{desc, object.getOid()});
+						return false;
+					}
+				}
+				PrismObject<? extends FocusType> owner = ownerResolver.resolveOwner((PrismObject<ShadowType>)object);
+				if (owner == null) {
+					LOGGER.trace("  owner object spec not applicable for {}, object OID {} because it has no owner",
+							new Object[]{desc, object.getOid()});
+					return false;
+				}
+				boolean ownerApplicable = isApplicable(ownerSpec, owner, principal, ownerResolver, "owner of "+desc);
+				if (!ownerApplicable) {
+					LOGGER.trace("  owner object spec not applicable for {}, object OID {} because owner does not match (owner={})",
+							new Object[]{desc, object.getOid(), owner});
+					return false;
+				}			
 			}
-			PrismObject<? extends FocusType> owner = ownerResolver.resolveOwner((PrismObject<ShadowType>)object);
-			if (owner == null) {
-				LOGGER.trace("  owner object spec not applicable for {}, object OID {} because it has no owner",
-						new Object[]{desc, object.getOid()});
-				return false;
-			}
-			boolean ownerApplicable = isApplicable(ownerSpec, owner, principal, ownerResolver, "owner of "+desc);
-			if (!ownerApplicable) {
-				LOGGER.trace("  owner object spec not applicable for {}, object OID {} because owner does not match (owner={})",
-						new Object[]{desc, object.getOid(), owner});
-				return false;
-			}			
 		}
 
 		LOGGER.trace("  Authorization applicable for {} (filter)", desc);
@@ -816,11 +819,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	
 					// object
 					ObjectFilter autzObjSecurityFilter = null;
-					List<ObjectSpecificationType> objectSpecTypes = autz.getObject();
+					List<OwnedObjectSpecificationType> objectSpecTypes = autz.getObject();
 					boolean applicable = true;
 					if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
 						applicable = false;
-						for (ObjectSpecificationType objectSpecType: objectSpecTypes) {
+						for (OwnedObjectSpecificationType objectSpecType: objectSpecTypes) {
 							ObjectFilter objSpecSecurityFilter = null;
 							TypeFilter objSpecTypeFilter = null;
 							SearchFilterType specFilterType = objectSpecType.getFilter();
@@ -830,6 +833,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							
 							// Type
 							if (specTypeQName != null) {
+                                specTypeQName = prismContext.getSchemaRegistry().qualifyTypeName(specTypeQName);
 								PrismObjectDefinition<?> specObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(specTypeQName);
 								Class<?> specObjectClass = specObjectDef.getCompileTimeClass();
 								if (!objectType.isAssignableFrom(specObjectClass)) {

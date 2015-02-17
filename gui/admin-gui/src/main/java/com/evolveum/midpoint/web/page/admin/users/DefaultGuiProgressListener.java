@@ -43,7 +43,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.progress.ProgressDto;
 import com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;

@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<object xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="19a27a9d-c7f0-4e41-bcbf-5fa9fc229b10"
+        version="5"
+        xsi:type="ShadowType">
+    <name>uid=u1,ou=people,dc=example,dc=com</name>
+    <metadata>
+        <createTimestamp>2015-01-27T11:02:07.187+01:00</createTimestamp>
+        <creatorRef oid="00000000-0000-0000-0000-000000000002" type="UserType"><!-- administrator --></creatorRef>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+    </metadata>
+    <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                 oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+                 type="tns:ResourceType"><!-- Localhost OpenDJ (no extension schema) --></resourceRef>
+    <objectChange xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        <t:changeType>modify</t:changeType>
+        <t:objectType>ShadowType</t:objectType>
+        <t:oid>19a27a9d-c7f0-4e41-bcbf-5fa9fc229b10</t:oid>
+        <t:itemDelta>
+            <t:modificationType>add</t:modificationType>
+            <t:path xmlns:gen280="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:attributes/gen280:cn</t:path>
+            <t:value xsi:type="xsd:string">G1 F1a</t:value>
+        </t:itemDelta>
+        <t:itemDelta>
+            <t:modificationType>delete</t:modificationType>
+            <t:path xmlns:gen280="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:attributes/gen280:cn</t:path>
+            <t:value xsi:type="xsd:string">G1 F1</t:value>
+        </t:itemDelta>
+        <t:itemDelta>
+            <t:modificationType>replace</t:modificationType>
+            <t:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:metadata/c:modifyChannel</t:path>
+            <t:value xsi:type="xsd:string">http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</t:value>
+        </t:itemDelta>
+        <t:itemDelta>
+            <t:modificationType>replace</t:modificationType>
+            <t:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:metadata/c:modifyTimestamp</t:path>
+            <t:value xsi:type="xsd:dateTime">2015-01-27T11:05:57.663+01:00</t:value>
+        </t:itemDelta>
+        <t:itemDelta>
+            <t:modificationType>replace</t:modificationType>
+            <t:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:metadata/c:modifierRef</t:path>
+            <t:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-000000000002"/>
+        </t:itemDelta>
+    </objectChange>
+    <synchronizationSituation>linked</synchronizationSituation>
+    <synchronizationTimestamp>2015-01-27T11:05:58.720+01:00</synchronizationTimestamp>
+    <fullSynchronizationTimestamp>2015-01-27T11:02:08.436+01:00</fullSynchronizationTimestamp>
+    <synchronizationSituationDescription>
+        <situation>linked</situation>
+        <timestamp>2015-01-27T11:05:58.720+01:00</timestamp>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
+        <full>false</full>
+    </synchronizationSituationDescription>
+    <objectClass xmlns:qn948="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn948:AccountObjectClass</objectClass>
+    <kind>account</kind>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <attributes xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
+        <icfs:name>uid=u1,ou=people,dc=example,dc=com</icfs:name>
+        <icfs:uid>1ff0ee34-cec8-4261-9a13-83318932d139</icfs:uid>
+    </attributes>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+        <enableTimestamp>2015-01-27T11:02:06.196+01:00</enableTimestamp>
+    </activation>
+</object>

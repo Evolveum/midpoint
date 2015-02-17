@@ -2902,7 +2902,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, getWillRepoIcfName());
+		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -2937,7 +2937,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// Just make sure nothing has changed
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, getWillRepoIcfName());
+		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 		
 		assertSteadyResource();
 	}
@@ -2981,7 +2981,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// Make sure that the groups is still there and will is a member
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, getWillRepoIcfName());
+		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -3029,7 +3029,7 @@ public class TestDummy extends AbstractDummyTest {
 
         // Make sure that the groups is still there and will is a member
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-        assertMember(group, getWillRepoIcfName());
+        assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 
         syncServiceMock.assertNotifySuccessOnly();
 
@@ -3077,7 +3077,7 @@ public class TestDummy extends AbstractDummyTest {
         assertNotNull("Privilege object (bargain) is gone!", priv2);
 
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, getWillRepoIcfName());
+		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 		
 		assertSteadyResource();
 	}
@@ -3136,11 +3136,11 @@ public class TestDummy extends AbstractDummyTest {
         assertNotNull("Privilege object (bargain) is gone!", priv2);
 
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, getWillRepoIcfName());
+		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 		
 		String foolsIcfUid = getIcfUid(foolsShadow);
 		groupFools = getDummyGroupAssert("fools", foolsIcfUid);
-		assertMember(group, getWillRepoIcfName());
+		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
 		
 		assertSteadyResource();
 	}
@@ -3328,7 +3328,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Privilege object is gone!", priv);
 		
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, ACCOUNT_LECHUCK_NAME);
+		assertMember(group, transformNameFromResource(ACCOUNT_LECHUCK_NAME));
 
 		ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_LECHUCK_OID, null, result)
 				.asObjectable();

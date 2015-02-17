@@ -17,11 +17,10 @@
 package com.evolveum.midpoint.web.component.form.multivalue;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import org.apache.wicket.AttributeModifier;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -29,8 +28,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.util.string.Strings;
 
 import java.io.Serializable;
 import java.util.*;
@@ -40,6 +37,8 @@ import java.util.*;
  * */
 public class MultiValueDropDownPanel<T extends Serializable> extends SimplePanel<List<T>>{
 
+    private static final String ID_PLACEHOLDER_CONTAINER = "placeholderContainer";
+    private static final String ID_PLACEHOLDER_ADD = "placeholderAdd";
     private static final String ID_REPEATER = "repeater";
     private static final String ID_INPUT = "input";
     private static final String ID_BUTTON_GROUP = "buttonGroup";
@@ -48,30 +47,49 @@ public class MultiValueDropDownPanel<T extends Serializable> extends SimplePanel
 
     private static final String CSS_DISABLED = " disabled";
 
-    public MultiValueDropDownPanel(String id, IModel<List<T>> model, boolean prepareModel, boolean nullValid){
+    public MultiValueDropDownPanel(String id, IModel<List<T>> model, boolean nullValid){
         super(id, model);
         setOutputMarkupId(true);
 
-        initLayout(prepareModel, nullValid);
+        initLayout(nullValid);
     }
 
-    private IModel<List<T>> prepareModel(boolean prepareModel){
-        if(prepareModel){
-            if(getModel().getObject() == null){
-                getModel().setObject(new ArrayList<>(Arrays.asList(createNewEmptyItem())));
-            } else if(getModel().getObject().isEmpty()){
-                getModel().getObject().add(createNewEmptyItem());
+    private void initLayout(final boolean nullValid){
+        WebMarkupContainer placeholderContainer = new WebMarkupContainer(ID_PLACEHOLDER_CONTAINER);
+        placeholderContainer.setOutputMarkupPlaceholderTag(true);
+        placeholderContainer.setOutputMarkupPlaceholderTag(true);
+        placeholderContainer.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return getModel().getObject().isEmpty();
             }
-        }
-        return getModel();
-    }
+        });
+        add(placeholderContainer);
 
-    protected T createNewEmptyItem(){
-        return null;
-    }
+        AjaxLink placeholderAdd = new AjaxLink(ID_PLACEHOLDER_ADD) {
 
-    private void initLayout(final boolean prepareModel, final boolean nullValid){
-        ListView repeater = new ListView<T>(ID_REPEATER, prepareModel(prepareModel)){
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addValuePerformed(target);
+            }
+        };
+        placeholderAdd.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                if (buttonsDisabled()) {
+                    return " " + CSS_DISABLED;
+                }
+
+                return "";
+            }
+        }));
+        placeholderAdd.setOutputMarkupId(true);
+        placeholderAdd.setOutputMarkupPlaceholderTag(true);
+        placeholderContainer.add(placeholderAdd);
+
+        ListView repeater = new ListView<T>(ID_REPEATER, getModel()){
 
             @Override
             protected void populateItem(final ListItem<T> item) {
@@ -86,6 +104,15 @@ public class MultiValueDropDownPanel<T extends Serializable> extends SimplePanel
                 initButtons(buttonGroup, item);
             }
         };
+        repeater.setOutputMarkupId(true);
+        repeater.setOutputMarkupPlaceholderTag(true);
+        repeater.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return !getModel().getObject().isEmpty();
+            }
+        });
         add(repeater);
     }
 
@@ -130,6 +157,10 @@ public class MultiValueDropDownPanel<T extends Serializable> extends SimplePanel
         buttonGroup.add(remove);
     }
 
+    protected T createNewEmptyItem(){
+        return null;
+    }
+
     protected String getPlusClassModifier(ListItem<T> item){
         if(buttonsDisabled()){
             return CSS_DISABLED;
@@ -147,12 +178,11 @@ public class MultiValueDropDownPanel<T extends Serializable> extends SimplePanel
     }
 
     protected String getMinusClassModifier(){
-        int size = getModelObject().size();
-        if (size > 1) {
-            return "";
+        if(buttonsDisabled()){
+            return CSS_DISABLED;
         }
 
-        return CSS_DISABLED;
+        return "";
     }
 
     protected void addValuePerformed(AjaxRequestTarget target){

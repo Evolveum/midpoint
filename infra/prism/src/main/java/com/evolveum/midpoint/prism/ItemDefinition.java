@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.prism;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -63,6 +66,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
     private boolean canAdd = true;
     private boolean canRead = true;
     private boolean canModify = true;
+    private PrismReferenceValue valueEnumerationRef;
 
 	// TODO: annotations
 
@@ -240,7 +244,22 @@ public abstract class ItemDefinition extends Definition implements Serializable 
         return canAdd;
     }
 
-    public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
+    /**
+     * Reference to an object that directly or indirectly represents possible values for
+     * this item. We do not define here what exactly the object has to be. It can be a lookup
+     * table, script that dynamically produces the values or anything similar. 
+     * The object must produce the values of the correct type for this item otherwise an
+     * error occurs.
+     */
+    public PrismReferenceValue getValueEnumerationRef() {
+		return valueEnumerationRef;
+	}
+
+	public void setValueEnumerationRef(PrismReferenceValue valueEnumerationRef) {
+		this.valueEnumerationRef = valueEnumerationRef;
+	}
+
+	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
         return isValidFor(elementQName, clazz, false);
     }
 
@@ -315,6 +334,25 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		clone.operational = this.operational;
 	}
 
+	/**
+	 * Make a deep clone, cloning all the sub-items and definitions.
+	 * 
+	 * @param ultraDeep if set to true then even the objects that were same instance in the original will be 
+	 *                  cloned as separate instances in the clone.
+	 * 
+	 */
+	public ItemDefinition deepClone(boolean ultraDeep) {
+		if (ultraDeep) {
+			return deepClone(null);
+		} else {
+			return deepClone(new HashMap<QName,ComplexTypeDefinition>());
+		}
+	}
+	
+	ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
+		return clone();
+	}
+	
 	@Override
 	public void revive(PrismContext prismContext) {
 		if (this.prismContext != null) {

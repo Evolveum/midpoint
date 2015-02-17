@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -231,9 +232,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired(required=true)
 	private SecurityEnforcer securityEnforcer;
 	
+	@Autowired(required=true)
+	protected MidpointFunctions libraryMidpointFunctions;
+	
 	protected DummyAuditService dummyAuditService;
 	
-	protected boolean verbose = false; 
+	protected boolean verbose = false;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 			
@@ -1221,6 +1225,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertNotAssignedRole(user, roleOid);
 	}
 
+    protected <F extends FocusType> void assertNotAssignedOrg(PrismObject<F> user, String orgOid, QName relation) {
+        MidPointAsserts.assertNotAssignedOrg(user, orgOid, relation);
+    }
+
 	protected void assertAssignedOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedOrg(user, orgOid);
@@ -1883,17 +1891,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	private boolean isError(OperationResult result, boolean checkSubresult) {
 		OperationResult subresult = getSubresult(result, checkSubresult);
-		return subresult.isError();
+		return subresult != null ? subresult.isError() : false;
 	}
 	
 	private boolean isUknown(OperationResult result, boolean checkSubresult) {
 		OperationResult subresult = getSubresult(result, checkSubresult);
-		return subresult.isUnknown();
+		return subresult != null ? subresult.isUnknown() : false;			// TODO or return true?
 	}
 
 	private boolean isInProgress(OperationResult result, boolean checkSubresult) {
 		OperationResult subresult = getSubresult(result, checkSubresult);
-		return subresult.isInProgress();
+		return subresult != null ? subresult.isInProgress() : true;		// "true" if there are no subresults
 	}
 
 	private OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
@@ -2027,6 +2035,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		TestUtil.assertSuccess(result);
 		return object;
 	}
+
+    protected <O extends ObjectType> void addObjects(File... files) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+        for (File file : files) {
+            addObject(file);
+        }
+    }
 
 	protected <O extends ObjectType> void addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
 		PrismObject<O> object = PrismTestUtil.parseObject(file);
@@ -2305,6 +2319,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
+    protected void assertDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+    	DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
+		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
+		IntegrationTestTools.assertGroupMember(group, accountId);
+	}
+	
+	protected void assertDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+		assertDummyGroupMember(null, dummyGroupName, accountId);
+	}
+
+	protected void assertNoDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
+		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
+		IntegrationTestTools.assertNoGroupMember(group, accountId);
+	}
+	
+	protected void assertNoDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+		assertNoDummyGroupMember(null, dummyGroupName, accountId);
+	}
+    
 	protected void assertDummyAccountNoAttribute(String dummyInstanceName, String username, String attributeName) {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
@@ -2681,5 +2715,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ConfigAttribute> attrs = new ArrayList<ConfigAttribute>();
 		attrs.add(new SecurityConfig(action));
 		return attrs;
+	}
+	
+	protected <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class+".getEditObjectDefinition");
+		PrismObjectDefinition<O> editSchema = modelInteractionService.getEditObjectDefinition(object, null, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return editSchema;
 	}
 }

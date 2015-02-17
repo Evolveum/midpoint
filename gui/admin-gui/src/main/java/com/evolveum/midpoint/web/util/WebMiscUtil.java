@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -675,5 +676,22 @@ public final class WebMiscUtil {
         list.add(new QName(NS_MATCHING_RULE, "polyStringNorm", "mr"));
 
         return list;
+    }
+
+    public static boolean isObjectOrgManager(PrismObject<? extends ObjectType> object){
+        if(object == null || object.asObjectable() == null){
+            return false;
+        }
+
+        ObjectType objectType = object.asObjectable();
+        List<ObjectReferenceType> parentOrgRefs = objectType.getParentOrgRef();
+
+        for(ObjectReferenceType ref: parentOrgRefs){
+            if(ref.getRelation() != null && ref.getRelation().equals(SchemaConstants.ORG_MANAGER)){
+                return true;
+            }
+        }
+
+        return false;
     }
 }

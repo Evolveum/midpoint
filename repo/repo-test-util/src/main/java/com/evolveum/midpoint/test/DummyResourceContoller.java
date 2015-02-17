@@ -31,6 +31,7 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
+import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
@@ -236,6 +237,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertTrue("No fullname create", fullnameDef.canAdd());
 		assertTrue("No fullname update", fullnameDef.canModify());
 		assertTrue("No fullname read", fullnameDef.canRead());
+		assertEquals("Wrong displayOrder for attribute fullName", (Integer)200, fullnameDef.getDisplayOrder());
 		
 		// GROUP
 		ObjectClassComplexTypeDefinition groupObjectClass = resourceSchema.findObjectClassDefinition(SchemaTestConstants.GROUP_OBJECT_CLASS_LOCAL_NAME);
@@ -314,6 +316,13 @@ public class DummyResourceContoller extends AbstractResourceController {
 		account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, fullName);
 		account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, location);
 		dummyResource.addAccount(account);
+	}
+	
+	public void addGroup(String name) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException {
+		assertExtendedSchema();
+		DummyGroup group = new DummyGroup(name);
+		group.setEnabled(true);
+		dummyResource.addGroup(group);
 	}
 
 }

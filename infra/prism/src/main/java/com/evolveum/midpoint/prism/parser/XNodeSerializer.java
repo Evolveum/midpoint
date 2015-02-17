@@ -335,8 +335,7 @@ public class XNodeSerializer {
 
     private XNode serializePolyString(PolyString realValue) {
         PrimitiveXNode<PolyString> xprim = new PrimitiveXNode<>();
-        xprim.setValue(realValue);
-        xprim.setTypeQName(PolyStringType.COMPLEX_TYPE);
+        xprim.setValue(realValue, PolyStringType.COMPLEX_TYPE);
         return xprim;
     }
 
@@ -362,8 +361,7 @@ public class XNodeSerializer {
 
     private <T> PrimitiveXNode<T> createPrimitiveXNode(T val, QName type) {
         PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
-        xprim.setValue(val);
-        xprim.setTypeQName(type);
+        xprim.setValue(val, type);
         return xprim;
     }
     //endregion

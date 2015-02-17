@@ -46,7 +46,7 @@
             <a href="https://wiki.evolveum.com/display/midPoint/Data+Model">https://wiki.evolveum.com/display/midPoint/Data+Model</a>
             for more details.
 
-            <p>Version: 3.1-SNAPSHOT</p>
+            <p>Version: 3.2-SNAPSHOT</p>
 
             <p>Recommended namespace prefix: (default), c</p>
         </xsd:documentation>
@@ -2246,14 +2246,14 @@
                     <xsd:element name="organization" type="t:PolyStringType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Name or (preferrably) immutable identifier of organization that the user belongs to.
+                                Name or (preferably) immutable identifier of organization that the user belongs to.
                                 The format is deployment-specific. This property together with organizationalUnit
                                 may be used to provide easy-to-use data about organizational membership of the user.
 
                                 This is multi-valued property to allow membership of a user to several
                                 organizations. Please note that midPoint does not maintain ordering in
                                 multi-value properties therefore this is not usable to model a complex
-                                organization hierachies. Use OrgType instead.
+                                organization hierarchies. Use OrgType instead.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Organization</a:displayName>
@@ -3590,7 +3590,7 @@
              </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="ResourceItemDefinitionType">
+    <xsd:complexType name="ItemRefinedDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 Description of the common item handling details, such as display name,
@@ -3603,11 +3603,11 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ref" type="xsd:QName">
+            <xsd:element name="ref" type="t:ItemPathType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the attribute (XSD element) or association that this
-                        definition describes. It must point to the
+                        Path of the item or association that this
+                        definition describes. It must point to property or the
                         attribute in the resource schema that belongs to an
                         object class that is being described here.
                     </xsd:documentation>
@@ -3615,6 +3615,7 @@
             </xsd:element>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="displayOrder" type="xsd:int" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="limitations" type="tns:PropertyLimitationsType" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -3624,84 +3625,6 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
-            <xsd:element name="exclusiveStrong" type="xsd:boolean" minOccurs="0" default="false">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			When set to false then both strong and normal mapping values are merged to produce
-            			the final set of values.
-            			When set to true only strong values are used if there is at least one strong mapping.
-            			Normal values are used if there is no strong mapping.
-            		</xsd:documentation>
-            	</xsd:annotation>
-            </xsd:element>
-            <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0" default="true">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			When set to true, allows attribute values that are set outside midPoint.
-            			The synchronization will only remove values that are assigned by midPoint, but will
-            			tolerate extra native values.
-            			When set to false, extra attribute values are not tolerated. When midPoint detects
-            			such value (e.g. during reconciliation) it will remove it.
-            		</xsd:documentation>
-            	</xsd:annotation>
-            </xsd:element>
-            <xsd:element name="modificationPriority" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Modification priority of this item. Items with specified priorities are modified in order that
-                        follows these priorities: these with lower numbers are modified first, these with higher numbers
-                        next, and items with unspecified priorities are modified last. Each priority level gets its own
-                        modify operation (or operations, if required by ICF limitations).
-
-                        Currently this field is supported only for attributes, even it is present on associations as well.
-
-                        (It is envisioned that 'addingPriority' could be created as well in the future; it would concern
-                        creating new objects. In that case, attributes with numerically lowest adding priority would be
-                        used to create an object, and other attributes would be set via MODIFY operation, again,
-                        according to their priorities.)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="readReplaceMode" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Modifications to this attribute are executed in REPLACE form only. I.e. if ADD or DELETE VALUE is
-                        requested, midPoint will fetch the object state, compute the expected result and write it to the
-                        resource object via REPLACE VALUE operation. This works around some weird connector behavior.
-
-                        BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
-
-                        EXPERIMENTAL. May change in near future.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="secondaryIdentifier" type="xsd:boolean" minOccurs="0">
-            <xsd:annotation>
-            		<xsd:documentation>
-            			Indicated if the attribute should be considered as secondary identifier. If set to true,
-            			this attribue is stored in repository and user for example by synchronization (correlation
-            			rule), consistency mechanism, etc.
-            		</xsd:documentation>
-            	</xsd:annotation>
-			</xsd:element>
-    		
-            <xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			Pattern (regexp) for attribute value. If the value matches the pattern such value is tolerated.
-            			It is left in the attribute even if it is not derived from any mapping.
-            		</xsd:documentation>
-            	</xsd:annotation>
-            </xsd:element>
-            <xsd:element name="intolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			Pattern (regexp) for attribute value. If the value matches the pattern such value is NOT tolerated.
-            			The value must be derived from a mapping or it will be removed.
-            		</xsd:documentation>
-            	</xsd:annotation>
-            </xsd:element>
-            <xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
             <xsd:element name="matchingRule" type="xsd:QName" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -3712,44 +3635,153 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
-            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines how the attribute value is constructed in case of information flow from IDM to the
-                        resource, e.g. in case of provisioning.
-
-                        In case an expression is used, the expression variables should be as follows:
-                        $user - the user to whom the account belongs
-                        $account - the account to be changed
-
-                        Motivation: This is "value construction" type, it is
-                        using similar format that is used eleswhere in the system
-                        (e.g. in roles) and therefore a common expression processor can be
-                        used to process all of that. E.g. a single processor may take into a
-                        consideration both schema handling and dynamic attributes set by roles.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines how the attribute values are used (assigned) in case of information flow from resource
-                        to IDM, e.g. in case of synchronization, reconciliation or discovery.
-
-                        In case a source expression is used, the expression variables should be as follows:
-                        $user - the user to whom the account belongs
-                        $account - the account that has been changed (after the change)
-
-                        Explanation: This is not a "value construction" as it is not constructing a new
-                        attribute value. It is rather using attribute value that was set be someone else.
-                        A simpler way how to express the assignement is needed here, especially a simple way how
-                        to express assignment target. Some rules may use that information and we definitelly need that
-                        to
-                        generate correct relative change descriptions.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <xsd:element name="valueEnumerationRef" type="c:ObjectReferenceType" minOccurs="0">
+            	<xsd:annotation>
+	                <xsd:documentation>
+	                    Reference to an object that directly or indirectly represents possible values for
+						this item. We do not define here what exactly the object has to be. It can be a lookup
+						table, script that dynamically produces the values or anything similar. 
+						The object must produce the values of the correct type for this item otherwise an
+						error occurs.
+	                </xsd:documentation>
+	            </xsd:annotation>
+	       	</xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+	<xsd:complexType name="ResourceItemDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Description of the common item handling details, such as display name,
+                read/write access and value and synchronization expressions.
+                These are the parts that are common to both attributes and associations.
+                
+                This is supposed to be used in schemaHandling part and therefore
+                describe the decisions of the system administrator about the
+                way how that attribute or association is used in midPoint.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:ItemRefinedDefinitionType">
+        		<xsd:sequence>
+		            <xsd:element name="exclusiveStrong" type="xsd:boolean" minOccurs="0" default="false">
+		            	<xsd:annotation>
+		            		<xsd:documentation>
+		            			When set to false then both strong and normal mapping values are merged to produce
+		            			the final set of values.
+		            			When set to true only strong values are used if there is at least one strong mapping.
+		            			Normal values are used if there is no strong mapping.
+		            		</xsd:documentation>
+		            	</xsd:annotation>
+		            </xsd:element>
+		            <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0" default="true">
+		            	<xsd:annotation>
+		            		<xsd:documentation>
+		            			When set to true, allows attribute values that are set outside midPoint.
+		            			The synchronization will only remove values that are assigned by midPoint, but will
+		            			tolerate extra native values.
+		            			When set to false, extra attribute values are not tolerated. When midPoint detects
+		            			such value (e.g. during reconciliation) it will remove it.
+		            		</xsd:documentation>
+		            	</xsd:annotation>
+		            </xsd:element>
+	            <xsd:element name="modificationPriority" type="xsd:int" minOccurs="0">
+	                <xsd:annotation>
+	                    <xsd:documentation>
+	                        Modification priority of this item. Items with specified priorities are modified in order that
+	                        follows these priorities: these with lower numbers are modified first, these with higher numbers
+	                        next, and items with unspecified priorities are modified last. Each priority level gets its own
+	                        modify operation (or operations, if required by ICF limitations).
+	
+	                        Currently this field is supported only for attributes, even it is present on associations as well.
+	
+	                        (It is envisioned that 'addingPriority' could be created as well in the future; it would concern
+	                        creating new objects. In that case, attributes with numerically lowest adding priority would be
+	                        used to create an object, and other attributes would be set via MODIFY operation, again,
+	                        according to their priorities.)
+	                    </xsd:documentation>
+	                </xsd:annotation>
+	            </xsd:element>
+	            <xsd:element name="readReplaceMode" type="xsd:boolean" minOccurs="0">
+	                <xsd:annotation>
+	                    <xsd:documentation>
+	                        Modifications to this attribute are executed in REPLACE form only. I.e. if ADD or DELETE VALUE is
+	                        requested, midPoint will fetch the object state, compute the expected result and write it to the
+	                        resource object via REPLACE VALUE operation. This works around some weird connector behavior.
+	
+	                        BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
+	
+	                        EXPERIMENTAL. May change in near future.
+	                    </xsd:documentation>
+	                </xsd:annotation>
+	            </xsd:element>
+	            <xsd:element name="secondaryIdentifier" type="xsd:boolean" minOccurs="0">
+	            <xsd:annotation>
+	            		<xsd:documentation>
+	            			Indicated if the attribute should be considered as secondary identifier. If set to true,
+	            			this attribue is stored in repository and user for example by synchronization (correlation
+	            			rule), consistency mechanism, etc.
+	            		</xsd:documentation>
+	            	</xsd:annotation>
+				</xsd:element>
+	    		
+	            <xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+	            	<xsd:annotation>
+	            		<xsd:documentation>
+	            			Pattern (regexp) for attribute value. If the value matches the pattern such value is tolerated.
+	            			It is left in the attribute even if it is not derived from any mapping.
+	            		</xsd:documentation>
+	            	</xsd:annotation>
+	            </xsd:element>
+	            <xsd:element name="intolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+	            	<xsd:annotation>
+	            		<xsd:documentation>
+	            			Pattern (regexp) for attribute value. If the value matches the pattern such value is NOT tolerated.
+	            			The value must be derived from a mapping or it will be removed.
+	            		</xsd:documentation>
+	            	</xsd:annotation>
+	            </xsd:element>
+	            <xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
+	            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
+	                <xsd:annotation>
+	                    <xsd:documentation>
+	                        Defines how the attribute value is constructed in case of information flow from IDM to the
+	                        resource, e.g. in case of provisioning.
+	
+	                        In case an expression is used, the expression variables should be as follows:
+	                        $user - the user to whom the account belongs
+	                        $account - the account to be changed
+	
+	                        Motivation: This is "value construction" type, it is
+	                        using similar format that is used eleswhere in the system
+	                        (e.g. in roles) and therefore a common expression processor can be
+	                        used to process all of that. E.g. a single processor may take into a
+	                        consideration both schema handling and dynamic attributes set by roles.
+	                    </xsd:documentation>
+	                </xsd:annotation>
+	            </xsd:element>
+	            <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
+	                <xsd:annotation>
+	                    <xsd:documentation>
+	                        Defines how the attribute values are used (assigned) in case of information flow from resource
+	                        to IDM, e.g. in case of synchronization, reconciliation or discovery.
+	
+	                        In case a source expression is used, the expression variables should be as follows:
+	                        $user - the user to whom the account belongs
+	                        $account - the account that has been changed (after the change)
+	
+	                        Explanation: This is not a "value construction" as it is not constructing a new
+	                        attribute value. It is rather using attribute value that was set be someone else.
+	                        A simpler way how to express the assignement is needed here, especially a simple way how
+	                        to express assignment target. Some rules may use that information and we definitelly need that
+	                        to
+	                        generate correct relative change descriptions.
+	                    </xsd:documentation>
+	                </xsd:annotation>
+	            </xsd:element>
+	        </xsd:sequence>
+	      </xsd:extension>
+	   </xsd:complexContent>
     </xsd:complexType>
     
     <xsd:complexType name="ResourceAttributeDefinitionType">
@@ -6370,7 +6402,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="object" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
+        	<xsd:element name="object" type="tns:OwnedObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Object part from the (subject,action,object) authorization triple.
@@ -6386,7 +6418,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="target" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
+        	<xsd:element name="target" type="tns:OwnedObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Target of the operation. E.g. an role that is being assigned. It can be considered an operation
@@ -6506,16 +6538,33 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-	        <xsd:element name="owner" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="1">
-				<xsd:annotation>
-					<xsd:documentation>
-						The object matches the specification if it has an owner specified by this element.
-						The "owner" means a focus that has a link to the object.
-					</xsd:documentation>
-				</xsd:annotation>
-	        </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="OwnedObjectSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects some objects from all the objects in midPoint.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:ObjectSpecificationType">
+		        <xsd:sequence>
+			        <xsd:element name="owner" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								The object matches the specification if it has an owner specified by this element.
+								The "owner" means a focus that has a link to the object.
+							</xsd:documentation>
+						</xsd:annotation>
+			        </xsd:element>
+		        </xsd:sequence>        	
+        	</xsd:extension>
+        </xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:simpleType name="SpecialObjectSpecificationType">
@@ -6863,6 +6912,8 @@
                 		</xsd:annotation>
                 	</xsd:element>
                 	<xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
+                	<xsd:element name="item" type="tns:ObjectTemplateItemDefinitionType" minOccurs="0"
+                                 maxOccurs="unbounded"/>
                     <xsd:element name="mapping" type="tns:ObjectTemplateMappingType" minOccurs="0"
                                  maxOccurs="unbounded">
                         <xsd:annotation>
@@ -6878,7 +6929,12 @@
                                 Note: the expressions will be evaluated in the order as
                                 they are specified in the XML file for now, as the dependency
                                 mechanism does not work yet. Later, the order should be insignificant.
+                                
+                                DEPRECATED. Use "item" mechanism instead.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -6887,6 +6943,41 @@
     </xsd:complexType>
     <xsd:element name="userTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
     <xsd:element name="objectTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
+    
+    <xsd:complexType name="ObjectTemplateItemDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	TODO
+            	
+                Description of the common item handling details, such as display name,
+                read/write access and value and synchronization expressions.
+                These are the parts that are common to both attributes and associations.
+                
+                This is supposed to be used in schemaHandling part and therefore
+                describe the decisions of the system administrator about the
+                way how that attribute or association is used in midPoint.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:ItemRefinedDefinitionType">
+        		<xsd:sequence>
+	            <xsd:element name="mapping" type="tns:ObjectTemplateMappingType" minOccurs="0" maxOccurs="unbounded">
+	                <xsd:annotation>
+	                    <xsd:documentation>
+	                        Defines how any of the object property value should
+                            be constructed. It can contain fixed value or
+                            an expression.
+
+                            In case an expression is used following variables should be set:
+                            $user - The user object being created.
+                            $account - (optional) the account from which was the user created (if present)
+	                    </xsd:documentation>
+	                </xsd:annotation>
+	            </xsd:element>
+	        </xsd:sequence>
+	      </xsd:extension>
+	   </xsd:complexContent>
+    </xsd:complexType>
     
     <xsd:complexType name="ObjectTemplateMappingType">
     	<xsd:complexContent>
@@ -7034,6 +7125,135 @@
     </xsd:complexType>
     <xsd:element name="org" type="tns:OrgType" substitutionGroup="c:object"/>
     
+    <xsd:complexType name="LookupTableType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	<p>
+	                An object that represents lookup table. The lookup table can be used for two purposes:
+	                value enumerations (e.g. for GUI or validation) and value mapping (translation).
+	                The same lookup table can serve both purposes at the same time.
+                </p>
+                <p>
+                	The content of the lookup table can be used as enumeration. E.g. the labels for each
+                	table row can be displayed in the user interface. When a particular label is selected then
+                	the associated key will be stored. Similar approach can be used for validation, e.g. when only
+                	a selected set of values is legal for a certain property. In this case the "key" and "label"
+                	columns are used.
+                </p>
+                <p>
+                	The content of the lookup table can also be used for value mapping. E.g. in cases when
+                	input value needs to be mapped to the output value. In this case the "key" and "value"
+                	columns are used.
+                </p>
+                <p>
+                	Even though the lookup table is represented as a prism object, it is designed to be
+                	stored and queried efficiently. Therefore the contents of the lookup table will
+                	be stored in a specialized table tuned for this purpose. This data type is not
+                	designed to be used with the usual midPoint query mechanism (e.g. searchObjects operation).
+                	Specialized operations are used to efficiently query the lookup tables. The prism 
+                	representation (e.g. XML) of the lookup tables is used only for backup, restore, migrations,
+                	upgrades and similar purposes.
+                </p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+                	<xsd:element name="table" type="tns:LookupTableTableType" minOccurs="0"/>
+                	<!-- TODO: Maybe more settings describing the intended use of the lookup table. -->
+                	<!-- TODO: Lookup table synchronization settings? (e.g. resourceRef) -->
+                </xsd:sequence>
+           </xsd:extension>
+       </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:element name="lookupTable" type="tns:LookupTableType" substitutionGroup="c:object"/>
+   
+   <xsd:complexType name="LookupTableTableType">
+       	<xsd:annotation>
+    		<xsd:documentation>
+    			Data structure that represents entire content of the lookup table.
+    		</xsd:documentation>
+    		<xsd:appinfo>
+    			<a:container/>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="row" type="tns:LookupTableRowType" minOccurs="0" maxOccurs="unbounded"/>
+   		</xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+ 	</xsd:complexType>
+
+   <xsd:complexType name="LookupTableRowType">
+       	<xsd:annotation>
+    		<xsd:documentation>
+    			Lookup table row. The table row is a (complex) property. It is intentionally not
+    			a container, so we can avoid maintaining container IDs for each row. The delta semantics
+    			has a slightly different meaning for the lookup tables. Each key must be unique and the key
+    			functions as an implicit identifier. E.g. adding a new row with a key that does not exist yet
+    			will insert a new row. Adding a new row with key that already exists will overwrite existing row.
+    			Replace operation on this property will efficiently clear the entire table and replace it with a new data.
+    			We do not recommend using this operation as it may be very inefficient. Add and delete operations are
+    			expected during normal operation.
+    		</xsd:documentation>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="key" type="xsd:string" minOccurs="1" maxOccurs="1">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Lookup table key column. This is the mandatory (non-null) column that usually
+    					works as a mapping key. If the lookup table is used as an emumeration (there is no value column)
+    					then the value of key column will be stored in the property when selected.
+    					If the lookup table is used as a map, the value of key column will be matched to the
+    					input variable.
+    					
+    					The value of the key is limited to a usual size of a "databse string". The actual size
+    					constraint depends on the type of the database used as midPoint repository. It is
+    					not recommended to use long values as keys.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="1">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Lookup table value column. This is optional column that represents mapping output.
+    					The appropriate row will be selected by using the key. The corresponding value will be used
+    					as output.
+    					
+    					This column has no use if the lookup table is used as an enumeration.
+    					The value of the key is limited to a usual size of a "databse string". The actual size
+    					constraint depends on the type of the database used as midPoint repository. We expect that
+    					this column may contain quasi-structured data. But this column is not intended for a very rich
+    					data structures, such as long XML snippets. If structured data must be stored in this column
+    					then we recommend to use very tight "microformats" such as separating the values with collons.
+    					
+    					A special-purpose CLOB column for richer data formats might be added in the future.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="label" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Columnt that contains a user-friendly label for corresponding to the key.
+    					This label will be displayed in user interface as a representation of the key.
+    					The label has no meaning when the lookup table is used to map values.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="lastChangeTimestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Timestamp of the last change of the row. This is automatically manintaned by
+    					the repository. It is updated every time the row is created or updated.
+    					This row is intended to act as a "token" if the lookup table needs to be synchronized
+    					with external resource.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+   		</xsd:sequence>
+ 	</xsd:complexType>
 
     <!-- OPERATIONAL SCHEMA -->
 
@@ -10009,13 +10229,6 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Is the instance finished? (TODO consider removing this and deriving from endTimestamp...)
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="answer" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The result of the workflow process instance (if any).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

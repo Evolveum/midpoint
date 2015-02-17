@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.synchroniza
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.SynchronizationReactionEditor;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectSynchronizationTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceSynchronizationDto;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -139,24 +138,15 @@ public class SynchronizationStep extends WizardStep {
         if(resourceModel != null && resourceModel.getObject() != null &&
                 resourceModel.getObject().asObjectable() != null){
 
+            if(resourceModel.getObject().asObjectable().getSynchronization() == null){
+                resourceModel.getObject().asObjectable().setSynchronization(new SynchronizationType());
+            }
+
             SynchronizationType sync = resourceModel.getObject().asObjectable().getSynchronization();
 
             ObjectSynchronizationTypeDto obj;
             if(sync != null && sync.getObjectSynchronization() != null){
                 for(ObjectSynchronizationType syncObject: sync.getObjectSynchronization()){
-
-                    if(syncObject.getObjectClass().isEmpty()){
-                        syncObject.getObjectClass().add(new QName(""));
-                    }
-
-                    if(syncObject.getCorrelation().isEmpty()){
-                        syncObject.getCorrelation().add(new ConditionalSearchFilterType());
-                    }
-
-                    if(syncObject.getReaction().isEmpty()){
-                        syncObject.getReaction().add(new SynchronizationReactionType());
-                    }
-
                     obj = new ObjectSynchronizationTypeDto(syncObject);
                     list.add(obj);
                 }
@@ -166,15 +156,11 @@ public class SynchronizationStep extends WizardStep {
         dto.setSelected(createPlaceholderObjectType());
         dto.setObjectSyncList(list);
         dto.setObjectClassList(loadResourceObjectClassList(resourceModel, LOGGER, getString("SynchronizationStep.message.errorLoadingObjectSyncList")));
-
         return dto;
     }
 
     private ObjectSynchronizationType createPlaceholderObjectType(){
-        ObjectSynchronizationType syncObject = new ObjectSynchronizationType();
-        syncObject.getCorrelation().add(new ConditionalSearchFilterType());
-        syncObject.getReaction().add(new SynchronizationReactionType());
-        return syncObject;
+        return new ObjectSynchronizationType();
     }
 
     private boolean isAnySelected(){
@@ -311,21 +297,11 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorIntent);
 
         MultiValueAutoCompleteTextPanel<QName> editorObjectClass = new MultiValueAutoCompleteTextPanel<QName>(ID_EDITOR_OBJECT_CLASS,
-                new PropertyModel<List<QName>>(model, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true, false){
+                new PropertyModel<List<QName>>(model, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<QName> model) {
-                return new Model<String>(){
-
-                    @Override
-                    public String getObject(){
-                        if(model.getObject() != null){
-                            return model.getObject().getLocalPart();
-                        }
-
-                        return " - ";
-                    }
-                };
+                return new PropertyModel<>(model, "localPart");
             }
 
             @Override
@@ -440,7 +416,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorOpportunistic);
 
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
-                new PropertyModel<List<ConditionalSearchFilterType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".correlation"), false, false){
+                new PropertyModel<List<ConditionalSearchFilterType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".correlation"), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ConditionalSearchFilterType> model) {
@@ -482,7 +458,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorCorrelation);
 
         MultiValueTextEditPanel editorReaction = new MultiValueTextEditPanel<SynchronizationReactionType>(ID_EDITOR_REACTION,
-                new PropertyModel<List<SynchronizationReactionType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".reaction"), false, false){
+                new PropertyModel<List<SynchronizationReactionType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".reaction"), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationReactionType> model) {
@@ -731,6 +707,13 @@ public class SynchronizationStep extends WizardStep {
                 new Model<>(reaction));
         getThirdRowContainer().replaceWith(newContainer);
 
+        for(SynchronizationActionType action: reaction.getAction()){
+            if(action.getRef() != null){
+                warn(getString("SynchronizationStep.message.unsupportedActionFormat"));
+                break;
+            }
+        }
+
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
@@ -745,6 +728,8 @@ public class SynchronizationStep extends WizardStep {
         OperationResult result = new OperationResult(OPERATION_SAVE_SYNC);
         ModelService modelService = getPageBase().getModelService();
         ObjectDelta delta;
+
+        prepareResourceToSave(newResource.asObjectable());
 
         try{
             oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, getPageBase());
@@ -772,6 +757,35 @@ public class SynchronizationStep extends WizardStep {
         }
     }
 
+    private void prepareResourceToSave(ResourceType resource){
+        if(resource.getSynchronization() == null){
+            return;
+        }
+
+        if(model == null || model.getObject() == null){
+            return;
+        }
+
+        ResourceSynchronizationDto dto = model.getObject();
+
+        SynchronizationType sync = resource.getSynchronization();
+        for(ObjectSynchronizationType syncObject: sync.getObjectSynchronization()){
+            List<QName> newObjectClassList = new ArrayList<>();
+
+            for(QName objectClass: syncObject.getObjectClass()){
+                for(QName objClazz: dto.getObjectClassList()){
+                    if(objClazz.getLocalPart().equals(objectClass.getLocalPart())){
+                        QName newObjectClass = new QName(objClazz.getNamespaceURI(), objClazz.getLocalPart());
+                        newObjectClassList.add(newObjectClass);
+                    }
+                }
+            }
+
+            syncObject.getObjectClass().clear();
+            syncObject.getObjectClass().addAll(newObjectClassList);
+        }
+    }
+
     private void editSyncObjectPerformed(AjaxRequestTarget target, ObjectSynchronizationTypeDto syncObject){
         resetSelected();
         syncObject.setSelected(true);
@@ -782,22 +796,18 @@ public class SynchronizationStep extends WizardStep {
     }
 
     private void deleteSyncObjectPerformed(AjaxRequestTarget target, ObjectSynchronizationTypeDto syncObject){
-        ArrayList<ObjectSynchronizationTypeDto> list = (ArrayList<ObjectSynchronizationTypeDto>)model.getObject().getObjectSyncList();
+        ArrayList<ObjectSynchronizationTypeDto> list = (ArrayList<ObjectSynchronizationTypeDto>) model.getObject().getObjectSyncList();
 
         list.remove(syncObject);
 
         if(syncObject.isSelected()){
-            model.getObject().setSelected(createPlaceholderObjectType());
             insertEmptyThirdRow();
             target.add(getThirdRowContainer());
         }
 
         if(list.isEmpty()){
-            ObjectSynchronizationType newObj = new ObjectSynchronizationType();
-            newObj.setName(getString("SynchronizationStep.label.newObjectType"));
-            ObjectSynchronizationTypeDto dto = new ObjectSynchronizationTypeDto(newObj);
-            dto.setSelected(true);
-            list.add(dto);
+            insertEmptyThirdRow();
+            target.add(getThirdRowContainer());
         }
 
         target.add(getSyncObjectEditor(), getSyncObjectTable(), getNavigator());
@@ -805,9 +815,6 @@ public class SynchronizationStep extends WizardStep {
 
     private void addSyncObjectPerformed(AjaxRequestTarget target){
         ObjectSynchronizationType syncObject = new ObjectSynchronizationType();
-        syncObject.getCorrelation().add(new ConditionalSearchFilterType());
-        syncObject.getReaction().add(new SynchronizationReactionType());
-        syncObject.getObjectClass().add(new QName(""));
         syncObject.setName(getString("SynchronizationStep.label.newObjectType"));
 
         ObjectSynchronizationTypeDto dto = new ObjectSynchronizationTypeDto(syncObject);
@@ -816,6 +823,7 @@ public class SynchronizationStep extends WizardStep {
         dto.setSelected(true);
         model.getObject().setSelected(dto.getSyncType());
         model.getObject().getObjectSyncList().add(dto);
+        resourceModel.getObject().asObjectable().getSynchronization().getObjectSynchronization().add(syncObject);
         insertEmptyThirdRow();
         target.add(getSyncObjectTable(), getNavigator(), getSyncObjectEditor(), getThirdRowContainer());
     }

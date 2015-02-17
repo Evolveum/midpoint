@@ -757,7 +757,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         PrismObject<ShadowType> currentAccount = shadow;
         if (currentAccount != null) {
         	projectionContext.setLoadedObject(currentAccount);
-        	projectionContext.setFullShadow(true);
+			if (!thombstone) {
+				projectionContext.setFullShadow(true);
+			}
         	projectionContext.setFresh(true);
         }
 

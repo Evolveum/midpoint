@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.component.form.multivalue;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -24,22 +25,22 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 /**
  *  @author shood
- *
- *  TODO - move this to multivalue component package and rename it properly
  * */
 public class MultiValueTextPanel<T extends Serializable> extends SimplePanel<List<T>> {
 
+    private static final String ID_PLACEHOLDER_CONTAINER = "placeholderContainer";
+    private static final String ID_PLACEHOLDER_ADD = "placeholderAdd";
     private static final String ID_REPEATER = "repeater";
     private static final String ID_TEXT = "input";
     private static final String ID_BUTTON_GROUP = "buttonGroup";
@@ -52,16 +53,52 @@ public class MultiValueTextPanel<T extends Serializable> extends SimplePanel<Lis
         super(id, value);
         setOutputMarkupId(true);
 
-        initLayout(true);
+        initPanelLayout();
     }
 
-    private void initLayout(boolean unused){
-
-        if(getModel().getObject() == null){
-            getModel().setObject(new ArrayList<>(Arrays.asList(createNewEmptyItem())));
-        } else if(getModel().getObject().isEmpty()){
-            getModel().getObject().add(createNewEmptyItem());
+    @Override
+    public IModel<List<T>> getModel(){
+        if(super.getModel().getObject() == null){
+            super.getModel().setObject(new ArrayList<T>());
         }
+
+        return super.getModel();
+    }
+
+    protected void initPanelLayout(){
+        WebMarkupContainer placeholderContainer = new WebMarkupContainer(ID_PLACEHOLDER_CONTAINER);
+        placeholderContainer.setOutputMarkupPlaceholderTag(true);
+        placeholderContainer.setOutputMarkupPlaceholderTag(true);
+        placeholderContainer.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return getModel().getObject().isEmpty();
+            }
+        });
+        add(placeholderContainer);
+
+        AjaxLink placeholderAdd = new AjaxLink(ID_PLACEHOLDER_ADD) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addValuePerformed(target);
+            }
+        };
+        placeholderAdd.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                if (buttonsDisabled()) {
+                    return " " + CSS_DISABLED;
+                }
+
+                return "";
+            }
+        }));
+        placeholderAdd.setOutputMarkupId(true);
+        placeholderAdd.setOutputMarkupPlaceholderTag(true);
+        placeholderContainer.add(placeholderAdd);
 
         ListView repeater = new ListView<T>(ID_REPEATER, getModel()){
 
@@ -80,6 +117,15 @@ public class MultiValueTextPanel<T extends Serializable> extends SimplePanel<Lis
                 initButtons(buttonGroup, item);
             }
         };
+        repeater.setOutputMarkupId(true);
+        repeater.setOutputMarkupPlaceholderTag(true);
+        repeater.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return !getModel().getObject().isEmpty();
+            }
+        });
         add(repeater);
     }
 
@@ -118,12 +164,11 @@ public class MultiValueTextPanel<T extends Serializable> extends SimplePanel<Lis
     }
 
     protected String getMinusClassModifier(){
-        int size = getModelObject().size();
-        if (size > 1) {
-            return "";
+        if(buttonsDisabled()){
+            return CSS_DISABLED;
         }
 
-        return CSS_DISABLED;
+        return "";
     }
 
     protected IModel<String> createTextModel(final IModel<T> model) {
@@ -158,6 +203,13 @@ public class MultiValueTextPanel<T extends Serializable> extends SimplePanel<Lis
 
     protected StringResourceModel createEmptyItemPlaceholder(){
         return createStringResource("TextField.universal.placeholder");
+    }
+
+    /**
+     *  Override to provide the information about buttons enabled/disabled status
+     * */
+    protected boolean buttonsDisabled(){
+        return false;
     }
 
     protected void removeValuePerformed(AjaxRequestTarget target, ListItem<T> item){

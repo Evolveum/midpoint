@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,36 +34,41 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  * 
  */
-public class PrismObjectDefinition<T extends Objectable> extends PrismContainerDefinition<T> {
+public class PrismObjectDefinition<O extends Objectable> extends PrismContainerDefinition<O> {
 	private static final long serialVersionUID = -8298581031956931008L;
 
 	public PrismObjectDefinition(QName elementName, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, 
-			Class<T> compileTimeClass) {
+			Class<O> compileTimeClass) {
 		// Object definition can only be top-level, hence null parent
 		super(elementName, complexTypeDefinition, prismContext, compileTimeClass);
 	}
 	
 	@Override
-	public PrismObject<T> instantiate() {
-		PrismObject<T> midPointObject = new PrismObject<T>(getName(), this, prismContext);
+	public PrismObject<O> instantiate() {
+		PrismObject<O> midPointObject = new PrismObject<O>(getName(), this, prismContext);
 		return midPointObject;
 	}
 	
 	@Override
-	public PrismObject<T> instantiate(QName name) {
+	public PrismObject<O> instantiate(QName name) {
         name = addNamespaceIfApplicable(name);
-		PrismObject<T> midPointObject = new PrismObject<T>(name, this, prismContext);
+		PrismObject<O> midPointObject = new PrismObject<O>(name, this, prismContext);
 		return midPointObject;
 	}
 	
-	public PrismObjectDefinition<T> clone() {
-		PrismObjectDefinition<T> clone = new PrismObjectDefinition<T>(name, complexTypeDefinition, prismContext, compileTimeClass);
+	public PrismObjectDefinition<O> clone() {
+		PrismObjectDefinition<O> clone = new PrismObjectDefinition<O>(name, complexTypeDefinition, prismContext, compileTimeClass);
 		copyDefinitionData(clone);
 		return clone;
 	}
 	
-	public PrismObjectDefinition<T> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
-		return (PrismObjectDefinition<T>) super.cloneWithReplacedDefinition(itemName, newDefinition);
+	@Override
+	public PrismObjectDefinition<O> deepClone(boolean ultraDeep) {
+		return (PrismObjectDefinition<O>) super.deepClone(ultraDeep);
+	}
+
+	public PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
+		return (PrismObjectDefinition<O>) super.cloneWithReplacedDefinition(itemName, newDefinition);
 	}
 	
 	public PrismContainerDefinition<?> getExtensionDefinition() {

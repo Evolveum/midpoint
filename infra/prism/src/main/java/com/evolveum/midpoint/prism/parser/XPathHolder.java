@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -36,7 +35,6 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -175,8 +173,7 @@ public class XPathHolder {
             } else {
                 String namespace = findNamespace(qnameArray[0], domNode, namespaceMap);
                 if (namespace == null) {
-                	LOGGER.warn("Undeclared namespace prefix '" + qnameArray[0]+"' in '"+xpath+"'. Default matching will be used to find namespace.");
-//                	throw new IllegalArgumentException("Undeclared namespace prefix '"+qnameArray[0]+"'");
+                    DOMUtil.reportUndeclaredNamespacePrefix(qnameArray[0], xpath);
                 }
                 qname = new QName(namespace, qnameArray[1], qnameArray[0]);
             }
@@ -404,6 +401,7 @@ public class XPathHolder {
 		return toElement(elementQName.getNamespaceURI(), elementQName.getLocalPart(), document);
 	}
 
+    // really ugly implementation... (ignores overall context of serialization, so produces <c:path> elements even if common is default namespace) TODO rework [med]
 	public Element toElement(String elementNamespace, String localElementName, Document document) {
 		Element element = document.createElementNS(elementNamespace, localElementName);
 		if (!StringUtils.isBlank(elementNamespace)) {

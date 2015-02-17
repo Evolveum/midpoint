@@ -19,6 +19,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Maps namespaces to preferred prefixes. Should be used through the code to
  * avoid generation of prefixes.
@@ -30,8 +33,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
  * 
  */
 public interface DynamicNamespacePrefixMapper extends DebugDumpable {
-	
-	public void registerPrefix(String namespace, String prefix, boolean defaultNamespace);
+
+    public void registerPrefix(String namespace, String prefix, boolean defaultNamespace);
 	
 	public void registerPrefixLocal(String namespace, String prefix);
 	
@@ -52,4 +55,9 @@ public interface DynamicNamespacePrefixMapper extends DebugDumpable {
 
 	public void setAlwaysExplicit(boolean alwaysExplicit);
 
+    // Specifies that this prefix should be declared by default (at top of XML files)
+    void addDeclaredByDefault(String prefix);
+
+    // non-null
+    Map<String,String> getNamespacesDeclaredByDefault();
 }

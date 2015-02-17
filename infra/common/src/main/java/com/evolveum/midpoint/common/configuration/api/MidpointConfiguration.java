@@ -63,4 +63,6 @@ public interface MidpointConfiguration {
      * @return
      */
     Document getXmlConfigAsDocument();
+
+    boolean isSafeMode();
 }

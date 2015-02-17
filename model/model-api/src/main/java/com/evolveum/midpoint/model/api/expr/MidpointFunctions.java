@@ -862,6 +862,10 @@ public interface MidpointFunctions {
     Collection<String> getManagersOidsExceptUser(UserType user) throws SchemaException, ObjectNotFoundException;
 
     Collection<UserType> getManagers(UserType user) throws SchemaException, ObjectNotFoundException;
+    
+    Collection<UserType> getManagersByOrgType(UserType user, String orgType) throws SchemaException, ObjectNotFoundException;
+    
+    Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf) throws SchemaException, ObjectNotFoundException;
 
     UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException;
 
@@ -877,7 +881,17 @@ public interface MidpointFunctions {
 
     Collection<UserType> getManagersOfOrg(String orgOid) throws SchemaException;
 
+    /**
+     * Returns true if user is a manager of specified organiational unit. 
+     */
     boolean isManagerOf(UserType user, String orgOid);
+    
+    /**
+     * Returns true if user is a manager of any organizational unit.
+     */
+    boolean isManager(UserType user);
+    
+    boolean isManagerOfOrgType(UserType user, String orgType) throws SchemaException;
 
     boolean isMemberOf(UserType user, String orgOid);
 

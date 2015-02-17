@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.form.multivalue;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -33,8 +34,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -43,6 +42,8 @@ import java.util.List;
  * */
 public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel<List<T>> {
 
+    private static final String ID_PLACEHOLDER_CONTAINER = "placeholderContainer";
+    private static final String ID_PLACEHOLDER_ADD = "placeholderAdd";
     private static final String ID_REPEATER = "repeater";
     private static final String ID_TEXT = "input";
     private static final String ID_BUTTON_GROUP = "buttonGroup";
@@ -52,28 +53,49 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
 
     private static final String CSS_DISABLED = " disabled";
 
-    public MultiValueTextEditPanel(String id, IModel<List<T>> model, boolean inputEnabled,
-                                   boolean prepareModel){
+    public MultiValueTextEditPanel(String id, IModel<List<T>> model, boolean inputEnabled){
         super(id, model);
         setOutputMarkupId(true);
 
-        initLayout(inputEnabled, prepareModel);
+        initLayout(inputEnabled);
     }
 
-    private IModel<List<T>> prepareModel(boolean prepareModel){
-        if(prepareModel){
-            if(getModel().getObject() == null){
-                getModel().setObject(new ArrayList<>(Arrays.asList(createNewEmptyItem())));
-            } else if(getModel().getObject().isEmpty()){
-                getModel().getObject().add(createNewEmptyItem());
+    private void initLayout(final boolean inputEnabled){
+        WebMarkupContainer placeholderContainer = new WebMarkupContainer(ID_PLACEHOLDER_CONTAINER);
+        placeholderContainer.setOutputMarkupPlaceholderTag(true);
+        placeholderContainer.setOutputMarkupPlaceholderTag(true);
+        placeholderContainer.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return getModel().getObject().isEmpty();
             }
-        }
-        return getModel();
-    }
+        });
+        add(placeholderContainer);
 
-    private void initLayout(final boolean inputEnabled, boolean prepareModel){
+        AjaxLink placeholderAdd = new AjaxLink(ID_PLACEHOLDER_ADD) {
 
-        ListView repeater = new ListView<T>(ID_REPEATER, prepareModel(prepareModel)){
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addValuePerformed(target);
+            }
+        };
+        placeholderAdd.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                if (buttonsDisabled()) {
+                    return " " + CSS_DISABLED;
+                }
+
+                return "";
+            }
+        }));
+        placeholderAdd.setOutputMarkupId(true);
+        placeholderAdd.setOutputMarkupPlaceholderTag(true);
+        placeholderContainer.add(placeholderAdd);
+
+        ListView repeater = new ListView<T>(ID_REPEATER, getModel()){
 
             @Override
             protected void populateItem(final ListItem<T> item) {
@@ -95,6 +117,15 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
                 initButtons(buttonGroup, item);
             }
         };
+        repeater.setOutputMarkupId(true);
+        repeater.setOutputMarkupPlaceholderTag(true);
+        repeater.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return !getModel().getObject().isEmpty();
+            }
+        });
         add(repeater);
     }
 
@@ -110,10 +141,11 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
 
             @Override
             public String getObject() {
-                if(buttonsDisabled()){
-                    return " disabled";
+                if (buttonsDisabled()) {
+                    return " " + CSS_DISABLED;
                 }
-                return null;
+
+                return "";
             }
         }));
         buttonGroup.add(edit);
@@ -156,12 +188,11 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
     }
 
     protected String getMinusClassModifier(){
-        int size = getModelObject().size();
-        if (size > 1) {
-            return "";
+        if(buttonsDisabled()){
+            return CSS_DISABLED;
         }
 
-        return CSS_DISABLED;
+        return "";
     }
 
     protected T createNewEmptyItem(){
@@ -214,10 +245,14 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
         target.add(this);
     }
 
-    protected void editPerformed(AjaxRequestTarget target, T object){
-        //override me
-    }
+    /**
+     *  Override to provide handling of edit event (edit button clicked)
+     * */
+    protected void editPerformed(AjaxRequestTarget target, T object){}
 
+    /**
+     *  Override to provide the information about buttons enabled/disabled status
+     * */
     protected boolean buttonsDisabled(){
         return false;
     }
@@ -225,14 +260,10 @@ public class MultiValueTextEditPanel<T extends Serializable> extends SimplePanel
     /**
      *  Override to provide custom hook when adding new value
      * */
-    protected void performAddValueHook(AjaxRequestTarget target){
-
-    }
+    protected void performAddValueHook(AjaxRequestTarget target){}
 
     /**
      *  Override to provide custom hook when removing value from list
      * */
-    protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<T> item){
-
-    }
+    protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<T> item){}
 }

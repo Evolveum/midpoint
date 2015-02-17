@@ -271,19 +271,20 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		addVariableDefinition(null,(Object)mpObject);
 	}
 
-	public void addVariableDefinition(ExpressionVariableDefinitionType varDef) {
+	public void addVariableDefinition(ExpressionVariableDefinitionType varDef) throws SchemaException {
 		if (varDef.getObjectRef() != null) {
-			addVariableDefinition(varDef.getName(),varDef.getObjectRef());
+            ObjectReferenceType ref = varDef.getObjectRef();
+            ref.setType(getPrismContext().getSchemaRegistry().qualifyTypeName(ref.getType()));
+			addVariableDefinition(varDef.getName(), ref);
 		} else if (varDef.getValue() != null) {
 			addVariableDefinition(varDef.getName(),varDef.getValue());
 		} else {
 			LOGGER.warn("Empty definition of variable {} in {}, ignoring it",varDef.getName(),getMappingContextDescription());
 		}
-		
 	}
 	
 	public void addVariableDefinition(QName name, ObjectReferenceType objectRef) {
-		addVariableDefinition(name,(Object)objectRef);
+		addVariableDefinition(name, (Object)objectRef);
 	}
 	
 	public void addVariableDefinition(QName name, ObjectType objectType) {

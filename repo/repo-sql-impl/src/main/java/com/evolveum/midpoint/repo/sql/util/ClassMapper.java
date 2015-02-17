@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.util;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.Validate;
@@ -59,6 +60,7 @@ public final class ClassMapper {
         types.put(ObjectTypes.ABSTRACT_ROLE, RObjectType.ABSTRACT_ROLE);
         types.put(ObjectTypes.FOCUS_TYPE, RObjectType.FOCUS);
         types.put(ObjectTypes.SECURITY_POLICY, RObjectType.SECURITY_POLICY);
+        types.put(ObjectTypes.LOOKUP_TABLE, RObjectType.LOOKUP_TABLE);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {
@@ -90,7 +92,7 @@ public final class ClassMapper {
             return null;
         }
         for (Map.Entry<ObjectTypes, RObjectType> entry : types.entrySet()) {
-            if (entry.getKey().getTypeQName().equals(qname)) {
+            if (QNameUtil.match(entry.getKey().getTypeQName(), qname)) {
                 return entry.getValue();
             }
         }

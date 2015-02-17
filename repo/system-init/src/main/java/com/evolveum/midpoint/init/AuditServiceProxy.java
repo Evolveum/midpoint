@@ -90,7 +90,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             LOGGER.warn("Task is null in a call to audit service");
         } else {
             if (task.getOwner() == null) {
-                LOGGER.warn("Task '{}' has no owner in a call to audit service", new Object[]{task.getName()});
+                LOGGER.warn("Task '{}' has no owner in a call to audit service (should not happen except for initial repository loading)", new Object[]{task.getName()});
             }
         }
     }

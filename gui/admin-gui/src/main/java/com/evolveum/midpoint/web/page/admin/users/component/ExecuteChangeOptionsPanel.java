@@ -25,7 +25,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 /**
- * @lazyman
+ * @author lazyman
  */
 public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsDto> {
 

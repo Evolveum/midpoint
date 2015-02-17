@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
@@ -223,6 +224,15 @@ public class PageResources extends PageAdminResources {
                 ResourcesStorage storage = getSessionStorage().getResources();
                 storage.setResourcePaging(paging);
             }
+
+            @Override
+            protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
+                if(result.isPartialError()){
+                    showResult(result);
+                } else {
+                    super.handleNotSuccessOrHandledErrorInIterator(result);
+                }
+            }
         };
 
         Collection<SelectorOptions<GetOperationOptions>> options =
@@ -263,12 +273,20 @@ public class PageResources extends PageAdminResources {
                         editResourcePerformed(getRowModel());
                     }
                 }));
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageResources.button.editAsXml"),
+                new ColumnMenuAction<ResourceDto>(){
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        editAsXmlPerformed(getRowModel());
+                    }
+                }));
 
         return dto;
     }
 
     private List<IColumn<ResourceDto, String>> initResourceColumns() {
-        List<IColumn<ResourceDto, String>> columns = new ArrayList<IColumn<ResourceDto, String>>();
+        List<IColumn<ResourceDto, String>> columns = new ArrayList<>();
 
         IColumn column = new CheckBoxHeaderColumn<ResourceDto>();
         columns.add(column);
@@ -295,6 +313,7 @@ public class PageResources extends PageAdminResources {
 
                     @Override
                     public String getObject() {
+//                        testResourcePerformed(getRequestCycle().find(AjaxRequestTarget.class), rowModel);
                         ResourceDto dto = rowModel.getObject();
                         ResourceController.updateLastAvailabilityState(dto.getState(),
                                 dto.getLastAvailabilityStatus());
@@ -361,7 +380,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private List<InlineMenuItem> initInlineMenu() {
-        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+        List<InlineMenuItem> headerMenuItems = new ArrayList<>();
         headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
                 new HeaderMenuAction(this) {
 
@@ -375,7 +394,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private List<IColumn<ConnectorHostType, String>> initConnectorHostsColumns() {
-        List<IColumn<ConnectorHostType, String>> columns = new ArrayList<IColumn<ConnectorHostType, String>>();
+        List<IColumn<ConnectorHostType, String>> columns = new ArrayList<>();
 
         IColumn column = new CheckBoxHeaderColumn<ConnectorHostType>();
         columns.add(column);
@@ -407,7 +426,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private List<InlineMenuItem> initInlineHostsMenu() {
-        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+        List<InlineMenuItem> headerMenuItems = new ArrayList<>();
         headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
                 new HeaderMenuAction(this) {
 
@@ -535,7 +554,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private void deleteResourceConfirmedPerformed(AjaxRequestTarget target) {
-        List<ResourceDto> selected = new ArrayList<ResourceDto>();
+        List<ResourceDto> selected = new ArrayList<>();
 
         if(singleDelete != null){
             selected.add(singleDelete);
@@ -685,6 +704,13 @@ public class PageResources extends PageAdminResources {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, model.getObject().getOid());
         setResponsePage(new PageResourceWizard(parameters));
+    }
+
+    private void editAsXmlPerformed(IModel<ResourceDto> model){
+        PageParameters parameters = new PageParameters();
+        parameters.add(PageDebugView.PARAM_OBJECT_ID, model.getObject().getOid());
+        parameters.add(PageDebugView.PARAM_OBJECT_TYPE, ResourceType.class.getSimpleName());
+        setResponsePage(PageDebugView.class, parameters);
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target){

@@ -925,14 +925,17 @@ public abstract class ShadowCache {
 				parentResult);
 
 		if (repoShadow == null) {
-			LOGGER.trace(
-					"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
-					SchemaDebugUtil.prettyPrint(resourceShadow));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(
+						"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
+						SchemaDebugUtil.prettyPrint(resourceShadow));
+			}
 
 			repoShadow = createShadowInRepository(connector, resourceShadow, objectClassDef, resourceType, parentResult);
 		} else {
-			LOGGER.trace("Found shadow object in the repository {}",
-					SchemaDebugUtil.prettyPrint(repoShadow));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Found shadow object in the repository {}", SchemaDebugUtil.prettyPrint(repoShadow));
+			}
 		}
 		
 		return repoShadow;
@@ -1274,8 +1277,11 @@ public abstract class ShadowCache {
 
 			// FIXME: hack. the object delta must have oid specified.
 			if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
-				ObjectDelta<ShadowType> objDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.DELETE, prismContext);
-				change.setObjectDelta(objDelta);
+//				if (LOGGER.isTraceEnabled()) {
+//					LOGGER.trace("No OID present, assuming delta of type DELETE; change = {}\nobjectDelta: {}", change, change.getObjectDelta().debugDump());
+//				}
+//				ObjectDelta<ShadowType> objDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.DELETE, prismContext);
+//				change.setObjectDelta(objDelta);
 				change.getObjectDelta().setOid(oldShadow.getOid());
 			}
 		} else {

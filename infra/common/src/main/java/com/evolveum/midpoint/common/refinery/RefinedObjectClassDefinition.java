@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import javax.xml.namespace.QName;
 
@@ -374,6 +376,11 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         attributeDefinitions.add(refinedAttributeDefinition);
     }
 
+    public boolean containsAttributeDefinition(ItemPathType pathType) {
+        QName segmentQName = ItemPathUtil.getOnlySegmentQName(pathType);
+        return containsAttributeDefinition(segmentQName);
+    }
+    
     public boolean containsAttributeDefinition(QName attributeName) {
         for (RefinedAttributeDefinition rAttributeDef : attributeDefinitions) {
             if (QNameUtil.match(rAttributeDef.getName(), attributeName)) {
@@ -592,11 +599,12 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         ResourceAttributeDefinitionType foundAttrDefType = null;
         for (ResourceAttributeDefinitionType attrDefType : rOcDefType.getAttribute()) {
             if (attrDefType.getRef() != null) {
-                if (QNameUtil.match(attrDefType.getRef(), attrName)) {
+            	QName ref = ItemPathUtil.getOnlySegmentQName(attrDefType.getRef());
+                if (QNameUtil.match(ref, attrName)) {
                     if (foundAttrDefType == null) {
                         foundAttrDefType = attrDefType;
                     } else {
-                        throw new SchemaException("Duplicate definition of attribute " + attrDefType.getRef() + " in "+typeDesc+" type "
+                        throw new SchemaException("Duplicate definition of attribute " + ref + " in "+typeDesc+" type "
                                 + rOcDefType.getIntent() + ", in " + contextDescription);
                     }
                 }
