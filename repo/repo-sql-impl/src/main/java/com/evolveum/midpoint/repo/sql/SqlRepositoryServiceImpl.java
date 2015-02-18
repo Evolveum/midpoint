@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.repo.api.LookupTableSearchType;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
@@ -1653,4 +1654,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         throw new SystemException("isAnySubordinateAttempt failed somehow, this really should not happen.");
     }
+
+	@Override
+	public List<LookupTableRowType> searchLookupTable(String lookupTableOid, QName column,
+			String searchValue, LookupTableSearchType searchType, ObjectPaging paging)
+			throws ObjectNotFoundException, SchemaException {
+		// TODO implement
+		throw new UnsupportedOperationException();
+	}
 }
