@@ -28,6 +28,7 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -99,6 +100,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConst
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -1309,7 +1312,23 @@ public class AssignmentProcessor {
 	}
 
 	private void checkExclusionOneWay(AbstractRoleType roleA, AbstractRoleType roleB) throws PolicyViolationException {
-		for (ExclusionPolicyConstraintType exclusionA :roleA.getExclusion()) {
+		PolicyConstraintsType policyConstraints = roleA.getPolicyConstraints();
+		if (policyConstraints != null) {
+			for (ExclusionPolicyConstraintType exclusionA : policyConstraints.getExclusion()) {
+				ObjectReferenceType targetRef = exclusionA.getTargetRef();
+				if (roleB.getOid().equals(targetRef.getOid())) {
+					if (exclusionA.getEnforcement() == null || exclusionA.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
+						throw new PolicyViolationException("Violation of SoD policy: "+roleA+" excludes "+roleB+
+								", they cannot be assigned at the same time");
+					} else {
+						// TODO
+					}
+				}
+			}
+		}
+		
+		// Deprecated
+		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusion()) {
 			ObjectReferenceType targetRef = exclusionA.getTargetRef();
 			if (roleB.getOid().equals(targetRef.getOid())) {
 				throw new PolicyViolationException("Violation of SoD policy: "+roleA+" excludes "+roleB+
