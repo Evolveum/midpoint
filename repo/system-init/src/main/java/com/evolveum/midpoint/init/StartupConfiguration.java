@@ -23,19 +23,18 @@ import ch.qos.logback.core.util.StatusPrinter;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.configuration.*;
-import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilder;
 
 import java.io.File;
-import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
@@ -174,7 +173,7 @@ public class StartupConfiguration implements MidpointConfiguration {
 
         if (isSafeMode()) {
             LOGGER.info("Safe mode is ON; setting tolerateUndeclaredPrefixes to TRUE");
-            DOMUtil.setTolerateUndeclaredPrefixes(true);
+            QNameUtil.setTolerateUndeclaredPrefixes(true);
         }
     }
 

@@ -31,6 +31,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -171,18 +172,14 @@ public class XPathHolder {
                 String namespace = findNamespace(null, domNode, namespaceMap);
                 qname = new QName(namespace, qnameArray[0]);
             } else {
-                String namespace = findNamespace(qnameArray[0], domNode, namespaceMap);
+                String namespacePrefix = qnameArray[0];
+                String namespace = findNamespace(namespacePrefix, domNode, namespaceMap);
                 if (namespace == null) {
-                    DOMUtil.reportUndeclaredNamespacePrefix(qnameArray[0], xpath);
+                    QNameUtil.reportUndeclaredNamespacePrefix(namespacePrefix, xpath);
+                    namespacePrefix = QNameUtil.markPrefixAsUndeclared(namespacePrefix);
                 }
-                qname = new QName(namespace, qnameArray[1], qnameArray[0]);
+                qname = new QName(namespace, qnameArray[1], namespacePrefix);
             }
-            // currently it's OK to have no namespace in a path
-//            if (StringUtils.isEmpty(qname.getNamespaceURI())) {
-//                LOGGER.debug("WARNING: Namespace was not defined for {} in xpath\n{}", new Object[] {
-//                        segmentStr, xpath });
-//            }
-
             segments.add(new XPathSegment(qname, variable));
             if (idValueFilterSegment != null) {
                 segments.add(idValueFilterSegment);

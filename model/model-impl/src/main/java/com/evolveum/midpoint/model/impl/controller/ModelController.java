@@ -38,8 +38,8 @@ import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
@@ -77,7 +77,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -99,7 +98,6 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -283,7 +281,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 				
 		try {	
-
+            if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
+                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
+            }
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
@@ -315,6 +315,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} finally {
+            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
 			RepositoryCache.exit();
 		}
 		
@@ -506,24 +507,34 @@ public class ModelController implements ModelService, ModelInteractionService, T
                             String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result1);
                             delta.setOid(oid);
                         } else if (delta.isDelete()) {
-                            if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
-                                // getting the object is avoided in case of administrator's request in order to allow deleting malformed (unreadable) objects
-                                PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
-                                securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
-                            }
-                            if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
-                                Utils.clearRequestee(task);
-                                provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-                                        ProvisioningOperationOptions.createRaw(), null, task, result1);
-                            } else {
-                                cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-                                        result1);
+                            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
+                            try {
+                                if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+                                    // getting the object is avoided in case of administrator's request in order to allow deleting malformed (unreadable) objects
+                                    PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+                                    securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
+                                }
+                                if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
+                                    Utils.clearRequestee(task);
+                                    provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
+                                            ProvisioningOperationOptions.createRaw(), null, task, result1);
+                                } else {
+                                    cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
+                                            result1);
+                                }
+                            } finally {
+                                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
                             }
                         } else if (delta.isModify()) {
-                            PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
-                            securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result1);
-                            cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
-                                    delta.getModifications(), result1);
+                            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
+                            try {
+                                PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+                                securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result1);
+                                cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
+                                        delta.getModifications(), result1);
+                            } finally {
+                                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
+                            }
 							if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {	// treat filters that already exist in the object (case #2 above)
 								reevaluateSearchFilters(delta.getObjectTypeClass(), delta.getOid(), result1);
 							}
@@ -1107,6 +1118,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 			
 			try {
+                if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
+                    QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
+                }
                 switch (searchProvider) {
                     case REPOSITORY: list = cacheRepositoryService.searchObjects(type, query, options, result); break;
                     case PROVISIONING: list = provisioning.searchObjects(type, query, options, result); break;
@@ -1135,6 +1149,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} finally {
+                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace(result.dump(false));
 				}
