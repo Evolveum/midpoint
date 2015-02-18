@@ -95,7 +95,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -1309,7 +1309,7 @@ public class AssignmentProcessor {
 	}
 
 	private void checkExclusionOneWay(AbstractRoleType roleA, AbstractRoleType roleB) throws PolicyViolationException {
-		for (ExclusionType exclusionA :roleA.getExclusion()) {
+		for (ExclusionPolicyConstraintType exclusionA :roleA.getExclusion()) {
 			ObjectReferenceType targetRef = exclusionA.getTargetRef();
 			if (roleB.getOid().equals(targetRef.getOid())) {
 				throw new PolicyViolationException("Violation of SoD policy: "+roleA+" excludes "+roleB+
