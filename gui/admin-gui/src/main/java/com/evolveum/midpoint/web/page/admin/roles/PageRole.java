@@ -430,7 +430,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         };
         form.add(back);
 
-        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
+        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, true));
     }
 
     private void savePerformed(AjaxRequestTarget target){

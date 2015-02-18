@@ -564,13 +564,17 @@ public class ModelController implements ModelService, ModelInteractionService, T
                     retval.addAll(projectionContext.getExecutedDeltas());
                 }
 			}
-			
-			result.computeStatus();
 
-            if (result.isInProgress()) {       // todo fix this hack (computeStatus does not take the root-level status into account, but clockwork.run sets "in-progress" flag just at the root level)
+            // Clockwork.run sets "in-progress" flag just at the root level
+            // and result.computeStatus() would erase it.
+            // So we deal with it in a special way, in order to preserve this information for the user.
+            if (result.isInProgress()) {
+                result.computeStatus();
                 if (result.isSuccess()) {
                     result.recordInProgress();
                 }
+            } else {
+                result.computeStatus();
             }
             
             result.cleanupResult();
