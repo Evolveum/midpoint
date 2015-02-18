@@ -6731,6 +6731,20 @@
     	</xsd:annotation>
     	<xsd:sequence>
     		<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded"/>
+    		<xsd:element name="minAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Lowest number of objects that have this role assigned.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="maxAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Highest number of objects that have this role assigned.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
     	</xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -6778,6 +6792,31 @@
 		    				<xsd:appinfo>
 		    					<a:deprecated>true</a:deprecated>
 		    				</xsd:appinfo>
+		    			</xsd:annotation>
+		    		</xsd:element>
+		    	</xsd:sequence>
+		    </xsd:extension>
+		</xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="MultiplicityPolicyConstraintType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Constraint on various multiplicity properties,
+    			such as minimum and maximum assignmees
+    		</xsd:documentation>
+    		<xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:complexContent>
+    		<xsd:extension base="tns:AbstractPolicyConstraintType">
+		    	<xsd:sequence>
+		    		<xsd:element name="multiplicity" type="xsd:string">
+		    			<xsd:annotation>
+		    				<xsd:documentation>
+		    					Numeric value or string "unbounded".
+		    				</xsd:documentation>
 		    			</xsd:annotation>
 		    		</xsd:element>
 		    	</xsd:sequence>
