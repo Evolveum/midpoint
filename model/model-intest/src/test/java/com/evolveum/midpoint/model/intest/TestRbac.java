@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -1378,23 +1379,27 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         
-        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L);
-        
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, task, result);
-        
+        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, true, task);
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        assertTrue("task is not persistent", task.isPersistent());
         
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+
+        waitForTaskFinish(task.getOid(), true);
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
@@ -1405,24 +1410,27 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         
-        modifyRoleAddInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID);
-        
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, task, result);
-        
+        modifyRoleAddInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID, true, task);
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
+        TestUtil.assertInProgressOrSuccess(result);
+
+        assertTrue("task is not persistent", task.isPersistent());
+
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
-        
+
+        waitForTaskFinish(task.getOid(), true);
+
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
@@ -1484,7 +1492,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertAssignedNoRole(USER_JACK_OID, task, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
@@ -1496,6 +1504,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -1521,23 +1530,26 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         
-        modifyRoleAddInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID);
-        
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, task, result);
-        
+        modifyRoleAddInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID, true, task);
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
+        TestUtil.assertInProgressOrSuccess(result);
+
+        assertTrue("task is not persistent", task.isPersistent());
+
         assertAssignedRole(USER_JACK_OID, ROLE_EMPTY_OID, task, result);
+
+        waitForTaskFinish(task.getOid(), true);
         
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
