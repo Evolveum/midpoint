@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -165,6 +166,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.getNamespacePrefixMapper().registerPrefix(MidPointConstants.NS_RI, MidPointConstants.PREFIX_NS_RI, false);
         schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault(MidPointConstants.PREFIX_NS_RI); // declared by default
 
+        schemaRegistry.getNamespacePrefixMapper().registerPrefix(SchemaConstants.NS_ORG, SchemaConstants.PREFIX_NS_ORG, false);
     }
 	
 	private void setupDebug() {

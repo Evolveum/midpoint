@@ -530,7 +530,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
         };
         form.add(back);
 
-        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
+        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, false));          // TODO add "show reconcile affected" when implemented for Orgs
     }
 
     private boolean isEditing() {

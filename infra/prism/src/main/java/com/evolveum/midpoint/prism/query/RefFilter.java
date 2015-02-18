@@ -85,13 +85,20 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 		return new RefFilter(path, referenceDefinition, null, refValues);
 	}
 
+    // beware, creating reference with (oid, ObjectType) may result in not matching a concrete reference of e.g. (oid, RoleType)
 	public static <O extends Objectable> RefFilter createReferenceEqual(QName propertyName, Class<O> type, PrismContext prismContext,
 			String... oids) throws SchemaException {
 		ItemPath path = new ItemPath(propertyName);
 		PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
 		return createReferenceEqual(path, refDefinition, oids);
-
 	}
+
+    // beware, creating reference with (oid, ObjectType) may result in not matching a concrete reference of e.g. (oid, RoleType)
+    public static <O extends Objectable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
+                                                                        String... oids) throws SchemaException {
+        PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
+        return createReferenceEqual(path, refDefinition, oids);
+    }
 
     public static <O extends Objectable> RefFilter createReferenceEqual(ItemPath path, Class<O> type, PrismContext prismContext,
                                                                         PrismReferenceValue... values) throws SchemaException {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 <user oid="00000000-0000-0000-0000-000000000002" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
 	<name>administrator</name>
 	<fullName>midPoint Administrator</fullName>
@@ -30,15 +31,6 @@
 		<password>
 			<value>
                      <t:clearValue>5ecr3t</t:clearValue>
-<!--                 <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"> -->
-<!--                     <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/> -->
-<!--                     <ds:KeyInfo> -->
-<!--                         <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName> -->
-<!--                     </ds:KeyInfo> -->
-<!--                     <enc:CipherData> -->
-<!--                         <enc:CipherValue>R8JV6Bsf6Hjh1yodavjZ0cPshnGyHdspmANJmCQe2zXo7brYj1I/Bs5LGTZNI4k8</enc:CipherValue> -->
-<!--                     </enc:CipherData> -->
-<!--                 </enc:EncryptedData> -->
             </value>
 		</password>
 	</credentials>

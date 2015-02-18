@@ -161,7 +161,7 @@ public class PageUsers extends PageAdminUsers {
         initSearch();
         initTable(mainForm);
 
-        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, false, false));
+        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, false, false, false));
     }
 
     private IModel<String> createDeleteConfirmString() {

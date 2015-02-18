@@ -99,6 +99,8 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -149,6 +151,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -561,13 +564,17 @@ public class ModelController implements ModelService, ModelInteractionService, T
                     retval.addAll(projectionContext.getExecutedDeltas());
                 }
 			}
-			
-			result.computeStatus();
 
-            if (result.isInProgress()) {       // todo fix this hack (computeStatus does not take the root-level status into account, but clockwork.run sets "in-progress" flag just at the root level)
+            // Clockwork.run sets "in-progress" flag just at the root level
+            // and result.computeStatus() would erase it.
+            // So we deal with it in a special way, in order to preserve this information for the user.
+            if (result.isInProgress()) {
+                result.computeStatus();
                 if (result.isSuccess()) {
                     result.recordInProgress();
                 }
+            } else {
+                result.computeStatus();
             }
             
             result.cleanupResult();
@@ -886,17 +893,37 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			
 			List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
 			if (limitations != null) {
-				// TODO
+				PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, LayerType.PRESENTATION);
+				if (limitationsType != null) {
+					if (limitationsType.getMinOccurs() != null) {
+						itemDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));
+					}
+					if (limitationsType.getMaxOccurs() != null) {
+						itemDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMaxOccurs()));
+					}
+					if (limitationsType.isIgnore() != null) {
+						itemDef.setIgnored(limitationsType.isIgnore());
+					}
+					PropertyAccessType accessType = limitationsType.getAccess();
+					if (accessType != null) {
+						if (accessType.isAdd() != null) {
+							itemDef.setCanAdd(accessType.isAdd());
+						}
+						if (accessType.isModify() != null) {
+							itemDef.setCanModify(accessType.isModify());
+						}
+						if (accessType.isRead() != null) {
+							itemDef.setCanRead(accessType.isRead());
+						}
+					}
+				}
 			}
 			
 			ObjectReferenceType valueEnumerationRef = templateItemDefType.getValueEnumerationRef();
 			if (valueEnumerationRef != null) {
 				PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
 				itemDef.setValueEnumerationRef(valueEnumerationRVal);
-			}
-			
-			// TODO
-			
+			}			
 		}
 	}
 	
