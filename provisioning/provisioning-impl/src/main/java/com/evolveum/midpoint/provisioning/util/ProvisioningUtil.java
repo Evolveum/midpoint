@@ -295,7 +295,7 @@ public class ProvisioningUtil {
 		// Password
 		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(
 				resource, CredentialsCapabilityType.class);
-		if (CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
+		if (!CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
 			// There resource is capable of returning password but it does not
 			// do it by default
 			AttributeFetchStrategyType passwordFetchStrategy = objectClassDefinition

@@ -69,6 +69,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -199,7 +200,7 @@ public class TestDummy extends AbstractDummyTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		InternalMonitor.setTraceConnectorOperation(true);
+//		InternalMonitor.setTraceConnectorOperation(true);
 	}
 
 	@Test
@@ -1011,7 +1012,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 
-	private void checkAccountShadowWill(PrismObject<ShadowType> accountRepo) {
+	protected void checkAccountShadowWill(PrismObject<ShadowType> accountRepo) {
 		display("Will account repo", accountRepo);
 		ShadowType accountTypeRepo = accountRepo.asObjectable();
 		assertShadowName(accountRepo, ACCOUNT_WILL_USERNAME);
@@ -1113,7 +1114,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 
-	private void checkAccountWill(ShadowType shadow, OperationResult result) {
+	protected void checkAccountWill(ShadowType shadow, OperationResult result) throws SchemaException, EncryptionException {
 		checkAccountShadow(shadow, result);
 		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
 		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
