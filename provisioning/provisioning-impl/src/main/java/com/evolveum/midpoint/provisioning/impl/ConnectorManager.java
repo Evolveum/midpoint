@@ -483,7 +483,11 @@ public class ConnectorManager {
 		return false;
 	}
 
-	private class ConfiguredConnectorInstanceEntry {
+    public String getFrameworkVersion() {
+        return connectorFactory.getFrameworkVersion();
+    }
+
+    private class ConfiguredConnectorInstanceEntry {
 		public String connectorOid;
 		public PrismContainer configuration;
 		public ConnectorInstance connectorInstance;

@@ -40,6 +40,7 @@ import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.configuration.Configuration;
+import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;
 import org.identityconnectors.common.security.EncryptorFactory;
 import org.identityconnectors.common.security.GuardedString;
@@ -61,6 +62,7 @@ import org.identityconnectors.framework.api.operations.SyncApiOp;
 import org.identityconnectors.framework.api.operations.TestApiOp;
 import org.identityconnectors.framework.api.operations.UpdateApiOp;
 import org.identityconnectors.framework.api.operations.ValidateApiOp;
+import org.identityconnectors.framework.common.FrameworkUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
@@ -702,7 +704,16 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		selfTestGuardedString(parentTestResult);
 	}
 
-	private void selfTestGuardedString(OperationResult parentTestResult) {
+    @Override
+    public String getFrameworkVersion() {
+        Version version = FrameworkUtil.getFrameworkVersion();
+        if (version == null) {
+            return null;
+        }
+        return version.getVersion();
+    }
+
+    private void selfTestGuardedString(OperationResult parentTestResult) {
 		OperationResult result = parentTestResult.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString");
 		
 		OperationResult subresult = result.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString.encryptorReflection");
