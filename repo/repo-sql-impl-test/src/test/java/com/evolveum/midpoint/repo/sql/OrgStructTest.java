@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,21 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Query;
@@ -590,7 +596,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test011OrgFilter() throws Exception {
-        OperationResult opResult = new OperationResult("test011OrgFilter");
+    	final String TEST_NAME = "test011OrgFilter";
+    	TestUtil.displayTestTile(TEST_NAME);
+        OperationResult opResult = new OperationResult(TEST_NAME);
 
         ObjectQuery query = new ObjectQuery();
         PrismReferenceValue baseOrgRef = new PrismReferenceValue(ORG_F001_OID);
@@ -600,8 +608,70 @@ public class OrgStructTest extends BaseSQLRepoTest {
         query.setFilter(filter);
         query.setPaging(paging);
 
+        // WHEN
         List<PrismObject<ObjectType>> orgClosure = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
 
+        // THEN
         AssertJUnit.assertEquals(4, orgClosure.size());
     }
+    
+    @Test
+    public void test100ParentOrgRefFilterNullRelation() throws Exception {
+    	final String TEST_NAME = "test100ParentOrgRefFilterNullRelation";
+    	TestUtil.displayTestTile(TEST_NAME);
+        OperationResult opResult = new OperationResult(TEST_NAME);
+
+        ObjectQuery query = new ObjectQuery();
+        PrismReferenceValue refVal = new PrismReferenceValue(ORG_F001_OID);
+		ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(ObjectType.F_PARENT_ORG_REF),
+        		UserType.class, prismContext, refVal);
+        query.setFilter(filter);
+
+        // WHEN
+        List<PrismObject<ObjectType>> orgs = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
+
+        // THEN
+        PrismAsserts.assertOids(orgs, ORG_F002_OID, ORG_F003_OID, ORG_F004_OID, ELAINE_OID);
+    }
+    
+    @Test
+    public void test101ParentOrgRefFilterManagerRelation() throws Exception {
+    	final String TEST_NAME = "test101ParentOrgRefFilterManagerRelation";
+    	TestUtil.displayTestTile(TEST_NAME);
+        OperationResult opResult = new OperationResult(TEST_NAME);
+
+        ObjectQuery query = new ObjectQuery();
+        PrismReferenceValue refVal = new PrismReferenceValue(ORG_F001_OID);
+        refVal.setRelation(SchemaConstants.ORG_MANAGER);
+		ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(ObjectType.F_PARENT_ORG_REF),
+        		UserType.class, prismContext, refVal);
+        query.setFilter(filter);
+
+        // WHEN
+        List<PrismObject<ObjectType>> orgs = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
+
+        // THEN
+        PrismAsserts.assertOids(orgs, ELAINE_OID);
+    }
+    
+    @Test
+    public void test102ParentOrgRefFilterAnyRelation() throws Exception {
+    	final String TEST_NAME = "test102ParentOrgRefFilterAnyRelation";
+    	TestUtil.displayTestTile(TEST_NAME);
+        OperationResult opResult = new OperationResult(TEST_NAME);
+
+        ObjectQuery query = new ObjectQuery();
+        PrismReferenceValue refVal = new PrismReferenceValue(ORG_F001_OID);
+        refVal.setRelation(PrismConstants.Q_ANY);
+		ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(ObjectType.F_PARENT_ORG_REF),
+        		UserType.class, prismContext, refVal);
+        query.setFilter(filter);
+
+        // WHEN
+        List<PrismObject<ObjectType>> orgs = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
+
+        // THEN
+        PrismAsserts.assertOids(orgs, ORG_F002_OID, ORG_F003_OID, ORG_F004_OID, ELAINE_OID, ELAINE_OID);
+    }
+
 }
