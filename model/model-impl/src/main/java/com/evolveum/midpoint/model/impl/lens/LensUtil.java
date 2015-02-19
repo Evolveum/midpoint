@@ -571,6 +571,8 @@ public class LensUtil {
 		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
 		try {
 			mapping.evaluate(task, parentResult);
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException(e.getMessage()+" in "+mapping.getContextDescription(), e);
 		} finally {
 			ModelExpressionThreadLocalHolder.popLensContext();
 			ModelExpressionThreadLocalHolder.popCurrentResult();
