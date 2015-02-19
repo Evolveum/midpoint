@@ -47,6 +47,17 @@
 	<schemaHandling>
 		<objectType>
 			<kind>account</kind>
+			<intent>fake</intent>
+			<displayName>Fake Account</displayName>
+			<description>
+				Fake object type definition. It is not used for anything.
+				It is here only to try to confuse the provisioning code.
+			</description>
+			<default>false</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+		</objectType>
+		<objectType>
+			<kind>account</kind>
 			<intent>default</intent>
 			<displayName>Default Account</displayName>
 			<default>true</default>

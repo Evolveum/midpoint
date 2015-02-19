@@ -147,6 +147,17 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
     public RefinedObjectClassDefinition getRefinedDefinition(QName objectClassName) {
 		for (Definition def: definitions) {
 			if ((def instanceof RefinedObjectClassDefinition) 
+					&& ((RefinedObjectClassDefinition)def).isDefault()
+					&& (QNameUtil.match(def.getTypeName(), objectClassName))) {
+                    //&& (def.getTypeName().equals(objectClassName))) {
+				return (RefinedObjectClassDefinition)def;
+			}
+		}
+		// No default for this object class, so just use the first one.
+		// This is not strictly correct .. but it is a "compatible bug" :-)
+		// TODO: remove this in next major revision
+		for (Definition def: definitions) {
+			if ((def instanceof RefinedObjectClassDefinition) 
 					&& (QNameUtil.match(def.getTypeName(), objectClassName))) {
                     //&& (def.getTypeName().equals(objectClassName))) {
 				return (RefinedObjectClassDefinition)def;
@@ -175,6 +186,14 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 		if (objectClass == null) {
 			return getDefaultRefinedDefinition(kind);
 		}
+		for (RefinedObjectClassDefinition acctDef: getRefinedDefinitions(kind)) {
+			if (acctDef.isDefault() && QNameUtil.match(acctDef.getObjectClassDefinition().getTypeName(), objectClass)) {
+				return acctDef;
+			}
+		}
+		// No default for this object class, so just use the first one.
+		// This is not strictly correct .. but it is a "compatible bug" :-)
+		// TODO: remove this in next major revision
 		for (RefinedObjectClassDefinition acctDef: getRefinedDefinitions(kind)) {
 			if (QNameUtil.match(acctDef.getObjectClassDefinition().getTypeName(), objectClass)) {
 				return acctDef;

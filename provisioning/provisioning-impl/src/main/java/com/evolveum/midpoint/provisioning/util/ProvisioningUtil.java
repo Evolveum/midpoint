@@ -296,9 +296,7 @@ public class ProvisioningUtil {
 		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(
 				resource, CredentialsCapabilityType.class);
 		if (credentialsCapabilityType != null) {
-			if (CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
-				attributesToReturn.setReturnPasswordExplicit(true);
-			} else {
+			if (!CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
 				// There resource is capable of returning password but it does not
 				// do it by default
 				AttributeFetchStrategyType passwordFetchStrategy = objectClassDefinition
@@ -306,7 +304,7 @@ public class ProvisioningUtil {
 				if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 					attributesToReturn.setReturnPasswordExplicit(true);
 					apply = true;
-				}			
+				}
 			}
 		}
 
@@ -314,9 +312,7 @@ public class ProvisioningUtil {
 		ActivationCapabilityType activationCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
 		if (activationCapabilityType != null) {
-			if (CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
-				attributesToReturn.setReturnAdministrativeStatusExplicit(true);
-			} else {
+			if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
 				// There resource is capable of returning enable flag but it does
 				// not do it by default
 				AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
@@ -326,9 +322,7 @@ public class ProvisioningUtil {
 					apply = true;
 				}
 			}
-			if (CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
-				attributesToReturn.setReturnLockoutStatusExplicit(true);
-			} else {
+			if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
 				// There resource is capable of returning lockout flag but it does
 				// not do it by default
 				AttributeFetchStrategyType statusFetchStrategy = objectClassDefinition
