@@ -153,11 +153,16 @@
                     </password>
                 </credentials>
 
-<!--		<activation>
-                    <enabled>
-                        <inbound/>
-                    </enabled>
-                </activation> -->
+		<activation>
+                    <administrativeStatus>
+                        <inbound>
+                            <strength>weak</strength>
+                            <expression>
+                                <value>enabled</value>
+                            </expression>
+                        </inbound>
+                    </administrativeStatus>
+                </activation>
 
             </objectType>
         </schemaHandling>
