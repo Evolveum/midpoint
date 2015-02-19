@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.schema.LabeledString;
+import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -61,6 +62,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_TEST_REPOSITORY = DOT_CLASS + "testRepository";
     private static final String OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE = DOT_CLASS + "testRepositoryCheckOrgClosure";
     private static final String OPERATION_GET_REPO_DIAG = DOT_CLASS + "getRepoDiag";
+    private static final String OPERATION_GET_PROVISIONING_DIAG = DOT_CLASS + "getProvisioningDiag";
 
     private static final String ID_REVISION = "revision";
     private static final String ID_PROPERTY = "property";
@@ -78,6 +80,9 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_ADDITIONAL_DETAILS = "additionalDetails";
     private static final String ID_DETAIL_NAME = "detailName";
     private static final String ID_DETAIL_VALUE = "detailValue";
+    private static final String ID_PROVISIONING_ADDITIONAL_DETAILS = "provisioningAdditionalDetails";
+    private static final String ID_PROVISIONING_DETAIL_NAME = "provisioningDetailName";
+    private static final String ID_PROVISIONING_DETAIL_VALUE = "provisioningDetailValue";
     private static final String ID_JVM_PROPERTIES = "jvmProperties";
 
     private static final String[] PROPERTIES = new String[]{"file.separator", "java.class.path",
@@ -85,6 +90,7 @@ public class PageAbout extends PageAdminConfiguration {
             "os.name", "os.version", "path.separator", "user.dir", "user.home", "user.name"};
 
     private IModel<RepositoryDiag> repoDiagModel;
+    private IModel<ProvisioningDiag> provisioningDiagModel;
 
     public PageAbout() {
         repoDiagModel = new LoadableModel<RepositoryDiag>(false) {
@@ -92,6 +98,13 @@ public class PageAbout extends PageAdminConfiguration {
             @Override
             protected RepositoryDiag load() {
                 return loadRepoDiagModel();
+            }
+        };
+        provisioningDiagModel = new LoadableModel<ProvisioningDiag>(false) {
+
+            @Override
+            protected ProvisioningDiag load() {
+                return loadProvisioningDiagModel();
             }
         };
         initLayout();
@@ -143,6 +156,24 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(additionalDetails);
+
+        ListView<LabeledString> provisioningAdditionalDetails = new ListView<LabeledString>(ID_PROVISIONING_ADDITIONAL_DETAILS,
+                new PropertyModel<List<? extends LabeledString>>(provisioningDiagModel, "additionalDetails")) {
+
+            @Override
+            protected void populateItem(ListItem<LabeledString> item) {
+                LabeledString labeledString = item.getModelObject();
+
+                Label property = new Label(ID_PROVISIONING_DETAIL_NAME, labeledString.getLabel());
+                property.setRenderBodyOnly(true);
+                item.add(property);
+
+                Label value = new Label(ID_PROVISIONING_DETAIL_VALUE, labeledString.getData());
+                value.setRenderBodyOnly(true);
+                item.add(value);
+            }
+        };
+        add(provisioningAdditionalDetails);
 
         Label jvmProperties = new Label(ID_JVM_PROPERTIES, new LoadableModel<String>(false) {
 
@@ -213,6 +244,27 @@ public class PageAbout extends PageAdminConfiguration {
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't get repo diagnostics", ex);
             result.recordFatalError("Couldn't get repo diagnostics.", ex);
+        }
+        result.recomputeStatus();
+
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+            showResult(result);
+        }
+
+        return diag;
+    }
+
+    private ProvisioningDiag loadProvisioningDiagModel() {
+        OperationResult result = new OperationResult(OPERATION_GET_PROVISIONING_DIAG);
+        ProvisioningDiag diag = null;
+        try {
+            Task task = createSimpleTask(OPERATION_GET_PROVISIONING_DIAG);
+            diag = getModelDiagnosticService().getProvisioningDiag(task, result);
+
+            result.recordSuccessIfUnknown();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't get provisioning diagnostics", ex);
+            result.recordFatalError("Couldn't get provisioning diagnostics.", ex);
         }
         result.recomputeStatus();
 

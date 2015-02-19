@@ -1381,7 +1381,7 @@ public class AssignmentProcessor {
 						if (multiplicity >= 0 && assigneeCount < multiplicity && plusMinus == PlusMinusZero.MINUS) {
 							if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
 								throw new PolicyViolationException("Policy violation: "+target+" requires at least "+multiplicity+
-										" assignees. The operation would result in "+assigneeCount+" assignees."+plusMinus);
+										" assignees. The operation would result in "+assigneeCount+" assignees.");
 							}
 						}
 					}
@@ -1391,7 +1391,7 @@ public class AssignmentProcessor {
 						if (multiplicity >= 0 && assigneeCount > multiplicity && plusMinus == PlusMinusZero.PLUS) {
 							if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
 								throw new PolicyViolationException("Policy violation: "+target+" requires at most "+multiplicity+
-										" assignees. The operation would result in "+assigneeCount+" assignees."+plusMinus);
+										" assignees. The operation would result in "+assigneeCount+" assignees.");
 							}
 						}
 					}

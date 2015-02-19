@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.ProvisioningDiag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -132,7 +133,12 @@ public class ModelDiagController implements ModelDiagnosticService {
 		return testResult;
 	}
 
-	private void repositorySelfTestUser(Task task, OperationResult testResult) {
+    @Override
+    public ProvisioningDiag getProvisioningDiag(Task task, OperationResult parentResult) {
+        return provisioningService.getProvisioningDiag();
+    }
+
+    private void repositorySelfTestUser(Task task, OperationResult testResult) {
 		OperationResult result = testResult.createSubresult(REPOSITORY_SELF_TEST_USER);
 		
 		PrismObject<UserType> user = getObjectDefinition(UserType.class).instantiate(); 
