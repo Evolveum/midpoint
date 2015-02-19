@@ -70,7 +70,7 @@
 		<name>F0200</name>
 		<description>Everything that moves or otherwise.</description>
 		<parentOrgRef oid="c74a7d86-7798-11e2-964e-100000000000" type="c:OrgType"/>
-		<assignment>
+		<inducement>
 			<description>Access to engineering library</description>
 			<construction>
 		    		<resourceRef oid="12c78a70-76b7-11e2-9cb3-001e8c717e5b" type="c:ResourceType"/>
@@ -83,6 +83,7 @@
 		                    	</expression>
 		                    </outbound>
 		                </attribute>
+<!--
 				<attribute>
 		                    <ref>ri:ldapGroups</ref>
 		                    <outbound>
@@ -91,8 +92,30 @@
 		                    	</expression>
 		                    </outbound>
 		                </attribute>
+-->
+				<association>
+					<ref>ri:ldapGroups</ref>
+					<outbound>
+						<expression>
+							<associationTargetSearch>
+								<filter>
+									<q:equal>
+										<q:path>
+					declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+					declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+					<!--attributes/icfs:name-->
+					attributes/ri:cn
+										</q:path>
+										<q:value>library</q:value>
+									</q:equal>
+								</filter>
+								<searchOnResource>true</searchOnResource>
+							</associationTargetSearch>
+						</expression>
+				</outbound>
+				</association>
 		    </construction>
-		</assignment>
+		</inducement>
 		<displayName>Department of Machines</displayName>
 		<identifier>0200</identifier>
 		<orgType>functional</orgType>
