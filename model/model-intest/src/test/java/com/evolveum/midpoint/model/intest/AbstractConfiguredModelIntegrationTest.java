@@ -266,6 +266,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final File ACCOUNT_SHADOW_ELAINE_DUMMY_FILE = new File(COMMON_DIR, "account-elaine-dummy.xml");
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_USERNAME = USER_ELAINE_USERNAME;
+	public static final String ACCOUNT_ELAINE_DUMMY_FULLNAME = "Elaine Marley";
 	
 	public static final File ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILE = new File(COMMON_DIR, "account-elaine-dummy-red.xml");
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID = "c0c010c0-d34d-b33f-f00d-22220104000e";

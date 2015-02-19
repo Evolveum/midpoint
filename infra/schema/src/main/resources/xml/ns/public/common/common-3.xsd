@@ -6259,11 +6259,15 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-					<xsd:element name="exclusion" type="tns:ExclusionType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
 								Specification of excluded roles (part of Segregation of Duties policy).
+								DEPRECATED. Use policyConstraints instead.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
@@ -6336,6 +6340,14 @@
 		                   </xsd:documentation>
 		               </xsd:annotation>
 		           </xsd:element>
+		           <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								Set of governance, risk management, compliance (GRC) and similar policy contraints
+								that influence the identity model.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -6707,7 +6719,54 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="ExclusionType">
+    <xsd:complexType name="PolicyConstraintsType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Set of governance, risk management, compliance (GRC) and similar policy contraints
+				that influence the identity model.
+    		</xsd:documentation>
+    		<xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded"/>
+    		<xsd:element name="minAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Lowest number of objects that have this role assigned.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="maxAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Highest number of objects that have this role assigned.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    	</xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+	<xsd:complexType name="AbstractPolicyConstraintType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Basic data structure for all policy constraints.
+    		</xsd:documentation>
+    		<xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element ref="tns:description" minOccurs="0"/>
+    		<xsd:element name="enforcement" type="tns:PolicyConstraintEnforcementType" minOccurs="0" default="enforce"/>
+    		<!-- TODO: remediation -->
+    	</xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ExclusionPolicyConstraintType">
     	<xsd:annotation>
     		<xsd:documentation>
     			Container that defines exclusion of entities (e.g. roles).
@@ -6717,20 +6776,100 @@
                 <a:container/>
             </xsd:appinfo>
     	</xsd:annotation>
-    	<xsd:sequence>
-    		<xsd:element ref="tns:description" minOccurs="0"/>
-    		<xsd:element name="targetRef" type="tns:ObjectReferenceType">
-    			<xsd:annotation>
-    				<xsd:documentation>
-    					Target of exclusion. The object defining this "exclustion" and
-    					the object defined as target cannot be assigned at the same time.
-    				</xsd:documentation>
-    			</xsd:annotation>
-    		</xsd:element>
-    		<xsd:element name="policy" type="tns:ExclusionPolicyType" minOccurs="0"/>
-    	</xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    	<xsd:complexContent>
+    		<xsd:extension base="tns:AbstractPolicyConstraintType">
+		    	<xsd:sequence>
+		    		<xsd:element name="targetRef" type="tns:ObjectReferenceType">
+		    			<xsd:annotation>
+		    				<xsd:documentation>
+		    					Target of exclusion. The object defining this "exclustion" and
+		    					the object defined as target cannot be assigned at the same time.
+		    				</xsd:documentation>
+		    			</xsd:annotation>
+		    		</xsd:element>
+		    		<xsd:element name="policy" type="tns:ExclusionPolicyType" minOccurs="0">
+		    			<xsd:annotation>
+		    				<xsd:appinfo>
+		    					<a:deprecated>true</a:deprecated>
+		    				</xsd:appinfo>
+		    			</xsd:annotation>
+		    		</xsd:element>
+		    	</xsd:sequence>
+		    </xsd:extension>
+		</xsd:complexContent>
     </xsd:complexType>
+    
+    <xsd:complexType name="MultiplicityPolicyConstraintType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Constraint on various multiplicity properties,
+    			such as minimum and maximum assignmees
+    		</xsd:documentation>
+    		<xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:complexContent>
+    		<xsd:extension base="tns:AbstractPolicyConstraintType">
+		    	<xsd:sequence>
+		    		<xsd:element name="multiplicity" type="xsd:string">
+		    			<xsd:annotation>
+		    				<xsd:documentation>
+		    					Numeric value or string "unbounded".
+		    				</xsd:documentation>
+		    			</xsd:annotation>
+		    		</xsd:element>
+		    	</xsd:sequence>
+		    </xsd:extension>
+		</xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="PolicyConstraintEnforcementType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Enumeration of exclustion policy enforcement types.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="enforce">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Strictly enforce the policy. Any operation that attempts to violate
+                		the policy will fail.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENFORCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="remediate">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		The operation that attempts to violate the policy will be suspended.
+                		Remediation action will take place. This may be used e.g. to approve the
+                		exceptions from the policy. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REMEDIATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="report">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Policy will not be enforced in any way, the violations will only
+                		be reported.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:simpleType name="ExclusionPolicyType">
         <xsd:annotation>
@@ -6739,6 +6878,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
+                <a:deprecated>true</a:deprecated>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -6776,7 +6916,6 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-    
 
     <xsd:complexType name="ConstructionType">
        <xsd:annotation>
