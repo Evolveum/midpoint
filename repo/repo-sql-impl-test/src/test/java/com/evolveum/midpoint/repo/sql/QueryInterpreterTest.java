@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Query;
@@ -69,6 +70,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -342,6 +344,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             //or
             Conjunction c4 = Restrictions.conjunction();
             c4.add(Restrictions.eq("r.resourceRef.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"));
+            c4.add(Restrictions.eq("r.resourceRef.relation", "#"));
             c4.add(Restrictions.eq("r.resourceRef.type", QNameUtil.qNameToUri(ResourceType.COMPLEX_TYPE)));
 
             Disjunction disjunction = Restrictions.disjunction();
@@ -497,6 +500,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             //and
             Conjunction c1 = Restrictions.conjunction();
             c1.add(Restrictions.eq("r.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b"));
+            c1.add(Restrictions.eq("r.resourceRef.relation", "#"));
             c1.add(Restrictions.eq("r.resourceRef.type", QNameUtil.qNameToUri(ResourceType.COMPLEX_TYPE)));
             //and
             Conjunction c2 = Restrictions.conjunction();
@@ -533,7 +537,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             main.setProjection(projections);
 
             Criteria refs = main.createCriteria("linkRef", "l", JoinType.LEFT_OUTER_JOIN);
-            refs.add(Restrictions.conjunction().add(Restrictions.eq("l.targetOid", "123")));
+            Conjunction c = Restrictions.conjunction();
+            c.add(Restrictions.eq("l.targetOid", "123"));
+            c.add(Restrictions.eq("l.relation", "#"));
+            refs.add(c);
 
             String expected = HibernateToSqlTranslator.toSql(main);
 
@@ -561,6 +568,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             c0.add(Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS));
             Conjunction c1 = Restrictions.conjunction();
             c1.add(Restrictions.eq("a.targetRef.targetOid", "123"));
+            c1.add(Restrictions.eq("a.targetRef.relation", "#"));
             c1.add(Restrictions.eq("a.targetRef.type", RObjectType.ROLE));
             c0.add(c1);
             a.add(c0);
@@ -1490,7 +1498,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             c.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.USER));
 
             Criteria refs = main.createCriteria("linkRef", "l", JoinType.LEFT_OUTER_JOIN);
-            c.add(Restrictions.and(Restrictions.eq("l.targetOid", "123")));
+            c.add(Restrictions.and(Restrictions.eq("l.targetOid", "123"),Restrictions.eq("l.relation", "#")));
 
             String expected = HibernateToSqlTranslator.toSql(main);
 

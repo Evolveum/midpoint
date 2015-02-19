@@ -43,20 +43,27 @@
         </div>
         <div class="col-md-8">
             <form class="clearfix form-horizontal" wicket:id="form">
-                <div class="tree-table-header">
-                    <wicket:message key="TreeTablePanel.childOrg"/>
+                <div wicket:id="childOrgContainer">
+                    <div class="tree-table-header">
+                        <wicket:message key="TreeTablePanel.childOrg"/>
+                    </div>
+                    <div wicket:id="childUnitTable"/>
                 </div>
-                <div wicket:id="childUnitTable"/>
 
-                <div class="tree-table-header">
-                    <wicket:message key="TreeTablePanel.managers"/>
+                <div wicket:id="managerContainer">
+                    <div class="tree-table-header">
+                        <wicket:message key="TreeTablePanel.managers"/>
+                    </div>
+                    <div wicket:id="managerTable"/>
                 </div>
-                <div wicket:id="managerTable"/>
 
-                <div class="tree-table-header">
-                    <wicket:message key="TreeTablePanel.members"/>
+                <div wicket:id="memberContainer">
+                    <div class="tree-table-header">
+                        <wicket:message key="TreeTablePanel.members"/>
+                    </div>
+                    <div wicket:id="memberTable"/>
                 </div>
-                <div wicket:id="memberTable"/>
+
             </form>
         </div>
     </div>

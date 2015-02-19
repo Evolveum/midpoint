@@ -118,6 +118,9 @@ public class TreeTablePanel extends SimplePanel<String> {
 
     private static final String ID_TREE = "tree";
     private static final String ID_TREE_CONTAINER = "treeContainer";
+    private static final String ID_CONTAINER_CHILD_ORGS = "childOrgContainer";
+    private static final String ID_CONTAINER_MANAGER = "managerContainer";
+    private static final String ID_CONTAINER_MEMBER = "memberContainer";
     private static final String ID_CHILD_TABLE = "childUnitTable";
     private static final String ID_MANAGER_TABLE = "managerTable";
     private static final String ID_MEMBER_TABLE = "memberTable";
@@ -291,7 +294,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         form.setOutputMarkupId(true);
         add(form);
 
-        //Child Table Initialization
+        //Child org. units container initialization
         final ObjectDataProvider childTableProvider = new ObjectDataProvider<OrgTableDto, OrgType>(this, OrgType.class) {
 
             @Override
@@ -306,6 +309,18 @@ public class TreeTablePanel extends SimplePanel<String> {
         };
         childTableProvider.setOptions(WebModelUtils.createMinimalOptions());
 
+        WebMarkupContainer childOrgUnitContainer = new WebMarkupContainer(ID_CONTAINER_CHILD_ORGS);
+        childOrgUnitContainer.setOutputMarkupId(true);
+        childOrgUnitContainer.setOutputMarkupPlaceholderTag(true);
+        childOrgUnitContainer.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return childTableProvider.size() != 0;
+            }
+        });
+        form.add(childOrgUnitContainer);
+
         List<IColumn<OrgTableDto, String>> childTableColumns = createChildTableColumns();
         final TablePanel childTable = new TablePanel<>(ID_CHILD_TABLE, childTableProvider, childTableColumns,
                 UserProfileStorage.TableId.TREE_TABLE_PANEL_CHILD, UserProfileStorage.DEFAULT_PAGING_SIZE);
@@ -317,9 +332,9 @@ public class TreeTablePanel extends SimplePanel<String> {
                 return childTableProvider.size() > childTable.getDataTable().getItemsPerPage();
             }
         });
-        form.add(childTable);
+        childOrgUnitContainer.add(childTable);
 
-        //Manager Table Initialization
+        //Manager container initialization
         final ObjectDataProvider managerTableProvider = new ObjectDataProvider<OrgTableDto, UserType>(this, UserType.class) {
 
             @Override
@@ -334,6 +349,18 @@ public class TreeTablePanel extends SimplePanel<String> {
         };
         managerTableProvider.setOptions(WebModelUtils.createMinimalOptions());
 
+        WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
+        managerContainer.setOutputMarkupId(true);
+        managerContainer.setOutputMarkupPlaceholderTag(true);
+        managerContainer.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return managerTableProvider.size() != 0;
+            }
+        });
+        form.add(managerContainer);
+
         List<IColumn<OrgTableDto, String>> managerTableColumns = createUserTableColumns(true);
         final TablePanel managerTablePanel = new TablePanel<>(ID_MANAGER_TABLE, managerTableProvider, managerTableColumns,
                 UserProfileStorage.TableId.TREE_TABLE_PANEL_MANAGER, UserProfileStorage.DEFAULT_PAGING_SIZE);
@@ -345,9 +372,9 @@ public class TreeTablePanel extends SimplePanel<String> {
                 return managerTableProvider.size() > managerTablePanel.getDataTable().getItemsPerPage();
             }
         });
-        form.add(managerTablePanel);
+        managerContainer.add(managerTablePanel);
 
-        //Member Table Initialization
+        //Member container initialization
         final ObjectDataProvider memberTableProvider = new ObjectDataProvider<OrgTableDto, UserType>(this, UserType.class) {
 
             @Override
@@ -362,6 +389,18 @@ public class TreeTablePanel extends SimplePanel<String> {
         };
         memberTableProvider.setOptions(WebModelUtils.createMinimalOptions());
 
+        WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);
+        memberContainer.setOutputMarkupId(true);
+        memberContainer.setOutputMarkupPlaceholderTag(true);
+        memberContainer.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return memberTableProvider.size() != 0;
+            }
+        });
+        form.add(memberContainer);
+
         List<IColumn<OrgTableDto, String>> memberTableColumns = createUserTableColumns(false);
         final TablePanel memberTablePanel = new TablePanel<>(ID_MEMBER_TABLE, memberTableProvider, memberTableColumns,
                 UserProfileStorage.TableId.TREE_TABLE_PANEL_MEMBER, UserProfileStorage.DEFAULT_PAGING_SIZE);
@@ -373,7 +412,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                 return memberTableProvider.size() > memberTablePanel.getDataTable().getItemsPerPage();
             }
         });
-        form.add(memberTablePanel);
+        memberContainer.add(memberTablePanel);
     }
 
     /**
@@ -1012,16 +1051,28 @@ public class TreeTablePanel extends SimplePanel<String> {
         return (TableTree<OrgTreeDto, String>) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
     }
 
+    private WebMarkupContainer getOrgChildContainer() {
+        return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_CHILD_ORGS));
+    }
+
+    private WebMarkupContainer getMemberContainer() {
+        return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER));
+    }
+
+    private WebMarkupContainer getManagerContainer() {
+        return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_MANAGER));
+    }
+
     private TablePanel getOrgChildTable() {
-        return (TablePanel) get(createComponentPath(ID_FORM, ID_CHILD_TABLE));
+        return (TablePanel) get(createComponentPath(ID_FORM, ID_CONTAINER_CHILD_ORGS, ID_CHILD_TABLE));
     }
 
     private TablePanel getMemberTable() {
-        return (TablePanel) get(createComponentPath(ID_FORM, ID_MEMBER_TABLE));
+        return (TablePanel) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
     }
 
     private TablePanel getManagerTable() {
-        return (TablePanel) get(createComponentPath(ID_FORM, ID_MANAGER_TABLE));
+        return (TablePanel) get(createComponentPath(ID_FORM, ID_CONTAINER_MANAGER, ID_MANAGER_TABLE));
     }
 
     private void selectTreeItemPerformed(AjaxRequestTarget target) {
@@ -1037,7 +1088,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         TablePanel managerTable = getManagerTable();
         managerTable.setCurrentPage(null);
 
-        target.add(orgTable, memberTable, managerTable);
+        target.add(getOrgChildContainer(), getMemberContainer(), getManagerContainer());
         target.add(get(ID_SEARCH_FORM));
     }
 
@@ -1217,7 +1268,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         ObjectDataProvider managerProvider = (ObjectDataProvider) getManagerTable().getDataTable().getDataProvider();
         managerProvider.clearCache();
 
-        target.add(getOrgChildTable(), getMemberTable(), getManagerTable());
+        target.add(getOrgChildContainer(), getMemberContainer(), getManagerContainer());
     }
 
     private void recomputeRootPerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation){

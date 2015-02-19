@@ -22,6 +22,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
 import java.util.Collection;
@@ -217,6 +218,11 @@ class IcfUtil {
 		} else if (icfException instanceof ConnectionFailedException) {
 			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection failed", icfException));
 			icfResult.recordFatalError("Connection failed: "+icfException.getMessage(), newEx);
+			return newEx;
+
+		} else if (icfException instanceof UnknownHostException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Unknown host", icfException));
+			icfResult.recordFatalError("Unknown host: "+icfException.getMessage(), newEx);
 			return newEx;
 
 		} else if (icfException instanceof ConnectorIOException) {
