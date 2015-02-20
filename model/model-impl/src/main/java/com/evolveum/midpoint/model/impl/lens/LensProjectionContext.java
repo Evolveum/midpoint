@@ -103,11 +103,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	private boolean fullShadow = false;
 	    
     /**
-     * True if the account is "legal" (assigned to the user). It may be false for accounts that are either
+     * True if the account is assigned to the user by a valid assignment. It may be false for accounts that are either
      * found to be illegal by live sync, were unassigned from user, etc.
      * If set to null the situation is not yet known. Null is a typical value when the context is constructed.
      */
     private boolean isAssigned;
+    private boolean isAssignedOld;
     
     /**
      * True if the account should be part of the synchronization. E.g. outbound expression should be applied to it.
@@ -115,7 +116,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private boolean isActive;
     
     /**
-     * True if there is a valid assignment for this projection and/or the policy allows such project to exist.
+     * True if there is a valid assignment for this projection and/or the policy allows such projection to exist.
      */
     private Boolean isLegal = null;
     private Boolean isLegalOld = null;
@@ -185,6 +186,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	super(ShadowType.class, lensContext);
         this.resourceShadowDiscriminator = resourceAccountType;
         this.isAssigned = false;
+        this.isAssignedOld = false;
     }
 
 	public ObjectDelta<ShadowType> getSyncDelta() {
@@ -342,6 +344,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void setAssigned(boolean isAssigned) {
         this.isAssigned = isAssigned;
+    }
+
+    public boolean isAssignedOld() {
+        return isAssignedOld;
+    }
+
+    public void setAssignedOld(boolean isAssignedOld) {
+        this.isAssignedOld = isAssignedOld;
     }
 
     public boolean isActive() {
@@ -783,6 +793,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 //		isLegal = null;
 //		isLegalOld = null;
 		isAssigned = false;
+        isAssignedOld = false;  // ??? [med]
 		isActive = false;
 	}
 	
@@ -800,6 +811,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		wave = -1;
 		fullShadow = false;
 		isAssigned = false;
+        isAssignedOld = false;
 		isActive = false;
 		synchronizationPolicyDecision = null;
 		constructionDeltaSetTriple = null;
@@ -832,6 +844,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		clone.doReconciliation = this.doReconciliation;
 		clone.fullShadow = this.fullShadow;
 		clone.isAssigned = this.isAssigned;
+        clone.isAssignedOld = this.isAssignedOld;
 		clone.outboundConstruction = this.outboundConstruction;
 		clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
 		clone.resource = this.resource;
@@ -995,7 +1008,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         	sb.append(", shadow");
         }
         sb.append(", exists=").append(isExists);
-        sb.append(", assigned=").append(isAssigned);
+        sb.append(", assigned=").append(isAssignedOld).append("->").append(isAssigned);
         sb.append(", active=").append(isActive);
         sb.append(", legal=").append(isLegalOld).append("->").append(isLegal);
         sb.append(", recon=").append(doReconciliation);
@@ -1116,6 +1129,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
         lensProjectionContextType.setFullShadow(fullShadow);
         lensProjectionContextType.setIsAssigned(isAssigned);
+        lensProjectionContextType.setIsAssignedOld(isAssignedOld);
         lensProjectionContextType.setIsActive(isActive);
         lensProjectionContextType.setIsLegal(isLegal);
         lensProjectionContextType.setIsLegalOld(isLegalOld);
@@ -1147,8 +1161,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         projectionContext.wave = projectionContextType.getWave() != null ? projectionContextType.getWave() : 0;
         projectionContext.fullShadow = projectionContextType.isFullShadow() != null ? projectionContextType.isFullShadow() : false;
         projectionContext.isAssigned = projectionContextType.isIsAssigned() != null ? projectionContextType.isIsAssigned() : false;
+        projectionContext.isAssignedOld = projectionContextType.isIsAssignedOld() != null ? projectionContextType.isIsAssignedOld() : false;
         projectionContext.isActive = projectionContextType.isIsActive() != null ? projectionContextType.isIsActive() : false;
         projectionContext.isLegal = projectionContextType.isIsLegal();
+        projectionContext.isLegalOld = projectionContextType.isIsLegalOld();
         projectionContext.isExists = projectionContextType.isIsExists() != null ? projectionContextType.isIsExists() : false;
         projectionContext.synchronizationPolicyDecision = SynchronizationPolicyDecision.fromSynchronizationPolicyDecisionType(projectionContextType.getSynchronizationPolicyDecision());
         projectionContext.doReconciliation = projectionContextType.isDoReconciliation() != null ? projectionContextType.isDoReconciliation() : false;

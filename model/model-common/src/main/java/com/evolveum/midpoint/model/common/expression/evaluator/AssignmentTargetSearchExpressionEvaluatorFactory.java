@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
@@ -45,13 +46,15 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory implements Express
 	private Protector protector;
 	private ObjectResolver objectResolver;
 	private ModelService modelService;
+    private SecurityEnforcer securityEnforcer;
 
-	public AssignmentTargetSearchExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ObjectResolver objectResolver, ModelService modelService) {
+	public AssignmentTargetSearchExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ObjectResolver objectResolver, ModelService modelService, SecurityEnforcer securityEnforcer) {
 		super();
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.objectResolver = objectResolver;
 		this.modelService = modelService;
+        this.securityEnforcer = securityEnforcer;
 	}
 
 	/* (non-Javadoc)
@@ -87,7 +90,7 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory implements Express
             throw new SchemaException("assignment expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         AssignmentTargetSearchExpressionEvaluator expressionEvaluator = new AssignmentTargetSearchExpressionEvaluator((SearchObjectExpressionEvaluatorType)evaluatorTypeObject, 
-        		outputDefinition, protector, objectResolver, modelService, prismContext);
+        		outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
         return (ExpressionEvaluator<V>) expressionEvaluator;
 	}
 

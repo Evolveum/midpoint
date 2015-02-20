@@ -421,6 +421,10 @@ public class PrismValuePanel extends Panel {
             if (type != null && type.isPrimitive()) {
                 type = ClassUtils.primitiveToWrapper(type);
             }
+//            // default QName validation is a bit weird, so let's treat QNames as strings [TODO finish this - at the parsing side]
+//            if (type == QName.class) {
+//                type = String.class;
+//            }
             panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression), type);
         }
 
