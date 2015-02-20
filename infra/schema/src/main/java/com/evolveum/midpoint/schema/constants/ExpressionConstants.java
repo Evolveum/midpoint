@@ -42,8 +42,10 @@ public class ExpressionConstants {
 	public static final QName VAR_MODEL_CONTEXT = new QName(SchemaConstants.NS_C, "modelContext");
 	public static final QName VAR_PRISM_CONTEXT = new QName(SchemaConstants.NS_C, "prismContext");
 	public static final QName VAR_CONFIGURATION = new QName(SchemaConstants.NS_C, "configuration");
-	
+    public static final QName VAR_ACTOR = new QName(SchemaConstants.NS_C, "actor");
+
 	public static final QName VAR_LEGAL = new QName(SchemaConstants.NS_C, "legal");
+    public static final QName VAR_ASSIGNED = new QName(SchemaConstants.NS_C, "assigned");
 	public static final QName VAR_FOCUS_EXISTS = new QName(SchemaConstants.NS_C, "focusExists");
 	public static final QName VAR_ADMINISTRATIVE_STATUS = new QName(SchemaConstants.NS_C, "administrativeStatus");
 	

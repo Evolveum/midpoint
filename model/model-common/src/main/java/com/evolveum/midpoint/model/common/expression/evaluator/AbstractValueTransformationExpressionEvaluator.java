@@ -41,6 +41,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -48,7 +50,10 @@ import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
@@ -57,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionR
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;
@@ -74,12 +80,15 @@ import java.util.Set;
 public abstract class AbstractValueTransformationExpressionEvaluator<V extends PrismValue, E extends TransformExpressionEvaluatorType>
 						implements ExpressionEvaluator<V> {
 
+    private SecurityEnforcer securityEnforcer;
+
 	private E expressionEvaluatorType;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractValueTransformationExpressionEvaluator.class);
 
-    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType) {
+    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType, SecurityEnforcer securityEnforcer) {
     	this.expressionEvaluatorType = expressionEvaluatorType;
+        this.securityEnforcer = securityEnforcer;
     }
 
     public E getExpressionEvaluatorType() {
@@ -91,10 +100,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	 */
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
-			ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException {
 		
         PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>();
-        	    
+
+        addActorVariable(context.getVariables());
+
         if (expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.ABSOLUTE) {
         	
         	outputTriple = evaluateAbsoluteExpression(context.getSources(), context.getVariables(), context,
@@ -183,8 +194,8 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	}
 
 	private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpression(Collection<Source<? extends PrismValue>> sources,
-			ExpressionVariables variables, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			ExpressionVariables variables, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		PrismValueDeltaSetTriple<V> outputTriple;
 		
@@ -272,7 +283,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				scriptVariables.addVariableDefinition(name, value);
 			}
 		}
-		
+
 		List<V> scriptResults = transformSingleValue(scriptVariables, null, useNew, params,
 				(useNew ? "(new) " : "(old) " ) + contextDescription, task, result);
 		
@@ -303,8 +314,27 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		
 		return outputSet;
 	}
-	
-	protected abstract List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination,
+
+    private void addActorVariable(ExpressionVariables scriptVariables) {
+        UserType actor = null;
+        try {
+            if (securityEnforcer != null) {
+                MidPointPrincipal principal = securityEnforcer.getPrincipal();
+                if (principal != null) {
+                    actor = principal.getUser();
+                }
+            }
+            if (actor == null) {
+                LOGGER.error("Couldn't get principal information - the 'actor' variable is set to null");
+            }
+        } catch (SecurityViolationException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get principal information - the 'actor' variable is set to null", e);
+        }
+
+        scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, actor);
+    }
+
+    protected abstract List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination,
 			boolean useNew, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
 
