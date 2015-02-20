@@ -482,11 +482,11 @@
             </credentials>
 		</objectType>
 			<objectType>
+				<kind>entitlement</kind>
+				<intent>group</intent>
 				<displayName>Group</displayName>
 				<default>true</default>
 				<objectClass>ri:GroupObjectClass</objectClass>
-				<kind>entitlement</kind>
-				<intent>group</intent>
 </objectType>
 	</schemaHandling>
 	

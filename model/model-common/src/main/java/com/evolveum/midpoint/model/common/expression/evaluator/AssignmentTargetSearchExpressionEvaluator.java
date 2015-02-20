@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,8 +46,8 @@ public class AssignmentTargetSearchExpressionEvaluator
 	
 	public AssignmentTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
 			ItemDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
-			ModelService modelService, PrismContext prismContext) {
-		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext);
+			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
+		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
 	}
 	
 	protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, ExpressionEvaluationContext params) {

@@ -72,7 +72,7 @@ public class TestExpression {
 		prismContext = PrismTestUtil.createInitializedPrismContext();
 		ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
 		AESProtector protector = ExpressionTestUtil.createInitializedProtector(prismContext);
-    	expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext);
+    	expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, null);
 	}
 
     @Test

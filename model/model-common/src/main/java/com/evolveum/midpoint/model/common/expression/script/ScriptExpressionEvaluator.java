@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTran
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -42,8 +43,8 @@ public class ScriptExpressionEvaluator<V extends PrismValue>
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionEvaluator.class);
 
-    ScriptExpressionEvaluator(ScriptExpressionEvaluatorType scriptType, ScriptExpression scriptExpression) {
-    	super(scriptType);
+    ScriptExpressionEvaluator(ScriptExpressionEvaluatorType scriptType, ScriptExpression scriptExpression, SecurityEnforcer securityEnforcer) {
+    	super(scriptType, securityEnforcer);
         this.scriptExpression = scriptExpression;
     }
     

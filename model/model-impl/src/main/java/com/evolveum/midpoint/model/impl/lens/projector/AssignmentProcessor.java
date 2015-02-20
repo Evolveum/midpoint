@@ -548,6 +548,7 @@ public class AssignmentProcessor {
 	            if (constructionPack.hasValidAssignment()) {
 	            	LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
 	            	projectionContext.setAssigned(true);
+                    projectionContext.setAssignedOld(false);
 	            	projectionContext.setLegalOld(false);
 	            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
 	            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
@@ -576,6 +577,7 @@ public class AssignmentProcessor {
             	projectionContext.setLegal(true);
             	projectionContext.setLegalOld(true);
             	projectionContext.setAssigned(true);
+                projectionContext.setAssignedOld(true);
                 
             // SITUATION: The projection is both ASSIGNED and UNASSIGNED
             } else if (constructionMapTriple.getPlusMap().containsKey(rat) && constructionMapTriple.getMinusMap().containsKey(rat)) {
@@ -600,6 +602,7 @@ public class AssignmentProcessor {
 	                }
 	            	LOGGER.trace("Projection {} legal: both assigned and unassigned (valid)", desc);
 	            	projectionContext.setAssigned(true);
+                    projectionContext.setAssignedOld(true);
 	            	projectionContext.setLegal(true);
 	            	projectionContext.setLegalOld(true);
 	            	
@@ -617,6 +620,7 @@ public class AssignmentProcessor {
             			projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
             		}
             		projectionContext.setAssigned(true);
+                    projectionContext.setAssignedOld(false);
 	            	projectionContext.setLegalOld(false);
 	            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
 	            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
@@ -635,6 +639,7 @@ public class AssignmentProcessor {
                 			projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
                 		}
                 		projectionContext.setAssigned(false);
+                        projectionContext.setAssignedOld(true);
                 		projectionContext.setLegalOld(true);
                 		
                 		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
@@ -663,6 +668,7 @@ public class AssignmentProcessor {
             	if (accountExists(context,rat)) {
             		LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
             		projectionContext.setAssigned(false);
+                    projectionContext.setAssignedOld(true);
             		projectionContext.setLegalOld(true);
             		
             		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
@@ -698,6 +704,7 @@ public class AssignmentProcessor {
             	projectionContext.setLegal(false);
             	projectionContext.setLegalOld(false);
             	projectionContext.setAssigned(false);
+                projectionContext.setAssignedOld(false);
 
             } else {
                 throw new IllegalStateException("Projection " + desc + " went looney");
@@ -1021,6 +1028,7 @@ public class AssignmentProcessor {
 				LOGGER.trace("Projection {} legal: legalized", desc);
 				createAssignmentDelta(context, projectionContext);
 				projectionContext.setAssigned(true);
+                projectionContext.setAssignedOld(false);
 				projectionContext.setLegal(true);
 				projectionContext.setLegalOld(false);
 			} else {
