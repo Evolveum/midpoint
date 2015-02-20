@@ -70,6 +70,8 @@
 		<name>F0200</name>
 		<description>Everything that moves or otherwise.</description>
 		<parentOrgRef oid="c74a7d86-7798-11e2-964e-100000000000" type="c:OrgType"/>
+		<displayName>Department of Machines</displayName>
+		<identifier>0200</identifier>
 		<inducement>
 			<description>Access to engineering library</description>
 			<construction>
@@ -116,8 +118,6 @@
 				</association>
 		    </construction>
 		</inducement>
-		<displayName>Department of Machines</displayName>
-		<identifier>0200</identifier>
 		<orgType>functional</orgType>
 		<costCenter>CC200</costCenter>
 	</org>

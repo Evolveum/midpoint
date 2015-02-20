@@ -439,9 +439,9 @@
 			
 			<association>
 				<ref>ri:ldapGroups</ref>
-				<tolerant>true</tolerant>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<displayName>Group Membership</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<tolerant>true</tolerant>
 				<kind>entitlement</kind>
 				<intent>group</intent>
 				<direction>objectToSubject</direction>
