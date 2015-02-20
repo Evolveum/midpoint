@@ -142,6 +142,16 @@
                     </outbound>-->
                 </attribute>
 
+		<activation>
+                    <administrativeStatus>
+                        <inbound>
+                            <strength>weak</strength>
+                            <expression>
+                                <value>enabled</value>
+                            </expression>
+                        </inbound>
+                    </administrativeStatus>
+                </activation>
 		<credentials>
                     <password>
                         <inbound>
@@ -153,16 +163,6 @@
                     </password>
                 </credentials>
 
-		<activation>
-                    <administrativeStatus>
-                        <inbound>
-                            <strength>weak</strength>
-                            <expression>
-                                <value>enabled</value>
-                            </expression>
-                        </inbound>
-                    </administrativeStatus>
-                </activation>
 
             </objectType>
         </schemaHandling>
