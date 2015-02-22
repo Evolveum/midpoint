@@ -31,7 +31,7 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -161,7 +161,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
             repo.getAssignments().add(rInducement);
         }
 
-        for (ExclusionType exclusion : jaxb.getExclusion()) {
+        for (ExclusionPolicyConstraintType exclusion : jaxb.getExclusion()) {
             RExclusion rExclusion = new RExclusion(repo);
             RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext, generatorResult);
 

@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -28,6 +29,7 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -54,10 +56,12 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -73,6 +77,10 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -95,13 +103,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Assignment processor is recomputing user assignments. It recomputes all the assignements whether they are direct
@@ -465,7 +477,7 @@ public class AssignmentProcessor {
         // Checking for assignment exclusions. This means mostly role exclusions (SoD) 
         checkExclusions(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getPlusSet());
         checkExclusions(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getPlusSet());
-        
+        checkAssigneeConstraints(context, evaluatedAssignmentTriple, result);
         
         // PROCESSING FOCUS
         
@@ -536,6 +548,7 @@ public class AssignmentProcessor {
 	            if (constructionPack.hasValidAssignment()) {
 	            	LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
 	            	projectionContext.setAssigned(true);
+                    projectionContext.setAssignedOld(false);
 	            	projectionContext.setLegalOld(false);
 	            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
 	            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
@@ -564,6 +577,7 @@ public class AssignmentProcessor {
             	projectionContext.setLegal(true);
             	projectionContext.setLegalOld(true);
             	projectionContext.setAssigned(true);
+                projectionContext.setAssignedOld(true);
                 
             // SITUATION: The projection is both ASSIGNED and UNASSIGNED
             } else if (constructionMapTriple.getPlusMap().containsKey(rat) && constructionMapTriple.getMinusMap().containsKey(rat)) {
@@ -588,6 +602,7 @@ public class AssignmentProcessor {
 	                }
 	            	LOGGER.trace("Projection {} legal: both assigned and unassigned (valid)", desc);
 	            	projectionContext.setAssigned(true);
+                    projectionContext.setAssignedOld(true);
 	            	projectionContext.setLegal(true);
 	            	projectionContext.setLegalOld(true);
 	            	
@@ -605,6 +620,7 @@ public class AssignmentProcessor {
             			projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
             		}
             		projectionContext.setAssigned(true);
+                    projectionContext.setAssignedOld(false);
 	            	projectionContext.setLegalOld(false);
 	            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
 	            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
@@ -623,6 +639,7 @@ public class AssignmentProcessor {
                 			projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
                 		}
                 		projectionContext.setAssigned(false);
+                        projectionContext.setAssignedOld(true);
                 		projectionContext.setLegalOld(true);
                 		
                 		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
@@ -651,6 +668,7 @@ public class AssignmentProcessor {
             	if (accountExists(context,rat)) {
             		LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
             		projectionContext.setAssigned(false);
+                    projectionContext.setAssignedOld(true);
             		projectionContext.setLegalOld(true);
             		
             		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
@@ -686,6 +704,7 @@ public class AssignmentProcessor {
             	projectionContext.setLegal(false);
             	projectionContext.setLegalOld(false);
             	projectionContext.setAssigned(false);
+                projectionContext.setAssignedOld(false);
 
             } else {
                 throw new IllegalStateException("Projection " + desc + " went looney");
@@ -1009,6 +1028,7 @@ public class AssignmentProcessor {
 				LOGGER.trace("Projection {} legal: legalized", desc);
 				createAssignmentDelta(context, projectionContext);
 				projectionContext.setAssigned(true);
+                projectionContext.setAssignedOld(false);
 				projectionContext.setLegal(true);
 				projectionContext.setLegalOld(false);
 			} else {
@@ -1281,15 +1301,15 @@ public class AssignmentProcessor {
 			// Same thing, this cannot exclude itself
 			return;
 		}
-		for(Construction constructionA: assignmentA.getConstructions().getNonNegativeValues()) {
-			for(Construction constructionB: assignmentB.getConstructions().getNonNegativeValues()) {
+		for(Construction<F> constructionA: assignmentA.getConstructions().getNonNegativeValues()) {
+			for(Construction<F> constructionB: assignmentB.getConstructions().getNonNegativeValues()) {
 				checkExclusion(constructionA, assignmentA, constructionB, assignmentB);
 			}
 		}
 	}
 
-	private void checkExclusion(Construction constructionA, EvaluatedAssignment assignmentA,
-			Construction constructionB, EvaluatedAssignment assignmentB) throws PolicyViolationException {
+	private <F extends FocusType> void checkExclusion(Construction<F> constructionA, EvaluatedAssignment<F> assignmentA,
+			Construction<F> constructionB, EvaluatedAssignment<F> assignmentB) throws PolicyViolationException {
 		AssignmentPath pathA = constructionA.getAssignmentPath();
 		AssignmentPath pathB = constructionB.getAssignmentPath();
 		for (AssignmentPathSegment segmentA: pathA.getSegments()) {
@@ -1309,7 +1329,23 @@ public class AssignmentProcessor {
 	}
 
 	private void checkExclusionOneWay(AbstractRoleType roleA, AbstractRoleType roleB) throws PolicyViolationException {
-		for (ExclusionType exclusionA :roleA.getExclusion()) {
+		PolicyConstraintsType policyConstraints = roleA.getPolicyConstraints();
+		if (policyConstraints != null) {
+			for (ExclusionPolicyConstraintType exclusionA : policyConstraints.getExclusion()) {
+				ObjectReferenceType targetRef = exclusionA.getTargetRef();
+				if (roleB.getOid().equals(targetRef.getOid())) {
+					if (exclusionA.getEnforcement() == null || exclusionA.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
+						throw new PolicyViolationException("Violation of SoD policy: "+roleA+" excludes "+roleB+
+								", they cannot be assigned at the same time");
+					} else {
+						// TODO
+					}
+				}
+			}
+		}
+		
+		// Deprecated
+		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusion()) {
 			ObjectReferenceType targetRef = exclusionA.getTargetRef();
 			if (roleB.getOid().equals(targetRef.getOid())) {
 				throw new PolicyViolationException("Violation of SoD policy: "+roleA+" excludes "+roleB+
@@ -1318,6 +1354,66 @@ public class AssignmentProcessor {
 		}
 	}
 	
+	private <F extends FocusType> void checkAssigneeConstraints(LensContext<F> context,
+			DeltaSetTriple<EvaluatedAssignment<F>> evaluatedAssignmentTriple,
+			OperationResult result) throws PolicyViolationException, SchemaException {
+		for (EvaluatedAssignment<F> assignment: evaluatedAssignmentTriple.union()) {
+			if (evaluatedAssignmentTriple.presentInPlusSet(assignment)) {
+				checkAssigneeConstraints(context, assignment, PlusMinusZero.PLUS, result);
+			} else if (evaluatedAssignmentTriple.presentInZeroSet(assignment)) {
+				// No need to check anything here. Maintain status quo.
+//				checkAssigneeConstraints(context, assignment, PlusMinusZero.ZERO, result);
+			} else {
+				checkAssigneeConstraints(context, assignment, PlusMinusZero.MINUS, result);
+			}
+		}
+	}
+	
+	private <F extends FocusType> void checkAssigneeConstraints(LensContext<F> context, EvaluatedAssignment<F> assignment, PlusMinusZero plusMinus, OperationResult result) throws PolicyViolationException, SchemaException {
+		PrismObject<?> target = assignment.getTarget();
+		if (target != null) {
+			Objectable targetType = target.asObjectable();
+			if (targetType instanceof AbstractRoleType) {
+				PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
+				if (policyConstraints != null && (!policyConstraints.getMinAssignees().isEmpty() || !policyConstraints.getMaxAssignees().isEmpty())) {
+					int assigneeCount = countAssignees((PrismObject<? extends AbstractRoleType>)target, result);
+					if (plusMinus == PlusMinusZero.PLUS) {
+						assigneeCount++;
+					}
+					if (plusMinus == PlusMinusZero.MINUS) {
+						assigneeCount--;
+					}
+					for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMinAssignees()) {
+						Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
+						// Complain only if the situation is getting worse
+						if (multiplicity >= 0 && assigneeCount < multiplicity && plusMinus == PlusMinusZero.MINUS) {
+							if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
+								throw new PolicyViolationException("Policy violation: "+target+" requires at least "+multiplicity+
+										" assignees. The operation would result in "+assigneeCount+" assignees.");
+							}
+						}
+					}
+					for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMaxAssignees()) {
+						Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
+						// Complain only if the situation is getting worse
+						if (multiplicity >= 0 && assigneeCount > multiplicity && plusMinus == PlusMinusZero.PLUS) {
+							if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
+								throw new PolicyViolationException("Policy violation: "+target+" requires at most "+multiplicity+
+										" assignees. The operation would result in "+assigneeCount+" assignees.");
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private int countAssignees(PrismObject<? extends AbstractRoleType> target, OperationResult result) throws SchemaException {
+		ObjectFilter filter = RefFilter.createReferenceEqual(
+				new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, target.getOid());
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		return repositoryService.countObjects(FocusType.class, query, result);
+	}
 
 	public <F extends ObjectType> void removeIgnoredContexts(LensContext<F> context) {
 		Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();

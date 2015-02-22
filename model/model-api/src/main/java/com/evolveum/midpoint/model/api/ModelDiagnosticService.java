@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -82,5 +83,10 @@ public interface ModelDiagnosticService {
 	 * general setup. Use ModelService.testResource for testing individual resource configurations.
 	 */
 	public OperationResult provisioningSelfTest(Task task);
+
+    /**
+     * Provide provisioning run-time configuration and diagnostic information.
+     */
+    public ProvisioningDiag getProvisioningDiag(Task task, OperationResult parentResult);
 
 }

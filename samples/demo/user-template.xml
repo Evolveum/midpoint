@@ -105,6 +105,7 @@
 		</condition>
     </mapping>
 
+<!-- moved to HR Feed resource
     <mapping>
 	<strength>weak</strength>
     	<expression>
@@ -114,5 +115,5 @@
     		<path>activation/administrativeStatus</path>
     	</target>
     </mapping>
-    
+    -->
 </objectTemplate>

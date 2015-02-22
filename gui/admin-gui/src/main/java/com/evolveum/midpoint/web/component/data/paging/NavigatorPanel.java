@@ -42,7 +42,9 @@ public class NavigatorPanel extends Panel {
     private static final String ID_PREVIOUS_LINK = "previousLink";
     private static final String ID_FIRST = "first";
     private static final String ID_FIRST_LINK = "firstLink";
-    private static final String ID_DOTS = "dots";
+    private static final String ID_LAST = "last";
+    private static final String ID_LAST_LINK = "lastLink";
+//    private static final String ID_DOTS = "dots";
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_PAGE_LINK = "pageLink";
     private static final String ID_NEXT = "next";
@@ -78,10 +80,11 @@ public class NavigatorPanel extends Panel {
     }
 
     private void initLayout() {
-        initPrevious();
         initFirst();
+        initPrevious();
         initNavigation();
         initNext();
+        initLast();
     }
 
     private void initPrevious() {
@@ -113,13 +116,13 @@ public class NavigatorPanel extends Panel {
 
     private void initFirst() {
         WebMarkupContainer first = new WebMarkupContainer(ID_FIRST);
-        first.add(new VisibleEnableBehaviour() {
+        first.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
 
             @Override
-            public boolean isVisible() {
-                return BooleanUtils.isTrue(showPageListingModel.getObject()) && showFirstAndDots();
+            public String getObject() {
+                return isFirstEnabled() ? "" : "disabled";
             }
-        });
+        }));
         add(first);
         AjaxLink firstLink = new AjaxLink(ID_FIRST_LINK) {
 
@@ -128,17 +131,14 @@ public class NavigatorPanel extends Panel {
                 firstPerformed(target);
             }
         };
-        first.add(firstLink);
-
-        WebMarkupContainer dots = new WebMarkupContainer(ID_DOTS);
-        dots.add(new VisibleEnableBehaviour() {
+        firstLink.add(new VisibleEnableBehaviour() {
 
             @Override
-            public boolean isVisible() {
-                return BooleanUtils.isTrue(showPageListingModel.getObject()) && showFirstAndDots();
+            public boolean isEnabled() {
+                return BooleanUtils.isTrue(showPageListingModel.getObject()) && isFirstEnabled();
             }
         });
-        add(dots);
+        first.add(firstLink);
     }
 
     private void initNavigation() {
@@ -239,6 +239,34 @@ public class NavigatorPanel extends Panel {
         next.add(nextLink);
     }
 
+    private void initLast() {
+        WebMarkupContainer last = new WebMarkupContainer(ID_LAST);
+        last.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return isLastEnabled() ? "" : "disabled";
+            }
+        }));
+        add(last);
+
+        AjaxLink lastLink = new AjaxLink(ID_LAST_LINK) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                lastPerformed(target);
+            }
+        };
+        lastLink.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isEnabled() {
+                return BooleanUtils.isTrue(showPageListingModel.getObject()) && isLastEnabled();
+            }
+        });
+        last.add(lastLink);
+    }
+
     private boolean isPreviousEnabled() {
         return pageable.getCurrentPage() > 0;
     }
@@ -247,8 +275,12 @@ public class NavigatorPanel extends Panel {
         return pageable.getCurrentPage() + 1 < pageable.getPageCount();
     }
 
-    private boolean showFirstAndDots() {
-        return pageable.getCurrentPage() >= PAGING_SIZE - 1;
+    private boolean isFirstEnabled() {
+        return pageable.getCurrentPage() > 0;
+    }
+
+    private boolean isLastEnabled(){
+        return pageable.getCurrentPage() +1 < pageable.getPageCount();
     }
 
     private void previousPerformed(AjaxRequestTarget target) {
@@ -257,6 +289,10 @@ public class NavigatorPanel extends Panel {
 
     private void firstPerformed(AjaxRequestTarget target) {
         changeCurrentPage(target, 0);
+    }
+
+    private void lastPerformed(AjaxRequestTarget target){
+        changeCurrentPage(target, pageable.getPageCount() - 1);
     }
 
     private void nextPerformed(AjaxRequestTarget target) {

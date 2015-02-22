@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -33,12 +34,14 @@ import com.evolveum.midpoint.repo.sql.query.definition.ReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
 import javax.xml.namespace.QName;
+
 import java.util.List;
 
 /**
@@ -105,9 +108,14 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TARGET_OID, refValue.getOid()));
 
-        if (refValue.getRelation() != null) {
-            QName relation = refValue.getRelation();
-
+        QName relation = refValue.getRelation();
+        if (relation == null) {
+        	// Return only references without relation
+        	conjunction.add(Restrictions.eq(prefix + ObjectReference.F_RELATION, RUtil.QNAME_DELIMITER));
+        } else if (relation.equals(PrismConstants.Q_ANY)) {
+        	// Return all relations => no restriction
+        } else {
+        	// return references with specific relation
             conjunction.add(handleEqOrNull(prefix + ObjectReference.F_RELATION, RUtil.qnameToString(relation)));
         }
 

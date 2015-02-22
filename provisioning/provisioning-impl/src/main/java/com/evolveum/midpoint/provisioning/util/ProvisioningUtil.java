@@ -295,41 +295,45 @@ public class ProvisioningUtil {
 		// Password
 		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(
 				resource, CredentialsCapabilityType.class);
-		if (CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
-			// There resource is capable of returning password but it does not
-			// do it by default
-			AttributeFetchStrategyType passwordFetchStrategy = objectClassDefinition
-					.getPasswordFetchStrategy();
-			if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-				attributesToReturn.setReturnPasswordExplicit(true);
-				apply = true;
+		if (credentialsCapabilityType != null) {
+			if (!CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
+				// There resource is capable of returning password but it does not
+				// do it by default
+				AttributeFetchStrategyType passwordFetchStrategy = objectClassDefinition
+						.getPasswordFetchStrategy();
+				if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+					attributesToReturn.setReturnPasswordExplicit(true);
+					apply = true;
+				}
 			}
 		}
 
 		// Activation/administrativeStatus
 		ActivationCapabilityType activationCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
-		if (CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
-			// There resource is capable of returning enable flag but it does
-			// not do it by default
-			AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
-					.getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
-			if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-				attributesToReturn.setReturnAdministrativeStatusExplicit(true);
-				apply = true;
+		if (activationCapabilityType != null) {
+			if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
+				// There resource is capable of returning enable flag but it does
+				// not do it by default
+				AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
+						.getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
+				if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+					attributesToReturn.setReturnAdministrativeStatusExplicit(true);
+					apply = true;
+				}
+			}
+			if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
+				// There resource is capable of returning lockout flag but it does
+				// not do it by default
+				AttributeFetchStrategyType statusFetchStrategy = objectClassDefinition
+						.getActivationFetchStrategy(ActivationType.F_LOCKOUT_STATUS);
+				if (statusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+					attributesToReturn.setReturnLockoutStatusExplicit(true);
+					apply = true;
+				}
 			}
 		}
 
-		if (CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
-			// There resource is capable of returning lockout flag but it does
-			// not do it by default
-			AttributeFetchStrategyType statusFetchStrategy = objectClassDefinition
-					.getActivationFetchStrategy(ActivationType.F_LOCKOUT_STATUS);
-			if (statusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-				attributesToReturn.setReturnLockoutStatusExplicit(true);
-				apply = true;
-			}
-		}
 
 		if (apply) {
 			return attributesToReturn;

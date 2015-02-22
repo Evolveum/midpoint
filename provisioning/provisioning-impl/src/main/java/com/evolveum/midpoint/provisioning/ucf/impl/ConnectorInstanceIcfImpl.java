@@ -1058,7 +1058,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException)midpointEx;
 			} else if (midpointEx instanceof Error) {
-				throw (Error)midpointEx;
+				// This should not happen. But some connectors are very strange.
+				throw new SystemException("ERROR: "+midpointEx.getClass().getName()+": "+midpointEx.getMessage(), midpointEx);
 			} else {
 				throw new SystemException(midpointEx.getClass().getName()+": "+midpointEx.getMessage(), midpointEx);
 			}

@@ -17,8 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.common.InternalsConfig;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 
 import java.io.Serializable;
 
@@ -49,7 +49,7 @@ public class InternalsConfigDto implements Serializable {
 
         detailedDebugDump = DebugUtil.isDetailedDebugDump();
 
-        tolerateUndeclaredPrefixes = DOMUtil.isTolerateUndeclaredPrefixes();
+        tolerateUndeclaredPrefixes = QNameUtil.isTolerateUndeclaredPrefixes();
     }
 
     public boolean isConsistencyChecks() {
@@ -97,7 +97,7 @@ public class InternalsConfigDto implements Serializable {
         InternalsConfig.consistencyChecks = consistencyChecks;
         InternalsConfig.encryptionChecks = encryptionChecks;
         InternalsConfig.readEncryptionChecks = readEncryptionChecks;
-        DOMUtil.setTolerateUndeclaredPrefixes(tolerateUndeclaredPrefixes);
+        QNameUtil.setTolerateUndeclaredPrefixes(tolerateUndeclaredPrefixes);
     }
 
     public void saveDebugUtil() {

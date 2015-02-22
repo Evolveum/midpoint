@@ -30,7 +30,7 @@
         <div class="col-md-4">
             <div wicket:id="treeHeader" class="row" style="margin: 0; border-bottom: 1px solid #ddd;">
                 <div class="col-xs-9" style="padding-left: 5px;">
-                    <div style="margin: 3px; margin-top: 10px; font-weight: bold;">
+                    <div class="tree-table-header">
                         <wicket:message key="TreeTablePanel.hierarchy"/>
                     </div>
                 </div>
@@ -43,20 +43,27 @@
         </div>
         <div class="col-md-8">
             <form class="clearfix form-horizontal" wicket:id="form">
-                <div style="margin: 3px; margin-top: 10px; font-weight: bold;">
-                    <wicket:message key="TreeTablePanel.childOrg"/>
+                <div wicket:id="childOrgContainer">
+                    <div class="tree-table-header">
+                        <wicket:message key="TreeTablePanel.childOrg"/>
+                    </div>
+                    <div wicket:id="childUnitTable"/>
                 </div>
-                <div wicket:id="childUnitTable"/>
 
-                <div style="margin: 3px; margin-top: 10px; font-weight: bold;">
-                    <wicket:message key="TreeTablePanel.managers"/>
+                <div wicket:id="managerContainer">
+                    <div class="tree-table-header">
+                        <wicket:message key="TreeTablePanel.managers"/>
+                    </div>
+                    <div wicket:id="managerTable"/>
                 </div>
-                <div wicket:id="managerTable"/>
 
-                <div style="margin: 3px; margin-top: 10px; font-weight: bold;">
-                    <wicket:message key="TreeTablePanel.members"/>
+                <div wicket:id="memberContainer">
+                    <div class="tree-table-header">
+                        <wicket:message key="TreeTablePanel.members"/>
+                    </div>
+                    <div wicket:id="memberTable"/>
                 </div>
-                <div wicket:id="memberTable"/>
+
             </form>
         </div>
     </div>
