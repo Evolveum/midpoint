@@ -23,7 +23,14 @@ import java.io.IOException;
 
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.impl.SecurityEnforcerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeSuite;
@@ -65,13 +72,20 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	private static final Trace LOGGER = TraceManager.getTrace(ExpressionHandlerImplTest.class);
 	private static final File TEST_FOLDER = new File("./src/test/resources/expr");
 	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
-	@Autowired
+
+    @Autowired
 	private ExpressionHandler expressionHandler;
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+
+        // just something to fill into c:actor expression variable
+        MidPointPrincipal principal = new MidPointPrincipal(new UserType(PrismTestUtil.getPrismContext()));
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
+        securityContext.setAuthentication(authentication);
 	}
 
 	@Test
