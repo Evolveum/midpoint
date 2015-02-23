@@ -87,8 +87,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	protected static final String USER_TEMPLATE_SYNC_FILENAME = COMMON_DIR + "/user-template-sync.xml";
 	protected static final String USER_TEMPLATE_SYNC_OID = "10000000-0000-0000-0000-000000000333";
-	
-	protected static final String CONNECTOR_LDAP_FILENAME = COMMON_DIR + "/connector-ldap.xml";
+
+    protected static final String USER_TEMPLATE_ORG_ASSIGNMENT_FILENAME = COMMON_DIR + "/user-template-org-assignment.xml";
+    protected static final String USER_TEMPLATE_ORG_ASSIGNMENT_OID = "10000000-0000-0000-0000-000000000444";
+
+    protected static final String CONNECTOR_LDAP_FILENAME = COMMON_DIR + "/connector-ldap.xml";
 	
 	protected static final String CONNECTOR_DBTABLE_FILENAME = COMMON_DIR + "/connector-dbtable.xml";
 	

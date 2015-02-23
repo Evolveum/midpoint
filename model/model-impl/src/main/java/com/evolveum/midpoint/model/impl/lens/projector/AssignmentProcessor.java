@@ -193,6 +193,8 @@ public class AssignmentProcessor {
 			processFocusDelete(context, result);
 			return;
 		}
+
+        checkAssignmentDeltaSanity(context);
         
         // Normal processing. The enforcement policy requires that assigned accounts should be added, so we need to figure out
         // which assignments were added. Do a complete recompute for all the enforcement modes. We can do that because this does
@@ -375,7 +377,7 @@ public class AssignmentProcessor {
 		            	boolean isAdd = assignmentDelta.isValueToAdd(assignmentCVal, true);
 		            	boolean isDelete = assignmentDelta.isValueToDelete(assignmentCVal, true);
 		                if (isAdd & !isDelete) {
-		                	// Entirely new assignment is added 
+		                	// Entirely new assignment is added
 		                	if (containsRealValue(assignmentsCurrent, assignmentCVal)) {
 		                		// Phantom add: adding assignment that is already there
 		                		if (LOGGER.isTraceEnabled()) {
@@ -396,7 +398,7 @@ public class AssignmentProcessor {
 		                        }
 			                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 		                	}
-		                	
+
 		                } else if (isDelete && !isAdd) {
 		                	// Existing assignment is removed
 		                	if (LOGGER.isTraceEnabled()) {
@@ -730,8 +732,40 @@ public class AssignmentProcessor {
         finishLegalDecisions(context);
         
     }
-    
-	private <F extends ObjectType> ObjectType determineSource(LensFocusContext<F> focusContext)
+
+    /**
+     * Checks if we do not try to modify assignment.targetRef or assignment.construction.kind or intent.
+     *
+     * @param context
+     * @param <F>
+     * @throws SchemaException
+     */
+    private <F extends FocusType> void checkAssignmentDeltaSanity(LensContext<F> context) throws SchemaException {
+        ObjectDelta<F> focusDelta = context.getFocusContext().getDelta();
+        if (focusDelta == null || !focusDelta.isModify() || focusDelta.getModifications() == null) {
+            return;
+        }
+
+        final ItemPath TARGET_REF_PATH = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF);
+        final ItemPath CONSTRUCTION_KIND_PATH = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND);
+        final ItemPath CONSTRUCTION_INTENT_PATH = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT);
+
+        for (ItemDelta itemDelta : focusDelta.getModifications()) {
+            ItemPath itemPath = itemDelta.getPath().namedSegmentsOnly();
+            if (TARGET_REF_PATH.isSubPathOrEquivalent(itemPath)) {
+                throw new SchemaException("It is not allowed to change targetRef in an assignment. Offending path: " + itemPath);
+            }
+            if (CONSTRUCTION_KIND_PATH.isSubPathOrEquivalent(itemPath)) {
+                throw new SchemaException("It is not allowed to change construction.kind in an assignment. Offending path: " + itemPath);
+            }
+            if (CONSTRUCTION_INTENT_PATH.isSubPathOrEquivalent(itemPath)) {
+                throw new SchemaException("It is not allowed to change construction.intent in an assignment. Offending path: " + itemPath);
+            }
+            // TODO some mechanism to detect changing kind/intent by add/delete/replace whole ConstructionType (should be implemented in the caller)
+        }
+    }
+
+    private <F extends ObjectType> ObjectType determineSource(LensFocusContext<F> focusContext)
 			throws SchemaException {
 		ObjectDelta delta = focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
 		if (delta != null && !delta.isEmpty()) {
@@ -1138,7 +1172,10 @@ public class AssignmentProcessor {
 			return;
 		}
 
-        LOGGER.trace("Processing org assignments into parentOrgRef delta(s)");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Starting processing org assignments into parentOrgRef delta(s); evaluatedAssignmentTriple is:\n{}",
+                    evaluatedAssignmentTriple.debugDump());
+        }
 
         Class<F> focusClass = focusContext.getObjectTypeClass();
         PrismObjectDefinition<F> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass);
@@ -1182,6 +1219,9 @@ public class AssignmentProcessor {
                     ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
                     PrismReferenceValue orgCanonical = org.toCannonical();
                     orgRefDelta.addValueToAdd(orgCanonical);
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Created parentOrgRef delta:\n{}", orgRefDelta.debugDump());
+                    }
                     focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
 
                     notToBeDeletedCanonical.add(orgCanonical);
@@ -1198,6 +1238,9 @@ public class AssignmentProcessor {
                         LOGGER.trace("Not removing {} because it is in the zero or plus set", orgCanonical);
                     } else {
                         orgRefDelta.addValueToDelete(orgCanonical);
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("Created parentOrgRef delta:\n{}", orgRefDelta.debugDump());
+                        }
                         focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
                     }
                 }
@@ -1218,8 +1261,12 @@ public class AssignmentProcessor {
                 }
             }
             orgRefDelta.setValuesToReplace(valuesToReplace);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Created parentOrgRef delta:\n{}", orgRefDelta.debugDump());
+            }
             focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
         }
+        LOGGER.trace("Processing org assignments into parentOrgRef delta(s) done.");
 	}
 	
 	public <F extends ObjectType> void checkForAssignmentConflicts(LensContext<F> context, 
