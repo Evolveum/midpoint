@@ -166,6 +166,8 @@ public class MappingTypeDto implements Serializable {
             MappingTargetDeclarationType mappingTarget = new MappingTargetDeclarationType();
             mappingTarget.setPath(new ItemPathType(target));
             mappingObject.setTarget(mappingTarget);
+        } else {
+            mappingObject.setTarget(null);
         }
 
         mappingObject.getSource().clear();

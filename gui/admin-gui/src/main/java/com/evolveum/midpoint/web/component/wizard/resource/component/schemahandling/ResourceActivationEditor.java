@@ -302,7 +302,7 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
 
             @Override
             protected void editPerformed(AjaxRequestTarget target, MappingType object){
-                mappingEditPerformed(target, object);
+                mappingEditPerformed(target, object, false);
             }
         };
         add(outbound);
@@ -329,7 +329,7 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
 
             @Override
             protected void editPerformed(AjaxRequestTarget target, MappingType object){
-                mappingEditPerformed(target, object);
+                mappingEditPerformed(target, object, true);
             }
         };
         inbound.setOutputMarkupId(true);
@@ -347,9 +347,9 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
         add(mappingEditor);
     }
 
-    private void mappingEditPerformed(AjaxRequestTarget target, MappingType mapping){
+    private void mappingEditPerformed(AjaxRequestTarget target, MappingType mapping, boolean isInbound){
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
-        window.updateModel(target, mapping);
+        window.updateModel(target, mapping, isInbound);
         window.show(target);
     }
 }
