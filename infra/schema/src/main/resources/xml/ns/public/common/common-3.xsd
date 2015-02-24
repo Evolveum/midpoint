@@ -5112,8 +5112,25 @@
 	        </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-	<xsd:element name="assignmentTargetSearch" type="tns:SearchObjectExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 	<xsd:element name="associationTargetSearch" type="tns:SearchObjectExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+	<xsd:complexType name="SearchObjectRefExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Create an expression based on search results. This is supposed to create an object reference.
+                Therefore it has additional parameter (relation).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:SearchObjectExpressionEvaluatorType">
+		        <xsd:sequence>
+		        	<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+		        	</xsd:element>
+		        </xsd:sequence>
+	        </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+	<xsd:element name="assignmentTargetSearch" type="tns:SearchObjectRefExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
 	<xsd:complexType name="ShadowDiscriminatorExpressionEvaluatorType">
         <xsd:annotation>

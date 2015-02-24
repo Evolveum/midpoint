@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,8 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectRefExpressionEvaluatorType;
+
 import org.apache.commons.lang.Validate;
 
 /**
@@ -62,7 +63,7 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory implements Express
 	 */
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createAssignmentTargetSearch(new SearchObjectExpressionEvaluatorType()).getName();
+		return new ObjectFactory().createAssignmentTargetSearch(new SearchObjectRefExpressionEvaluatorType()).getName();
 	}
 
 	/* (non-Javadoc)
@@ -86,10 +87,10 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory implements Express
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
         }
-        if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof SearchObjectExpressionEvaluatorType)) {
+        if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof SearchObjectRefExpressionEvaluatorType)) {
             throw new SchemaException("assignment expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        AssignmentTargetSearchExpressionEvaluator expressionEvaluator = new AssignmentTargetSearchExpressionEvaluator((SearchObjectExpressionEvaluatorType)evaluatorTypeObject, 
+        AssignmentTargetSearchExpressionEvaluator expressionEvaluator = new AssignmentTargetSearchExpressionEvaluator((SearchObjectRefExpressionEvaluatorType)evaluatorTypeObject, 
         		outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
         return (ExpressionEvaluator<V>) expressionEvaluator;
 	}

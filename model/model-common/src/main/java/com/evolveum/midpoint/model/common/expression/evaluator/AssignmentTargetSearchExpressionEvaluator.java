@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectRefExpressionEvaluatorType;
 
 /**
  * @author Radovan Semancik
@@ -44,7 +44,7 @@ public class AssignmentTargetSearchExpressionEvaluator
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTargetSearchExpressionEvaluator.class);
 	
-	public AssignmentTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
+	public AssignmentTargetSearchExpressionEvaluator(SearchObjectRefExpressionEvaluatorType expressionEvaluatorType, 
 			ItemDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
 			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
 		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
@@ -57,6 +57,7 @@ public class AssignmentTargetSearchExpressionEvaluator
 		ObjectReferenceType targetRef = new ObjectReferenceType();
 		targetRef.setOid(oid);
 		targetRef.setType(targetTypeQName);
+		targetRef.setRelation(((SearchObjectRefExpressionEvaluatorType)getExpressionEvaluatorType()).getRelation());
 		assignmentType.setTargetRef(targetRef);
 		
 		try {
