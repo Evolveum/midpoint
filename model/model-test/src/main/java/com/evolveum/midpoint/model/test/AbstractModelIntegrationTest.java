@@ -636,8 +636,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);
 	}
-	
-	protected <O extends ObjectType, C extends Containerable> void modifyObjectDeleteContainer(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue) 
+
+	protected <O extends ObjectType, C extends Containerable> void modifyObjectDeleteContainer(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> objectDelta = ObjectDelta.createModificationDeleteContainer(type, oid, propertyPath, prismContext, newRealValue);
@@ -1220,6 +1220,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertNotAssignedRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
         MidPointAsserts.assertNotAssignedRole(user, roleOid);
+    }
+
+    protected void assertNotAssignedResource(String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+        MidPointAsserts.assertNotAssignedResource(user, resourceOid);
+    }
+
+    protected void assertAssignedResource(String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+        MidPointAsserts.assertAssignedResource(user, resourceOid);
     }
 
     protected <F extends FocusType> void assertNotAssignedRole(PrismObject<F> user, String roleOid) {

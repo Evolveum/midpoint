@@ -71,7 +71,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
         super.initSystem(initTask, initResult);
-        repoAddObjectsFromFile(TestConstants.USERS_AND_ROLES_FILENAME, RoleType.class, initResult);
+        repoAddObjectsFromFile(AbstractWfTest.USERS_AND_ROLES_FILENAME, RoleType.class, initResult);
     }
 
     @Test(enabled = true)
@@ -85,8 +85,8 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
 
         wfTaskUtil.addApprovedBy(task, SystemObjectsType.USER_ADMINISTRATOR.value());
         wfTaskUtil.addApprovedBy(task, SystemObjectsType.USER_ADMINISTRATOR.value());
-        wfTaskUtil.addApprovedBy(task, TestConstants.R1BOSS_OID);
-        wfTaskUtil.addApprovedBy(task, TestConstants.R2BOSS_OID);
+        wfTaskUtil.addApprovedBy(task, AbstractWfTest.R1BOSS_OID);
+        wfTaskUtil.addApprovedBy(task, AbstractWfTest.R2BOSS_OID);
         task.savePendingModifications(result);
 
         Task task2 = taskManager.getTask(task.getOid(), result);
@@ -94,7 +94,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
 
         assertEquals("Incorrect number of approvers", 3, approvers.getValues().size());
         assertEquals("Incorrect approvers",
-                new HashSet(Arrays.asList(SystemObjectsType.USER_ADMINISTRATOR.value(), TestConstants.R1BOSS_OID, TestConstants.R2BOSS_OID)),
+                new HashSet(Arrays.asList(SystemObjectsType.USER_ADMINISTRATOR.value(), AbstractWfTest.R1BOSS_OID, AbstractWfTest.R2BOSS_OID)),
                 new HashSet(Arrays.asList(approvers.getValue(0).getOid(), approvers.getValue(1).getOid(), approvers.getValue(2).getOid())));
     }
 

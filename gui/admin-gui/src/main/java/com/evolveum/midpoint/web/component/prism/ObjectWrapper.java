@@ -363,8 +363,10 @@ public class ObjectWrapper implements Serializable, Revivable {
     private List<ContainerWrapper> createResourceContainers(PageBase pageBase) throws SchemaException {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
         PrismObject<ConnectorType> connector = loadConnector();
- 
-        containers.addAll(createResourceContainerWrapper(connector, pageBase));
+
+        if (connector != null) {
+            containers.addAll(createResourceContainerWrapper(connector, pageBase));
+        }
         return containers;
     }
 

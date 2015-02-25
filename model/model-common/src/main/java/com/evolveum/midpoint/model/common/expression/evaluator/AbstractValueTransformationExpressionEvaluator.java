@@ -18,27 +18,20 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.expression.Source;
 import com.evolveum.midpoint.model.common.expression.SourceTriple;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -51,7 +44,6 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -59,11 +51,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionRelativityModeType;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,7 +62,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * @author Radovan Semancik
@@ -199,7 +188,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		
 		PrismValueDeltaSetTriple<V> outputTriple;
 		
-		if (hasDeltas(sources) || hasDelas(variables)) {
+		if (hasDeltas(sources) || hasDeltas(variables)) {
 		
 			Collection<V> outputSetOld = null;
 			if (!params.isSkipEvaluationMinus()) {
@@ -234,7 +223,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		return false;
 	}
 
-	private boolean hasDelas(ExpressionVariables variables) {
+	private boolean hasDeltas(ExpressionVariables variables) {
 		for (Entry<QName,Object> entry: variables.entrySet()) {
 			Object value = entry.getValue();
 			if (value instanceof ObjectDeltaObject<?>) {

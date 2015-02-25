@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,19 +45,19 @@ import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChange
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AbstractRoleAssignmentApprovalFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
-
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.ResourceAssignmentApprovalFormType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -65,24 +65,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Change aspect that manages role addition approval. It starts one process instance for each role
- * that has to be approved.
- *
- * In the past, we used to start one process instance for ALL roles to be approved. It made BPMN
- * approval process slightly more complex, while allowed to keep information about approval process
- * centralized from the user point of view (available via "single click"). If necessary, we can return
- * to this behavior.
- *
- * Alternatively, it is possible to start one process instance for a set of roles that share the
- * same approval mechanism. However, it is questionable what "the same approval mechanism" means,
- * for example, if there are expressions used to select an approver.
+ * Change aspect that manages resource assignment addition approval.
+ * It starts one process instance for each resource assignment that has to be approved.
  *
  * @author mederly
  */
 @Component
-public class AddRoleAssignmentAspect extends BasePrimaryChangeAspect {
+public class AddResourceAssignmentAspect extends BasePrimaryChangeAspect {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AddRoleAssignmentAspect.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AddResourceAssignmentAspect.class);
 
     @Autowired
     private PrismContext prismContext;
@@ -111,41 +102,57 @@ public class AddRoleAssignmentAspect extends BasePrimaryChangeAspect {
         return null;
     }
 
-    // we look for assignments of roles that should be approved
+    // we look for assignments of resources that should be approved
     private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromUserAdd(ObjectDelta<? extends ObjectType> change, OperationResult result) {
         List<ApprovalRequest<AssignmentType>> approvalRequestList = new ArrayList<>();
         UserType user = (UserType) change.getObjectToAdd().asObjectable();
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("AbstractRole-related assignments in user add delta ({}): ", user.getAssignment().size());
+            LOGGER.trace("Resource-related assignments in user add delta ({}): ", user.getAssignment().size());
         }
 
         Iterator<AssignmentType> assignmentTypeIterator = user.getAssignment().iterator();
         while (assignmentTypeIterator.hasNext()) {
-            AssignmentType a = assignmentTypeIterator.next();
-            ObjectType objectType = primaryChangeAspectHelper.resolveObjectRef(a, result);
-            if (objectType != null && objectType instanceof AbstractRoleType) {
-                AbstractRoleType role = (AbstractRoleType) objectType;
-                boolean approvalRequired = shouldRoleBeApproved(role);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(" - abstract role: " + role + " (approval required = " + approvalRequired + ")");
-                }
-                if (approvalRequired) {
-                    AssignmentType aCopy = a.clone();
-                    PrismContainerValue.copyDefinition(aCopy, a);
-                    aCopy.setTarget(role);
-                    approvalRequestList.add(createApprovalRequest(aCopy, role));
-                    assignmentTypeIterator.remove();
-                }
+            AssignmentType assignmentType = assignmentTypeIterator.next();
+            if (assignmentType.getConstruction() == null) {
+                continue;
             }
+            ConstructionType constructionType = assignmentType.getConstruction();
+            ResourceType resourceType = (ResourceType) primaryChangeAspectHelper.resolveObjectRef(constructionType.getResourceRef(), result);
+            if (resourceType == null) {
+                continue;
+            }
+            boolean approvalRequired = shouldResourceBeApproved(resourceType);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace(" - resource: {} (approval required = {}", resourceType, approvalRequired);
+            }
+            if (!approvalRequired) {
+                continue;
+            }
+            AssignmentType assignmentClone = cloneAndCanonicalizeAssignment(assignmentType);
+            approvalRequestList.add(createApprovalRequest(assignmentClone, resourceType));
+            assignmentTypeIterator.remove();
         }
         return approvalRequestList;
+    }
+
+    // replaces prism object in targetRef by real reference
+    // TODO make sure it's OK
+    private AssignmentType cloneAndCanonicalizeAssignment(AssignmentType assignmentType) {
+        AssignmentType assignmentClone = assignmentType.clone();
+        PrismContainerValue.copyDefinition(assignmentClone, assignmentType);
+        ConstructionType constructionType = assignmentClone.getConstruction();
+        ObjectReferenceType resourceRef = constructionType.getResourceRef();
+        resourceRef.setupReferenceValue(resourceRef.asReferenceValue().toCannonical());
+        constructionType.setResource(null);
+        constructionType.setResourceRef(resourceRef);
+        return assignmentClone;
     }
 
     private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromUserModify(PrismObject<? extends ObjectType> userOld, ObjectDelta<? extends ObjectType> change, OperationResult result) {
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("AbstractRole-related assignments in user modify delta: ");
+            LOGGER.trace("Resource-related assignments in user modify delta: ");
         }
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = new ArrayList<>();
@@ -211,30 +218,38 @@ public class AddRoleAssignmentAspect extends BasePrimaryChangeAspect {
         return false;
     }
 
-    private ApprovalRequest<AssignmentType> processAssignmentToAdd(PrismContainerValue<AssignmentType> o, OperationResult result) {
-        PrismContainerValue<AssignmentType> at = o;
-        ObjectType objectType = primaryChangeAspectHelper.resolveObjectRef(at.getValue(), result);
-        if (objectType instanceof AbstractRoleType) {
-            AbstractRoleType role = (AbstractRoleType) objectType;
-            boolean approvalRequired = shouldRoleBeApproved(role);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(" - abstract role: " + role + " (approval required = " + approvalRequired + ")");
-            }
-            if (approvalRequired) {
-                AssignmentType aCopy = at.asContainerable().clone();
-                PrismContainerValue.copyDefinition(aCopy, at.asContainerable());
-                return createApprovalRequest(aCopy, role);
-            }
+    private ApprovalRequest<AssignmentType> processAssignmentToAdd(PrismContainerValue<AssignmentType> assignmentCVal, OperationResult result) {
+        if (assignmentCVal == null) {
+            return null;
         }
-        return null;
+        AssignmentType assignmentType = assignmentCVal.getValue();
+        if (assignmentType.getConstruction() == null) {
+            return null;
+        }
+        ConstructionType constructionType = assignmentType.getConstruction();
+        ResourceType resourceType = (ResourceType) primaryChangeAspectHelper.resolveObjectRef(constructionType.getResourceRef(), result);
+        if (resourceType == null) {
+            return null;
+        }
+        boolean approvalRequired = shouldResourceBeApproved(resourceType);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace(" - resource: {} (approval required = {}", resourceType, approvalRequired);
+        }
+        if (!approvalRequired) {
+            return null;
+        }
+        AssignmentType assignmentClone = assignmentType.clone();
+        PrismContainerValue.copyDefinition(assignmentClone, assignmentType);
+        return createApprovalRequest(assignmentClone, resourceType);
     }
 
-    // creates an approval request for a given role assignment
-    private ApprovalRequest<AssignmentType> createApprovalRequest(AssignmentType a, AbstractRoleType role) {
-        return new ApprovalRequestImpl(a, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext);
+    // creates an approval request for a given resource assignment
+    // @pre there are approvers defined
+    private ApprovalRequest<AssignmentType> createApprovalRequest(AssignmentType a, ResourceType resourceType) {
+        return new ApprovalRequestImpl(a, null, resourceType.getBusiness().getApproverRef(), null, null, prismContext);
     }
 
-    // approvalRequestList should contain de-referenced roles and approvalRequests that have prismContext set
+    // @pre there is a construction with a resource ref
     private List<PcpChildJobCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
         List<PcpChildJobCreationInstruction> instructions = new ArrayList<>();
 
@@ -249,14 +264,9 @@ public class AddRoleAssignmentAspect extends BasePrimaryChangeAspect {
             }
 
             AssignmentType assignmentType = approvalRequest.getItemToApprove();
-            AbstractRoleType abstractRoleType = (AbstractRoleType) assignmentType.getTarget();
+            ResourceType resourceType = (ResourceType) primaryChangeAspectHelper.resolveObjectRef(assignmentType.getConstruction().getResourceRef(), result);
 
-            assignmentType.setTarget(null);         // we must remove the target object (leaving only target OID) in order to avoid problems with deserialization
-            ((ApprovalRequestImpl<AssignmentType>) approvalRequest).setItemToApprove(assignmentType);   // set the modified value back
-
-            Validate.notNull(abstractRoleType);
-            Validate.notNull(abstractRoleType.getName());
-            String abstractRoleName = abstractRoleType.getName().getOrig();
+            String resourceName = resourceType.getName().getOrig();
 
             String objectOid = primaryChangeAspectHelper.getObjectOid(modelContext);
             PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
@@ -274,11 +284,11 @@ public class AddRoleAssignmentAspect extends BasePrimaryChangeAspect {
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
-            instruction.setTaskName("Workflow for approving " + andExecuting + "adding " + abstractRoleName + " to " + userName);
-            instruction.setProcessInstanceName("Adding " + abstractRoleName + " to " + userName);
+            instruction.setTaskName("Workflow for approving " + andExecuting + "assignment of " + resourceName + " to " + userName);
+            instruction.setProcessInstanceName("Adding assignment of " + resourceName + " to " + userName);
 
             // setup general item approval process
-            String approvalTaskName = "Approve adding " + abstractRoleName + " to " + userName;
+            String approvalTaskName = "Approve adding assignment of " + resourceName + " to " + userName;
             itemApprovalProcessInterface.prepareStartInstruction(instruction, approvalRequest, approvalTaskName);
 
             // set some aspect-specific variables
@@ -293,15 +303,15 @@ public class AddRoleAssignmentAspect extends BasePrimaryChangeAspect {
         PrismObject<UserType> user = (PrismObject<UserType>) modelContext.getFocusContext().getObjectNew();
         PrismContainerDefinition<AssignmentType> prismContainerDefinition = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 
-        ItemDelta<PrismContainerValue<AssignmentType>> addRoleDelta = new ContainerDelta<>(new ItemPath(), UserType.F_ASSIGNMENT, prismContainerDefinition, prismContext);
+        ItemDelta<PrismContainerValue<AssignmentType>> addDelta = new ContainerDelta<>(new ItemPath(), UserType.F_ASSIGNMENT, prismContainerDefinition, prismContext);
         PrismContainerValue<AssignmentType> assignmentValue = approvalRequest.getItemToApprove().asPrismContainerValue().clone();
-        addRoleDelta.addValueToAdd(assignmentValue);
+        addDelta.addValueToAdd(assignmentValue);
 
-        return ObjectDelta.createModifyDelta(objectOid != null ? objectOid : PrimaryChangeProcessor.UNKNOWN_OID, addRoleDelta, UserType.class, ((LensContext) modelContext).getPrismContext());
+        return ObjectDelta.createModifyDelta(objectOid != null ? objectOid : PrimaryChangeProcessor.UNKNOWN_OID, addDelta, UserType.class, ((LensContext) modelContext).getPrismContext());
     }
 
-    private boolean shouldRoleBeApproved(AbstractRoleType role) {
-        return !role.getApproverRef().isEmpty() || !role.getApproverExpression().isEmpty() || role.getApprovalSchema() != null;
+    public static boolean shouldResourceBeApproved(ResourceType resourceType) {
+        return resourceType != null && resourceType.getBusiness() != null && !resourceType.getBusiness().getApproverRef().isEmpty();
     }
     //endregion
 
@@ -311,12 +321,12 @@ public class AddRoleAssignmentAspect extends BasePrimaryChangeAspect {
     public PrismObject<? extends QuestionFormType> prepareQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("getRequestSpecific starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
+            LOGGER.trace("prepareQuestionForm starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
         }
 
-        PrismObjectDefinition<AbstractRoleAssignmentApprovalFormType> formDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(AbstractRoleAssignmentApprovalFormType.COMPLEX_TYPE);
-        PrismObject<AbstractRoleAssignmentApprovalFormType> formPrism = formDefinition.instantiate();
-        AbstractRoleAssignmentApprovalFormType form = formPrism.asObjectable();
+        PrismObjectDefinition<ResourceAssignmentApprovalFormType> formDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(ResourceAssignmentApprovalFormType.COMPLEX_TYPE);
+        PrismObject<ResourceAssignmentApprovalFormType> formPrism = formDefinition.instantiate();
+        ResourceAssignmentApprovalFormType form = formPrism.asObjectable();
 
         form.setUser((String) variables.get(AddRoleVariableNames.USER_NAME));
 
@@ -328,52 +338,30 @@ public class AddRoleAssignmentAspect extends BasePrimaryChangeAspect {
         AssignmentType assignment = (AssignmentType) request.getItemToApprove();
         Validate.notNull(assignment, "Approval request does not contain as assignment");
 
-        ObjectReferenceType roleRef = assignment.getTargetRef();
-        Validate.notNull(roleRef, "Approval request does not contain role/org reference");
-        String roleOid = roleRef.getOid();
-        Validate.notNull(roleOid, "Approval request does not contain role/org OID");
+        ConstructionType constructionType = assignment.getConstruction();
+        Validate.notNull(constructionType, "Approval request does not contain a construction");
+        ObjectReferenceType resourceRef = constructionType.getResourceRef();
+        Validate.notNull(resourceRef, "Approval request does not contain resource reference");
+        String resourceOid = resourceRef.getOid();
+        Validate.notNull(resourceOid, "Approval request does not contain resource OID");
 
-        AbstractRoleType role;
+        ResourceType resourceType;
         try {
-            role = repositoryService.getObject(AbstractRoleType.class, roleOid, null, result).asObjectable();
+            resourceType = repositoryService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
         } catch (ObjectNotFoundException e) {
-            throw new ObjectNotFoundException("Role/org with OID " + roleOid + " does not exist anymore.");
+            throw new ObjectNotFoundException("Resource with OID " + resourceOid + " does not exist anymore.");
         } catch (SchemaException e) {
-            throw new SchemaException("Couldn't get role/org with OID " + roleOid + " because of schema exception.");
+            throw new SchemaException("Couldn't get resource with OID " + resourceOid + " because of schema exception.");
         }
 
-        form.setRole(role.getName() == null ? role.getOid() : role.getName().getOrig());        // ==null should not occur
+        form.setResource(resourceType.getName() == null ? resourceType.getOid() : resourceType.getName().getOrig());        // ==null should not occur
         form.setRequesterComment(assignment.getDescription());
-        form.setTimeInterval(formatTimeIntervalBrief(assignment));
+        form.setTimeInterval(AddRoleAssignmentAspect.formatTimeIntervalBrief(assignment));
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Resulting prism object instance = " + formPrism.debugDump());
         }
         return formPrism;
-    }
-
-    public static String formatTimeIntervalBrief(AssignmentType assignment) {
-        StringBuilder sb = new StringBuilder();
-        if (assignment != null && assignment.getActivation() != null &&
-                (assignment.getActivation().getValidFrom() != null || assignment.getActivation().getValidTo() != null)) {
-            if (assignment.getActivation().getValidFrom() != null && assignment.getActivation().getValidTo() != null) {
-                sb.append(formatTime(assignment.getActivation().getValidFrom()));
-                sb.append("-");
-                sb.append(formatTime(assignment.getActivation().getValidTo()));
-            } else if (assignment.getActivation().getValidFrom() != null) {
-                sb.append("from ");
-                sb.append(formatTime(assignment.getActivation().getValidFrom()));
-            } else {
-                sb.append("to ");
-                sb.append(formatTime(assignment.getActivation().getValidTo()));
-            }
-        }
-        return sb.toString();
-    }
-
-    private static String formatTime(XMLGregorianCalendar time) {
-        DateFormat formatter = DateFormat.getDateInstance();
-        return formatter.format(time.toGregorianCalendar().getTime());
     }
 
     @Override
@@ -385,10 +373,9 @@ public class AddRoleAssignmentAspect extends BasePrimaryChangeAspect {
             throw new IllegalStateException("No approval request in activiti task " + task);
         }
 
-        String oid = approvalRequest.getItemToApprove().getTargetRef().getOid();
-        return repositoryService.getObject(AbstractRoleType.class, oid, null, result);
+        String oid = approvalRequest.getItemToApprove().getConstruction().getResourceRef().getOid();
+        return repositoryService.getObject(ResourceType.class, oid, null, result);
     }
-
 
     //endregion
 }

@@ -311,7 +311,7 @@ public class DeltaConvertor {
      */
     public static Collection<ItemDeltaType> toPropertyModificationTypes(ItemDelta delta) throws SchemaException {
     	delta.checkConsistence();
-        if (delta.isEmpty() && delta.getPrismContext() == null) {
+        if (!delta.isEmpty() && delta.getPrismContext() == null) {
             throw new IllegalStateException("Non-empty ItemDelta with no prismContext cannot be converted to ItemDeltaType.");
         }
         Collection<ItemDeltaType> mods = new ArrayList<>();
