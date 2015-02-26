@@ -56,14 +56,19 @@ import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
+import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -83,6 +88,9 @@ class EntitlementConverter {
 	private static final Trace LOGGER = TraceManager.getTrace(EntitlementConverter.class);
 	
 	@Autowired(required=true)
+	private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
+	
+	@Autowired(required=true)
 	private PrismContext prismContext;
 	
 	@Autowired(required = true)
@@ -93,7 +101,7 @@ class EntitlementConverter {
 	/////////
 	
 	public void postProcessEntitlementsRead(ConnectorInstance connector, ResourceType resourceType,
-			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException {
+			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException, ObjectNotFoundException, ConfigurationException {
 		
 		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = objectClassDefinition.getEntitlementAssociations();
 		if (entitlementAssociationDefs != null) {
@@ -173,7 +181,7 @@ class EntitlementConverter {
 			RefinedObjectClassDefinition objectClassDefinition, RefinedAssociationDefinition assocDefType,
 			final RefinedObjectClassDefinition entitlementDef,
 			ResourceAttributeContainer attributesContainer, final PrismContainer<ShadowAssociationType> associationContainer,
-			OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException {
+			OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException, ObjectNotFoundException, ConfigurationException {
 		final QName associationName = assocDefType.getName();
 		if (associationName == null) {
 			throw new SchemaException("No name in entitlement association "+assocDefType+" in "+resourceType);
@@ -203,6 +211,17 @@ class EntitlementConverter {
 		ObjectQuery query = createQuery(assocDefType, assocAttrDef, valueAttr);
 		
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementDef, resourceType);
+		
+		SearchHierarchyConstraints searchHierarchyConstraints = null;
+		ResourceObjectReferenceType baseContextRef = entitlementDef.getBaseContext();
+		if (baseContextRef != null) {
+			// TODO: this should be done once per search. Not in every run of postProcessEntitlementEntitlementToSubject
+			// this has to go outside of this method
+			PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(baseContextRef, "base context specification in "+entitlementDef, parentResult);
+			RefinedObjectClassDefinition baseContextObjectClassDefinition = RefinedObjectClassDefinition.determineObjectClassDefinition(baseContextShadow, resourceType);
+			ResourceObjectIdentification baseContextIdentification = new ResourceObjectIdentification(baseContextObjectClassDefinition, ShadowUtil.getIdentifiers(baseContextShadow));
+			searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
+		}
 		
 		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 			@Override
@@ -234,7 +253,7 @@ class EntitlementConverter {
 				LOGGER.trace("Processed entitlement-to-subject association for account {}: query {}",
 						ShadowUtil.getHumanReadableName(resourceObject), query);
 			}
-			connector.search(entitlementDef, query, handler, attributesToReturn, null, parentResult);
+			connector.search(entitlementDef, query, handler, attributesToReturn, null, searchHierarchyConstraints, parentResult);
 		} catch (TunnelException e) {
 			throw (SchemaException)e.getCause();
 		}
@@ -328,13 +347,12 @@ class EntitlementConverter {
 	/**
 	 * This is somehow different that all the other methods. We are not following the content of a shadow or delta. We are following
 	 * the definitions. This is to avoid the need to read the object that is going to be deleted. In fact, the object should not be there
-	 * any more, but we still want to clean up entitlement membership based on the information from the shadow. 
-	 * @param parentResult 
+	 * any more, but we still want to clean up entitlement membership based on the information from the shadow.  
 	 */
 	public <T> void collectEntitlementsAsObjectOperationDelete(ConnectorInstance connector, final Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
 			RefinedObjectClassDefinition objectClassDefinition,
 			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resourceType, OperationResult parentResult) 
-					throws SchemaException, CommunicationException {
+					throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException {
 
 		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = objectClassDefinition.getEntitlementAssociations();
 		if (entitlementAssociationDefs == null || entitlementAssociationDefs.isEmpty()) {
@@ -396,6 +414,15 @@ class EntitlementConverter {
 			
 			AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementOcDef, resourceType);
 			
+			SearchHierarchyConstraints searchHierarchyConstraints = null;
+			ResourceObjectReferenceType baseContextRef = entitlementOcDef.getBaseContext();
+			if (baseContextRef != null) {
+				PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(baseContextRef, "base context specification in "+entitlementOcDef, parentResult);
+				RefinedObjectClassDefinition baseContextObjectClassDefinition = RefinedObjectClassDefinition.determineObjectClassDefinition(baseContextShadow, resourceType);
+				ResourceObjectIdentification baseContextIdentification = new ResourceObjectIdentification(baseContextObjectClassDefinition, ShadowUtil.getIdentifiers(baseContextShadow));
+				searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
+			}
+			
 			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 				@Override
 				public boolean handle(PrismObject<ShadowType> entitlementShadow) {
@@ -430,7 +457,7 @@ class EntitlementConverter {
 			};
 			try {
 				LOGGER.trace("Searching for associations in deleted shadow, query: {}", query);
-				connector.search(entitlementOcDef, query, handler, attributesToReturn, null, parentResult);
+				connector.search(entitlementOcDef, query, handler, attributesToReturn, null, searchHierarchyConstraints, parentResult);
 			} catch (TunnelException e) {
 				throw (SchemaException)e.getCause();
 			} catch (GenericFrameworkException e) {

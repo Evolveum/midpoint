@@ -3289,6 +3289,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="baseContext" type="tns:ResourceObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The definition of base context (resource object container). This object will be used
+                        as a base for searches for objects of this type. Usually only the objects that are
+                        hierarchically below the baseContext are returned by such a search.
+                        E.g. this is used to specify LDAP organizationalUnit that contains users or groups
+                        of particular type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="attribute" minOccurs="0" maxOccurs="unbounded"
                          type="tns:ResourceAttributeDefinitionType">
                 <xsd:annotation>
@@ -4102,6 +4113,134 @@
      		</xsd:element>
      	</xsd:sequence>
      </xsd:complexType>
+     
+     <xsd:complexType name="ResourceObjectReferenceType">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			Reference to a resource object. This reference has many properties that influence when and how
+     			to look for the object. We assume that the search for resource objects is quite expensive, therefore
+     			we will need to optimize the number of searches. We also want this reference to be "sticky", e.g. to
+     			survive resource object renames.
+     		</xsd:documentation>
+     		<xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+     	</xsd:annotation>
+     	<xsd:sequence>
+     		<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					The filter used to look for the object. This filter does NOT need to contain
+     					clauses for resource. This will be automatically added by midpoint. In some situation also
+     					the clause for objectClass may be omitted (if it can be determined by other means).
+     				</xsd:documentation>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="shadowRef" type="tns:ObjectReferenceType" minOccurs="0">
+        		<xsd:annotation>
+	                <xsd:documentation>
+	                    Reference to shadow that represents the resource object. If present, then it will be
+	                    used directly. If not present then the search filter will be used to locate the shadow
+	                    and the the result will be set to this reference.
+	                </xsd:documentation>
+	                <xsd:appinfo>
+	        			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+	        		</xsd:appinfo>
+	            </xsd:annotation>
+        	</xsd:element>
+     		<xsd:element name="resolutionStrategy" type="tns:ResourceObjectReferenceResolutionStrategyType" minOccurs="0" maxOccurs="1" default="repository">
+     		</xsd:element>
+     		<xsd:element name="resolutionFrequency" type="tns:ResourceObjectReferenceResolutionFrequencyType" minOccurs="0" maxOccurs="1" default="once">
+     		</xsd:element>
+     	</xsd:sequence>
+     </xsd:complexType>
+     
+     <xsd:simpleType name="ResourceObjectReferenceResolutionStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The strategy used to resolve resource object references.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="repository">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Search only in midPoint identity repository. Do not look at the resource. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPOSITORY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="resource">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Look only at the resource. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RESOURCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="repositoryThenResource">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Search in midPoint identity repository first. If the shadow is found, use it.
+                		If the shadow is not found also search on the resource.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPOSITORY_THEN_RESOURCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+     <xsd:simpleType name="ResourceObjectReferenceResolutionFrequencyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The strategy used to resolve resource object references.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="never">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Never resolve reference. If it has shadowRef then use it. If it does not then throw an error.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEVER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="once">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Resolve reference once. Then store the OID. Use the OID in subsequent cases. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Always reselve the reference. Do not store the OID. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
      
      <xsd:complexType name="ResourceObjectAssociationType">
      	<xsd:annotation>
