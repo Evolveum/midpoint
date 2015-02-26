@@ -1,30 +1,21 @@
-<!--
-  ~ Copyright (c) 2010-2014 Evolveum
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
-<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-		oid="00000000-0000-0000-0000-000000000100"
-        version="0">
-	 <name>Reconciliation report</name>
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="00000000-0000-0000-0000-000000000100"
+        version="2">
+   <name>Reconciliation report</name>
    <description>Reconciliation report for selected resource.</description>
-	<!-- flag if this report is "parent" report, used for gui -->
-	<parent>true</parent>
-	<subreport>
+   <metadata>
+      <modifyTimestamp>2015-02-26T14:47:19.650+01:00</modifyTimestamp>
+      <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                   oid="00000000-0000-0000-0000-000000000002"
+                   type="tns:UserType"><!-- administrator --></modifierRef>
+      <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>
+   </metadata>
+   <parent>true</parent>
+   <subreport>
       <name>owner</name>
       <reportRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                  oid="00000000-0000-0000-0000-000000000111"
@@ -34,123 +25,5 @@
    <templateStyle>UEQ5NGJXd2dkbVZ5YzJsdmJqMGlNUzR3SWo4K0RRbzhJVVJQUTFSWlVFVWdhbUZ6Y0dWeVZHVnRjR3hoZEdVTkNpQWdVRlZDVEVsRElDSXRMeTlLWVhOd1pYSlNaWEJ2Y25Sekx5OUVWRVFnVkdWdGNHeGhkR1V2TDBWT0lnMEtJQ0FpYUhSMGNEb3ZMMnBoYzNCbGNuSmxjRzl5ZEhNdWMyOTFjbU5sWm05eVoyVXVibVYwTDJSMFpITXZhbUZ6Y0dWeWRHVnRjR3hoZEdVdVpIUmtJajROQ2p4cVlYTndaWEpVWlcxd2JHRjBaVDROQ2lBZ0lDQUpDVHh6ZEhsc1pTQm1iMjUwVG1GdFpUMGlSR1ZxWVZaMUlGTmhibk1pSUdadmJuUlRhWHBsUFNJeE1DSWdhRUZzYVdkdVBTSk1aV1owSWlCcGMwUmxabUYxYkhROUluUnlkV1VpSUdselVHUm1SVzFpWldSa1pXUTlJblJ5ZFdVaUlBMEtDUWtKQ1NBZ0lHNWhiV1U5SWtKaGMyVWlJSEJrWmtWdVkyOWthVzVuUFNKSlpHVnVkR2wwZVMxSUlpQndaR1pHYjI1MFRtRnRaVDBpUkdWcVlWWjFVMkZ1Y3k1MGRHWWlJSFpCYkdsbmJqMGlUV2xrWkd4bElqNE5DZ2tKQ1R3dmMzUjViR1UrRFFvSkNRazhjM1I1YkdVZ1ltRmphMk52Ykc5eVBTSWpNalkzT1RrMElpQm1iMjUwVTJsNlpUMGlNallpSUdadmNtVmpiMnh2Y2owaUkwWkdSa1pHUmlJZ2FYTkVaV1poZFd4MFBTSm1ZV3h6WlNJTkNpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQnRiMlJsUFNKUGNHRnhkV1VpSUc1aGJXVTlJbFJwZEd4bElpQnpkSGxzWlQwaVFtRnpaU0l2UGlBTkNna0pDVHh6ZEhsc1pTQm1iMjUwVTJsNlpUMGlNVElpSUdadmNtVmpiMnh2Y2owaUl6QXdNREF3TUNJZ2FYTkVaV1poZFd4MFBTSm1ZV3h6WlNJZ2JtRnRaVDBpVUdGblpTQm9aV0ZrWlhJaURRb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdjM1I1YkdVOUlrSmhjMlVpTHo0TkNna0pDVHh6ZEhsc1pTQmlZV05yWTI5c2IzSTlJaU16TXpNek16TWlJR1p2Ym5SVGFYcGxQU0l4TWlJZ1ptOXlaV052Ykc5eVBTSWpSa1pHUmtaR0lpQm9RV3hwWjI0OUlrTmxiblJsY2lJTkNpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQnBjMFJsWm1GMWJIUTlJbVpoYkhObElpQnRiMlJsUFNKUGNHRnhkV1VpSUc1aGJXVTlJa052YkhWdGJpQm9aV0ZrWlhJaUlITjBlV3hsUFNKQ1lYTmxJaTgrRFFvSkNRazhjM1I1YkdVZ2FYTkNiMnhrUFNKbVlXeHpaU0lnYVhORVpXWmhkV3gwUFNKbVlXeHpaU0lnYm1GdFpUMGlSR1YwWVdsc0lpQnpkSGxzWlQwaVFtRnpaU0l2UGcwS0NRa0pQSE4wZVd4bElHWnZiblJUYVhwbFBTSTVJaUJtYjNKbFkyOXNiM0k5SWlNd01EQXdNREFpSUdselJHVm1ZWFZzZEQwaVptRnNjMlVpSUc1aGJXVTlJbEJoWjJVZ1ptOXZkR1Z5SWcwS0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lITjBlV3hsUFNKQ1lYTmxJaTgrRFFvSkNUd3ZhbUZ6Y0dWeVZHVnRjR3hoZEdVKw==</templateStyle>
    <orientation>landscape</orientation>
    <export>pdf</export>
-   <useHibernateSession>true</useHibernateSession>
-   <field>
-      <nameReport>name</nameReport>
-      <nameHeader>Name</nameHeader>
-      <c:itemPath xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:name</c:itemPath>
-      <sortOrderNumber>2</sortOrderNumber>
-      <sortOrder>ascending</sortOrder>
-      <width>30</width>
-      <classType xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">t:PolyString</classType>
-   </field>
-   <field>
-      <nameReport>situation</nameReport>
-      <nameHeader>Situation</nameHeader>
-      <c:itemPath xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:synchronizationSituation</c:itemPath>
-      <sortOrderNumber>1</sortOrderNumber>
-      <sortOrder>ascending</sortOrder>
-      <width>20</width>
-      <classType xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:SynchronizationSituationType</classType>
-   </field>
-   <field>
-      <nameReport>username</nameReport>
-      <nameHeader>Owner</nameHeader>
-      <c:itemPath xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:name</c:itemPath>
-      <width>30</width>
-      <classType xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">t:PolyString</classType>
-   </field>
-   <field>
-      <nameReport>situationTimestamp</nameReport>
-      <nameHeader>Timestamp</nameHeader>
-      <c:itemPath xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:synchronizationTimestamp</c:itemPath>
-      <width>20</width>
-      <classType xmlns:xsd="http://www.w3.org/2001/XMLSchema">xsd:dateTime</classType>
-   </field>
-   <configuration xmlns:gen795="http://midpoint.evolveum.com/xml/ns/public/report">
-      <gen795:hqlQuery>select 
-			(select u.name.orig from RUser as u join u.linkRef as ref where ref.targetOid = s.oid) as username, 
-			s.name.orig as name, 
-			s.synchronizationSituation as situation, 
-			s.synchronizationTimestamp as situationTimestamp 
-			from RShadow as s join s.resourceRef as resRef 
-			where s.objectClass = $P{objectClass} and resRef.type = 5 and resRef.targetOid = $P{resourceOid} and s.kind = 0 
-			order by s.synchronizationSituation, s.name.orig
-		</gen795:hqlQuery>
-      <gen795:objectClass>http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#AccountObjectClass</gen795:objectClass>
-      <gen795:objectClassName>Account</gen795:objectClassName>
-      <gen795:resourceOid>ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe</gen795:resourceOid>
-      <gen795:resourceName>Localhost CSVfile</gen795:resourceName>
-      <gen795:intent>default</gen795:intent>
-   </configuration>
-   <configurationSchema>
-      <definition>
-         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
-                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-                     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
-
-				        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-				        <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-				        <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
-
-				        <xsd:complexType name="ConfigurationType">
-					          <xsd:annotation>
-						            <xsd:appinfo>
-							              <a:container/>
-						            </xsd:appinfo>
-					          </xsd:annotation>
-					          <xsd:sequence>
-
-						<!-- HQL query for jasper design (queryString element) -->
-						<xsd:element name="hqlQuery" type="xsd:string"/>
-
-						            <!-- special reconciliation configuration -->
-						<xsd:element name="objectClass" type="xsd:string">
-							              <xsd:annotation>
-								                <xsd:appinfo>
-									                  <a:displayName>Object Class:</a:displayName>
-								                </xsd:appinfo>
-							              </xsd:annotation>
-						            </xsd:element>
-
-						            <xsd:element name="objectClassName" type="xsd:string">
-							              <xsd:annotation>
-								                <xsd:appinfo>
-									                  <a:displayName>Object Class Name:</a:displayName>
-								                </xsd:appinfo>
-							              </xsd:annotation>
-						            </xsd:element>
-
-						            <xsd:element name="resourceOid" type="xsd:string"/>
-
-						            <xsd:element name="resourceName" type="xsd:string">
-							              <xsd:annotation>
-								                <xsd:appinfo>
-									                  <a:displayName>Resource:</a:displayName>
-								                </xsd:appinfo>
-							              </xsd:annotation>
-						            </xsd:element>
-
-						            <xsd:element name="intent" type="xsd:string">
-							              <xsd:annotation>
-								                <xsd:appinfo>
-									                  <a:displayName>Intent:</a:displayName>
-								                </xsd:appinfo>
-							              </xsd:annotation>
-						            </xsd:element>
-					          </xsd:sequence>
-				        </xsd:complexType>
-				        <xsd:element name="configuration" type="r:ConfigurationType"/>
-			      </xsd:schema>
-      </definition>
-   </configurationSchema>
-	
-	
 </report>
+</objects>
