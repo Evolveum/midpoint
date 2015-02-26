@@ -84,6 +84,7 @@ public class PrismConstants {
 	public static final QName Q_RELATION = new QName(NS_QUERY, "relation");
 	public static final QName Q_VALUE = new QName(NS_QUERY, "value");
 	public static final QName Q_ORDER_BY = new QName(NS_QUERY, "orderBy");
+	public static final QName Q_ANY = new QName(NS_QUERY, "any");
 
 	
 	// Misc

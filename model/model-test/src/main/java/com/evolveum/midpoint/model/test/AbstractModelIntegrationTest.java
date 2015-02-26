@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,13 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -231,9 +233,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired(required=true)
 	private SecurityEnforcer securityEnforcer;
 	
+	@Autowired(required=true)
+	protected MidpointFunctions libraryMidpointFunctions;
+	
 	protected DummyAuditService dummyAuditService;
 	
-	protected boolean verbose = false; 
+	protected boolean verbose = false;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 			
@@ -631,8 +636,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);
 	}
-	
-	protected <O extends ObjectType, C extends Containerable> void modifyObjectDeleteContainer(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue) 
+
+	protected <O extends ObjectType, C extends Containerable> void modifyObjectDeleteContainer(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> objectDelta = ObjectDelta.createModificationDeleteContainer(type, oid, propertyPath, prismContext, newRealValue);
@@ -1177,6 +1182,32 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
 	}
 	
+	protected AssignmentType getUserAssignment(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<UserType> user = getUser(userOid);
+		List<AssignmentType> assignments = user.asObjectable().getAssignment();
+		for (AssignmentType assignment: assignments) {
+			ObjectReferenceType targetRef = assignment.getTargetRef();
+			if (targetRef != null && roleOid.equals(targetRef.getOid())) {
+				return assignment;
+			}
+		}
+		return null;
+	}
+	
+	protected <F extends FocusType> void assertNoAssignments(PrismObject<F> user) {
+		MidPointAsserts.assertNoAssignments(user);
+	}
+	
+	protected void assertNoAssignments(String userOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		assertNoAssignments(user);
+	}
+	
+	protected void assertNoAssignments(String userOid) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoShadow");
+		assertNoAssignments(userOid, result);
+	}
+	
 	protected void assertAssignedRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedRole(user, roleOid);
@@ -1191,9 +1222,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         MidPointAsserts.assertNotAssignedRole(user, roleOid);
     }
 
+    protected void assertNotAssignedResource(String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+        MidPointAsserts.assertNotAssignedResource(user, resourceOid);
+    }
+
+    protected void assertAssignedResource(String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+        MidPointAsserts.assertAssignedResource(user, resourceOid);
+    }
+
     protected <F extends FocusType> void assertNotAssignedRole(PrismObject<F> user, String roleOid) {
 		MidPointAsserts.assertNotAssignedRole(user, roleOid);
 	}
+
+    protected <F extends FocusType> void assertNotAssignedOrg(PrismObject<F> user, String orgOid, QName relation) {
+        MidPointAsserts.assertNotAssignedOrg(user, orgOid, relation);
+    }
 
 	protected void assertAssignedOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
@@ -1857,17 +1902,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	private boolean isError(OperationResult result, boolean checkSubresult) {
 		OperationResult subresult = getSubresult(result, checkSubresult);
-		return subresult.isError();
+		return subresult != null ? subresult.isError() : false;
 	}
 	
 	private boolean isUknown(OperationResult result, boolean checkSubresult) {
 		OperationResult subresult = getSubresult(result, checkSubresult);
-		return subresult.isUnknown();
+		return subresult != null ? subresult.isUnknown() : false;			// TODO or return true?
 	}
 
 	private boolean isInProgress(OperationResult result, boolean checkSubresult) {
 		OperationResult subresult = getSubresult(result, checkSubresult);
-		return subresult.isInProgress();
+		return subresult != null ? subresult.isInProgress() : true;		// "true" if there are no subresults
 	}
 
 	private OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
@@ -2001,6 +2046,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		TestUtil.assertSuccess(result);
 		return object;
 	}
+
+    protected <O extends ObjectType> void addObjects(File... files) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+        for (File file : files) {
+            addObject(file);
+        }
+    }
 
 	protected <O extends ObjectType> void addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
 		PrismObject<O> object = PrismTestUtil.parseObject(file);
@@ -2141,7 +2192,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
-	protected void assertDummyAccount(String username, String fullname, boolean active) {
+	protected void assertDefaultDummyAccount(String username, String fullname, boolean active) {
 		assertDummyAccount(null, username, fullname, active);
 	}
 	
@@ -2203,7 +2254,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		}
 	}
-	
+
+	protected void assertNoDummyAccountAttribute(String dummyInstanceName, String username, String attributeName) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy account for username "+username, account);
+		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
+		if (values == null || values.isEmpty()) {
+			return;
+		}
+		AssertJUnit.fail("Expected no value in attribute "+attributeName+" of dummy account "+username+
+						". Values found: "+values);
+	}
+
 	protected void assertDummyAccountAttributeGenerated(String dummyInstanceName, String username) {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
@@ -2268,6 +2330,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
+    protected void assertDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+    	DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
+		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
+		IntegrationTestTools.assertGroupMember(group, accountId);
+	}
+	
+	protected void assertDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+		assertDummyGroupMember(null, dummyGroupName, accountId);
+	}
+
+	protected void assertNoDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
+		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
+		IntegrationTestTools.assertNoGroupMember(group, accountId);
+	}
+	
+	protected void assertNoDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+		assertNoDummyGroupMember(null, dummyGroupName, accountId);
+	}
+    
 	protected void assertDummyAccountNoAttribute(String dummyInstanceName, String username, String attributeName) {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
@@ -2528,8 +2610,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TestUtil.assertSuccess(result);
 	}
 	
-	protected void modifyRoleAddInducementTarget(String roleOid, String targetOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleAddInducementTarget");
+	protected void modifyRoleAddInducementTarget(String roleOid, String targetOid, boolean reconcileAffected, Task task) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+        if (task == null) {
+            task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleAddInducementTarget");
+        }
         OperationResult result = task.getResult();
         AssignmentType inducement = new AssignmentType();
         ObjectReferenceType targetRef = new ObjectReferenceType();
@@ -2538,9 +2622,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid, 
         		new ItemPath(new NameItemPathSegment(RoleType.F_INDUCEMENT)),
         		prismContext, inducement);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        ModelExecuteOptions options = new ModelExecuteOptions();
+        options.setReconcileAffected(reconcileAffected);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), options, task, result);
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        if (reconcileAffected) {
+            TestUtil.assertInProgressOrSuccess(result);
+        } else {
+            TestUtil.assertSuccess(result);
+        }
 	}
 	
 	protected AssignmentType findInducementByTarget(String roleOid, String targetOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -2568,17 +2658,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TestUtil.assertSuccess(result);
 	}
 	
-	protected void modifyRoleDeleteInducement(String roleOid, long inducementId) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleDeleteInducement");
+	protected void modifyRoleDeleteInducement(String roleOid, long inducementId, boolean reconcileAffected, Task task) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		if (task == null) {
+            task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleDeleteInducement");
+        }
         OperationResult result = task.getResult();
         
 		AssignmentType inducement = new AssignmentType();
 		inducement.setId(inducementId);
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, 
         		RoleType.F_INDUCEMENT, prismContext, inducement);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        ModelExecuteOptions options = new ModelExecuteOptions();
+        options.setReconcileAffected(reconcileAffected);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), options, task, result);
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        if (reconcileAffected) {
+            TestUtil.assertInProgressOrSuccess(result);
+        } else {
+            TestUtil.assertSuccess(result);
+        }
 	}
 	
 	protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -2644,5 +2742,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ConfigAttribute> attrs = new ArrayList<ConfigAttribute>();
 		attrs.add(new SecurityConfig(action));
 		return attrs;
+	}
+	
+	protected <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class+".getEditObjectDefinition");
+		PrismObjectDefinition<O> editSchema = modelInteractionService.getEditObjectDefinition(object, null, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return editSchema;
 	}
 }

@@ -81,5 +81,8 @@
                 <value>com.evolveum.midpoint.repo.sql.data.audit</value>
             </list>
         </property>
+        <property name="entityInterceptor">
+            <bean class="com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor"/>
+        </property>
     </bean>
 </beans>

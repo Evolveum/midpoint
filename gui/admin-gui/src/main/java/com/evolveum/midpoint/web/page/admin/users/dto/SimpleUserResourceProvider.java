@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -50,8 +51,23 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
         Validate.notNull(accountsModel, "Accounts model must not be null.");
         this.accountsModel = accountsModel;
 
-        resourceProvider = new ObjectDataProvider(component, ResourceType.class);
+        resourceProvider = new ObjectDataProvider(component, ResourceType.class){
+
+            @Override
+            protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
+                if(result.isPartialError()){
+                    handlePartialError(result);
+                } else {
+                    super.handleNotSuccessOrHandledErrorInIterator(result);
+                }
+            }
+        };
     }
+
+    /**
+     *  Override to provide handle operation for partial error during provider iterator operation.
+     * */
+    protected void handlePartialError(OperationResult result){}
 
     @Override
     public Iterator<SelectableBean<ResourceType>> internalIterator(long first, long count) {
@@ -59,7 +75,7 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
 
         Set<String> alreadyUsedResources = createUsedResourceOidSet();
 
-        List<SelectableBean<ResourceType>> allData = new ArrayList<SelectableBean<ResourceType>>();
+        List<SelectableBean<ResourceType>> allData = new ArrayList<>();
         Iterator<SelectableBean<ResourceType>> iterator = resourceProvider.iterator(0, resourceProvider.size());
         while (iterator.hasNext()) {
             SelectableBean<ResourceType> bean = iterator.next();
@@ -81,7 +97,7 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
     }
 
     private Set<String> createUsedResourceOidSet() {
-        Set<String> set = new HashSet<String>();
+        Set<String> set = new HashSet<>();
 
         List<UserAccountDto> accounts = accountsModel.getObject();
         if (accounts == null) {

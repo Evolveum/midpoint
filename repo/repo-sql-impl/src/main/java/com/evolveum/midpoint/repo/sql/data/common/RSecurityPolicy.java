@@ -3,6 +3,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -18,7 +19,7 @@ import javax.persistence.UniqueConstraint;
 import java.util.Collection;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_security_policy_name", columnNames = {"name_norm"}))
 @ForeignKey(name = "fk_security_policy")
 public class RSecurityPolicy extends RObject<SecurityPolicyType> {
 
@@ -53,10 +54,11 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
         return result;
     }
 
-    public static void copyFromJAXB(SecurityPolicyType jaxb, RSecurityPolicy repo, PrismContext prismContext)
+    public static void copyFromJAXB(SecurityPolicyType jaxb, RSecurityPolicy repo, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult)
             throws DtoTranslationException {
 
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
     }

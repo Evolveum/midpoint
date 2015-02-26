@@ -146,8 +146,8 @@ public class ObjectImporter {
                 object = migrator.migrate(object);
                 
                 Utils.resolveReferences(object, repository, 
-                		(options == null || options.isReferentialIntegrity() == null) ? false : options.isReferentialIntegrity(), 
-                				prismContext, objectResult);
+                		(options == null || options.isReferentialIntegrity() == null) ? false : options.isReferentialIntegrity(),
+                        false, prismContext, objectResult);
                 
                 objectResult.computeStatus();
                 if (!objectResult.isAcceptable()) {

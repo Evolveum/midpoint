@@ -22,18 +22,17 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
-import com.evolveum.midpoint.repo.sql.data.common.type.RRoleApproverRef;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -43,7 +42,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -91,7 +89,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         return exclusion;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RRoleApproverRef.DISCRIMINATOR)
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 3")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -150,20 +148,22 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     }
 
     public static <T extends AbstractRoleType> void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole<T> repo,
-                                                                 PrismContext prismContext) throws DtoTranslationException {
-        RFocus.copyFromJAXB(jaxb, repo, prismContext);
+                                                                 PrismContext prismContext,
+                                                                 IdGeneratorResult generatorResult)
+            throws DtoTranslationException {
+        RFocus.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
         repo.setRequestable(jaxb.isRequestable());
 
         for (AssignmentType inducement : jaxb.getInducement()) {
             RAssignment rInducement = new RAssignment(repo, RAssignmentOwner.ABSTRACT_ROLE);
-            RAssignment.copyFromJAXB(inducement, rInducement, jaxb, prismContext);
+            RAssignment.copyFromJAXB(inducement, rInducement, jaxb, prismContext, generatorResult);
 
             repo.getAssignments().add(rInducement);
         }
 
-        for (ExclusionType exclusion : jaxb.getExclusion()) {
+        for (ExclusionPolicyConstraintType exclusion : jaxb.getExclusion()) {
             RExclusion rExclusion = new RExclusion(repo);
-            RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext);
+            RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext, generatorResult);
 
             repo.getExclusion().add(rExclusion);
         }
@@ -174,7 +174,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
                 repo.getApproverRef().add(ref);
             }
         }
-        
+
         PrismObjectDefinition<AbstractRoleType> roleDefinition = jaxb.asPrismObject().getDefinition();
 
         repo.setApprovalProcess(jaxb.getApprovalProcess());

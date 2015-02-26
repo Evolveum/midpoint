@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import static com.evolveum.icf.dummy.connector.Utils.*;
 
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -345,8 +346,16 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        		
 		        	} else {
 			        	String name = attr.getName();
+			        	List<Object> values = attr.getValue();
+			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
+			        		List<Object> newValues = new ArrayList<Object>(values.size());
+			        		for (Object val: values) {
+			        			newValues.add(StringUtils.upperCase((String)val));
+			        		}
+			        		values = newValues;
+			        	}
 			        	try {
-							group.replaceAttributeValues(name, attr.getValue());
+							group.replaceAttributeValues(name, values);
 						} catch (SchemaViolationException e) {
 							throw new IllegalArgumentException(e.getMessage(),e);
 						}
@@ -482,8 +491,16 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        		
 		        	} else {
 			        	String name = attr.getName();
+			        	List<Object> values = attr.getValue();
+			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
+			        		List<Object> newValues = new ArrayList<Object>(values.size());
+			        		for (Object val: values) {
+			        			newValues.add(StringUtils.upperCase((String)val));
+			        		}
+			        		values = newValues;
+			        	}
 			        	try {
-							group.addAttributeValues(name, attr.getValue());
+							group.addAttributeValues(name, values);
 						} catch (SchemaViolationException e) {
 							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -606,8 +623,16 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
 		        	} else {
 			        	String name = attr.getName();
+			        	List<Object> values = attr.getValue();
+			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
+			        		List<Object> newValues = new ArrayList<Object>(values.size());
+			        		for (Object val: values) {
+			        			newValues.add(StringUtils.upperCase((String)val));
+			        		}
+			        		values = newValues;
+			        	}
 			        	try {
-							group.removeAttributeValues(name, attr.getValue());
+							group.removeAttributeValues(name, values);
 						} catch (SchemaViolationException e) {
 							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -866,11 +891,12 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
-        log.info("executeQuery::begin");
+        log.info("executeQuery({0},{1},{2},{3})", objectClass, query, handler, options);
         validate(objectClass);
         notNull(handler, "Results handled object can't be null.");
         
         Collection<String> attributesToGet = getAttrsToGet(options);
+        log.ok("attributesToGet={0}", attributesToGet);
         
         try {
 	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
@@ -1114,7 +1140,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		
 		// Password is not returned by default (hardcoded ICF specification)
 		if (account.getPassword() != null && configuration.getReadablePassword() && 
-				attributesToGet.contains(OperationalAttributes.PASSWORD_NAME)) {
+				attributesToGet != null && attributesToGet.contains(OperationalAttributes.PASSWORD_NAME)) {
 			GuardedString gs = new GuardedString(account.getPassword().toCharArray());
 			builder.addAttribute(OperationalAttributes.PASSWORD_NAME,gs);
 		}

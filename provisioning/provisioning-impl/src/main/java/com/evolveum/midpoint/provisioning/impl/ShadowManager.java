@@ -462,7 +462,7 @@ public class ShadowManager {
 		}
 
 		if (conditions.size() < 1) {
-			throw new SchemaException("Identifier not specifier. Cannot create search query by identifier.");
+			throw new SchemaException("Identifier not specified. Cannot create search query by identifier.");
 		}
 		
 		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);

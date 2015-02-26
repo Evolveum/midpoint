@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,10 +60,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -71,6 +73,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -250,7 +253,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong number of authorizations", 2, authorizations.size());
         AuthorizationType authRead = findAutz(authorizations, ModelAuthorizationAction.READ.getUrl());
         assertEquals("Wrong action in authorization", ModelAuthorizationAction.READ.getUrl(), authRead.getAction().get(0));
-        List<ObjectSpecificationType> objectSpecs = authRead.getObject();
+        List<OwnedObjectSpecificationType> objectSpecs = authRead.getObject();
         assertEquals("Wrong number of object specs in authorization", 1, objectSpecs.size());
         ObjectSpecificationType objectSpec = objectSpecs.get(0);
         List<SpecialObjectSpecificationType> specials = objectSpec.getSpecial();
@@ -802,7 +805,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
         assertAssignmentsWithTargets(userJack, 1);
         
-        PrismObjectDefinition<UserType> userJackEditSchema = modelInteractionService.getEditObjectDefinition(userJack, null);
+        PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
         display("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
         assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
@@ -1909,5 +1912,5 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	interface Attempt {
 		void run(Task task, OperationResult result) throws Exception;
 	}
-
+	
 }

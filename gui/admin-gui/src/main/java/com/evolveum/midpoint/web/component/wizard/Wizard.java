@@ -203,11 +203,15 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
             }
         }
 
-        Wizard.this.onActiveStepChanged(newStep);
         WizardModel model = (WizardModel) getWizardModel();
-        model.setActiveStep(newStep);
-        getWizardModel().getActiveStep().applyState();
+        IWizardStep currentStep = model.getActiveStep();
+        currentStep.applyState();
 
-        target.add(this);
+        if(currentStep.isComplete()){
+            model.setActiveStep(newStep);
+            onActiveStepChanged(newStep);
+        }
+
+        target.add(this, getPageBase().getFeedbackPanel());
     }
 }

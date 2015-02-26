@@ -47,23 +47,41 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 	Boolean noCrypt;
 	
 	/**
-	 * Option to reconcile user while executing changes. 
+	 * Option to reconcile focus while executing changes.
 	 */
 	Boolean reconcile;
+
+    /**
+     * Option to reconcile affected objects after executing changes.
+     * Typical use: after a role is changed, all users that have been assigned this role
+     * would be reconciled.
+     *
+     * Because it is difficult to determine all affected objects (e.g. users that have
+     * indirectly assigned a role), midPoint does a reasonable attempt to determine
+     * and reconcile them. E.g. it may be limited to a direct assignees.
+     *
+     * Also, because of time complexity, the reconciliation may be executed in
+     * a separate background task.
+     */
+    Boolean reconcileAffected;
 
     /**
      * Option to execute changes as soon as they are approved. (For the primary stage approvals, the default behavior
      * is to wait until all changes are approved/rejected and then execute the operation as a whole.)
      */
     Boolean executeImmediatelyAfterApproval;
-    
-    
+
     /**
      * Option to user overwrite flag. It can be used from web service, if we want to re-import some object
      */
     Boolean overwrite;
     
     Boolean isImport;
+
+	/**
+	 * Causes reevaluation of search filters (producing partial errors on failure).
+	 */
+	Boolean reevaluateSearchFilters;
     
     /**
      * Option to limit propagation only for the source resource
@@ -167,8 +185,32 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 		opts.setReconcile(true);
 		return opts;
 	}
-	
-	public Boolean getOverwrite() {
+
+    public Boolean getReconcileAffected() {
+        return reconcileAffected;
+    }
+
+    public void setReconcileAffected(Boolean reconcile) {
+        this.reconcileAffected = reconcile;
+    }
+
+    public static boolean isReconcileAffected(ModelExecuteOptions options){
+        if (options == null){
+            return false;
+        }
+        if (options.reconcileAffected == null){
+            return false;
+        }
+        return options.reconcileAffected;
+    }
+
+    public static ModelExecuteOptions createReconcileAffected(){
+        ModelExecuteOptions opts = new ModelExecuteOptions();
+        opts.setReconcileAffected(true);
+        return opts;
+    }
+
+    public Boolean getOverwrite() {
 		return overwrite;
 	}
 	
@@ -234,7 +276,6 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setLimitPropagation(true);
 		return opts;
-
 	}
     
     public void setLimitPropagation(Boolean limitPropagation) {
@@ -257,7 +298,31 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         return opts;
     }
 
-    public ModelExecuteOptionsType toModelExecutionOptionsType() {
+	public Boolean getReevaluateSearchFilters() {
+		return reevaluateSearchFilters;
+	}
+
+	public void setReevaluateSearchFilters(Boolean reevaluateSearchFilters) {
+		this.reevaluateSearchFilters = reevaluateSearchFilters;
+	}
+
+	public static boolean isReevaluateSearchFilters(ModelExecuteOptions options){
+		if (options == null){
+			return false;
+		}
+		if (options.reevaluateSearchFilters == null){
+			return false;
+		}
+		return options.reevaluateSearchFilters;
+	}
+
+	public static ModelExecuteOptions createReevaluateSearchFilters(){
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setReevaluateSearchFilters(true);
+		return opts;
+	}
+
+	public ModelExecuteOptionsType toModelExecutionOptionsType() {
         ModelExecuteOptionsType retval = new ModelExecuteOptionsType();
         retval.setForce(force);
         retval.setRaw(raw);
@@ -267,6 +332,7 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         retval.setOverwrite(overwrite);
         retval.setIsImport(isImport);
         retval.setLimitPropagation(limitPropagation);
+		retval.setReevaluateSearchFilters(reevaluateSearchFilters);
         return retval;
     }
 
@@ -283,6 +349,7 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         retval.setOverwrite(type.isOverwrite());
         retval.setIsImport(type.isIsImport());
         retval.setLimitPropagation(type.isLimitPropagation());
+		retval.setReevaluateSearchFilters(type.isReevaluateSearchFilters());
         return retval;
     }
     
@@ -312,11 +379,14 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
     			retVal.setReconcile(true);
     		}
     		if (ModelExecuteOptionsType.F_IS_IMPORT.getLocalPart().equals(option)){
-    			retVal.setIsImport(true);;
+    			retVal.setIsImport(true);
     		}
     		if (ModelExecuteOptionsType.F_LIMIT_PROPAGATION.getLocalPart().equals(option)){
-    			retVal.setIsImport(true);;
+    			retVal.setIsImport(true);
     		}
+			if (ModelExecuteOptionsType.F_REEVALUATE_SEARCH_FILTERS.getLocalPart().equals(option)){
+				retVal.setReevaluateSearchFilters(true);
+			}
     	}
     	
     	return retVal;
@@ -328,7 +398,8 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 				+ ",reconcile=" + reconcile
 				+ ",executeImmediatelyAfterApproval="
 				+ executeImmediatelyAfterApproval + ",overwrite=" + overwrite
-				+ "limitPropagation="+limitPropagation+"]";
+				+ ",limitPropagation="+limitPropagation
+				+ ",reevaluateSearchFilters="+reevaluateSearchFilters+"]";
     }
 
     public ModelExecuteOptions clone() {

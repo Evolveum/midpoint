@@ -30,6 +30,7 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -151,7 +152,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         PrismPropertyValue<ResourceAttributeDefinitionType> oldAttrPVal = null;
         for (PrismPropertyValue<ResourceAttributeDefinitionType> pval: attributeProperty.getValues()) {
         	ResourceAttributeDefinitionType attrType = pval.getValue();
-        	if (attrType.getRef().getLocalPart().equals(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME)) {
+        	if (ItemPathUtil.getOnlySegmentQName(attrType.getRef()).getLocalPart().equals(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME)) {
         		oldAttrPVal = pval;
         	}
         }
@@ -284,7 +285,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         // Now do something evil, remove "red" construction from judge role
-        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L);
+        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, false, null);
         
         displayRoles(task, result);
         

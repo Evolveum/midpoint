@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -123,7 +124,7 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 		// THEN
 		    
         // Check account in dummy resource
-        assertDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "foo");
 	}
@@ -151,7 +152,7 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 		// THEN
 		    
         // Check account in dummy resource
-        assertDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "bar");
 	}
@@ -225,7 +226,12 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 			public String getStringValue() {
 				return value;
 			}
-		};
+
+            @Override
+            public Map<String, String> getPotentiallyRelevantNamespaces() {
+                throw new UnsupportedOperationException();
+            }
+        };
 		xnode.setValueParser(valueParser);
 		if (type != null) {
 			xnode.setExplicitTypeDeclaration(true);

@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.prism.xml;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -50,6 +52,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 	private Map<String, String> localNamespacePrefixMap = new HashMap<String, String>();
 	private String defaultNamespace = null;
 	private boolean alwaysExplicit = false;
+    private final Set<String> prefixesDeclaredByDefault = new HashSet<>();
 	
 	public String getDefaultNamespace() {
 		return defaultNamespace;
@@ -69,7 +72,24 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		this.alwaysExplicit = alwaysExplicit;
 	}
 
-	@Override
+    @Override
+    public void addDeclaredByDefault(String prefix) {
+        prefixesDeclaredByDefault.add(prefix);
+    }
+
+    @Override
+    public synchronized Map<String, String> getNamespacesDeclaredByDefault() {
+        Map<String, String> retval = new HashMap<>();
+        for (Map.Entry<String, String> entry : globalNamespacePrefixMap.entrySet()) {
+            String prefix = entry.getValue();
+            if (prefixesDeclaredByDefault.contains(prefix)) {
+                retval.put(prefix, entry.getKey());
+            }
+        }
+        return retval;
+    }
+
+    @Override
 	public synchronized void registerPrefix(String namespace, String prefix, boolean isDefaultNamespace) {
 		registerPrefixGlobal(namespace, prefix);
 		if (isDefaultNamespace || prefix == null) {
@@ -77,7 +97,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		}
 	}
 	
-	public static synchronized void registerPrefixGlobal(String namespace, String prefix) {
+	private static synchronized void registerPrefixGlobal(String namespace, String prefix) {
 		globalNamespacePrefixMap.put(namespace, prefix);
 	}
 	

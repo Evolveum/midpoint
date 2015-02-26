@@ -87,8 +87,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	protected static final String USER_TEMPLATE_SYNC_FILENAME = COMMON_DIR + "/user-template-sync.xml";
 	protected static final String USER_TEMPLATE_SYNC_OID = "10000000-0000-0000-0000-000000000333";
-	
-	protected static final String CONNECTOR_LDAP_FILENAME = COMMON_DIR + "/connector-ldap.xml";
+
+    protected static final String USER_TEMPLATE_ORG_ASSIGNMENT_FILENAME = COMMON_DIR + "/user-template-org-assignment.xml";
+    protected static final String USER_TEMPLATE_ORG_ASSIGNMENT_OID = "10000000-0000-0000-0000-000000000444";
+
+    protected static final String CONNECTOR_LDAP_FILENAME = COMMON_DIR + "/connector-ldap.xml";
 	
 	protected static final String CONNECTOR_DBTABLE_FILENAME = COMMON_DIR + "/connector-dbtable.xml";
 	
@@ -98,6 +101,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File RESOURCE_DUMMY_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
+	protected static final String RESOURCE_DUMMY_DRINK = "rum";
 	
 	// RED resource has STRONG mappings
 	protected static final String RESOURCE_DUMMY_RED_FILENAME = COMMON_DIR + "/resource-dummy-red.xml";
@@ -174,9 +178,15 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	// Excludes role "pirate"
 	protected static final File ROLE_JUDGE_FILE = new File(COMMON_DIR, "role-judge.xml");
 	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
+	protected static final String ROLE_JUDGE_TITLE = "Honorable Justice";
+	protected static final String ROLE_JUDGE_DRINK = "tea";
 
 	protected static final File ROLE_EMPTY_FILE = new File(COMMON_DIR, "role-empty.xml");
 	protected static final String ROLE_EMPTY_OID = "12345111-1111-2222-1111-121212111112";
+	
+	protected static final File ROLE_SAILOR_FILE = new File(COMMON_DIR, "role-sailor.xml");
+	protected static final String ROLE_SAILOR_OID = "12345111-1111-2222-1111-121212111113";
+	protected static final String ROLE_SAILOR_DRINK = "grog";
 
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
@@ -186,6 +196,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
 	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
 	protected static final String USER_BARBOSSA_USERNAME = "barbossa";
+	protected static final String USER_BARBOSSA_FULL_NAME = "Hector Barbossa";
 
 	protected static final File USER_GUYBRUSH_FILE = new File (COMMON_DIR, "user-guybrush.xml");
 	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
@@ -243,27 +254,28 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String ACCOUNT_HERMAN_OPENDJ_FILENAME = COMMON_DIR + "/account-herman-opendj.xml";
 	public static final String ACCOUNT_HERMAN_OPENDJ_OID = "22220000-2200-0000-0000-333300003333";
 	
-	public static final String ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR + "/account-shadow-guybrush-dummy.xml";
+	public static final File ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILE = new File(COMMON_DIR, "account-shadow-guybrush-dummy.xml");
 	public static final String ACCOUNT_SHADOW_GUYBRUSH_OID = "22226666-2200-6666-6666-444400004444";
 	public static final String ACCOUNT_GUYBRUSH_DUMMY_USERNAME = "guybrush";
 	public static final String ACCOUNT_GUYBRUSH_DUMMY_FULLNAME = "Guybrush Threepwood";
 	public static final File ACCOUNT_GUYBRUSH_DUMMY_FILE = new File (COMMON_DIR, "account-guybrush-dummy.xml");
-	public static final String ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME = COMMON_DIR + "/account-guybrush-dummy-red.xml";
+	public static final File ACCOUNT_GUYBRUSH_DUMMY_RED_FILE = new File(COMMON_DIR, "account-guybrush-dummy-red.xml");
 	
 	public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR + "/account-shadow-jack-dummy.xml";
 	
 	public static final String ACCOUNT_DAVIEJONES_DUMMY_USERNAME = "daviejones";
 	public static final String ACCOUNT_CALYPSO_DUMMY_USERNAME = "calypso";
 	
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME = COMMON_DIR + "/account-elaine-dummy.xml";
+	public static final File ACCOUNT_SHADOW_ELAINE_DUMMY_FILE = new File(COMMON_DIR, "account-elaine-dummy.xml");
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_USERNAME = USER_ELAINE_USERNAME;
+	public static final String ACCOUNT_ELAINE_DUMMY_FULLNAME = "Elaine Marley";
 	
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILENAME = COMMON_DIR + "/account-elaine-dummy-red.xml";
+	public static final File ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILE = new File(COMMON_DIR, "account-elaine-dummy-red.xml");
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID = "c0c010c0-d34d-b33f-f00d-22220104000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_RED_USERNAME = USER_ELAINE_USERNAME;
 
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILENAME = COMMON_DIR + "/account-elaine-dummy-blue.xml";
+	public static final File ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILE = new File(COMMON_DIR, "account-elaine-dummy-blue.xml");
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID = "c0c010c0-d34d-b33f-f00d-22220204000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_BLUE_USERNAME = USER_ELAINE_USERNAME;
 	
@@ -276,6 +288,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String GROUP_DUMMY_TESTERS_NAME = "testers";
 	public static final String GROUP_DUMMY_TESTERS_DESCRIPTION = "To boldly go where no pirate has gone before";
 	
+	public static final File GROUP_SHADOW_JOKER_DUMMY_UPCASE_FILE = new File(COMMON_DIR, "group-shadow-dummy-upcase-joker.xml");
+	public static final String GROUP_SHADOW_JOKER_DUMMY_UPCASE_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
+	public static final String GROUP_SHADOW_JOKER_DUMMY_UPCASE_NAME = "joker";
+	public static final String GROUP_JOKER_DUMMY_UPCASE_NAME = "JOKER";
+	
 	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR + "/password-policy-global.xml";
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
 	
@@ -283,10 +300,14 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ORG_GOVERNOR_OFFICE_OID = "00000000-8888-6666-0000-100000000001";
 	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
 	protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
+    protected static final String ORG_MINISTRY_OF_DEFENSE_OID = "00000000-8888-6666-0000-100000000002";
 	protected static final String ORG_MINISTRY_OF_RUM_OID = "00000000-8888-6666-0000-100000000004";
 	protected static final String ORG_SWASHBUCKLER_SECTION_OID = "00000000-8888-6666-0000-100000000005";
 	protected static final String ORG_PROJECT_ROOT_OID = "00000000-8888-6666-0000-200000000000";
 	protected static final String ORG_SAVE_ELAINE_OID = "00000000-8888-6666-0000-200000000001";
+	
+	protected static final String ORG_TYPE_FUNCTIONAL = "functional"; 
+	protected static final String ORG_TYPE_PROJECT = "project";
 	
 	protected static final String TASK_RECONCILE_DUMMY_FILENAME = COMMON_DIR + "/task-reconcile-dummy.xml";
 	protected static final String TASK_RECONCILE_DUMMY_OID = "10000000-0000-0000-5656-565600000004";

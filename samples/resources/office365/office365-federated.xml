@@ -210,7 +210,7 @@ This contains configuration for a federated Office 365 domain
                     <displayName>City</displayName>
                     <outbound>
                         <source>
-                            <path>$user/extension/p:city</path>
+                            <path>$user/extension/city</path>
                         </source>
                     </outbound>
                 </attribute>
@@ -230,7 +230,7 @@ This contains configuration for a federated Office 365 domain
                     <description>The unique non changing attribute to link this account in a federated domain</description>
                     <outbound>
                         <source>
-                            <path>$user/extension/p:adimmutableuid</path>
+                            <path>$user/extension/adimmutableuid</path>
                         </source>
                     </outbound>
                 </attribute>

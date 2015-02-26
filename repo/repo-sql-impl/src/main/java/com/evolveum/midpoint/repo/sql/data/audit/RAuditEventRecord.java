@@ -394,6 +394,7 @@ public class RAuditEventRecord implements Serializable {
                     continue;
                 }
                 RObjectDeltaOperation rDelta = RObjectDeltaOperation.toRepo(repo, delta, prismContext);
+                rDelta.setTransient(true);
                 rDelta.setRecord(repo);
                 repo.getDeltas().add(rDelta);
             }

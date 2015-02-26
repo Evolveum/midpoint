@@ -52,8 +52,6 @@ public class InactivateFocusAction extends BaseAction {
 		
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext != null) {
-			PrismObject<F> objectOld = focusContext.getObjectOld();
-			
 			PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
 			if (objectCurrent != null) {
 				PrismProperty<Object> administrativeStatusProp = objectCurrent.findProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);

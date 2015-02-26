@@ -154,7 +154,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 	}
 		
 	@Test
@@ -231,7 +231,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 	}
 	
 	@Test
@@ -267,7 +267,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 	}
 
 
@@ -309,7 +309,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource (if it is unchanged)
-        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 	}
 	
 	@Test
@@ -371,7 +371,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDummyAccountShadowModel(accountModel, accountOid, "blackbeard", "Edward Teach");
         
         // Check account in dummy resource
-        assertDummyAccount("blackbeard", "Edward Teach", true);
+        assertDefaultDummyAccount("blackbeard", "Edward Teach", true);
 	}
 
 	
@@ -407,7 +407,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDummyAccountShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan");
         
         // Check account in dummy resource
-        assertDummyAccount("morgan", "Sir Henry Morgan", true);
+        assertDefaultDummyAccount("morgan", "Sir Henry Morgan", true);
 	}
 
 }

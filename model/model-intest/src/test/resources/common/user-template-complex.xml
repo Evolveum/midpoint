@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,7 +24,41 @@
     <name>Complex User Template</name>
     
     <includeRef oid="10000000-0000-0000-0000-000000000223"/>
-        
+    
+    <item>
+    	<ref>additionalName</ref>
+    	<displayName>Middle Name</displayName>
+    </item>
+    
+    <item>
+    	<ref>costCenter</ref>
+    	<displayOrder>123</displayOrder>
+    	<mapping>
+	    	<strength>weak</strength>
+	    	<expression>
+	            <value>G001</value>    	
+	    	</expression>
+	    	<evaluationPhase>afterAssignments</evaluationPhase>
+	    </mapping>
+	    <mapping>
+	    	<authoritative>true</authoritative>
+	    	<strength>strong</strength>
+	    	<source>
+	    		<path>employeeType</path>
+	    	</source>
+	    	<expression>
+	            <value>B666</value>    	
+	    	</expression>
+	    	<condition>
+	    		<script>
+	            	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+	            	<code>employeeType == 'BUCCANEER'</code>
+	            </script>
+			</condition>
+	    </mapping> 	
+    </item>
+    
+
     <!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
     <mapping>
     	<authoritative>true</authoritative>
@@ -33,7 +67,7 @@
     	</source>
     	<expression>
             <value>
-                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
             </value>
     	</expression>
     	<target>
@@ -79,7 +113,7 @@
     	</source>
     	<expression>
             <value>
-                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
             </value>
     	</expression>
     	<target>
@@ -107,10 +141,10 @@
     	</source>
     	<expression>
             <assignmentTargetSearch>
-            	<targetType>c:OrgType</targetType>
+            	<targetType>OrgType</targetType>
         		<filter>
 					<q:equal>
-						<q:path>c:name</q:path>
+						<q:path>name</q:path>
 						<expression>
 							<path>$organizationalUnit</path>
 						</expression>
@@ -143,37 +177,8 @@
     		<path>assignment</path>
     	</target>
     </mapping>
+        
     
-    <mapping>
-    	<strength>weak</strength>
-    	<expression>
-            <value>G001</value>    	
-    	</expression>
-    	<target>
-    		<path>costCenter</path>
-    	</target>
-    	<evaluationPhase>afterAssignments</evaluationPhase>
-    </mapping>
-
-    <mapping>
-    	<authoritative>true</authoritative>
-    	<strength>strong</strength>
-    	<source>
-    		<path>employeeType</path>
-    	</source>
-    	<expression>
-            <value>B666</value>    	
-    	</expression>
-    	<target>
-    		<path>costCenter</path>
-    	</target>
-    	<condition>
-    		<script>
-            	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>employeeType == 'BUCCANEER'</code>
-            </script>
-		</condition>
-    </mapping>
     
     <!-- Negative condition. This is tricky to evaluate. -->
     <mapping>
@@ -253,5 +258,6 @@
     		<path>additionalName</path>
     	</target>
     </mapping>
+    
 
 </objectTemplate>

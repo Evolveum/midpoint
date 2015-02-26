@@ -55,6 +55,9 @@
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
             <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
         </icfc:configurationProperties>
+		<icfc:resultsHandlerConfiguration>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+		</icfc:resultsHandlerConfiguration>
     </connectorConfiguration>
 
     <schemaHandling>

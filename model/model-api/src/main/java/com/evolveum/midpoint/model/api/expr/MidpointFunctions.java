@@ -51,6 +51,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author mederly
  */
@@ -862,6 +864,10 @@ public interface MidpointFunctions {
     Collection<String> getManagersOidsExceptUser(UserType user) throws SchemaException, ObjectNotFoundException;
 
     Collection<UserType> getManagers(UserType user) throws SchemaException, ObjectNotFoundException;
+    
+    Collection<UserType> getManagersByOrgType(UserType user, String orgType) throws SchemaException, ObjectNotFoundException;
+    
+    Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf) throws SchemaException, ObjectNotFoundException;
 
     UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException;
 
@@ -872,12 +878,81 @@ public interface MidpointFunctions {
     OrgType getOrgByOid(String oid) throws SchemaException;
 
     OrgType getOrgByName(String name) throws SchemaException;
+
+    /**
+     * Returns parent orgs of the specified object that have a specific relation and orgType.
+     * @param object base object
+     * @param relation local part of the relation (in the String form)
+     * @param orgType orgType to select
+     * @return parent orgs of the specified object that have a specific relation and orgType
+     * @throws SchemaException Internal schema error
+     * @throws SecurityViolationException Security violation
+     */
+    Collection<OrgType> getParentOrgs(ObjectType object, String relation, String orgType) throws SchemaException, SecurityViolationException;
     
-    OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    /**
+     * Returns parent orgs of the specified object that have a specific relation and orgType.
+     * @param object base object
+     * @param relation relation in the QName form
+     * @param orgType orgType to select
+     * @return parent orgs of the specified object that have a specific relation and orgType
+     * @throws SchemaException Internal schema error
+     * @throws SecurityViolationException Security violation
+     */
+    Collection<OrgType> getParentOrgs(ObjectType object, QName relation, String orgType) throws SchemaException, SecurityViolationException;
+    
+    /**
+     * Returns parent orgs of the specified object that have a specific orgType.
+     * @param object base object
+     * @param orgType orgType to select
+     * @return parent orgs of the specified object that have a specific orgType
+     * @throws SchemaException Internal schema error
+     * @throws SecurityViolationException Security violation
+     */
+    OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws SchemaException, SecurityViolationException;
 
-    Collection<UserType> getManagersOfOrg(String orgOid) throws SchemaException;
+    /**
+     * Returns parent orgs of the specified object that have a specific relation.
+     * @param object base object
+     * @param relation relation in the QName form
+     * @return parent orgs of the specified object that have a specific relation
+     * @throws SchemaException Internal schema error
+     * @throws SecurityViolationException Security violation
+     */
+    Collection<OrgType> getParentOrgsByRelation(ObjectType object, QName relation) throws SchemaException, SecurityViolationException;
 
+    /**
+     * Returns parent orgs of the specified object that have a specific relation.
+     * @param object base object
+     * @param relation local part of the relation (in the String form)
+     * @return parent orgs of the specified object that have a specific relation
+     * @throws SchemaException Internal schema error
+     * @throws SecurityViolationException Security violation
+     */
+    Collection<OrgType> getParentOrgsByRelation(ObjectType object, String relation) throws SchemaException, SecurityViolationException;
+    
+    /**
+     * Returns all parent orgs of the specified object.
+     * @param object base object
+     * @return all parent orgs
+     * @throws SchemaException Internal schema error
+     * @throws SecurityViolationException Security violation
+     */
+    Collection<OrgType> getParentOrgs(ObjectType object) throws SchemaException, SecurityViolationException;
+    
+    Collection<UserType> getManagersOfOrg(String orgOid) throws SchemaException, SecurityViolationException;
+
+    /**
+     * Returns true if user is a manager of specified organiational unit. 
+     */
     boolean isManagerOf(UserType user, String orgOid);
+    
+    /**
+     * Returns true if user is a manager of any organizational unit.
+     */
+    boolean isManager(UserType user);
+    
+    boolean isManagerOfOrgType(UserType user, String orgType) throws SchemaException;
 
     boolean isMemberOf(UserType user, String orgOid);
 

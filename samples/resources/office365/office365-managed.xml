@@ -209,7 +209,7 @@ This contains configuration for a managed (non federated) Office 365 domain
                     <displayName>City</displayName>
                     <outbound>
                         <source>
-                            <path>$user/extension/p:city</path>
+                            <path>$user/extension/city</path>
                         </source>
                     </outbound>
                 </attribute>

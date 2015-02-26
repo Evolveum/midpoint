@@ -96,6 +96,12 @@ public class ShadowCacheReconciler extends ShadowCache{
 		
 		ObjectDelta delta = oldShadow.diff(normalizedShadow);
 
+		// TODO: remove this ugly hack (problem is in prism - objectChange does not get deleted by delta produced by diff method) - see MID-2174
+		PropertyDelta<ObjectDeltaType> clearObjectChange = PropertyDelta.createModificationReplaceProperty(
+				ShadowType.F_OBJECT_CHANGE, oldShadow.getDefinition());
+		delta.removePropertyModification(ShadowType.F_OBJECT_CHANGE);
+		delta.addModification(clearObjectChange);
+
 		LOGGER.trace("Normalizing shadow: change description: {}", delta.debugDump());
 		// prismContext.adopt(shadow);
 		try {

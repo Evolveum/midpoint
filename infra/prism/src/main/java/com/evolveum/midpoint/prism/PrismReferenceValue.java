@@ -128,12 +128,20 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
         }
     }
 
-	public void setTargetType(QName targetType) {
+    public void setTargetType(QName targetType) {
+        setTargetType(targetType, false);
+    }
+
+    /**
+     * @param targetType
+     * @param allowEmptyNamespace This is an ugly hack. See comment in DOMUtil.validateNonEmptyQName.
+     */
+	public void setTargetType(QName targetType, boolean allowEmptyNamespace) {
 		// Null value is OK
 		if (targetType != null) {
 			// But non-empty is not ..
 			Itemable item = getParent();
-			DOMUtil.validateNonEmptyQName(targetType, " in target type in reference "+ (item == null ? "(unknown)" : item.getElementName()));
+			DOMUtil.validateNonEmptyQName(targetType, " in target type in reference "+ (item == null ? "(unknown)" : item.getElementName()), allowEmptyNamespace);
 		}
 		this.targetType = targetType;
 	}
@@ -490,6 +498,11 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 			sb.append(DebugUtil.formatElementName(getTargetType()));
 			sb.append(")");
 		}
+        if (getRelation() != null) {
+            sb.append("[");
+            sb.append(getRelation().getLocalPart());
+            sb.append("]");
+        }
 		return sb.toString();
 	}
     

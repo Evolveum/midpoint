@@ -206,7 +206,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
             }
         };
 
-        //status = isEditing() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+        //status = isEditingOrgUnit() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 
         initLayout();
     }
@@ -217,7 +217,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
             @Override
             protected String load() {
-                if (!isEditing()) {
+                if (!isEditingOrgUnit()) {
                     return PageOrgUnit.super.createPageTitleModel().getObject();
                 }
 
@@ -229,7 +229,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
     private ContainerWrapper loadExtensionWrapper(){
         OperationResult result = new OperationResult(OPERATION_LOAD_EXTENSION_WRAPPER);
-        ContainerStatus status = isEditing() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+        ContainerStatus status = isEditingOrgUnit() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         ObjectWrapper wrapper;
         ContainerWrapper extensionWrapper = null;
         PrismObject<OrgType> org = orgModel.getObject();
@@ -376,7 +376,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
                     }
                 }
 
-                if(isEditing()){
+                if(isEditingOrgUnit()){
                     oidList.add(orgModel.getObject().asObjectable().getOid());
                 }
 
@@ -530,10 +530,10 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
         };
         form.add(back);
 
-        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
+        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, false));          // TODO add "show reconcile affected" when implemented for Orgs
     }
 
-    private boolean isEditing() {
+    private boolean isEditingOrgUnit() {
         StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         return oid != null && StringUtils.isNotEmpty(oid.toString());
     }
@@ -595,7 +595,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
         }
 
         //Delete parentOrgUnits from edited OrgUnit
-        if(isEditing()){
+        if(isEditingOrgUnit()){
             if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){
                 for(ObjectReferenceType parent: parentOrgList){
                     if(!isRefInParentOrgModel(parent)){
@@ -636,7 +636,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
             reviveModels();
             delta = null;
 
-            if (!isEditing()) {
+            if (!isEditingOrgUnit()) {
                 newOrgUnit = buildUnitFromModel(null);
 
                 //handle assignments
@@ -670,12 +670,15 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
                 inducementPanel.handleAssignmentDeltas(delta, inducementDef, OrgType.F_INDUCEMENT);
             }
 
-            //TODO - improve this mess with extensionDeltas
             ObjectDelta extensionDelta = saveExtension(result);
             ObjectDelta extDelta = null;
 
-            if(!isEditing() && extensionDelta != null){
-                extDelta = delta.getObjectToAdd().diff(extensionDelta.getObjectToAdd());
+            if(extensionDelta != null){
+                if(isEditingOrgUnit()){
+                    extDelta = extensionDelta;
+                } else {
+                    extDelta = delta.getObjectToAdd().diff(extensionDelta.getObjectToAdd());
+                }
             }
 
             if(delta != null){
@@ -745,7 +748,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
         PrismObject<OrgType> org = null;
         try {
-            if (!isEditing()) {
+            if (!isEditingOrgUnit()) {
                 if (unitToEdit == null) {
                     OrgType o = new OrgType();
                     ActivationType defaultActivation = new ActivationType();

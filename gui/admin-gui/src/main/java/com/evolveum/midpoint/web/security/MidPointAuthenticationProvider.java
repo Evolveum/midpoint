@@ -217,7 +217,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 				return token;
 			} else {
 				// Bad password					
-				passwordType.setFailedLogins(failedLogins++);
+				passwordType.setFailedLogins(++failedLogins);
 				XMLGregorianCalendar systemTime = MiscUtil.asXMLGregorianCalendar(new Date(System
 						.currentTimeMillis()));
 				LoginEventType event = new LoginEventType();

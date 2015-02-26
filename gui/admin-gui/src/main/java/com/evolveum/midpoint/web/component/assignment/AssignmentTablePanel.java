@@ -482,7 +482,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
         }
 
         if (!assDelta.isEmpty()) {
-            userDelta.addModification(assDelta);
+        	assDelta = userDelta.addModification(assDelta);
         }
 
         // todo remove this block [lazyman] after model is updated - it has to

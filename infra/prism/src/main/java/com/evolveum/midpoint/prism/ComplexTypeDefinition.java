@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,10 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -268,6 +270,29 @@ public class ComplexTypeDefinition extends Definition {
 	public ComplexTypeDefinition clone() {
 		ComplexTypeDefinition clone = new ComplexTypeDefinition(this.typeName, prismContext);
 		copyDefinitionData(clone);
+		return clone;
+	}
+	
+	public ComplexTypeDefinition deepClone() {
+		return deepClone(new HashMap<QName, ComplexTypeDefinition>());
+	}
+	
+	ComplexTypeDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
+		ComplexTypeDefinition clone;
+		if (ctdMap != null) {
+			clone = ctdMap.get(this.getTypeName());
+			if (clone != null) {
+				return clone; // already cloned
+			}
+		}
+		clone = clone(); // shallow
+		if (ctdMap != null) {
+			ctdMap.put(this.getTypeName(), clone);
+		}
+		clone.itemDefinitions.clear();
+		for (ItemDefinition itemDef: this.itemDefinitions) {
+			clone.itemDefinitions.add(itemDef.deepClone(ctdMap));
+		}
 		return clone;
 	}
 	

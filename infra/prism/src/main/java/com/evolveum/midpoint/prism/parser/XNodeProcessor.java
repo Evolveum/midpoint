@@ -315,7 +315,9 @@ public class XNodeProcessor {
 			Item<?> item = parseItem(xentry.getValue(), itemQName, itemDef);
 			// Merge must be here, not just add. Some items (e.g. references) have alternative
 			// names and representations and these cannot be processed as one map or list
-			cval.merge(item);
+            if (item != null) {
+                cval.merge(item);
+            }
 		}
 		return cval;
 	}
@@ -443,13 +445,10 @@ public class XNodeProcessor {
             // Primitive elements may also have complex Java representations (e.g. enums)
             return prismContext.getBeanConverter().unmarshallPrimitive(xprim, typeName);
         } else {
-            if (!xprim.isParsed()) {
-                xprim.parseValue(typeName);
-            }
-            realValue = xprim.getValue();
+            realValue = xprim.getParsedValue(typeName);
         }
 
-        if (realValue == null){
+        if (realValue == null) {
             return realValue;
         }
 

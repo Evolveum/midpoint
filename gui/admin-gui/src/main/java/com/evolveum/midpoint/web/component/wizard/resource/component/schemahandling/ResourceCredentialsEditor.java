@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -60,7 +61,8 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
     private static final String ID_OUTBOUND_BUTTON = "outboundButton";
     private static final String ID_INBOUND = "inbound";
     private static final String ID_PASS_POLICY = "passPolicy";
-    private static final String ID_MODAL_MAPPING = "mappingEditor";
+    private static final String ID_MODAL_INBOUND = "inboundEditor";
+    private static final String ID_MODAL_OUTBOUND = "outboundEditor";
     private static final String ID_T_FETCH = "fetchStrategyTooltip";
     private static final String ID_T_OUT = "outboundTooltip";
     private static final String ID_T_IN = "inboundTooltip";
@@ -124,7 +126,7 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "password.inbound"), false, true){
+                new PropertyModel<List<MappingType>>(getModel(), "password.inbound"), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -140,12 +142,12 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
 
             @Override
             protected MappingType createNewEmptyItem(){
-                return new MappingType();
+                return WizardUtil.createEmptyMapping();
             }
 
             @Override
             protected void editPerformed(AjaxRequestTarget target, MappingType object){
-                mappingEditPerformed(target, object);
+                inboundEditPerformed(target, object);
             }
         };
         inbound.setOutputMarkupId(true);
@@ -193,15 +195,23 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
     }
 
     private void initModals(){
-        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null){
+        ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null){
 
             @Override
             public void updateComponents(AjaxRequestTarget target) {
-                target.add(ResourceCredentialsEditor.this.get(ID_INBOUND), ResourceCredentialsEditor.this.get(ID_OUTBOUND_BUTTON),
-                        ResourceCredentialsEditor.this.get(ID_OUTBOUND_LABEL));
+                target.add(ResourceCredentialsEditor.this.get(ID_INBOUND));
             }
         };
-        add(mappingEditor);
+        add(inboundEditor);
+
+        ModalWindow outboundEditor = new MappingEditorDialog(ID_MODAL_OUTBOUND, null){
+
+            @Override
+            public void updateComponents(AjaxRequestTarget target) {
+                target.add(ResourceCredentialsEditor.this.get(ID_OUTBOUND_LABEL), ResourceCredentialsEditor.this.get(ID_OUTBOUND_BUTTON));
+            }
+        };
+        add(outboundEditor);
     }
 
     private List<ObjectReferenceType> createPasswordPolicyList(){
@@ -240,14 +250,14 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
     }
 
     private void outboundEditPerformed(AjaxRequestTarget target){
-        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
-        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "password.outbound"));
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_OUTBOUND);
+        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "password.outbound"), false);
         window.show(target);
     }
 
-    private void mappingEditPerformed(AjaxRequestTarget target, MappingType mapping){
-        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
-        window.updateModel(target, mapping);
+    private void inboundEditPerformed(AjaxRequestTarget target, MappingType mapping){
+        MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_INBOUND);
+        window.updateModel(target, mapping, true);
         window.show(target);
     }
 }

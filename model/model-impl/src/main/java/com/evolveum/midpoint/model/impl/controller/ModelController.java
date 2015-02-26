@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,8 @@ import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
@@ -77,7 +77,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -99,6 +98,7 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -115,6 +115,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -140,11 +141,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -155,6 +161,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * This used to be an interface, but it was switched to class for simplicity. I
@@ -274,7 +281,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 				
 		try {	
-
+            if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
+                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
+            }
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
@@ -306,6 +315,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} finally {
+            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
 			RepositoryCache.exit();
 		}
 		
@@ -437,11 +447,20 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
 		result.addParam(OperationResult.PARAM_OPTIONS, options);
-		
-		if (ModelExecuteOptions.isIsImport(options)){
-			for (ObjectDelta<? extends ObjectType> delta : deltas){
-				if (delta.isAdd()){
-					Utils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, prismContext, result);
+
+		// Search filters treatment: if reevaluation is requested, we have to deal with three cases:
+		// 1) for ADD operation: filters contained in object-to-be-added -> these are treated here
+		// 2) for MODIFY operation: filters contained in existing object (not touched by deltas) -> these are treated after the modify operation
+		// 3) for MODIFY operation: filters contained in deltas -> these have to be treated here, because if OID is missing from such a delta, the change would be rejected by the repository
+		if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
+			for (ObjectDelta<? extends ObjectType> delta : deltas) {
+				Utils.resolveReferences(delta, cacheRepositoryService, false, true, prismContext, result);
+			}
+		} else if (ModelExecuteOptions.isIsImport(options)) {
+			// if plain import is requested, we simply evaluate filters in ADD operation (and we do not force reevaluation if OID is already set)
+			for (ObjectDelta<? extends ObjectType> delta : deltas) {
+				if (delta.isAdd()) {
+					Utils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, false, prismContext, result);
 				}
 			}
 		}
@@ -488,24 +507,37 @@ public class ModelController implements ModelService, ModelInteractionService, T
                             String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result1);
                             delta.setOid(oid);
                         } else if (delta.isDelete()) {
-                            if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
-                                // getting the object is avoided in case of administrator's request in order to allow deleting malformed (unreadable) objects
-                                PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
-                                securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
-                            }
-                            if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
-                                Utils.clearRequestee(task);
-                                provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-                                        ProvisioningOperationOptions.createRaw(), null, task, result1);
-                            } else {
-                                cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-                                        result1);
+                            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
+                            try {
+                                if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+                                    // getting the object is avoided in case of administrator's request in order to allow deleting malformed (unreadable) objects
+                                    PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+                                    securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
+                                }
+                                if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
+                                    Utils.clearRequestee(task);
+                                    provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
+                                            ProvisioningOperationOptions.createRaw(), null, task, result1);
+                                } else {
+                                    cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
+                                            result1);
+                                }
+                            } finally {
+                                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
                             }
                         } else if (delta.isModify()) {
-                            PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
-                            securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result1);
-                            cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
-                                    delta.getModifications(), result1);
+                            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
+                            try {
+                                PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+                                securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result1);
+                                cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
+                                        delta.getModifications(), result1);
+                            } finally {
+                                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
+                            }
+							if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {	// treat filters that already exist in the object (case #2 above)
+								reevaluateSearchFilters(delta.getObjectTypeClass(), delta.getOid(), result1);
+							}
                         } else {
                             throw new IllegalArgumentException("Wrong delta type "+delta.getChangeType()+" in "+delta);
                         }
@@ -521,10 +553,17 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				auditRecord.setEventStage(AuditEventStage.EXECUTION);
 				auditService.audit(auditRecord, task);
 				
-			} else {				
-				
+			} else {
+
 				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
-                context.setProgressListeners(statusListeners);
+
+				if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
+					String m = "ReevaluateSearchFilters option is not fully supported for non-raw operations yet. Filters already present in the object will not be touched.";
+					LOGGER.warn("{} Context = {}", m, context.debugDump());
+					result.createSubresult(CLASS_NAME_WITH_DOT+"reevaluateSearchFilters").recordWarning(m);
+				}
+
+				context.setProgressListeners(statusListeners);
 				// Note: Request authorization happens inside clockwork
 				clockwork.run(context, task, result);
 
@@ -536,13 +575,17 @@ public class ModelController implements ModelService, ModelInteractionService, T
                     retval.addAll(projectionContext.getExecutedDeltas());
                 }
 			}
-			
-			result.computeStatus();
 
-            if (result.isInProgress()) {       // todo fix this hack (computeStatus does not take the root-level status into account, but clockwork.run sets "in-progress" flag just at the root level)
+            // Clockwork.run sets "in-progress" flag just at the root level
+            // and result.computeStatus() would erase it.
+            // So we deal with it in a special way, in order to preserve this information for the user.
+            if (result.isInProgress()) {
+                result.computeStatus();
                 if (result.isSuccess()) {
                     result.recordInProgress();
                 }
+            } else {
+                result.computeStatus();
             }
             
             result.cleanupResult();
@@ -579,7 +622,27 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
         return retval;
 	}
-	
+
+	private <T extends ObjectType> void reevaluateSearchFilters(Class<T> objectTypeClass, String oid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+		OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT+"reevaluateSearchFilters");
+		try {
+			PrismObject<T> storedObject = cacheRepositoryService.getObject(objectTypeClass, oid, null, result);
+			PrismObject<T> updatedObject = storedObject.clone();
+			Utils.resolveReferences(updatedObject, cacheRepositoryService, false, true, prismContext, result);
+			ObjectDelta<T> delta = storedObject.diff(updatedObject);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDump());
+			}
+			if (!delta.isEmpty()) {
+				cacheRepositoryService.modifyObject(objectTypeClass, oid, delta.getModifications(), result);
+			}
+			result.recordSuccess();
+		} catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
+			result.recordFatalError("Couldn't reevaluate search filters: "+e.getMessage(), e);
+			throw e;
+		}
+	}
+
 	@Override
 	public <F extends ObjectType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 			
@@ -778,34 +841,106 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	@Override
-	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase) throws SchemaException {
-		PrismObjectDefinition<O> origDefinition = object.getDefinition();
+	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+		OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
+		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone(true);
 		// TODO: maybe we need to expose owner resolver in the interface?
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
 		}
 		if (securityConstraints == null) {
+			// Nothing allowed => everything denied
+			result.setStatus(OperationResultStatus.NOT_APPLICABLE);
 			return null;
 		}
-		PrismObjectDefinition<O> finalDefinition = applySecurityContraints(origDefinition, new ItemPath(), securityConstraints,
+		
+		ObjectTemplateType objectTemplateType;
+		try {
+			objectTemplateType = determineObjectTemplate(object, phase, result);
+		} catch (ConfigurationException | ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		applyObjectTemplateToDefinition(objectDefinition, objectTemplateType, result);
+		
+		applySecurityConstraints(objectDefinition, new ItemPath(), securityConstraints,
 				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
-		return finalDefinition;
+		
+		result.computeStatus();
+		return objectDefinition;
 	}
 	
-	private <D extends ItemDefinition> D applySecurityContraints(D origItemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
+	private <O extends ObjectType> void applyObjectTemplateToDefinition(PrismObjectDefinition<O> objectDefinition, ObjectTemplateType objectTemplateType, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		if (objectTemplateType == null) {
+			return;
+		}
+		for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
+			PrismObject<ObjectTemplateType> subTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, includeRef.getOid(), null, result);
+			applyObjectTemplateToDefinition(objectDefinition, subTemplate.asObjectable(), result);
+		}
+		for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {
+			ItemPathType ref = templateItemDefType.getRef();
+			if (ref == null) {
+				throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
+			}
+			ItemPath itemPath = ref.getItemPath();
+			ItemDefinition itemDef = objectDefinition.findItemDefinition(itemPath);
+			if (itemDef == null) {
+				throw new SchemaException("No definition for item "+itemPath+" in object type "+objectDefinition.getTypeName()+" as specified in item definition in "+objectTemplateType);
+			}
+			
+			String displayName = templateItemDefType.getDisplayName();
+			if (displayName != null) {
+				itemDef.setDisplayName(displayName);
+			}
+			
+			Integer displayOrder = templateItemDefType.getDisplayOrder();
+			if (displayOrder != null) {
+				itemDef.setDisplayOrder(displayOrder);
+			}
+			
+			List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
+			if (limitations != null) {
+				PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, LayerType.PRESENTATION);
+				if (limitationsType != null) {
+					if (limitationsType.getMinOccurs() != null) {
+						itemDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));
+					}
+					if (limitationsType.getMaxOccurs() != null) {
+						itemDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMaxOccurs()));
+					}
+					if (limitationsType.isIgnore() != null) {
+						itemDef.setIgnored(limitationsType.isIgnore());
+					}
+					PropertyAccessType accessType = limitationsType.getAccess();
+					if (accessType != null) {
+						if (accessType.isAdd() != null) {
+							itemDef.setCanAdd(accessType.isAdd());
+						}
+						if (accessType.isModify() != null) {
+							itemDef.setCanModify(accessType.isModify());
+						}
+						if (accessType.isRead() != null) {
+							itemDef.setCanRead(accessType.isRead());
+						}
+					}
+				}
+			}
+			
+			ObjectReferenceType valueEnumerationRef = templateItemDefType.getValueEnumerationRef();
+			if (valueEnumerationRef != null) {
+				PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
+				itemDef.setValueEnumerationRef(valueEnumerationRVal);
+			}			
+		}
+	}
+	
+	private <D extends ItemDefinition> void applySecurityConstraints(D itemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
 			AuthorizationDecisionType defaultReadDecition, AuthorizationDecisionType defaultAddDecition, AuthorizationDecisionType defaultModifyDecition,
             AuthorizationPhaseType phase) {
-		D itemDefinition = (D) origItemDefinition.clone();
-		// We need to make a super-deep clone here. Even make sure that the complex types inside are cloned.
-		// Otherwise permissions from one part of the definition tree may be incorrectly propagated to another part
-		if (itemDefinition instanceof PrismContainerDefinition<?>) {
-			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
-			ComplexTypeDefinition origCtd = containerDefinition.getComplexTypeDefinition();
-			containerDefinition.setComplexTypeDefinition(origCtd.clone());
-		}
 		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecition, phase);
 		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecition, phase);
 		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecition, phase);
@@ -822,20 +957,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		
 		if (itemDefinition instanceof PrismContainerDefinition<?>) {
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
-			// The items are still shallow-clonned, we need to deep-clone them
-			List<? extends ItemDefinition> origSubDefinitions = ((PrismContainerDefinition<?>)origItemDefinition).getDefinitions();
-			containerDefinition.getDefinitions().clear();
+			List<? extends ItemDefinition> origSubDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
 			for (ItemDefinition subDef: origSubDefinitions) {
-                // TODO fix this brutal hack - it is necessary to avoid endless recursion in the style of "Decision for authorization/object/owner/owner/......../owner/special: ALLOW"
-                // it's too late to come up with a serious solution
-                if (!(itemPath.lastNamed() != null && ObjectSpecificationType.F_OWNER.equals(itemPath.lastNamed().getName()) && ObjectSpecificationType.F_OWNER.equals(subDef.getName()))) {
-				    ItemDefinition newDef = applySecurityContraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
-						    readDecision, addDecision, modifyDecision, phase);
-				    containerDefinition.getComplexTypeDefinition().add(newDef);
-                }
+			    applySecurityConstraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
+					    readDecision, addDecision, modifyDecision, phase);
 			}
 		}
-		return itemDefinition;
 	}
 		
     private AuthorizationDecisionType computeItemDecision(ObjectSecurityConstraints securityConstraints, ItemPath itemPath, String actionUrl,
@@ -848,6 +975,23 @@ public class ModelController implements ModelService, ModelInteractionService, T
     		return defaultDecision;
     	}
 	}
+    
+    public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfiguration(cacheRepositoryService, result);
+    	if (systemConfiguration == null) {
+    		return null;
+    	}
+    	ObjectPolicyConfigurationType objectPolicyConfiguration = ModelUtils.determineObjectPolicyConfiguration(object.getCompileTimeClass(), systemConfiguration.asObjectable());
+    	if (objectPolicyConfiguration == null) {
+    		return null;
+    	}
+    	ObjectReferenceType objectTemplateRef = objectPolicyConfiguration.getObjectTemplateRef();
+    	if (objectTemplateRef == null) {
+    		return null;
+    	}
+    	PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);
+    	return template.asObjectable();
+    }
     
     @Override
 	public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase)
@@ -974,6 +1118,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 			
 			try {
+                if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
+                    QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
+                }
                 switch (searchProvider) {
                     case REPOSITORY: list = cacheRepositoryService.searchObjects(type, query, options, result); break;
                     case PROVISIONING: list = provisioning.searchObjects(type, query, options, result); break;
@@ -1002,6 +1149,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} finally {
+                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace(result.dump(false));
 				}
@@ -1530,7 +1678,20 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	
 	private <T extends ObjectType> void postProcessObjects(Collection<PrismObject<T>> objects, GetOperationOptions options, OperationResult result) throws SecurityViolationException, SchemaException {
 		for (PrismObject<T> object: objects) {
-			postProcessObject(object, options, result);
+			OperationResult subresult = new OperationResult(ModelController.class.getName()+".postProcessObject");
+			try {			
+				postProcessObject(object, options, subresult);
+			} catch (IllegalArgumentException|IllegalStateException|SchemaException|SecurityViolationException e) {
+				LOGGER.error("Error post-processing object {}: {}", new Object[]{object, e.getMessage(), e});
+				OperationResultType fetchResult = object.asObjectable().getFetchResult();
+				if (fetchResult == null) {
+					fetchResult = subresult.createOperationResultType();
+					object.asObjectable().setFetchResult(fetchResult);
+				} else {
+					fetchResult.getPartialResults().add(subresult.createOperationResultType());
+				}
+				fetchResult.setStatus(OperationResultStatusType.FATAL_ERROR);
+			}
 		}
 	}
 	
@@ -1570,6 +1731,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	private void removeDeniedItems(List<Item<? extends PrismValue>> items, ObjectSecurityConstraints securityContraints, AuthorizationDecisionType defaultDecision) {
+		if (items == null) {
+			return;
+		}
 		Iterator<Item<?>> iterator = items.iterator();
 		while (iterator.hasNext()) {
 			Item<? extends PrismValue> item = iterator.next();
@@ -1591,9 +1755,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 					while (vi.hasNext()) {
 						PrismContainerValue<?> cval = vi.next();
 						List<Item<?>> subitems = cval.getItems();
-						removeDeniedItems(subitems, securityContraints, subDefaultDecision);
-						if (cval.getItems().isEmpty()) {
-							vi.remove();
+						if (subitems != null) {
+							removeDeniedItems(subitems, securityContraints, subDefaultDecision);
+							if (subitems.isEmpty()) {
+								vi.remove();
+							}
 						}
 					}
 					if (item.isEmpty()) {

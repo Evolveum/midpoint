@@ -190,14 +190,26 @@
 		</schema>
 		
 	<c:schemaHandling>
-        <!-- No need to schemaHandling in this case. Everything is in schema (annotations) -->
+        <objectType>
+            <objectClass>AccountObjectClass</objectClass>
+            <attribute xmlns:ri1="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+                <!--<ref>ri1:pager</ref>-->
+                <ref>ri:pager</ref>     <!-- ItemPathType comparison is currently ns-prefix-sensitive -->
+                <outbound>
+                    <source>
+                        <path>c:telephoneNumber</path>
+                    </source>
+                </outbound>
+            </attribute>
+        </objectType>
 	</c:schemaHandling>
 	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+                  xmlns:ri1="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 		<configured>
 			<cap:activation>
 				<cap:status>
-					<cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+					<cap:attribute>ri1:ds-pwp-account-disabled</cap:attribute>
 					<cap:enableValue/>
 					<cap:disableValue>true</cap:disableValue>
 				</cap:status>

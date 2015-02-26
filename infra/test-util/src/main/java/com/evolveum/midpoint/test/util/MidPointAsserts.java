@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
 import org.testng.AssertJUnit;
 
@@ -87,7 +88,7 @@ public class MidPointAsserts {
 			}
 		}
 	}
-	
+
 	public static <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
 		F userType = user.asObjectable();
 		assertEquals("Unexepected number of assignments in "+user+": "+userType.getAssignment(), expectedNumber, userType.getAssignment().size());
@@ -112,6 +113,12 @@ public class MidPointAsserts {
 		assertEquals("Unexepected number of assignments of type "+expectedType+" in "+user+": "+userType.getAssignment(), expectedNumber, actualAssignments);
 	}
 	
+	public static <F extends FocusType> void assertNoAssignments(PrismObject<F> user) {
+		F userType = user.asObjectable();
+		List<AssignmentType> assignments = userType.getAssignment();
+		assertTrue(user + " does have assignments "+assignments+" while not expecting it", assignments.isEmpty());
+	}
+	
 	public static <F extends FocusType> void assertAssignedRole(PrismObject<F> user, String roleOid) {
 		assertAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
 	}
@@ -119,6 +126,51 @@ public class MidPointAsserts {
 	public static <F extends FocusType> void assertNotAssignedRole(PrismObject<F> user, String roleOid) {
 		assertNotAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
 	}
+
+    public static <F extends FocusType> void assertNotAssignedResource(PrismObject<F> user, String resourceOid) {
+        F userType = user.asObjectable();
+        for (AssignmentType assignmentType: userType.getAssignment()) {
+            if (assignmentType.getConstruction() == null) {
+                continue;
+            }
+            ObjectReferenceType targetRef = assignmentType.getConstruction().getResourceRef();
+            if (targetRef != null) {
+                if (resourceOid.equals(targetRef.getOid())) {
+                    AssertJUnit.fail(user + " does have assigned resource "+resourceOid+" while not expecting it");
+                }
+            }
+        }
+    }
+
+    public static <F extends FocusType> void assertAssignedResource(PrismObject<F> user, String resourceOid) {
+        F userType = user.asObjectable();
+        for (AssignmentType assignmentType: userType.getAssignment()) {
+            if (assignmentType.getConstruction() == null) {
+                continue;
+            }
+            ObjectReferenceType targetRef = assignmentType.getConstruction().getResourceRef();
+            if (targetRef != null) {
+                if (resourceOid.equals(targetRef.getOid())) {
+                    return;
+                }
+            }
+        }
+        AssertJUnit.fail(user + " does NOT have assigned resource "+resourceOid+" while expecting it");
+    }
+
+    public static <F extends FocusType> void assertNotAssignedOrg(PrismObject<F> user, String orgOid, QName relation) {
+        F userType = user.asObjectable();
+        for (AssignmentType assignmentType: userType.getAssignment()) {
+            ObjectReferenceType targetRef = assignmentType.getTargetRef();
+            if (targetRef != null) {
+                if (OrgType.COMPLEX_TYPE.equals(targetRef.getType())) {
+                    if (orgOid.equals(targetRef.getOid()) && QNameUtil.match(targetRef.getRelation(), relation)) {
+                        AssertJUnit.fail(user + " does have assigned OrgType "+orgOid+" with relation "+relation+" while not expecting it");
+                    }
+                }
+            }
+        }
+    }
 	
 	public static void assertAssignedOrg(PrismObject<UserType> user, String orgOid) {
 		assertAssigned(user, orgOid, OrgType.COMPLEX_TYPE);

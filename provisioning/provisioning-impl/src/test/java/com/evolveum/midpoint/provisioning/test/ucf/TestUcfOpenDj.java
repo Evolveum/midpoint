@@ -300,10 +300,11 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 
 		cc.deleteObject(accountDefinition, null, identifiers, result);
-
+		
+		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers);
 		PrismObject<ShadowType> resObj = null;
 		try {
-			resObj = cc.fetchObject(ShadowType.class, accountDefinition, identifiers, null,
+			resObj = cc.fetchObject(ShadowType.class, identification, null,
 					result);
 			Assert.fail();
 		} catch (ObjectNotFoundException ex) {
@@ -331,8 +332,8 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
-		PrismObject<ShadowType> shadow = cc.fetchObject(ShadowType.class, accountDefinition,
-				identifiers, null, result);
+		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers);
+		PrismObject<ShadowType> shadow = cc.fetchObject(ShadowType.class, identification, null, result);
 		ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(shadow);
 
 		AssertJUnit.assertNull(resObj.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "givenName")));
@@ -604,11 +605,11 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		Collection<ResourceAttribute<?>> identifiers = resourceObject.getIdentifiers();
 		// Determine object class from the schema
 
+		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers);
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchObject");
 
 		// WHEN
-		PrismObject<ShadowType> ro = cc.fetchObject(ShadowType.class, accountDefinition,
-				identifiers, null, result);
+		PrismObject<ShadowType> ro = cc.fetchObject(ShadowType.class, identification, null, result);
 
 		// THEN
 
@@ -628,7 +629,6 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		// Determine object class from the schema
 
 		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-
 			@Override
 			public boolean handle(PrismObject<ShadowType> object) {
 				System.out.println("Search: found: " + object);
@@ -639,7 +639,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testSearch");
 
 		// WHEN
-		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, result);
+		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, null, result);
 
 		// THEN
 

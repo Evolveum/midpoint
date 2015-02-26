@@ -79,7 +79,9 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -104,6 +106,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -137,6 +140,9 @@ public class ResourceObjectConverter {
 
 	@Autowired(required=true)
 	private MatchingRuleRegistry matchingRuleRegistry;
+	
+	@Autowired(required=true)
+	private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
 
 	@Autowired(required=true)
 	private PrismContext prismContext;
@@ -221,7 +227,7 @@ public class ResourceObjectConverter {
 				}
 			};
 			try {
-				connector.search(objectClassDefinition, query, handler, attributesToReturn, null, parentResult);
+				connector.search(objectClassDefinition, query, handler, attributesToReturn, null, null, parentResult);
 				if (shadowHolder.isEmpty()) {
 					throw new ObjectNotFoundException("No object found for secondary identifier "+secondaryIdentifier);
 				}
@@ -982,6 +988,14 @@ public class ResourceObjectConverter {
 			CommunicationException, ObjectNotFoundException, ConfigurationException {
 		
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(objectClassDef, resourceType);
+		SearchHierarchyConstraints searchHierarchyConstraints = null;
+		ResourceObjectReferenceType baseContextRef = objectClassDef.getBaseContext();
+		if (baseContextRef != null) {
+			PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(baseContextRef, "base context specification in "+objectClassDef, parentResult);
+			RefinedObjectClassDefinition baseContextObjectClassDefinition = RefinedObjectClassDefinition.determineObjectClassDefinition(baseContextShadow, resourceType);
+			ResourceObjectIdentification baseContextIdentification = new ResourceObjectIdentification(baseContextObjectClassDefinition, ShadowUtil.getIdentifiers(baseContextShadow));
+			searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
+		}
 
 		ResultHandler<ShadowType> innerResultHandler = new ResultHandler<ShadowType>() {
 			@Override
@@ -997,6 +1011,10 @@ public class ResourceObjectConverter {
 						throw new TunnelException(e);
 					} catch (GenericFrameworkException e) {
 						throw new TunnelException(e);
+					} catch (ObjectNotFoundException e) {
+						throw new TunnelException(e);
+					} catch (ConfigurationException e) {
+						throw new TunnelException(e);
 					}
 					return resultHandler.handle(shadow);
 				} finally {
@@ -1007,7 +1025,8 @@ public class ResourceObjectConverter {
 		
 		SearchResultMetadata metadata = null;
 		try {
-			metadata = connector.search(objectClassDef, query, innerResultHandler, attributesToReturn, objectClassDef.getPagedSearches(), parentResult);
+			metadata = connector.search(objectClassDef, query, innerResultHandler, attributesToReturn, 
+					objectClassDef.getPagedSearches(), searchHierarchyConstraints, parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new SystemException("Generic error in the connector: " + e.getMessage(), e);
@@ -1023,6 +1042,10 @@ public class ResourceObjectConverter {
 				throw (SchemaException)cause;
 			} else if (cause instanceof CommunicationException) {
 				throw (CommunicationException)cause;
+			} else if (cause instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException)cause;
+			} else if (cause instanceof ConfigurationException) {
+				throw (ConfigurationException)cause;
 			} if (cause instanceof GenericFrameworkException) {
 				new GenericConnectorException(cause.getMessage(), cause);
 			} else {
@@ -1077,7 +1100,8 @@ public class ResourceObjectConverter {
 				throw new UnsupportedOperationException("Resource does not support 'read' operation");
 			}
 			
-			PrismObject<ShadowType> resourceObject = connector.fetchObject(ShadowType.class, objectClassDefinition, identifiers,
+			ResourceObjectIdentification identification = new ResourceObjectIdentification(objectClassDefinition, identifiers);
+			PrismObject<ShadowType> resourceObject = connector.fetchObject(ShadowType.class, identification,
 					attributesToReturn, parentResult);
 			return postProcessResourceObjectRead(connector, resource, resourceObject, objectClassDefinition, fetchAssociations, parentResult);
 		} catch (ObjectNotFoundException e) {
@@ -1426,7 +1450,7 @@ public class ResourceObjectConverter {
 	public List<Change<ShadowType>> fetchChanges(ConnectorInstance connector, ResourceType resource,
 			RefinedObjectClassDefinition objectClass, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws SchemaException,
-			CommunicationException, ConfigurationException, SecurityViolationException, GenericFrameworkException {
+			CommunicationException, ConfigurationException, SecurityViolationException, GenericFrameworkException, ObjectNotFoundException {
 		Validate.notNull(resource, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -1477,7 +1501,7 @@ public class ResourceObjectConverter {
 	 */
 	private PrismObject<ShadowType> postProcessResourceObjectRead(ConnectorInstance connector, ResourceType resourceType,
 			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, boolean fetchAssociations,
-            OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException {
+            OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException, ObjectNotFoundException, ConfigurationException {
 		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
 		setProtectedFlag(resourceType, objectClassDefinition, resourceObject);

@@ -20,6 +20,7 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
+import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.*;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceObjectTypeDefinitionTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SchemaHandlingDto;
@@ -38,10 +40,12 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -60,6 +64,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.Strings;
 
 import javax.xml.namespace.QName;
+
 import java.util.*;
 
 /**
@@ -135,21 +140,16 @@ public class SchemaHandlingStep extends WizardStep {
 
         if(resourceModel != null && resourceModel.getObject() != null
                 && resourceModel.getObject().asObjectable() != null){
+
+            if(resourceModel.getObject().asObjectable().getSchemaHandling() == null){
+                resourceModel.getObject().asObjectable().setSchemaHandling(new SchemaHandlingType());
+            }
+
             SchemaHandlingType schemaHandling = resourceModel.getObject().asObjectable().getSchemaHandling();
 
             ResourceObjectTypeDefinitionTypeDto obj;
             if(schemaHandling != null && schemaHandling.getObjectType() != null){
                 for(ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()){
-
-                    // temporary fix - think about better solution
-                    if(objectType.getAttribute().isEmpty()){
-                        objectType.getAttribute().add(new ResourceAttributeDefinitionType());
-                    }
-
-                    if(objectType.getAssociation().isEmpty()){
-                        objectType.getAssociation().add(new ResourceObjectAssociationType());
-                    }
-
                     obj = new ResourceObjectTypeDefinitionTypeDto(objectType);
                     list.add(obj);
                 }
@@ -163,12 +163,7 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private ResourceObjectTypeDefinitionType createPlaceholderObjectType(){
-        //TODO temporary fix - think about better solution
-        ResourceObjectTypeDefinitionType placeholder = new ResourceObjectTypeDefinitionType();
-        placeholder.getAttribute().add(new ResourceAttributeDefinitionType());
-        placeholder.getAssociation().add(new ResourceObjectAssociationType());
-
-        return placeholder;
+        return new ResourceObjectTypeDefinitionType();
     }
 
     private boolean isAnySelected(){
@@ -349,6 +344,11 @@ public class SchemaHandlingStep extends WizardStep {
                 return getObjectClassChoices(input);
             }
         };
+        editorObjectClass.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {}
+        });
         editorObjectClass.add(createObjectClassValidator(new LoadableModel<List<QName>>(false) {
 
             @Override
@@ -360,7 +360,7 @@ public class SchemaHandlingStep extends WizardStep {
 
         MultiValueTextEditPanel editorAttributes = new MultiValueTextEditPanel<ResourceAttributeDefinitionType>(ID_EDITOR_ATTRIBUTES,
                 new PropertyModel<List<ResourceAttributeDefinitionType>>(model, SchemaHandlingDto.F_SELECTED + "." +
-                        ResourceObjectTypeDefinitionType.F_ATTRIBUTE.getLocalPart()), false, false){
+                        ResourceObjectTypeDefinitionType.F_ATTRIBUTE.getLocalPart()), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ResourceAttributeDefinitionType> model) {
@@ -371,7 +371,7 @@ public class SchemaHandlingStep extends WizardStep {
                         StringBuilder sb = new StringBuilder();
 
                         if(model.getObject().getRef() != null){
-                            sb.append(model.getObject().getRef().getLocalPart());
+                            sb.append(ItemPathUtil.getOnlySegmentQName(model.getObject().getRef()).getLocalPart());
                         } else {
                             return null;
                         }
@@ -387,7 +387,7 @@ public class SchemaHandlingStep extends WizardStep {
 
             @Override
             protected ResourceAttributeDefinitionType createNewEmptyItem(){
-                return new ResourceAttributeDefinitionType();
+                return createEmptyAttributeObject();
             }
 
             @Override
@@ -411,7 +411,7 @@ public class SchemaHandlingStep extends WizardStep {
 
         MultiValueTextEditPanel editorAssociations = new MultiValueTextEditPanel<ResourceObjectAssociationType>(ID_EDITOR_ASSOCIATIONS,
                 new PropertyModel<List<ResourceObjectAssociationType>>(model, SchemaHandlingDto.F_SELECTED + "." +
-                        ResourceObjectTypeDefinitionType.F_ASSOCIATION.getLocalPart()), false, false){
+                        ResourceObjectTypeDefinitionType.F_ASSOCIATION.getLocalPart()), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ResourceObjectAssociationType> model) {
@@ -422,7 +422,12 @@ public class SchemaHandlingStep extends WizardStep {
                         StringBuilder sb = new StringBuilder();
 
                         if(model.getObject().getRef() != null){
-                            sb.append(model.getObject().getRef().getLocalPart());
+                            ItemPathType itemPathType = model.getObject().getRef();
+                            if(itemPathType.getItemPath() != null){
+                                sb.append(itemPathType.getItemPath().toString());
+                            } else {
+                                sb.append(model.getObject().getRef());
+                            }
                         } else {
                             return null;
                         }
@@ -438,7 +443,7 @@ public class SchemaHandlingStep extends WizardStep {
 
             @Override
             protected ResourceObjectAssociationType createNewEmptyItem(){
-                return new ResourceObjectAssociationType();
+                return createEmptyAssociationObject();
             }
 
             @Override
@@ -742,14 +747,6 @@ public class SchemaHandlingStep extends WizardStep {
         resetSelected();
         objectType.setSelected(true);
 
-        if(objectType.getObjectType().getAssociation().isEmpty()){
-            objectType.getObjectType().getAssociation().add(new ResourceObjectAssociationType());
-        }
-
-        if(objectType.getObjectType().getAttribute().isEmpty()){
-            objectType.getObjectType().getAttribute().add(new ResourceAttributeDefinitionType());
-        }
-
         model.getObject().setSelected(objectType.getObjectType());
 
         insertEmptyThirdRow();
@@ -762,17 +759,13 @@ public class SchemaHandlingStep extends WizardStep {
         list.remove(objectType);
 
         if(objectType.isSelected()){
-            model.getObject().setSelected(createPlaceholderObjectType());
             insertEmptyThirdRow();
             target.add(getThirdRowContainer());
         }
 
         if(list.isEmpty()){
-            ResourceObjectTypeDefinitionType newObj = new ResourceObjectTypeDefinitionType();
-            newObj.setDisplayName(getString("SchemaHandlingStep.label.newObjectType"));
-            ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(newObj);
-            dto.setSelected(true);
-            list.add(dto);
+            insertEmptyThirdRow();
+            target.add(getThirdRowContainer());
         }
 
         target.add(getObjectTypeEditor(), getObjectListTable(), getNavigator());
@@ -780,15 +773,18 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void addObjectTypePerformed(AjaxRequestTarget target){
         ResourceObjectTypeDefinitionType objectType = new ResourceObjectTypeDefinitionType();
-        objectType.getAttribute().add(new ResourceAttributeDefinitionType());
-        objectType.getAssociation().add(new ResourceObjectAssociationType());
         objectType.setDisplayName(getString("SchemaHandlingStep.label.newObjectType"));
         ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(objectType);
+
+        if(model.getObject().getObjectTypeList().isEmpty()){
+            objectType.setDefault(true);
+        }
 
         resetSelected();
         dto.setSelected(true);
         model.getObject().setSelected(dto.getObjectType());
         model.getObject().getObjectTypeList().add(dto);
+        resourceModel.getObject().asObjectable().getSchemaHandling().getObjectType().add(objectType);
         insertEmptyThirdRow();
         target.add(getObjectListTable(), getNavigator(), getObjectTypeEditor(), getThirdRowContainer());
     }
@@ -816,6 +812,12 @@ public class SchemaHandlingStep extends WizardStep {
                 objectType.getAttribute().clear();
                 objectType.getAttribute().addAll(newAttributeList);
 
+                for(ResourceAttributeDefinitionType attr: objectType.getAttribute()){
+                    List<MappingType> newInbounds = clearEmptyMappings(attr.getInbound());
+                    attr.getInbound().clear();
+                    attr.getInbound().addAll(newInbounds);
+                }
+
                 //Clear obsolete containers from associations
                 List<ResourceObjectAssociationType> newAssociationList = new ArrayList<>();
                 newAssociationList.addAll(objectType.getAssociation());
@@ -826,7 +828,188 @@ public class SchemaHandlingStep extends WizardStep {
                 }
                 objectType.getAssociation().clear();
                 objectType.getAssociation().addAll(newAssociationList);
+
+                for(ResourceObjectAssociationType association: objectType.getAssociation()){
+                    List<MappingType> newInbounds = clearEmptyMappings(association.getInbound());
+                    association.getInbound().clear();
+                    association.getInbound().addAll(newInbounds);
+                }
+
+                prepareActivation(objectType.getActivation());
             }
         }
+    }
+
+    private List<MappingType> clearEmptyMappings(List<MappingType> list){
+        List<MappingType> newList = new ArrayList<>();
+
+        for(MappingType mapping: list){
+            if(!WizardUtil.isEmptyMapping(mapping)){
+                newList.add(mapping);
+            }
+        }
+
+        return newList;
+    }
+
+    private void prepareActivation(ResourceActivationDefinitionType activation){
+        if(activation == null){
+            return;
+        }
+
+        if(activation.getAdministrativeStatus() != null){
+            ResourceBidirectionalMappingType administrativeStatus = activation.getAdministrativeStatus();
+
+            List<MappingType> inbounds = administrativeStatus.getInbound();
+            List<MappingType> outbounds = administrativeStatus.getOutbound();
+
+            List<MappingType> newInbounds = prepareActivationMappings(inbounds,
+                    ResourceActivationEditor.ADM_STATUS_IN_SOURCE_DEFAULT, ResourceActivationEditor.ADM_STATUS_IN_TARGET_DEFAULT);
+            administrativeStatus.getInbound().clear();
+            administrativeStatus.getInbound().addAll(newInbounds);
+
+            List<MappingType> newOutbounds = prepareActivationMappings(outbounds,
+                    ResourceActivationEditor.ADM_STATUS_OUT_SOURCE_DEFAULT, ResourceActivationEditor.ADM_STATUS_OUT_TARGET_DEFAULT);
+            administrativeStatus.getOutbound().clear();
+            administrativeStatus.getOutbound().addAll(newOutbounds);
+
+            if(isBidirectionalMappingEmpty(administrativeStatus)){
+                activation.setAdministrativeStatus(null);
+            }
+        }
+
+        if(activation.getValidTo() != null){
+            ResourceBidirectionalMappingType validTo = activation.getValidTo();
+
+            List<MappingType> inbounds = validTo.getInbound();
+            List<MappingType> outbounds = validTo.getOutbound();
+
+            List<MappingType> newInbounds = prepareActivationMappings(inbounds,
+                    ResourceActivationEditor.VALID_TO_IN_SOURCE_DEFAULT, ResourceActivationEditor.VALID_TO_IN_TARGET_DEFAULT);
+            validTo.getInbound().clear();
+            validTo.getInbound().addAll(newInbounds);
+
+            List<MappingType> newOutbounds = prepareActivationMappings(outbounds,
+                    ResourceActivationEditor.VALID_TO_OUT_SOURCE_DEFAULT, ResourceActivationEditor.VALID_TO_OUT_TARGET_DEFAULT);
+            validTo.getOutbound().clear();
+            validTo.getOutbound().addAll(newOutbounds);
+
+            if(isBidirectionalMappingEmpty(validTo)){
+                activation.setValidTo(null);
+            }
+        }
+
+        if(activation.getValidFrom() != null){
+            ResourceBidirectionalMappingType validFrom = activation.getValidFrom();
+
+            List<MappingType> inbounds = validFrom.getInbound();
+            List<MappingType> outbounds = validFrom.getOutbound();
+
+            List<MappingType> newInbounds = prepareActivationMappings(inbounds,
+                    ResourceActivationEditor.VALID_FROM_IN_SOURCE_DEFAULT, ResourceActivationEditor.VALID_FROM_IN_TARGET_DEFAULT);
+            validFrom.getInbound().clear();
+            validFrom.getInbound().addAll(newInbounds);
+
+            List<MappingType> newOutbounds = prepareActivationMappings(outbounds,
+                    ResourceActivationEditor.VALID_FROM_OUT_SOURCE_DEFAULT, ResourceActivationEditor.VALID_FROM_OUT_TARGET_DEFAULT);
+            validFrom.getOutbound().clear();
+            validFrom.getOutbound().addAll(newOutbounds);
+
+            if(isBidirectionalMappingEmpty(validFrom)){
+                activation.setValidFrom(null);
+            }
+        }
+
+        if(activation.getExistence() != null){
+            ResourceBidirectionalMappingType existence = activation.getExistence();
+
+            List<MappingType> inbounds = existence.getInbound();
+            List<MappingType> newInbounds = new ArrayList<>();
+
+            for(MappingType inbound: inbounds){
+                if(WizardUtil.isEmptyMapping(inbound)){
+                    continue;
+                }
+
+                if(inbound.getSource().size() == 0 && compareItemPath(inbound.getSource().get(0).getPath(), ResourceActivationEditor.EXISTENCE_DEFAULT_SOURCE)){
+                    newInbounds.add(new MappingType());
+                    continue;
+                }
+
+                newInbounds.add(inbound);
+            }
+
+            existence.getInbound().clear();
+            existence.getInbound().addAll(newInbounds);
+
+            List<MappingType> outbounds = existence.getOutbound();
+            List<MappingType> newOutbounds = existence.getOutbound();
+
+            for(MappingType outbound: outbounds){
+                if(!WizardUtil.isEmptyMapping(outbound)){
+                    newOutbounds.add(outbound);
+                }
+            }
+
+            existence.getOutbound().clear();
+            existence.getOutbound().addAll(newOutbounds);
+
+            if(isBidirectionalMappingEmpty(existence)){
+                activation.setExistence(null);
+            }
+        }
+    }
+
+    private boolean isBidirectionalMappingEmpty(ResourceBidirectionalMappingType mapping){
+        return mapping.getFetchStrategy() == null && mapping.getInbound().isEmpty() && mapping.getOutbound().isEmpty();
+
+    }
+
+    private List<MappingType> prepareActivationMappings(List<MappingType> list, String defaultSource, String defaultTarget){
+        List<MappingType> newMappings = new ArrayList<>();
+
+        for(MappingType mapping: list){
+            if(WizardUtil.isEmptyMapping(mapping)){
+                continue;
+            }
+
+            if(mapping.getTarget() != null){
+                if(compareItemPath(mapping.getTarget().getPath(), defaultTarget)){
+                    mapping.setTarget(null);
+                }
+            }
+
+            if(mapping.getSource().size() == 1){
+                if(compareItemPath(mapping.getSource().get(0).getPath(), defaultSource)){
+                    mapping.getSource().clear();
+                }
+            }
+
+            newMappings.add(mapping);
+        }
+
+        return newMappings;
+    }
+
+    private boolean compareItemPath(ItemPathType itemPath, String comparePath){
+        if(itemPath != null && itemPath.getItemPath() != null){
+            if(comparePath.equals(itemPath.getItemPath().toString())){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private ResourceObjectAssociationType createEmptyAssociationObject(){
+        ResourceObjectAssociationType association = new ResourceObjectAssociationType();
+        association.setTolerant(true);
+        return association;
+    }
+
+    private ResourceAttributeDefinitionType createEmptyAttributeObject(){
+        ResourceAttributeDefinitionType attribute = new ResourceAttributeDefinitionType();
+        attribute.setTolerant(true);
+        return attribute;
     }
 }

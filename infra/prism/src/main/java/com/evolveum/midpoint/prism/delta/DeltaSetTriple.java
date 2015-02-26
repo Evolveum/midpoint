@@ -162,6 +162,15 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 
     }
 
+    public Collection<T> getSet(PlusMinusZero whichSet) {
+        switch (whichSet) {
+            case ZERO: return getZeroSet();
+            case PLUS: return getPlusSet();
+            case MINUS: return getMinusSet();
+            default: throw new IllegalArgumentException("Unexpected value: " + whichSet);
+        }
+    }
+
     public void addAllToSet(PlusMinusZero destination, Collection<T> items) {
     	if (destination == null) {
     		return;

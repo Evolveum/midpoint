@@ -50,6 +50,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.*;
 
 import java.util.ArrayList;
@@ -67,6 +68,7 @@ public class MappingEditorDialog extends ModalWindow{
     private static final String DOT_CLASS = MappingEditorDialog.class.getName() + ".";
     private static final String OPERATION_LOAD_PASSWORD_POLICIES = DOT_CLASS + "createPasswordPolicyList";
 
+    private static final String ID_FEEDBACK = "feedback";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
@@ -103,6 +105,7 @@ public class MappingEditorDialog extends ModalWindow{
     private IModel<MappingTypeDto> model;
     private Map<String, String> policyMap = new HashMap<>();
     private IModel<MappingType> inputModel;
+    private boolean isInbound = false;
 
     public MappingEditorDialog(String id, final IModel<MappingType> mapping){
         super(id);
@@ -134,13 +137,15 @@ public class MappingEditorDialog extends ModalWindow{
         setContent(content);
     }
 
-    public void updateModel(AjaxRequestTarget target, IModel<MappingType> mapping){
+    public void updateModel(AjaxRequestTarget target, IModel<MappingType> mapping, boolean isInbound){
+        this.isInbound = isInbound;
         model.setObject(new MappingTypeDto(mapping.getObject(), getPageBase().getPrismContext()));
         inputModel = mapping;
         target.add(getContent());
     }
 
-    public void updateModel(AjaxRequestTarget target, MappingType mapping){
+    public void updateModel(AjaxRequestTarget target, MappingType mapping, boolean isInbound){
+        this.isInbound = isInbound;
         model.setObject(new MappingTypeDto(mapping, getPageBase().getPrismContext()));
 
         if(inputModel != null){
@@ -198,7 +203,7 @@ public class MappingEditorDialog extends ModalWindow{
         form.add(strength);
 
         MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
-                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"), true, true){
+                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"), true){
 
             @Override
             protected String createNewEmptyItem() {
@@ -239,7 +244,7 @@ public class MappingEditorDialog extends ModalWindow{
         form.add(channel);
 
         MultiValueDropDownPanel exceptChannel = new MultiValueDropDownPanel<String>(ID_EXCEPT_CHANNEL,
-                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING +  ".exceptChannel"), true, true){
+                new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING +  ".exceptChannel"), true){
 
             @Override
             protected String createNewEmptyItem() {
@@ -286,8 +291,14 @@ public class MappingEditorDialog extends ModalWindow{
 
         //TODO - create some nice ItemPathType editor in near future
         TextFormGroup target = new TextFormGroup(ID_TARGET, new PropertyModel<String>(model, MappingTypeDto.F_TARGET),
-                createStringResource("MappingEditorDialog.label.target"), "SchemaHandlingStep.mapping.tooltip.target", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                createStringResource("MappingEditorDialog.label.target"), "SchemaHandlingStep.mapping.tooltip.target", true, ID_LABEL_SIZE, ID_INPUT_SIZE, isInbound);
+        target.setOutputMarkupId(true);
         form.add(target);
+
+        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+        feedback.setOutputMarkupId(true);
+        feedback.setOutputMarkupPlaceholderTag(true);
+        form.add(feedback);
 
         DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> expressionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(ID_EXPRESSION_TYPE,
                 new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, MappingTypeDto.F_EXPRESSION_TYPE),
@@ -537,6 +548,10 @@ public class MappingEditorDialog extends ModalWindow{
         return (PageBase) getPage();
     }
 
+    private FeedbackPanel getFeedback(){
+        return (FeedbackPanel) get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_FEEDBACK);
+    }
+
     private List<ObjectReferenceType> createPasswordPolicyList(){
         policyMap.clear();
         OperationResult result = new OperationResult(OPERATION_LOAD_PASSWORD_POLICIES);
@@ -573,10 +588,24 @@ public class MappingEditorDialog extends ModalWindow{
     }
 
     private void cancelPerformed(AjaxRequestTarget target){
+        if(inputModel != null && model.getObject() != null){
+            model.getObject().cancelChanges();
+        }
+
+        updateComponents(target);
+        target.add(getPageBase().getFeedbackPanel());
         close(target);
     }
 
     private void savePerformed(AjaxRequestTarget target){
+        if(isInbound){
+            if(model.getObject().getTarget() == null || model.getObject().getTarget().isEmpty()){
+                warn(getString("MappingEditorDialog.message.warn.emptyTarget"));
+                target.add(getFeedback());
+                return;
+            }
+        }
+
         try {
             if(inputModel != null){
                 inputModel.setObject(model.getObject().prepareDtoToSave(getPageBase().getPrismContext()));
@@ -595,7 +624,8 @@ public class MappingEditorDialog extends ModalWindow{
         close(target);
     }
 
-    public void updateComponents(AjaxRequestTarget target){
-        //Override this if update of component(s) holding this modal window is needed
-    }
+    /**
+     *  Override this if update of component(s) holding this modal window is needed
+     * */
+    public void updateComponents(AjaxRequestTarget target){}
 }

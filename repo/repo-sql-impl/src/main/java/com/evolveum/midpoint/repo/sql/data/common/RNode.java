@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -36,7 +37,7 @@ import java.util.Collection;
  */
 @Entity
 @ForeignKey(name = "fk_node")
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_node_name", columnNames = {"name_norm"}))
 public class RNode extends RObject<NodeType> {
 
     private RPolyString name;
@@ -82,9 +83,9 @@ public class RNode extends RObject<NodeType> {
         return result;
     }
 
-    public static void copyFromJAXB(NodeType jaxb, RNode repo, PrismContext prismContext) throws
-            DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+    public static void copyFromJAXB(NodeType jaxb, RNode repo, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setNodeIdentifier(jaxb.getNodeIdentifier());

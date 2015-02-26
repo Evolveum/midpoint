@@ -18,24 +18,22 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -74,7 +72,7 @@ public class ACAttributeDto implements Serializable {
     }
 
     private List<ACValueConstructionDto> createValues(PrismContext context) throws SchemaException {
-        List<ACValueConstructionDto> values = new ArrayList<ACValueConstructionDto>();
+        List<ACValueConstructionDto> values = new ArrayList<>();
         MappingType outbound = construction.getOutbound();
         if (outbound == null || outbound.getExpression() == null) {
             return values;
@@ -96,11 +94,6 @@ public class ACAttributeDto implements Serializable {
 
     private List<PrismValue> getExpressionValues(List<JAXBElement<?>> elements, PrismContext context) throws SchemaException {
         if (elements == null || elements.isEmpty()) {
-            return null;
-        }
-        JAXBElement<?> fistElement = elements.iterator().next();
-        Element firstDomElement = (Element) fistElement.getValue();
-        if (!DOMUtil.isElementName(firstDomElement, SchemaConstants.C_VALUE)) {
             return null;
         }
 
@@ -138,8 +131,8 @@ public class ACAttributeDto implements Serializable {
         }
 
         ResourceAttributeDefinitionType attrConstruction = new ResourceAttributeDefinitionType();
-        attrConstruction.setRef(definition.getName());
-        MappingType outbound = new MappingType();
+        attrConstruction.setRef(new ItemPathType(new ItemPath(definition.getName())));
+        MappingType outbound = construction != null && construction.getOutbound() != null ? construction.getOutbound().clone() : new MappingType();
         attrConstruction.setOutbound(outbound);
 
         ExpressionType expression = new ExpressionType();

@@ -305,6 +305,16 @@ public class ItemPath implements Serializable, Cloneable {
         return false;
     }
 
+    public ItemPath namedSegmentsOnly() {
+        ItemPath rv = new ItemPath();
+        for (ItemPathSegment segment : segments) {
+            if (segment instanceof NameItemPathSegment) {
+                rv.add(((NameItemPathSegment) segment).getName());
+            }
+        }
+        return rv;
+    }
+
     public enum CompareResult {
 		EQUIVALENT,
 		SUPERPATH,

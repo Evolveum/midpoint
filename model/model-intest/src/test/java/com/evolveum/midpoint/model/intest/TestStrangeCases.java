@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,7 +125,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		dummyResourceCtlRed.addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Monkey Island");
 		
-		PrismObject<ShadowType> accountGuybrushDummyRed = repoAddObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME, ShadowType.class, initResult);
+		PrismObject<ShadowType> accountGuybrushDummyRed = repoAddObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILE, ShadowType.class, initResult);
 		accountGuybrushDummyRedOid = accountGuybrushDummyRed.getOid();
 		
 		treasureIsland = IOUtils.toString(new FileInputStream(TREASURE_ISLAND_FILE)).replace("\r\n", "\n");     // for Windows compatibility
@@ -147,7 +147,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_GUYBRUSH_DUMMY_RED_FILE);
         // Remove the attributes. This will allow outbound mapping to take place instead.
         account.removeContainer(ShadowType.F_ATTRIBUTES);
         
@@ -191,7 +191,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood");
         
         // Check account in dummy resource
-        assertDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
+        assertDefaultDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         
         result.computeStatus();
         display("executeChanges result", result);

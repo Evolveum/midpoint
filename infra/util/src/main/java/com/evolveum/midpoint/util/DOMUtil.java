@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -47,6 +48,8 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.sun.org.apache.xml.internal.utils.XMLChar;
 
 import org.apache.commons.io.IOUtils;
@@ -73,6 +76,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
  * @since 0.1
  */
 public class DOMUtil {
+
+    public static final Trace LOGGER = TraceManager.getTrace(DOMUtil.class);
 
 	public static final String W3C_XML_SCHEMA_XMLNS_URI = "http://www.w3.org/2000/xmlns/";
 	public static final String W3C_XML_SCHEMA_XMLNS_PREFIX = "xmlns";
@@ -160,7 +165,6 @@ public class DOMUtil {
 	private static Random rnd = new Random();
 	
 	private static final DocumentBuilder loader;
-	
 
 	static {
 		try {
@@ -172,7 +176,7 @@ public class DOMUtil {
 		}
 	}
 
-	public static String serializeDOMToString(org.w3c.dom.Node node) {
+    public static String serializeDOMToString(org.w3c.dom.Node node) {
 		return printDom(node).toString();
 	}
 	
@@ -435,37 +439,46 @@ public class DOMUtil {
 		return resolveQName(element, element.getTextContent());
 	}
 
-	public static QName resolveQName(Node domNode, String prefixNotation) {
-		return resolveQName(domNode, prefixNotation, null);
-	}
+    /**
+     * Resolves a QName.
+     *
+     * @param domNode Provides a context in which we will resolve namespace prefixes (may be null)
+     * @param qnameStringRepresentation String representation of a QName (e.g. c:RoleType) (may be null)
+     *
+     * @return parsed QName (or null if string representation is blank)
+     *
+     * Contrary to traditional XML handling, a QName without prefix is parsed to a QName without namespace,
+     * even if default namespace declaration is present.
+     */
 
-	public static QName resolveQName(Node domNode, String prefixNotation, String defaultNamespacePrefix) {
-		if (StringUtils.isBlank(prefixNotation)) {
+	public static QName resolveQName(Node domNode, String qnameStringRepresentation) {
+		if (StringUtils.isBlank(qnameStringRepresentation)) {
 			// No QName
 			return null;
 		}
-		String[] qnameArray = prefixNotation.split(":");
+		String[] qnameArray = qnameStringRepresentation.split(":");
 		if (qnameArray.length > 2) {
 			throw new IllegalArgumentException("Unsupported format: more than one colon in Qname: "
-					+ prefixNotation);
+					+ qnameStringRepresentation);
 		}
 		QName qname;
 		if (qnameArray.length == 1 || qnameArray[1] == null || qnameArray[1].isEmpty()) {
-			// default namespace <= empty prefix
-			String namespace = findNamespace(domNode, null);
-			if (defaultNamespacePrefix != null) {
-				qname = new QName(namespace, qnameArray[0], defaultNamespacePrefix);
-			} else {
-				qname = new QName(namespace, qnameArray[0]);
-			}
+			// no prefix => no namespace
+			qname = new QName(null, qnameArray[0]);
 		} else {
-			String namespace = findNamespace(domNode, qnameArray[0]);
-			qname = new QName(namespace, qnameArray[1], qnameArray[0]);
+            String namespacePrefix = qnameArray[0];
+			String namespace = findNamespace(domNode, namespacePrefix);
+            if (namespace == null) {
+                QNameUtil.reportUndeclaredNamespacePrefix(namespacePrefix, qnameStringRepresentation);
+                namespacePrefix = QNameUtil.markPrefixAsUndeclared(namespacePrefix);
+            }
+			qname = new QName(namespace, qnameArray[1], namespacePrefix);
 		}
 		return qname;
 	}
 
-	public static String findNamespace(Node domNode, String prefix) {
+
+    public static String findNamespace(Node domNode, String prefix) {
 		String ns = null;
 		if (domNode != null) {
 			if (prefix == null || prefix.isEmpty()) {
@@ -481,10 +494,6 @@ public class DOMUtil {
 	}
 
 	public static QName resolveXsiType(Element element) {
-		return resolveXsiType(element, null);
-	}
-
-	public static QName resolveXsiType(Element element, String defaultNamespacePrefix) {
 		String xsiType = element.getAttributeNS(XSI_TYPE.getNamespaceURI(), XSI_TYPE.getLocalPart());
 		if (xsiType == null || xsiType.isEmpty()) {
 			xsiType = element.getAttribute(HACKED_XSI_TYPE);
@@ -492,7 +501,7 @@ public class DOMUtil {
         if (xsiType == null || xsiType.isEmpty()) {
             return null;
         }
-		return resolveQName(element, xsiType, defaultNamespacePrefix);
+		return resolveQName(element, xsiType);
 	}
 
 	public static boolean hasXsiType(Element element) {
@@ -517,7 +526,7 @@ public class DOMUtil {
 		Document doc = element.getOwnerDocument();
 		Attr attr = doc.createAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
 		String namePrefix = lookupOrCreateNamespaceDeclaration(element, attributeName.getNamespaceURI(),
-				attributeName.getPrefix());
+				attributeName.getPrefix(), element, true);
 		attr.setPrefix(namePrefix);
 		setQNameAttribute(element, attr, attributeValue, element);
 	}
@@ -533,7 +542,7 @@ public class DOMUtil {
 		Document doc = element.getOwnerDocument();
 		Attr attr = doc.createAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
 		String namePrefix = lookupOrCreateNamespaceDeclaration(element, attributeName.getNamespaceURI(),
-				attributeName.getPrefix());
+				attributeName.getPrefix(), element, true);
 		attr.setPrefix(namePrefix);
 		setQNameAttribute(element, attr, attributeValue, definitionElement);
 	}
@@ -545,56 +554,87 @@ public class DOMUtil {
 		setQNameAttribute(element, attr, attributeValue, definitionElement);
 	}
 
-	private static void setQNameAttribute(Element element, Attr attr, QName attributeValue,
-			Element definitionElement) {
-		if (attributeValue.getNamespaceURI() == null || attributeValue.getNamespaceURI().isEmpty()) {
-			throw new IllegalArgumentException("Namespace of XML attribute value " + attributeValue
-					+ " is empty");
-		}
-		String valuePrefix = lookupOrCreateNamespaceDeclaration(element, attributeValue.getNamespaceURI(),
-				attributeValue.getPrefix(), definitionElement);
-		String attrValue = null;
-		if (valuePrefix == null || valuePrefix.isEmpty()) {
-			// default namespace
-			attrValue = attributeValue.getLocalPart();
-		} else {
-			attrValue = valuePrefix + ":" + attributeValue.getLocalPart();
-		}
+    /*
+     * Actually, it is not possible to create *and use* xmlns declaration pointing to an empty URI. From Section 6.1 in http://www.w3.org/TR/xml-names11/
+     *
+     * <?xml version="1.1"?>
+     *   <x xmlns:n1="http://www.w3.org">
+     *     <n1:a/>               <!-- legal; the prefix n1 is bound to http://www.w3.org -->
+     *     <x xmlns:n1="">
+     *       <n1:a/>           <!-- illegal; the prefix n1 is not bound here -->
+	 *         <x xmlns:n1="http://www.w3.org">
+     *           <n1:a/>       <!-- legal; the prefix n1 is bound again -->
+     *         </x>
+     *     </x>
+     *   </x>
+     *
+     * We strictly use localname-only representation of QNames with null NS. When writing, we write it in such a way.
+     * And when reading, we ignore default namespace when parsing unqualified QNames.
+     */
+	private static void setQNameAttribute(Element element, Attr attr, QName attributeQnameValue, Element definitionElement) {
+        String attributeStringValue;
+
+        if (attributeQnameValue == null) {
+            attributeStringValue = "";
+        } else if (XMLConstants.NULL_NS_URI.equals(attributeQnameValue.getNamespaceURI())) {
+            if (QNameUtil.isPrefixUndeclared(attributeQnameValue.getPrefix())) {
+                attributeStringValue = attributeQnameValue.getPrefix() + ":" + attributeQnameValue.getLocalPart();      // to give user a chance to see and fix this
+            } else {
+                attributeStringValue = attributeQnameValue.getLocalPart();
+            }
+        } else {
+            String valuePrefix = lookupOrCreateNamespaceDeclaration(element, attributeQnameValue.getNamespaceURI(),
+                    attributeQnameValue.getPrefix(), definitionElement, false);
+            assert StringUtils.isNotBlank(valuePrefix);
+            attributeStringValue = valuePrefix + ":" + attributeQnameValue.getLocalPart();
+        }
+
 		NamedNodeMap attributes = element.getAttributes();
-        checkValidXmlChars(attrValue);
-		attr.setValue(attrValue);
+        checkValidXmlChars(attributeStringValue);
+		attr.setValue(attributeStringValue);
 		attributes.setNamedItem(attr);
 	}
 
+    /**
+     * Sets QName value for a given element.
+     *
+     * Contrary to standard XML semantics, namespace-less QNames are specified as simple names without prefix
+     * (regardless of default prefix used in the XML document).
+     *
+     * @param element Element whose text content should be set to represent QName value
+     * @param elementValue QName value to be stored into the element
+     */
 	public static void setQNameValue(Element element, QName elementValue) {
-		String valuePrefix = lookupOrCreateNamespaceDeclaration(element, elementValue.getNamespaceURI(),
-				elementValue.getPrefix());
-		String stringValue = null;
-		if (valuePrefix == null || valuePrefix.isEmpty()) {
-			// default namespace
-			stringValue = elementValue.getLocalPart();
-		} else {
-			stringValue = valuePrefix + ":" + elementValue.getLocalPart();
-		}
-        setElementTextContent(element, stringValue);
-	}
-
-	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri,
-			String preferredPrefix) {
-		return lookupOrCreateNamespaceDeclaration(element, namespaceUri, preferredPrefix, element);
+        if (elementValue == null) {
+            setElementTextContent(element, "");
+        } else if (XMLConstants.NULL_NS_URI.equals(elementValue.getNamespaceURI())) {
+            if (QNameUtil.isPrefixUndeclared(elementValue.getPrefix())) {
+                setElementTextContent(element, elementValue.getPrefix() + ":" + elementValue.getLocalPart());
+            } else {
+                setElementTextContent(element, elementValue.getLocalPart());
+            }
+        } else {
+            String prefix = lookupOrCreateNamespaceDeclaration(element, elementValue.getNamespaceURI(),
+                    elementValue.getPrefix(), element, false);
+            assert StringUtils.isNotBlank(prefix);
+            String stringValue = prefix + ":" + elementValue.getLocalPart();
+            setElementTextContent(element, stringValue);
+        }
 	}
 
     /**
-     *
      * @param element Element, on which the namespace declaration is evaluated
      * @param namespaceUri Namespace URI to be assigned to a prefix
      * @param preferredPrefix Preferred prefix
      * @param definitionElement Element, on which namespace declaration will be created (there should not be any redefinitions between definitionElement and element in order for this to work...)
+     * @param allowUseOfDefaultNamespace If we are allowed to use default namespace (i.e. return empty prefix). This is important for QNames, see setQNameValue
      * @return prefix that is really used
+     *
+     * Returned prefix is never null nor "" if allowUseOfDefaultNamespace is false.
      */
 
 	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri,
-			String preferredPrefix, Element definitionElement) {
+			String preferredPrefix, Element definitionElement, boolean allowUseOfDefaultNamespace) {
 		// We need to figure out correct prefix. We have namespace URI, but we
 		// need a prefix to specify in the xsi:type or element name
 		if (!StringUtils.isBlank(preferredPrefix)) {
@@ -612,57 +652,27 @@ public class DOMUtil {
 				}
 			}
 		}
-		if (element.isDefaultNamespace(namespaceUri)) {
-			// Namespace URI is a default namespace. Return empty prefix;
-			return "";
-		}
+        if (allowUseOfDefaultNamespace && element.isDefaultNamespace(namespaceUri)) {
+            // Namespace URI is a default namespace. Return empty prefix;
+            return "";
+        }
+        // We DO NOT WANT to use default namespace for QNames. QNames without prefix are NOT considered by midPoint to belong to the default namespace.
 		String prefix = element.lookupPrefix(namespaceUri);
 		if (prefix == null) {
-			// try to use preferred prefix from QName
-			prefix = preferredPrefix;
-			if (prefix != null) {
-				// check if a declaration for it exists
-				String namespaceDefinedForPreferredPrefix = element.lookupNamespaceURI(prefix);
-				if (namespaceDefinedForPreferredPrefix == null
-						|| namespaceDefinedForPreferredPrefix.isEmpty()) {
-					// No namespace definition for preferred prefix. So let's
-					// use it .. unless is is default namespace
-					if (prefix.isEmpty()) {
-						// Default namespace. Never generate definition for
-						// default namespace unless there is already one.
-						// This will trigger auto-generated prefix later
-						prefix = null;
-					} else {
-						setNamespaceDeclaration(definitionElement, prefix, namespaceUri);
-					}
-				} else if (namespaceUri.equals(namespaceDefinedForPreferredPrefix)) {
-					// Nothing to do, prefix already defined and the definition
-					// matches.
-					// The question is how this could happen. Why has
-					// element.lookupPrefix() haven't found it?
-				} else {
-					// prefix already defined, but the URI is different.
-					// Fallback to a random prefix.
-					prefix = null;
-				}
-			}
-			// Empty prefix means default namespace
-			if (prefix == null) {
-				// generate random prefix
-				boolean gotIt = false;
-				for(int i=0; i < RANDOM_ATTR_PREFIX_MAX_ITERATIONS; i++) {
-					prefix = generatePrefix();
-					if (element.lookupNamespaceURI(prefix) == null) {
-						// the prefix is free
-						gotIt = true;
-						break;
-					}
-				}
-				if (!gotIt) {
-					throw new IllegalStateException("Unable to generate unique prefix for namespace "+namespaceUri+" even after "+RANDOM_ATTR_PREFIX_MAX_ITERATIONS+" attempts");
-				}
-				setNamespaceDeclaration(definitionElement, prefix, namespaceUri);
-			}
+            // generate random prefix
+            boolean gotIt = false;
+            for (int i=0; i < RANDOM_ATTR_PREFIX_MAX_ITERATIONS; i++) {
+                prefix = generatePrefix();
+                if (element.lookupNamespaceURI(prefix) == null) {
+                    // the prefix is free
+                    gotIt = true;
+                    break;
+                }
+            }
+            if (!gotIt) {
+                throw new IllegalStateException("Unable to generate unique prefix for namespace "+namespaceUri+" even after "+RANDOM_ATTR_PREFIX_MAX_ITERATIONS+" attempts");
+            }
+            setNamespaceDeclaration(definitionElement, prefix, namespaceUri);
 		}
 		return prefix;
 	}
@@ -715,12 +725,43 @@ public class DOMUtil {
 	}
 
 	public static void setNamespaceDeclarations(Element element, Map<String, String> rootNamespaceDeclarations) {
+        if (rootNamespaceDeclarations == null) {
+            return;
+        }
 		for (Entry<String, String> entry : rootNamespaceDeclarations.entrySet()) {
 			setNamespaceDeclaration(element, entry.getKey(), entry.getValue());
 		}
 	}
-	
-	/**
+
+    /**
+     * Returns all namespace declarations visible from the given node.
+     * Uses recursion for simplicity.
+     */
+    public static Map<String,String> getAllVisibleNamespaceDeclarations(Node node) {
+        Map<String,String> retval;
+        Node parent = getParentNode(node);
+        if (parent != null) {
+            retval = getAllVisibleNamespaceDeclarations(parent);
+        } else {
+            retval = new HashMap<>();
+        }
+        if (node instanceof Element) {
+            retval.putAll(getNamespaceDeclarations((Element) node));
+        }
+        return retval;
+    }
+
+    // returns owner node - works also for attributes
+    private static Node getParentNode(Node node) {
+        if (node instanceof Attr) {
+            Attr attr = (Attr) node;
+            return attr.getOwnerElement();
+        } else {
+            return node.getParentNode();
+        }
+    }
+
+    /**
 	 * Take all the namespace declaration of parent elements and put them to this element.
 	 */
 	public static void fixNamespaceDeclarations(Element element) {
@@ -992,7 +1033,7 @@ public class DOMUtil {
 	public static Element createElement(Document document, QName qname, Element parentElement,
 			Element definitionElement) {
 		lookupOrCreateNamespaceDeclaration(parentElement, qname.getNamespaceURI(), qname.getPrefix(),
-				definitionElement);
+				definitionElement, true);
 		return createElement(document, qname);
 	}
 	
@@ -1177,11 +1218,15 @@ public class DOMUtil {
 		return false;
 	}
 
-	public static void validateNonEmptyQName(QName qname, String shortDescription) {
+	public static void validateNonEmptyQName(QName qname, String shortDescription, boolean allowEmptyNamespace) {
 		if (qname == null) {
 			throw new IllegalArgumentException("null" + shortDescription);
 		}
-		if (StringUtils.isEmpty(qname.getNamespaceURI())) {
+        // This is hard to enforce. There are situations where unmarshalling
+        // object reference types as ObjectReferenceType, not as prism references.
+        // (E.g. when dealing with reference variables in mappigns/expressions.)
+        // In these cases we need to qualify types after the unmarshalling is complete.
+		if (!allowEmptyNamespace && StringUtils.isEmpty(qname.getNamespaceURI())) {
 			throw new IllegalArgumentException("Missing namespace"+shortDescription);
 		}
 		if (StringUtils.isEmpty(qname.getLocalPart())) {
@@ -1321,4 +1366,5 @@ public class DOMUtil {
 		}
 		return attr;
     }
+
 }

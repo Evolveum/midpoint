@@ -56,6 +56,10 @@ public class ResourceSynchronizationDto implements Serializable{
     }
 
     public List<QName> getObjectClassList() {
+        if(objectClassList == null){
+            objectClassList = new ArrayList<>();
+        }
+
         return objectClassList;
     }
 

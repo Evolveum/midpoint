@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
@@ -459,8 +460,15 @@ public interface ProvisioningService {
 	 * general setup. Use ModelService.testResource for testing individual resource configurations.
 	 */
 	public void provisioningSelfTest(OperationResult parentTestResult, Task task);
-	
-	/**
+
+    /**
+     * Returns a diagnostic information.
+     * @see com.evolveum.midpoint.schema.ProvisioningDiag
+     * @return
+     */
+    ProvisioningDiag getProvisioningDiag();
+
+    /**
 	 * Finish initialization of provisioning system.
 	 * 
 	 * The implementation may execute resource-intensive tasks in this method. All the dependencies should be already
@@ -479,4 +487,5 @@ public interface ProvisioningService {
 	void enterConstraintsCheckerCache();
 
 	void exitConstraintsCheckerCache();
+
 }

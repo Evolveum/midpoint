@@ -208,7 +208,8 @@ public final class RUtil {
         Validate.notNull(refOwner, "Reference owner of reference must not be null.");
         Validate.notEmpty(reference.getOid(), "Target oid reference must not be null.");
 
-        RObjectReference repoRef = RReferenceOwner.createObjectReference(refOwner);
+        RObjectReference repoRef = new RObjectReference();
+        repoRef.setReferenceType(refOwner);
         repoRef.setOwner(owner);
         RObjectReference.copyFromJAXB(reference, repoRef, prismContext);
 
@@ -260,14 +261,7 @@ public final class RUtil {
         fixCompositeIdentifierInMetaModel(sessionFactory, RAExtLong.class);
 
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectReference.class);
-        for (RReferenceOwner owner : RReferenceOwner.values()) {
-            fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());
-        }
-
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentReference.class);
-        for (RCReferenceOwner owner : RCReferenceOwner.values()) {
-            fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());
-        }
 
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RExclusion.class);

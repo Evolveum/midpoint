@@ -99,7 +99,7 @@ public class InboundProcessor {
     @Autowired(required = true)
     private MappingEvaluationHelper mappingEvaluatorHelper;
 
-    <O extends ObjectType> void processInbound(LensContext<O> context, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    <O extends ObjectType> void processInbound(LensContext<O> context, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
             LOGGER.trace("Skipping inbound because there is no focus");
@@ -113,7 +113,7 @@ public class InboundProcessor {
     	processInboundFocal((LensContext<? extends FocusType>)context, task, now, result);
     }
 
-    <F extends FocusType> void processInboundFocal(LensContext<F> context, Task task, XMLGregorianCalendar now, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    <F extends FocusType> void processInboundFocal(LensContext<F> context, Task task, XMLGregorianCalendar now, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		LOGGER.trace("Skipping inbound processing because focus is null");
@@ -179,7 +179,7 @@ public class InboundProcessor {
     private <F extends FocusType> void processInboundExpressionsForAccount(LensContext<F> context,
     		LensProjectionContext accContext,
             RefinedObjectClassDefinition accountDefinition, ObjectDelta<ShadowType> aPrioriDelta, Task task, XMLGregorianCalendar now, OperationResult result)
-    		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
     	
         if (aPrioriDelta == null && accContext.getObjectCurrent() == null) {
             LOGGER.trace("Nothing to process in inbound, both a priori delta and current account were null.");
@@ -344,7 +344,7 @@ public class InboundProcessor {
     private <A,U, F extends FocusType> PropertyDelta<U> evaluateInboundMapping(final LensContext<F> context, 
     		MappingType inboundMappingType, 
     		QName accountAttributeName, PrismProperty<A> oldAccountProperty, PropertyDelta<A> accountAttributeDelta,
-            PrismObject<F> focusNew, PrismObject<ShadowType> account, ResourceType resource, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+            PrismObject<F> focusNew, PrismObject<ShadowType> account, ResourceType resource, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, ConfigurationException {
 
     	if (oldAccountProperty != null && oldAccountProperty.hasRaw()) {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
@@ -376,6 +376,9 @@ public class InboundProcessor {
         }
         
         ItemPath targetFocusPropertyPath = mapping.getOutputPath();
+        if (targetFocusPropertyPath == null || targetFocusPropertyPath.isEmpty()) {
+        	throw new ConfigurationException("Empty target path in "+mapping.getContextDescription());
+        }
         PrismProperty<U> targetFocusProperty = null;
         if (focusNew != null) {
         	targetFocusProperty = focusNew.findProperty(targetFocusPropertyPath);
@@ -405,18 +408,26 @@ public class InboundProcessor {
     	if (triple != null) {
     		
 	        if (triple.getPlusSet() != null) {
-	            for (PrismPropertyValue<U> value : triple.getPlusSet()) {
-	
+
+				boolean alreadyReplaced = false;
+
+				for (PrismPropertyValue<U> value : triple.getPlusSet()) {
+
 	                if (targetFocusProperty != null && targetFocusProperty.hasRealValue(value)) {
 	                    continue;
 	                }
 	
 	                //if property is not multi value replace existing attribute
-					// TODO check for multiple additions here? [med]
 	                if (targetFocusProperty != null && !targetFocusProperty.getDefinition().isMultiValue() && !targetFocusProperty.isEmpty()) {
 	                    Collection<PrismPropertyValue<U>> replace = new ArrayList<PrismPropertyValue<U>>();
 	                    replace.add(value.clone());
 	                    outputUserPropertydelta.setValuesToReplace(replace);
+
+						if (alreadyReplaced) {
+							LOGGER.warn("Multiple values for a single-valued property {}; duplicate value = {}", targetFocusProperty, value);
+						} else {
+							alreadyReplaced = true;
+						}
 	                } else {
 	                    outputUserPropertydelta.addValueToAdd(value.clone());
 	                }

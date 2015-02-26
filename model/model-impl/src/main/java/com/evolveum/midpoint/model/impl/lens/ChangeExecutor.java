@@ -420,15 +420,18 @@ public class ChangeExecutor {
         	
         	if (!focusContext.isDelete()) {
 	        	PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
-	        	PrismReference linkRef = objectCurrent.findReference(FocusType.F_LINK_REF);
-	        	if (linkRef != null) {
-	        		for (PrismReferenceValue linkRefVal: linkRef.getValues()) {
-	        			if (linkRefVal.getOid().equals(projOid)) {
-	                        // Linked, need to unlink
-	                        unlinkShadow(focusContext.getOid(), linkRefVal, focusObjectContext, task, result);
-	                    }
-	        		}
-	        	}
+                // it is possible that objectCurrent is null (and objectNew is non-null), in case of User ADD operation (MID-2176)
+                if (objectCurrent != null) {
+                    PrismReference linkRef = objectCurrent.findReference(FocusType.F_LINK_REF);
+                    if (linkRef != null) {
+                        for (PrismReferenceValue linkRefVal : linkRef.getValues()) {
+                            if (linkRefVal.getOid().equals(projOid)) {
+                                // Linked, need to unlink
+                                unlinkShadow(focusContext.getOid(), linkRefVal, focusObjectContext, task, result);
+                            }
+                        }
+                    }
+                }
         	}
             
     		if (projCtx.isDelete() || projCtx.isThombstone()) {
@@ -1085,7 +1088,6 @@ public class ChangeExecutor {
                 approverReferenceValues.add(new PrismReferenceValue(approverRef.getOid()));
             }
         }
-
         if (!approverReferenceValues.isEmpty()) {
             ReferenceDelta refDelta = ReferenceDelta.createModificationReplace((new ItemPath(ObjectType.F_METADATA,
                         MetadataType.F_MODIFY_APPROVER_REF)), def, approverReferenceValues);
@@ -1284,8 +1286,7 @@ public class ChangeExecutor {
 //				Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
 //				value.setTextContent(val.getValue());
 				PrimitiveXNode<String> prim = new PrimitiveXNode<>();
-				prim.setValue(val.getValue());
-				prim.setTypeQName(DOMUtil.XSD_STRING);
+				prim.setValue(val.getValue(), DOMUtil.XSD_STRING);
 				JAXBElement<RawType> el = new JAXBElement(SchemaConstants.C_VALUE, RawType.class, new RawType(prim, prismContext));
 				argument.getExpressionEvaluator().add(el);
 			}

@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -91,8 +93,8 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 
 	protected AbstractSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
 			ItemDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
-			ModelService modelService, PrismContext prismContext) {
-		super(expressionEvaluatorType);
+			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
+		super(expressionEvaluatorType, securityEnforcer);
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
 		this.protector = protector;
@@ -134,6 +136,10 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		if (targetTypeQName == null) {
 			targetTypeQName = getDefaultTargetType();
 		}
+        if (targetTypeQName != null && QNameUtil.isUnqualified(targetTypeQName)) {
+            targetTypeQName = getPrismContext().getSchemaRegistry().resolveUnqualifiedTypeName(targetTypeQName);
+        }
+
 		ObjectTypes targetType = ObjectTypes.getObjectTypeFromTypeQName(targetTypeQName);
 		if (targetType == null) {
 			throw new SchemaException("Unknown target type "+targetTypeQName+" in "+shortDebugDump());

@@ -129,7 +129,6 @@ public class ResourceIterationEditor extends SimplePanel<IterationSpecificationT
                 @Override
                 protected IterationSpecificationTypeDto load() {
                     return new IterationSpecificationTypeDto(getModel().getObject());
-//                    return new IterationSpecificationTypeDto(getModel().getObject(), getPageBase().getPrismContext());
                 }
             };
         }
@@ -199,7 +198,7 @@ public class ResourceIterationEditor extends SimplePanel<IterationSpecificationT
 
         MultiValueTextEditPanel variableList = new MultiValueTextEditPanel<ExpressionVariableDefinitionType>(variableId,
                 new PropertyModel<List<ExpressionVariableDefinitionType>>(model,
-                        IterationSpecificationTypeDto.F_ITERATION + "." + containerValue + ".variable"), false, true){
+                        IterationSpecificationTypeDto.F_ITERATION + "." + containerValue + ".variable"), false){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ExpressionVariableDefinitionType> model) {

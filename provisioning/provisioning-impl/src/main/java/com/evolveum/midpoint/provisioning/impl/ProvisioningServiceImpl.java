@@ -30,6 +30,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.schema.LabeledString;
+import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RetrieveOption;
 
 import org.apache.commons.lang.Validate;
@@ -123,6 +125,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
 
+    private static final String DETAILS_CONNECTOR_FRAMEWORK_VERSION = "ConnId framework version";       // TODO generalize
 
 	public ShadowCache getShadowCache(ShadowCacheFactory.Mode mode){
 		return shadowCacheFactory.getShadowCache(mode);
@@ -1531,12 +1534,24 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		connectorManager.connectorFrameworkSelfTest(parentTestResult, task);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.evolveum.midpoint.provisioning.api.ProvisioningService#initialize()
-	 */
+    @Override
+    public ProvisioningDiag getProvisioningDiag() {
+        ProvisioningDiag provisioningDiag = new ProvisioningDiag();
+
+        String frameworkVersion = connectorManager.getFrameworkVersion();
+        if (frameworkVersion == null) {
+            frameworkVersion = "unknown";
+        }
+        provisioningDiag.getAdditionalDetails().add(new LabeledString(DETAILS_CONNECTOR_FRAMEWORK_VERSION, frameworkVersion));
+        return provisioningDiag;
+    }
+
+    /*
+         * (non-Javadoc)
+         *
+         * @see
+         * com.evolveum.midpoint.provisioning.api.ProvisioningService#initialize()
+         */
 	@Override
 	public void postInit(OperationResult parentResult) {
 

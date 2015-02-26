@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,6 +55,7 @@ public class MappingTypeDto implements Serializable {
     private static MappingStrengthType DEFAULT_MAPPING_STRENGTH = MappingStrengthType.NORMAL;
 
     private MappingType mappingObject;
+    private MappingType oldMappingObject;
     private String expression;
     private String condition;
     private String target;
@@ -73,27 +76,19 @@ public class MappingTypeDto implements Serializable {
         }
 
         if(mapping == null){
-            mappingObject = new MappingType();
+            MappingType newMapping = new MappingType();
+            newMapping.setAuthoritative(true);
+            mappingObject = newMapping;
         } else {
             mappingObject = mapping;
         }
 
-        if(mappingObject.getChannel().isEmpty()){
-            mappingObject.getChannel().add(new String());
-        }
-
-        if(mappingObject.getExceptChannel().isEmpty()){
-        mappingObject.getExceptChannel().add(new String());
-        }
+        oldMappingObject = mappingObject.clone();
 
         for(MappingSourceDeclarationType mappingSource: mappingObject.getSource()){
             if(mappingSource.getPath() != null && mappingSource.getPath().getItemPath() != null){
                 source.add(mappingSource.getPath().getItemPath().toString());
             }
-        }
-
-        if(source.isEmpty()){
-            source.add(new String());
         }
 
         if(mappingObject.getTarget() != null && mappingObject.getTarget().getPath() != null
@@ -151,6 +146,18 @@ public class MappingTypeDto implements Serializable {
         return prismContext.parseAnyValueAsJAXBElement(xmlCode, PrismContext.LANG_XML);
     }
 
+    public void cancelChanges(){
+        mappingObject.setName(oldMappingObject.getName());
+        mappingObject.setDescription(oldMappingObject.getDescription());
+        mappingObject.setAuthoritative(oldMappingObject.isAuthoritative());
+        mappingObject.setExclusive(oldMappingObject.isExclusive());
+        mappingObject.setStrength(oldMappingObject.getStrength());
+        mappingObject.getChannel().clear();
+        mappingObject.getChannel().addAll(oldMappingObject.getChannel());
+        mappingObject.getExceptChannel().clear();
+        mappingObject.getExceptChannel().addAll(oldMappingObject.getExceptChannel());
+    }
+
     public MappingType prepareDtoToSave(PrismContext prismContext) throws SchemaException{
 
         if(mappingObject == null){
@@ -161,19 +168,14 @@ public class MappingTypeDto implements Serializable {
             MappingTargetDeclarationType mappingTarget = new MappingTargetDeclarationType();
             mappingTarget.setPath(new ItemPathType(target));
             mappingObject.setTarget(mappingTarget);
+        } else {
+            mappingObject.setTarget(null);
         }
 
-        List<String> existingSources = new ArrayList<>();
-        for(MappingSourceDeclarationType s: mappingObject.getSource()){
-            if(s.getPath() != null && s.getPath().getItemPath() != null){
-                existingSources.add(s.getPath().getItemPath().toString());
-            }
-        }
-
+        mappingObject.getSource().clear();
         List<MappingSourceDeclarationType> mappingSourceList = new ArrayList<>();
         for(String s: source){
-
-            if(s == null || existingSources.contains(s)){
+            if(s == null){
                 continue;
             }
 
@@ -318,7 +320,7 @@ public class MappingTypeDto implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof MappingTypeDto)) return false;
 
         MappingTypeDto that = (MappingTypeDto) o;
 
@@ -334,6 +336,8 @@ public class MappingTypeDto implements Serializable {
         if (expressionType != that.expressionType) return false;
         if (mappingObject != null ? !mappingObject.equals(that.mappingObject) : that.mappingObject != null)
             return false;
+        if (oldMappingObject != null ? !oldMappingObject.equals(that.oldMappingObject) : that.oldMappingObject != null)
+            return false;
         if (source != null ? !source.equals(that.source) : that.source != null) return false;
         if (target != null ? !target.equals(that.target) : that.target != null) return false;
 
@@ -343,6 +347,7 @@ public class MappingTypeDto implements Serializable {
     @Override
     public int hashCode() {
         int result = mappingObject != null ? mappingObject.hashCode() : 0;
+        result = 31 * result + (oldMappingObject != null ? oldMappingObject.hashCode() : 0);
         result = 31 * result + (expression != null ? expression.hashCode() : 0);
         result = 31 * result + (condition != null ? condition.hashCode() : 0);
         result = 31 * result + (target != null ? target.hashCode() : 0);
@@ -356,9 +361,6 @@ public class MappingTypeDto implements Serializable {
         return result;
     }
 
-    /**
-     *  TODO - find a better place for this method, it probably shouldn't be here
-     * */
     public static String createMappingLabel(MappingType mapping, Trace LOGGER, PrismContext context,
                                             String placeholder, String nameNotSpecified ){
         if(mapping == null){
@@ -368,17 +370,40 @@ public class MappingTypeDto implements Serializable {
         StringBuilder sb = new StringBuilder();
         if(mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())){
             sb.append(mapping.getName());
-        } else {
-            sb.append(nameNotSpecified);
+            return sb.toString();
         }
 
+        if(!mapping.getSource().isEmpty()){
+            for(MappingSourceDeclarationType source: mapping.getSource()){
+                if(source.getPath() != null && source.getPath().getItemPath() != null
+                        && source.getPath().getItemPath().getSegments() != null){
+
+                    List<ItemPathSegment> segments = source.getPath().getItemPath().getSegments();
+                    sb.append(segments.get(segments.size() - 1));
+
+                    sb.append(",");
+                }
+            }
+        }
+
+        sb.append("-");
+        sb.append(" (");
         if(mapping.getExpression() != null && mapping.getExpression().getExpressionEvaluator() != null){
-            sb.append(" (");
             sb.append(ExpressionUtil.getExpressionType(ExpressionUtil.loadExpression(mapping, context, LOGGER)));
-            sb.append(")");
+        }
+        sb.append(")");
+        sb.append("->");
+
+        if(mapping.getTarget() != null){
+            MappingTargetDeclarationType target = mapping.getTarget();
+            if(target.getPath() != null && target.getPath().getItemPath() != null
+                    && target.getPath().getItemPath().getSegments() != null){
+
+                List<ItemPathSegment> segments = target.getPath().getItemPath().getSegments();
+                sb.append(segments.get(segments.size() - 1));
+            }
         }
 
         return sb.toString();
     }
-
 }

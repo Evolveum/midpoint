@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -59,6 +60,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -158,10 +160,57 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public Collection<UserType> getManagers(UserType user) throws SchemaException, ObjectNotFoundException {
+        return getManagers(user, null, false);
+    }
+    
+    @Override
+    public Collection<UserType> getManagersByOrgType(UserType user, String orgType) throws SchemaException, ObjectNotFoundException {
+    	return getManagers(user, orgType, false);
+    }
+    
+    @Override
+    public Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf) throws SchemaException, ObjectNotFoundException {
         Set<UserType> retval = new HashSet<UserType>();
         Collection<String> orgOids = getOrgUnits(user);
-        for (String orgOid : orgOids) {
-            retval.addAll(getManagersOfOrg(orgOid));
+        while (!orgOids.isEmpty()) {
+        	LOGGER.trace("orgOids: {}",orgOids);
+	        Collection<OrgType> thisLevelOrgs = new ArrayList<OrgType>();
+	        for (String orgOid : orgOids) {
+	        	if (orgType != null) {
+		        	OrgType org = getOrgByOid(orgOid);
+		        	if (!org.getOrgType().contains(orgType)) {
+		        		continue;
+		        	} else {
+		        		thisLevelOrgs.add(org);
+		        	}
+	        	}
+	        	Collection<UserType> managersOfOrg = getManagersOfOrg(orgOid);
+	        	for (UserType managerOfOrg: managersOfOrg) {
+	        		if (allowSelf || !managerOfOrg.getOid().equals(user.getOid())) {
+	        			retval.add(managerOfOrg);
+	        		}
+	        	}
+	        }
+	        LOGGER.trace("retval: {}",retval);
+	        if (!retval.isEmpty()) {
+	        	return retval;
+	        }
+	        Collection<String> nextLevelOids = new ArrayList<String>();
+	        if (orgType == null) {
+	        	for (String orgOid : orgOids) {
+		        	OrgType org = getOrgByOid(orgOid);
+	        		thisLevelOrgs.add(org);
+	        	}
+	        }
+	        for (OrgType org: thisLevelOrgs) {
+	        	for (ObjectReferenceType parentOrgRef: org.getParentOrgRef()) {
+	        		if (!nextLevelOids.contains(parentOrgRef.getOid())) {
+	        			nextLevelOids.add(parentOrgRef.getOid());
+	        		}
+	        	}
+	        }
+	        LOGGER.trace("nextLevelOids: {}",nextLevelOids);
+	        orgOids = nextLevelOids;
         }
         return retval;
     }
@@ -209,34 +258,92 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-	public OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	public OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws SchemaException, SecurityViolationException {
+    	Collection<OrgType> parentOrgs = getParentOrgs(object, PrismConstants.Q_ANY, orgType);
+    	if (parentOrgs.isEmpty()) {
+    		return null;
+    	}
+    	if (parentOrgs.size() > 1) {
+    		throw new IllegalArgumentException("Expected that there will be just one parent org of type "+orgType+" for "+object+", but there were "+parentOrgs.size()); 
+    	}
+    	return parentOrgs.iterator().next();
+    }
+    
+    @Override
+	public Collection<OrgType> getParentOrgsByRelation(ObjectType object, QName relation) throws SchemaException, SecurityViolationException {
+    	return getParentOrgs(object, relation, null);
+    }
+
+    @Override
+	public Collection<OrgType> getParentOrgsByRelation(ObjectType object, String relation) throws SchemaException, SecurityViolationException {
+    	return getParentOrgs(object, relation, null);
+    }
+
+    @Override
+	public Collection<OrgType> getParentOrgs(ObjectType object) throws SchemaException, SecurityViolationException {
+    	return getParentOrgs(object, PrismConstants.Q_ANY, null);
+    }
+    
+    @Override
+	public Collection<OrgType> getParentOrgs(ObjectType object, String relation, String orgType) throws SchemaException, SecurityViolationException {
+    	return getParentOrgs(object, new QName(null, relation), orgType);
+    }
+    
+    @Override
+	public Collection<OrgType> getParentOrgs(ObjectType object, QName relation, String orgType) throws SchemaException, SecurityViolationException {
     	List<ObjectReferenceType> parentOrgRefs = object.getParentOrgRef();
+    	List<OrgType> parentOrgs = new ArrayList<OrgType>(parentOrgRefs.size());
     	for (ObjectReferenceType parentOrgRef: parentOrgRefs) {
+    		if (relation == null) {
+    			if (parentOrgRef.getRelation() != null) {
+    				continue;
+    			}
+    		} else if (!relation.equals(PrismConstants.Q_ANY)) {
+    			if (!QNameUtil.match(parentOrgRef.getRelation(), relation)) {
+    				continue;
+    			}
+    		}
     		OrgType parentOrg;
 			try {
 				parentOrg = getObject(OrgType.class, parentOrgRef.getOid());
 			} catch (ObjectNotFoundException e) {
-				return null;
+				LOGGER.warn("Org "+parentOrgRef.getOid()+" specified in parentOrgRef in "+object+" was not found: "+e.getMessage(), e);
+				// but do not rethrow, just skip this
+				continue;
+			} catch (CommunicationException | ConfigurationException e) {
+				// This should not happen.
+				throw new SystemException(e.getMessage(), e);
 			}
     		if (orgType == null || parentOrg.getOrgType().contains(orgType)) {
-    			return parentOrg;
+    			parentOrgs.add(parentOrg);
     		}
     	}
-    	return null;
+    	return parentOrgs;
 	}
 
 	@Override
     public Collection<UserType> getManagersOfOrg(String orgOid) throws SchemaException {
         Set<UserType> retval = new HashSet<UserType>();
         OperationResult result = new OperationResult("getManagerOfOrg");
-        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(orgOid, OrgFilter.Scope.ONE_LEVEL));
+        
+        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismReferenceDefinition parentOrgRefDef = userDef.findReferenceDefinition(ObjectType.F_PARENT_ORG_REF);
+        PrismReference parentOrgRef = parentOrgRefDef.instantiate();
+        PrismReferenceValue parentOrgRefVal = new PrismReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
+        parentOrgRefVal.setRelation(SchemaConstants.ORG_MANAGER);
+		parentOrgRef.add(parentOrgRefVal);
+        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(
+        		new ItemPath(ObjectType.F_PARENT_ORG_REF), parentOrgRef));
+
+        //        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(orgOid, OrgFilter.Scope.ONE_LEVEL));
+
         List<PrismObject<ObjectType>> members = repositoryService.searchObjects(ObjectType.class, objectQuery, null, result);
         for (PrismObject<ObjectType> member : members) {
             if (member.asObjectable() instanceof UserType) {
                 UserType user = (UserType) member.asObjectable();
-                if (isManagerOf(user, orgOid)) {
+//                if (isManagerOf(user, orgOid)) {
                     retval.add(user);
-                }
+//                }
             }
         }
         return retval;
@@ -251,8 +358,31 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         return false;
     }
+    
+    @Override
+    public boolean isManager(UserType user) {
+        for (ObjectReferenceType objectReferenceType : user.getParentOrgRef()) {
+            if (SchemaConstants.ORG_MANAGER.equals(objectReferenceType.getRelation())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
+	public boolean isManagerOfOrgType(UserType user, String orgType) throws SchemaException {
+        for (ObjectReferenceType objectReferenceType : user.getParentOrgRef()) {
+            if (SchemaConstants.ORG_MANAGER.equals(objectReferenceType.getRelation())) {
+            	OrgType org = getOrgByOid(objectReferenceType.getOid());
+            	if (org.getOrgType().contains(orgType)) {
+            		return true;
+            	}
+            }
+        }
+        return false;
+	}
+
+	@Override
     public boolean isMemberOf(UserType user, String orgOid) {
         for (ObjectReferenceType objectReferenceType : user.getParentOrgRef()) {
             if (orgOid.equals(objectReferenceType.getOid())) {

@@ -161,14 +161,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		assertAccountShip(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
 
-		// Check audit
-      display("Audit", dummyAuditService);
-      dummyAuditService.assertSimpleRecordSanity();
-      dummyAuditService.assertRecords(2);
-      dummyAuditService.assertAnyRequestDeltas();
-      dummyAuditService.assertExecutionDeltas(1);
-      dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-      dummyAuditService.assertExecutionSuccess();
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 
 	@Test
@@ -506,15 +506,15 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		
 		assertAccountShip(userJack, "Captain Jack Sparrow", null, dummyResourceCtlRed, task);
 
-		// Check audit
-      display("Audit", dummyAuditService);
-      dummyAuditService.assertSimpleRecordSanity();
-      dummyAuditService.assertRecords(2);
-      dummyAuditService.assertAnyRequestDeltas();
-      dummyAuditService.assertExecutionDeltas(2);
-      dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-      dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
-      dummyAuditService.assertExecutionSuccess();
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 
 	@Test
@@ -885,14 +885,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		assertAccountShip(userJack, "Captain Jack Sparrow", null, dummyResourceCtl, task);
 
 		// Check audit
-      display("Audit", dummyAuditService);
-      dummyAuditService.assertSimpleRecordSanity();
-      dummyAuditService.assertRecords(2);
-      dummyAuditService.assertAnyRequestDeltas();
-      dummyAuditService.assertExecutionDeltas(2);
-      dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-      dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
-      dummyAuditService.assertExecutionSuccess();
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 
 	/**

@@ -273,7 +273,11 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                     return createStringResource("pageUser.subTitle.newUser").getObject();
                 }
 
-                String name = userModel.getObject().getObject().asObjectable().getName().getOrig();
+                String name = null;
+                if(userModel != null && userModel.getObject() != null && userModel.getObject().getObject() != null){
+                    name = WebMiscUtil.getName(userModel.getObject().getObject());
+                }
+
                 return createStringResource("pageUser.subTitle.edituser", name).getObject();
             }
         };
@@ -700,9 +704,10 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                 	List<PrismProperty> associations = new ArrayList<>(associationContainer.getValues().size());
                 	for (PrismContainerValue associationVal : associationContainer.getValues()){
                 		ShadowAssociationType associationType = (ShadowAssociationType) associationVal.asContainerable();
-                		PrismObject<ShadowType> association = getModelService().getObject(ShadowType.class, associationType.getShadowRef().getOid(), null, task, subResult);
+                        // we can safely eliminate fetching from resource, because we need only the name
+                		PrismObject<ShadowType> association = getModelService().getObject(ShadowType.class, associationType.getShadowRef().getOid(),
+                                SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, subResult);
                 		associations.add(association.findProperty(ShadowType.F_NAME));
-                		
                 	}
                 	
                 	wrapper.setAssociations(associations);
@@ -955,7 +960,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         };
         mainForm.add(back);
 
-        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
+        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, false));
     }
 
     private void showAssignablePopup(AjaxRequestTarget target, Class<? extends ObjectType> type) {
@@ -969,7 +974,13 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         ModalWindow window = createModalWindow(MODAL_ID_RESOURCE,
                 createStringResource("pageUser.title.selectResource"), 1100, 560);
 
-        final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel);
+        final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel){
+
+            @Override
+            protected void handlePartialError(OperationResult result) {
+                showResult(result);
+            }
+        };
         window.setContent(new ResourcesPopup(window.getContentId()) {
 
             @Override
@@ -1252,7 +1263,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         }
 
         if (!assDelta.isEmpty()) {
-            userDelta.addModification(assDelta);
+        	assDelta = userDelta.addModification(assDelta);
         }
 
         // todo remove this block [lazyman] after model is updated - it has to

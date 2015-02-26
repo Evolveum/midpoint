@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -305,10 +306,10 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         return result1;
     }
 
-    public static void copyFromJAXB(TaskType jaxb, RTask repo, PrismContext prismContext) throws
-            DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
-        
+    public static void copyFromJAXB(TaskType jaxb, RTask repo, PrismContext prismContext,
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+
         PrismObjectDefinition<TaskType> taskDefinition = jaxb.asPrismObject().getDefinition();
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));

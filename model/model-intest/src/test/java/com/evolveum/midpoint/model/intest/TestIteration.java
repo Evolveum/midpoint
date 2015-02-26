@@ -271,7 +271,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -333,7 +333,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertAccountShadowModel(accountPinkModel, accountPinkOid, "jack1", resourceDummyPinkType);
         
         // Check account in dummy resource
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         // The original conflicting account should still remain
         assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Pinky", true);
         // The new account
@@ -1092,7 +1092,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertAccountShadowModel(accountVioletModel, accountVioletOid, "jack.1", resourceDummyVioletType);
         
         // Check account in dummy resource
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         // The original conflicting account should still remain
         assertDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Violet", true);
         // The new account
@@ -1305,7 +1305,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertIteration(accountMagentaShadow, 0, "");
         
         // Check account in dummy resource
-        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         // The original conflicting account should still remain
         assertDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Violet", true);
         assertDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, "jack.1", "Jack Sparrow", true);
@@ -1646,7 +1646,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         
         assertIteration(accountMagentaShadow, 0, "");
         
-        assertDummyAccount(USER_JACK_RENAMED_NAME, "Jack Sparrow", true);
+        assertDefaultDummyAccount(USER_JACK_RENAMED_NAME, "Jack Sparrow", true);
         assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, USER_JACK_RENAMED_NAME, "Jack Sparrow", true);
         // The original conflicting account should still remain
         assertDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Violet", true);
@@ -1772,10 +1772,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertUserNick(ACCOUNT_CHARLES_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".1");
 		assertUserNick(ACCOUNT_SHINETOP_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".2", "Melee Island");
 	}
-	
-	/*
-	 * Create account with fullname LeChuck. User with name LeChuck.2 should be created (second conflict).
-	 */
+
 	@Test
     public void test716DarkVioletDeleteCharles() throws Exception {
 		final String TEST_NAME = "test716DarkVioletDeleteCharles";

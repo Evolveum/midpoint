@@ -188,7 +188,7 @@ public class WebModelUtils {
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> createMinimalOptions() {
-        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH,
                 GetOperationOptions.createRetrieve(RetrieveOption.DEFAULT)));
         return options;

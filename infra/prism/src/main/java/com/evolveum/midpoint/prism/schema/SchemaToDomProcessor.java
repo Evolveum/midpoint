@@ -478,6 +478,10 @@ public class SchemaToDomProcessor {
 			addAnnotation(A_DISPLAY_NAME, definition.getDisplayName(), appinfoElement);
 		}
 		
+		if (definition.getDisplayOrder() != null) {
+			addAnnotation(A_DISPLAY_ORDER, definition.getDisplayOrder().toString(), appinfoElement);
+		}
+		
 		if (definition.getHelp() != null) {
 			addAnnotation(A_HELP, definition.getHelp(), appinfoElement);
 		}

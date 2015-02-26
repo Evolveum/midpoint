@@ -973,15 +973,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 		timeBeforeSync = System.currentTimeMillis();
 	}
 
-	protected void assertShadowOperationalData(PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation) {
-		ShadowType shadowType = shadow.asObjectable();
-		SynchronizationSituationType actualSituation = shadowType.getSynchronizationSituation();
-		assertEquals("Wrong situation in shadow "+shadow, expectedSituation, actualSituation);
-		XMLGregorianCalendar actualTimestampCal = shadowType.getSynchronizationTimestamp();
-		assert actualTimestampCal != null : "No synchronization timestamp in shadow "+shadow;
-		long actualTimestamp = XmlTypeConverter.toMillis(actualTimestampCal);
-		assert actualTimestamp >= timeBeforeSync : "Synchronization timestamp was not updated in shadow "+shadow;
-		// TODO: assert sync description
-	}
+    protected void assertShadowOperationalData(PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation) {
+        super.assertShadowOperationalData(shadow, expectedSituation, timeBeforeSync);
+    }
 
 }

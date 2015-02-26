@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -30,14 +30,24 @@
 					</expression>
 				</outbound>
             </attribute>
+            <attribute>
+                <ref>ri:drink</ref>
+                <outbound>
+                	<expression>
+						<value>tea</value>
+					</expression>
+				</outbound>
+            </attribute>
     	</construction>
     </inducement>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#punish</action>
     </authorization>
-    <exclusion>
-    	<description>A judge cannot be a pirate at the same time. At least not openly.</description>
-    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
-    	<policy>enforce</policy>
-    </exclusion>
+    <policyConstraints>
+    	<exclusion>
+	    	<description>A judge cannot be a pirate at the same time. At least not openly.</description>
+	    	<enforcement>enforce</enforcement>
+	    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
+    	</exclusion>
+    </policyConstraints>
 </role>

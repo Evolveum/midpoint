@@ -25,19 +25,13 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
-import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
-import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
-import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
@@ -46,9 +40,9 @@ import org.hibernate.annotations.NamedQuery;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
@@ -78,15 +72,17 @@ import java.util.Set;
         @NamedQuery(name = "isAnySubordinateAttempt.moreLowerOids", query = "select count(*) from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid in (:dOids)"),
 })
 @Entity
-@Table(name = "m_object")
-@org.hibernate.annotations.Table(appliesTo = "m_object",
-        indexes = {@Index(name = "iObjectNameOrig", columnNames = "name_orig"),
-                @Index(name = "iObjectNameNorm", columnNames = "name_norm")})
-@ForeignKey(name = "fk_object")
+@Table(name = "m_object", indexes = {
+        @Index(name = "iObjectNameOrig", columnList = "name_orig"),
+        @Index(name = "iObjectNameNorm", columnList = "name_norm"),
+        @Index(name = "iObjectTypeClass", columnList = "objectTypeClass"),
+        @Index(name = "iObjectCreateTimestamp", columnList = "createTimestamp")})
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, Serializable {
+public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, EntityState, Serializable {
 
     public static final String F_OBJECT_TYPE_CLASS = "objectTypeClass";
+
+    private Boolean trans;
 
     private String oid;
     private int version;
@@ -124,8 +120,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private Set<ROExtPolyString> polys;
 
     @Id
-    @GeneratedValue(generator = "ContainerOidGenerator")
-    @GenericGenerator(name = "ContainerOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ObjectOidGenerator")
+    @GeneratedValue(generator = "ObjectOidGenerator")
+    @GenericGenerator(name = "ObjectOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ObjectOidGenerator")
     @Column(name = "oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
     public String getOid() {
         return oid;
@@ -136,7 +132,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return name;
     }
 
-    @ForeignKey(name = "none")
+    //    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @OneToMany(mappedBy = RTrigger.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RTrigger> getTrigger() {
@@ -146,7 +142,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return trigger;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RParentOrgRef.DISCRIMINATOR)
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 0")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getParentOrgRef() {
@@ -182,9 +178,9 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return fullObject;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RCreateApproverRef.DISCRIMINATOR)
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 5")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
+//    @JoinTable(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getCreateApproverRef() {
         if (createApproverRef == null) {
@@ -197,7 +193,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return createChannel;
     }
 
-    @Index(name = "iObjectCreateTimestamp")
     public XMLGregorianCalendar getCreateTimestamp() {
         return createTimestamp;
     }
@@ -212,9 +207,9 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return modifierRef;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RModifyApproverRef.DISCRIMINATOR)
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 6")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
+//    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getModifyApproverRef() {
         if (modifyApproverRef == null) {
@@ -233,7 +228,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-//    @Cascade({PERSIST, REMOVE, REFRESH, DELETE, SAVE_UPDATE, REPLICATE, LOCK, DETACH})
     public Set<ROExtLong> getLongs() {
         if (longs == null) {
             longs = new HashSet<>();
@@ -312,10 +306,19 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return polysCount;
     }
 
-    @Index(name = "iObjectTypeClass")
     @Enumerated
     public RObjectType getObjectTypeClass() {
         return objectTypeClass;
+    }
+
+    @Transient
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     public void setObjectTypeClass(RObjectType objectTypeClass) {
@@ -505,14 +508,17 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         }
     }
 
-    public static <T extends ObjectType> void copyFromJAXB(ObjectType jaxb, RObject<T> repo, PrismContext prismContext)
+    public static <T extends ObjectType> void copyFromJAXB(ObjectType jaxb, RObject<T> repo, PrismContext prismContext,
+                                                           IdGeneratorResult generatorResult)
             throws DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
+        repo.setTransient(generatorResult.isGeneratedOid());
+        repo.setOid(jaxb.getOid());
+
         repo.setObjectTypeClass(RObjectType.getType(ClassMapper.getHQLTypeClass(jaxb.getClass())));
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setOid(jaxb.getOid());
 
         String strVersion = jaxb.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(jaxb
@@ -523,8 +529,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
                 repo, RReferenceOwner.OBJECT_PARENT_ORG));
 
         for (TriggerType trigger : jaxb.getTrigger()) {
-            RTrigger rTrigger = new RTrigger(repo);
-            RTrigger.copyFromJAXB(trigger, rTrigger, jaxb, prismContext);
+            RTrigger rTrigger = new RTrigger(null);
+            RTrigger.copyFromJAXB(trigger, rTrigger, jaxb, prismContext, generatorResult);
 
             repo.getTrigger().add(rTrigger);
         }
@@ -553,12 +559,12 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         Set<RAnyValue> values = new HashSet<RAnyValue>();
         try {
             List<Item<?>> items = containerValue.getItems();
-			//TODO: is this ehought??should we try items without definitions??
+            //TODO: is this ehought??should we try items without definitions??
             if (items != null) {
-				for (Item item : items) {
-					values.addAll(converter.convertToRValue(item, false));
-				}
-			}
+                for (Item item : items) {
+                    values.addAll(converter.convertToRValue(item, false));
+                }
+            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

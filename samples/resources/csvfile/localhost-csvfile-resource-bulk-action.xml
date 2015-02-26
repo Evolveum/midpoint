@@ -232,7 +232,10 @@ object.
 						<expression>
 							<script>
 								<language>http://www.w3.org/TR/xpath/</language>
-								<code>$c:account/c:attributes/icfs:name</code>
+								<code>
+									declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+									declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+									$c:account/c:attributes/icfs:name</code>
 							</script>
 						</expression>
 					</q:equal>

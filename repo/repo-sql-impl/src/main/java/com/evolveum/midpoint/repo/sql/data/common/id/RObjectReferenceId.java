@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+
 import java.io.Serializable;
 
 /**
@@ -26,6 +28,7 @@ public class RObjectReferenceId implements Serializable {
     private String ownerOid;
     private String targetOid;
     private String relation;
+    private RReferenceOwner referenceType;
 
     public RObjectReferenceId() {
     }
@@ -54,6 +57,14 @@ public class RObjectReferenceId implements Serializable {
         this.relation = relation;
     }
 
+    public RReferenceOwner getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(RReferenceOwner referenceType) {
+        this.referenceType = referenceType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -64,6 +75,7 @@ public class RObjectReferenceId implements Serializable {
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
         if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null) return false;
         if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
+        if (referenceType != null ? !referenceType.equals(that.referenceType) : that.referenceType != null) return false;
 
         return true;
     }
@@ -74,12 +86,13 @@ public class RObjectReferenceId implements Serializable {
         int result = ownerOid != null ? ownerOid.hashCode() : 0;
         result = 31 * result + (targetOid != null ? targetOid.hashCode() : 0);
         result = 31 * result + (relation != null ? relation.hashCode() : 0);
+        result = 31 * result + (referenceType != null ? referenceType.hashCode() : 0);
 
         return result;
     }
 
     @Override
     public String toString() {
-        return "RObjectReferenceId[" + ownerOid + "," + targetOid + "," + relation + ']';
+        return "RObjectReferenceId[" + ownerOid + "," + targetOid + "," + relation + "," + referenceType + ']';
     }
 }

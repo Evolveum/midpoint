@@ -25,16 +25,19 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -52,8 +55,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -590,6 +591,157 @@ public class TestParseDiffPatch {
         assertFalse("The delta is empty", resourceDelta.isEmpty());
         
 	}
+
+    @Test
+    public void testResourceNsFixUndeclaredPrefixes() throws SchemaException, SAXException, IOException, JAXBException {
+        System.out.println("===[ testResourceNsFixUndeclaredPrefixes ]===");
+
+        boolean orig = QNameUtil.isTolerateUndeclaredPrefixes();
+        try {
+            QNameUtil.setTolerateUndeclaredPrefixes(true);
+            PrismObject<ResourceType> resourceBroken = PrismTestUtil.parseObject(new File(TEST_DIR, "resource2-broken.xml"));
+            PrismObject<ResourceType> resourceFixed = PrismTestUtil.parseObject(new File(TEST_DIR, "resource2-fixed.xml"));
+
+            resourceBroken.checkConsistence();
+            resourceFixed.checkConsistence();
+
+            // WHEN
+            String xmlBroken = PrismTestUtil.getPrismContext().serializeObjectToString(resourceBroken, PrismContext.LANG_XML);
+            ObjectDelta<ResourceType> resourceDelta = resourceBroken.diff(resourceFixed, true, true);
+
+            // THEN
+
+            System.out.println("DELTA:");
+            System.out.println(resourceDelta.debugDump());
+
+            System.out.println("BROKEN RESOURCE:");
+            System.out.println(xmlBroken);
+            assertTrue("no __UNDECLARED__ flag in broken resource", xmlBroken.contains("__UNDECLARED__"));
+
+            resourceDelta.checkConsistence();
+            resourceDelta.assertDefinitions(true);
+            resourceBroken.checkConsistence();
+            resourceFixed.checkConsistence();
+
+            assertFalse("The delta is empty", resourceDelta.isEmpty());
+
+            PrismObject<ResourceType> resourceUpdated = resourceBroken.clone();
+            resourceDelta.applyTo(resourceUpdated);
+
+            String xmlUpdated = PrismTestUtil.getPrismContext().serializeObjectToString(resourceUpdated, PrismContext.LANG_XML);
+            System.out.println("UPDATED RESOURCE:");
+            System.out.println(xmlUpdated);
+            assertFalse("__UNDECLARED__ flag in updated resource", xmlUpdated.contains("__UNDECLARED__"));
+
+            QNameUtil.setTolerateUndeclaredPrefixes(false);
+            PrismTestUtil.getPrismContext().parseObject(xmlUpdated);        //should be without exceptions
+
+        } finally {
+            QNameUtil.setTolerateUndeclaredPrefixes(orig);
+        }
+
+
+    }
+
+    /**
+     * This test illustrates MID-2174.
+     *
+     * We take a shadow having objectChange set.
+     * We delete it via asObjectable().setObjectChange(null).
+     * Then we compute the delta via diff.
+     * All these operations are done on a shadow that contains PARSED values in objectChange property.
+     *
+     * The problem of MID-2174 is that (in reality) we then try to apply the delta to the shadow as stored in repository,
+     * i.e. to shadow with RAW values in objectChange property.
+     *
+     * MidPoint uses an approximation there - it compares XNode serializations of values. Sometimes they match,
+     * sometimes they do not. In this particular case they fail to match on serialization of c:ObjectReferenceType,
+     * because PrismBeanConverter is used, and ObjectReferenceType.getFilter() returns empty filter instead of null.
+     * This could be fixed; however, it would not help much, because it is almost sure that other similar problems
+     * would sooner or later emerge.
+     */
+    @Test(enabled = false)
+    public void testShadowObjectChange() throws SchemaException, SAXException, IOException, JAXBException {
+        System.out.println("===[ testShadowObjectChange ]===");
+
+        // WHEN
+
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+        PrismObject<ShadowType> oldObject = getParsedShadowBefore(prismContext);
+        PrismObject<ShadowType> newObject = getShadowAfter(oldObject);
+
+        ObjectDelta<ShadowType> diffDelta = DiffUtil.diff(oldObject, newObject);
+
+        // THEN
+
+        System.out.println("DELTA:");
+        System.out.println(diffDelta.debugDump());
+
+        diffDelta.checkConsistence();
+        assertEquals("Wrong delta OID", "19a27a9d-c7f0-4e41-bcbf-5fa9fc229b10", diffDelta.getOid());
+        assertEquals("Wrong change type", ChangeType.MODIFY, diffDelta.getChangeType());
+        // ... (not important now) ...
+
+        // ROUNDTRIP
+
+        // without resolving RawTypes!
+        PrismObject<ShadowType> shadow = getRawShadowBefore(prismContext);
+        shadow.checkConsistence();
+        PrismObject<ShadowType> shadowAfter = getShadowAfter(shadow);
+        shadowAfter.checkConsistence();
+
+        // patch
+        diffDelta.applyTo(shadow);
+
+        System.out.println("Shadow after roundtrip patching");
+        System.out.println(shadow.debugDump());
+
+        diffDelta.checkConsistence();
+        shadow.checkConsistence();
+
+        assertTrue("Not equivalent", shadow.equivalent(shadowAfter));
+
+        diffDelta.checkConsistence();
+        shadow.checkConsistence();
+        shadowAfter.checkConsistence();
+
+        ObjectDelta<ShadowType> roundTripDelta = DiffUtil.diff(shadow, shadowAfter);
+        System.out.println("roundtrip DELTA:");
+        System.out.println(roundTripDelta.debugDump());
+
+        assertTrue("Roundtrip delta is not empty", roundTripDelta.isEmpty());
+
+        roundTripDelta.checkConsistence();
+        diffDelta.checkConsistence();
+        shadow.checkConsistence();
+        shadowAfter.checkConsistence();
+    }
+
+    protected PrismObject<ShadowType> getShadowAfter(PrismObject<ShadowType> oldObject) {
+        PrismObject<ShadowType> newObject = oldObject.clone();
+        newObject.asObjectable().setObjectChange(null);
+        return newObject;
+    }
+
+    protected PrismObject<ShadowType> getParsedShadowBefore(PrismContext prismContext) throws SchemaException, IOException {
+        PrismObject<ShadowType> oldObject = getRawShadowBefore(prismContext);
+        // resolve rawtypes
+        ObjectDeltaType objectChange = oldObject.asObjectable().getObjectChange();
+        for (ItemDeltaType itemDeltaType : objectChange.getItemDelta()) {
+            for (RawType rawType : itemDeltaType.getValue()) {
+                rawType.getParsedItem(
+                        new PrismPropertyDefinition(itemDeltaType.getPath().getItemPath().lastNamed().getName(),
+                                rawType.getXnode().getTypeQName(),
+                                prismContext));
+            }
+        }
+        return oldObject;
+    }
+
+    protected PrismObject<ShadowType> getRawShadowBefore(PrismContext prismContext) throws SchemaException, IOException {
+        PrismObject<ShadowType> oldObject = prismContext.parseObject(new File(TEST_DIR, "shadow-before.xml"));
+        return oldObject;
+    }
 
     private void assertXmlPolyMod(ObjectModificationType objectModificationType, QName propertyName,
             ModificationTypeType modType, PolyStringType... expectedValues) throws SchemaException {

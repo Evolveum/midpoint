@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -143,7 +144,7 @@ public class TestSchemaRegistry {
     }
 
     @Test
-	public void testUserType() throws SchemaException, SAXException, IOException {
+	public void testUserType() throws Exception {
 		
 		MidPointPrismContextFactory factory = getContextFactory();
 		PrismContext context = factory.createInitializedPrismContext();
@@ -166,6 +167,39 @@ public class TestSchemaRegistry {
 		
 		PrismPropertyDefinition givenNameDef = userDefinition.findPropertyDefinition(UserType.F_GIVEN_NAME);
 		assertNotNull("No givenName definition", givenNameDef);
+		
+		// Just make sure this does not end with NPE or stack overflow
+		PrismObjectDefinition<UserType> shallowClone = userDefinition.clone();
+		PrismObjectDefinition<UserType> deepClone = userDefinition.deepClone(false);
+		PrismObjectDefinition<UserType> ultraDeepClone = userDefinition.deepClone(true);
+	}
+    
+    @Test
+	public void testRoleType() throws Exception {
+		
+		MidPointPrismContextFactory factory = getContextFactory();
+		PrismContext context = factory.createInitializedPrismContext();
+		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
+
+		PrismObjectDefinition<RoleType> roleDefinition = schemaRegistry.findObjectDefinitionByCompileTimeClass(RoleType.class);
+		assertNotNull("No role definition", roleDefinition);
+		
+		assertFalse("Role definition is marked as runtime", roleDefinition.isRuntimeSchema());
+		
+		PrismPropertyDefinition nameDef = roleDefinition.findPropertyDefinition(ObjectType.F_NAME);
+		assertNotNull("No name definition", nameDef);
+
+		PrismContainerDefinition extensionDef = roleDefinition.findContainerDefinition(ObjectType.F_EXTENSION);
+		assertNotNull("No 'extension' definition", extensionDef);
+		assertTrue("Extension definition is NOT marked as runtime", extensionDef.isRuntimeSchema());
+		
+		PrismPropertyDefinition identifierDef = roleDefinition.findPropertyDefinition(RoleType.F_IDENTIFIER);
+		assertNotNull("No identifier definition", identifierDef);
+		
+		// Just make sure this does not end with NPE or stack overflow
+		PrismObjectDefinition<RoleType> shallowClone = roleDefinition.clone();
+		PrismObjectDefinition<RoleType> deepClone = roleDefinition.deepClone(false);
+		PrismObjectDefinition<RoleType> ultraDeepClone = roleDefinition.deepClone(true);
 	}
 
     @Test

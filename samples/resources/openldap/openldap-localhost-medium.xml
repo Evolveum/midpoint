@@ -80,6 +80,7 @@ It also contains inbound mappings and definition to enable synchronization.
 				<icfcldap:groupMemberAttribute>member</icfcldap:groupMemberAttribute>
 				<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 				<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+				<icfcldap:vlvSortOrderingRule>2.5.13.3</icfcldap:vlvSortOrderingRule>
 				<icfcldap:useBlocks>true</icfcldap:useBlocks>
 				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
 			</icfc:configurationProperties>
@@ -222,6 +223,12 @@ It also contains inbound mappings and definition to enable synchronization.
 						<description>Source may have description</description>
 						<path>$user/name</path>
 					</source>
+					<!-- We need to put iterationToken here as well, otherwise effect described in MID-2139 occurs -->
+					<expression>
+						<script>
+							<code>name + iterationToken</code>
+						</script>
+					</expression>
 				</outbound>
 				<inbound>
 					<target>

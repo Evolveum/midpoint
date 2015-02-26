@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
@@ -49,10 +51,12 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualified
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -263,6 +267,47 @@ public class MiscSchemaUtil {
 			return false;
 		}
 		return a.equals(b);
+	}
+
+	public static PrismReferenceValue objectReferenceTypeToReferenceValue(ObjectReferenceType refType) {
+		if (refType == null) {
+			return null;
+		}
+		PrismReferenceValue rval = new PrismReferenceValue();
+		rval.setOid(refType.getOid());
+		rval.setDescription(refType.getDescription());
+		rval.setFilter(refType.getFilter());
+		rval.setRelation(refType.getRelation());
+		rval.setTargetType(refType.getType());
+		return rval;
+	}
+	
+	public static PropertyLimitationsType getLimitationsType(List<PropertyLimitationsType> limitationsTypes, LayerType layer) throws SchemaException {
+		if (limitationsTypes == null) {
+			return null;
+		}
+		PropertyLimitationsType found = null;
+		for (PropertyLimitationsType limitType: limitationsTypes) {
+			if (contains(limitType.getLayer(),layer)) {
+				if (found == null) {
+					found = limitType;
+				} else {
+					throw new SchemaException("Duplicate definition of limitations for layer '"+layer+"'");
+				}
+			}
+		}
+		return found;
+	}
+	
+	private static boolean contains(List<LayerType> layers, LayerType layer) {
+		if (layers == null || layers.isEmpty()) {
+			if (layer == null) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return layers.contains(layer);
 	}
 
 }

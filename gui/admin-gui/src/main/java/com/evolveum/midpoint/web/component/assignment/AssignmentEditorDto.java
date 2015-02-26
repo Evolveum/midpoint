@@ -16,10 +16,17 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
@@ -33,6 +40,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -40,8 +48,12 @@ import java.util.List;
  */
 public class AssignmentEditorDto extends SelectableBean implements Comparable<AssignmentEditorDto> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(AssignmentEditorDto.class);
+
     private static final String DOT_CLASS = AssignmentEditorDto.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_TENANT = DOT_CLASS + "loadTenantOrg";
+    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
+    private static final String OPERATION_LOAD_ATTRIBUTES = DOT_CLASS + "loadAttributes";
 
     public static final String F_TYPE = "type";
     public static final String F_NAME = "name";
@@ -50,6 +62,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     public static final String F_RELATION = "relation";
     public static final String F_TENANT_REF = "tenantRef";
     public static final String F_ALT_NAME = "altName";
+    public static final String F_IS_ORG_UNIT_MANAGER = "isOrgUnitManager";
 
     private String name;
     private String altName;
@@ -61,6 +74,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     private boolean showEmpty = false;
     private boolean minimized = true;
 
+    private Boolean isOrgUnitManager = Boolean.FALSE;
     private AssignmentType newAssignment;
     private List<ACAttributeDto> attributes;
 
@@ -90,6 +104,109 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
         this.name = getNameForTargetObject(targetObject);
         this.altName = getAlternativeName(assignment);
+
+        this.attributes = prepareAssignmentAttributes(assignment, pageBase);
+        this.isOrgUnitManager = determineUserOrgRelation(assignment);
+    }
+
+    private Boolean determineUserOrgRelation(AssignmentType assignment){
+        if(!AssignmentEditorDtoType.ORG_UNIT.equals(getType())){
+            return Boolean.FALSE;
+        }
+
+        if(assignment == null || assignment.getTargetRef() == null || assignment.getTargetRef().getRelation() == null){
+            return Boolean.FALSE;
+        }
+
+        if(SchemaConstants.ORG_MANAGER.equals(assignment.getTargetRef().getRelation())){
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
+    }
+
+    private List<ACAttributeDto> prepareAssignmentAttributes(AssignmentType assignment, PageBase pageBase){
+        List<ACAttributeDto> acAtrList = new ArrayList<>();
+
+        if(assignment == null || assignment.getConstruction() == null || assignment.getConstruction().getAttribute() == null
+                || assignment.getConstruction() == null){
+            return acAtrList;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_ATTRIBUTES);
+        ConstructionType construction = assignment.getConstruction();
+
+        PrismObject<ResourceType> resource = construction.getResource() != null
+                ? construction.getResource().asPrismObject() : null;
+        if (resource == null) {
+            resource = getReference(construction.getResourceRef(), result, pageBase);
+        }
+
+        try {
+            PrismContext prismContext = pageBase.getPrismContext();
+            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+                    LayerType.PRESENTATION, prismContext);
+            RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
+
+            if(objectClassDefinition == null){
+                return attributes;
+            }
+
+            PrismContainerDefinition definition = objectClassDefinition.toResourceAttributeContainerDefinition();
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Refined definition for {}\n{}", construction, definition.debugDump());
+            }
+
+            Collection<ItemDefinition> definitions = definition.getDefinitions();
+            for(ResourceAttributeDefinitionType attribute: assignment.getConstruction().getAttribute()){
+
+                for(ItemDefinition attrDef: definitions){
+                    if (attrDef instanceof PrismPropertyDefinition) {
+                        PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) attrDef;
+
+                        if (propertyDef.isOperational() || propertyDef.isIgnored()) {
+                            continue;
+                        }
+
+                        if(ItemPathUtil.getOnlySegmentQName(attribute.getRef()).equals(propertyDef.getName())){
+                            acAtrList.add(ACAttributeDto.createACAttributeDto(propertyDef, attribute, prismContext));
+                            break;
+                        }
+                    }
+                }
+            }
+
+            result.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Exception occurred during assignment attribute loading", ex);
+            result.recordFatalError("Exception occurred during assignment attribute loading.", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+
+        return acAtrList;
+    }
+
+    private PrismObject getReference(ObjectReferenceType ref, OperationResult result, PageBase pageBase) {
+        OperationResult subResult = result.createSubresult(OPERATION_LOAD_RESOURCE);
+        subResult.addParam("targetRef", ref.getOid());
+        PrismObject target = null;
+        try {
+            Task task = pageBase.createSimpleTask(OPERATION_LOAD_RESOURCE);
+            Class type = ObjectType.class;
+            if (ref.getType() != null){
+                type = pageBase.getPrismContext().getSchemaRegistry().determineCompileTimeClass(ref.getType());
+            }
+            target = pageBase.getModelService().getObject(type, ref.getOid(), null, task,
+                    subResult);
+            subResult.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't get account construction resource ref", ex);
+            subResult.recordFatalError("Couldn't get account construction resource ref.", ex);
+        }
+
+        return target;
     }
 
     private ObjectViewDto loadTenantReference(ObjectType object, AssignmentType assignment, PageBase page){
@@ -240,6 +357,14 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     }
 
     public PrismContainerValue getNewValue() throws SchemaException {
+        if(AssignmentEditorDtoType.ORG_UNIT.equals(getType())){
+            if(isOrgUnitManager()){
+                newAssignment.getTargetRef().setRelation(SchemaConstants.ORG_MANAGER);
+            } else {
+                newAssignment.getTargetRef().setRelation(null);
+            }
+        }
+
         //this removes activation element if it's empty
         ActivationType activation = newAssignment.getActivation();
         if (activation == null || activation.asPrismContainerValue().isEmpty()) {
@@ -290,6 +415,14 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
     public void setDescription(String description) {
         newAssignment.setDescription(description);
+    }
+
+    public Boolean isOrgUnitManager() {
+        return isOrgUnitManager;
+    }
+
+    public void setOrgUnitManager(Boolean orgUnitManager) {
+        isOrgUnitManager = orgUnitManager;
     }
 
     @Override
@@ -345,6 +478,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
         AssignmentEditorDto that = (AssignmentEditorDto) o;
 
+        if (isOrgUnitManager != that.isOrgUnitManager) return false;
         if (minimized != that.minimized) return false;
         if (showEmpty != that.showEmpty) return false;
         if (altName != null ? !altName.equals(that.altName) : that.altName != null) return false;
@@ -371,6 +505,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         result = 31 * result + (tenantRef != null ? tenantRef.hashCode() : 0);
         result = 31 * result + (showEmpty ? 1 : 0);
         result = 31 * result + (minimized ? 1 : 0);
+        result = 31 * result + (isOrgUnitManager ? 1 : 0);
         result = 31 * result + (newAssignment != null ? newAssignment.hashCode() : 0);
         result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
         return result;

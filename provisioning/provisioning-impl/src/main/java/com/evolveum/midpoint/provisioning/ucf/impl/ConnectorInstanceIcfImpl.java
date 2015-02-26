@@ -75,6 +75,7 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
+import org.identityconnectors.framework.common.objects.QualifiedUid;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.ScriptContext;
 import org.identityconnectors.framework.common.objects.SearchResult;
@@ -128,7 +129,9 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
@@ -651,10 +654,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Make it read-only
 			uidDefinition.setReadOnly();
 			// Set a default display name
-			uidDefinition.setDisplayName("ICF UID");
+			uidDefinition.setDisplayName(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_NAME);
+			uidDefinition.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
 			// Uid is a primary identifier of every object (this is the ICF way)
 			((Collection<ResourceAttributeDefinition>)roDefinition.getIdentifiers()).add(uidDefinition);
 
+			int displayOrder = ConnectorFactoryIcfImpl.ATTR_DISPLAY_ORDER_START;
 			// Let's iterate over all attributes in this object class ...
 			Set<AttributeInfo> attributeInfoSet = objectClassInfo.getAttributeInfo();
 			for (AttributeInfo attributeInfo : attributeInfoSet) {
@@ -710,8 +715,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					// Set a better display name for __NAME__. The "name" is s very
 					// overloaded term, so let's try to make things
 					// a bit clearer
-					attrDef.setDisplayName("ICF NAME");
+					attrDef.setDisplayName(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_NAME);
+					attrDef.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_NAME_DISPLAY_ORDER);
 					((Collection<ResourceAttributeDefinition>)roDefinition.getSecondaryIdentifiers()).add(attrDef);
+				} else {
+					attrDef.setDisplayOrder(displayOrder);
+					displayOrder += ConnectorFactoryIcfImpl.ATTR_DISPLAY_ORDER_INCREMENT;
 				}
 
 				// Now we are going to process flags such as optional and
@@ -901,11 +910,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public <T extends ShadowType> PrismObject<T> fetchObject(Class<T> type,
-			ObjectClassComplexTypeDefinition objectClassDefinition,
-			Collection<? extends ResourceAttribute<?>> identifiers, AttributesToReturn attributesToReturn, OperationResult parentResult)
+			ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, SecurityViolationException, ConfigurationException {
 
+		Collection<? extends ResourceAttribute<?>> identifiers = resourceObjectIdentification.getIdentifiers();
+		ObjectClassComplexTypeDefinition objectClassDefinition = resourceObjectIdentification.getObjectClassDefinition();
 		// Result type for this operation
 		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
 				+ ".fetchObject");
@@ -1052,7 +1062,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException)midpointEx;
 			} else if (midpointEx instanceof Error) {
-				throw (Error)midpointEx;
+				// This should not happen. But some connectors are very strange.
+				throw new SystemException("ERROR: "+midpointEx.getClass().getName()+": "+midpointEx.getMessage(), midpointEx);
 			} else {
 				throw new SystemException(midpointEx.getClass().getName()+": "+midpointEx.getMessage(), midpointEx);
 			}
@@ -1856,9 +1867,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-    public <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
-                                              final ResultHandler<T> handler, AttributesToReturn attributesToReturn,
-                                              PagedSearchCapabilityType pagedSearchCapabilityType, OperationResult parentResult)
+    public <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, 
+    		                                                  final ObjectQuery query,
+                                                              final ResultHandler<T> handler,
+                                                              AttributesToReturn attributesToReturn,
+                                                              PagedSearchCapabilityType pagedSearchCapabilityType,
+                                                              SearchHierarchyConstraints searchHierarchyConstraints,
+                                                              OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException {
 
 		// Result type for this operation
@@ -1952,6 +1967,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
                 String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(orderBy, getSchemaNamespace());
                 optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
             }
+        }
+        if (searchHierarchyConstraints != null) {
+        	ResourceObjectIdentification baseContextIdentification = searchHierarchyConstraints.getBaseContext();
+        	// Only LDAP connector really supports base context. And this one will work better with
+        	// DN. And DN is usually stored in icfs:name. This is ugly, but practical. It works around ConnId problems.
+        	ResourceAttribute<?> secondaryIdentifier = ShadowUtil.getSecondaryIdentifier(objectClassDefinition, baseContextIdentification.getIdentifiers());
+        	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
+        	ObjectClass baseContextIcfObjectClass = icfNameMapper.objectClassToIcf(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType);
+        	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
+			optionsBuilder.setContainer(containerQualifiedUid);
         }
 		OperationOptions options = optionsBuilder.build();
 

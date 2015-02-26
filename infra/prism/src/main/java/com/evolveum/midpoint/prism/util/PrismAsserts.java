@@ -786,6 +786,30 @@ public class PrismAsserts {
 		}
 	}
 	
+	public static void assertOids(Collection<? extends PrismObject<?>> objects, String... expectedOids) {
+		if ((objects == null || objects.isEmpty()) && expectedOids.length == 0) {
+			return;
+		}
+		if (objects == null) {
+			fail("Expected OIDs "+Arrays.toString(expectedOids)+", but got no object");
+		}
+		if (objects.size() != expectedOids.length) {
+			fail("Expected OIDs "+Arrays.toString(expectedOids)+", but got "+objects);
+		}
+		for (String expectedOid: expectedOids) {
+			boolean found = false;
+			for (PrismObject<?> object: objects) {
+				if (expectedOid.equals(object.getOid())) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				fail("Expected OIDs "+Arrays.toString(expectedOids)+", but got "+objects);
+			}
+		}
+	}
+	
 	// XNode asserts
 	
 	public static void assertSize(MapXNode xmap, int expectedSize) {

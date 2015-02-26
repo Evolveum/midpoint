@@ -113,6 +113,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
@@ -359,7 +360,7 @@ public abstract class ShadowCache {
 		
 		RefinedObjectClassDefinition objectClassDefinition;
 		try {
-			objectClassDefinition = determineObjectClassDefinition(shadow, resource);
+			objectClassDefinition = RefinedObjectClassDefinition.determineObjectClassDefinition(shadow, resource);
 			applyAttributesDefinition(shadow, resource);
             shadowManager.setKindIfNecessary(shadow.asObjectable(), objectClassDefinition);
 			accessChecker.checkAdd(resource, shadow, objectClassDefinition, parentResult);
@@ -779,7 +780,7 @@ public abstract class ShadowCache {
         ObjectQuery attributeQuery = createAttributeQuery(query);
 
 		final ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
-
+		
 		ResultHandler<ShadowType> resultHandler = new ResultHandler<ShadowType>() {
 
 			@Override
@@ -887,7 +888,7 @@ public abstract class ShadowCache {
     }
 
     private SearchResultMetadata searchObjectsIterativeRepository(
-			RefinedObjectClassDefinition objectClassDef,
+			final RefinedObjectClassDefinition objectClassDef,
 			final ResourceType resourceType, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options,
 			final ShadowHandler<ShadowType> shadowHandler, OperationResult parentResult) throws SchemaException {
@@ -898,6 +899,7 @@ public abstract class ShadowCache {
 					OperationResult parentResult) {
 				try {
 					applyAttributesDefinition(object, resourceType);
+					resouceObjectConverter.setProtectedFlag(resourceType, objectClassDef, object);		// fixing MID-1640; hoping that the protected object filter uses only identifiers (that are stored in repo)
 					boolean cont = shadowHandler.handle(object.asObjectable());
 					parentResult.recordSuccess();
 					return cont;
@@ -924,14 +926,17 @@ public abstract class ShadowCache {
 				parentResult);
 
 		if (repoShadow == null) {
-			LOGGER.trace(
-					"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
-					SchemaDebugUtil.prettyPrint(resourceShadow));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(
+						"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
+						SchemaDebugUtil.prettyPrint(resourceShadow));
+			}
 
 			repoShadow = createShadowInRepository(connector, resourceShadow, objectClassDef, resourceType, parentResult);
 		} else {
-			LOGGER.trace("Found shadow object in the repository {}",
-					SchemaDebugUtil.prettyPrint(repoShadow));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Found shadow object in the repository {}", SchemaDebugUtil.prettyPrint(repoShadow));
+			}
 		}
 		
 		return repoShadow;
@@ -1273,8 +1278,11 @@ public abstract class ShadowCache {
 
 			// FIXME: hack. the object delta must have oid specified.
 			if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
-				ObjectDelta<ShadowType> objDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.DELETE, prismContext);
-				change.setObjectDelta(objDelta);
+//				if (LOGGER.isTraceEnabled()) {
+//					LOGGER.trace("No OID present, assuming delta of type DELETE; change = {}\nobjectDelta: {}", change, change.getObjectDelta().debugDump());
+//				}
+//				ObjectDelta<ShadowType> objDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.DELETE, prismContext);
+//				change.setObjectDelta(objDelta);
 				change.getObjectDelta().setOid(oldShadow.getOid());
 			}
 		} else {
@@ -1378,7 +1386,7 @@ public abstract class ShadowCache {
 	
 	public ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<ShadowType> delta, 
 			PrismObject<ShadowType> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
-		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resource);
+		ObjectClassComplexTypeDefinition objectClassDefinition = RefinedObjectClassDefinition.determineObjectClassDefinition(shadow, resource);
 		return applyAttributesDefinition(delta, objectClassDefinition, resource);
 	}
 
@@ -1412,7 +1420,7 @@ public abstract class ShadowCache {
 
 	public RefinedObjectClassDefinition applyAttributesDefinition(
 			PrismObject<ShadowType> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
-		RefinedObjectClassDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resource);
+		RefinedObjectClassDefinition objectClassDefinition = RefinedObjectClassDefinition.determineObjectClassDefinition(shadow, resource);
 
 		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer != null) {
@@ -1439,37 +1447,6 @@ public abstract class ShadowCache {
 					objectClassDefinition.toResourceAttributeContainerDefinition());
 			shadow.setDefinition(clonedDefinition);
 		}
-		
-		return objectClassDefinition;
-	}
-
-	private RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<ShadowType> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
-		ShadowType shadowType = shadow.asObjectable();
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
-		if (refinedSchema == null) {
-			throw new ConfigurationException("No schema defined for "+resource);
-		}
-		
-		
-		RefinedObjectClassDefinition objectClassDefinition = null;
-		ShadowKindType kind = shadowType.getKind();
-		String intent = shadowType.getIntent();
-		QName objectClass = shadow.asObjectable().getObjectClass();
-		if (kind != null) {
-			objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
-		} 
-		if (objectClassDefinition == null) {
-			// Fallback to objectclass only
-			if (objectClass == null) {
-				throw new SchemaException("No kind nor objectclass definied in "+shadow);
-			}
-			objectClassDefinition = refinedSchema.findRefinedDefinitionByObjectClassQName(kind, objectClass);
-		}
-		
-		if (objectClassDefinition == null) {
-			throw new SchemaException("Definition for "+shadow+" not found (objectClass=" + PrettyPrinter.prettyPrint(objectClass) +
-					", kind="+kind+", intent='"+intent+"') in schema of " + resource);
-		}		
 		
 		return objectClassDefinition;
 	}

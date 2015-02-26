@@ -13240,8 +13240,8 @@
 				<association>
 					<ref>ri:group</ref>				
 					<displayName>LDAP Group Membership</displayName>
-					<tolerant>true</tolerant>
 					<matchingRule>mr:stringIgnoreCase</matchingRule>
+					<tolerant>true</tolerant>
 					<kind>entitlement</kind>
 					<intent>ldapGroup</intent>
 					<!--<intent>ldapGroup</intent>-->

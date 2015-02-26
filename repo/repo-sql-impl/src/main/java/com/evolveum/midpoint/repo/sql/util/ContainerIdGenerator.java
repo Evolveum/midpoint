@@ -36,7 +36,7 @@ public class ContainerIdGenerator implements IdentifierGenerator {
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
         if (!(object instanceof Container)) {
             throw new HibernateException("Couldn't create id for '"
-                    + object.getClass().getSimpleName() + "' not instance of RContainer.");
+                    + object.getClass().getSimpleName() + "' not instance of '" + Container.class.getName() + "'.");
         }
 
         return generate((Container) object);

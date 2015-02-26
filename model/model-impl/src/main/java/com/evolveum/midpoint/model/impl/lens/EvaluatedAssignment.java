@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
@@ -82,6 +83,15 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 	public DeltaSetTriple<Construction<F>> getConstructions() {
 		return constructions;
 	}
+
+    public Collection<Construction<F>> getConstructionSet(PlusMinusZero whichSet) {
+        switch (whichSet) {
+            case ZERO: return getConstructions().getZeroSet();
+            case PLUS: return getConstructions().getPlusSet();
+            case MINUS: return getConstructions().getMinusSet();
+            default: throw new IllegalArgumentException("whichSet: " + whichSet);
+        }
+    }
 
 	public void addConstructionZero(Construction<F> contruction) {
 		constructions.addToZeroSet(contruction);
@@ -170,6 +180,10 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		DebugUtil.debugDumpLabel(sb, "EvaluatedAssignment", indent);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
+        if (forceRecon) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "forceRecon", forceRecon, indent + 1);
+        }
 		if (!constructions.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "Constructions", constructions, indent+1);

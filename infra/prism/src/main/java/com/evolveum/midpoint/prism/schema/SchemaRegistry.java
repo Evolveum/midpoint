@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -42,7 +41,6 @@ import javax.xml.validation.SchemaFactory;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.util.QNameUtil;
-import com.sun.xml.bind.v2.schemagen.xmlschema.ComplexType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
@@ -66,7 +64,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -181,25 +178,35 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	 * Must be called before call to initialize()
 	 */
 	public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage) throws SchemaException {
-		registerPrismSchemaResource(resourcePath, usualPrefix, compileTimeClassesPackage, false);
+		registerPrismSchemaResource(resourcePath, usualPrefix, compileTimeClassesPackage, false, false);
 	}
 
-	/**
+    /**
+     * Must be called before call to initialize()
+     */
+    public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage, boolean prefixDeclaredByDefault) throws SchemaException {
+        registerPrismSchemaResource(resourcePath, usualPrefix, compileTimeClassesPackage, false, prefixDeclaredByDefault);
+    }
+
+    /**
 	 * Must be called before call to initialize()
 	 */
 	public void registerPrismDefaultSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage) throws SchemaException {
-		registerPrismSchemaResource(resourcePath, usualPrefix, compileTimeClassesPackage, true);
+		registerPrismSchemaResource(resourcePath, usualPrefix, compileTimeClassesPackage, true, true);
 	}
 
 	/**
 	 * Must be called before call to initialize()
+     *
+     * @param prefixDeclaredByDefault Whether this prefix will be declared in top element in all XML serializations (MID-2198)
 	 */
-	public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage, 
-			boolean defaultSchema) throws SchemaException {
+	public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage,
+			boolean defaultSchema, boolean prefixDeclaredByDefault) throws SchemaException {
 		SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
 		desc.setUsualPrefix(usualPrefix);
 		desc.setPrismSchema(true);
 		desc.setDefault(defaultSchema);
+        desc.setDeclaredByDefault(prefixDeclaredByDefault);
 		desc.setCompileTimeClassesPackage(compileTimeClassesPackage);
 		registerSchemaDescription(desc);
 	}
@@ -241,6 +248,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	private void registerSchemaDescription(SchemaDescription desc) {
 		if (desc.getUsualPrefix() != null) {
 			namespacePrefixMapper.registerPrefix(desc.getNamespace(), desc.getUsualPrefix(), desc.isDefault());
+            if (desc.isDeclaredByDefault()) {
+                namespacePrefixMapper.addDeclaredByDefault(desc.getUsualPrefix());
+            }
 		}
 		parsedSchemas.put(desc.getNamespace(), desc);
 		schemaDescriptions.add(desc);
@@ -602,6 +612,13 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
         }
     }
 
+    public QName qualifyTypeName(QName typeName) throws SchemaException {
+        if (typeName == null || !QNameUtil.isUnqualified(typeName)) {
+            return typeName;
+        }
+        return resolveUnqualifiedTypeName(typeName);
+    }
+
     class Input implements LSInput {
 
 		private String publicId;
@@ -863,7 +880,13 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	
 	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByType(QName typeName) {
         if (StringUtils.isEmpty(typeName.getNamespaceURI())) {
-            return resolveGlobalItemDefinitionWithoutNamespace(typeName.getLocalPart(), PrismContainerDefinition.class);
+            // Maybe not optimal but sufficient way: we resolve complex type definition, and from it we get qualified type name.
+            // This is then used to find container definition in the traditional way.
+            ComplexTypeDefinition complexTypeDefinition = resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart());
+            if (complexTypeDefinition == null) {
+                return null;
+            }
+            typeName = complexTypeDefinition.getTypeName();
         }
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null) {

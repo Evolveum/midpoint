@@ -40,6 +40,7 @@ import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.configuration.Configuration;
+import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;
 import org.identityconnectors.common.security.EncryptorFactory;
 import org.identityconnectors.common.security.GuardedString;
@@ -61,6 +62,7 @@ import org.identityconnectors.framework.api.operations.SyncApiOp;
 import org.identityconnectors.framework.api.operations.TestApiOp;
 import org.identityconnectors.framework.api.operations.UpdateApiOp;
 import org.identityconnectors.framework.api.operations.ValidateApiOp;
+import org.identityconnectors.framework.common.FrameworkUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
@@ -108,7 +110,11 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
 	public static final String NS_ICF_RESOURCE_INSTANCE_PREFIX = "ri";
 	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
+	public static final String ICFS_NAME_DISPLAY_NAME = "ConnId Name";
+	public static final int ICFS_NAME_DISPLAY_ORDER = 110;
 	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
+	public static final String ICFS_UID_DISPLAY_NAME = "ConnId UID";
+	public static final int ICFS_UID_DISPLAY_ORDER = 100;
 	public static final QName ICFS_ACCOUNT = new QName(NS_ICF_SCHEMA, "account");
 	public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
 	public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
@@ -157,12 +163,16 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = ICF_FRAMEWORK_URI + "/bundle/";
 	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
+	
+	public static final int ATTR_DISPLAY_ORDER_START = 120;
+	public static final int ATTR_DISPLAY_ORDER_INCREMENT = 10;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryIcfImpl.class);
 	
 	// This is not really used in the code. It is here just to make sure that the JUL logger is loaded
 	// by the parent classloader so we can correctly adjust the log levels from the main code
 	static final java.util.logging.Logger JUL_LOGGER = java.util.logging.Logger.getLogger(ConnectorFactoryIcfImpl.class.getName());
+	
 
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
 	private ConnectorInfoManager localConnectorInfoManager;
@@ -694,7 +704,16 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		selfTestGuardedString(parentTestResult);
 	}
 
-	private void selfTestGuardedString(OperationResult parentTestResult) {
+    @Override
+    public String getFrameworkVersion() {
+        Version version = FrameworkUtil.getFrameworkVersion();
+        if (version == null) {
+            return null;
+        }
+        return version.getVersion();
+    }
+
+    private void selfTestGuardedString(OperationResult parentTestResult) {
 		OperationResult result = parentTestResult.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString");
 		
 		OperationResult subresult = result.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString.encryptorReflection");

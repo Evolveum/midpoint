@@ -67,7 +67,7 @@ It also contains inbound mappings and definition to enable synchronization.
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-			 <connectorConfiguration>
+		<connectorConfiguration>
 		<icfc:configurationProperties
 			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
 			<icfcldap:port>1389</icfcldap:port>
@@ -83,8 +83,10 @@ It also contains inbound mappings and definition to enable synchronization.
 			<icfcldap:useBlocks>true</icfcldap:useBlocks>
 			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
 		</icfc:configurationProperties>
-	</connectorConfiguration>
-       
+		<icfc:resultsHandlerConfiguration>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+		</icfc:resultsHandlerConfiguration>
+		</connectorConfiguration>
 
         <!-- Resource schema definition.
              It defines all the object classes that are available to midPoint
@@ -345,6 +347,12 @@ It also contains inbound mappings and definition to enable synchronization.
 						<description>Source may have description</description>
 						<path>$user/name</path>
 					</source>
+					<!-- We need to put iterationToken here as well, otherwise effect described in MID-2139 occurs -->
+					<expression>
+						<script>
+							<code>name + iterationToken</code>
+						</script>
+					</expression>
 				</outbound>
 				<inbound>
 					<target>
@@ -511,7 +519,7 @@ It also contains inbound mappings and definition to enable synchronization.
     <task oid="91919192-76e0-59e2-86d6-3d4f02d3ffff">
         <name>Synchronization: Embedded Test OpenDJ (no extensions schema)</name>
         <description>
-            Definition of a live sychnronization task. It will poll changelog and pull in changes
+            Definition of a live synchronization task. It will poll changelog and pull in changes
         </description>
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>

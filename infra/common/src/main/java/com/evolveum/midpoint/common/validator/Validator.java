@@ -417,7 +417,23 @@ public class Validator {
 			}
 			objectResult.recordFatalError(ex);
 			return EventResult.skipObject();
-		}
+		} catch (RuntimeException ex) {
+            validatorResult.recordFatalError("Couldn't parse object: " + ex.getMessage(), ex);
+            if (verbose) {
+                ex.printStackTrace();
+            }
+            if (handler != null) {
+                try {
+                    handler.handleGlobalError(validatorResult);
+                } catch (RuntimeException e) {
+                    // Make sure that unhandled exceptions are recorded in object result before they are rethrown
+                    objectResult.recordFatalError("Internal error: handleGlobalError call failed: "+e.getMessage(), e);
+                    throw e;
+                }
+            }
+            objectResult.recordFatalError(ex);
+            return EventResult.skipObject();
+        }
 		
 	}
 

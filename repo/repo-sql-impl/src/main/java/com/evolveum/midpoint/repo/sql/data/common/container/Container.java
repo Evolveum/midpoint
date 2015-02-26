@@ -17,13 +17,14 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
 
 import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public interface Container extends Serializable {
+public interface Container extends EntityState, Serializable {
 
     RObject getOwner();
 

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,13 +138,59 @@ public class PrimaryChangeAspectHelper {
                 return null;
             }
             try {
-                object = repositoryService.getObject(ObjectType.class, a.getTargetRef().getOid(), null, result).asObjectable();
+                Class<? extends ObjectType> clazz = null;
+                if (a.getTargetRef().getType() != null) {
+                    clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(a.getTargetRef().getType());
+                }
+                if (clazz == null) {
+                    clazz = ObjectType.class;
+                }
+                object = repositoryService.getObject(clazz, a.getTargetRef().getOid(), null, result).asObjectable();
             } catch (ObjectNotFoundException|SchemaException e) {
                 throw new SystemException(e);
             }
             a.setTarget(object);
         }
         return object;
+    }
+
+    public ResourceType resolveResourceRef(AssignmentType a, OperationResult result) {
+
+        if (a == null) {
+            return null;
+        }
+
+        if (a.getConstruction() == null) {
+            return null;
+        }
+
+        if (a.getConstruction().getResourceRef() == null) {
+            return null;
+        }
+
+        try {
+            return repositoryService.getObject(ResourceType.class, a.getConstruction().getResourceRef().getOid(), null, result).asObjectable();
+        } catch (ObjectNotFoundException|SchemaException e) {
+            throw new SystemException(e);
+        }
+    }
+
+    public ObjectType resolveObjectRef(ObjectReferenceType referenceType, OperationResult result) {
+        if (referenceType == null) {
+            return null;
+        }
+        try {
+            Class<? extends ObjectType> clazz = null;
+            if (referenceType.getType() != null) {
+                clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(referenceType.getType());
+            }
+            if (clazz == null) {
+                clazz = ObjectType.class;
+            }
+            return repositoryService.getObject(clazz, referenceType.getOid(), null, result).asObjectable();
+        } catch (ObjectNotFoundException|SchemaException e) {
+            throw new SystemException(e);
+        }
     }
 
     public void resolveRolesAndOrgUnits(PrismObject<UserType> user, OperationResult result) {

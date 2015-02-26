@@ -23,19 +23,18 @@ import ch.qos.logback.core.util.StatusPrinter;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.configuration.*;
-import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilder;
 
 import java.io.File;
-import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
@@ -45,6 +44,8 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final Trace LOGGER = TraceManager.getTrace(StartupConfiguration.class);
     private static final String USER_HOME = "user.home";
     private static final String MIDPOINT_HOME = "midpoint.home";
+    private static final String MIDPOINT_SECTION = "midpoint";
+    private static final String SAFE_MODE = "safeMode";
     
     private static final String DEFAULT_CONFIG_FILE_NAME = "config.xml";
 	private static final String LOGBACK_CONFIG_FILENAME = "logback.xml";
@@ -169,6 +170,11 @@ public class StartupConfiguration implements MidpointConfiguration {
         File midpointHome = new File(midpointHomeString);
         setupInitialLogging(midpointHome);
         loadConfiguration(midpointHome);
+
+        if (isSafeMode()) {
+            LOGGER.info("Safe mode is ON; setting tolerateUndeclaredPrefixes to TRUE");
+            QNameUtil.setTolerateUndeclaredPrefixes(true);
+        }
     }
 
     /**
@@ -252,6 +258,15 @@ public class StartupConfiguration implements MidpointConfiguration {
     @Override
     public Document getXmlConfigAsDocument() {
         return xmlConfigAsDocument;
+    }
+
+    @Override
+    public boolean isSafeMode() {
+        Configuration c = getConfiguration(MIDPOINT_SECTION);
+        if (c == null) {
+            return false;           // should not occur
+        }
+        return c.getBoolean(SAFE_MODE, false);
     }
 
     @Override

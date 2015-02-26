@@ -53,6 +53,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -263,16 +266,12 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		}
 		return owner;
 	}
-
+	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 //		 TODO Auto-generated method stub
 		try {
-			UserDetails detials = getPrincipal(username);
-			if (detials == null){
-				throw new UsernameNotFoundException("User with name " + username + " was not found");
-			}
-			return detials;
+			return getPrincipal(username);
 		} catch (ObjectNotFoundException e) {
 			throw new UsernameNotFoundException(e.getMessage(), e);
 		}

@@ -64,18 +64,26 @@
 	                  <xsd:element minOccurs="0" ref="icfs:uid">
 	                     <xsd:annotation>
 	                        <xsd:appinfo>
-	                           <a:displayName>ICF UID</a:displayName>
+	                           <a:displayName>ConnId UID</a:displayName>
+	                           <a:displayOrder>100</a:displayOrder>
 	                           <a:access>read</a:access>
 	                        </xsd:appinfo>
 	                     </xsd:annotation>
 	                  </xsd:element>
-	                  <xsd:element name="fullname" type="xsd:string"/>
+	                  <xsd:element name="fullname" type="xsd:string">
+	                     <xsd:annotation>
+	                        <xsd:appinfo>
+	                           <a:displayOrder>200</a:displayOrder>
+	                        </xsd:appinfo>
+	                     </xsd:annotation>
+	                  </xsd:element>
 	                  <xsd:element minOccurs="0" name="description" type="xsd:string"/>
 	                  <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
 	                  <xsd:element ref="icfs:name">
 	                     <xsd:annotation>
 	                        <xsd:appinfo>
-	                           <a:displayName>ICF NAME</a:displayName>
+	                           <a:displayName>ConnId Name</a:displayName>
+	                           <a:displayOrder>110</a:displayOrder>
 	                        </xsd:appinfo>
 	                     </xsd:annotation>
 	                  </xsd:element>
@@ -96,7 +104,8 @@
 	                  <xsd:element minOccurs="0" ref="icfs:uid">
 	                     <xsd:annotation>
 	                        <xsd:appinfo>
-	                           <a:displayName>ICF UID</a:displayName>
+	                           <a:displayName>ConnId UID</a:displayName>
+	                           <a:displayOrder>100</a:displayOrder>
 	                           <a:access>read</a:access>
 	                        </xsd:appinfo>
 	                     </xsd:annotation>
@@ -104,7 +113,8 @@
 	                  <xsd:element ref="icfs:name">
 	                     <xsd:annotation>
 	                        <xsd:appinfo>
-	                           <a:displayName>ICF NAME</a:displayName>
+	                           <a:displayName>ConnId Name</a:displayName>
+	                           <a:displayOrder>110</a:displayOrder>
 	                        </xsd:appinfo>
 	                     </xsd:annotation>
 	                  </xsd:element>

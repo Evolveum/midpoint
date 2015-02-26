@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 
 import java.io.Serializable;
 
@@ -30,6 +31,7 @@ public class InternalsConfigDto implements Serializable {
     public static final String F_ENCRYPTION_CHECKS = "encryptionChecks";
     public static final String F_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
     public static final String F_DETAILED_DEBUG_DUMP = "detailedDebugDump";
+    public static final String F_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
 
     //internals config
     private boolean consistencyChecks;
@@ -37,7 +39,8 @@ public class InternalsConfigDto implements Serializable {
     private boolean readEncryptionChecks;
     //debug util
     private boolean detailedDebugDump;
-
+    //DOM util
+    private boolean tolerateUndeclaredPrefixes;
 
     public InternalsConfigDto() {
         consistencyChecks = InternalsConfig.consistencyChecks;
@@ -45,6 +48,8 @@ public class InternalsConfigDto implements Serializable {
         readEncryptionChecks = InternalsConfig.readEncryptionChecks;
 
         detailedDebugDump = DebugUtil.isDetailedDebugDump();
+
+        tolerateUndeclaredPrefixes = QNameUtil.isTolerateUndeclaredPrefixes();
     }
 
     public boolean isConsistencyChecks() {
@@ -79,10 +84,20 @@ public class InternalsConfigDto implements Serializable {
         this.detailedDebugDump = detailedDebugDump;
     }
 
+    public boolean isTolerateUndeclaredPrefixes() {
+        return tolerateUndeclaredPrefixes;
+    }
+
+    public void setTolerateUndeclaredPrefixes(boolean tolerateUndeclaredPrefixes) {
+        this.tolerateUndeclaredPrefixes = tolerateUndeclaredPrefixes;
+    }
+
+    // undeclared prefixes is also handled here
     public void saveInternalsConfig() {
         InternalsConfig.consistencyChecks = consistencyChecks;
         InternalsConfig.encryptionChecks = encryptionChecks;
         InternalsConfig.readEncryptionChecks = readEncryptionChecks;
+        QNameUtil.setTolerateUndeclaredPrefixes(tolerateUndeclaredPrefixes);
     }
 
     public void saveDebugUtil() {
