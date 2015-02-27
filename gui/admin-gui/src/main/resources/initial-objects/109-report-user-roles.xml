@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
-	<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
         oid="00000000-0000-0000-0000-000000000109"
         version="3">
-   <name>User roles subreport</name>
+    <name>User roles subreport</name>
    <description>User roles subreport for midpoint users.</description>
    <metadata>
       <modifyTimestamp>2015-02-26T14:46:27.195+01:00</modifyTimestamp>
@@ -19,4 +18,3 @@
    <orientation>landscape</orientation>
    <export>xls</export>
 </report>
-</objects>

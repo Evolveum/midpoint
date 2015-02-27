@@ -124,12 +124,18 @@
 <!-- 		</dependency> -->
         
 <!--         testing -->
-<!--         <dependency> -->
-<!--             <groupId>org.testng</groupId> -->
-<!--             <artifactId>testng</artifactId> -->
-<!--             <version>6.8.8</version> -->
-<!--             <scope>test</scope> -->
-<!--         </dependency> -->
+         <dependency>
+             <groupId>org.testng</groupId>
+             <artifactId>testng</artifactId>
+             <scope>test</scope>
+         </dependency>
+
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>test-ng</artifactId>
+            <version>3.2-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 </project>
