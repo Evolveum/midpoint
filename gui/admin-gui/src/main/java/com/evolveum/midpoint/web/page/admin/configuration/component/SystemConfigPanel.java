@@ -54,6 +54,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
     private static final String ID_CLEANUP_CLOSED_TASKS = "closedTasksCleanup";
     private static final String ID_CLEANUP_AUDIT_RECORDS_TOOLTIP = "auditRecordsCleanupTooltip";
     private static final String ID_CLEANUP_CLOSED_TASKS_TOOLTIP = "closedTasksCleanupTooltip";
+    private static final String ID_OBJECT_POLICY_DEPRECATED_WARNING = "userTemplateDeprecatedWarning";
 
     private static final String ID_DEFAULT_FROM = "defaultFrom";
     private static final String ID_DEBUG = "debugCheckbox";
@@ -98,6 +99,16 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
         form.add(passPolicyChoosePanel);
         form.add(userTemplateChoosePanel);
+
+        Label objectPolicyDeprecationWarningTooltip = new Label(ID_OBJECT_POLICY_DEPRECATED_WARNING);
+        objectPolicyDeprecationWarningTooltip.add(new InfoTooltipBehavior(){
+
+            @Override
+            public String getCssClass() {
+                return "fa fa-fw fa-exclamation-triangle text-danger";
+            }
+        });
+        form.add(objectPolicyDeprecationWarningTooltip);
 
         ObjectPolicyConfigurationEditor objectPolicyEditor = new ObjectPolicyConfigurationEditor(ID_OBJECT_POLICY_EDITOR,
                 new PropertyModel<List<ObjectPolicyConfigurationTypeDto>>(getModel(), SystemConfigurationDto.F_OBJECT_POLICY_LIST));
