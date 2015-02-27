@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
@@ -114,6 +115,10 @@ abstract public class WorkflowEvent extends BaseEvent {
         }
     }
 
+    @Override
+    public boolean isRelatedToItem(ItemPath itemPath) {
+        return false;
+    }
 
     @Override
     public String toString() {

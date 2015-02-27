@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -126,6 +127,11 @@ public class ResourceObjectEvent extends BaseEvent {
     @Override
     public boolean isStatusType(EventStatusType eventStatusType) {
         return operationStatus.matchesEventStatusType(eventStatusType);
+    }
+
+    @Override
+    public boolean isRelatedToItem(ItemPath itemPath) {
+        return containsItem(getShadowDelta(), itemPath);
     }
 
     @Override
