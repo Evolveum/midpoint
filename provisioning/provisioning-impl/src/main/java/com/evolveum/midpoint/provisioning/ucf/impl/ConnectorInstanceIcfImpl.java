@@ -1662,6 +1662,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException {
+		Validate.notNull(objectClass, "No objectclass");
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".deleteObject");
@@ -1983,7 +1984,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         	// DN. And DN is usually stored in icfs:name. This is ugly, but practical. It works around ConnId problems.
         	ResourceAttribute<?> secondaryIdentifier = ShadowUtil.getSecondaryIdentifier(objectClassDefinition, baseContextIdentification.getIdentifiers());
         	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
-        	ObjectClass baseContextIcfObjectClass = icfNameMapper.objectClassToIcf(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType);
+        	ObjectClass baseContextIcfObjectClass = icfNameMapper.objectClassToIcf(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
         	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
 			optionsBuilder.setContainer(containerQualifiedUid);
         }
