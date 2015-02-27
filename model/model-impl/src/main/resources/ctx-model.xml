@@ -223,6 +223,9 @@
         <property name="filterManager">
             <ref bean="filterManager"/>
         </property>
+        <property name="securityEnforcer">
+            <ref bean="securityEnforcer"/>
+        </property>
     </bean>
     
     <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
