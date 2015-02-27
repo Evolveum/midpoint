@@ -779,10 +779,15 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Preview changes input:\n{}", DebugUtil.debugDump(deltas));
 		}
-		
-		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>(deltas.size());
-		for (ObjectDelta delta : deltas){
-			clonedDeltas.add(delta.clone());
+		int size = 0;
+		if (deltas != null) {
+			size = deltas.size();
+		}
+		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>(size);
+		if (deltas != null) {
+			for (ObjectDelta delta : deltas){
+				clonedDeltas.add(delta.clone());
+			}
 		}
 		
 		OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);

@@ -36,12 +36,16 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -570,6 +574,52 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         		"jack sailed Adriatic, immediately Adriatic, role , with this The Seven Seas while focused on  (in Pirate)");
 	}
 	
+	/**
+	 * Check if all the roles are visible in preview changes
+	 */
+	@Test
+    public void test135PreviewChangesEmptyDelta() throws Exception {
+		final String TEST_NAME = "test135PreviewChangesEmptyDelta";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        ObjectDelta<UserType> delta = user.createModifyDelta();
+        
+		// WHEN
+        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+        PrismAsserts.assertTripleNoPlus(evaluatedAssignmentTriple);
+        PrismAsserts.assertTripleNoMinus(evaluatedAssignmentTriple);
+        Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getZeroSet();
+        assertEquals("Wrong number of evaluated assignments", 1, evaluatedAssignments.size());
+        EvaluatedAssignment<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+        DeltaSetTriple<? extends EvaluatedAbstractRole> rolesTriple = evaluatedAssignment.getRoles();
+        PrismAsserts.assertTripleNoPlus(rolesTriple);
+        PrismAsserts.assertTripleNoMinus(rolesTriple);
+        Collection<? extends EvaluatedAbstractRole> evaluatedRoles = rolesTriple.getZeroSet();
+        assertEquals("Wrong number of evaluated role", 2, evaluatedRoles.size());
+        assertEvaluatedRole(evaluatedRoles, ROLE_ADRIATIC_PIRATE_OID);
+        assertEvaluatedRole(evaluatedRoles, ROLE_PIRATE_OID);
+        
+	}
+	
+	private void assertEvaluatedRole(Collection<? extends EvaluatedAbstractRole> evaluatedRoles,
+			String expectedRoleOid) {
+		for (EvaluatedAbstractRole evalRole: evaluatedRoles) {
+			if (expectedRoleOid.equals(evalRole.getRole().getOid())) {
+				return;
+			}
+		}
+		AssertJUnit.fail("Role "+expectedRoleOid+" no present in evaluated roles "+evaluatedRoles);
+	}
+
 	@Test
     public void test136JackUnAssignRoleAdriaticPirate() throws Exception {
 		final String TEST_NAME = "test136JackUnAssignRoleAdriaticPirate";
