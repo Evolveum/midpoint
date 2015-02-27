@@ -59,7 +59,7 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
 
     private static final String OPERATION_LOAD_OBJECT_TEMPLATE = DOT_CLASS + "loadObjectTemplate";
 
-    private static final String ID_MODAL_WINDOW = "templateConfigModal";
+    private static final String ID_TEMPLATE_CONFIG_MODAL = "templateConfigModal";
 
     private static final String ID_LABEL = "label";
     private static final String ID_REPEATER = "repeater";
@@ -149,7 +149,7 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
     }
 
     private void initDialog(){
-        ModalWindow editor = new ObjectPolicyDialog(ID_MODAL_WINDOW, null){
+        ModalWindow editor = new ObjectPolicyDialog(ID_TEMPLATE_CONFIG_MODAL, null){
 
             @Override
             protected void savePerformed(AjaxRequestTarget target){
@@ -299,7 +299,7 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
     }
 
     private void editPerformed(AjaxRequestTarget target, ListItem item){
-        ObjectPolicyDialog window = (ObjectPolicyDialog) get(ID_MODAL_WINDOW);
+        ObjectPolicyDialog window = (ObjectPolicyDialog) get(ID_TEMPLATE_CONFIG_MODAL);
         window.updateModel(target, (ObjectPolicyConfigurationTypeDto)item.getModelObject());
         window.show(target);
     }
