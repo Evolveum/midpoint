@@ -116,13 +116,13 @@ CREATE TABLE m_assignment_extension (
 );
 
 CREATE TABLE m_assignment_reference (
-  reference_type  INT                                    NOT NULL,
   owner_id        SMALLINT                               NOT NULL,
   owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
+  reference_type  INT                                    NOT NULL,
   relation        NVARCHAR(157) COLLATE database_default NOT NULL,
   targetOid       NVARCHAR(36) COLLATE database_default  NOT NULL,
   containerType   INT,
-  PRIMARY KEY (owner_id, owner_owner_oid, relation, targetOid)
+  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
 );
 
 CREATE TABLE m_audit_delta (
@@ -369,12 +369,12 @@ CREATE TABLE m_org_org_type (
 );
 
 CREATE TABLE m_reference (
-  reference_type INT                                    NOT NULL,
   owner_oid      NVARCHAR(36) COLLATE database_default  NOT NULL,
+  reference_type INT                                    NOT NULL,
   relation       NVARCHAR(157) COLLATE database_default NOT NULL,
   targetOid      NVARCHAR(36) COLLATE database_default  NOT NULL,
   containerType  INT,
-  PRIMARY KEY (owner_oid, relation, targetOid)
+  PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
 );
 
 CREATE TABLE m_report (
@@ -758,7 +758,7 @@ FOREIGN KEY (oid)
 REFERENCES m_object;
 
 ALTER TABLE m_lookup_table_row
-ADD CONSTRAINT fk_lookup_table
+ADD CONSTRAINT fk_lookup_table_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_lookup_table;
 

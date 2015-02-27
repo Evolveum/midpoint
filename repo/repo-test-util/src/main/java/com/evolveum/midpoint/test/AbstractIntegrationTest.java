@@ -78,6 +78,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -875,6 +876,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		RefinedObjectClassDefinition refinedObjectClassDefinition =
 				refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClassName);
 		return refinedObjectClassDefinition.findAttributeDefinition(attributeLocalName);
+	}
+	
+	protected void assertPassword(ShadowType shadow, String expectedPassword) throws SchemaException, EncryptionException {
+		CredentialsType credentials = shadow.getCredentials();
+		assertNotNull("No credentials in "+shadow, credentials);
+		PasswordType password = credentials.getPassword();
+		assertNotNull("No password in "+shadow, password);
+		ProtectedStringType passwordValue = password.getValue();
+		assertNotNull("No password value in "+shadow, passwordValue);
+		protector.decrypt(passwordValue);
+		assertEquals("Wrong password in "+shadow, expectedPassword, passwordValue.getClearValue());
 	}
 
 }

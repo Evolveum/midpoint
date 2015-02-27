@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -62,6 +63,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author semancik
  *
@@ -79,6 +82,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         addObject(ROLE_DEFENDER_FILE);
+        addObject(USER_HERMAN_FILE);
+        setDefaultUserTemplate(USER_TEMPLATE_ORG_ASSIGNMENT_OID);       // used for tests 4xx
         //DebugUtil.setDetailedDebugDump(true);
     }
 
@@ -428,29 +433,29 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
-        Long id = findAssignmentIdForTarget(jack, ORG_MINISTRY_OF_OFFENSE_OID);
 
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
 
-        PrismReferenceDefinition referenceDefinition = getUserDefinition()
-                .findItemDefinition(
-                        new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
-        ReferenceDelta referenceDelta = new ReferenceDelta(
-                new ItemPath(
-                        new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                        new IdItemPathSegment(id),
-                        new NameItemPathSegment(AssignmentType.F_TARGET_REF)), referenceDefinition, prismContext);
-        PrismReferenceValue oldValue = new PrismReferenceValue(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
-        PrismReferenceValue newValue = new PrismReferenceValue(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
-        newValue.setRelation(SchemaConstants.ORG_MANAGER);
+        // this is now forbidden
+//        Long id = findAssignmentIdForTarget(jack, ORG_MINISTRY_OF_OFFENSE_OID);
+//        PrismReferenceDefinition referenceDefinition = getUserDefinition()
+//                .findItemDefinition(
+//                        new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
+//        ReferenceDelta referenceDelta = new ReferenceDelta(
+//                new ItemPath(
+//                        new NameItemPathSegment(UserType.F_ASSIGNMENT),
+//                        new IdItemPathSegment(id),
+//                        new NameItemPathSegment(AssignmentType.F_TARGET_REF)), referenceDefinition, prismContext);
+//        PrismReferenceValue oldValue = new PrismReferenceValue(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
+//        PrismReferenceValue newValue = new PrismReferenceValue(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
+//        newValue.setRelation(SchemaConstants.ORG_MANAGER);
+//
+//        referenceDelta.addValueToDelete(oldValue);
+//        referenceDelta.addValueToAdd(newValue);
+//        modifications.add(referenceDelta);
 
-        referenceDelta.addValueToDelete(oldValue);
-        referenceDelta.addValueToAdd(newValue);
-        modifications.add(referenceDelta);
-
-        // this actually works but for completeness we leave it here
-//        modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, null, null, null, false));
-//        modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER, null, null, true));
+        modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, null, null, null, false));
+        modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER, null, null, true));
 
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
@@ -482,6 +487,19 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         }
         throw new IllegalStateException("No assignment pointing to " + targetOid + " found");
     }
+
+    // @pre relation not null
+    private Long findAssignmentIdForTarget(PrismObject<UserType> user, String targetOid, QName relation) {
+        for (AssignmentType assignmentType : user.asObjectable().getAssignment()) {
+            if (assignmentType.getTargetRef() != null &&
+                    targetOid.equals(assignmentType.getTargetRef().getOid()) &&
+                    relation.equals(assignmentType.getTargetRef().getRelation())) {
+                return assignmentType.getId();
+            }
+        }
+        throw new IllegalStateException("No assignment pointing to " + targetOid + "/" + relation + " found");
+    }
+
 
     @Test
     public void test300JackUnassignAllOrgs() throws Exception {
@@ -777,6 +795,245 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // Postcondition
         assertMonkeyIslandOrgSanity();
 	}
+	
+	@Test
+    public void test362ElaineAssignGovernmentMember() throws Exception {
+		final String TEST_NAME = "test362ElaineAssignGovernmentMember";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignOrg(USER_ELAINE_OID, ORG_GOVERNOR_OFFICE_OID, null, task, result);
+        
+        // THEN
+        PrismObject<UserType> userElaine = getUser(USER_ELAINE_OID);
+        display("User jack after", userElaine);
+        assertUserAssignedOrgs(userElaine, ORG_GOVERNOR_OFFICE_OID, ORG_GOVERNOR_OFFICE_OID);
+        assertUserHasOrgs(userElaine, ORG_GOVERNOR_OFFICE_OID, ORG_GOVERNOR_OFFICE_OID);
+        assertAssignedOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
+        assertAssignedOrg(userElaine, ORG_GOVERNOR_OFFICE_OID);
+        assertHasOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
+        
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        
+        assertManager(USER_ELAINE_OID, null, null, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	@Test
+    public void test365GuybrushAssignSwashbucklerMember() throws Exception {
+		final String TEST_NAME = "test365GuybrushAssignSwashbucklerMember";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, null, task, result);
+        
+        // THEN
+        PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
+        display("User jack after", userGuybrush);
+        assertUserAssignedOrgs(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
+        assertUserHasOrgs(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
+        assertAssignedOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
+        assertHasOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
+        
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        
+        assertManager(USER_ELAINE_OID, null, null, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, true);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	@Test
+    public void test368GuybrushAssignSwashbucklerManager() throws Exception {
+		final String TEST_NAME = "test368GuybrushAssignSwashbucklerManager";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, SchemaConstants.ORG_MANAGER, task, result);
+        
+        // THEN
+        PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
+        display("User jack after", userGuybrush);
+        assertUserAssignedOrgs(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID, ORG_SWASHBUCKLER_SECTION_OID);
+        assertUserHasOrgs(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID, ORG_SWASHBUCKLER_SECTION_OID);
+        assertAssignedOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
+        assertAssignedOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID, SchemaConstants.ORG_MANAGER);
+        assertHasOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
+        assertHasOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID, SchemaConstants.ORG_MANAGER);
+        
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        
+        assertManager(USER_ELAINE_OID, null, null, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, null, true);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	@Test
+    public void test370BarbossaAssignOffenseMember() throws Exception {
+		final String TEST_NAME = "test370BarbossaAssignOffenseMember";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignOrg(USER_BARBOSSA_OID, ORG_MINISTRY_OF_OFFENSE_OID, null, task, result);
+        
+        // THEN
+        PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
+        display("User jack after", userBarbossa);
+        assertUserAssignedOrgs(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertUserHasOrgs(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrg(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrg(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
+        
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        
+        assertManager(USER_ELAINE_OID, null, null, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, null, true);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true);
+        
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, false);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, true);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, true);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	@Test
+    public void test372HermanAssignSwashbucklerMember() throws Exception {
+		final String TEST_NAME = "test365GuybrushAssignSwashbucklerMember";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        PrismObject<UserType> userHerman = getUser(USER_HERMAN_OID);
+        assertHasNoOrg(userHerman);
+        
+        // WHEN
+        assignOrg(USER_HERMAN_OID, ORG_SWASHBUCKLER_SECTION_OID, null, task, result);
+        
+        // THEN
+        userHerman = getUser(USER_HERMAN_OID);
+        display("User jack after", userHerman);
+        assertUserAssignedOrgs(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
+        assertUserHasOrgs(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
+        assertAssignedOrg(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
+        assertHasOrg(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
+        
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        
+        assertManager(USER_ELAINE_OID, null, null, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, null, true);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true);
+        
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, false);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, true);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, true);
+
+        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, null, false);
+        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, false);
+        assertManager(USER_HERMAN_OID, null, ORG_TYPE_PROJECT, false);
+        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, null, true);
+        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true);
+        assertManager(USER_HERMAN_OID, null, ORG_TYPE_PROJECT, true);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
 
     @Test
     public void test399DeleteJack() throws Exception {
@@ -786,8 +1043,207 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         executeDeleteJack(TEST_NAME);
     }
 
+    /**
+     * Add new user Jack with an assignments as an manager and also a member of ministry of offense.
+     */
+    @Test
+    public void test400AddJackWithOrgUnit() throws Exception {
+        final String TEST_NAME = "test400AddJackWithOrgUnit";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
-    // BEWARE, tests 400+ are executed in TestOrgStructMeta, so this class has to end with test399 and no jack present
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        OrgType minOffense = getObject(OrgType.class, ORG_MINISTRY_OF_OFFENSE_OID).asObjectable();
+
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        userJack.asObjectable().getOrganizationalUnit().add(minOffense.getName());
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userJack.createAddDelta());
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+
+    @Test
+    public void test402JackChangeMinistryOfOffenseMemberToManagerByAddingRemovingAssignment() throws Exception {
+        final String TEST_NAME = "test402JackChangeMinistryOfOffenseMemberToManagerByAddingRemovingAssignment";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+
+        modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, null, null, null, false));
+        modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER, null, null, true));
+
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);                         // because of object template
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);  // because of the modification
+        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+
+    @Test
+    public void test404JackChangeMinistryOfOffenseManagerToMemberByAddingRemovingAssignment() throws Exception {
+        final String TEST_NAME = "test404JackChangeMinistryOfOffenseManagerToMemberByAddingRemovingAssignment";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+
+        modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER, null, null, false));
+        modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, null, null, null, true));
+
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);                         // because of object template and the modification
+        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+
+    @Test
+    public void test409DeleteJack() throws Exception {
+        final String TEST_NAME = "test409DeleteJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        executeDeleteJack(TEST_NAME);
+    }
+
+    /**
+     * Add new user Jack with an assignments as an manager and also a member of ministry of offense.
+     * (copied from test400)
+     */
+    @Test
+    public void test410AddJackWithOrgUnit() throws Exception {
+        final String TEST_NAME = "test400AddJackWithOrgUnit";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        OrgType minOffense = getObject(OrgType.class, ORG_MINISTRY_OF_OFFENSE_OID).asObjectable();
+
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        userJack.asObjectable().getOrganizationalUnit().add(minOffense.getName());
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userJack.createAddDelta());
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+
+    // this test should generate a SchemaException (modifying targetRef in assignment should be prohibited)
+    @Test
+    public void test412JackChangeMinistryOfOffenseMemberToManagerByModifyingAssignment() throws Exception {
+        final String TEST_NAME = "test412JackChangeMinistryOfOffenseMemberToManagerByModifyingAssignment";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+        Long id = findAssignmentIdForTarget(jack, ORG_MINISTRY_OF_OFFENSE_OID);
+
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+
+        PrismReferenceDefinition referenceDefinition = getUserDefinition()
+                .findItemDefinition(
+                        new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
+        ReferenceDelta referenceDelta = new ReferenceDelta(
+                new ItemPath(
+                        new NameItemPathSegment(UserType.F_ASSIGNMENT),
+                        new IdItemPathSegment(id),
+                        new NameItemPathSegment(AssignmentType.F_TARGET_REF)), referenceDefinition, prismContext);
+        PrismReferenceValue oldValue = new PrismReferenceValue(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
+        PrismReferenceValue newValue = new PrismReferenceValue(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
+        newValue.setRelation(SchemaConstants.ORG_MANAGER);
+
+        referenceDelta.addValueToDelete(oldValue);
+        referenceDelta.addValueToAdd(newValue);
+        modifications.add(referenceDelta);
+
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+
+        // WHEN
+        try {
+            modelService.executeChanges(deltas, null, task, result);
+            AssertJUnit.fail("executeChanges should fail but it did not.");
+        } catch (SchemaException e) {
+            // ok!
+        } catch (Exception e) {
+            AssertJUnit.fail("executeChanges failed in the wrong way (expected SchemaException): " + e);
+        }
+    }
+
+    /**
+     *  Now let's test working with assignments when there is an object template that prescribes an org assignment
+     *  based on organizationalUnit property.
+     *
+     */
+
+    @Test
+    public void test799DeleteJack() throws Exception {
+        final String TEST_NAME = "test799DeleteJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        executeDeleteJack(TEST_NAME);
+    }
+
+
+    // BEWARE, tests 800+ are executed in TestOrgStructMeta, so this class has to end with test399 and no jack present
     // ---------------------------------------------------------------------------------------------------------------
 
 

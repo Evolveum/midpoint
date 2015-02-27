@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
+/**
+ * Copyright (c) 2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.evolveum.midpoint.repo.sql.data.common.type;
-
-import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
-
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+package com.evolveum.midpoint.repo.api;
 
 /**
- * @author lazyman
+ * @author semancik
+ *
  */
-@Entity
-@DiscriminatorValue(RACreateApproverRef.DISCRIMINATOR)
-public class RACreateApproverRef extends RAssignmentReference {
-
-    public static final String DISCRIMINATOR = "0";
+public enum LookupTableSearchType {
+	EXACT, STARTS_WITH, SUBSTRING;
 }

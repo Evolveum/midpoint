@@ -891,11 +891,12 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
-        log.info("executeQuery::begin");
+        log.info("executeQuery({0},{1},{2},{3})", objectClass, query, handler, options);
         validate(objectClass);
         notNull(handler, "Results handled object can't be null.");
         
         Collection<String> attributesToGet = getAttrsToGet(options);
+        log.ok("attributesToGet={0}", attributesToGet);
         
         try {
 	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
@@ -1139,7 +1140,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		
 		// Password is not returned by default (hardcoded ICF specification)
 		if (account.getPassword() != null && configuration.getReadablePassword() && 
-				attributesToGet.contains(OperationalAttributes.PASSWORD_NAME)) {
+				attributesToGet != null && attributesToGet.contains(OperationalAttributes.PASSWORD_NAME)) {
 			GuardedString gs = new GuardedString(account.getPassword().toCharArray());
 			builder.addAttribute(OperationalAttributes.PASSWORD_NAME,gs);
 		}

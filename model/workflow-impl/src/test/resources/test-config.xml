@@ -63,6 +63,9 @@
                 <primaryUserChangeProcessor>
                     <enabled>true</enabled>
                     <aspect>addRoleAssignmentAspect</aspect>
+                    <aspect>modifyRoleAssignmentAspect</aspect>
+                    <aspect>addResourceAssignmentAspect</aspect>
+                    <aspect>modifyResourceAssignmentAspect</aspect>
                     <aspect>changePasswordAspect</aspect>
                 </primaryUserChangeProcessor>
             </changeProcessors>

@@ -63,7 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *  This handler takes care of executing recompute "runs". The task will iterate over all users
  *  and recompute their assignments and expressions. This is needed after the expressions are changed,
  *  e.g in resource outbound expressions or in a role definition.
- * 
+ *
  * @author Radovan Semancik
  *
  */

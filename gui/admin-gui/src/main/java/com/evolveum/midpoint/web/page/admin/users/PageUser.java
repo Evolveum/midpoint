@@ -960,7 +960,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         };
         mainForm.add(back);
 
-        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
+        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, false));
     }
 
     private void showAssignablePopup(AjaxRequestTarget target, Class<? extends ObjectType> type) {

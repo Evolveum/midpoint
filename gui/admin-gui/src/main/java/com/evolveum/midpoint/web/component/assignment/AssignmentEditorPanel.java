@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -97,6 +98,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_RELATION = "relation";
+    private static final String ID_RELATION_LABEL = "relationLabel";
     private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
     private static final String ID_VALID_FROM = "validFrom";
     private static final String ID_VALID_TO = "validTo";
@@ -343,7 +345,37 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 "AssignmentEditorPanel.member", "AssignmentEditorPanel.manager", null);
         relation.setOutputMarkupId(true);
         relation.setOutputMarkupPlaceholderTag(true);
+        relation.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return isCreatingNewAssignment();
+            }
+        });
         relationContainer.add(relation);
+
+        Label relationLabel = new Label(ID_RELATION_LABEL, new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                if(getModel() == null || getModel().getObject() == null){
+                    return getString("AssignmentEditorPanel.relation.notSpecified");
+                }
+
+                AssignmentEditorDto object = getModel().getObject();
+                return object.isOrgUnitManager() ? getString("AssignmentEditorPanel.manager") : getString("AssignmentEditorPanel.member");
+            }
+        });
+        relationLabel.setOutputMarkupId(true);
+        relationLabel.setOutputMarkupPlaceholderTag(true);
+        relationLabel.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return !isCreatingNewAssignment();
+            }
+        });
+        relationContainer.add(relationLabel);
 
         WebMarkupContainer tenantRefContainer = new WebMarkupContainer(ID_CONTAINER_TENANT_REF);
         ChooseTypePanel tenantRef = new ChooseTypePanel(ID_TENANT_CHOOSER,
@@ -737,5 +769,17 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private void showErrorPerformed(AjaxRequestTarget target){
         error(getString("AssignmentEditorPanel.targetError"));
         target.add(getPageBase().getFeedbackPanel());
+    }
+
+    /**
+     *  Override to provide the information if object that contains this assignment
+     *  is being edited or created.
+     * */
+    protected boolean isCreatingNewAssignment(){
+        if(getModelObject() == null){
+            return false;
+        }
+
+        return UserDtoStatus.ADD.equals(getModelObject().getStatus());
     }
 }

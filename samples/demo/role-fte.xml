@@ -17,6 +17,7 @@
 <role oid="abf3884a-7778-11e2-abb7-001e8c717e5b" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Full Time Employee</name>    
     <description>Basic role for full-time employee. It contains basic access rights that every employee should get automatically.</description>
@@ -40,6 +41,7 @@
     	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="12c78a70-76b7-11e2-9cb3-001e8c717e5b" type="c:ResourceType"/>
+<!--
 		<attribute>
                     <ref>ri:ldapGroups</ref>
                     <outbound>
@@ -48,6 +50,29 @@
                     	</expression>
                     </outbound>
                 </attribute>
+-->
+				<association>
+					<ref>ri:ldapGroups</ref>
+					<outbound>
+						<expression>
+							<associationTargetSearch>
+								<filter>
+									<q:equal>
+										<q:path>
+					declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+					declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+					<!--attributes/icfs:name-->
+					attributes/ri:cn
+										</q:path>
+										<q:value>employees</q:value>
+									</q:equal>
+								</filter>
+								<searchOnResource>true</searchOnResource>
+							</associationTargetSearch>
+						</expression>
+				</outbound>
+				</association>
+
     	</construction>
     </inducement>
 </role>

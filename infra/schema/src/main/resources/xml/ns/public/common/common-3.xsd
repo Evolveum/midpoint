@@ -3289,6 +3289,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="baseContext" type="tns:ResourceObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The definition of base context (resource object container). This object will be used
+                        as a base for searches for objects of this type. Usually only the objects that are
+                        hierarchically below the baseContext are returned by such a search.
+                        E.g. this is used to specify LDAP organizationalUnit that contains users or groups
+                        of particular type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="attribute" minOccurs="0" maxOccurs="unbounded"
                          type="tns:ResourceAttributeDefinitionType">
                 <xsd:annotation>
@@ -4102,6 +4113,134 @@
      		</xsd:element>
      	</xsd:sequence>
      </xsd:complexType>
+     
+     <xsd:complexType name="ResourceObjectReferenceType">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			Reference to a resource object. This reference has many properties that influence when and how
+     			to look for the object. We assume that the search for resource objects is quite expensive, therefore
+     			we will need to optimize the number of searches. We also want this reference to be "sticky", e.g. to
+     			survive resource object renames.
+     		</xsd:documentation>
+     		<xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+     	</xsd:annotation>
+     	<xsd:sequence>
+     		<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					The filter used to look for the object. This filter does NOT need to contain
+     					clauses for resource. This will be automatically added by midpoint. In some situation also
+     					the clause for objectClass may be omitted (if it can be determined by other means).
+     				</xsd:documentation>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="shadowRef" type="tns:ObjectReferenceType" minOccurs="0">
+        		<xsd:annotation>
+	                <xsd:documentation>
+	                    Reference to shadow that represents the resource object. If present, then it will be
+	                    used directly. If not present then the search filter will be used to locate the shadow
+	                    and the the result will be set to this reference.
+	                </xsd:documentation>
+	                <xsd:appinfo>
+	        			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+	        		</xsd:appinfo>
+	            </xsd:annotation>
+        	</xsd:element>
+     		<xsd:element name="resolutionStrategy" type="tns:ResourceObjectReferenceResolutionStrategyType" minOccurs="0" maxOccurs="1" default="repository">
+     		</xsd:element>
+     		<xsd:element name="resolutionFrequency" type="tns:ResourceObjectReferenceResolutionFrequencyType" minOccurs="0" maxOccurs="1" default="once">
+     		</xsd:element>
+     	</xsd:sequence>
+     </xsd:complexType>
+     
+     <xsd:simpleType name="ResourceObjectReferenceResolutionStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The strategy used to resolve resource object references.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="repository">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Search only in midPoint identity repository. Do not look at the resource. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPOSITORY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="resource">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Look only at the resource. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RESOURCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="repositoryThenResource">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Search in midPoint identity repository first. If the shadow is found, use it.
+                		If the shadow is not found also search on the resource.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPOSITORY_THEN_RESOURCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+     <xsd:simpleType name="ResourceObjectReferenceResolutionFrequencyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The strategy used to resolve resource object references.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="never">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Never resolve reference. If it has shadowRef then use it. If it does not then throw an error.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEVER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="once">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Resolve reference once. Then store the OID. Use the OID in subsequent cases. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Always reselve the reference. Do not store the OID. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
      
      <xsd:complexType name="ResourceObjectAssociationType">
      	<xsd:annotation>
@@ -5112,8 +5251,25 @@
 	        </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-	<xsd:element name="assignmentTargetSearch" type="tns:SearchObjectExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 	<xsd:element name="associationTargetSearch" type="tns:SearchObjectExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+	<xsd:complexType name="SearchObjectRefExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Create an expression based on search results. This is supposed to create an object reference.
+                Therefore it has additional parameter (relation).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:SearchObjectExpressionEvaluatorType">
+		        <xsd:sequence>
+		        	<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+		        	</xsd:element>
+		        </xsd:sequence>
+	        </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+	<xsd:element name="assignmentTargetSearch" type="tns:SearchObjectRefExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
 	<xsd:complexType name="ShadowDiscriminatorExpressionEvaluatorType">
         <xsd:annotation>
@@ -6259,11 +6415,15 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-					<xsd:element name="exclusion" type="tns:ExclusionType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
 								Specification of excluded roles (part of Segregation of Duties policy).
+								DEPRECATED. Use policyConstraints instead.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
@@ -6336,6 +6496,14 @@
 		                   </xsd:documentation>
 		               </xsd:annotation>
 		           </xsd:element>
+		           <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								Set of governance, risk management, compliance (GRC) and similar policy contraints
+								that influence the identity model.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -6707,7 +6875,54 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="ExclusionType">
+    <xsd:complexType name="PolicyConstraintsType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Set of governance, risk management, compliance (GRC) and similar policy contraints
+				that influence the identity model.
+    		</xsd:documentation>
+    		<xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded"/>
+    		<xsd:element name="minAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Lowest number of objects that have this role assigned.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="maxAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Highest number of objects that have this role assigned.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    	</xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+	<xsd:complexType name="AbstractPolicyConstraintType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Basic data structure for all policy constraints.
+    		</xsd:documentation>
+    		<xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element ref="tns:description" minOccurs="0"/>
+    		<xsd:element name="enforcement" type="tns:PolicyConstraintEnforcementType" minOccurs="0" default="enforce"/>
+    		<!-- TODO: remediation -->
+    	</xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ExclusionPolicyConstraintType">
     	<xsd:annotation>
     		<xsd:documentation>
     			Container that defines exclusion of entities (e.g. roles).
@@ -6717,20 +6932,100 @@
                 <a:container/>
             </xsd:appinfo>
     	</xsd:annotation>
-    	<xsd:sequence>
-    		<xsd:element ref="tns:description" minOccurs="0"/>
-    		<xsd:element name="targetRef" type="tns:ObjectReferenceType">
-    			<xsd:annotation>
-    				<xsd:documentation>
-    					Target of exclusion. The object defining this "exclustion" and
-    					the object defined as target cannot be assigned at the same time.
-    				</xsd:documentation>
-    			</xsd:annotation>
-    		</xsd:element>
-    		<xsd:element name="policy" type="tns:ExclusionPolicyType" minOccurs="0"/>
-    	</xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    	<xsd:complexContent>
+    		<xsd:extension base="tns:AbstractPolicyConstraintType">
+		    	<xsd:sequence>
+		    		<xsd:element name="targetRef" type="tns:ObjectReferenceType">
+		    			<xsd:annotation>
+		    				<xsd:documentation>
+		    					Target of exclusion. The object defining this "exclustion" and
+		    					the object defined as target cannot be assigned at the same time.
+		    				</xsd:documentation>
+		    			</xsd:annotation>
+		    		</xsd:element>
+		    		<xsd:element name="policy" type="tns:ExclusionPolicyType" minOccurs="0">
+		    			<xsd:annotation>
+		    				<xsd:appinfo>
+		    					<a:deprecated>true</a:deprecated>
+		    				</xsd:appinfo>
+		    			</xsd:annotation>
+		    		</xsd:element>
+		    	</xsd:sequence>
+		    </xsd:extension>
+		</xsd:complexContent>
     </xsd:complexType>
+    
+    <xsd:complexType name="MultiplicityPolicyConstraintType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Constraint on various multiplicity properties,
+    			such as minimum and maximum assignmees
+    		</xsd:documentation>
+    		<xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:complexContent>
+    		<xsd:extension base="tns:AbstractPolicyConstraintType">
+		    	<xsd:sequence>
+		    		<xsd:element name="multiplicity" type="xsd:string">
+		    			<xsd:annotation>
+		    				<xsd:documentation>
+		    					Numeric value or string "unbounded".
+		    				</xsd:documentation>
+		    			</xsd:annotation>
+		    		</xsd:element>
+		    	</xsd:sequence>
+		    </xsd:extension>
+		</xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="PolicyConstraintEnforcementType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Enumeration of exclustion policy enforcement types.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="enforce">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Strictly enforce the policy. Any operation that attempts to violate
+                		the policy will fail.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENFORCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="remediate">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		The operation that attempts to violate the policy will be suspended.
+                		Remediation action will take place. This may be used e.g. to approve the
+                		exceptions from the policy. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REMEDIATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="report">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Policy will not be enforced in any way, the violations will only
+                		be reported.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:simpleType name="ExclusionPolicyType">
         <xsd:annotation>
@@ -6739,6 +7034,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
+                <a:deprecated>true</a:deprecated>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -6776,7 +7072,6 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-    
 
     <xsd:complexType name="ConstructionType">
        <xsd:annotation>
@@ -8863,6 +9158,22 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Option to reconcile user while executing changes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reconcileAffected" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Option to reconcile affected objects after executing changes.
+                        Typical use: after a role is changed, all users that have been assigned this role
+                        would be reconciled.
+
+                        Because it is difficult to determine all affected objects (e.g. users that have
+                        indirectly assigned a role), midPoint does a reasonable attempt to determine
+                        and reconcile them. E.g. it may be limited to a direct assignees.
+
+                        Also, because of time complexity, the reconciliation may be executed in
+                        a separate background task.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -615,8 +616,13 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
     public void parseAssociations(RefinedResourceSchema rSchema) {
         throw new UnsupportedOperationException();
     }
-
+    
     @Override
+    public ResourceObjectReferenceType getBaseContext() {
+		return refinedObjectClassDefinition.getBaseContext();
+	}
+
+	@Override
     protected String debugDump(int indent, LayerType layer) {
         return refinedObjectClassDefinition.debugDump(indent, layer);
     }

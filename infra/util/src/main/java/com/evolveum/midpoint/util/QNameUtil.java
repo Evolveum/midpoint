@@ -21,6 +21,8 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Node;
 
@@ -33,6 +35,22 @@ import org.w3c.dom.Node;
  * @author semancik
  */
 public class QNameUtil {
+
+    public static final Trace LOGGER = TraceManager.getTrace(QNameUtil.class);
+
+    // TODO consider where to put all this undeclared-prefixes-things
+    // Hopefully in 3.2 everything will find its place
+
+    private static final String UNDECLARED_PREFIX_MARK = "__UNDECLARED__";
+
+    // Whether we want to tolerate undeclared XML prefixes in QNames
+    // This is here only for backward compatibility with versions 3.0-3.1.
+    // Will be set to false starting with 3.2 (MID-2191)
+    private static boolean tolerateUndeclaredPrefixes = false;
+
+    // ThreadLocal "safe mode" override for the above value (MID-2218)
+    // This can be set to true for raw reads, allowing to manually fix broken objects
+    private static ThreadLocal<Boolean> temporarilyTolerateUndeclaredPrefixes = new ThreadLocal<>();
 
     public static String qNameToUri(QName qname) {
         String qUri = qname.getNamespaceURI();
@@ -159,5 +177,39 @@ public class QNameUtil {
 
     public static boolean isUnqualified(QName targetTypeQName) {
         return StringUtils.isBlank(targetTypeQName.getNamespaceURI());
+    }
+
+    public static boolean isTolerateUndeclaredPrefixes() {
+        return tolerateUndeclaredPrefixes;
+    }
+
+    public static void setTolerateUndeclaredPrefixes(boolean value) {
+        tolerateUndeclaredPrefixes = value;
+    }
+
+    public static void setTemporarilyTolerateUndeclaredPrefixes(Boolean value) {
+        temporarilyTolerateUndeclaredPrefixes.set(value);
+    }
+
+    public static void reportUndeclaredNamespacePrefix(String prefix, String context) {
+        if (tolerateUndeclaredPrefixes ||
+                (temporarilyTolerateUndeclaredPrefixes != null && Boolean.TRUE.equals(temporarilyTolerateUndeclaredPrefixes.get()))) {
+            LOGGER.error("Undeclared namespace prefix '" + prefix+"' in '"+context+"'.");
+        } else {
+            throw new IllegalArgumentException("Undeclared namespace prefix '"+prefix+"' in '"+context+"'");
+        }
+    }
+
+    // @pre namespacePrefix != null
+    public static String markPrefixAsUndeclared(String namespacePrefix) {
+        if (namespacePrefix.startsWith(UNDECLARED_PREFIX_MARK)) {
+            return namespacePrefix;
+        } else {
+            return UNDECLARED_PREFIX_MARK + namespacePrefix;
+        }
+    }
+
+    public static boolean isPrefixUndeclared(String namespacePrefix) {
+        return namespacePrefix != null && namespacePrefix.startsWith(UNDECLARED_PREFIX_MARK);
     }
 }

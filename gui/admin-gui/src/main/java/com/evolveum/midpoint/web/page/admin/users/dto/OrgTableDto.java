@@ -42,6 +42,7 @@ public class OrgTableDto extends Selectable implements OrgDto, InlineMenuable {
     public static final String F_DISPLAY_NAME = "displayName";
     public static final String F_IDENTIFIER = "identifier";
     public static final String F_DESCRIPTION = "description";
+    public static final String F_OBJECT = "object";
 
     private String oid;
     private Class<? extends ObjectType> type;
@@ -51,6 +52,7 @@ public class OrgTableDto extends Selectable implements OrgDto, InlineMenuable {
     private QName relation;
     private String identifier;
     private String description;
+    private ObjectType object;
 
     public OrgTableDto(String oid, Class<? extends ObjectType> type) {
         this.oid = oid;
@@ -66,6 +68,7 @@ public class OrgTableDto extends Selectable implements OrgDto, InlineMenuable {
         dto.identifier = object.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
 
         dto.relation = WebMiscUtil.isObjectOrgManager(object) ? SchemaConstants.ORG_MANAGER : null;
+        dto.object = object.asObjectable();
 
         return dto;
     }
@@ -102,10 +105,18 @@ public class OrgTableDto extends Selectable implements OrgDto, InlineMenuable {
         return name;
     }
 
+    public ObjectType getObject() {
+        return object;
+    }
+
+    public void setObject(ObjectType object) {
+        this.object = object;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof OrgTableDto)) return false;
 
         OrgTableDto that = (OrgTableDto) o;
 
@@ -113,9 +124,10 @@ public class OrgTableDto extends Selectable implements OrgDto, InlineMenuable {
         if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
         if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (object != null ? !object.equals(that.object) : that.object != null) return false;
         if (oid != null ? !oid.equals(that.oid) : that.oid != null) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
+        if (type != null ? !type.equals(that.type) : that.type != null) return false;
 
         return true;
     }
@@ -126,9 +138,10 @@ public class OrgTableDto extends Selectable implements OrgDto, InlineMenuable {
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
+        result = 31 * result + (relation != null ? relation.hashCode() : 0);
         result = 31 * result + (identifier != null ? identifier.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (relation != null ? relation.hashCode() : 0);
+        result = 31 * result + (object != null ? object.hashCode() : 0);
         return result;
     }
 

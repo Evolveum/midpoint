@@ -90,6 +90,9 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
         ChooseTypePanel passPolicyChoosePanel = new ChooseTypePanel(ID_GLOBAL_PASSWORD_POLICY_CHOOSER,
                 new PropertyModel<ObjectViewDto>(getModel(), SystemConfigurationDto.F_PASSWORD_POLICY));
+
+//        TODO - remove this before 3.2 release, this is kept only for compatibility reasons. ObjectPolicyConfigurationEditor
+//        is new incarnation of this deprecated config option.
         ChooseTypePanel userTemplateChoosePanel = new ChooseTypePanel(ID_GLOBAL_USER_TEMPLATE_CHOOSER,
                 new PropertyModel<ObjectViewDto>(getModel(), SystemConfigurationDto.F_OBJECT_TEMPLATE));
 

@@ -23,6 +23,7 @@
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
 
@@ -436,6 +437,18 @@
 				</inbound>
 			</attribute>
 			
+			<association>
+				<ref>ri:ldapGroups</ref>
+				<displayName>Group Membership</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<tolerant>true</tolerant>
+				<kind>entitlement</kind>
+				<intent>group</intent>
+				<direction>objectToSubject</direction>
+				<associationAttribute>ri:uniqueMember</associationAttribute>
+				<valueAttribute>icfs:name</valueAttribute>
+				<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+			</association>
 			<protected>
                 <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
             </protected>
@@ -468,6 +481,13 @@
                 </password>
             </credentials>
 		</objectType>
+			<objectType>
+				<kind>entitlement</kind>
+				<intent>group</intent>
+				<displayName>Group</displayName>
+				<default>true</default>
+				<objectClass>ri:GroupObjectClass</objectClass>
+</objectType>
 	</schemaHandling>
 	
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">

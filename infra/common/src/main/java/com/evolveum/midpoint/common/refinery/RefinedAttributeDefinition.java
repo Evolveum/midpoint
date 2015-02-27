@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -399,12 +400,12 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
             if (schemaHandlingAttrDefType != null) {
                 if (layer != LayerType.SCHEMA) {
                     // SCHEMA is a pseudo-layer. It cannot be overriden ... unless specified explicitly
-                    PropertyLimitationsType genericLimitationsType = getLimitationsType(schemaHandlingAttrDefType.getLimitations(), null);
+                    PropertyLimitationsType genericLimitationsType = MiscSchemaUtil.getLimitationsType(schemaHandlingAttrDefType.getLimitations(), null);
                     if (genericLimitationsType != null) {
                         applyLimitationsType(limitations, genericLimitationsType);
                     }
                 }
-                PropertyLimitationsType layerLimitationsType = getLimitationsType(schemaHandlingAttrDefType.getLimitations(), layer);
+                PropertyLimitationsType layerLimitationsType = MiscSchemaUtil.getLimitationsType(schemaHandlingAttrDefType.getLimitations(), layer);
                 if (layerLimitationsType != null) {
                     applyLimitationsType(limitations, layerLimitationsType);
                 }
@@ -440,31 +441,6 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 		
 	}
 
-	private static PropertyLimitationsType getLimitationsType(List<PropertyLimitationsType> limitationsTypes, LayerType layer) throws SchemaException {
-		PropertyLimitationsType found = null;
-		for (PropertyLimitationsType limitType: limitationsTypes) {
-			if (contains(limitType.getLayer(),layer)) {
-				if (found == null) {
-					found = limitType;
-				} else {
-					throw new SchemaException("Duplicate definition of limitations for layer '"+layer+"'");
-				}
-			}
-		}
-		return found;
-	}
-
-	private static boolean contains(List<LayerType> layers, LayerType layer) {
-		if (layers == null || layers.isEmpty()) {
-			if (layer == null) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-		return layers.contains(layer);
-	}
-
 	private static PropertyLimitations getOrCreateLimitations(Map<LayerType, PropertyLimitations> limitationsMap,
 			LayerType layer) {
 		PropertyLimitations limitations = limitationsMap.get(layer);
@@ -480,7 +456,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 		if (limitations == null) {
 			return false;
 		}
-		PropertyLimitationsType limitationsType = getLimitationsType(limitations, DEFAULT_LAYER);
+		PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, DEFAULT_LAYER);
 		if (limitationsType == null) {
 			return false;
 		}

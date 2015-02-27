@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2013 Evolveum
+  ~ Copyright (c) 2013-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 <role oid="6de5ff6a-5b61-11e3-adc5-001e8c717e5b"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:trafo="http://midpoint.evolveum.com/xml/ns/story/trafo/ext">
     <name>Employee</name>    
     <inducement>
     	<construction>
@@ -27,17 +28,12 @@
     	<construction>
     		<resourceRef oid="14400000-0000-0000-0000-000000000003" type="c:ResourceType"/>
     		<attribute>
-					<ref>ri:description</ref>
+					<ref>description</ref>
 					<outbound>
 						<source>
-							<path>extension/trafo:uid</path>
 							<name>extensionUid</name>
+							<path>extension/trafo:uid</path>
 						</source>
-<!-- 						<expression> -->
-<!-- 							<script> -->
-<!-- 								<code>extensionUid</code> -->
-<!-- 							</script> -->
-<!-- 						</expression> -->
 					</outbound>
 				</attribute>
     	</construction>

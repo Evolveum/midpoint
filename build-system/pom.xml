@@ -582,6 +582,15 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+
+ <!-- report dependency (needed for microsoft office formats) -->
+            <dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi</artifactId>
+				<version>3.10.1</version>
+			</dependency>
+			            
+
         </dependencies>
     </dependencyManagement>
 

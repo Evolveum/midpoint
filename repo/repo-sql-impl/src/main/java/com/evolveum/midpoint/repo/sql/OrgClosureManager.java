@@ -1275,14 +1275,14 @@ public class OrgClosureManager {
     }
 
     private List<String> getParents(String oid, Session session) {
-        Query parentsQuery = session.createQuery("select distinct targetOid from RParentOrgRef where ownerOid=:oid");
+        Query parentsQuery = session.createQuery("select distinct targetOid from RObjectReference where ownerOid=:oid  and referenceType=0");
         parentsQuery.setString("oid", oid);
         return parentsQuery.list();
     }
 
     private List<String> getChildren(String oid, Session session) {
-        Query childrenQuery = session.createQuery("select distinct parentRef.ownerOid from RParentOrgRef as parentRef" +
-                " join parentRef.owner as owner where parentRef.targetOid=:oid" +
+        Query childrenQuery = session.createQuery("select distinct parentRef.ownerOid from RObjectReference as parentRef" +
+                " join parentRef.owner as owner where parentRef.targetOid=:oid and parentRef.referenceType=0" +
                 " and owner.objectTypeClass = :orgType");
         childrenQuery.setParameter("orgType", RObjectType.ORG);         // TODO eliminate use of parameter here
         childrenQuery.setString("oid", oid);

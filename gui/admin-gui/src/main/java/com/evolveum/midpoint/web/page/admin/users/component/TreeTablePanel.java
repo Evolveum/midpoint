@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
@@ -113,11 +115,15 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final String OPERATION_UPDATE_OBJECTS = DOT_CLASS + "updateObjects";
     private static final String OPERATION_UPDATE_OBJECT = DOT_CLASS + "updateObject";
     private static final String OPERATION_RECOMPUTE = DOT_CLASS + "recompute";
-    private static final String OPERATION_LOAD_PARENTS = DOT_CLASS + "loadParents";
 
     private static final String ID_TREE = "tree";
     private static final String ID_TREE_CONTAINER = "treeContainer";
-    private static final String ID_TABLE = "table";
+    private static final String ID_CONTAINER_CHILD_ORGS = "childOrgContainer";
+    private static final String ID_CONTAINER_MANAGER = "managerContainer";
+    private static final String ID_CONTAINER_MEMBER = "memberContainer";
+    private static final String ID_CHILD_TABLE = "childUnitTable";
+    private static final String ID_MANAGER_TABLE = "managerTable";
+    private static final String ID_MEMBER_TABLE = "memberTable";
     private static final String ID_FORM = "form";
     private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
     private static final String ID_MOVE_POPUP = "movePopup";
@@ -219,7 +225,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         treeHeader.setOutputMarkupId(true);
         add(treeHeader);
 
-        InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU, new Model((Serializable) createTreeMenu()));
+        InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU, new Model<>((Serializable) createTreeMenu()));
         treeHeader.add(treeMenu);
 
         ISortableTreeProvider provider = new OrgTreeProvider(this, getModel());
@@ -258,7 +264,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
             @Override
             protected Item<OrgTreeDto> newRowItem(String id, int index, final IModel<OrgTreeDto> model) {
-                Item item = super.newRowItem(id, index, model);
+                Item<OrgTreeDto> item = super.newRowItem(id, index, model);
                 item.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
 
                     @Override
@@ -279,58 +285,139 @@ public class TreeTablePanel extends SimplePanel<String> {
 //        tree.add(AttributeModifier.replace("class", "tree-midpoint"));
         treeContainer.add(tree);
 
-        initTable();
+        initTables();
         initSearch();
     }
 
-    private List<String> getOrgParentOids(String orgOid){
-        List<String> parentOids = new ArrayList<>();
-        OperationResult result = new OperationResult(OPERATION_LOAD_PARENTS);
-        PrismObject<OrgType> org = WebModelUtils.loadObject(OrgType.class, orgOid, result, getPageBase());
-        OrgType orgObject = org.asObjectable();
-
-        if(orgObject.getParentOrg() != null && !orgObject.getParentOrg().isEmpty()){
-            for(OrgType parentOrg: orgObject.getParentOrg()){
-                parentOids.add(parentOrg.getOid());
-            }
-        }
-
-        return parentOids;
-    }
-
-    private void initTable() {
+    private void initTables() {
         Form form = new Form(ID_FORM);
         form.setOutputMarkupId(true);
         add(form);
-        ObjectDataProvider tableProvider = new ObjectDataProvider<OrgTableDto, ObjectType>(this, ObjectType.class) {
+
+        //Child org. units container initialization
+        final ObjectDataProvider childTableProvider = new ObjectDataProvider<OrgTableDto, OrgType>(this, OrgType.class) {
 
             @Override
-            public OrgTableDto createDataObjectWrapper(PrismObject<ObjectType> obj) {
+            public OrgTableDto createDataObjectWrapper(PrismObject<OrgType> obj) {
                 return OrgTableDto.createDto(obj);
             }
 
             @Override
             public ObjectQuery getQuery() {
-                return createTableQuery();
+                return createOrgChildQuery();
             }
         };
+        childTableProvider.setOptions(WebModelUtils.createMinimalOptions());
 
-        //TODO - fix the problem with getting itemsPerPage during layout construction
-        tableProvider.setOptions(WebModelUtils.createMinimalOptions());
-        List<IColumn<OrgTableDto, String>> tableColumns = createTableColumns();
-        TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns,
-                UserProfileStorage.TableId.TREE_TABLE_PANEL, UserProfileStorage.DEFAULT_PAGING_SIZE);
-        table.setOutputMarkupId(true);
-        form.add(table);
+        WebMarkupContainer childOrgUnitContainer = new WebMarkupContainer(ID_CONTAINER_CHILD_ORGS);
+        childOrgUnitContainer.setOutputMarkupId(true);
+        childOrgUnitContainer.setOutputMarkupPlaceholderTag(true);
+        childOrgUnitContainer.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return childTableProvider.size() != 0;
+            }
+        });
+        form.add(childOrgUnitContainer);
+
+        List<IColumn<OrgTableDto, String>> childTableColumns = createChildTableColumns();
+        final TablePanel childTable = new TablePanel<>(ID_CHILD_TABLE, childTableProvider, childTableColumns,
+                UserProfileStorage.TableId.TREE_TABLE_PANEL_CHILD, UserProfileStorage.DEFAULT_PAGING_SIZE);
+        childTable.setOutputMarkupId(true);
+        childTable.getNavigatorPanel().add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return childTableProvider.size() > childTable.getDataTable().getItemsPerPage();
+            }
+        });
+        childOrgUnitContainer.add(childTable);
+
+        //Manager container initialization
+        final ObjectDataProvider managerTableProvider = new ObjectDataProvider<OrgTableDto, UserType>(this, UserType.class) {
+
+            @Override
+            public OrgTableDto createDataObjectWrapper(PrismObject<UserType> obj) {
+                return OrgTableDto.createDto(obj);
+            }
+
+            @Override
+            public ObjectQuery getQuery() {
+                return createManagerTableQuery();
+            }
+        };
+        managerTableProvider.setOptions(WebModelUtils.createMinimalOptions());
+
+        WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
+        managerContainer.setOutputMarkupId(true);
+        managerContainer.setOutputMarkupPlaceholderTag(true);
+        managerContainer.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return managerTableProvider.size() != 0;
+            }
+        });
+        form.add(managerContainer);
+
+        List<IColumn<OrgTableDto, String>> managerTableColumns = createUserTableColumns(true);
+        final TablePanel managerTablePanel = new TablePanel<>(ID_MANAGER_TABLE, managerTableProvider, managerTableColumns,
+                UserProfileStorage.TableId.TREE_TABLE_PANEL_MANAGER, UserProfileStorage.DEFAULT_PAGING_SIZE);
+        managerTablePanel.setOutputMarkupId(true);
+        managerTablePanel.getNavigatorPanel().add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return managerTableProvider.size() > managerTablePanel.getDataTable().getItemsPerPage();
+            }
+        });
+        managerContainer.add(managerTablePanel);
+
+        //Member container initialization
+        final ObjectDataProvider memberTableProvider = new ObjectDataProvider<OrgTableDto, UserType>(this, UserType.class) {
+
+            @Override
+            public OrgTableDto createDataObjectWrapper(PrismObject<UserType> obj) {
+                return OrgTableDto.createDto(obj);
+            }
+
+            @Override
+            public ObjectQuery getQuery() {
+                return createMemberQuery();
+            }
+        };
+        memberTableProvider.setOptions(WebModelUtils.createMinimalOptions());
+
+        WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);
+        memberContainer.setOutputMarkupId(true);
+        memberContainer.setOutputMarkupPlaceholderTag(true);
+        memberContainer.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return memberTableProvider.size() != 0;
+            }
+        });
+        form.add(memberContainer);
+
+        List<IColumn<OrgTableDto, String>> memberTableColumns = createUserTableColumns(false);
+        final TablePanel memberTablePanel = new TablePanel<>(ID_MEMBER_TABLE, memberTableProvider, memberTableColumns,
+                UserProfileStorage.TableId.TREE_TABLE_PANEL_MEMBER, UserProfileStorage.DEFAULT_PAGING_SIZE);
+        memberTablePanel.setOutputMarkupId(true);
+        memberTablePanel.getNavigatorPanel().add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return memberTableProvider.size() > memberTablePanel.getDataTable().getItemsPerPage();
+            }
+        });
+        memberContainer.add(memberTablePanel);
     }
 
-//    public long getItemsPerPage(UserProfileStorage.TableId tableId){
-//
-//        SessionStorage storage = getPageBase().getSessionStorage();
-//        UserProfileStorage userProfile = storage.getUserProfile();
-//        return userProfile.getPagingSize(tableId);
-//    }
-
+    /**
+     * TODO - test search
+     * */
     private void initSearch() {
         Form form = new Form(ID_SEARCH_FORM);
         form.setOutputMarkupId(true);
@@ -421,7 +508,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                 switch (dialog.getConfirmType()) {
                     case CONFIRM_DELETE:
                         return createStringResource("TreeTablePanel.message.deleteObjectConfirm",
-                                WebMiscUtil.getSelectedData(getTable()).size()).getString();
+                                WebMiscUtil.getSelectedData(getOrgChildTable()).size()).getString();
                     case CONFIRM_DELETE_ROOT:
                         OrgTreeDto dto = getRootFromProvider();
 
@@ -441,7 +528,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         return iterator.hasNext() ? iterator.next() : null;
     }
 
-    private List<IColumn<OrgTableDto, String>> createTableColumns() {
+    private List<IColumn<OrgTableDto, String>> createChildTableColumns() {
         List<IColumn<OrgTableDto, String>> columns = new ArrayList<>();
 
         columns.add(new CheckBoxHeaderColumn<OrgTableDto>());
@@ -450,17 +537,11 @@ public class TreeTablePanel extends SimplePanel<String> {
             @Override
             protected IModel<String> createIconModel(IModel<OrgTableDto> rowModel) {
                 OrgTableDto dto = rowModel.getObject();
+                ObjectTypeGuiDescriptor guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(dto.getType());
 
-                ObjectTypeGuiDescriptor descr = null;
-                if(dto.getRelation() == null) {
-                    descr = ObjectTypeGuiDescriptor.getDescriptor(dto.getType());
-                } else {
-                    descr = ObjectTypeGuiDescriptor.getDescriptor(dto.getRelation());
-                }
+                String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
 
-                String icon = descr != null ? descr.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-
-                return new Model(icon);
+                return new Model<>(icon);
             }
         });
 
@@ -475,26 +556,83 @@ public class TreeTablePanel extends SimplePanel<String> {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<OrgTableDto> rowModel) {
                 OrgTableDto dto = rowModel.getObject();
-                if (UserType.class.equals(dto.getType())) {
-                    PageParameters parameters = new PageParameters();
-                    parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
-                    setResponsePage(PageUser.class, parameters);
-                } else if (OrgType.class.equals(dto.getType())) {
-                    PageParameters parameters = new PageParameters();
-                    parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
-                    setResponsePage(PageOrgUnit.class, parameters);
-                }
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
+                setResponsePage(PageOrgUnit.class, parameters);
             }
         });
         columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("OrgType.displayName"), OrgTableDto.F_DISPLAY_NAME));
-        //todo add relation
         columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("OrgType.identifier"), OrgTableDto.F_IDENTIFIER));
-        columns.add(new InlineMenuHeaderColumn(initInlineMenu()));
+        columns.add(new InlineMenuHeaderColumn(initOrgChildInlineMenu()));
 
         return columns;
     }
 
-    private List<InlineMenuItem> initInlineMenu() {
+    private List<IColumn<OrgTableDto, String>> createUserTableColumns(boolean isManagerTable) {
+        List<IColumn<OrgTableDto, String>> columns = new ArrayList<>();
+
+        columns.add(new CheckBoxHeaderColumn<OrgTableDto>());
+        columns.add(new IconColumn<OrgTableDto>(createStringResource("")) {
+
+            @Override
+            protected IModel<String> createIconModel(IModel<OrgTableDto> rowModel) {
+                OrgTableDto dto = rowModel.getObject();
+                OrgTreeDto selectedDto = selected.getObject();
+                String selectedOid = dto != null ? selectedDto.getOid() : getModel().getObject();
+
+                ObjectTypeGuiDescriptor guiDescriptor = null;
+                if(dto != null && dto.getRelation() == null) {
+                    guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(dto.getType());
+                } else {
+                    if(dto != null){
+                        for(ObjectReferenceType parentOrgRef: dto.getObject().getParentOrgRef()){
+                            if(parentOrgRef.getOid().equals(selectedOid) && SchemaConstants.ORG_MANAGER.equals(parentOrgRef.getRelation())){
+                                guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(dto.getRelation());
+                                String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+                                return new Model<>(icon);
+                            }
+                        }
+
+                        guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(dto.getType());
+                    }
+                }
+
+                String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+
+                return new Model<>(icon);
+            }
+        });
+
+        columns.add(new LinkColumn<OrgTableDto>(createStringResource("ObjectType.name"), OrgTableDto.F_NAME, "name") {
+
+            @Override
+            public boolean isEnabled(IModel<OrgTableDto> rowModel) {
+                OrgTableDto dto = rowModel.getObject();
+                return UserType.class.equals(dto.getType()) || OrgType.class.equals(dto.getType());
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<OrgTableDto> rowModel) {
+                OrgTableDto dto = rowModel.getObject();
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
+                setResponsePage(PageUser.class, parameters);
+            }
+        });
+        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("UserType.givenName"),
+                UserType.F_GIVEN_NAME.getLocalPart(), OrgTableDto.F_OBJECT + ".givenName"));
+        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("UserType.familyName"),
+                UserType.F_FAMILY_NAME.getLocalPart(), OrgTableDto.F_OBJECT + ".familyName"));
+        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("UserType.fullName"),
+                UserType.F_FULL_NAME.getLocalPart(), OrgTableDto.F_OBJECT + ".fullName"));
+        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("UserType.emailAddress"),
+                null, OrgTableDto.F_OBJECT + ".emailAddress"));
+        columns.add(new InlineMenuHeaderColumn(isManagerTable ? initOrgManagerInlineMenu() : initOrgMemberInlineMenu()));
+
+        return columns;
+    }
+
+    private List<InlineMenuItem> initOrgChildInlineMenu() {
         List<InlineMenuItem> headerMenuItems = new ArrayList<>();
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addOrgUnit"), false,
                 new HeaderMenuAction(this) {
@@ -502,14 +640,6 @@ public class TreeTablePanel extends SimplePanel<String> {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         addOrgUnitPerformed(target);
-                    }
-                }));
-        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addUser"), false,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        addUserPerformed(target);
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem());
@@ -576,8 +706,107 @@ public class TreeTablePanel extends SimplePanel<String> {
         return headerMenuItems;
     }
 
+    private List<InlineMenuItem> initOrgMemberInlineMenu() {
+        List<InlineMenuItem> headerMenuItems = new ArrayList<>();
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addMember"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        addUserPerformed(target, false);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem());
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.enable"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        updateActivationPerformed(target, true);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.disable"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        updateActivationPerformed(target, false);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.delete"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        deletePerformed(target);
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel,menu.recompute"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        recomputePerformed(target, OrgUnitBrowser.Operation.RECOMPUTE);
+                    }
+                }));
+
+        return headerMenuItems;
+    }
+
+    private List<InlineMenuItem> initOrgManagerInlineMenu() {
+        List<InlineMenuItem> headerMenuItems = new ArrayList<>();
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManager"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        addUserPerformed(target, true);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem());
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.enable"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        updateActivationPerformed(target, true);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.disable"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        updateActivationPerformed(target, false);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.delete"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        deletePerformed(target);
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel,menu.recompute"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        recomputePerformed(target, OrgUnitBrowser.Operation.RECOMPUTE);
+                    }
+                }));
+
+        return headerMenuItems;
+    }
+
+
     private void addOrgUnitPerformed(AjaxRequestTarget target) {
-        PrismObject object = addObjectPerformed(target, new OrgType());
+        PrismObject<OrgType> object = addChildOrgUnitPerformed(target, new OrgType());
         if (object == null) {
             return;
         }
@@ -585,8 +814,8 @@ public class TreeTablePanel extends SimplePanel<String> {
         setResponsePage(next);
     }
 
-    private void addUserPerformed(AjaxRequestTarget target) {
-        PrismObject object = addObjectPerformed(target, new UserType());
+    private void addUserPerformed(AjaxRequestTarget target, boolean isUserManager) {
+        PrismObject object = addUserPerformed(target, new UserType(), isUserManager);
         if (object == null) {
             return;
         }
@@ -594,21 +823,51 @@ public class TreeTablePanel extends SimplePanel<String> {
         setResponsePage(next);
     }
 
-    private PrismObject addObjectPerformed(AjaxRequestTarget target, ObjectType object) {
+    private PrismObject<OrgType> addChildOrgUnitPerformed(AjaxRequestTarget target, OrgType org) {
         PageBase page = getPageBase();
         try {
             ObjectReferenceType ref = new ObjectReferenceType();
             ref.setOid(selected.getObject().getOid());
             ref.setType(OrgType.COMPLEX_TYPE);
-            object.getParentOrgRef().add(ref);
+            org.getParentOrgRef().add(ref);
 
             PrismContext context = page.getPrismContext();
-            context.adopt(object);
+            context.adopt(org);
 
-            return object.asPrismContainer();
+            return org.asPrismContainer();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't create object with parent org. reference", ex);
-            page.error("Couldn't create object with parent org. reference, reason: " + ex.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't create child org. unit with parent org. reference", ex);
+            page.error("Couldn't create child org. unit with parent org. reference, reason: " + ex.getMessage());
+
+            target.add(page.getFeedbackPanel());
+        }
+
+        return null;
+    }
+
+    private PrismObject<UserType> addUserPerformed(AjaxRequestTarget target, UserType user, boolean isUserManager) {
+        PageBase page = getPageBase();
+        try {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            ref.setOid(selected.getObject().getOid());
+            ref.setType(OrgType.COMPLEX_TYPE);
+
+            if(isUserManager){
+                ref.setRelation(SchemaConstants.ORG_MANAGER);
+            }
+
+            AssignmentType assignment = new AssignmentType();
+            assignment.setTargetRef(ref);
+
+            user.getAssignment().add(assignment);
+
+            PrismContext context = page.getPrismContext();
+            context.adopt(user);
+
+            return user.asPrismContainer();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't create user with parent org. reference", ex);
+            page.error("Couldn't create user with parent org. reference, reason: " + ex.getMessage());
 
             target.add(page.getFeedbackPanel());
         }
@@ -620,7 +879,7 @@ public class TreeTablePanel extends SimplePanel<String> {
      * This method check selection in table.
      */
     private List<OrgTableDto> isAnythingSelected(AjaxRequestTarget target) {
-        List<OrgTableDto> objects = WebMiscUtil.getSelectedData(getTable());
+        List<OrgTableDto> objects = WebMiscUtil.getSelectedData(getOrgChildTable());
         if (objects.isEmpty()) {
             warn(getString("TreeTablePanel.message.nothingSelected"));
             target.add(getPageBase().getFeedbackPanel());
@@ -763,7 +1022,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         }
         result.computeStatusComposite();
 
-        ObjectDataProvider provider = (ObjectDataProvider) getTable().getDataTable().getDataProvider();
+        ObjectDataProvider provider = (ObjectDataProvider) getOrgChildTable().getDataTable().getDataProvider();
         provider.clearCache();
 
         page.showResult(result);
@@ -788,26 +1047,52 @@ public class TreeTablePanel extends SimplePanel<String> {
         target.add(page.getFeedbackPanel());
     }
 
-    private TableTree getTree() {
-        return (TableTree) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
+    private TableTree<OrgTreeDto, String> getTree() {
+        return (TableTree<OrgTreeDto, String>) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
     }
 
-    private TablePanel getTable() {
-        return (TablePanel) get(createComponentPath(ID_FORM, ID_TABLE));
+    private WebMarkupContainer getOrgChildContainer() {
+        return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_CHILD_ORGS));
+    }
+
+    private WebMarkupContainer getMemberContainer() {
+        return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER));
+    }
+
+    private WebMarkupContainer getManagerContainer() {
+        return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_MANAGER));
+    }
+
+    private TablePanel getOrgChildTable() {
+        return (TablePanel) get(createComponentPath(ID_FORM, ID_CONTAINER_CHILD_ORGS, ID_CHILD_TABLE));
+    }
+
+    private TablePanel getMemberTable() {
+        return (TablePanel) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
+    }
+
+    private TablePanel getManagerTable() {
+        return (TablePanel) get(createComponentPath(ID_FORM, ID_CONTAINER_MANAGER, ID_MANAGER_TABLE));
     }
 
     private void selectTreeItemPerformed(AjaxRequestTarget target) {
         BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
         basicSearch.getModel().setObject(null);
 
-        TablePanel table = getTable();
-        table.setCurrentPage(null);
+        TablePanel orgTable = getOrgChildTable();
+        orgTable.setCurrentPage(null);
 
-        target.add(table);
+        TablePanel memberTable = getMemberTable();
+        memberTable.setCurrentPage(null);
+
+        TablePanel managerTable = getManagerTable();
+        managerTable.setCurrentPage(null);
+
+        target.add(getOrgChildContainer(), getMemberContainer(), getManagerContainer());
         target.add(get(ID_SEARCH_FORM));
     }
 
-    private ObjectQuery createTableQuery() {
+    private ObjectQuery createOrgChildQuery() {
         OrgTreeDto dto = selected.getObject();
         String oid = dto != null ? dto.getOid() : getModel().getObject();
 
@@ -815,6 +1100,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
         BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
         String object = basicSearch.getModelObject();
+
         if (StringUtils.isEmpty(object)) {
             return ObjectQuery.createObjectQuery(org);
         }
@@ -836,8 +1122,95 @@ public class TreeTablePanel extends SimplePanel<String> {
         return ObjectQuery.createObjectQuery(and);
     }
 
+    private ObjectQuery createManagerTableQuery(){
+        ObjectQuery query = null;
+        OrgTreeDto dto = selected.getObject();
+        String oid = dto != null ? dto.getOid() : getModel().getObject();
+
+        BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
+        String object = basicSearch.getModelObject();
+
+        SubstringFilter substring;
+        PolyStringNormalizer normalizer = getPageBase().getPrismContext().getDefaultPolyStringNormalizer();
+        String normalizedString = normalizer.normalize(object);
+
+        if (StringUtils.isEmpty(normalizedString)) {
+            substring = null;
+        } else {
+            substring =  SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, getPageBase().getPrismContext(),
+                    PolyStringNormMatchingRule.NAME, normalizedString);
+        }
+
+        try {
+            OrgFilter org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
+
+            PrismReferenceValue referenceValue = new PrismReferenceValue();
+            referenceValue.setOid(oid);
+            referenceValue.setRelation(SchemaConstants.ORG_MANAGER);
+            RefFilter relationFilter = RefFilter.createReferenceEqual(new ItemPath(FocusType.F_PARENT_ORG_REF),
+                    UserType.class, getPageBase().getPrismContext(), referenceValue);
+
+            if(substring != null){
+                query = ObjectQuery.createObjectQuery(AndFilter.createAnd(org, relationFilter, substring));
+            } else {
+                query = ObjectQuery.createObjectQuery(AndFilter.createAnd(org, relationFilter));
+            }
+
+
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't prepare query for org. managers.", e);
+        }
+
+        return query;
+    }
+
+    private ObjectQuery createMemberQuery(){
+        ObjectQuery query = null;
+        OrgTreeDto dto = selected.getObject();
+        String oid = dto != null ? dto.getOid() : getModel().getObject();
+
+        BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
+        String object = basicSearch.getModelObject();
+
+        SubstringFilter substring;
+        PolyStringNormalizer normalizer = getPageBase().getPrismContext().getDefaultPolyStringNormalizer();
+        String normalizedString = normalizer.normalize(object);
+
+        if (StringUtils.isEmpty(normalizedString)) {
+            substring = null;
+        } else {
+            substring =  SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, getPageBase().getPrismContext(),
+                    PolyStringNormMatchingRule.NAME, normalizedString);
+        }
+
+        try {
+            OrgFilter org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
+
+            PrismReferenceValue referenceFilter = new PrismReferenceValue();
+            referenceFilter.setOid(oid);
+            referenceFilter.setRelation(null);
+            RefFilter referenceOidFilter = RefFilter.createReferenceEqual(new ItemPath(FocusType.F_PARENT_ORG_REF),
+                    UserType.class, getPageBase().getPrismContext(), referenceFilter);
+
+            if(substring != null){
+                query = ObjectQuery.createObjectQuery(AndFilter.createAnd(org, referenceOidFilter , substring));
+            } else {
+                query = ObjectQuery.createObjectQuery(AndFilter.createAnd(org, referenceOidFilter));
+            }
+
+            if(LOGGER.isTraceEnabled()){
+                LOGGER.info(query.debugDump());
+            }
+
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't prepare query for org. managers.", e);
+        }
+
+        return query;
+    }
+
     private void collapseAllPerformed(AjaxRequestTarget target) {
-        TableTree tree = getTree();
+        TableTree<OrgTreeDto, String> tree = getTree();
         TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
         model.collapseAll();
 
@@ -845,7 +1218,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private void expandAllPerformed(AjaxRequestTarget target) {
-        TableTree tree = getTree();
+        TableTree<OrgTreeDto, String> tree = getTree();
         TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
         model.expandAll();
 
@@ -886,10 +1259,16 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private void refreshTable(AjaxRequestTarget target) {
-        ObjectDataProvider provider = (ObjectDataProvider) getTable().getDataTable().getDataProvider();
-        provider.clearCache();
+        ObjectDataProvider orgProvider = (ObjectDataProvider) getOrgChildTable().getDataTable().getDataProvider();
+        orgProvider.clearCache();
 
-        target.add(getTable());
+        ObjectDataProvider memberProvider = (ObjectDataProvider) getMemberTable().getDataTable().getDataProvider();
+        memberProvider.clearCache();
+
+        ObjectDataProvider managerProvider = (ObjectDataProvider) getManagerTable().getDataTable().getDataProvider();
+        managerProvider.clearCache();
+
+        target.add(getOrgChildContainer(), getMemberContainer(), getManagerContainer());
     }
 
     private void recomputeRootPerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation){

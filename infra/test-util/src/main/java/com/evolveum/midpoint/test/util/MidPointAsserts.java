@@ -127,6 +127,37 @@ public class MidPointAsserts {
 		assertNotAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
 	}
 
+    public static <F extends FocusType> void assertNotAssignedResource(PrismObject<F> user, String resourceOid) {
+        F userType = user.asObjectable();
+        for (AssignmentType assignmentType: userType.getAssignment()) {
+            if (assignmentType.getConstruction() == null) {
+                continue;
+            }
+            ObjectReferenceType targetRef = assignmentType.getConstruction().getResourceRef();
+            if (targetRef != null) {
+                if (resourceOid.equals(targetRef.getOid())) {
+                    AssertJUnit.fail(user + " does have assigned resource "+resourceOid+" while not expecting it");
+                }
+            }
+        }
+    }
+
+    public static <F extends FocusType> void assertAssignedResource(PrismObject<F> user, String resourceOid) {
+        F userType = user.asObjectable();
+        for (AssignmentType assignmentType: userType.getAssignment()) {
+            if (assignmentType.getConstruction() == null) {
+                continue;
+            }
+            ObjectReferenceType targetRef = assignmentType.getConstruction().getResourceRef();
+            if (targetRef != null) {
+                if (resourceOid.equals(targetRef.getOid())) {
+                    return;
+                }
+            }
+        }
+        AssertJUnit.fail(user + " does NOT have assigned resource "+resourceOid+" while expecting it");
+    }
+
     public static <F extends FocusType> void assertNotAssignedOrg(PrismObject<F> user, String orgOid, QName relation) {
         F userType = user.asObjectable();
         for (AssignmentType assignmentType: userType.getAssignment()) {

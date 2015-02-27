@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,12 +36,16 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -98,6 +103,29 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_HONORABLE_WANNABE_FILE = new File(TEST_DIR, "role-honorable-wannabe.xml");
 	protected static final String ROLE_HONORABLE_WANNABE_OID = "12345678-d34d-b33f-f00d-555555557704";
 
+	protected static final File ROLE_GOVERNOR_FILE = new File(TEST_DIR, "role-governor.xml");
+	protected static final String ROLE_GOVERNOR_OID = "12345678-d34d-b33f-f00d-555555557705";
+	
+	protected static final File ROLE_CANIBAL_FILE = new File(TEST_DIR, "role-cannibal.xml");
+	protected static final String ROLE_CANNIBAL_OID = "12345678-d34d-b33f-f00d-555555557706";
+
+	private static final String USER_LEMONHEAD_NAME = "lemonhead";
+	private static final String USER_LEMONHEAD_FULLNAME = "Cannibal Lemonhead";
+	
+	private static final String USER_SHARPTOOTH_NAME = "sharptooth";
+	private static final String USER_SHARPTOOTH_FULLNAME = "Cannibal Sharptooth";
+
+	private static final String USER_REDSKULL_NAME = "redskull";
+	private static final String USER_REDSKULL_FULLNAME = "Cannibal Redskull";
+
+	private static final String USER_BIGNOSE_NAME = "bignose";
+	private static final String USER_BIGNOSE_FULLNAME = "Bignose the Noncannibal";
+
+	private String userLemonheadOid;
+	private String userSharptoothOid;
+	private String userRedskullOid;
+	private String userBignoseOid;
+	
 	private final String EXISTING_GOSSIP = "Black spot!"; 
 	
 	public TestRbac() throws JAXBException {
@@ -117,6 +145,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_CLERIC_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_WANNABE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_HONORABLE_WANNABE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_GOVERNOR_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_CANIBAL_FILE, RoleType.class, initResult);
 	}
 	
 	@Test
@@ -544,6 +574,52 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         		"jack sailed Adriatic, immediately Adriatic, role , with this The Seven Seas while focused on  (in Pirate)");
 	}
 	
+	/**
+	 * Check if all the roles are visible in preview changes
+	 */
+	@Test
+    public void test135PreviewChangesEmptyDelta() throws Exception {
+		final String TEST_NAME = "test135PreviewChangesEmptyDelta";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        ObjectDelta<UserType> delta = user.createModifyDelta();
+        
+		// WHEN
+        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+        PrismAsserts.assertTripleNoPlus(evaluatedAssignmentTriple);
+        PrismAsserts.assertTripleNoMinus(evaluatedAssignmentTriple);
+        Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getZeroSet();
+        assertEquals("Wrong number of evaluated assignments", 1, evaluatedAssignments.size());
+        EvaluatedAssignment<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+        DeltaSetTriple<? extends EvaluatedAbstractRole> rolesTriple = evaluatedAssignment.getRoles();
+        PrismAsserts.assertTripleNoPlus(rolesTriple);
+        PrismAsserts.assertTripleNoMinus(rolesTriple);
+        Collection<? extends EvaluatedAbstractRole> evaluatedRoles = rolesTriple.getZeroSet();
+        assertEquals("Wrong number of evaluated role", 2, evaluatedRoles.size());
+        assertEvaluatedRole(evaluatedRoles, ROLE_ADRIATIC_PIRATE_OID);
+        assertEvaluatedRole(evaluatedRoles, ROLE_PIRATE_OID);
+        
+	}
+	
+	private void assertEvaluatedRole(Collection<? extends EvaluatedAbstractRole> evaluatedRoles,
+			String expectedRoleOid) {
+		for (EvaluatedAbstractRole evalRole: evaluatedRoles) {
+			if (expectedRoleOid.equals(evalRole.getRole().getOid())) {
+				return;
+			}
+		}
+		AssertJUnit.fail("Role "+expectedRoleOid+" no present in evaluated roles "+evaluatedRoles);
+	}
+
 	@Test
     public void test136JackUnAssignRoleAdriaticPirate() throws Exception {
 		final String TEST_NAME = "test136JackUnAssignRoleAdriaticPirate";
@@ -1345,6 +1421,225 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
+    public void test610ElaineAssignRoleGovernor() throws Exception {
+		final String TEST_NAME = "test610ElaineAssignRoleGovernor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_ELAINE_OID);
+        display("User before", userBefore);
+        
+        // WHEN
+        assignRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, task, result);
+        assertDefaultDummyAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, ACCOUNT_ELAINE_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_ELAINE_DUMMY_USERNAME, "title", "Her Excellency Governor");
+	}
+	
+	/**
+	 * Governor has maxAssignees=1
+	 */
+	@Test
+    public void test612JackAssignRoleGovernor() throws Exception {
+		final String TEST_NAME = "test612JackAssignRoleGovernor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        try {
+	        // WHEN
+	        assignRole(USER_JACK_OID, ROLE_GOVERNOR_OID, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// this is expected
+        	display("Expected exception", e);
+        }
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertFailure(result);
+        
+        assertNoAssignments(USER_JACK_OID);
+	}
+	
+	/**
+	 * Role cannibal has minAssignees=2. It is assigned to nobody. Even though assigning
+	 * it to lemonhead would result in assignees=1 which violates the policy, the assignment
+	 * should pass because it makes the situation better.
+	 */
+	@Test
+    public void test620LemonheadAssignRoleCanibal() throws Exception {
+		final String TEST_NAME = "test620LemonheadAssignRoleCanibal";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = createUser(USER_LEMONHEAD_NAME, USER_LEMONHEAD_FULLNAME, true);
+        addObject(user);
+        userLemonheadOid = user.getOid();
+        
+        // WHEN
+        assignRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
+        assertDefaultDummyAccount(USER_LEMONHEAD_NAME, USER_LEMONHEAD_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(USER_LEMONHEAD_NAME, "title", "Voracious Cannibal");
+	}
+	
+	@Test
+    public void test622SharptoothAssignRoleCanibal() throws Exception {
+		final String TEST_NAME = "test622SharptoothAssignRoleCanibal";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = createUser(USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME, true);
+        addObject(user);
+        userSharptoothOid = user.getOid();
+        
+        // WHEN
+        assignRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
+        assertDefaultDummyAccount(USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(USER_SHARPTOOTH_NAME, "title", "Voracious Cannibal");
+	}
+	
+	@Test
+    public void test624RedskullAssignRoleCanibal() throws Exception {
+		final String TEST_NAME = "test624RedskullAssignRoleCanibal";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = createUser(USER_REDSKULL_NAME, USER_REDSKULL_FULLNAME, true);
+        addObject(user);
+        userRedskullOid = user.getOid();
+        
+        // WHEN
+        assignRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
+        assertDefaultDummyAccount(USER_REDSKULL_NAME, USER_REDSKULL_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(USER_REDSKULL_NAME, "title", "Voracious Cannibal");
+	}
+
+	@Test
+    public void test625BignoseAssignRoleCanibal() throws Exception {
+		final String TEST_NAME = "test625BignoseAssignRoleCanibal";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = createUser(USER_BIGNOSE_NAME, USER_BIGNOSE_FULLNAME, true);
+        addObject(user);
+        userBignoseOid = user.getOid();
+        
+        try {
+	        // WHEN
+	        assignRole(user.getOid(), ROLE_GOVERNOR_OID, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// this is expected
+        	display("Expected exception", e);
+        }
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertFailure(result);
+        
+        assertNoAssignments(user.getOid());
+	}
+	
+	@Test
+    public void test627SharptoothUnassignRoleCanibal() throws Exception {
+		final String TEST_NAME = "test627SharptoothUnassignRoleCanibal";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        unassignRole(userSharptoothOid, ROLE_CANNIBAL_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoAssignments(userSharptoothOid);
+        assertNoDummyAccount(USER_SHARPTOOTH_NAME);
+	}
+	
+	@Test
+    public void test628RedskullUnassignRoleCanibal() throws Exception {
+		final String TEST_NAME = "test628RedskullUnassignRoleCanibal";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        try {
+	        // WHEN
+	        unassignRole(userRedskullOid, ROLE_CANNIBAL_OID, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// this is expected
+        	display("Expected exception", e);
+        }
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertFailure(result);
+        
+        assertAssignedRole(userRedskullOid, ROLE_CANNIBAL_OID, task, result);
+        assertDefaultDummyAccount(USER_REDSKULL_NAME, USER_REDSKULL_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(USER_REDSKULL_NAME, "title", "Voracious Cannibal");
+	}
+
+	@Test
     public void test700JackAssignRoleJudge() throws Exception {
 		final String TEST_NAME = "test700JackModifyJudgeRecompute";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -1378,23 +1673,27 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         
-        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L);
-        
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, task, result);
-        
+        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, true, task);
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        assertTrue("task is not persistent", task.isPersistent());
         
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+
+        waitForTaskFinish(task.getOid(), true);
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
@@ -1405,24 +1704,27 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         
-        modifyRoleAddInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID);
-        
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, task, result);
-        
+        modifyRoleAddInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID, true, task);
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
+        TestUtil.assertInProgressOrSuccess(result);
+
+        assertTrue("task is not persistent", task.isPersistent());
+
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
-        
+
+        waitForTaskFinish(task.getOid(), true);
+
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
@@ -1484,7 +1786,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertAssignedNoRole(USER_JACK_OID, task, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
@@ -1496,6 +1798,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -1521,23 +1824,26 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         
-        modifyRoleAddInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID);
-        
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, task, result);
-        
+        modifyRoleAddInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID, true, task);
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
+        TestUtil.assertInProgressOrSuccess(result);
+
+        assertTrue("task is not persistent", task.isPersistent());
+
         assertAssignedRole(USER_JACK_OID, ROLE_EMPTY_OID, task, result);
+
+        waitForTaskFinish(task.getOid(), true);
         
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");

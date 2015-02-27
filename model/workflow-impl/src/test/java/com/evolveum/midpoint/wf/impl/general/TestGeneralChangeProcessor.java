@@ -39,7 +39,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.TestConstants;
+import com.evolveum.midpoint.wf.impl.AbstractWfTest;
 import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
@@ -133,7 +133,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
-        importObjectFromFile(TestConstants.USERS_AND_ROLES_FILENAME, initResult);
+        importObjectFromFile(AbstractWfTest.USERS_AND_ROLES_FILENAME, initResult);
 
 	}
 
@@ -184,10 +184,10 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
-                assertAssignedRole(USER_JACK_OID, TestConstants.ROLE_R2_OID, task, result);
+                assertAssignedRole(USER_JACK_OID, AbstractWfTest.ROLE_R2_OID, task, result);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED));
-                //checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R1BOSS_OID), result);
+                //checkWorkItemAuditRecords(createResultMap(AbstractWfTest.ROLE_R1_OID, WorkflowResult.APPROVED));
+                //checkUserApprovers(USER_JACK_OID, Arrays.asList(AbstractWfTest.R1BOSS_OID), result);
             }
         });
 	}
@@ -241,11 +241,11 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
-//                assertAssignedRole(USER_JACK_OID, TestConstants.ROLE_R2_OID, task, result);
+//                assertAssignedRole(USER_JACK_OID, AbstractWfTest.ROLE_R2_OID, task, result);
                 assertNoLinkedAccount(jack);
                 //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED));
-                //checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R1BOSS_OID), result);
+                //checkWorkItemAuditRecords(createResultMap(AbstractWfTest.ROLE_R1_OID, WorkflowResult.APPROVED));
+                //checkUserApprovers(USER_JACK_OID, Arrays.asList(AbstractWfTest.R1BOSS_OID), result);
             }
 
 
@@ -329,11 +329,11 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
-//                assertAssignedRole(USER_JACK_OID, TestConstants.ROLE_R2_OID, task, result);
+//                assertAssignedRole(USER_JACK_OID, AbstractWfTest.ROLE_R2_OID, task, result);
                 assertAccount(jack, RESOURCE_DUMMY_OID);
                 //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED));
-                //checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R1BOSS_OID), result);
+                //checkWorkItemAuditRecords(createResultMap(AbstractWfTest.ROLE_R1_OID, WorkflowResult.APPROVED));
+                //checkUserApprovers(USER_JACK_OID, Arrays.asList(AbstractWfTest.R1BOSS_OID), result);
             }
 
 

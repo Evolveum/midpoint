@@ -619,14 +619,14 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected List<String> getChildren(String oid) {
-        Query childrenQuery = getSession().createQuery("select distinct ownerOid from RParentOrgRef where targetOid=:oid");
+        Query childrenQuery = getSession().createQuery("select distinct ownerOid from RObjectReference where targetOid=:oid and referenceType=0");
         childrenQuery.setString("oid", oid);
         return childrenQuery.list();
     }
 
     private List<String> getOrgChildren(String oid) {
-        Query childrenQuery = getSession().createQuery("select distinct parentRef.ownerOid from RParentOrgRef as parentRef" +
-                " join parentRef.owner as owner where parentRef.targetOid=:oid" +
+        Query childrenQuery = getSession().createQuery("select distinct parentRef.ownerOid from RObjectReference as parentRef" +
+                " join parentRef.owner as owner where parentRef.targetOid=:oid and parentRef.referenceType=0" +
                 " and owner.objectTypeClass = :orgType");
         childrenQuery.setParameter("orgType", RObjectType.ORG);         // TODO eliminate use of parameter here
         childrenQuery.setString("oid", oid);

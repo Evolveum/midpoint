@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
+/**
+ * Copyright (c) 2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.evolveum.midpoint.model.api.context;
 
-package com.evolveum.midpoint.repo.sql.data.common.type;
-
-import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 
 /**
- * @author lazyman
+ * @author semancik
+ *
  */
-@Entity
-@DiscriminatorValue(RCreateApproverRef.DISCRIMINATOR)
-public class RCreateApproverRef extends RObjectReference {
+public interface EvaluatedAbstractRole extends DebugDumpable {
+	
+	PrismObject<? extends AbstractRoleType> getRole();
 
-    public static final String DISCRIMINATOR = "5";
 }
