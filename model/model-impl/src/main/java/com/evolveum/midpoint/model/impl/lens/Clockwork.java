@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
@@ -94,6 +95,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -101,6 +103,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -923,7 +926,7 @@ public class Clockwork {
 						} else {
 							// No explicit decision for assignment modification yet
 							// process each assignment individually
-							DeltaSetTriple<EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+							DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 							authorizeAssignmentRequest(ModelAuthorizationAction.ASSIGN.getUrl(), object, ownerResolver, evaluatedAssignmentTriple.getPlusSet(), result);
 							authorizeAssignmentRequest(ModelAuthorizationAction.UNASSIGN.getUrl(), object, ownerResolver, evaluatedAssignmentTriple.getMinusSet(), result);
 						}
@@ -952,7 +955,7 @@ public class Clockwork {
 	}
 
 	private <F extends FocusType> void authorizeAssignmentRequest(String actionUrl, PrismObject object,
-			OwnerResolver ownerResolver, Collection<EvaluatedAssignment> evaluatedAssignments, OperationResult result) throws SecurityViolationException, SchemaException {
+			OwnerResolver ownerResolver, Collection<EvaluatedAssignmentImpl> evaluatedAssignments, OperationResult result) throws SecurityViolationException, SchemaException {
 		if (evaluatedAssignments == null) {
 			return;
 		}

@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
@@ -198,11 +199,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 		this.mappingEvaluationHelper = mappingEvaluationHelper;
 	}
 
-	public EvaluatedAssignment<F> evaluate(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi, 
+	public EvaluatedAssignmentImpl<F> evaluate(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi, 
 			boolean evaluateOld, ObjectType source, String sourceDescription, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignmentIdi);
-		EvaluatedAssignment<F> evalAssignment = new EvaluatedAssignment<>();
+		EvaluatedAssignmentImpl<F> evalAssignment = new EvaluatedAssignmentImpl<>();
 		evalAssignment.setAssignmentIdi(assignmentIdi);
 		AssignmentPath assignmentPath = new AssignmentPath();
 		AssignmentPathSegment assignmentPathSegment = new AssignmentPathSegment(assignmentIdi, null);
@@ -220,7 +221,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return evalAssignment;
 	}
 	
-	private void evaluateAssignment(EvaluatedAssignment<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluateAssignment(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, evalAssignment);
@@ -312,7 +313,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		assignmentPath.remove(assignmentPathSegment);
 	}
 
-	private void prepareConstructionEvaluation(EvaluatedAssignment<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private void prepareConstructionEvaluation(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, evaluatedAssignment);
@@ -348,7 +349,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 	
-	private void evaluateFocusMappings(EvaluatedAssignment<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluateFocusMappings(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, evaluatedAssignment);
@@ -406,7 +407,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 
-	private void evaluateTarget(EvaluatedAssignment<F> assignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluateTarget(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, PrismObject<?> target, ObjectType source, QName relation, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
@@ -426,7 +427,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private boolean evaluateAbstractRole(EvaluatedAssignment<F> assignment, AssignmentPathSegment assignmentPathSegment, 
+	private boolean evaluateAbstractRole(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, AbstractRoleType roleType, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
@@ -450,6 +451,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 					roleType, condOld, condNew, origMode, condMode, mode });
 
 		}
+		
+		EvaluatedAbstractRoleImpl evalRole = new EvaluatedAbstractRoleImpl();
+		evalRole.setRole(roleType.asPrismObject());
+		assignment.addRole(evalRole, mode);
 		
 		int evaluationOrder = assignmentPath.getEvaluationOrder();
 		ObjectType orderOneObject;
