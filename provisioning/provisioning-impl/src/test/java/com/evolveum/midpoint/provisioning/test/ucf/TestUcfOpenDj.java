@@ -210,7 +210,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	public void testResourceSchemaSanity() throws Exception {
 		TestUtil.displayTestTile("testResourceSchemaSanity");
 		
-		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
+		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECT_CLASS_INETORGPERSON_NAME);
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
 		assertNotNull("No object class definition " + objectClassQname, accountDefinition);
 		assertEquals("Object class " + objectClassQname + " is not account", ShadowKindType.ACCOUNT, accountDefinition.getKind());
@@ -329,7 +329,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		changes.add(createAddAttributeChange("street", "Wall Street"));
 		changes.add(createDeleteAttributeChange("givenName", "John"));
 
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_INETORGPERSON_NAME);
 
 		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
@@ -362,7 +362,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		TestUtil.displayTestTile(this, "testFetchChanges");
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchChanges");
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_INETORGPERSON_NAME);
 		PrismProperty lastToken = cc.fetchCurrentToken(accountDefinition, result);
 
 		System.out.println("Property:");
@@ -393,7 +393,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		Set<Operation> changes = new HashSet<Operation>();
 		changes.add(createActivationChange(ActivationStatusType.DISABLED));
 
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_INETORGPERSON_NAME);
 
 		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
@@ -406,7 +406,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PrismProperty createProperty(String propertyName, String propertyValue) {
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(
-				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"));
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECT_CLASS_INETORGPERSON_NAME));
 		ResourceAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(
 				ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		ResourceAttribute property = propertyDef.instantiate();
@@ -541,7 +541,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 				.println("-------------------------------------------------------------------------------------");
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema
-				.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"));
+				.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECT_CLASS_INETORGPERSON_NAME));
 		AssertJUnit.assertNotNull(accountDefinition);
 
 		AssertJUnit.assertFalse("No identifiers for account object class ", accountDefinition
@@ -626,7 +626,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		TestUtil.displayTestTile("testSearch");
 		// GIVEN
 
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_INETORGPERSON_NAME);
 		// Determine object class from the schema
 
 		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
@@ -756,7 +756,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	private ResourceAttributeContainer createResourceObject(String dn, String sn, String cn) throws SchemaException {
 		// Account type is hardcoded now
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema
-				.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"));
+				.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECT_CLASS_INETORGPERSON_NAME));
 		// Determine identifier from the schema
 		ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ShadowType.F_ATTRIBUTES);
 
