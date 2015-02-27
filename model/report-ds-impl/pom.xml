@@ -3,11 +3,11 @@
   <parent>
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>model</artifactId>
-    <version>3.1-SNAPSHOT</version>
+    <version>3.2-SNAPSHOT</version>
   </parent>
   <groupId>com.evolveum.midpoint.model</groupId>
   <artifactId>report-ds-impl</artifactId>
-  <version>3.1-SNAPSHOT</version>
+  <version>3.2-SNAPSHOT</version>
   <name>Report dataSource </name>
   <properties>
 		<project.source.version>1.7</project.source.version>
@@ -52,13 +52,13 @@
         <dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>report-impl</artifactId>
-			<version>3.1-SNAPSHOT</version>
+			<version>3.2-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-client</artifactId>
-			<version>3.1-SNAPSHOT</version>
+			<version>3.2-SNAPSHOT</version>
 		</dependency>
 		
 <!-- 		<dependency> -->
