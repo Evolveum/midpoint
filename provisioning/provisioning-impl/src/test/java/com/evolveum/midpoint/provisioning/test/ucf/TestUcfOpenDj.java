@@ -104,6 +104,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/object/resource-opendj.xml";
 	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/object/resource-opendj-bad.xml";
 	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/connector-ldap.xml";
+	private static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";
 
 	private ResourceType resourceType;
 	private ResourceType badResourceType;
@@ -235,7 +236,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 			ObjectAlreadyExistsException, ConfigurationException {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testAdd");
 
-		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
+		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECT_CLASS_INETORGPERSON_NAME);
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
 		assertNotNull("No object class definition "+objectClassQname, accountDefinition);
 		ResourceAttributeContainer resourceObject = accountDefinition.instantiate(ShadowType.F_ATTRIBUTES);
@@ -296,8 +297,8 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 				assertNotNull(uid);
 			}
 		}
-
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+	
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_INETORGPERSON_NAME);
 
 		cc.deleteObject(accountDefinition, null, identifiers, result);
 		
