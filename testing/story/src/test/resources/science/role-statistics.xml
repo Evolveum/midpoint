@@ -1,4 +1,5 @@
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       oid="23d90f70-1924-419e-9beb-78a8bde6d261"
       version="7">
    <name>Stats</name>
@@ -13,7 +14,7 @@
                   <associationTargetSearch>
                      <filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
                         <q:equal>
-                           <q:path>attributes/icsf:name</q:path>
+                           <q:path>attributes/icfs:name</q:path>
                            <q:value>CN=StatsUsers,OU=groups,DC=example,DC=com</q:value>
                         </q:equal>
                      </filter>

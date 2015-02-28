@@ -357,6 +357,14 @@ public class ContextLoader {
 			return;
 		}
 		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
+
+        if (context.getFocusContext() != null) {
+            if (context.getFocusContext().getObjectPolicyConfigurationType() == null) {
+                ObjectPolicyConfigurationType policyConfigurationType =
+                        ModelUtils.determineObjectPolicyConfiguration(context.getFocusContext().getObjectTypeClass(), systemConfigurationType);
+                context.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
+            }
+        }
 		
 		if (context.getFocusTemplate() == null) {
 			PrismObject<ObjectTemplateType> focusTemplate = determineFocusTemplate(context, result);
@@ -387,16 +395,14 @@ public class ContextLoader {
 			context.setGlobalPasswordPolicy(globalPasswordPolicy);
 		}
 	}
-	
+
+    // expects that object policy configuration is already set in focusContext
 	private <F extends ObjectType> PrismObject<ObjectTemplateType> determineFocusTemplate(LensContext<F> context, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
-		SystemConfigurationType systemConfigurationType = context.getSystemConfiguration().asObjectable();
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			return null;
 		}
-		Class<F> focusType = focusContext.getObjectTypeClass();
-
-		ObjectPolicyConfigurationType policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(focusType, systemConfigurationType);
+		ObjectPolicyConfigurationType policyConfigurationType = focusContext.getObjectPolicyConfigurationType();
 		if (policyConfigurationType == null) {
 			LOGGER.trace("No default object template");
 			return null;
