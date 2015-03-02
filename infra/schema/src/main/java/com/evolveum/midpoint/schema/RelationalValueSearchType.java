@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.api;
+package com.evolveum.midpoint.schema;
 
 /**
  * @author semancik
  *
  */
-public enum LookupTableSearchType {
+public enum RelationalValueSearchType {
 	EXACT, STARTS_WITH, SUBSTRING;
 }

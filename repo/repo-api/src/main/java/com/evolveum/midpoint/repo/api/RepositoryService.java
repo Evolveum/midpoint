@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationalValueSearchType;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -477,29 +477,6 @@ public interface RepositoryService {
 	 */
 	<T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
-            SchemaException;
-
-	/**
-	 * <p>Select specified rows from the lookup table.</p>
-	 * <p>
-	 * This operation works only on lookup tables. If OID of any other object
-	 * is specified as a parameter it results in an error.
-	 * </p>
-	 * 
-	 * @param lookupTableOid OID of the lookup table
-	 * @param column name of the column to search
-	 * @param searchValue value to search for
-	 * @param searchType type of search (exact, substring, ...)
-	 * @param paging paging parameters (page offset and size)
-	 * @return selected table rows
-	 * 
-	 * @throws ObjectNotFoundException
-	 *             specified object does not exist
-     * @throws SchemaException
-     *             object is not of type {@link LookupTableType}
-	 */
-	List<LookupTableRowType> searchLookupTable(String lookupTableOid, QName column, String searchValue, 
-			LookupTableSearchType searchType, ObjectPaging paging) throws ObjectNotFoundException,
             SchemaException;
 	
     /**
