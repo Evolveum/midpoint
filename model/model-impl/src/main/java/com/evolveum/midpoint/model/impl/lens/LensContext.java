@@ -252,6 +252,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return focusTemplate;
 	}
 	
+	public void setFocusTemplate(ObjectTemplateType focusTemplate) {
+		this.focusTemplate = focusTemplate;
+	}
+	
 	public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat, String oid) {
 		LensProjectionContext projectionContext = findProjectionContext(rat);
 		
@@ -269,10 +273,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public void setSystemConfiguration(
 			PrismObject<SystemConfigurationType> systemConfiguration) {
 		this.systemConfiguration = systemConfiguration;
-	}
-
-	public void setFocusTemplate(ObjectTemplateType focusTemplate) {
-		this.focusTemplate = focusTemplate;
 	}
 
 	public ProjectionPolicyType getAccountSynchronizationSettings() {
