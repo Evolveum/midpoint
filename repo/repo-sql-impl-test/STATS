@@ -1,4 +1,0 @@
-find . -name "test.log" -exec cat {} \; | grep org.hibernate.SQL | grep -v ": $" | wc -l
-long(default,aspectj,extratest) - TestLdapUniversity (4k entries):
-646563 =>
-

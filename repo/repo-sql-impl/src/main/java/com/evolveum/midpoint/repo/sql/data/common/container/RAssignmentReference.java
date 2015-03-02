@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCObjectReferenceId;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -38,16 +39,16 @@ import javax.persistence.*;
 @JaxbType(type = ObjectReferenceType.class)
 @Entity
 @IdClass(RCObjectReferenceId.class)
-@Table(name = "m_assignment_reference")
-@org.hibernate.annotations.Table(appliesTo = "m_assignment_reference",
-        indexes = {@Index(name = "iAssignmentReferenceTargetOid", columnNames = "targetOid")})
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = RObjectReference.REFERENCE_TYPE, discriminatorType = DiscriminatorType.INTEGER)
+@Table(name = "m_assignment_reference", indexes = {
+        @javax.persistence.Index(name = "iAssignmentReferenceTargetOid", columnList = "targetOid")
+})
 public class RAssignmentReference implements ObjectReference {
 
     public static final String REFERENCE_TYPE = "reference_type";
 
     public static final String F_OWNER = "owner";
+
+    private RCReferenceOwner referenceType;
 
     //owner
     private RAssignment owner;
@@ -113,6 +114,14 @@ public class RAssignmentReference implements ObjectReference {
     public RObjectType getType() {
         return type;
     }
+
+    @Id
+    @Column(name = REFERENCE_TYPE, nullable = false)
+    public RCReferenceOwner getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(RCReferenceOwner referenceType) { this.referenceType = referenceType; }
 
     public void setOwner(RAssignment owner) {
         this.owner = owner;

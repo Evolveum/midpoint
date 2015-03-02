@@ -123,6 +123,7 @@
     <bean id="scriptExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg ref="scriptExpressionFactory"/>
+          <constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
     </bean>
     
     <bean id="generateExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory"
@@ -158,6 +159,7 @@
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg ref="modelController"/>
+          <constructor-arg ref="securityEnforcer"/>
     </bean>
 
 	<bean id="associationTargetSearchExpressionEvaluatorFactory" 
@@ -167,6 +169,7 @@
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg ref="modelController"/>
+          <constructor-arg ref="securityEnforcer"/>
     </bean>
 
 	<bean id="associationFromLinkExpressionEvaluatorFactory" 
@@ -219,6 +222,9 @@
         </property>
         <property name="filterManager">
             <ref bean="filterManager"/>
+        </property>
+        <property name="securityEnforcer">
+            <ref bean="securityEnforcer"/>
         </property>
     </bean>
     

@@ -153,13 +153,13 @@ CREATE TABLE m_assignment_extension (
   ENGINE = InnoDB;
 
 CREATE TABLE m_assignment_reference (
-  reference_type  INTEGER      NOT NULL,
   owner_id        SMALLINT     NOT NULL,
   owner_owner_oid VARCHAR(36)  NOT NULL,
+  reference_type  INTEGER      NOT NULL,
   relation        VARCHAR(157) NOT NULL,
   targetOid       VARCHAR(36)  NOT NULL,
   containerType   INTEGER,
-  PRIMARY KEY (owner_id, owner_owner_oid, relation, targetOid)
+  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -472,12 +472,12 @@ CREATE TABLE m_org_org_type (
   ENGINE = InnoDB;
 
 CREATE TABLE m_reference (
-  reference_type INTEGER      NOT NULL,
   owner_oid      VARCHAR(36)  NOT NULL,
+  reference_type INTEGER      NOT NULL,
   relation       VARCHAR(157) NOT NULL,
   targetOid      VARCHAR(36)  NOT NULL,
   containerType  INTEGER,
-  PRIMARY KEY (owner_oid, relation, targetOid)
+  PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -914,7 +914,7 @@ FOREIGN KEY (oid)
 REFERENCES m_object (oid);
 
 ALTER TABLE m_lookup_table_row
-ADD CONSTRAINT fk_lookup_table
+ADD CONSTRAINT fk_lookup_table_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_lookup_table (oid);
 

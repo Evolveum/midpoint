@@ -251,13 +251,13 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
 
     private void outboundEditPerformed(AjaxRequestTarget target){
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_OUTBOUND);
-        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "password.outbound"));
+        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "password.outbound"), false);
         window.show(target);
     }
 
     private void inboundEditPerformed(AjaxRequestTarget target, MappingType mapping){
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_INBOUND);
-        window.updateModel(target, mapping);
+        window.updateModel(target, mapping, true);
         window.show(target);
     }
 }

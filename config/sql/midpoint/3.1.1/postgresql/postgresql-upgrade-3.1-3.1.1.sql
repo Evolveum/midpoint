@@ -24,6 +24,14 @@ FOREIGN KEY (oid)
 REFERENCES m_object;
 
 ALTER TABLE m_lookup_table_row
-ADD CONSTRAINT fk_lookup_table
+ADD CONSTRAINT fk_lookup_table_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_lookup_table;
+
+ALTER TABLE m_assignment_reference
+DROP CONSTRAINT m_assignment_reference_pkey,
+ADD CONSTRAINT m_assignment_reference_pkey PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid);
+
+ALTER TABLE m_reference
+DROP CONSTRAINT m_reference_pkey,
+ADD CONSTRAINT m_reference_pkey PRIMARY KEY (owner_oid, reference_type, relation, targetOid);

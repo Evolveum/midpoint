@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.notifications.api.events;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -78,4 +79,26 @@ public interface Event {
     void setRequestee(SimpleObjectRef requestee);
 
     void createExpressionVariables(Map<QName, Object> variables, OperationResult result);
+
+    /**
+     * Checks if the event is related to an item with a given path.
+     * The meaning of the result depends on a kind of event (focal, resource object, workflow)
+     * and on operation (add, modify, delete).
+     *
+     * Namely, this method is currently defined for ADD and MODIFY (not for DELETE) operations,
+     * for focal and resource objects events (not for workflow ones).
+     *
+     * For MODIFY it checks whether an item with a given path is touched.
+     * For ADD it checks whether there is a value for an item with a given path in the object created.
+     *
+     * For unsupported events the method returns false.
+     *
+     * Paths are compared without taking ID segments into account.
+     *
+     * EXPERIMENTAL; does not always work (mainly for values being deleted)
+     *
+     * @param itemPath
+     * @return
+     */
+    boolean isRelatedToItem(ItemPath itemPath);
 }

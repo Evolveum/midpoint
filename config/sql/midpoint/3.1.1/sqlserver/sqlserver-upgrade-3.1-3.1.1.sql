@@ -24,6 +24,19 @@ FOREIGN KEY (oid)
 REFERENCES m_object;
 
 ALTER TABLE m_lookup_table_row
-ADD CONSTRAINT fk_lookup_table
+ADD CONSTRAINT fk_lookup_table_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_lookup_table;
+
+declare @pkname varchar(255);
+set @pkname = (SELECT name FROM sys.key_constraints WHERE type = 'PK' AND OBJECT_NAME(parent_object_id) = N'm_assignment_reference');
+
+execute ('ALTER TABLE m_assignment_reference DROP CONSTRAINT ' + @pkname);
+alter table m_assignment_reference add constraint PK_m_a_reference primary key clustered (owner_id, owner_owner_oid, reference_type, relation, targetOid);
+
+set @pkname = (SELECT name FROM sys.key_constraints WHERE type = 'PK' AND OBJECT_NAME(parent_object_id) = N'm_reference');
+
+execute ('ALTER TABLE m_reference DROP CONSTRAINT ' + @pkname);
+alter table m_reference add constraint PK_m_reference primary key clustered (owner_oid, reference_type, relation, targetOid);
+go
+

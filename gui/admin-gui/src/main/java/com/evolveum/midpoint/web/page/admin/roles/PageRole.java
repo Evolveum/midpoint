@@ -149,7 +149,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
 
             @Override
             protected String load() {
-                if(!isEditing()){
+                if(!isEditingRole()){
                     return createStringResource("PageRoleEditor.title.newRole").getObject();
                 }
 
@@ -164,7 +164,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
 
             @Override
             protected String load() {
-                if(!isEditing()){
+                if(!isEditingRole()){
                     return createStringResource("PageRoleEditor.subtitle.newRole").getObject();
                 }
 
@@ -179,7 +179,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
 
         PrismObject<RoleType> role = null;
         try {
-            if (!isEditing()) {
+            if (!isEditingRole()) {
                 RoleType r = new RoleType();
                 ActivationType defaultActivation = new ActivationType();
                 defaultActivation.setAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -211,7 +211,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
 
     private ContainerWrapper loadRoleWrapper(){
         OperationResult result = new OperationResult(OPERATION_CREATE_ROLE_WRAPPER);
-        ContainerStatus status = isEditing() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+        ContainerStatus status = isEditingRole() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         ObjectWrapper wrapper = null;
         ContainerWrapper extensionContainer = null;
         PrismObject<RoleType> role = model.getObject();
@@ -241,7 +241,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         return extensionContainer;
     }
 
-    private boolean isEditing(){
+    private boolean isEditingRole(){
         StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         return oid != null && StringUtils.isNotEmpty(oid.toString());
     }
@@ -430,7 +430,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         };
         form.add(back);
 
-        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
+        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, true));
     }
 
     private void savePerformed(AjaxRequestTarget target){
@@ -440,7 +440,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
             PrismObject<RoleType> newRole = model.getObject();
 
             delta = null;
-            if (!isEditing()) {
+            if (!isEditingRole()) {
 
                 //handle assignments
                 PrismObjectDefinition orgDef = newRole.getDefinition();
@@ -478,7 +478,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
             ObjectDelta extDelta = null;
 
             if(extensionDelta != null){
-                if(isEditing()){
+                if(isEditingRole()){
                     extDelta = extensionDelta;
                 } else {
                     extDelta = delta.getObjectToAdd().diff(extensionDelta.getObjectToAdd());

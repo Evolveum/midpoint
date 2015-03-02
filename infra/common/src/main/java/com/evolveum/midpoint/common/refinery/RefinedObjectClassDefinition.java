@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,9 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -69,6 +71,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	private Collection<ResourceObjectPattern> protectedObjectPatterns;
 	private List<RefinedAttributeDefinition> attributeDefinitions;
 	private Collection<RefinedAssociationDefinition> associations = new ArrayList<RefinedAssociationDefinition>();
+	private ResourceObjectReferenceType baseContext; 
 	
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
@@ -352,7 +355,15 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return objectDefinition;
     }
 
-    private void constructObjectDefinition() {
+    public ResourceObjectReferenceType getBaseContext() {
+		return baseContext;
+	}
+
+	public void setBaseContext(ResourceObjectReferenceType baseContext) {
+		this.baseContext = baseContext;
+	}
+
+	private void constructObjectDefinition() {
         // Almost-shallow clone of object definition and complex type
         PrismObjectDefinition<ShadowType> originalObjectDefinition = 
         	getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
@@ -537,6 +548,10 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
             rOcDef.setDefault(objectClassDef.isDefaultInAKind());
         }
 
+        if (schemaHandlingObjDefType.getBaseContext() != null) {
+        	rOcDef.setBaseContext(schemaHandlingObjDefType.getBaseContext());
+        }
+        
         for (ResourceAttributeDefinition road : objectClassDef.getAttributeDefinitions()) {
             String attrContextDescription = road.getName() + ", in " + contextDescription;
             ResourceAttributeDefinitionType attrDefType = findAttributeDefinitionType(road.getName(), schemaHandlingObjDefType,
@@ -759,6 +774,37 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			return AttributeFetchStrategyType.IMPLICIT;
 		}
 		return biType.getFetchStrategy();
+	}
+    
+    public static RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<ShadowType> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
+		ShadowType shadowType = shadow.asObjectable();
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, resource.asPrismObject().getPrismContext());
+		if (refinedSchema == null) {
+			throw new ConfigurationException("No schema defined for "+resource);
+		}
+		
+		
+		RefinedObjectClassDefinition objectClassDefinition = null;
+		ShadowKindType kind = shadowType.getKind();
+		String intent = shadowType.getIntent();
+		QName objectClass = shadow.asObjectable().getObjectClass();
+		if (kind != null) {
+			objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
+		} 
+		if (objectClassDefinition == null) {
+			// Fallback to objectclass only
+			if (objectClass == null) {
+				throw new SchemaException("No kind nor objectclass definied in "+shadow);
+			}
+			objectClassDefinition = refinedSchema.findRefinedDefinitionByObjectClassQName(kind, objectClass);
+		}
+		
+		if (objectClassDefinition == null) {
+			throw new SchemaException("Definition for "+shadow+" not found (objectClass=" + PrettyPrinter.prettyPrint(objectClass) +
+					", kind="+kind+", intent='"+intent+"') in schema of " + resource);
+		}		
+		
+		return objectClassDefinition;
 	}
     
 	public boolean matches(ShadowType shadowType) {

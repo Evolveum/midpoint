@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.xml.datatype.Duration;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -36,6 +38,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -48,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *   <li>Status: public</li>
  *   <li>Stability: stable</li>
  * </ul>
- * @version 3.0
+ * @version 3.1.1
  * @author Radovan Semancik
  * </p><p>
  * This service provides repository for objects that are commonly found
@@ -163,7 +167,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,String oid, Collection<SelectorOptions<GetOperationOptions>> options,
+	<T extends ObjectType> PrismObject<T> getObject(Class<T> type,String oid, Collection<SelectorOptions<GetOperationOptions>> options,
 			OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 
@@ -188,7 +192,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	public <T extends ObjectType> String getVersion(Class<T> type,String oid, OperationResult parentResult)
+	<T extends ObjectType> String getVersion(Class<T> type,String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 
 	/**
@@ -228,7 +232,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	public <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult)
+	<T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException;
 
 
@@ -262,7 +266,7 @@ public interface RepositoryService {
 	 *             unknown property used in search query
 	 */
 
-	public <T extends ObjectType> SearchResultList<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query,
+	<T extends ObjectType> SearchResultList<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException;
 
@@ -297,7 +301,7 @@ public interface RepositoryService {
 	 *             unknown property used in search query
 	 */
 
-	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
+	<T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
 			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException;
 
@@ -323,7 +327,7 @@ public interface RepositoryService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
+	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException;
 
 	boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
@@ -358,7 +362,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
 	/**
@@ -377,7 +381,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
+	<T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
 
 	/**
 	 * <p>Returns the User object representing owner of specified account (account
@@ -409,7 +413,7 @@ public interface RepositoryService {
 	 *             wrong OID format
 	 */
 	@Deprecated
-	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
+	PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
 			throws ObjectNotFoundException;
 
 	/**
@@ -440,7 +444,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
-	public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+	<F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws ObjectNotFoundException;
 
 	/**
@@ -471,14 +475,37 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
-	public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
+	<T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException;
 
+	/**
+	 * <p>Select specified rows from the lookup table.</p>
+	 * <p>
+	 * This operation works only on lookup tables. If OID of any other object
+	 * is specified as a parameter it results in an error.
+	 * </p>
+	 * 
+	 * @param lookupTableOid OID of the lookup table
+	 * @param column name of the column to search
+	 * @param searchValue value to search for
+	 * @param searchType type of search (exact, substring, ...)
+	 * @param paging paging parameters (page offset and size)
+	 * @return selected table rows
+	 * 
+	 * @throws ObjectNotFoundException
+	 *             specified object does not exist
+     * @throws SchemaException
+     *             object is not of type {@link LookupTableType}
+	 */
+	List<LookupTableRowType> searchLookupTable(String lookupTableOid, QName column, String searchValue, 
+			LookupTableSearchType searchType, ObjectPaging paging) throws ObjectNotFoundException,
+            SchemaException;
+	
     /**
 	 * Provide repository run-time configuration and diagnostic information.
 	 */
-    public RepositoryDiag getRepositoryDiag();
+    RepositoryDiag getRepositoryDiag();
 
     /**
 	 * Runs a short, non-descructive repository self test.
@@ -492,7 +519,7 @@ public interface RepositoryService {
 	 * If the repository has no self-tests then the method should return immediately
 	 * without changing the result structure. It must not throw an exception in this case.
 	 */
-    public void repositorySelfTest(OperationResult parentResult);
+    void repositorySelfTest(OperationResult parentResult);
 
     /**
      * Checks a closure for consistency, repairing any problems found.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -156,9 +158,10 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
 	 * @throws SchemaException error converting object from native (connector) format
 	 */
-	public <T extends ShadowType> PrismObject<T> fetchObject(
-			Class<T> type, ObjectClassComplexTypeDefinition objectClassDefinition,
-			Collection<? extends ResourceAttribute<?>> identifiers, AttributesToReturn attributesToReturn, OperationResult parentResult)
+	public <T extends ShadowType> PrismObject<T> fetchObject(Class<T> type,
+                                                             ResourceObjectIdentification resourceObjectIdentification,
+                                                             AttributesToReturn attributesToReturn, 
+                                                             OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 		SecurityViolationException, ConfigurationException;
 
@@ -178,10 +181,13 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
 	 */
-    public <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-                                              ResultHandler<T> handler, AttributesToReturn attributesToReturn,
-                                              PagedSearchCapabilityType pagedSearchConfigurationType,
-                                              OperationResult parentResult)
+    public <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, 
+                                                              ObjectQuery query,
+                                                              ResultHandler<T> handler,
+                                                              AttributesToReturn attributesToReturn,
+                                                              PagedSearchCapabilityType pagedSearchConfigurationType,
+                                                              SearchHierarchyConstraints searchHierarchyConstraints,
+                                                              OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException;
 
     /**

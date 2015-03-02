@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -635,8 +636,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);
 	}
-	
-	protected <O extends ObjectType, C extends Containerable> void modifyObjectDeleteContainer(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue) 
+
+	protected <O extends ObjectType, C extends Containerable> void modifyObjectDeleteContainer(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> objectDelta = ObjectDelta.createModificationDeleteContainer(type, oid, propertyPath, prismContext, newRealValue);
@@ -1219,6 +1220,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertNotAssignedRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
         MidPointAsserts.assertNotAssignedRole(user, roleOid);
+    }
+
+    protected void assertNotAssignedResource(String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+        MidPointAsserts.assertNotAssignedResource(user, resourceOid);
+    }
+
+    protected void assertAssignedResource(String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+        MidPointAsserts.assertAssignedResource(user, resourceOid);
     }
 
     protected <F extends FocusType> void assertNotAssignedRole(PrismObject<F> user, String roleOid) {
@@ -2599,8 +2610,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TestUtil.assertSuccess(result);
 	}
 	
-	protected void modifyRoleAddInducementTarget(String roleOid, String targetOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleAddInducementTarget");
+	protected void modifyRoleAddInducementTarget(String roleOid, String targetOid, boolean reconcileAffected, Task task) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+        if (task == null) {
+            task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleAddInducementTarget");
+        }
         OperationResult result = task.getResult();
         AssignmentType inducement = new AssignmentType();
         ObjectReferenceType targetRef = new ObjectReferenceType();
@@ -2609,9 +2622,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid, 
         		new ItemPath(new NameItemPathSegment(RoleType.F_INDUCEMENT)),
         		prismContext, inducement);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        ModelExecuteOptions options = new ModelExecuteOptions();
+        options.setReconcileAffected(reconcileAffected);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), options, task, result);
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        if (reconcileAffected) {
+            TestUtil.assertInProgressOrSuccess(result);
+        } else {
+            TestUtil.assertSuccess(result);
+        }
 	}
 	
 	protected AssignmentType findInducementByTarget(String roleOid, String targetOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -2639,17 +2658,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TestUtil.assertSuccess(result);
 	}
 	
-	protected void modifyRoleDeleteInducement(String roleOid, long inducementId) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleDeleteInducement");
+	protected void modifyRoleDeleteInducement(String roleOid, long inducementId, boolean reconcileAffected, Task task) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		if (task == null) {
+            task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleDeleteInducement");
+        }
         OperationResult result = task.getResult();
         
 		AssignmentType inducement = new AssignmentType();
 		inducement.setId(inducementId);
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, 
         		RoleType.F_INDUCEMENT, prismContext, inducement);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        ModelExecuteOptions options = new ModelExecuteOptions();
+        options.setReconcileAffected(reconcileAffected);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), options, task, result);
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        if (reconcileAffected) {
+            TestUtil.assertInProgressOrSuccess(result);
+        } else {
+            TestUtil.assertSuccess(result);
+        }
 	}
 	
 	protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {

@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
+/**
+ * Copyright (c) 2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.evolveum.midpoint.repo.sql.data.common.type;
-
-import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+package com.evolveum.midpoint.schema.processor;
 
 /**
- * @author lazyman
+ * @author semancik
+ *
  */
-@Entity
-@DiscriminatorValue(RResourceApproverRef.DISCRIMINATOR)
-public class RResourceApproverRef extends RObjectReference {
+public class SearchHierarchyConstraints {
 
-    public static final String DISCRIMINATOR = "2";
+	ResourceObjectIdentification baseContext;
+	SearchHierarchyScope scope;
+	
+	public SearchHierarchyConstraints(ResourceObjectIdentification baseContext, SearchHierarchyScope scope) {
+		super();
+		this.baseContext = baseContext;
+		this.scope = scope;
+	}
+
+	public ResourceObjectIdentification getBaseContext() {
+		return baseContext;
+	}
+
+	public SearchHierarchyScope getScope() {
+		return scope;
+	}
+	
+	
 }

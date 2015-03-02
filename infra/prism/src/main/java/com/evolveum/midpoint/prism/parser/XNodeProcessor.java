@@ -315,7 +315,9 @@ public class XNodeProcessor {
 			Item<?> item = parseItem(xentry.getValue(), itemQName, itemDef);
 			// Merge must be here, not just add. Some items (e.g. references) have alternative
 			// names and representations and these cannot be processed as one map or list
-			cval.merge(item);
+            if (item != null) {
+                cval.merge(item);
+            }
 		}
 		return cval;
 	}

@@ -52,6 +52,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -59,6 +60,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -256,20 +258,67 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-	public OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	public OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws SchemaException, SecurityViolationException {
+    	Collection<OrgType> parentOrgs = getParentOrgs(object, PrismConstants.Q_ANY, orgType);
+    	if (parentOrgs.isEmpty()) {
+    		return null;
+    	}
+    	if (parentOrgs.size() > 1) {
+    		throw new IllegalArgumentException("Expected that there will be just one parent org of type "+orgType+" for "+object+", but there were "+parentOrgs.size()); 
+    	}
+    	return parentOrgs.iterator().next();
+    }
+    
+    @Override
+	public Collection<OrgType> getParentOrgsByRelation(ObjectType object, QName relation) throws SchemaException, SecurityViolationException {
+    	return getParentOrgs(object, relation, null);
+    }
+
+    @Override
+	public Collection<OrgType> getParentOrgsByRelation(ObjectType object, String relation) throws SchemaException, SecurityViolationException {
+    	return getParentOrgs(object, relation, null);
+    }
+
+    @Override
+	public Collection<OrgType> getParentOrgs(ObjectType object) throws SchemaException, SecurityViolationException {
+    	return getParentOrgs(object, PrismConstants.Q_ANY, null);
+    }
+    
+    @Override
+	public Collection<OrgType> getParentOrgs(ObjectType object, String relation, String orgType) throws SchemaException, SecurityViolationException {
+    	return getParentOrgs(object, new QName(null, relation), orgType);
+    }
+    
+    @Override
+	public Collection<OrgType> getParentOrgs(ObjectType object, QName relation, String orgType) throws SchemaException, SecurityViolationException {
     	List<ObjectReferenceType> parentOrgRefs = object.getParentOrgRef();
+    	List<OrgType> parentOrgs = new ArrayList<OrgType>(parentOrgRefs.size());
     	for (ObjectReferenceType parentOrgRef: parentOrgRefs) {
+    		if (relation == null) {
+    			if (parentOrgRef.getRelation() != null) {
+    				continue;
+    			}
+    		} else if (!relation.equals(PrismConstants.Q_ANY)) {
+    			if (!QNameUtil.match(parentOrgRef.getRelation(), relation)) {
+    				continue;
+    			}
+    		}
     		OrgType parentOrg;
 			try {
 				parentOrg = getObject(OrgType.class, parentOrgRef.getOid());
 			} catch (ObjectNotFoundException e) {
-				return null;
+				LOGGER.warn("Org "+parentOrgRef.getOid()+" specified in parentOrgRef in "+object+" was not found: "+e.getMessage(), e);
+				// but do not rethrow, just skip this
+				continue;
+			} catch (CommunicationException | ConfigurationException e) {
+				// This should not happen.
+				throw new SystemException(e.getMessage(), e);
 			}
     		if (orgType == null || parentOrg.getOrgType().contains(orgType)) {
-    			return parentOrg;
+    			parentOrgs.add(parentOrg);
     		}
     	}
-    	return null;
+    	return parentOrgs;
 	}
 
 	@Override

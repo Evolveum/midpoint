@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -33,6 +34,14 @@ public class MidPointDataSource implements JRDataSource{
 		if (results != null){
 			iterator = results.iterator();
 		}
+	}
+	
+	public MidPointDataSource(ObjectListType results){
+		resultList = new ArrayList<>();
+		for (ObjectType objType : results.getObject()){
+			resultList.add(objType.asPrismObject());
+		}
+		iterator = resultList.iterator();
 	}
 	
 	@Override

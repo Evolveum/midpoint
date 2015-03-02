@@ -145,7 +145,8 @@ public class MetadataFactory {
         Validate.notNull(refOwner, "Reference owner of reference must not be null.");
         Validate.notEmpty(reference.getOid(), "Target oid reference must not be null.");
 
-        RAssignmentReference repoRef = RCReferenceOwner.createObjectReference(refOwner);
+        RAssignmentReference repoRef = new RAssignmentReference();
+        repoRef.setReferenceType(refOwner);
         repoRef.setOwner(owner);
         RAssignmentReference.copyFromJAXB(reference, repoRef, prismContext);
 

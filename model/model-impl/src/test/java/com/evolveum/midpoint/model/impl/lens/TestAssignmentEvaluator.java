@@ -52,7 +52,7 @@ import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -127,7 +127,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 		
 		// THEN
@@ -167,7 +167,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 		
 		// THEN
@@ -219,7 +219,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 		
 		// THEN
@@ -286,7 +286,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 		
 		// THEN
@@ -362,7 +362,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -409,7 +409,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testRoleEngineer", task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testRoleEngineer", task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -461,7 +461,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -535,7 +535,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -601,7 +601,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -629,7 +629,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         assertNoConstruction(evaluatedAssignment, MINUS, "location");
     }
 
-    private void assertNoConstruction(EvaluatedAssignment<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName) {
+    private void assertNoConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName) {
         Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
         for (Construction construction : constructions) {
             Mapping<? extends PrismPropertyValue<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
@@ -637,7 +637,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         }
     }
 
-    private void assertConstruction(EvaluatedAssignment<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName, PlusMinusZero attributeSet, String... expectedValues) {
+    private void assertConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName, PlusMinusZero attributeSet, String... expectedValues) {
         Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
         Set<String> realValues = new HashSet<>();
         for (Construction construction : constructions) {

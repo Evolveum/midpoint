@@ -19,18 +19,13 @@ package com.evolveum.midpoint.repo.sql.query.restriction;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.repo.api.query.Query;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
-import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import org.apache.commons.lang.ObjectUtils;
-import org.hibernate.Criteria;
 import org.hibernate.criterion.*;
-import org.hibernate.sql.JoinType;
 import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
 
@@ -81,18 +76,20 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         DetachedCriteria detached;
         switch (filter.getScope()) {
             case ONE_LEVEL:
-                detached = DetachedCriteria.forClass(RParentOrgRef.class, "p");
+                detached = DetachedCriteria.forClass(RObjectReference.class, "p");
+                detached.add(Restrictions.eq("referenceType", RReferenceOwner.OBJECT_PARENT_ORG));
                 detached.setProjection(Projections.distinct(Projections.property("p.ownerOid")));
                 detached.add(Restrictions.eq("p.targetOid", filter.getOrgRef().getOid()));
                 break;
             case SUBTREE:
             default:
-                detached = DetachedCriteria.forClass(RParentOrgRef.class, "p");
+                detached = DetachedCriteria.forClass(RObjectReference.class, "p");
+                detached.add(Restrictions.eq("referenceType", RReferenceOwner.OBJECT_PARENT_ORG));
                 detached.setProjection(Projections.distinct(Projections.property("p.ownerOid")));
                 detached.add(Property.forName("targetOid").in(
                         DetachedCriteria.forClass(ROrgClosure.class, "cl")
-                            .setProjection(Projections.property("cl.descendantOid"))
-                            .add(Restrictions.eq("cl.ancestorOid", filter.getOrgRef().getOid()))));
+                                .setProjection(Projections.property("cl.descendantOid"))
+                                .add(Restrictions.eq("cl.ancestorOid", filter.getOrgRef().getOid()))));
         }
         String mainAlias = getContext().getAlias(null);
         return Subqueries.propertyIn(mainAlias + ".oid", detached);

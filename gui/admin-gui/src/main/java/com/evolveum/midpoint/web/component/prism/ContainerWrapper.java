@@ -206,7 +206,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
         // assignments are treated in a special way -- we display names of org.units and roles
         // (but only if ObjectWrapper.isShowAssignments() is true; otherwise they are filtered out by ObjectWrapper)
-        if (container.getCompileTimeClass() != null && container.getCompileTimeClass().isAssignableFrom(AssignmentType.class)) {
+        if (container.getCompileTimeClass() != null && AssignmentType.class.isAssignableFrom(container.getCompileTimeClass())) {
 
             for (Object o : container.getValues()) {
                 PrismContainerValue<AssignmentType> pcv = (PrismContainerValue<AssignmentType>) o;
@@ -358,16 +358,18 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         } else {
             sb.append(assignment.getTargetRef().getOid());
         }
-        if (assignment.getActivation() != null) {
-            if (assignment.getActivation().getAdministrativeStatus() == ActivationStatusType.ENABLED) {
-                sb.append(", active");
-            }
-        }
         if (assignment.getActivation() != null && (assignment.getActivation().getValidFrom() != null || assignment.getActivation().getValidTo() != null)) {
             sb.append(" ");
             sb.append("(");
             sb.append(formatTimeIntervalBrief(assignment));
             sb.append(")");
+        }
+        if (assignment.getActivation() != null) {
+            switch (assignment.getActivation().getAdministrativeStatus()) {
+                case ARCHIVED: sb.append(", archived"); break;          // TODO i18n
+                case ENABLED: sb.append(", enabled"); break;
+                case DISABLED: sb.append(", disabled"); break;
+            }
         }
         return sb.toString();
     }

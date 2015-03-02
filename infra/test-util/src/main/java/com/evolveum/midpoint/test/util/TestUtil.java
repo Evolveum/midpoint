@@ -259,6 +259,12 @@ public class TestUtil {
 		}
 	}
 
+    public static void assertInProgressOrSuccess(OperationResult result) {
+        if (!result.isInProgress()) {
+            assertSuccess("Operation "+result.getOperation()+" result", result);
+        }
+    }
+
 	public static void assertSuccess(OperationResult result) {
 		assertSuccess("Operation "+result.getOperation()+" result", result);
 	}

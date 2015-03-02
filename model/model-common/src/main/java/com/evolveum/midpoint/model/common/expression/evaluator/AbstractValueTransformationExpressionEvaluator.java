@@ -25,22 +25,18 @@ import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.expression.Source;
 import com.evolveum.midpoint.model.common.expression.SourceTriple;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -48,16 +44,17 @@ import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionRelativityModeType;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import org.w3c.dom.Element;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,7 +63,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * @author Radovan Semancik
@@ -74,12 +70,15 @@ import java.util.Set;
 public abstract class AbstractValueTransformationExpressionEvaluator<V extends PrismValue, E extends TransformExpressionEvaluatorType>
 						implements ExpressionEvaluator<V> {
 
+    private SecurityEnforcer securityEnforcer;
+
 	private E expressionEvaluatorType;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractValueTransformationExpressionEvaluator.class);
 
-    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType) {
+    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType, SecurityEnforcer securityEnforcer) {
     	this.expressionEvaluatorType = expressionEvaluatorType;
+        this.securityEnforcer = securityEnforcer;
     }
 
     public E getExpressionEvaluatorType() {
@@ -91,10 +90,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	 */
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
-			ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException {
 		
         PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>();
-        	    
+
+        ExpressionUtil.addActorVariable(context.getVariables(), securityEnforcer);
+
         if (expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.ABSOLUTE) {
         	
         	outputTriple = evaluateAbsoluteExpression(context.getSources(), context.getVariables(), context,
@@ -183,12 +184,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	}
 
 	private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpression(Collection<Source<? extends PrismValue>> sources,
-			ExpressionVariables variables, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			ExpressionVariables variables, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		PrismValueDeltaSetTriple<V> outputTriple;
 		
-		if (hasDeltas(sources) || hasDelas(variables)) {
+		if (hasDeltas(sources) || hasDeltas(variables)) {
 		
 			Collection<V> outputSetOld = null;
 			if (!params.isSkipEvaluationMinus()) {
@@ -223,7 +224,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		return false;
 	}
 
-	private boolean hasDelas(ExpressionVariables variables) {
+	private boolean hasDeltas(ExpressionVariables variables) {
 		for (Entry<QName,Object> entry: variables.entrySet()) {
 			Object value = entry.getValue();
 			if (value instanceof ObjectDeltaObject<?>) {
@@ -272,7 +273,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				scriptVariables.addVariableDefinition(name, value);
 			}
 		}
-		
+
 		List<V> scriptResults = transformSingleValue(scriptVariables, null, useNew, params,
 				(useNew ? "(new) " : "(old) " ) + contextDescription, task, result);
 		
@@ -303,8 +304,8 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		
 		return outputSet;
 	}
-	
-	protected abstract List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination,
+
+    protected abstract List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination,
 			boolean useNew, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
 

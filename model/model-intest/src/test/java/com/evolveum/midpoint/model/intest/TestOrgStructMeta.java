@@ -153,11 +153,11 @@ public class TestOrgStructMeta extends TestOrgStruct {
 		assertTrue("Unexpected value in user organization property: "+userOrganizations, userOrganizations.isEmpty());
 	}
 
-	// test05x - test3xx inherited from superclass
+	// test05x - test7xx inherited from superclass
 	
 	@Test
-    public void test400JackAssignScummBar() throws Exception {
-		final String TEST_NAME = "test400JackAssignScummBar";
+    public void test800JackAssignScummBar() throws Exception {
+		final String TEST_NAME = "test800JackAssignScummBar";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -184,8 +184,8 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	}
 	
 	@Test
-    public void test402JackAssignOrganized() throws Exception {
-		final String TEST_NAME = "test402JackAssignOrganized";
+    public void test802JackAssignOrganized() throws Exception {
+		final String TEST_NAME = "test802JackAssignOrganized";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -211,8 +211,8 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	}
 	
 	@Test
-    public void test404JackUnAssignOrganized() throws Exception {
-		final String TEST_NAME = "test404JackUnAssignOrganized";
+    public void test804JackUnAssignOrganized() throws Exception {
+		final String TEST_NAME = "test804JackUnAssignOrganized";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -237,8 +237,8 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	}
 	
 	@Test
-    public void test409JackUnassignScummBar() throws Exception {
-		final String TEST_NAME = "test400JackAssignScummBar";
+    public void test809JackUnassignScummBar() throws Exception {
+		final String TEST_NAME = "test809JackUnassignScummBar";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -261,11 +261,11 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	}
 	
 	/**
-	 * Now do the same things as 40x but do it all at once.
+	 * Now do the same things as 80x but do it all at once.
 	 */
 	@Test
-    public void test410JackAssignScummBarOrganized() throws Exception {
-		final String TEST_NAME = "test410JackAssignScummBarOrganized";
+    public void test810JackAssignScummBarOrganized() throws Exception {
+		final String TEST_NAME = "test810JackAssignScummBarOrganized";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);

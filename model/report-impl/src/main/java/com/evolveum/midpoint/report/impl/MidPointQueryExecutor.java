@@ -13,6 +13,7 @@ import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JRValueParameter;
+import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.base.JRBaseParameter;
 import net.sf.jasperreports.engine.data.JRBeanArrayDataSource;
@@ -66,18 +67,42 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 	
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointQueryExecutor.class);
-	PrismContext prismContext;
-	ModelService model;
-	TaskManager taskManager;
-	ExpressionFactory expressionFactory;
-	ObjectResolver objectResolver;
-	ObjectQuery query;
-	String script;
-	Class type;
-	ExpressionVariables variables;
-	MidpointFunctions midpointFunctions;
-	AuditService auditService;
-	ReportFunctions reportFunctions;
+	private PrismContext prismContext;
+	private ModelService model;
+	private TaskManager taskManager;
+	private ExpressionFactory expressionFactory;
+	private ObjectResolver objectResolver;
+	private ObjectQuery query;
+	private String script;
+	private Class type;
+	private ExpressionVariables variables;
+	private MidpointFunctions midpointFunctions;
+	private AuditService auditService;
+	private ReportFunctions reportFunctions;
+	
+	public String getScript() {
+		return script;
+	}
+	public ObjectQuery getQuery() {
+		return query;
+	}
+	public Class getType() {
+		return type;
+	}
+	
+	public ExpressionVariables getVariables() {
+		return variables;
+	}
+	
+	MidPointQueryExecutor(PrismContext prismContext, TaskManager taskManager, JRDataset dataset) {
+		super(null, dataset, null);
+		this.prismContext = prismContext;
+		this.taskManager = taskManager;
+//		this.dataset = dataset;
+		
+		parseQuery();
+		
+	}
 	
 	@Override
 	protected void parseQuery() {
@@ -212,47 +237,15 @@ public class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 	
 		
 		try {
+		
 			if (query == null && script == null){
 				throw new JRException("Neither query, nor script defined in the report.");
 			}
-			if (script != null){
-				FunctionLibrary functionLib = ExpressionUtil.createBasicFunctionLibrary(prismContext, prismContext.getDefaultProtector());
-				FunctionLibrary midPointLib = new FunctionLibrary();
-				midPointLib.setVariableName("report");
-				midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-//				ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, taskManager, auditService);
-				midPointLib.setGenericFunctions(reportFunctions);
-				
-				Collection<FunctionLibrary> functions = new ArrayList<>();
-				functions.add(functionLib);
-				
-				
-				functions.add(midPointLib);
-				Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext, prismContext.getDefaultProtector());
-				Object o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc", task.getResult());
-				if (o != null){
-
-					if (Collection.class.isAssignableFrom(o.getClass())) {
-						Collection resultSet = (Collection) o;
-						if (resultSet != null && !resultSet.isEmpty()){
-							if (resultSet.iterator().next() instanceof PrismObject){
-								results.addAll((Collection<? extends PrismObject<? extends ObjectType>>) o);
-							} else {
-								return new JRBeanCollectionDataSource(resultSet);
-							}
-						}
-						
-					} else {
-						results.add((PrismObject) o);
-					}
-				}
-			}else{
-				
-				GetOperationOptions options = GetOperationOptions.createRaw();
-				options.setResolveNames(true);
-			results = model.searchObjects(type, query, SelectorOptions.createCollection(options), task, parentResult);;
-		
-		}
+			if (query != null){
+				results = ReportUtils.getReportData(model, type, query, task, parentResult);
+			} else {
+				results = ReportUtils.getReportData(prismContext, task, reportFunctions, script, variables, objectResolver);
+			}
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
 				| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 			// TODO Auto-generated catch block

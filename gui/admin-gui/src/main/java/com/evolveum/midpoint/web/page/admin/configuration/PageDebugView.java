@@ -289,6 +289,10 @@ public class PageDebugView extends PageAdminConfiguration {
                 	LOGGER.warn("No prism context in delta {} after diff, adding it", delta);
                 	delta.revive(getPrismContext());
                 }
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Delta to be applied:\n{}", delta.debugDump());
+                }
                 
                 //quick fix for now (MID-1910), maybe it should be somewhere in model..
                 if (isReport(oldObject)){

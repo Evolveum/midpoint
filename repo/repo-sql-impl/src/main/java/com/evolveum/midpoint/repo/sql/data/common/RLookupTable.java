@@ -23,9 +23,9 @@ import java.util.Set;
 /**
  * @author Viliam Repan (lazyman)
  */
-//@Entity
-//@ForeignKey(name = "fk_lookup_table")
-//@Table(uniqueConstraints = @UniqueConstraint(name = "uc_lookup_name", columnNames = {"name_norm"}))
+@Entity
+@ForeignKey(name = "fk_lookup_table")
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_lookup_name", columnNames = {"name_norm"}))
 public class RLookupTable extends RObject<LookupTableType> {
 
     private RPolyString name;

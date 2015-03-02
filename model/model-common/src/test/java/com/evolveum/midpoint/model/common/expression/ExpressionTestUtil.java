@@ -32,6 +32,7 @@ import com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEva
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.AESProtector;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
 /**
@@ -49,7 +50,7 @@ public class ExpressionTestUtil {
         return protector;
 	}
 	
-	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, AESProtector protector, PrismContext prismContext) {
+	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, AESProtector protector, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
     	ExpressionFactory expressionFactory = new ExpressionFactory(resolver, prismContext);
     	
     	// asIs
@@ -79,7 +80,7 @@ public class ExpressionTestUtil {
         scriptExpressionFactory.registerEvaluator(XPathScriptEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
         Jsr223ScriptEvaluator groovyEvaluator = new Jsr223ScriptEvaluator("Groovy", prismContext, protector);
         scriptExpressionFactory.registerEvaluator(groovyEvaluator.getLanguageUrl(), groovyEvaluator);
-        ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory);
+        ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, securityEnforcer);
         expressionFactory.addEvaluatorFactory(scriptExpressionEvaluatorFactory);
         
         return expressionFactory;

@@ -129,7 +129,7 @@ public class ModifyUser extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userBigOid, delta.getModifications(), new OperationResult("asdf"));
     }
 
-    @Test(enabled = false)
+    @Test
     public void test100ModifyUserApproverMetadata() throws Exception {
         PrismObjectDefinition userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         ReferenceDelta delta1 = ReferenceDelta.createModificationAdd(
