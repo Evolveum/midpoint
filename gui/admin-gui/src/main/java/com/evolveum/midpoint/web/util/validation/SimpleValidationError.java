@@ -28,7 +28,7 @@ import java.io.Serializable;
  *
  *  @author shood
  * */
-public class SimpleValidationError implements Serializable{
+public class SimpleValidationError implements Serializable {
 
     private String message;
     private ItemPathType attribute;
