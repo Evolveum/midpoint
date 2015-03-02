@@ -122,31 +122,15 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 			throw new IllegalArgumentException("Unknown path segment "+itemName);
 		}
 	}
-	
-	// Groovy operator overload
-	public PolyString plus(PolyString other) {
-		if (other == null) {
-			return this;
-		}
-		return new PolyString(this.orig + other.orig);
-	}
 
 	// Groovy operator overload
-	public PolyString plus(String other) {
+	public PolyString plus(Object other) {
 		if (other == null) {
 			return this;
 		}
-		return new PolyString(this.orig + other);
+		return new PolyString(this.orig + other.toString());
 	}
-	
-	// Groovy operator overload
-	public PolyString plus(PolyStringType other) {
-		if (other == null) {
-			return this;
-		}
-		return new PolyString(this.orig + other.getOrig());
-	}
-	
+		
 	// Groovy operator overload
 	public PolyString getAt(int index) {
 		return new PolyString(this.orig.substring(index, index+1));
