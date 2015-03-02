@@ -7618,7 +7618,7 @@
                                 TODO: better documentation
                             </xsd:documentation>
                             <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+                    			<a:objectReferenceTargetType>tns:SecurityPolicyType</a:objectReferenceTargetType>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -10333,4 +10333,3 @@
     <xsd:element name="decisionType" type="tns:DecisionType" />
 
 </xsd:schema>
-

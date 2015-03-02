@@ -269,13 +269,15 @@ public class PageMyPasswords extends PageAdminHome {
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            
+            
             for (PasswordAccountDto accDto : accounts) {
                 PrismObjectDefinition objDef = accDto.isMidpoint() ?
                         registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
                         registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-                PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);
-
+                PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password,password);
+                
                 Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
                 
                 deltas.add(ObjectDelta.createModifyDelta(accDto.getOid(), delta, type, getPrismContext()));
