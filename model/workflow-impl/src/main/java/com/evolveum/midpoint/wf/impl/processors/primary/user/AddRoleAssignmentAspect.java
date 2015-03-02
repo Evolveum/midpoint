@@ -191,7 +191,7 @@ public class AddRoleAssignmentAspect extends BasePrimaryChangeAspect {
                 }
             }
             // let's sanitize the delta
-            if (delta.getValuesToAdd().isEmpty()) {         // empty set of values to add is an illegal state
+            if (delta.getValuesToAdd() != null && delta.getValuesToAdd().isEmpty()) {         // empty set of values to add is an illegal state
                 delta.resetValuesToAdd();
             }
             if (delta.getValuesToAdd() == null && delta.getValuesToReplace() == null && delta.getValuesToDelete() == null) {
