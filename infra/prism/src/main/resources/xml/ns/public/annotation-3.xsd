@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
         <xsd:documentation>
             Common Prism annotations used in various XSD schemas.
 
-			Version: 3.1
+			Version: 3.2-SNAPSHOT
             Default prefix: a
         </xsd:documentation>
     </xsd:annotation>
@@ -167,6 +167,26 @@
         <xsd:annotation>
             <xsd:documentation>
                 Marks deprecated parts of the schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="expensive" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Marks an expensive item. Expensive items are not returned from some operations
+                by default. They have to be explicitly requested.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="relational" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Marks a container that contains relational data. The relational container
+                provides data that are normally stored in a simple relational table.
+                The relational container must only contain primitive items (properties or references, not containers).
+                It is expected that relational container will have many values.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>

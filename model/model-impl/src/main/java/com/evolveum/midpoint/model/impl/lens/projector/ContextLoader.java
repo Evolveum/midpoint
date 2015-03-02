@@ -404,12 +404,12 @@ public class ContextLoader {
 		}
 		ObjectPolicyConfigurationType policyConfigurationType = focusContext.getObjectPolicyConfigurationType();
 		if (policyConfigurationType == null) {
-			LOGGER.trace("No default object template");
+			LOGGER.trace("No default object template (no policy)");
 			return null;
 		}
 		ObjectReferenceType templateRef = policyConfigurationType.getObjectTemplateRef();
 		if (templateRef == null) {
-			LOGGER.trace("No default object template");
+			LOGGER.trace("No default object template (no templateRef)");
 			return null;
 		}
 		

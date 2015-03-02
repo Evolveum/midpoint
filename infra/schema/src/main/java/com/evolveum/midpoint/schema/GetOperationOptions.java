@@ -53,12 +53,12 @@ public class GetOperationOptions implements Serializable, Cloneable {
 	 *       but they will be most likely omitted from the result.</li>
 	 *  </ul>
 	 */
-	RetrieveOption retrieve;
+	private RetrieveOption retrieve;
 	
 	/**
 	 * Resolve the object reference. This only makes sense with a (path-based) selector.
 	 */
-	Boolean resolve;
+	private Boolean resolve;
 
     /**
      * Resolve the object reference names. (Currently applicable only as a top-level option.)
@@ -67,27 +67,29 @@ public class GetOperationOptions implements Serializable, Cloneable {
      *
      * EXPERIMENTAL.
      */
-    Boolean resolveNames;
+	private Boolean resolveNames;
 
     /**
 	 * No not fetch any information from external sources, e.g. do not fetch account data from resource,
 	 * do not fetch resource schema, etc.
 	 * Such operation returns only the data stored in midPoint repository.
 	 */
-	Boolean noFetch;
+	private Boolean noFetch;
 	
 	/**
 	 * Avoid any smart processing of the data except for schema application. Do not synchronize the data, do not apply
 	 * any expressions, etc.
 	 */
-	Boolean raw;
+	private Boolean raw;
 	
 	/**
 	 * Force to get object from the resource even if some of the error occurred.
 	 * If the any copy of the shadow is fetched, we can't delete this object
 	 * from the gui, for example
 	 */
-	Boolean doNotDiscovery;
+	private Boolean doNotDiscovery;
+	
+	private RelationalValueSearchQuery relationalValueSearchQuery;
 	
 	/**
 	 * This flag indicated if the "object not found" error is critical for

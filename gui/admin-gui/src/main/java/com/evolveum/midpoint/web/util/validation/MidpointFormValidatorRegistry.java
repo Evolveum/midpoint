@@ -13,12 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.api;
+package com.evolveum.midpoint.web.util.validation;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.springframework.stereotype.Component;
 
 /**
  * @author semancik
  *
  */
-public enum LookupTableSearchType {
-	EXACT, STARTS_WITH, SUBSTRING;
+@Component
+public class MidpointFormValidatorRegistry {
+	
+	private Collection<MidpointFormValidator> validators = new ArrayList<>();
+
+	public void registerValidator(MidpointFormValidator validator) {
+		validators.add(validator);
+	}
+
+	public Collection<MidpointFormValidator> getValidators() {
+		return validators;
+	}
+	
 }
