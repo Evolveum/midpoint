@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,9 +73,9 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public abstract class AbstractScriptTest {
 
-    private static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
-	private static final String NS_X = "http://example.com/xxx";
-	private static final String NS_Y = "http://example.com/yyy";
+	protected static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
+    protected static final String NS_X = "http://example.com/xxx";
+    protected static final String NS_Y = "http://example.com/yyy";
 	protected static File BASE_TEST_DIR = new File("src/test/resources/expression");
     protected static File OBJECTS_DIR = new File("src/test/resources/objects");
     protected static final String USER_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
@@ -286,7 +286,7 @@ public abstract class AbstractScriptTest {
 		return expressionResultList.iterator().next();
 	}
 	
-	private void evaluateAndAssertStringScalarExpresssion(String fileName, String testName, ExpressionVariables variables, String expectedValue) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
+	protected void evaluateAndAssertStringScalarExpresssion(String fileName, String testName, ExpressionVariables variables, String expectedValue) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
 		List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpresssion(fileName, testName, variables, true);
 		PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, testName);
 		assertNotNull("Expression "+testName+" resulted in null value (expected '"+expectedValue+"')", expressionResult);
@@ -297,6 +297,12 @@ public abstract class AbstractScriptTest {
 		List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpresssion(fileName, testName, variables, true);
 		TestUtil.assertSetEquals("Expression "+testName+" resulted in wrong values", PrismPropertyValue.getValues(expressionResultList), expectedValues);
 	}
+	protected void evaluateAndAssertBooleanScalarExpresssion(String fileName, String testName, ExpressionVariables variables, Boolean expectedValue) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
+		List<PrismPropertyValue<Boolean>> expressionResultList = evaluateBooleanExpresssion(fileName, testName, variables, true);
+		PrismPropertyValue<Boolean> expressionResult = asScalar(expressionResultList, testName);
+		assertNotNull("Expression "+testName+" resulted in null value (expected '"+expectedValue+"')", expressionResult);
+		assertEquals("Expression "+testName+" resulted in wrong value", expectedValue, expressionResult.getValue());
+	}
 
 	private List<PrismPropertyValue<String>> evaluateStringExpresssion(String fileName, String testName, ExpressionVariables variables, boolean scalar) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
 		displayTestTitle(testName);
@@ -304,6 +310,14 @@ public abstract class AbstractScriptTest {
         OperationResult opResult = new OperationResult(testName);
 
         return evaluateExpression(scriptType, DOMUtil.XSD_STRING, true, variables, testName, opResult);        
+	}
+	
+	private List<PrismPropertyValue<Boolean>> evaluateBooleanExpresssion(String fileName, String testName, ExpressionVariables variables, boolean scalar) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
+		displayTestTitle(testName);
+		ScriptExpressionEvaluatorType scriptType = parseScriptType(fileName);
+        OperationResult opResult = new OperationResult(testName);
+
+        return evaluateExpression(scriptType, DOMUtil.XSD_BOOLEAN, true, variables, testName, opResult);        
 	}
 	
     

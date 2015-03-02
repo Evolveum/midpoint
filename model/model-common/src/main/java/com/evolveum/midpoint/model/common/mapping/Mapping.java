@@ -30,6 +30,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang.Validate;
@@ -114,6 +115,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 	private String mappingContextDescription = null;
 	private MappingType mappingType;
 	private ObjectResolver objectResolver = null;
+    private SecurityEnforcer securityEnforcer;          // in order to get c:actor variable
 	private Source<?> defaultSource = null;
 	private ItemDefinition defaultTargetDefinition = null;
 	private ItemPath defaultTargetPath = null;
@@ -148,11 +150,12 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Mapping.class);
 	
-	Mapping(MappingType mappingType, String contextDescription, ExpressionFactory expressionFactory) {
+	Mapping(MappingType mappingType, String contextDescription, ExpressionFactory expressionFactory, SecurityEnforcer securityEnforcer) {
 		Validate.notNull(mappingType);
 		this.contextDescription = contextDescription;
 		this.mappingType = mappingType;
 		this.expressionFactory = expressionFactory;
+        this.securityEnforcer = securityEnforcer;
 	}
 	
 	public ObjectResolver getObjectResolver() {
@@ -474,8 +477,10 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 	public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".evaluate");
-		
-		traceEvaluationStart();
+
+        ExpressionUtil.addActorVariable(variables, securityEnforcer);
+
+        traceEvaluationStart();
 		
 		try {
 			evaluateTimeConstraintValid(result);
@@ -486,7 +491,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 				traceDeferred();
 				return;
 			}
-			
+
 			parseSources(result);
 			parseTarget();
 
@@ -1034,7 +1039,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 	 * Shallow clone. Only the output is cloned deeply.
 	 */
 	public Mapping<V> clone() {
-		Mapping<V> clone = new Mapping<V>(mappingType, contextDescription, expressionFactory);
+		Mapping<V> clone = new Mapping<V>(mappingType, contextDescription, expressionFactory, securityEnforcer);
 		clone.conditionMaskNew = this.conditionMaskNew;
 		clone.conditionMaskOld = this.conditionMaskOld;
 		if (this.conditionOutputTriple != null) {

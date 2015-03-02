@@ -7421,7 +7421,7 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                	<xsd:element name="table" type="tns:LookupTableTableType" minOccurs="0"/>
+                	<xsd:element name="table" type="tns:LookupTableTableType" minOccurs="0" maxOccurs="unbounded"/>
                 	<!-- TODO: Maybe more settings describing the intended use of the lookup table. -->
                 	<!-- TODO: Lookup table synchronization settings? (e.g. resourceRef) -->
                 </xsd:sequence>
@@ -7434,29 +7434,18 @@
        	<xsd:annotation>
     		<xsd:documentation>
     			Data structure that represents entire content of the lookup table.
-    		</xsd:documentation>
-    		<xsd:appinfo>
-    			<a:container/>
-    		</xsd:appinfo>
-    	</xsd:annotation>
-    	<xsd:sequence>
-    		<xsd:element name="row" type="tns:LookupTableRowType" minOccurs="0" maxOccurs="unbounded"/>
-   		</xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
- 	</xsd:complexType>
-
-   <xsd:complexType name="LookupTableRowType">
-       	<xsd:annotation>
-    		<xsd:documentation>
-    			Lookup table row. The table row is a (complex) property. It is intentionally not
-    			a container, so we can avoid maintaining container IDs for each row. The delta semantics
-    			has a slightly different meaning for the lookup tables. Each key must be unique and the key
+    			The delta semantics has a slightly different meaning for the lookup tables. Each key must be unique and the key
     			functions as an implicit identifier. E.g. adding a new row with a key that does not exist yet
     			will insert a new row. Adding a new row with key that already exists will overwrite existing row.
     			Replace operation on this property will efficiently clear the entire table and replace it with a new data.
     			We do not recommend using this operation as it may be very inefficient. Add and delete operations are
     			expected during normal operation.
     		</xsd:documentation>
+    		<xsd:appinfo>
+    			<a:container/>
+    			<a:relational/>
+    			<a:expensive/>
+    		</xsd:appinfo>
     	</xsd:annotation>
     	<xsd:sequence>
     		<xsd:element name="key" type="xsd:string" minOccurs="1" maxOccurs="1">
@@ -7515,6 +7504,7 @@
     			</xsd:annotation>
     		</xsd:element>
    		</xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
  	</xsd:complexType>
 
     <!-- OPERATIONAL SCHEMA -->

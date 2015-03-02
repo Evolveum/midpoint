@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
@@ -93,7 +94,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		
         PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>();
 
-        addActorVariable(context.getVariables());
+        ExpressionUtil.addActorVariable(context.getVariables(), securityEnforcer);
 
         if (expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.ABSOLUTE) {
         	
@@ -303,25 +304,6 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		
 		return outputSet;
 	}
-
-    private void addActorVariable(ExpressionVariables scriptVariables) {
-        UserType actor = null;
-        try {
-            if (securityEnforcer != null) {
-                MidPointPrincipal principal = securityEnforcer.getPrincipal();
-                if (principal != null) {
-                    actor = principal.getUser();
-                }
-            }
-            if (actor == null) {
-                LOGGER.error("Couldn't get principal information - the 'actor' variable is set to null");
-            }
-        } catch (SecurityViolationException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get principal information - the 'actor' variable is set to null", e);
-        }
-
-        scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, actor);
-    }
 
     protected abstract List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination,
 			boolean useNew, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)

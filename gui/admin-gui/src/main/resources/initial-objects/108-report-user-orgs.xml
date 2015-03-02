@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
-	<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
         oid="00000000-0000-0000-0000-000000000108"
         version="4">
    <name>User orgs subreport</name>
@@ -19,4 +18,3 @@
    <orientation>landscape</orientation>
    <export>xls</export>
 </report>
-</objects>

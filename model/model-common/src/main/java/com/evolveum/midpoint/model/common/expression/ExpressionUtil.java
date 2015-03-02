@@ -25,6 +25,10 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.springframework.expression.ExpressionException;
@@ -652,4 +656,31 @@ public class ExpressionUtil {
 		}
 		throw new IllegalStateException("notreached");
 	}
+
+    public static void addActorVariable(ExpressionVariables scriptVariables, SecurityEnforcer securityEnforcer) {
+        // There can already be a value, because for mappings, we create the variable before parsing sources.
+        // For other scripts we do it just before the execution, to catch all possible places where scripts can be executed.
+
+        UserType oldActor = (UserType) scriptVariables.get(ExpressionConstants.VAR_ACTOR);
+        if (oldActor != null) {
+            return;
+        }
+
+        UserType actor = null;
+        try {
+            if (securityEnforcer != null) {
+                MidPointPrincipal principal = securityEnforcer.getPrincipal();
+                if (principal != null) {
+                    actor = principal.getUser();
+                }
+            }
+            if (actor == null) {
+                LOGGER.error("Couldn't get principal information - the 'actor' variable is set to null");
+            }
+        } catch (SecurityViolationException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get principal information - the 'actor' variable is set to null", e);
+        }
+        scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, actor);
+    }
+
 }
