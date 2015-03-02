@@ -1506,12 +1506,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw ex;
 			}
 
-			
-
 			OperationOptions options = new OperationOptionsBuilder().build();
 			icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".update");
 			icfResult.addParam("objectClass", objectClass);
-			icfResult.addParam("uid", uid.getUidValue());
+			icfResult.addParam("uid", uid==null?"null":uid.getUidValue());
 			icfResult.addArbitraryCollectionAsParam("attributes", updateAttributes);
 			icfResult.addArbitraryObjectAsParam("options", options);
 			icfResult.addContext("connector", icfConnectorFacade.getClass());
