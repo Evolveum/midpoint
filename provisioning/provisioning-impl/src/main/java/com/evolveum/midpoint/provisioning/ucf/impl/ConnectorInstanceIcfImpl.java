@@ -1332,6 +1332,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		PropertyDelta<ProtectedStringType> passwordDelta = null;
 
 		for (Operation operation : changes) {
+			if (operation == null) {
+				IllegalArgumentException e = new IllegalArgumentException("Null operation in modifyObject");
+				result.recordFatalError(e);
+				throw e;
+			}
 			if (operation instanceof PropertyModificationOperation) {
 				PropertyModificationOperation change = (PropertyModificationOperation) operation;
 				PropertyDelta<?> delta = change.getPropertyDelta();

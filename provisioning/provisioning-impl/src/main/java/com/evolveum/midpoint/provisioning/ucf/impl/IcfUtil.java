@@ -244,6 +244,11 @@ class IcfUtil {
 			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null, icfException));
 			icfResult.recordFatalError("Unknown UID: "+icfException.getMessage(), newEx);
 			return newEx;
+			
+		} else if (icfException instanceof InvalidAttributeValueException) {
+			Exception newEx = new SchemaException(createMessageFromAllExceptions(null, icfException));
+			icfResult.recordFatalError("Schema violation: "+icfException.getMessage(), newEx);
+			return newEx;
 
 		} else if (icfException instanceof ConnectorSecurityException) {
 			// Note: connection refused is also packed inside

@@ -465,13 +465,9 @@ public class ResourceObjectConverter {
 				shadow = getShadowToFilterDuplicates(connector, resource, objectClassDefinition, identifiers, operations, true, parentResult);      // yes, we need associations here
 				shadowBefore = shadow.clone();
 			}
-
 			
 			// Execute primary ICF operation on this shadow
 			sideEffectChanges = executeModify(connector, resource, shadow, objectClassDefinition, identifiers, operations, parentResult);
-			
-			
-
 		}
 
         /*
@@ -570,10 +566,12 @@ public class ResourceObjectConverter {
 					currentShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiersWorkingCopy, attributesToReturn, false, parentResult);
 					operationsWave = convertToReplace(operationsWave, currentShadow, objectClassDefinition);
 				}
-				Collection<PropertyModificationOperation> sideEffects =
-						connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, parentResult);
-				sideEffectChanges.addAll(sideEffects);
-				// we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
+				if (!operationsWave.isEmpty()) {
+					Collection<PropertyModificationOperation> sideEffects =
+							connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, parentResult);
+					sideEffectChanges.addAll(sideEffects);
+					// we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
+				}
 			}
 
 			if (LOGGER.isDebugEnabled()) {
@@ -1173,7 +1171,9 @@ public class ResourceObjectConverter {
 					// Try to simulate activation capability
 					PropertyModificationOperation activationAttribute = convertToSimulatedActivationAdministrativeStatusAttribute(enabledPropertyDelta, shadow, resource,
 							status, objectClassDefinition, result);
-					operations.add(activationAttribute);
+					if (activationAttribute != null) {
+						operations.add(activationAttribute);
+					}
 				}	
 //			}
 		}

@@ -82,7 +82,12 @@ public class SchemaDebugUtil {
 		if (!dumpables.isEmpty()) {		
 			sb.append("\n");
 			for (DebugDumpable dd : dumpables) {
-				sb.append(dd.debugDump(indent + 1));
+				if (dd == null) {
+					indentDebugDump(sb, indent + 1);
+					sb.append("null");
+				} else {
+					sb.append(dd.debugDump(indent + 1));
+				}
 				sb.append("\n");
 			}
 			indentDebugDump(sb, indent);

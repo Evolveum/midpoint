@@ -678,10 +678,17 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 //			renameDelta = PropertyDelta.createModificationDeleteProperty(icfNamePath, icfNameDef, "uid=jack,ou=People,dc=example,dc=com");
 //			((Collection)delta.getModifications()).add(renameDelta);
 		
-		
 		display("Object change",delta);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
 				delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 		
 		ShadowType accountType = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_MODIFY_OID, null, taskManager.createTaskInstance(), result).asObjectable();
@@ -691,7 +698,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		String uid = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
 		List<Object> snValues = ShadowUtil.getAttributeValues(accountType, new QName(RESOURCE_NS, "sn"));
-		assertNotNull(snValues);
+		assertNotNull("No 'sn' attribute", snValues);
 		assertFalse("Surname attributes must not be empty", snValues.isEmpty());
 		assertEquals(1, snValues.size());
 		
@@ -827,7 +834,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-        QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+        QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
         
@@ -846,7 +853,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
                 ShadowType shadow = (ShadowType) objectType;
                 assertNotNull(shadow.getOid());
                 assertNotNull(shadow.getName());
-                assertEquals(new QName(resourceNamespace, "AccountObjectClass"), shadow.getObjectClass());
+                assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), shadow.getObjectClass());
                 assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
                 String icfUid = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "uid"));
                 assertNotNull("No ICF UID", icfUid);

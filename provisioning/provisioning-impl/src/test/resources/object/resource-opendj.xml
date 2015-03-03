@@ -39,7 +39,7 @@
 			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
 			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
-<!-- 			<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>  -->
+ 			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
 		</icfc:configurationProperties>
 		
 		<icfc:connectorPoolConfiguration>
