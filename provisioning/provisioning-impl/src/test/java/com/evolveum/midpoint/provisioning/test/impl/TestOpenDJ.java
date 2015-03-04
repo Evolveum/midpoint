@@ -1342,10 +1342,62 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			}
 		}
 	}
+
+	@Test
+	public void test230SearchObjectsPagedNoOffset() throws Exception {
+		final String TEST_NAME = "test230SearchObjectsPagedNoOffset";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
+                QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		
+		ObjectPaging paging = ObjectPaging.createPaging(null, 3);
+		query.setPaging(paging);
+
+		// WHEN
+		List<PrismObject<ShadowType>> searchResults = 
+			provisioningService.searchObjects(ShadowType.class, query, null, result);
+		
+		// THEN
+		result.computeStatus();
+		assertSuccess(result);
+		display("Search resutls", searchResults);
+		
+		assertSearchResults(searchResults, "cook", "drake", "hbarbossa" );
+	}
 	
 	@Test
-	public void test230SearchObjectsPaged() throws Exception {
-		final String TEST_NAME = "test230SearchObjectsPaged";
+	public void test231SearchObjectsPagedOffsetZero() throws Exception {
+		final String TEST_NAME = "test231SearchObjectsPagedOffsetZero";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
+                QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		
+		ObjectPaging paging = ObjectPaging.createPaging(0, 4);
+		query.setPaging(paging);
+
+		// WHEN
+		List<PrismObject<ShadowType>> searchResults = 
+			provisioningService.searchObjects(ShadowType.class, query, null, result);
+		
+		// THEN
+		result.computeStatus();
+		assertSuccess(result);
+		display("Search resutls", searchResults);
+		
+		assertSearchResults(searchResults, "drake", "hbarbossa", "idm", "jbeckett");
+	}
+	
+	@Test
+	public void test232SearchObjectsPagedOffset() throws Exception {
+		final String TEST_NAME = "test232SearchObjectsPagedOffset";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
@@ -1366,8 +1418,11 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertSuccess(result);
 		display("Search resutls", searchResults);
 		
-		assertEquals("Unexpected number of search results", 5, searchResults.size());
-		String expectedUids[] = new String[] { "hbarbossa", "idm", "jbeckett", "jbond", "jgibbs" };
+		assertSearchResults(searchResults, "hbarbossa", "idm", "jbeckett", "jbond", "jgibbs" );
+	}
+	
+	private void assertSearchResults(List<PrismObject<ShadowType>> searchResults, String... expectedUids) {
+		assertEquals("Unexpected number of search results", expectedUids.length, searchResults.size());
 		int i = 0;
 		for (PrismObject<ShadowType> searchResult: searchResults) {
 			assertShadow(searchResult);
