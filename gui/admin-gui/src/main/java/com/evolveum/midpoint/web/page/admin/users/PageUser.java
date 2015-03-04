@@ -97,6 +97,8 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
+import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -1039,7 +1041,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     }
 
     private List<ObjectDelta<? extends ObjectType>> modifyAccounts(OperationResult result) {
-        List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
         List<UserAccountDto> accounts = accountsModel.getObject();
         OperationResult subResult = null;
@@ -1239,6 +1241,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
         for (AssignmentEditorDto assDto : assignments) {
             PrismContainerValue newValue = assDto.getNewValue();
+
             switch (assDto.getStatus()) {
                 case ADD:
                     newValue.applyDefinition(assignmentDef, false);
@@ -1376,6 +1379,18 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
                     if (!delta.isEmpty()) {
                         delta.revive(getPrismContext());
+
+                        Collection<SimpleValidationError> validationErrors = performCustomValidation(user, WebMiscUtil.createDeltaCollection(delta));
+                        if(validationErrors != null && !validationErrors.isEmpty()){
+                            for(SimpleValidationError error: validationErrors){
+                                LOGGER.error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+                                error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+                            }
+
+                            target.add(getFeedbackPanel());
+                            return;
+                        }
+
                         progressReporter.executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result, target);
                     } else {
                         result.recordSuccess();
@@ -1396,7 +1411,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                     }
 
                     List<ObjectDelta<? extends ObjectType>> accountDeltas = modifyAccounts(result);
-                    Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+                    Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
                     if (!delta.isEmpty()) {
                         delta.revive(getPrismContext());
@@ -1414,8 +1429,31 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                         ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class,
                                 userWrapper.getObject().getOid(), getPrismContext());
                         deltas.add(emptyDelta);
+
+                        Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
+                        if(validationErrors != null && !validationErrors.isEmpty()){
+                            for(SimpleValidationError error: validationErrors){
+                                LOGGER.error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+                                error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+                            }
+
+                            target.add(getFeedbackPanel());
+                            return;
+                        }
+
                         progressReporter.executeChanges(deltas, options, task, result, target);
                     } else if (!deltas.isEmpty()) {
+                        Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
+                        if(validationErrors != null && !validationErrors.isEmpty()){
+                            for(SimpleValidationError error: validationErrors){
+                                LOGGER.error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+                                error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+                            }
+
+                            target.add(getFeedbackPanel());
+                            return;
+                        }
+
                         progressReporter.executeChanges(deltas, options, task, result, target);
                     } else {
                         result.recordSuccess();
@@ -1440,6 +1478,42 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         if (!result.isInProgress()) {
             finishProcessing(target, result);
         }
+    }
+
+    private Collection<SimpleValidationError> performCustomValidation(PrismObject<UserType> user, Collection<ObjectDelta<? extends ObjectType>> deltas) throws SchemaException {
+        Collection<SimpleValidationError> errors = null;
+
+        if(user == null){
+            if(userModel != null && userModel.getObject() != null && userModel.getObject().getObject() != null){
+                user = userModel.getObject().getObject();
+
+                for(ObjectDelta delta: deltas){
+                    delta.applyTo(user);
+                }
+            }
+        }
+
+        if(user != null && user.asObjectable() != null){
+            for(AssignmentType assignment: user.asObjectable().getAssignment()){
+                for(MidpointFormValidator validator: getFormValidatorRegistry().getValidators()){
+                    if(errors == null){
+                        errors = validator.validateAssignment(assignment);
+                    } else {
+                        errors.addAll(validator.validateAssignment(assignment));
+                    }
+                }
+            }
+        }
+
+        for(MidpointFormValidator validator: getFormValidatorRegistry().getValidators()){
+            if(errors == null){
+                errors = validator.validateObject(user, deltas);
+            } else {
+                errors.addAll(validator.validateObject(user, deltas));
+            }
+        }
+
+        return errors;
     }
 
     @Override

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.util.validation;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.util.Collection;
@@ -57,4 +58,15 @@ public interface MidpointFormValidator {
      *
      * */
     Collection<SimpleValidationError> validateObject(PrismObject<? extends ObjectType> object, Collection<ObjectDelta<? extends ObjectType>> deltas);
+
+    /**
+     *  Performs a validation on an instance of AssignmentType that represents
+     *  an assignment in midPoint.
+     *
+     *  @param assignment
+     *      An object to validate
+     *
+     *  @return A collection of SimpleValidationError instances
+     * */
+    Collection<SimpleValidationError> validateAssignment(AssignmentType assignment);
 }
