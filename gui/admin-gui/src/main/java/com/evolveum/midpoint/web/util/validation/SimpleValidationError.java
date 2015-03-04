@@ -24,7 +24,7 @@ import java.io.Serializable;
  *  This is just a simple representation of custom form validation error. Currently, it holds
  *  only a simple String 'message' attribute as an information about validation error and
  *  an ItemPathType 'attribute' as a path to the source of error. Feel free
- *  to add any information about validation errors that yout custom validator requires.
+ *  to add any information about validation errors that your custom validator requires.
  *
  *  @author shood
  * */
@@ -54,6 +54,14 @@ public class SimpleValidationError implements Serializable {
 
     public void setAttribute(ItemPathType attribute) {
         this.attribute = attribute;
+    }
+
+    /**
+     *  Override to create custom implementation of printing the attribute
+     *  (for logging and GUI purposes)
+     * */
+    public String printAttribute(){
+        return getAttribute().toString();
     }
 
     @Override
