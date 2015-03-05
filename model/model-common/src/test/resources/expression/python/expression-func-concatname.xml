@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,16 +16,8 @@
   -->
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-    <!--<variable>-->
-    	<!--<name>foo</name>-->
-    	<!--<value>Captain</value>-->
-    <!--</variable>-->
-    <!--<variable>-->
-    	<!--<name>jack</name>-->
-    	<!--<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>-->
-    <!--</variable>-->
+	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#python</language>
 	<code>
-		foo + " " + jack.getEmployeeNumber();
+		basic.concatName(' Horatio ', 'Torquemada', 'Marley ')
 	</code>
 </script>

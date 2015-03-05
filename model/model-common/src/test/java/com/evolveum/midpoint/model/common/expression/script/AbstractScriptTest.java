@@ -144,7 +144,7 @@ public abstract class AbstractScriptTest {
 						new QName(NS_Y, "jack"), 
 							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)
 				), 
-    			"Captain jack");
+    			"Captain emp1234");
     }
 
     @Test

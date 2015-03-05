@@ -15,17 +15,8 @@
   ~ limitations under the License.
   -->
 
-<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-    <!--<variable>-->
-    	<!--<name>foo</name>-->
-    	<!--<value>Captain</value>-->
-    <!--</variable>-->
-    <!--<variable>-->
-    	<!--<name>jack</name>-->
-    	<!--<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>-->
-    <!--</variable>-->
-	<code>
-		foo + " " + jack.getEmployeeNumber();
-	</code>
+<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:ext='http://midpoint.evolveum.com/xml/ns/test/extension'>
+	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#python</language>
+	<code>basic.getPropertyValue(user, 'declare namespace ext="http://midpoint.evolveum.com/xml/ns/test/extension"; extension/ext:ship')</code>
 </script>
