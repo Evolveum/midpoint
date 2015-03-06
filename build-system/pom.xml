@@ -52,7 +52,7 @@
         <jaxb.version>2.2.10-b140310.1920</jaxb.version>
         <jaxb-xjc.version>2.2.10-b140310.1920</jaxb-xjc.version>
         <junit.version>4.8.2</junit.version>
-        <opendj.version>2.4.3</opendj.version>
+        <opendj.version>2.6.2</opendj.version>
         <mockito.version>1.10.8</mockito.version>
         <quartz.version>2.1.3</quartz.version>
         <selenium.version>1.0.1</selenium.version>
@@ -188,7 +188,7 @@
             <dependency>
                 <groupId>com.sleepycat</groupId>
                 <artifactId>je</artifactId>
-                <version>4.1.10</version>
+                <version>5.0.103</version>
             </dependency>
             <dependency>
                     <artifactId>jaxb-api</artifactId>

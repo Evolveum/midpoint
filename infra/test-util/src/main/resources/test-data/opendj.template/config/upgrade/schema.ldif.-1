@@ -2,6 +2,7 @@ dn: cn=schema
 objectClass: top
 objectClass: ldapSubentry
 objectClass: subschema
+ldapSyntaxes: ( 1.3.6.1.4.1.26027.1.3.6 DESC 'Collective Conflict Behavior' X-ENUM ( 'real-overrides-virtual' 'virtual-overrides-real' 'merge-real-and-virtual' ) X-SCHEMA-FILE '00-core.ldif' )
 attributeTypes: ( 2.5.4.41 NAME 'name' EQUALITY caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{32768} X-ORIGIN 'RFC 4519' X-SCHEMA-FILE '00-core.ldif' )
 attributeTypes: ( 2.5.4.49 NAME 'distinguishedName' EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 X-ORIGIN 'RFC 4519' X-SCHEMA-FILE '00-core.ldif' )
 attributeTypes: ( 2.5.4.0 NAME 'objectClass' EQUALITY objectIdentifierMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 X-ORIGIN 'RFC 4512' X-SCHEMA-FILE '00-core.ldif' )
@@ -1469,4 +1470,3 @@ dITStructureRules: ( 7 NAME 'uddiTModelStructureRule' FORM uddiTModelNameForm X-
 dITStructureRules: ( 8 NAME 'uddiPublisherAssertionStructureRule' FORM uddiPublisherAssertionNameForm X-ORIGIN 'RFC 4403' X-SCHEMA-FILE '03-uddiv3.ldif' )
 dITStructureRules: ( 9 NAME 'uddiv3SubscriptionStructureRule' FORM uddiv3SubscriptionNameForm X-ORIGIN 'RFC 4403' X-SCHEMA-FILE '03-uddiv3.ldif' )
 dITStructureRules: ( 10 NAME 'uddiv3EntityObituaryStructureRule' FORM uddiv3EntityObituaryNameForm X-ORIGIN 'RFC 4403' X-SCHEMA-FILE '03-uddiv3.ldif' )
-ldapSyntaxes: ( 1.3.6.1.4.1.26027.1.3.6 DESC 'Collective Conflict Behavior' X-ENUM ( 'real-overrides-virtual' 'virtual-overrides-real' 'merge-real-and-virtual' ) X-SCHEMA-FILE '00-core.ldif' )

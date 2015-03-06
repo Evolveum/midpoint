@@ -29,6 +29,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 
@@ -39,6 +40,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
+import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -53,11 +55,18 @@ import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -65,6 +74,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -80,6 +91,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractLdapConnTest.class);
 	
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap");
 	
@@ -114,10 +127,15 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 
 	private static final String ATTRIBUTE_ENTRY_UUID = "entryUuid";
 	
+	protected static final String ACCOUNT_0_UID = "u00000000";
+	protected static final String ACCOUNT_0_CN = "Riwibmix Juvotut (00000000)";
+	
 	protected ResourceType resourceType;
 	protected PrismObject<ResourceType> resource;
 	
 	private static String stopCommand;
+	
+	protected String account0Oid;
 
     @Autowired
     private ReconciliationTaskHandler reconciliationTaskHandler;
@@ -151,6 +169,11 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected abstract String getResourceOid();
 
 	protected abstract File getResourceFile();
+	
+	protected QName getAccountObjectClass() {
+		return new QName(MidPointConstants.NS_RI, "AccountObjectClass");
+	}
+
 	
 	protected abstract String getLdapServerHost();
 	
@@ -237,9 +260,68 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		TestUtil.assertSuccess("Test connection failed",operationResult);
 	}
 	
+	// TODO: search 
+
 	@Test
-    public void test100AssignAccountToBarbossa() throws Exception {
-		final String TEST_NAME = "test100AssignAccountToBarbossa";
+    public void test100SeachAccount0ByLdapUid() throws Exception {
+		final String TEST_NAME = "test100SeachAccount0ByLdapUid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        ObjectClassComplexTypeDefinition objectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
+        ResourceAttributeDefinition ldapUidAttrDef = objectClassDefinition.findAttributeDefinition("uid");
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectFilter additionalFilter = EqualFilter.createEqual(
+        		new ItemPath(ShadowType.F_ATTRIBUTES, ldapUidAttrDef.getName()), ldapUidAttrDef, ACCOUNT_0_UID);
+		ObjectQueryUtil.filterAnd(query.getFilter(), additionalFilter);
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+        
+        assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
+        
+        // TODO: check shadow
+	}
+	
+	@Test
+    public void test150SeachAllAccounts() throws Exception {
+		final String TEST_NAME = "test150SeachAllAccounts";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        final MutableInt count = new MutableInt(0);
+        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+				LOGGER.trace("Found {}", object);
+				count.increment();
+				return true;
+			}
+		};
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+        
+        assertEquals("Unexpected number of accounts", 123, count.getValue());
+        
+        // TODO: count shadows
+	}
+	
+	@Test
+    public void test200AssignAccountToBarbossa() throws Exception {
+		final String TEST_NAME = "test200AssignAccountToBarbossa";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -266,9 +348,11 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertEquals("Wrong ICFS UID", entry.get(ATTRIBUTE_ENTRY_UUID).getString(), icfsUid);
 	}
 	
+	// TODO: modify the account
+	
 	@Test
-    public void test190UnAssignAccountBarbossa() throws Exception {
-		final String TEST_NAME = "test190UnAssignAccountBarbossa";
+    public void test299UnAssignAccountBarbossa() throws Exception {
+		final String TEST_NAME = "test299UnAssignAccountBarbossa";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -290,7 +374,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertNoLinkedAccount(user);
 	}
 
-	
+	// TODO: sync tests
 
 //	private Entry createEntry(String uid, String name) throws IOException {
 //		StringBuilder sb = new StringBuilder();
