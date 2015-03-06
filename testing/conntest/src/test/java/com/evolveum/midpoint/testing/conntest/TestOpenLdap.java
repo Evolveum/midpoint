@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,26 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	@Override
 	public String getStopSystemCommand() {
 		return "sudo "+getScriptDirectoryName()+"/openldap-stop";
+	}
+
+	@Override
+	protected String getLdapServerHost() {
+		return "localhost";
+	}
+
+	@Override
+	protected int getLdapServerPort() {
+		return 11389;
+	}
+
+	@Override
+	protected String getLdapBindDn() {
+		return "cn=admin,dc=example,dc=com";
+	}
+
+	@Override
+	protected String getLdapBindPassword() {
+		return "secret";
 	}
 	
 	
