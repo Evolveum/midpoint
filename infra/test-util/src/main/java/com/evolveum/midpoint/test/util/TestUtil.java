@@ -472,12 +472,17 @@ public class TestUtil {
 			selectSubresultsInternal(retval, subresult, operationNames);
 		}
 	}
-
+	
 	public static String execSystemCommand(String command) throws IOException, InterruptedException {
+		return execSystemCommand(command, false);
+	}
+
+	public static String execSystemCommand(String command, boolean ignoreExitCode) throws IOException, InterruptedException {
 		Runtime runtime = Runtime.getRuntime();
 		LOGGER.debug("Executing system command: {}", command);
 		Process process = runtime.exec(command);
-		process.waitFor();
+		int exitCode = process.waitFor();
+		LOGGER.debug("Command exit code: {}", exitCode);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 		StringBuilder output = new StringBuilder();
 		String line = null;
@@ -487,6 +492,11 @@ public class TestUtil {
 		reader.close();
 		String outstring = output.toString();
 		LOGGER.debug("Command output:\n{}",outstring);
+		if (!ignoreExitCode && exitCode != 0) {
+			String msg = "Execution of command '"+command+"' failed with exit code "+exitCode;
+			LOGGER.error("{}", msg);
+			throw new IOException(msg);
+		}
 		return outstring;
 	}
 
