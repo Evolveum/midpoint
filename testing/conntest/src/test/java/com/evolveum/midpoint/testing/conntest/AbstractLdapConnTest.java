@@ -21,7 +21,10 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -54,8 +57,10 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -106,6 +111,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	private static final int NUM_LDAP_ENTRIES = 100;
 
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
+
+	private static final String ATTRIBUTE_ENTRY_UUID = "entryUuid";
 	
 	protected ResourceType resourceType;
 	protected PrismObject<ResourceType> resource;
@@ -248,7 +255,39 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        String accountDn = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
+        String icfsUid = (String) identifiers.iterator().next().getRealValue();
+        
+        assertEquals("Wrong ICFS UID", entry.get(ATTRIBUTE_ENTRY_UUID).getString(), icfsUid);
+	}
+	
+	@Test
+    public void test190UnAssignAccountBarbossa() throws Exception {
+		final String TEST_NAME = "test190UnAssignAccountBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignAccount(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNoLdapAccount(USER_BARBOSSA_USERNAME);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        assertNoLinkedAccount(user);
 	}
 
 	
@@ -263,7 +302,47 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 //		sb.append("sn: ").append(name).append("\n");
 //	}
 	
-	private String assertLdapAccount(String uid, String cn) throws LdapException, IOException, CursorException {
+	protected Entry assertLdapAccount(String uid, String cn) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect();
+		List<Entry> entries = ldapSearch(connection, "(uid="+uid+")");
+		ldapDisconnect(connection);
+
+		assertEquals("Unexpected number of entries for uid="+uid+": "+entries, 1, entries.size());
+		Entry entry = entries.get(0);
+
+		String dn = entry.getDn().toString();
+		assertEquals("Wrong cn in "+dn, cn, entry.get("cn").getString());
+		return entry;
+	}
+	
+	protected void assertNoLdapAccount(String uid) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect();
+		List<Entry> entries = ldapSearch(connection, "(uid="+uid+")");
+		ldapDisconnect(connection);
+
+		assertEquals("Unexpected number of entries for uid="+uid+": "+entries, 0, entries.size());
+	}
+	
+	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String filter) throws LdapException, CursorException {
+		return ldapSearch(connection, getLdapSuffix(), filter, SearchScope.SUBTREE, "*", ATTRIBUTE_ENTRY_UUID);
+	}
+	
+	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String baseDn, String filter, SearchScope scope, String... attributes) throws LdapException, CursorException {
+		List<Entry> entries = new ArrayList<Entry>();
+		EntryCursor entryCursor = connection.search( baseDn, filter, scope, attributes );
+		Entry entry = null;
+		while (entryCursor.next()) {
+			entries.add(entryCursor.get());
+		}
+		return entries;
+	}
+
+
+	protected String toDn(String username) {
+		return "uid="+username+","+getPeopleLdapSuffix();
+	}
+	
+	protected LdapNetworkConnection ldapConnect() throws LdapException {
 		LdapConnectionConfig config = new LdapConnectionConfig();
 		config.setLdapHost(getLdapServerHost());
 		config.setLdapPort(getLdapServerPort());
@@ -276,24 +355,10 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		bindRequest.setDn(new Dn(getLdapBindDn()));
 		bindRequest.setCredentials(getLdapBindPassword());
 		BindResponse bindResponse = connection.bind(bindRequest);
-		
-		EntryCursor entryCursor = connection.search( getLdapSuffix(), "(uid="+uid+")", SearchScope.SUBTREE, "*" );
-		Entry entry = null;
-		while (entryCursor.next()) {
-			entry = entryCursor.get();
-		}
-		
-		connection.close();
-		
-		if (entry == null) {
-			return null;
-		}
-		String dn = entry.getDn().toString();
-		assertEquals("Wrong cn in "+dn, cn, entry.get("cn").getString());
-		return dn;
+		return connection;
 	}
 
-	protected String toDn(String username) {
-		return "uid="+username+","+getPeopleLdapSuffix();
+	protected void ldapDisconnect(LdapNetworkConnection connection) throws IOException {
+		connection.close();
 	}
 }
