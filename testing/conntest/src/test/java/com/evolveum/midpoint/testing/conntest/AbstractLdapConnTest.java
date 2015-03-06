@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.conntest;
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
+import org.apache.directory.api.ldap.model.cursor.CursorException;
+import org.apache.directory.api.ldap.model.cursor.EntryCursor;
+import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.apache.directory.api.ldap.model.message.BindRequest;
+import org.apache.directory.api.ldap.model.message.BindRequestImpl;
+import org.apache.directory.api.ldap.model.message.BindResponse;
+import org.apache.directory.api.ldap.model.message.SearchScope;
+import org.apache.directory.api.ldap.model.name.Dn;
+import org.apache.directory.ldap.client.api.LdapConnectionConfig;
+import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -132,6 +144,14 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected abstract String getResourceOid();
 
 	protected abstract File getResourceFile();
+	
+	protected abstract String getLdapServerHost();
+	
+	protected abstract int getLdapServerPort();
+	
+	protected abstract String getLdapBindDn();
+	
+	protected abstract String getLdapBindPassword();
 
 	protected String getLdapSuffix() {
 		return "dc=example,dc=com";
@@ -210,6 +230,27 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		TestUtil.assertSuccess("Test connection failed",operationResult);
 	}
 	
+	@Test
+    public void test100AssignAccountToBarbossa() throws Exception {
+		final String TEST_NAME = "test100AssignAccountToBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignAccount(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        String accountDn = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+	}
+
 	
 
 //	private Entry createEntry(String uid, String name) throws IOException {
@@ -222,6 +263,36 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 //		sb.append("sn: ").append(name).append("\n");
 //	}
 	
+	private String assertLdapAccount(String uid, String cn) throws LdapException, IOException, CursorException {
+		LdapConnectionConfig config = new LdapConnectionConfig();
+		config.setLdapHost(getLdapServerHost());
+		config.setLdapPort(getLdapServerPort());
+		LdapNetworkConnection connection = new LdapNetworkConnection(config);
+		boolean connected = connection.connect();
+		if (!connected) {
+			AssertJUnit.fail("Cannot connect to LDAP server "+getLdapServerHost()+":"+getLdapServerPort());
+		}
+		BindRequest bindRequest = new BindRequestImpl();
+		bindRequest.setDn(new Dn(getLdapBindDn()));
+		bindRequest.setCredentials(getLdapBindPassword());
+		BindResponse bindResponse = connection.bind(bindRequest);
+		
+		EntryCursor entryCursor = connection.search( getLdapSuffix(), "(uid="+uid+")", SearchScope.SUBTREE, "*" );
+		Entry entry = null;
+		while (entryCursor.next()) {
+			entry = entryCursor.get();
+		}
+		
+		connection.close();
+		
+		if (entry == null) {
+			return null;
+		}
+		String dn = entry.getDn().toString();
+		assertEquals("Wrong cn in "+dn, cn, entry.get("cn").getString());
+		return dn;
+	}
+
 	protected String toDn(String username) {
 		return "uid="+username+","+getPeopleLdapSuffix();
 	}
