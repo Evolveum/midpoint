@@ -85,14 +85,14 @@
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
                                     <artifactId>prism</artifactId>
-                                    <version>3.2-SNAPSHOT</version>
+                                    <version>${project.version}</version>
                                     <type>jar</type>
                                     <catalog>META-INF/catalog-runtime.xml</catalog>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
                                     <artifactId>schema</artifactId>
-                                    <version>3.2-SNAPSHOT</version>
+                                    <version>${project.version}</version>
                                     <type>jar</type>
                                     <catalog>META-INF/jax-ws-catalog.xml</catalog>
                                 </artifactItem>
