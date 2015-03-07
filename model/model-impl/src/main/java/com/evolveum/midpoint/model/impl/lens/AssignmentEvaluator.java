@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
@@ -198,11 +199,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 		this.mappingEvaluationHelper = mappingEvaluationHelper;
 	}
 
-	public EvaluatedAssignment<F> evaluate(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi, 
+	public EvaluatedAssignmentImpl<F> evaluate(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi, 
 			boolean evaluateOld, ObjectType source, String sourceDescription, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignmentIdi);
-		EvaluatedAssignment<F> evalAssignment = new EvaluatedAssignment<>();
+		EvaluatedAssignmentImpl<F> evalAssignment = new EvaluatedAssignmentImpl<>();
 		evalAssignment.setAssignmentIdi(assignmentIdi);
 		AssignmentPath assignmentPath = new AssignmentPath();
 		AssignmentPathSegment assignmentPathSegment = new AssignmentPathSegment(assignmentIdi, null);
@@ -220,7 +221,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return evalAssignment;
 	}
 	
-	private void evaluateAssignment(EvaluatedAssignment<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluateAssignment(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, evalAssignment);
@@ -237,7 +238,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (assignmentType.getTarget() != null) {
 			target = assignmentType.getTarget().asPrismObject();
 		} else if (assignmentType.getTargetRef() != null) {
-			target = resolveTarget(assignmentType, source, sourceDescription, task, result);
+            try {
+                target = resolveTarget(assignmentType, source, sourceDescription, task, result);
+            } catch (ObjectNotFoundException ex) {
+                // Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
+                // an exception would prohibit any operations with the users that have the role, including removal of the reference.
+                // The failure is recorded in the result and we will log it. It should be enough.
+                LOGGER.error(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
+                // For OrgType references we trigger the reconciliation (see MID-2242)
+                evalAssignment.setForceRecon(true);
+            }
 		}
 		if (target != null && evalAssignment.getTarget() == null) {
 			evalAssignment.setTarget(target);
@@ -312,7 +322,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		assignmentPath.remove(assignmentPathSegment);
 	}
 
-	private void prepareConstructionEvaluation(EvaluatedAssignment<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private void prepareConstructionEvaluation(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, evaluatedAssignment);
@@ -348,7 +358,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 	
-	private void evaluateFocusMappings(EvaluatedAssignment<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluateFocusMappings(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, evaluatedAssignment);
@@ -389,24 +399,17 @@ public class AssignmentEvaluator<F extends FocusType> {
 			throw new SchemaException("Missing type in target reference in " + assignmentType + " in " + sourceDescription);
 		}
 		PrismObject<? extends ObjectType> target = null;
-		try {
-			target = repository.getObject(clazz, oid, null, result);
-			if (target == null) {
-				throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
-			}
-		} catch (ObjectNotFoundException ex) {
-			// Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
-			// an exception would prohibit any operations with the users that have the role, including removal of the reference.
-			// The failure is recorded in the result and we will log it. It should be enough.
-			LOGGER.error(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
-//			throw new ObjectNotFoundException(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
-		}
-		
+        target = repository.getObject(clazz, oid, null, result);
+        if (target == null) {
+            throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
+        }
+        // Handling ObjectNotFoundException - we just pass it to the caller
+
 		return target;
 	}
 
 
-	private void evaluateTarget(EvaluatedAssignment<F> assignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluateTarget(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, PrismObject<?> target, ObjectType source, QName relation, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
@@ -426,7 +429,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private boolean evaluateAbstractRole(EvaluatedAssignment<F> assignment, AssignmentPathSegment assignmentPathSegment, 
+	private boolean evaluateAbstractRole(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, AbstractRoleType roleType, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
@@ -450,6 +453,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 					roleType, condOld, condNew, origMode, condMode, mode });
 
 		}
+		
+		EvaluatedAbstractRoleImpl evalRole = new EvaluatedAbstractRoleImpl();
+		evalRole.setRole(roleType.asPrismObject());
+		assignment.addRole(evalRole, mode);
 		
 		int evaluationOrder = assignmentPath.getEvaluationOrder();
 		ObjectType orderOneObject;

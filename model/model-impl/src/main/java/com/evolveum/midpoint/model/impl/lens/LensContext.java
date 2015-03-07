@@ -77,7 +77,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	transient private ProjectionPolicyType accountSynchronizationSettings;
 	transient private ValuePolicyType globalPasswordPolicy;
 	
-	transient private DeltaSetTriple<EvaluatedAssignment> evaluatedAssignmentTriple;
+	transient private DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple;
 	
 	/**
 	 * Just a cached copy. Keep it in context so we do not need to reload it all the time.
@@ -252,6 +252,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return focusTemplate;
 	}
 	
+	public void setFocusTemplate(ObjectTemplateType focusTemplate) {
+		this.focusTemplate = focusTemplate;
+	}
+	
 	public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat, String oid) {
 		LensProjectionContext projectionContext = findProjectionContext(rat);
 		
@@ -269,10 +273,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public void setSystemConfiguration(
 			PrismObject<SystemConfigurationType> systemConfiguration) {
 		this.systemConfiguration = systemConfiguration;
-	}
-
-	public void setFocusTemplate(ObjectTemplateType focusTemplate) {
-		this.focusTemplate = focusTemplate;
 	}
 
 	public ProjectionPolicyType getAccountSynchronizationSettings() {
@@ -401,11 +401,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.doReconciliationForAllProjections = doReconciliationForAllProjections;
 	}
 	
-	public DeltaSetTriple<EvaluatedAssignment> getEvaluatedAssignmentTriple() {
+	public DeltaSetTriple<EvaluatedAssignmentImpl> getEvaluatedAssignmentTriple() {
 		return evaluatedAssignmentTriple;
 	}
 
-	public void setEvaluatedAssignmentTriple(DeltaSetTriple<EvaluatedAssignment> evaluatedAssignmentTriple) {
+	public void setEvaluatedAssignmentTriple(DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple) {
 		this.evaluatedAssignmentTriple = evaluatedAssignmentTriple;
 	}
 	

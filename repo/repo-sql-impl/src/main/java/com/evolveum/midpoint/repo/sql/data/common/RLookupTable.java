@@ -8,7 +8,6 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -61,21 +60,21 @@ public class RLookupTable extends RObject<LookupTableType> {
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
 
-        LookupTableTableType table = jaxb.getTable();
-        if (table == null) {
-            return;
-        }
-
-        for (LookupTableRowType row : table.getRow()) {
-            RLookupTableRow rRow = new RLookupTableRow();
-            rRow.setOwner(repo);
-            rRow.setKey(row.getKey());
-            rRow.setLabel(RPolyString.copyFromJAXB(row.getLabel()));
-            rRow.setLastChangeTimestamp(row.getLastChangeTimestamp());
-            rRow.setValue(row.getValue());
-
-            repo.getRows().add(rRow);
-        }
+//        LookupTableTableType table = jaxb.getTable();
+//        if (table == null) {
+//            return;
+//        }
+//
+//        for (LookupTableRowType row : table.getRow()) {
+//            RLookupTableRow rRow = new RLookupTableRow();
+//            rRow.setOwner(repo);
+//            rRow.setKey(row.getKey());
+//            rRow.setLabel(RPolyString.copyFromJAXB(row.getLabel()));
+//            rRow.setLastChangeTimestamp(row.getLastChangeTimestamp());
+//            rRow.setValue(row.getValue());
+//
+//            repo.getRows().add(rRow);
+//        }
     }
 
     protected static <T extends ObjectType> void copyToJAXB(RLookupTable repo, LookupTableType jaxb, PrismContext prismContext,

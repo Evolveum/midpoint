@@ -971,6 +971,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertDeleteDeny(ShadowType.class, accountOid);
         assertDeleteDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+        
+        PrismObjectDefinition<UserType> userEditSchema = getEditObjectDefinition(user);
+        // TODO: assert items
+        
+        PrismObjectDefinition<ShadowType> shadowEditSchema = getEditObjectDefinition(shadow);
+        // TODO: assert items
 	}
 
 	@Test

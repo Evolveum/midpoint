@@ -94,6 +94,7 @@ import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -1539,7 +1540,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		
 		PrismContainerValue<ObjectPolicyConfigurationType> oldValue = null;
 		for (ObjectPolicyConfigurationType focusPolicyType: systemConfig.asObjectable().getDefaultObjectPolicyConfiguration()) {
-			if (objectType.equals(focusPolicyType.getType())) {
+			if (QNameUtil.match(objectType, focusPolicyType.getType())) {
 				oldValue = focusPolicyType.asPrismContainerValue();
 			}
 		}

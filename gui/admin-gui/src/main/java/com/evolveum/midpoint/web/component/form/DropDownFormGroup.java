@@ -101,13 +101,8 @@ public class DropDownFormGroup<T> extends SimplePanel<T> {
         DropDownChoice choice =  new DropDownChoice<T>(id, getModel(), choices, renderer){
 
             @Override
-            protected CharSequence getDefaultChoice(String selectedValue) {
-                return getString("DropDownChoicePanel.notDefined");
-            }
-
-            @Override
             protected String getNullValidDisplayValue() {
-                return getString("DropDownChoicePanel.notDefined");
+                return getString("DropDownChoicePanel.empty");
             }
         };
         choice.setNullValid(!required);

@@ -52,7 +52,7 @@
         <jaxb.version>2.2.10-b140310.1920</jaxb.version>
         <jaxb-xjc.version>2.2.10-b140310.1920</jaxb-xjc.version>
         <junit.version>4.8.2</junit.version>
-        <opendj.version>2.4.3</opendj.version>
+        <opendj.version>2.6.2</opendj.version>
         <mockito.version>1.10.8</mockito.version>
         <quartz.version>2.1.3</quartz.version>
         <selenium.version>1.0.1</selenium.version>
@@ -67,7 +67,7 @@
         <jdbc.postgres>9.3-1102-jdbc41</jdbc.postgres>
         <jdbc.mysql>5.1.31</jdbc.mysql>
         <wicket.version>6.17.0</wicket.version>
-        <groovy.version>1.8.6</groovy.version>
+        <groovy.version>2.4.0</groovy.version>
         <activiti-engine.version>5.17.0</activiti-engine.version>
         <activiti-spring.version>5.17.0</activiti-spring.version>
         <commons-email.version>1.3</commons-email.version>
@@ -150,6 +150,16 @@
 				<artifactId>groovy</artifactId>
 				<version>${groovy.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.codehaus.groovy</groupId>
+				<artifactId>groovy-jsr223</artifactId>
+				<version>${groovy.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.python</groupId>
+				<artifactId>jython</artifactId>
+				<version>2.5.3</version>
+			</dependency>
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
@@ -178,7 +188,7 @@
             <dependency>
                 <groupId>com.sleepycat</groupId>
                 <artifactId>je</artifactId>
-                <version>4.1.10</version>
+                <version>5.0.103</version>
             </dependency>
             <dependency>
                     <artifactId>jaxb-api</artifactId>

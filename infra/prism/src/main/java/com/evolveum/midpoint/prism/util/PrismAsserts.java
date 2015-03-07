@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -542,22 +544,22 @@ public class PrismAsserts {
 		}
 	}
 	
-	public static <V extends PrismValue> void assertTripleNoPlus(PrismValueDeltaSetTriple<V> triple) {
+	public static void assertTripleNoPlus(DeltaSetTriple<?> triple) {
 		assert triple != null : "triple is null";
 		assertTripleNoSet("plus set", triple.getPlusSet());
 	}
 
-	public static <V extends PrismValue> void assertTripleNoZero(PrismValueDeltaSetTriple<V> triple) {
+	public static void assertTripleNoZero(DeltaSetTriple<?> triple) {
 		assert triple != null : "triple is null";
 		assertTripleNoSet("zero set", triple.getZeroSet());
 	}
 
-	public static <V extends PrismValue> void assertTripleNoMinus(PrismValueDeltaSetTriple<V> triple) {
+	public static void assertTripleNoMinus(DeltaSetTriple<?> triple) {
 		assert triple != null : "triple is null";
 		assertTripleNoSet("minus set", triple.getMinusSet());
 	}
 	
-	public static <V extends PrismValue> void assertTripleNoSet(String setName, Collection<V> set) {
+	public static void assertTripleNoSet(String setName, Collection<?> set) {
 		assert set == null || set.isEmpty() : "Expected triple "+setName+" to be empty, but it was: "+set;
 	}
 	

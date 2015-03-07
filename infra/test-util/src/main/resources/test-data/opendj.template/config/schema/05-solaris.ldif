@@ -31,16 +31,16 @@ dn: cn=schema
 objectClass: top
 objectClass: ldapSubentry
 objectClass: subschema
-attributetypes: ( 1.3.6.1.4.1.42.2.27.1.1.12 NAME 'nisNetIdUser'
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.1.1.12 NAME 'nisNetIdUser'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'Solaris Specific' )
-attributetypes: ( 1.3.6.1.4.1.42.2.27.1.1.13 NAME 'nisNetIdGroup'
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.1.1.13 NAME 'nisNetIdGroup'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'Solaris Specific' )
-attributetypes: ( 1.3.6.1.4.1.42.2.27.1.1.14 NAME 'nisNetIdHost'
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.1.1.14 NAME 'nisNetIdHost'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'Solaris Specific' )
-attributetypes: ( 1.3.6.1.4.1.42.2.27.2.1.15 NAME 'rfc822mailMember'
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.2.1.15 NAME 'rfc822mailMember'
   DESC 'rfc822 mail addresss of group member' SYNTAX
   1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'Solaris Specific' )
-attributetypes: ( 2.16.840.1.113730.3.1.30 NAME 'mgrpRFC822MailMember'
+attributeTypes: ( 2.16.840.1.113730.3.1.30 NAME 'mgrpRFC822MailMember'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'Solaris Specific' )
 attributeTypes: ( 1.3.6.1.4.1.42.2.27.5.1.1 NAME 'SolarisProjectID' DESC
   'Unique ID for a Solaris Project entry' EQUALITY integerMatch SYNTAX
@@ -160,33 +160,33 @@ attributeTypes: ( 1.3.6.1.4.1.42.2.27.5.1.62 NAME 'winAccountName'
   DESC 'Windows user or group Name corresponding to a Unix user or group'
   EQUALITY caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'Solaris Specific' )
-attributetypes:( 1.3.6.1.4.1.42.2.27.5.1.63 NAME 'sun-printer-bsdaddr'
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.5.1.63 NAME 'sun-printer-bsdaddr'
   DESC 'Sets the server, print queue destination name and whether the client
   generates protocol extensions. "Solaris" specifies a Solaris print server
   extension. The value is represented by the following value: server ","
   destination ", Solaris".' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE X-ORIGIN 'Solaris Specific' )
-attributetypes:( 1.3.6.1.4.1.42.2.27.5.1.64 NAME 'sun-printer-kvp'
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.5.1.64 NAME 'sun-printer-kvp'
   DESC 'This attribute contains a set of key value pairs which may have
   meaning to the print subsystem or may be user defined. Each value is
   represented by the following: key "=" value.' SYNTAX
   1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'Solaris Specific' )
-attributetypes:( 1.3.6.1.4.1.42.2.27.5.1.67 NAME 'ipTnetTemplateName'
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.5.1.67 NAME 'ipTnetTemplateName'
   DESC 'Trusted Solaris network template template_name' SYNTAX
   1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'Solaris Specific' )
-attributetypes:( 1.3.6.1.4.1.42.2.27.5.1.68 NAME 'ipTnetNumber'
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.5.1.68 NAME 'ipTnetNumber'
   DESC 'Trusted Solaris network template ip_address' SYNTAX
   1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'Solaris Specific' )
-objectclasses: ( 1.3.6.1.4.1.42.2.27.1.2.5 NAME 'nisMailAlias' SUP top
+objectClasses: ( 1.3.6.1.4.1.42.2.27.1.2.5 NAME 'nisMailAlias' SUP top
   MUST cn MAY rfc822mailMember X-ORIGIN 'Solaris Specific' )
-objectclasses: ( 1.3.6.1.4.1.42.2.27.1.2.6 NAME 'nisNetId' SUP top
+objectClasses: ( 1.3.6.1.4.1.42.2.27.1.2.6 NAME 'nisNetId' SUP top
   MUST cn MAY ( nisNetIdUser $ nisNetIdGroup $ nisNetIdHost )
   X-ORIGIN 'Solaris Specific' )
 objectClasses: ( 1.3.6.1.4.1.42.2.27.5.2.1 NAME 'SolarisProject'
   SUP top STRUCTURAL MUST ( SolarisProjectID $ SolarisProjectName )
   MAY ( memberUid $ memberGid $ description $ SolarisProjectAttr )
   X-ORIGIN 'Solaris Specific' )
-objectclasses: ( 1.3.6.1.4.1.42.2.27.5.2.2 NAME 'SolarisAuditUser' SUP top
+objectClasses: ( 1.3.6.1.4.1.42.2.27.5.2.2 NAME 'SolarisAuditUser' SUP top
   AUXILIARY MAY ( SolarisAuditAlways $ SolarisAuditNever )
   X-ORIGIN 'Solaris Specific' )
 objectClasses: ( 1.3.6.1.4.1.42.2.27.5.2.3 NAME 'SolarisUserAttr'
@@ -217,19 +217,19 @@ objectClasses: ( 1.3.6.1.4.1.42.2.27.5.2.7  NAME 'SolarisNamingProfile'
   SolarisPreferredServer $ SolarisPreferredServerOnly $
   SolarisCacheTTL $ SolarisSearchReferral $ SolarisBindTimeLimit )
   X-ORIGIN 'Solaris Specific' )
-objectclasses: ( 2.16.840.1.113730.3.2.4 NAME 'mailGroup' SUP top
+objectClasses: ( 2.16.840.1.113730.3.2.4 NAME 'mailGroup' SUP top
   STRUCTURAL MUST mail MAY ( cn $ mgrpRFC822MailMember ) X-ORIGIN
   'Solaris Specific' )
-objectclasses: ( 1.3.6.1.4.1.42.2.27.5.2.14 NAME 'sunPrinter'
+objectClasses: ( 1.3.6.1.4.1.42.2.27.5.2.14 NAME 'sunPrinter'
   DESC 'Sun printer information' SUP top AUXILIARY MUST printer-name
   MAY (sun-printer-bsdaddr $ sun-printer-kvp) X-ORIGIN 'Solaris Specific' )
-objectclasses: ( 1.3.6.1.4.1.42.2.27.5.2.12 NAME 'nisplusTimeZoneData'
+objectClasses: ( 1.3.6.1.4.1.42.2.27.5.2.12 NAME 'nisplusTimeZoneData'
   DESC 'NIS+ timezone table data' SUP top STRUCTURAL MUST cn
   MAY ( nisplusTimeZone $ description ) X-ORIGIN 'Solaris Specific' )
-objectclasses: ( 1.3.6.1.4.1.42.2.27.5.2.8 NAME 'ipTnetTemplate'
+objectClasses: ( 1.3.6.1.4.1.42.2.27.5.2.8 NAME 'ipTnetTemplate'
   DESC 'Object class for TSOL network templates' SUP top STRUCTURAL
   MUST ipTnetTemplateName MAY SolarisAttrKeyValue X-ORIGIN
   'Solaris Specific' )
-objectclasses: ( 1.3.6.1.4.1.42.2.27.5.2.9 NAME 'ipTnetHost'
+objectClasses: ( 1.3.6.1.4.1.42.2.27.5.2.9 NAME 'ipTnetHost'
   DESC 'Associates an IP address or wildcard with a TSOL template_name'
   SUP top AUXILIARY MUST ipTnetNumber X-ORIGIN 'Solaris Specific' )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
@@ -48,21 +49,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  * 
  * @author Radovan Semancik
  */
-public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
+public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAssignment<F> {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignment.class);
+	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi;
 	private DeltaSetTriple<Construction<F>> constructions;
+	private DeltaSetTriple<EvaluatedAbstractRoleImpl> roles;
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<Authorization> authorizations;
 	private Collection<Mapping<? extends PrismPropertyValue<?>>> focusMappings;
 	private PrismObject<?> target;
 	private boolean isValid;
-	private boolean forceRecon;
+	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
 
-	public EvaluatedAssignment() {
+	public EvaluatedAssignmentImpl() {
 		constructions = new DeltaSetTriple<>();
+		roles = new DeltaSetTriple<>();
 		orgRefVals = new ArrayList<>();
 		authorizations = new ArrayList<>();
 		focusMappings = new ArrayList<>();
@@ -76,6 +79,10 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		this.assignmentIdi = assignmentIdi;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getAssignmentType()
+	 */
+	@Override
 	public AssignmentType getAssignmentType() {
 		return assignmentIdi.getItemNew().getValue(0).asContainerable();
 	}
@@ -105,6 +112,15 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		constructions.addToMinusSet(contruction);
 	}
 	
+	@Override
+	public DeltaSetTriple<EvaluatedAbstractRoleImpl> getRoles() {
+		return roles;
+	}
+	
+	public void addRole(EvaluatedAbstractRoleImpl role, PlusMinusZero mode) {
+		roles.addToSet(mode, role);
+	}
+
 	public Collection<PrismReferenceValue> getOrgRefVals() {
 		return orgRefVals;
 	}
@@ -113,6 +129,10 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		orgRefVals.add(org);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getAuthorizations()
+	 */
+	@Override
 	public Collection<Authorization> getAuthorizations() {
 		return authorizations;
 	}
@@ -129,6 +149,10 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		this.focusMappings.add(focusMapping);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getTarget()
+	 */
+	@Override
 	public PrismObject<?> getTarget() {
 		return target;
 	}
@@ -137,6 +161,10 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		this.target = target;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#isValid()
+	 */
+	@Override
 	public boolean isValid() {
 		return isValid;
 	}
@@ -187,6 +215,10 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		if (!constructions.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "Constructions", constructions, indent+1);
+		}
+		if (!roles.isEmpty()) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "Roles", roles, indent+1);
 		}
 		if (!orgRefVals.isEmpty()) {
 			sb.append("\n");

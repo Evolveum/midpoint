@@ -20,10 +20,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.LookupTableSearchType;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationalValueSearchType;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -36,7 +36,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -352,12 +351,5 @@ public class RepositoryCache implements RepositoryService {
 		if (PERFORMANCE_ADVISOR.isTraceEnabled()) {
 			PERFORMANCE_ADVISOR.trace(message, params);
 		}
-	}
-
-	@Override
-	public List<LookupTableRowType> searchLookupTable(String lookupTableOid, QName column,
-			String searchValue, LookupTableSearchType searchType, ObjectPaging paging)
-			throws ObjectNotFoundException, SchemaException {
-		return repository.searchLookupTable(lookupTableOid, column, searchValue, searchType, paging);
 	}
 }

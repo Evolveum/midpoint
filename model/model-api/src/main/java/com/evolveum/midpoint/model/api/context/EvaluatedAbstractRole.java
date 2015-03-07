@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.api;
+package com.evolveum.midpoint.model.api.context;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 
 /**
  * @author semancik
  *
  */
-public enum LookupTableSearchType {
-	EXACT, STARTS_WITH, SUBSTRING;
+public interface EvaluatedAbstractRole extends DebugDumpable {
+	
+	PrismObject<? extends AbstractRoleType> getRole();
+
 }

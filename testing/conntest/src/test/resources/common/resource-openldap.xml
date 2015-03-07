@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
 	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
-	<name>Localhost OpenDJ</name>
+	<name>Localhost OpenLDAP</name>
 	<connectorRef type="ConnectorType">
 	    <filter>
 			<q:and>

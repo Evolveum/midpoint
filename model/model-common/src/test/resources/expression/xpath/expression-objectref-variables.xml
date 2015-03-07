@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -31,6 +31,6 @@
 	<code>
         declare namespace x="http://example.com/xxx";
         declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-		concat($x:foo,' ',$jack/c:description)
+		concat($x:foo,' ',$jack/c:employeeNumber)
 	</code>
 </script>
