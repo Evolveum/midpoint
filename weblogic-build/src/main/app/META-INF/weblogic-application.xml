@@ -45,6 +45,9 @@ http://xmlns.oracle.com/weblogic/weblogic-application/1.0/weblogic-application.x
 
         <package-name>org.mozilla.*</package-name>
 	<package-name>org.joda.*</package-name>
+		
+	<package-name>javax.persistence.*</package-name>
+	<package-name>org.python.*</package-name>
     </prefer-application-packages>
     <prefer-application-resources>
         <resource-name>META-INF/services/javax.ws.rs.ext.RuntimeDelegate</resource-name>

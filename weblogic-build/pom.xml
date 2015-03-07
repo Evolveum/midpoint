@@ -36,7 +36,7 @@
 	<dependency>
 	    <groupId>com.evolveum.midpoint.gui</groupId>
 	    <artifactId>admin-gui</artifactId>
-	    <version>3.1</version>
+	    <version>3.2-SNAPSHOT</version>
 	    <type>war</type>
 	</dependency>
     </dependencies>
@@ -49,19 +49,20 @@
             <build>
                 <plugins>
                     <plugin>
-			<artifactId>maven-ear-plugin</artifactId>
-			<configuration>
-				<displayName>midPoint</displayName>
-				<earSourceDirectory>src/main/app</earSourceDirectory>
-				<modules>
-					<webModule>
-						<groupId>com.evolveum.midpoint.gui</groupId>
-						<artifactId>admin-gui</artifactId>
-						<bundleFileName>midpoint.war</bundleFileName>
-						<contextRoot>/midpoint</contextRoot>
-					</webModule>
-				</modules>
-			</configuration>
+						<artifactId>maven-ear-plugin</artifactId>
+						<version>2.10</version>
+						<configuration>
+							<displayName>midPoint</displayName>
+							<earSourceDirectory>${basedir}/src/main/app</earSourceDirectory>
+							<modules>
+								<webModule>
+									<groupId>com.evolveum.midpoint.gui</groupId>
+									<artifactId>admin-gui</artifactId>
+									<bundleFileName>midpoint.war</bundleFileName>
+									<contextRoot>/midpoint</contextRoot>
+								</webModule>
+							</modules>
+						</configuration>
                     </plugin>
                 </plugins>
             </build>
