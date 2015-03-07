@@ -62,6 +62,11 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
     public PrismPropertyDefinition(QName elementName, QName typeName, PrismContext prismContext) {
         super(elementName, typeName, prismContext);
     }
+    
+    public PrismPropertyDefinition(QName elementName, QName typeName, PrismContext prismContext, T[] allowevValues) {
+        super(elementName, typeName, prismContext);
+        this.allowedValues = allowevValues;
+    }
 
     /**
      * Returns allowed values for this property.
