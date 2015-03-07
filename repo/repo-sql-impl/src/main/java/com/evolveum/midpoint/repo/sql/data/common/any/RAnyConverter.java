@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.parser.PrismBeanInspector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -92,6 +93,13 @@ public class RAnyConverter {
                     continue;
                 } else if (value instanceof PrismPropertyValue) {
                     PrismPropertyValue propertyValue = (PrismPropertyValue) value;
+                    Object realValue = propertyValue.getValue();
+                    if (realValue.getClass().isEnum()){
+                    	PrismBeanInspector inspector = new PrismBeanInspector(prismContext);
+                    	String enumToString = inspector.findEnumFieldValueUncached(realValue.getClass(), realValue.toString());
+                    	rValue = new ROExtString(enumToString);
+                        
+                    } else{
                     switch (getValueType(definition.getTypeName())) {
                         case LONG:
                             if (assignment) {
@@ -137,6 +145,7 @@ public class RAnyConverter {
                             } else {
                                 continue;
                             }
+                    }
                     }
                 } else if (value instanceof PrismReferenceValue) {
                     if (assignment) {
@@ -428,7 +437,7 @@ public class RAnyConverter {
         if (object instanceof Date) {
             object = new Timestamp(((Date) object).getTime());
         }
-
+        
         return object;
     }
 }

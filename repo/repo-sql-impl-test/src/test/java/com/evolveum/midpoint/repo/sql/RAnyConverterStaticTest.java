@@ -16,18 +16,27 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import java.util.Set;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtLong;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtString;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -180,7 +189,31 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
         session.close();
     }
+    
+    @Test
+    public void testExtensionEnum() throws Exception {
+        Session session = getFactory().openSession();
 
+        QName valueName = new QName(NS_P, "enumType");
+        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        AssertJUnit.assertNotNull(def);
+        PrismProperty item = (PrismProperty) def.instantiate();
+        item.setValue(new PrismPropertyValue(BeforeAfterType.AFTER));
+        def.setName(valueName);
+        
+        
+        RAnyConverter converter = new RAnyConverter(prismContext);
+        Set<RAnyValue> values = converter.convertToRValue(item, false);
+
+        AssertJUnit.assertEquals("Expected only one enum value, but was " + values.size(), 1, values.size());
+        
+        RAnyValue value = values.iterator().next();
+        AssertJUnit.assertEquals("after", value.getValue());
+        
+        
+        session.close();
+    }
+    
     @Test
     public void testExtensionDecimal() throws Exception {
         Session session = getFactory().openSession();
