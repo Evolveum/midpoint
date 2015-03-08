@@ -823,7 +823,7 @@ class DomToSchemaProcessor {
 		
 		Object[] allowedValues= parseEnumAllowedValues(xsType);
 		
-		Object defaultValue = parseDefaultValue(elementParticle);
+		Object defaultValue = parseDefaultValue(elementParticle, typeName);
 		
 		propDef = definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext, annotation, elementParticle, allowedValues, null);
 		setMultiplicity(propDef, elementParticle, annotation, ctd == null);
@@ -866,7 +866,7 @@ class DomToSchemaProcessor {
 		return propDef;
 	}
 	
-	private Object parseDefaultValue(XSParticle elementParticle) {
+	private Object parseDefaultValue(XSParticle elementParticle, QName typeName) {
 		if (elementParticle == null){
 			return null;
 		}
@@ -880,6 +880,9 @@ class DomToSchemaProcessor {
 			return null;
 		}
 		if (elementDecl.getDefaultValue() != null){
+			if (XmlTypeConverter.canConvert(typeName)){
+				return XmlTypeConverter.toJavaValue(elementDecl.getDefaultValue().value, typeName);
+			}
 			return elementDecl.getDefaultValue().value;
 		}
 		return null;
