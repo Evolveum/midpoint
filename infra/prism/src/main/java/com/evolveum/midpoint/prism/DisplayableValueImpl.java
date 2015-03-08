@@ -5,13 +5,13 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.util.DisplayableValue;
 
-	public class EnumDisplayableValue implements DisplayableValue, Serializable{
+	public class DisplayableValueImpl implements DisplayableValue, Serializable{
 		
 		private Object value;
 		private String label;
 		private String description;
 		
-		public EnumDisplayableValue(Object value, String label, String description) {
+		public DisplayableValueImpl(Object value, String label, String description) {
 			this.label = label;
 			this.value = value;
 			this.description = description;

@@ -36,6 +36,8 @@ import static com.evolveum.midpoint.prism.PrismConstants.A_OBJECT_REFERENCE_TARG
 import static com.evolveum.midpoint.prism.PrismConstants.A_OPERATIONAL;
 import static com.evolveum.midpoint.prism.PrismConstants.A_PROPERTY_CONTAINER;
 import static com.evolveum.midpoint.prism.PrismConstants.A_TYPE;
+import static com.evolveum.midpoint.prism.PrismConstants.SCHEMA_DOCUMENTATION;
+import static com.evolveum.midpoint.prism.PrismConstants.SCHEMA_APP_INFO;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import java.io.ByteArrayInputStream;
@@ -65,7 +67,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.EnumDisplayableValue;
+import com.evolveum.midpoint.prism.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -89,6 +91,7 @@ import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.impl.ElementDecl;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
 
@@ -818,42 +821,11 @@ class DomToSchemaProcessor {
 		
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		
-		Object[] allowedValues= null;
-		if (xsType.isSimpleType()){
-			if (xsType.asSimpleType().isRestriction()){
-				XSRestrictionSimpleType restriction = xsType.asSimpleType().asRestriction();
-				List<XSFacet> enumerations = restriction.getDeclaredFacets(XSFacet.FACET_ENUMERATION);
-				List<EnumDisplayableValue> enumValues = new ArrayList<EnumDisplayableValue>(enumerations.size());
-				for (XSFacet facet : enumerations){
-					String label = facet.getValue().value;
-					XSSchema facetSchema = facet.getSourceDocument().getSchema();
-					
-					Element descriptionE = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(), new QName(W3C_XML_SCHEMA_NS_URI, "documentation"));
-					Element appInfo = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(), new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
-//					String value = valueE.getAttribute("name");
-					Element valueE = null;
-					if (appInfo != null){
-						NodeList list = appInfo.getElementsByTagNameNS("http://java.sun.com/xml/ns/jaxb", "typesafeEnumMember");
-						if (list.getLength() != 0){
-							valueE = (Element) list.item(0);
-						}
-					}
-					String value = null;
-					if (valueE != null){
-						value = valueE.getAttribute("name");
-						
-					}
-					
-					EnumDisplayableValue edv = new EnumDisplayableValue(value, label, descriptionE != null ? descriptionE.getTextContent() : null);
-					
-					enumValues.add(edv);
-					
-				}
-				allowedValues = enumValues.toArray();
-			}
-		}
+		Object[] allowedValues= parseEnumAllowedValues(xsType);
 		
-		propDef = definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext, annotation, elementParticle, allowedValues);
+		Object defaultValue = parseDefaultValue(elementParticle);
+		
+		propDef = definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext, annotation, elementParticle, allowedValues, null);
 		setMultiplicity(propDef, elementParticle, annotation, ctd == null);
 		
 		// Process generic annotations
@@ -892,6 +864,64 @@ class DomToSchemaProcessor {
 		}
 		
 		return propDef;
+	}
+	
+	private Object parseDefaultValue(XSParticle elementParticle) {
+		if (elementParticle == null){
+			return null;
+		}
+		XSTerm term = elementParticle.getTerm();
+		if (term == null){
+			return null;
+		}
+		
+		XSElementDecl elementDecl = term.asElementDecl();
+		if (elementDecl == null){
+			return null;
+		}
+		if (elementDecl.getDefaultValue() != null){
+			return elementDecl.getDefaultValue().value;
+		}
+		return null;
+	}
+
+	private Object[] parseEnumAllowedValues(XSType xsType){
+		if (xsType.isSimpleType()){
+			if (xsType.asSimpleType().isRestriction()){
+				XSRestrictionSimpleType restriction = xsType.asSimpleType().asRestriction();
+				List<XSFacet> enumerations = restriction.getDeclaredFacets(XSFacet.FACET_ENUMERATION);
+				List<DisplayableValueImpl> enumValues = new ArrayList<DisplayableValueImpl>(enumerations.size());
+				for (XSFacet facet : enumerations){
+					String label = facet.getValue().value;
+					XSSchema facetSchema = facet.getSourceDocument().getSchema();
+					
+					Element descriptionE = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(), SCHEMA_DOCUMENTATION);
+					Element appInfo = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(), SCHEMA_APP_INFO);
+					Element valueE = null;
+					if (appInfo != null){
+						NodeList list = appInfo.getElementsByTagNameNS("http://java.sun.com/xml/ns/jaxb", "typesafeEnumMember");
+						if (list.getLength() != 0){
+							valueE = (Element) list.item(0);
+						}
+					}
+					String value = null;
+					if (valueE != null){
+						value = valueE.getAttribute("name");
+						
+					}
+					
+					DisplayableValueImpl edv = new DisplayableValueImpl(value, label, descriptionE != null ? descriptionE.getTextContent() : null);
+					
+					enumValues.add(edv);
+					
+				}
+				if (enumValues != null && !enumValues.isEmpty()){
+					return enumValues.toArray();
+				}
+				
+			}
+		}
+		return null;
 	}
 	
 	private void parseItemDefinitionAnnotations(ItemDefinition itemDef, XSAnnotation annotation) throws SchemaException {
