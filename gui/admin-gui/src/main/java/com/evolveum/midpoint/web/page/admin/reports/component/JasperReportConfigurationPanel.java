@@ -15,6 +15,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.validator.AbstractValidator;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -23,6 +25,7 @@ import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.Validatable;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.InputStringValidator;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportFieldDto;
@@ -286,12 +289,31 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
 		    }
 		 
 		 
-	private Component createTextPanel(String componentId, IModel model, String expression){
+	private Component createTextPanel(String componentId, final IModel model, String expression){
 		TextPanel textPanel = new TextPanel<>(componentId, new PropertyModel<String>(model, expression));
         FormComponent input = textPanel.getBaseFormComponent();
         input.add(new AttributeAppender("style", "width: 100%"));
         input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        input.add(new InputStringValidator());
+        input.add(new AbstractValidator(){
+
+			@Override
+			protected void onValidate(IValidatable validatable) {
+				if(validatable.getValue() == null){
+					error(validatable, "Empty values not allowed");
+				}
+				
+			}
+			
+			@Override
+			public boolean validateOnNullValue() {
+				if (model.getObject() instanceof Validatable){
+					return !((Validatable)model.getObject()).isEmpty();
+				}
+				
+				return true;
+			       	
+			}
+        });
         return textPanel;
 	}
 	

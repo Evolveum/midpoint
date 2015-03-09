@@ -147,17 +147,17 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
                 return new AceEditorPanel(panelId, title, data);
             }
         });
-        tabs.add(new AbstractTab(createStringResource("PageReport.fullXml")) {
-
-            @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                IModel<String> title = PageReport.this.createStringResource("PageReport.fullXml");
-
-                AceEditorPanel panel = new AceEditorPanel(panelId, title, createFullXmlModel());
-                panel.getEditor().add(createFullXmlValidator());
-                return panel;
-            }
-        });
+//        tabs.add(new AbstractTab(createStringResource("PageReport.fullXml")) {
+//
+//            @Override
+//            public WebMarkupContainer getPanel(String panelId) {
+//                IModel<String> title = PageReport.this.createStringResource("PageReport.fullXml");
+//
+//                AceEditorPanel panel = new AceEditorPanel(panelId, title, createFullXmlModel());
+//                panel.getEditor().add(createFullXmlValidator());
+//                return panel;
+//            }
+//        });
 
         TabbedPanel reportTabPanel = new TabbedPanel(ID_TAB_PANEL, tabs){
             @Override

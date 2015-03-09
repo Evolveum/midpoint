@@ -93,6 +93,9 @@ public class JasperReportDto implements Serializable{
 	public byte[] getTemplate(){
 		try{
 		for (JasperReportFieldDto field : fields){
+			if (field.isEmpty()){
+				continue;
+			}
 			JRDesignField f = new JRDesignField();
 			f.setValueClassName(field.getTypeAsString());
 			f.setValueClass(Class.forName(field.getTypeAsString()));
@@ -101,6 +104,9 @@ public class JasperReportDto implements Serializable{
 		}
 		
 		for (JasperReportParameterDto param : parameters){
+			if (param.isEmpty()){
+				continue;
+			}
 			JRDesignParameter p = new JRDesignParameter();
 			p.setValueClassName(param.getTypeAsString());
 			p.setValueClass(Class.forName(param.getTypeAsString()));
