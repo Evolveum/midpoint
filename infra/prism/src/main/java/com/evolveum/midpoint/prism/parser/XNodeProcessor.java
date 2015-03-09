@@ -481,7 +481,7 @@ public class XNodeProcessor {
     
     private <T> boolean isAllowed(T realValue, Object[] allowedValues){
     	for (Object o : allowedValues){
-    		if (realValue.equals(((DisplayableValue)o).getLabel())){
+    		if (realValue.equals(((DisplayableValue)o).getValue())){
     			return true;
     		}
     	}
