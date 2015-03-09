@@ -1,0 +1,84 @@
+dn: cn=admin data
+objectClass: top
+objectClass: ds-cfg-branch
+cn: admin data
+entryUUID: 46e489f6-1f92-3120-990f-54a178e95b21
+
+dn: cn=instance keys,cn=admin data
+objectClass: top
+objectClass: ds-cfg-branch
+cn: instance keys
+entryUUID: 66ceef12-f0d6-355e-9e9b-9bdcfe536d8c
+
+dn: cn=secret keys,cn=admin data
+objectClass: top
+objectClass: ds-cfg-branch
+cn: secret keys
+entryUUID: 26176404-8825-3f77-9efd-c52bd4061f3b
+
+dn: cn=Administrators,cn=admin data
+objectClass: top
+objectClass: groupofurls
+description: Group of identities which have full access.
+cn: Administrators
+memberURL: ldap:///cn=Administrators,cn=admin data??one?(objectclass=*)
+entryUUID: 80faa47a-77d6-3c78-a3c1-ea6ccbd2f735
+
+dn: cn=Server Groups,cn=admin data
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Server Groups
+entryUUID: 9ee2aa25-d738-31fc-9fde-145fe9a53ae0
+
+dn: cn=all-servers,cn=Server Groups,cn=admin data
+objectClass: groupOfUniqueNames
+objectClass: top
+cn: all-servers
+uniqueMember: cn=localhost:10444
+modifyTimestamp: 20150306180846Z
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: 00450d2d-26b0-3d92-b9e8-f616539697fa
+
+dn: ds-cfg-key-id=10DE0F7F79ED46264B94A5C08E190F5A,cn=instance keys,cn=admin data
+objectClass: top
+objectClass: ds-cfg-instance-key
+ds-cfg-public-key-certificate;binary:: MIIB2TCCAUKgAwIBAgIEEgIl0TANBgkqhkiG9w0BAQUFADAxMRswGQYDVQQKExJPcGVuREogQ2VydGlmaWNhdGUxEjAQBgNVBAMTCWxvY2FsaG9zdDAeFw0xNTAzMDYxODA4NDVaFw0zNTAzMDExODA4NDVaMDExGzAZBgNVBAoTEk9wZW5ESiBDZXJ0aWZpY2F0ZTESMBAGA1UEAxMJbG9jYWxob3N0MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCAXFEKwfwXQfN39ZiNDqDXUNKiYpGpreSvpXx5otnn9ighwrwYvw0Mw2Q2wXVyamed2mvAsAB+/h6ajk0ANu/PQo1iOhrbshr5ffP58/TJW+fvTfu1e5fgdl/XGqknP1S2AGWDn/JLe+MoTbPw4JFyyZqOZkTtnngmEYPpT55xqQIDAQABMA0GCSqGSIb3DQEBBQUAA4GBACGRCQ3mXkD6ULnuLb/9M0lUubFD78daC8upmV8igjHWW/IYaj1ewZdsuKIdW7PaojlCqpc8PNpW7VbssCVeGBD8jahrwu/5xYcJU6okp7p8o1Zp1fIwpaUvX97DfrfjGGUIGgRTM1RdCv2DOtCYB0dZIgmE/0tAs2x+V+gU+UTi
+ds-cfg-key-id: 10DE0F7F79ED46264B94A5C08E190F5A
+creatorsName: cn=Internal Client,cn=Root DNs,cn=config
+createTimestamp: 20150306180845Z
+entryUUID: 23934850-1671-47b4-8451-ac1c64b597d5
+
+dn: cn=Servers,cn=admin data
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Servers
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+createTimestamp: 20150306180846Z
+entryUUID: 21f7e441-4017-4b59-9137-26683e46a055
+
+dn: cn=localhost:10444,cn=Servers,cn=admin data
+objectClass: extensibleobject
+objectClass: top
+objectClass: ds-cfg-branch
+memberofgroups: all-servers
+jmxsEnabled: false
+adminport: 10444
+jmxEnabled: false
+ldapsEnabled: false
+jmxport: 1689
+ldapport: 10389
+id: localhost:10444
+ds-cfg-key-id: 10DE0F7F79ED46264B94A5C08E190F5A
+ldapEnabled: true
+startTLSEnabled: false
+cn: localhost:10444
+jmxsport: -1
+hostname: localhost
+adminEnabled: true
+ldapsport: 636
+entryUUID: ac944fab-2f03-4157-8b9b-c1141dc1f451
+createTimestamp: 20150306180846Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+modifyTimestamp: 20150306180846Z
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+

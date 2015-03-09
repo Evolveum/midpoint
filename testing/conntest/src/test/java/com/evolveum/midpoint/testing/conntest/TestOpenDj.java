@@ -25,6 +25,8 @@ import org.testng.annotations.AfterClass;
  */
 public class TestOpenDj extends AbstractLdapConnTest {
 
+	private static final String OPENDJ_TEMPLATE_NAME = "opendj-4000.template";
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.testing.conntest.AbstractLdapConnTest#getResourceOid()
 	 */
@@ -54,7 +56,7 @@ public class TestOpenDj extends AbstractLdapConnTest {
 	@Override
 	protected void startResources() throws Exception {
 		super.startResources();
-		openDJController.startCleanServer();
+		openDJController.startCleanServer(OPENDJ_TEMPLATE_NAME);
 	}
 	
 	@AfterClass
@@ -83,6 +85,9 @@ public class TestOpenDj extends AbstractLdapConnTest {
 		return "secret";
 	}
 	
-	
+	@Override
+	protected String getAccount0Cn() {
+		return "Warlaz Kunjegjul (00000000)";
+	}
 
 }
