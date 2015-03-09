@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -52,8 +53,8 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import com.sun.management.OperatingSystemMXBean;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -174,45 +175,83 @@ public final class WebMiscUtil {
         };
     }
 
-    public static DropDownChoicePanel createActivationStatusPanel(String id, final IModel<ActivationStatusType> model,
-                                                                  final Component component) {
-        return new DropDownChoicePanel(id, model,
-                WebMiscUtil.createReadonlyModelFromEnum(ActivationStatusType.class),
-                new IChoiceRenderer<ActivationStatusType>() {
+//    public static DropDownChoicePanel createActivationStatusPanel(String id, final IModel<ActivationStatusType> model,
+//                                                                  final Component component) {
+//        return new DropDownChoicePanel(id, model,
+//                WebMiscUtil.createReadonlyModelFromEnum(ActivationStatusType.class),
+//                new IChoiceRenderer<ActivationStatusType>() {
+//
+//                    @Override
+//                    public Object getDisplayValue(ActivationStatusType object) {
+//                        return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
+//                    }
+//
+//                    @Override
+//                    public String getIdValue(ActivationStatusType object, int index) {
+//                        return Integer.toString(index);
+//                    }
+//                }, true);
+//    }
 
-                    @Override
-                    public Object getDisplayValue(ActivationStatusType object) {
-                        return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
-                    }
-
-                    @Override
-                    public String getIdValue(ActivationStatusType object, int index) {
-                        return Integer.toString(index);
-                    }
-                }, true);
-    }
-
-    public static DropDownChoicePanel createLockoutStatsPanel(String id, final IModel<LockoutStatusType> model,
+    public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id, final IModel<E> model,
                                                               final Component component){
-        return new DropDownChoicePanel(id, model,
-                WebMiscUtil.createReadonlyModelFromEnum(LockoutStatusType.class),
-                new IChoiceRenderer<LockoutStatusType>() {
+//        final Class clazz = model.getObject().getClass();
+        final Object o = model.getObject();
+    	return new DropDownChoicePanel(id, model,
+                WebMiscUtil.createReadonlyModelFromEnum(clazz),
+                new IChoiceRenderer<E>() {
 
                     @Override
-                    public Object getDisplayValue(LockoutStatusType object) {
+                    public Object getDisplayValue(E object) {
                         return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
                     }
 
                     @Override
-                    public String getIdValue(LockoutStatusType object, int index) {
+                    public String getIdValue(E object, int index) {
                         return Integer.toString(index);
                     }
                 }, true);
     }
+    
+	public static <E extends Enum> DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def,
+			String id, final IModel model, final Component component) {
+		// final Class clazz = model.getObject().getClass();
+		final Object o = model.getObject();
+		
+		IModel<List<String>> enumModelValues = new AbstractReadOnlyModel<List<String>>() {
+			@Override
+			public List<String> getObject() {
+				List<String> values = null;
+				if (def.getAllowedValues() != null){
+					values = new ArrayList<>(def.getAllowedValues().length);
+					for (Object v : def.getAllowedValues()){
+						if (v instanceof DisplayableValue){
+							values.add(((DisplayableValue) v).getLabel());
+						}
+					}
+				}
+				return values;
+			}
+		};
+		
+		return new DropDownChoicePanel(id, model, enumModelValues,
+				new IChoiceRenderer<String>() {
 
-    public static String getName(ObjectType object) {
-        if (object == null) {
-            return null;
+					@Override
+					public Object getDisplayValue(String object) {
+						return object;
+					}
+
+					@Override
+					public String getIdValue(String object, int index) {
+						return Integer.toString(index);
+					}
+				}, true);
+	}
+
+	public static String getName(ObjectType object) {
+		if (object == null) {
+			return null;
         }
 
         return getName(object.asPrismObject());

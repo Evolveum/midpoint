@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -384,12 +385,15 @@ public class PrismValuePanel extends Panel {
         }
 
         Panel panel;
+        
         if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())) {
-            return WebMiscUtil.createActivationStatusPanel(id, new PropertyModel<ActivationStatusType>(model, baseExpression), this);
+            return WebMiscUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(model, baseExpression), this);
         } else if(ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())){
-            return WebMiscUtil.createLockoutStatsPanel(id, new PropertyModel<LockoutStatusType>(model, baseExpression), this);
+            return WebMiscUtil.createEnumPanel(LockoutStatusType.class, id, new PropertyModel<LockoutStatusType>(model, baseExpression), this);
+        } else{
+        	
         }
-
+        
         if (DOMUtil.XSD_DATETIME.equals(valueType)) {
             panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, baseExpression));
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
@@ -454,6 +458,12 @@ public class PrismValuePanel extends Panel {
             Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
             if (type != null && type.isPrimitive()) {
                 type = ClassUtils.primitiveToWrapper(type);
+                
+            } 
+            
+            if (isEnum(property)) {
+            		return WebMiscUtil.createEnumPanel(definition, id, new PropertyModel<>(model, baseExpression), this);
+            	
             }
 //            // default QName validation is a bit weird, so let's treat QNames as strings [TODO finish this - at the parsing side]
 //            if (type == QName.class) {
@@ -465,6 +475,20 @@ public class PrismValuePanel extends Panel {
         return panel;
     }
 
+    private boolean isEnum(PrismProperty property){
+    	PrismPropertyDefinition definition = property.getDefinition();
+////    	Object realValue = property.getAnyRealValue();
+    	if (definition == null){
+    		return property.getValueClass().isEnum();
+    	} 
+//    	
+//    	QName defName = definition.getName();
+//    	Class clazz = definition.getPrismContext().getSchemaRegistry().determineCompileTimeClass(defName);
+//    	
+//    	return ((clazz != null && clazz.isEnum()) || ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName()) 
+//    	 || ActivationType.F_LOCKOUT_STATUS.equals(definition.getName()) || );
+    	return (definition.getAllowedValues() != null && definition.getAllowedValues().length > 0);
+    }
     //TODO - try to get rid of <br> attributes when creating new lines in association attributes pop-up
     private String createAssociationTooltipText(PrismProperty property){
         StringBuilder sb = new StringBuilder();

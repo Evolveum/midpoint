@@ -430,7 +430,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         });
         body.add(activationBlock);
 
-        DropDownChoicePanel administrativeStatus = WebMiscUtil.createActivationStatusPanel(ID_ADMINISTRATIVE_STATUS,
+        DropDownChoicePanel administrativeStatus = WebMiscUtil.createEnumPanel(ActivationStatusType.class, ID_ADMINISTRATIVE_STATUS,
                 new PropertyModel<ActivationStatusType>(getModel(), AssignmentEditorDto.F_ACTIVATION + "."
                         + ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart()), this);
         activationBlock.add(administrativeStatus);
