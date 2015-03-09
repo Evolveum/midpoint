@@ -24,26 +24,70 @@ objectClass: ds-task
 objectClass: top
 ds-task-state: RUNNING
 ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask
-ds-task-log-message: [22/Jul/2011:09:41:17 +0200] severity="NOTICE" msgCount=0 msgID=9896349 message="Set Generation ID task dsreplication-reset-generation-id-1 started execution"
+ds-task-log-message: [06/Mar/2015:19:15:10 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Set Generation ID task dsreplication-reset-generation-id-1 started execution"
 ds-task-id: dsreplication-reset-generation-id-1
-ds-task-actual-start-time: 20110722074117Z
+ds-task-actual-start-time: 20150306181510Z
 ds-task-reset-generation-id-domain-base-dn: dc=example,dc=com
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20110722074117Z
-entryUUID: 33f3db82-841d-4900-b3c6-1701f142aedd
+createTimestamp: 20150306181510Z
+entryUUID: 7368a070-50c1-408d-9540-e69ab901884f
+
+dn: ds-task-id=20150306191505950,cn=Scheduled Tasks,cn=Tasks
+objectClass: ds-task-import
+objectClass: ds-task
+objectClass: top
+ds-task-import-backend-id: userRoot
+ds-task-log-message: [06/Mar/2015:19:15:05 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Import task 20150306191505950 started execution"
+ds-task-log-message: [06/Mar/2015:19:15:05 +0100] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [06/Mar/2015:19:15:05 +0100] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [06/Mar/2015:19:15:05 +0100] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
+ds-task-log-message: [06/Mar/2015:19:15:05 +0100] severity="NOTICE" msgCount=4 msgID=20381717 message="Installation Directory:  /opt/opendj-2.6.2"
+ds-task-log-message: [06/Mar/2015:19:15:05 +0100] severity="NOTICE" msgCount=5 msgID=20381719 message="Instance Directory:      /opt/opendj-2.6.2"
+ds-task-log-message: [06/Mar/2015:19:15:05 +0100] severity="NOTICE" msgCount=6 msgID=20381713 message="JVM Information: 1.7.0_75-b13 by Oracle Corporation, 64-bit architecture, 1862270976 bytes heap size"
+ds-task-log-message: [06/Mar/2015:19:15:05 +0100] severity="NOTICE" msgCount=7 msgID=20381714 message="JVM Host: triglav.nlight.eu, running Linux 3.16.0-30-generic amd64, 8372068352 bytes physical memory size, number of processors available 4"
+ds-task-log-message: [06/Mar/2015:19:15:05 +0100] severity="NOTICE" msgCount=8 msgID=20381715 message="JVM Arguments: "-Dorg.opends.server.scriptName=start-ds""
+ds-task-log-message: [06/Mar/2015:19:15:05 +0100] severity="NOTICE" msgCount=9 msgID=8847546 message="The amount of free memory available to the import task is 628135236 bytes. The number of phase one buffers required is 320 buffers"
+ds-task-log-message: [06/Mar/2015:19:15:05 +0100] severity="NOTICE" msgCount=10 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 414461121 bytes"
+ds-task-log-message: [06/Mar/2015:19:15:06 +0100] severity="NOTICE" msgCount=11 msgID=8847545 message="Setting DB cache size to 8388608 bytes and phase one buffer size to to 512804 bytes"
+ds-task-log-message: [06/Mar/2015:19:15:06 +0100] severity="NOTICE" msgCount=12 msgID=8847533 message="OpenDJ 2.6.2 starting import (build 20150306161742Z, R-1)"
+ds-task-log-message: [06/Mar/2015:19:15:06 +0100] severity="NOTICE" msgCount=13 msgID=8847449 message="Import Thread Count: 8 threads"
+ds-task-log-message: [06/Mar/2015:19:15:07 +0100] severity="NOTICE" msgCount=14 msgID=8847556 message="The available memory for phase two processing is 628135236 bytes. The read ahead cache size is 512804 bytes calculated using 25 buffers"
+ds-task-log-message: [06/Mar/2015:19:15:07 +0100] severity="NOTICE" msgCount=15 msgID=8847569 message="Total import time was 0 seconds. Phase one processing completed in 0 seconds, phase two processing completed in 0 seconds"
+ds-task-log-message: [06/Mar/2015:19:15:07 +0100] severity="NOTICE" msgCount=16 msgID=8847454 message="Processed 9 entries, imported 9, skipped 0, rejected 0 and migrated 0 in 0 seconds (average rate 15.0/sec)"
+ds-task-log-message: [06/Mar/2015:19:15:07 +0100] severity="NOTICE" msgCount=17 msgID=8847536 message="Import LDIF environment close took 0 seconds"
+ds-task-log-message: [06/Mar/2015:19:15:07 +0100] severity="INFORMATION" msgCount=18 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
+ds-task-log-message: [06/Mar/2015:19:15:07 +0100] severity="INFORMATION" msgCount=19 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
+ds-task-log-message: [06/Mar/2015:19:15:08 +0100] severity="NOTICE" msgCount=20 msgID=8847402 message="The database backend userRoot containing 9 entries has started"
+ds-task-log-message: [06/Mar/2015:19:15:08 +0100] severity="INFORMATION" msgCount=21 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
+ds-task-log-message: [06/Mar/2015:19:15:08 +0100] severity="NOTICE" msgCount=22 msgID=8847447 message="Exported 9 entries and skipped 0 in 0 seconds (average rate 4500.0/sec)"
+ds-task-log-message: [06/Mar/2015:19:15:08 +0100] severity="NOTICE" msgCount=23 msgID=15138878 message="Directory server DS(161) has connected to replication server RS(9664) for domain "dc=example,dc=com" at localhost/127.0.0.1:10989 with generation ID 135297"
+ds-task-log-message: [06/Mar/2015:19:15:08 +0100] severity="NOTICE" msgCount=24 msgID=9896350 message="Import task 20150306191505950 finished execution"
+ds-task-log-message: [06/Mar/2015:19:15:10 +0100] severity="MILD_ERROR" msgCount=25 msgID=14876751 message="The following error has been received : Domain dc=example,dc=com: the server with serverId=-2 is unreachable In Replication Server=Replication Server 10989 9664 unroutable message =DoneMsg Details:routing table is empty"
+ds-task-import-thread-count: 0
+ds-task-id: 20150306191505950
+ds-task-actual-start-time: 20150306181505Z
+ds-task-import-random-seed: 0
+ds-task-completion-time: 20150306181508Z
+ds-task-state: COMPLETED_SUCCESSFULLY
+ds-task-class-name: org.opends.server.tasks.ImportTask
+ds-task-import-ldif-file: /home/semancik/projects/evolveum/midpoint/git/infra/test-util/src/main/resources/test-data/ldif/example.ldif
+ds-task-import-clear-backend: true
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+createTimestamp: 20150306181505Z
+entryUUID: 1e11d235-dc20-4374-87d9-bd6ee027d58c
 
 dn: ds-task-id=dsreplication-initialize1,cn=Scheduled Tasks,cn=Tasks
 objectClass: ds-task
 objectClass: ds-task-initialize-remote-replica
 objectClass: top
-ds-task-log-message: [22/Jul/2011:09:41:17 +0200] severity="NOTICE" msgCount=0 msgID=9896349 message="Initialize Backend task dsreplication-initialize1 started execution"
-ds-task-log-message: [22/Jul/2011:09:41:17 +0200] severity="NOTICE" msgCount=1 msgID=15139025 message="Starting total update: exporting 9 entries in domain "dc=example,dc=com" from this directory server DS(8631) to all remote directory servers"
-ds-task-log-message: [22/Jul/2011:09:41:17 +0200] severity="NOTICE" msgCount=2 msgID=8847447 message="Exported 9 entries and skipped 0 in 0 seconds (average rate 4500.0/sec)"
-ds-task-log-message: [22/Jul/2011:09:41:17 +0200] severity="NOTICE" msgCount=3 msgID=15139026 message="Finished total update: exported domain "dc=example,dc=com" from this directory server DS(8631) to all remote directory servers. "
-ds-task-log-message: [22/Jul/2011:09:41:17 +0200] severity="NOTICE" msgCount=4 msgID=9896350 message="Initialize Backend task dsreplication-initialize1 finished execution"
+ds-task-log-message: [06/Mar/2015:19:15:10 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Initialize Backend task dsreplication-initialize1 started execution"
+ds-task-log-message: [06/Mar/2015:19:15:10 +0100] severity="NOTICE" msgCount=1 msgID=15139025 message="Starting total update: exporting 9 entries in domain "dc=example,dc=com" from this directory server DS(161) to all remote directory servers"
+ds-task-log-message: [06/Mar/2015:19:15:10 +0100] severity="NOTICE" msgCount=2 msgID=8847447 message="Exported 9 entries and skipped 0 in 0 seconds (average rate 4500.0/sec)"
+ds-task-log-message: [06/Mar/2015:19:15:10 +0100] severity="NOTICE" msgCount=3 msgID=15139026 message="Finished total update: exported domain "dc=example,dc=com" from this directory server DS(161) to all remote directory servers. "
+ds-task-log-message: [06/Mar/2015:19:15:10 +0100] severity="NOTICE" msgCount=4 msgID=9896350 message="Initialize Backend task dsreplication-initialize1 finished execution"
 ds-task-id: dsreplication-initialize1
-ds-task-actual-start-time: 20110722074117Z
-ds-task-completion-time: 20110722074117Z
+ds-task-actual-start-time: 20150306181510Z
+ds-task-completion-time: 20150306181510Z
 ds-task-state: COMPLETED_SUCCESSFULLY
 ds-task-class-name: org.opends.server.tasks.InitializeTargetTask
 ds-task-initialize-replica-server-id: all
@@ -51,51 +95,6 @@ ds-task-initialize-domain-dn: dc=example,dc=com
 ds-task-processed-entry-count: 0
 ds-task-unprocessed-entry-count: 9
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20110722074117Z
-entryUUID: 00c191bf-1006-496d-ba9e-9ae5dc47ca6e
-
-dn: ds-task-id=20110722094113032,cn=Scheduled Tasks,cn=Tasks
-objectClass: ds-task-import
-objectClass: ds-task
-objectClass: top
-ds-task-import-backend-id: userRoot
-ds-task-log-message: [22/Jul/2011:09:41:12 +0200] severity="NOTICE" msgCount=0 msgID=9896349 message="Import task 20110722094113032 started execution"
-ds-task-log-message: [22/Jul/2011:09:41:12 +0200] severity="INFORMATION" msgCount=1 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
-ds-task-log-message: [22/Jul/2011:09:41:12 +0200] severity="INFORMATION" msgCount=2 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
-ds-task-log-message: [22/Jul/2011:09:41:13 +0200] severity="NOTICE" msgCount=3 msgID=9896306 message="The backend userRoot is now taken offline"
-ds-task-log-message: [22/Jul/2011:09:41:13 +0200] severity="NOTICE" msgCount=4 msgID=20381717 message="Installation Directory:  /opt/OpenDJ-2.4.3"
-ds-task-log-message: [22/Jul/2011:09:41:13 +0200] severity="NOTICE" msgCount=5 msgID=20381719 message="Instance Directory:      /opt/OpenDJ-2.4.3"
-ds-task-log-message: [22/Jul/2011:09:41:13 +0200] severity="NOTICE" msgCount=6 msgID=20381713 message="JVM Information: 1.6.0_26-b03 by Sun Microsystems Inc., 32-bit architecture, 913440768 bytes heap size"
-ds-task-log-message: [22/Jul/2011:09:41:13 +0200] severity="NOTICE" msgCount=7 msgID=20381714 message="JVM Host: gildir, running Linux 2.6.32-32-generic-pae i386, 4109508608 bytes physical memory size, number of processors available 2"
-ds-task-log-message: [22/Jul/2011:09:41:13 +0200] severity="NOTICE" msgCount=8 msgID=20381715 message="JVM Arguments: "-Dorg.opends.server.scriptName=start-ds""
-ds-task-log-message: [22/Jul/2011:09:41:14 +0200] severity="NOTICE" msgCount=9 msgID=8847546 message="The amount of free memory available to the import task is 59373649 bytes. The number of phase one buffers required is 160 buffers"
-ds-task-log-message: [22/Jul/2011:09:41:14 +0200] severity="NOTICE" msgCount=10 msgID=8847568 message="The amount memory available to the temporary DN cache environment is 39078473 bytes"
-ds-task-log-message: [22/Jul/2011:09:41:14 +0200] severity="NOTICE" msgCount=11 msgID=8847545 message="Setting DB cache size to 8388608 bytes and phase one buffer size to to 48928 bytes"
-ds-task-log-message: [22/Jul/2011:09:41:14 +0200] severity="NOTICE" msgCount=12 msgID=8847533 message="OpenDJ 2.4.3 starting import (build 20110613203412Z, R6998)"
-ds-task-log-message: [22/Jul/2011:09:41:14 +0200] severity="NOTICE" msgCount=13 msgID=8847449 message="Import Thread Count: 4 threads"
-ds-task-log-message: [22/Jul/2011:09:41:14 +0200] severity="NOTICE" msgCount=14 msgID=8847556 message="The available memory for phase two processing is 59373649 bytes. The read ahead cache size is 48928 bytes calculated using 9 buffers"
-ds-task-log-message: [22/Jul/2011:09:41:14 +0200] severity="NOTICE" msgCount=15 msgID=8847569 message="Total import time was 0 seconds. Phase one processing completed in 0 seconds, phase two processing completed in 0 seconds"
-ds-task-log-message: [22/Jul/2011:09:41:14 +0200] severity="NOTICE" msgCount=16 msgID=8847454 message="Processed 9 entries, imported 9, skipped 0, rejected 0 and migrated 0 in 0 seconds (average rate 16.6/sec)"
-ds-task-log-message: [22/Jul/2011:09:41:15 +0200] severity="NOTICE" msgCount=17 msgID=8847536 message="Import LDIF environment close took 0 seconds"
-ds-task-log-message: [22/Jul/2011:09:41:15 +0200] severity="INFORMATION" msgCount=18 msgID=9437595 message="Local DB backend userRoot does not specify the number of lock tables: defaulting to 97"
-ds-task-log-message: [22/Jul/2011:09:41:15 +0200] severity="INFORMATION" msgCount=19 msgID=9437594 message="Local DB backend userRoot does not specify the number of cleaner threads: defaulting to 24 threads"
-ds-task-log-message: [22/Jul/2011:09:41:15 +0200] severity="NOTICE" msgCount=20 msgID=8847402 message="The database backend userRoot containing 9 entries has started"
-ds-task-log-message: [22/Jul/2011:09:41:15 +0200] severity="INFORMATION" msgCount=21 msgID=12582962 message="Added 1 Access Control Instruction (ACI) attribute types found in context "dc=example,dc=com" to the access control evaluation engine"
-ds-task-log-message: [22/Jul/2011:09:41:15 +0200] severity="NOTICE" msgCount=22 msgID=8847447 message="Exported 9 entries and skipped 0 in 0 seconds (average rate 818.2/sec)"
-ds-task-log-message: [22/Jul/2011:09:41:15 +0200] severity="NOTICE" msgCount=23 msgID=15138878 message="Directory server DS(8631) has connected to replication server RS(32548) for domain "dc=example,dc=com" at gildir/127.0.1.1:19989 with generation ID 135297"
-ds-task-log-message: [22/Jul/2011:09:41:15 +0200] severity="NOTICE" msgCount=24 msgID=9896350 message="Import task 20110722094113032 finished execution"
-ds-task-log-message: [22/Jul/2011:09:41:17 +0200] severity="MILD_ERROR" msgCount=25 msgID=14876751 message="The following error has been received : Domain dc=example,dc=com: the server with serverId=-2 is unreachable In Replication Server=Replication Server 19989 32548 unroutable message =DoneMsg Details:routing table is empty"
-ds-task-import-thread-count: 0
-ds-task-id: 20110722094113032
-ds-task-actual-start-time: 20110722074112Z
-ds-task-import-reject-file: /tmp/rejects
-ds-task-import-random-seed: 0
-ds-task-completion-time: 20110722074115Z
-ds-task-state: COMPLETED_SUCCESSFULLY
-ds-task-class-name: org.opends.server.tasks.ImportTask
-ds-task-import-ldif-file: /home/semancik/projects/evolveum/midpoint/trunk/infra/test-util/src/main/resources/test-data/ldif/example.ldif
-ds-task-import-clear-backend: true
-creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20110722074112Z
-entryUUID: 820aaf21-c248-463d-971e-e2737e8cd7ad
+createTimestamp: 20150306181510Z
+entryUUID: 4457c541-2665-411b-b2c3-35ede5a074e7
 

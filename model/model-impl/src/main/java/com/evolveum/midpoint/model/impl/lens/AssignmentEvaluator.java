@@ -238,7 +238,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (assignmentType.getTarget() != null) {
 			target = assignmentType.getTarget().asPrismObject();
 		} else if (assignmentType.getTargetRef() != null) {
-			target = resolveTarget(assignmentType, source, sourceDescription, task, result);
+            try {
+                target = resolveTarget(assignmentType, source, sourceDescription, task, result);
+            } catch (ObjectNotFoundException ex) {
+                // Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
+                // an exception would prohibit any operations with the users that have the role, including removal of the reference.
+                // The failure is recorded in the result and we will log it. It should be enough.
+                LOGGER.error(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
+                // For OrgType references we trigger the reconciliation (see MID-2242)
+                evalAssignment.setForceRecon(true);
+            }
 		}
 		if (target != null && evalAssignment.getTarget() == null) {
 			evalAssignment.setTarget(target);
@@ -390,19 +399,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 			throw new SchemaException("Missing type in target reference in " + assignmentType + " in " + sourceDescription);
 		}
 		PrismObject<? extends ObjectType> target = null;
-		try {
-			target = repository.getObject(clazz, oid, null, result);
-			if (target == null) {
-				throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
-			}
-		} catch (ObjectNotFoundException ex) {
-			// Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
-			// an exception would prohibit any operations with the users that have the role, including removal of the reference.
-			// The failure is recorded in the result and we will log it. It should be enough.
-			LOGGER.error(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
-//			throw new ObjectNotFoundException(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
-		}
-		
+        target = repository.getObject(clazz, oid, null, result);
+        if (target == null) {
+            throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
+        }
+        // Handling ObjectNotFoundException - we just pass it to the caller
+
 		return target;
 	}
 

@@ -16,6 +16,33 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.ChoiceRenderer;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -53,33 +80,10 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.ChoiceRenderer;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -111,6 +115,24 @@ public class PageCreatedReports extends PageAdminReports {
     private IModel<ReportDeleteDialogDto> deleteModel = new Model<>();
     private ReportOutputType currentReport;
 
+    private static Map<ExportType, String> reportExportTypeMap = new HashMap<ExportType, String>();
+    
+    static{
+    	reportExportTypeMap.put(ExportType.CSV, "text/csv; charset=UTF-8");
+    	reportExportTypeMap.put(ExportType.DOCX, "application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=UTF-8");
+    	reportExportTypeMap.put(ExportType.HTML, "text/html; charset=UTF-8");
+    	reportExportTypeMap.put(ExportType.ODS, "application/vnd.oasis.opendocument.spreadsheet; charset=UTF-8");
+    	reportExportTypeMap.put(ExportType.ODT, "application/vnd.oasis.opendocument.text; charset=UTF-8");
+    	reportExportTypeMap.put(ExportType.PDF, "application/pdf; charset=UTF-8");
+    	reportExportTypeMap.put(ExportType.PPTX, "application/vnd.openxmlformats-officedocument.presentationml.presentation; charset=UTF-8");
+    	reportExportTypeMap.put(ExportType.RTF, "application/rtf; charset=UTF-8");
+    	reportExportTypeMap.put(ExportType.XHTML, "application/xhtml+xml; charset=UTF-8");
+    	reportExportTypeMap.put(ExportType.XLS, "application/vnd.ms-excel; charset=UTF-8");
+    	reportExportTypeMap.put(ExportType.XLSX, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=UTF-8");
+    	reportExportTypeMap.put(ExportType.XML, "application/xml; charset=UTF-8");
+    	reportExportTypeMap.put(ExportType.XML_EMBED, "text/xml; charset=UTF-8");
+    	
+    }
     public PageCreatedReports() {
         this(new PageParameters(), null);
     }
@@ -158,10 +180,19 @@ public class PageCreatedReports extends PageAdminReports {
 
             @Override
             protected InputStream initStream() {
+            	if (currentReport != null){
+            		 String contentType = reportExportTypeMap.get(currentReport.getExportType());
+            	        if (StringUtils.isEmpty(contentType)){
+            	        	contentType = "multipart/mixed; charset=UTF-8";
+            	        }
+            	        setContentType(contentType);
+            	}
+            	
                 return createReport();
             }
         };
-        ajaxDownloadBehavior.setContentType("application/pdf; charset=UTF-8");
+       
+//        ajaxDownloadBehavior.setContentType(contentType);
         mainForm.add(ajaxDownloadBehavior);
 
         ObjectDataProvider provider = new ObjectDataProvider(PageCreatedReports.this, ReportOutputType.class) {

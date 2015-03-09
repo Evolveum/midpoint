@@ -32,9 +32,13 @@ public class PageInternals extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageInternals.class);
 
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_OFFSET = "offset";
+    private static final String ID_BUTTON_SAVE = "save";
+    private static final String ID_BUTTON_RESET = "reset";
     private static final String ID_DEBUG_UTIL_FORM = "debugUtilForm";
     private static final String ID_SAVE_DEBUG_UTIL = "saveDebugUtil";
-    private static final String ID_INTERNALS_CONFIGFORM = "internalsConfigForm";
+    private static final String ID_INTERNALS_CONFIG_FORM = "internalsConfigForm";
     private static final String ID_UPDATE_INTERNALS_CONFIG = "updateInternalsConfig";
     private static final String ID_CONSISTENCY_CHECKS = "consistencyChecks";
     private static final String ID_ENCRYPTION_CHECKS = "encryptionChecks";
@@ -52,10 +56,6 @@ public class PageInternals extends PageAdminConfiguration {
     private IModel<InternalsConfigDto> internalsModel;
 
     public PageInternals() {
-        initLayout();
-    }
-
-    private void initLayout() {
         model = new LoadableModel<XMLGregorianCalendar>() {
 
             @Override
@@ -63,15 +63,21 @@ public class PageInternals extends PageAdminConfiguration {
                 return clock.currentTimeXMLGregorianCalendar();
             }
         };
+
         internalsModel = new Model<>(new InternalsConfigDto());
 
-        Form mainForm = new Form("mainForm");
+        initLayout();
+    }
+
+    private void initLayout() {
+        Form mainForm = new Form(ID_MAIN_FORM);
+        mainForm.setOutputMarkupId(true);
         add(mainForm);
 
-        DatePanel offset = new DatePanel("offset", model);
+        DatePanel offset = new DatePanel(ID_OFFSET, model);
         mainForm.add(offset);
 
-        AjaxSubmitButton saveButton = new AjaxSubmitButton("save", createStringResource("PageInternals.button.changeTime")) {
+        AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_BUTTON_SAVE, createStringResource("PageInternals.button.changeTime")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -85,7 +91,7 @@ public class PageInternals extends PageAdminConfiguration {
         };
         mainForm.add(saveButton);
 
-        AjaxSubmitButton resetButton = new AjaxSubmitButton("reset", createStringResource("PageInternals.button.resetTimeChange")) {
+        AjaxSubmitButton resetButton = new AjaxSubmitButton(ID_BUTTON_RESET, createStringResource("PageInternals.button.resetTimeChange")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -105,6 +111,7 @@ public class PageInternals extends PageAdminConfiguration {
 
     private void initDebugUtilForm() {
         Form form = new Form(ID_DEBUG_UTIL_FORM);
+        form.setOutputMarkupId(true);
         add(form);
 
         CheckFormGroup detailed = new CheckFormGroup(ID_DETAILED_DEBUG_DUMP,
@@ -117,9 +124,7 @@ public class PageInternals extends PageAdminConfiguration {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                internalsModel.getObject().saveDebugUtil();
-
-                LOGGER.trace("Updated debug util, detailedDebugDump={}", DebugUtil.isDetailedDebugDump());
+                updateDebugPerformed(target);
             }
 
             @Override
@@ -131,7 +136,8 @@ public class PageInternals extends PageAdminConfiguration {
     }
 
     private void initInternalsConfigForm() {
-        Form form = new Form(ID_INTERNALS_CONFIGFORM);
+        Form form = new Form(ID_INTERNALS_CONFIG_FORM);
+        form.setOutputMarkupId(true);
         add(form);
 
         CheckFormGroup consistency = new CheckFormGroup(ID_CONSISTENCY_CHECKS,
@@ -156,11 +162,7 @@ public class PageInternals extends PageAdminConfiguration {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                internalsModel.getObject().saveInternalsConfig();
-
-                LOGGER.trace("Updated internals config, consistencyChecks={},encryptionChecks={},readEncryptionChecks={}",
-                        new Object[]{InternalsConfig.consistencyChecks, InternalsConfig.encryptionChecks,
-                                InternalsConfig.readEncryptionChecks});
+                updateInternalConfig(target);
             }
 
             @Override
@@ -169,6 +171,37 @@ public class PageInternals extends PageAdminConfiguration {
             }
         };
         form.add(update);
+    }
+
+    private Form getMainForm(){
+        return (Form) get(ID_MAIN_FORM);
+    }
+
+    private Form getDebugUtilForm(){
+        return (Form) get(ID_DEBUG_UTIL_FORM);
+    }
+
+    private Form getInternalsConfigForm(){
+        return (Form) get(ID_INTERNALS_CONFIG_FORM);
+    }
+
+    private void updateDebugPerformed(AjaxRequestTarget target){
+        internalsModel.getObject().saveDebugUtil();
+
+        LOGGER.trace("Updated debug util, detailedDebugDump={}", DebugUtil.isDetailedDebugDump());
+        success(getString("PageInternals.message.debugUpdatePerformed", DebugUtil.isDetailedDebugDump()));
+        target.add(getFeedbackPanel(), getDebugUtilForm());
+    }
+
+    private void updateInternalConfig(AjaxRequestTarget target){
+        internalsModel.getObject().saveInternalsConfig();
+
+        LOGGER.trace("Updated internals config, consistencyChecks={},encryptionChecks={},readEncryptionChecks={}",
+                new Object[]{InternalsConfig.consistencyChecks, InternalsConfig.encryptionChecks,
+                        InternalsConfig.readEncryptionChecks});
+        success(getString("PageInternals.message.internalsConfigUpdate", InternalsConfig.consistencyChecks,
+                InternalsConfig.encryptionChecks, InternalsConfig.readEncryptionChecks));
+        target.add(getFeedbackPanel(), getInternalsConfigForm());
     }
 
     private void savePerformed(AjaxRequestTarget target) {
@@ -180,8 +213,7 @@ public class PageInternals extends PageAdminConfiguration {
 
         result.recordSuccess();
         showResult(result);
-        target.add(getFeedbackPanel());
-
+        target.add(getFeedbackPanel(), getMainForm());
     }
 
     private void resetPerformed(AjaxRequestTarget target) {
@@ -190,7 +222,7 @@ public class PageInternals extends PageAdminConfiguration {
         model.reset();
         result.recordSuccess();
         showResult(result);
-        target.add(this);
+        target.add(getMainForm());
         target.add(getFeedbackPanel());
     }
 }

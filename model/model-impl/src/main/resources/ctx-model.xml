@@ -99,6 +99,13 @@
           <constructor-arg name="protector" ref="protector"/>
     </bean>
     
+    <bean id="pythonScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator"
+          scope="singleton">
+          <constructor-arg name="engineName" value="python"/>
+          <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg name="protector" ref="protector"/>
+    </bean>
+    
     <bean id="scriptExpressionFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory"
           scope="singleton">
         <constructor-arg ref="modelObjectResolver"/>
@@ -116,6 +123,7 @@
         		<ref bean="xpathScriptEvaluator"/>
         		<ref bean="javascriptScriptEvaluator"/>
         		<ref bean="groovyScriptEvaluator"/>
+        		<ref bean="pythonScriptEvaluator"/>
         	</list>
         </property>
     </bean>

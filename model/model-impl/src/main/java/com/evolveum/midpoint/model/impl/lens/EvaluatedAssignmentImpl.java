@@ -61,7 +61,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private Collection<Mapping<? extends PrismPropertyValue<?>>> focusMappings;
 	private PrismObject<?> target;
 	private boolean isValid;
-	private boolean forceRecon;
+	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
 
 	public EvaluatedAssignmentImpl() {
 		constructions = new DeltaSetTriple<>();

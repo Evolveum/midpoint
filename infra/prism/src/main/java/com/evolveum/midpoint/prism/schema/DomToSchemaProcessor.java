@@ -16,15 +16,38 @@
 
 package com.evolveum.midpoint.prism.schema;
 
-import static com.evolveum.midpoint.prism.PrismConstants.*;
+import static com.evolveum.midpoint.prism.PrismConstants.A_ACCESS;
+import static com.evolveum.midpoint.prism.PrismConstants.A_ACCESS_CREATE;
+import static com.evolveum.midpoint.prism.PrismConstants.A_ACCESS_READ;
+import static com.evolveum.midpoint.prism.PrismConstants.A_ACCESS_UPDATE;
+import static com.evolveum.midpoint.prism.PrismConstants.A_COMPOSITE;
+import static com.evolveum.midpoint.prism.PrismConstants.A_DEPRECATED;
+import static com.evolveum.midpoint.prism.PrismConstants.A_DISPLAY_NAME;
+import static com.evolveum.midpoint.prism.PrismConstants.A_DISPLAY_ORDER;
+import static com.evolveum.midpoint.prism.PrismConstants.A_EXTENSION;
+import static com.evolveum.midpoint.prism.PrismConstants.A_EXTENSION_REF;
+import static com.evolveum.midpoint.prism.PrismConstants.A_HELP;
+import static com.evolveum.midpoint.prism.PrismConstants.A_IGNORE;
+import static com.evolveum.midpoint.prism.PrismConstants.A_INDEXED;
+import static com.evolveum.midpoint.prism.PrismConstants.A_MAX_OCCURS;
+import static com.evolveum.midpoint.prism.PrismConstants.A_OBJECT;
+import static com.evolveum.midpoint.prism.PrismConstants.A_OBJECT_REFERENCE;
+import static com.evolveum.midpoint.prism.PrismConstants.A_OBJECT_REFERENCE_TARGET_TYPE;
+import static com.evolveum.midpoint.prism.PrismConstants.A_OPERATIONAL;
+import static com.evolveum.midpoint.prism.PrismConstants.A_PROPERTY_CONTAINER;
+import static com.evolveum.midpoint.prism.PrismConstants.A_TYPE;
+import static com.evolveum.midpoint.prism.PrismConstants.SCHEMA_DOCUMENTATION;
+import static com.evolveum.midpoint.prism.PrismConstants.SCHEMA_APP_INFO;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.XMLConstants;
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.namespace.QName;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -35,13 +58,16 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.cxf.common.util.ReflectionInvokationHandler.Optional;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -57,11 +83,15 @@ import com.sun.xml.xsom.XSAnnotation;
 import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSContentType;
 import com.sun.xml.xsom.XSElementDecl;
+import com.sun.xml.xsom.XSFacet;
 import com.sun.xml.xsom.XSModelGroup;
 import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSRestrictionSimpleType;
+import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.impl.ElementDecl;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
 
@@ -791,8 +821,11 @@ class DomToSchemaProcessor {
 		
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		
-		propDef = definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext, annotation, elementParticle);
+		Object[] allowedValues= parseEnumAllowedValues(xsType);
 		
+		Object defaultValue = parseDefaultValue(elementParticle, typeName);
+		
+		propDef = definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext, annotation, elementParticle, allowedValues, null);
 		setMultiplicity(propDef, elementParticle, annotation, ctd == null);
 		
 		// Process generic annotations
@@ -831,6 +864,67 @@ class DomToSchemaProcessor {
 		}
 		
 		return propDef;
+	}
+	
+	private Object parseDefaultValue(XSParticle elementParticle, QName typeName) {
+		if (elementParticle == null){
+			return null;
+		}
+		XSTerm term = elementParticle.getTerm();
+		if (term == null){
+			return null;
+		}
+		
+		XSElementDecl elementDecl = term.asElementDecl();
+		if (elementDecl == null){
+			return null;
+		}
+		if (elementDecl.getDefaultValue() != null){
+			if (XmlTypeConverter.canConvert(typeName)){
+				return XmlTypeConverter.toJavaValue(elementDecl.getDefaultValue().value, typeName);
+			}
+			return elementDecl.getDefaultValue().value;
+		}
+		return null;
+	}
+
+	private Object[] parseEnumAllowedValues(XSType xsType){
+		if (xsType.isSimpleType()){
+			if (xsType.asSimpleType().isRestriction()){
+				XSRestrictionSimpleType restriction = xsType.asSimpleType().asRestriction();
+				List<XSFacet> enumerations = restriction.getDeclaredFacets(XSFacet.FACET_ENUMERATION);
+				List<DisplayableValueImpl> enumValues = new ArrayList<DisplayableValueImpl>(enumerations.size());
+				for (XSFacet facet : enumerations){
+					String label = facet.getValue().value;
+					XSSchema facetSchema = facet.getSourceDocument().getSchema();
+					
+					Element descriptionE = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(), SCHEMA_DOCUMENTATION);
+					Element appInfo = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(), SCHEMA_APP_INFO);
+					Element valueE = null;
+					if (appInfo != null){
+						NodeList list = appInfo.getElementsByTagNameNS("http://java.sun.com/xml/ns/jaxb", "typesafeEnumMember");
+						if (list.getLength() != 0){
+							valueE = (Element) list.item(0);
+						}
+					}
+					String value = null;
+					if (valueE != null){
+						value = valueE.getAttribute("name");
+						
+					}
+					
+					DisplayableValueImpl edv = new DisplayableValueImpl(value, label, descriptionE != null ? descriptionE.getTextContent() : null);
+					
+					enumValues.add(edv);
+					
+				}
+				if (enumValues != null && !enumValues.isEmpty()){
+					return enumValues.toArray();
+				}
+				
+			}
+		}
+		return null;
 	}
 	
 	private void parseItemDefinitionAnnotations(ItemDefinition itemDef, XSAnnotation annotation) throws SchemaException {
@@ -937,5 +1031,7 @@ class DomToSchemaProcessor {
 			def.setRuntimeSchema(true);
 		}
 	}
+	
+
 	
 }

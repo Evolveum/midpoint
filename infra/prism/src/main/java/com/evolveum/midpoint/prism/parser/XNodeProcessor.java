@@ -58,6 +58,7 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -411,7 +412,7 @@ public class XNodeProcessor {
 
     public <T> T parsePrismPropertyRealValue(XNode xnode, PrismPropertyDefinition<T> propertyDef) throws SchemaException {
         if (xnode instanceof PrimitiveXNode<?>) {
-            return parseAtomicValueFromPrimitive((PrimitiveXNode<T>) xnode, propertyDef.getTypeName());
+            return parseAtomicValueFromPrimitive((PrimitiveXNode<T>) xnode, propertyDef, propertyDef.getTypeName());
         } else if (xnode instanceof MapXNode) {
             return parsePrismPropertyRealValueFromMap((MapXNode)xnode, null, propertyDef);
         } else {
@@ -435,7 +436,11 @@ public class XNodeProcessor {
     }
 
     private <T> T parseAtomicValueFromPrimitive(PrimitiveXNode<T> xprim, QName typeName) throws SchemaException {
-        T realValue;
+    	return parseAtomicValueFromPrimitive(xprim, null, typeName);
+    }
+    
+    private <T> T parseAtomicValueFromPrimitive(PrimitiveXNode<T> xprim, PrismPropertyDefinition def, QName typeName) throws SchemaException {
+    	T realValue = null;
         if (ItemPathType.COMPLEX_TYPE.equals(typeName)){
             return (T) parseItemPathType(xprim);
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(typeName)){
@@ -444,6 +449,14 @@ public class XNodeProcessor {
         if (prismContext.getBeanConverter().canProcess(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE) && !typeName.equals(ItemPathType.COMPLEX_TYPE)) {
             // Primitive elements may also have complex Java representations (e.g. enums)
             return prismContext.getBeanConverter().unmarshallPrimitive(xprim, typeName);
+        } else if (def != null && def.isRuntimeSchema() && def.getAllowedValues() != null && def.getAllowedValues().length > 0){
+        	//TODO: ugly hack to support enum in extension schemas --- need to be fixed
+        	
+        		realValue = xprim.getParsedValue(DOMUtil.XSD_STRING);
+        		if (!isAllowed(realValue, def.getAllowedValues())){
+        			throw new SchemaException("Illegal value found in property "+xprim+". Allowed values are: "+  def.getAllowedValues());
+        		}
+        	
         } else {
             realValue = xprim.getParsedValue(typeName);
         }
@@ -464,6 +477,15 @@ public class XNodeProcessor {
 
         PrismUtil.recomputeRealValue(realValue, prismContext);
         return realValue;
+    }
+    
+    private <T> boolean isAllowed(T realValue, Object[] allowedValues){
+    	for (Object o : allowedValues){
+    		if (realValue.equals(((DisplayableValue)o).getLabel())){
+    			return true;
+    		}
+    	}
+    	return false;
     }
 
     private ProtectedStringType parseProtectedTypeFromPrimitive(PrimitiveXNode xPrim) throws SchemaException{

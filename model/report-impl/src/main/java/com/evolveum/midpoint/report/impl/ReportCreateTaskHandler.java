@@ -410,6 +410,7 @@ public class ReportCreateTaskHandler implements TaskHandler{
 	    	reportOutputType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
 	    	reportOutputType.setName(new PolyStringType(reportOutputName));
 	    	reportOutputType.setDescription(reportType.getDescription() + " - " + reportType.getExport().value());
+	    	reportOutputType.setExportType(reportType.getExport());
 	    	
 	   		ObjectDelta<ReportOutputType> objectDelta = null;
 	   		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
