@@ -10164,6 +10164,7 @@
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
             		<xsd:element name="filePath" type="xsd:string"/>
+            		<xsd:element name="exportType" type="tns:ExportType"/>
             		<xsd:element name="report" type="tns:ReportType">
                         <xsd:annotation>
                             <xsd:documentation>

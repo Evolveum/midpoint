@@ -116,6 +116,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -874,6 +875,20 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
 		
+		if (object.canRepresent(ShadowType.class)) {
+			PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
+			String resourceOid = ShadowUtil.getResourceOid(shadow);
+			PrismObject<ResourceType> resource;
+			try {
+				resource = provisioning.getObject(ResourceType.class, resourceOid, null, null, result);
+			} catch (CommunicationException | SecurityViolationException e) {
+				throw new ConfigurationException(e.getMessage(), e);
+			}
+			RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase);
+			objectDefinition.getComplexTypeDefinition().replaceDefinition(ShadowType.F_ATTRIBUTES, 
+					refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
+		}
+		
 		result.computeStatus();
 		return objectDefinition;
 	}
@@ -962,10 +977,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		
 		if (itemDefinition instanceof PrismContainerDefinition<?>) {
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
-			List<? extends ItemDefinition> origSubDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
-			for (ItemDefinition subDef: origSubDefinitions) {
-			    applySecurityConstraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
+			List<? extends ItemDefinition> subDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
+			for (ItemDefinition subDef: subDefinitions) {
+				if (!subDef.getName().equals(ShadowType.F_ATTRIBUTES)) { // Shadow attributes have special handling
+					applySecurityConstraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
 					    readDecision, addDecision, modifyDecision, phase);
+				}
 			}
 		}
 	}

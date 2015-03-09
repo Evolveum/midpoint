@@ -368,16 +368,25 @@ public class SchemaHandlingStep extends WizardStep {
 
                     @Override
                     public String getObject() {
-                        StringBuilder sb = new StringBuilder();
+                        if(model == null || model.getObject() == null){
+                            return null;
+                        }
 
-                        if(model.getObject().getRef() != null){
-                            sb.append(ItemPathUtil.getOnlySegmentQName(model.getObject().getRef()).getLocalPart());
+                        StringBuilder sb = new StringBuilder();
+                        ResourceAttributeDefinitionType attribute = model.getObject();
+
+                        if(attribute.getRef() != null){
+                            if(attribute.getRef().equals(new ItemPathType())){
+                                return null;
+                            } else {
+                                sb.append(ItemPathUtil.getOnlySegmentQName(attribute.getRef()).getLocalPart());
+                            }
                         } else {
                             return null;
                         }
 
-                        if(model.getObject().getDisplayName() != null){
-                            sb.append(" (").append(model.getObject().getDisplayName()).append(")");
+                        if(attribute.getDisplayName() != null){
+                            sb.append(" (").append(attribute.getDisplayName()).append(")");
                         }
 
                         return sb.toString();

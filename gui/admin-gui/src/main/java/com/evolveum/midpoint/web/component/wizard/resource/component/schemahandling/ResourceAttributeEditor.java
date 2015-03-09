@@ -118,7 +118,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
             public String getObject() {
                 ResourceAttributeDefinitionType attribute = getModelObject();
 
-                if(attribute.getDisplayName() == null && attribute.getRef() == null){
+                if(attribute.getRef() == null || attribute.getRef().equals(new ItemPathType())){
                     return getString("ResourceAttributeEditor.label.new");
                 } else {
                     return getString("ResourceAttributeEditor.label.edit", ItemPathUtil.getOnlySegmentQName(attribute.getRef()).getLocalPart());

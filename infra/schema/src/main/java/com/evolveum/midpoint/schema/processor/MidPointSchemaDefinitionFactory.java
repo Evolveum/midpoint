@@ -239,6 +239,17 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 
 		return super.createPropertyDefinition(elementName, typeName, complexTypeDefinition, prismContext, annotation, elementParticle);
 	}
+	
+	@Override
+	public <T> PrismPropertyDefinition createPropertyDefinition(QName elementName, QName typeName,
+			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation,
+			XSParticle elementParticle, T[] allowedValues, T defaultValue) throws SchemaException {
+		if (complexTypeDefinition != null && complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
+			return createResourceAttributeDefinition(elementName, typeName, prismContext, annotation);
+		}
+
+		return super.createPropertyDefinition(elementName, typeName, complexTypeDefinition, prismContext, annotation, elementParticle, allowedValues, defaultValue);
+	}
 				
 	private PrismPropertyDefinition createResourceAttributeDefinition(QName elementName, QName typeName,
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {

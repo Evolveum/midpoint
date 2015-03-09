@@ -78,6 +78,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     public static final File ROLE_DEFENDER_FILE = new File(TEST_DIR, "role-defender.xml");
     public static final String ROLE_DEFENDER_OID = "12345111-1111-2222-1111-121212111567";
 
+    public static final File ORG_TEMP_FILE = new File(TEST_DIR, "org-temp.xml");
+    public static final String ORG_TEMP_OID = "43214321-4311-0952-4762-854392584320";
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -1226,6 +1229,54 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         } catch (Exception e) {
             AssertJUnit.fail("executeChanges failed in the wrong way (expected SchemaException): " + e);
         }
+    }
+
+    // import temp org + assign to jack (preparation for the next test)
+    @Test
+    public void test420JackAssignTempOrg() throws Exception {
+        final String TEST_NAME = "test420JackAssignTempOrg";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        addObject(ORG_TEMP_FILE);
+
+        // WHEN
+        assignOrg(USER_JACK_OID, ORG_TEMP_OID, task, result);
+
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_TEMP_OID);
+        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_TEMP_OID);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+
+    // delete the org and then unassign it
+    @Test
+    public void test425JackUnassignDeletedOrg() throws Exception {
+        final String TEST_NAME = "test425JackUnassignDeletedOrg";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        deleteObject(OrgType.class, ORG_TEMP_OID, task, result);
+
+        // WHEN
+        unassignOrg(USER_JACK_OID, ORG_TEMP_OID, task, result);
+
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
     }
 
     /**

@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.conntest;
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,15 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 
@@ -33,21 +37,45 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
+import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.directory.api.ldap.model.cursor.CursorException;
+import org.apache.directory.api.ldap.model.cursor.EntryCursor;
+import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.apache.directory.api.ldap.model.message.BindRequest;
+import org.apache.directory.api.ldap.model.message.BindRequestImpl;
+import org.apache.directory.api.ldap.model.message.BindResponse;
+import org.apache.directory.api.ldap.model.message.SearchScope;
+import org.apache.directory.api.ldap.model.name.Dn;
+import org.apache.directory.ldap.client.api.LdapConnectionConfig;
+import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -63,6 +91,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractLdapConnTest.class);
 	
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap");
 	
@@ -90,15 +120,20 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	private static final String ACCOUNT_LECHUCK_NAME = "lechuck";
 	private static final String ACCOUNT_CHARLES_NAME = "charles";
 	
-	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 100;
-
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
+
+	private static final String ATTRIBUTE_ENTRY_UUID = "entryUuid";
+	
+	protected static final String ACCOUNT_0_UID = "u00000000";
+
+	private static final int NUMBER_OF_GENERTED_ACCOUNTS = 4000;
 	
 	protected ResourceType resourceType;
 	protected PrismObject<ResourceType> resource;
 	
 	private static String stopCommand;
+	
+	protected String account0Oid;
 
     @Autowired
     private ReconciliationTaskHandler reconciliationTaskHandler;
@@ -132,6 +167,19 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected abstract String getResourceOid();
 
 	protected abstract File getResourceFile();
+	
+	protected QName getAccountObjectClass() {
+		return new QName(MidPointConstants.NS_RI, "AccountObjectClass");
+	}
+
+	
+	protected abstract String getLdapServerHost();
+	
+	protected abstract int getLdapServerPort();
+	
+	protected abstract String getLdapBindDn();
+	
+	protected abstract String getLdapBindPassword();
 
 	protected String getLdapSuffix() {
 		return "dc=example,dc=com";
@@ -148,6 +196,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected String getScriptDirectoryName() {
 		return "/opt/Bamboo/local/conntest";
 	}
+	
+	protected abstract String getAccount0Cn();
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -210,7 +260,121 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 		TestUtil.assertSuccess("Test connection failed",operationResult);
 	}
 	
+	// TODO: search 
+
+	@Test
+    public void test100SeachAccount0ByLdapUid() throws Exception {
+		final String TEST_NAME = "test100SeachAccount0ByLdapUid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        ObjectClassComplexTypeDefinition objectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
+        ResourceAttributeDefinition ldapUidAttrDef = objectClassDefinition.findAttributeDefinition("uid");
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectFilter additionalFilter = EqualFilter.createEqual(
+        		new ItemPath(ShadowType.F_ATTRIBUTES, ldapUidAttrDef.getName()), ldapUidAttrDef, ACCOUNT_0_UID);
+		ObjectQueryUtil.filterAnd(query.getFilter(), additionalFilter);
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+        
+        assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
+        
+        // TODO: check shadow
+	}
 	
+	@Test
+    public void test150SeachAllAccounts() throws Exception {
+		final String TEST_NAME = "test150SeachAllAccounts";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        final MutableInt count = new MutableInt(0);
+        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+				LOGGER.trace("Found {}", object);
+				count.increment();
+				return true;
+			}
+		};
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+        
+        assertEquals("Unexpected number of accounts", NUMBER_OF_GENERTED_ACCOUNTS + 1, count.getValue());
+        
+        // TODO: count shadows
+	}
+	
+	@Test
+    public void test200AssignAccountToBarbossa() throws Exception {
+		final String TEST_NAME = "test200AssignAccountToBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignAccount(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
+        String icfsUid = (String) identifiers.iterator().next().getRealValue();
+        
+        assertEquals("Wrong ICFS UID", entry.get(ATTRIBUTE_ENTRY_UUID).getString(), icfsUid);
+	}
+	
+	// TODO: modify the account
+	
+	@Test
+    public void test299UnAssignAccountBarbossa() throws Exception {
+		final String TEST_NAME = "test299UnAssignAccountBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignAccount(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNoLdapAccount(USER_BARBOSSA_USERNAME);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        assertNoLinkedAccount(user);
+	}
+
+	// TODO: sync tests
 
 //	private Entry createEntry(String uid, String name) throws IOException {
 //		StringBuilder sb = new StringBuilder();
@@ -222,7 +386,63 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 //		sb.append("sn: ").append(name).append("\n");
 //	}
 	
+	protected Entry assertLdapAccount(String uid, String cn) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect();
+		List<Entry> entries = ldapSearch(connection, "(uid="+uid+")");
+		ldapDisconnect(connection);
+
+		assertEquals("Unexpected number of entries for uid="+uid+": "+entries, 1, entries.size());
+		Entry entry = entries.get(0);
+
+		String dn = entry.getDn().toString();
+		assertEquals("Wrong cn in "+dn, cn, entry.get("cn").getString());
+		return entry;
+	}
+	
+	protected void assertNoLdapAccount(String uid) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect();
+		List<Entry> entries = ldapSearch(connection, "(uid="+uid+")");
+		ldapDisconnect(connection);
+
+		assertEquals("Unexpected number of entries for uid="+uid+": "+entries, 0, entries.size());
+	}
+	
+	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String filter) throws LdapException, CursorException {
+		return ldapSearch(connection, getLdapSuffix(), filter, SearchScope.SUBTREE, "*", ATTRIBUTE_ENTRY_UUID);
+	}
+	
+	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String baseDn, String filter, SearchScope scope, String... attributes) throws LdapException, CursorException {
+		List<Entry> entries = new ArrayList<Entry>();
+		EntryCursor entryCursor = connection.search( baseDn, filter, scope, attributes );
+		Entry entry = null;
+		while (entryCursor.next()) {
+			entries.add(entryCursor.get());
+		}
+		return entries;
+	}
+
+
 	protected String toDn(String username) {
 		return "uid="+username+","+getPeopleLdapSuffix();
+	}
+	
+	protected LdapNetworkConnection ldapConnect() throws LdapException {
+		LdapConnectionConfig config = new LdapConnectionConfig();
+		config.setLdapHost(getLdapServerHost());
+		config.setLdapPort(getLdapServerPort());
+		LdapNetworkConnection connection = new LdapNetworkConnection(config);
+		boolean connected = connection.connect();
+		if (!connected) {
+			AssertJUnit.fail("Cannot connect to LDAP server "+getLdapServerHost()+":"+getLdapServerPort());
+		}
+		BindRequest bindRequest = new BindRequestImpl();
+		bindRequest.setDn(new Dn(getLdapBindDn()));
+		bindRequest.setCredentials(getLdapBindPassword());
+		BindResponse bindResponse = connection.bind(bindRequest);
+		return connection;
+	}
+
+	protected void ldapDisconnect(LdapNetworkConnection connection) throws IOException {
+		connection.close();
 	}
 }

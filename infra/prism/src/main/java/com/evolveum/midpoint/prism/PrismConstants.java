@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
+
 import javax.xml.namespace.QName;
 
 
@@ -70,6 +72,9 @@ public class PrismConstants {
 	public static final QName A_OBJECT_REFERENCE_TARGET_TYPE = new QName(NS_ANNOTATION, "objectReferenceTargetType");
 	public static final QName A_COMPOSITE = new QName(NS_ANNOTATION, "composite");
 	public static final QName A_DEPRECATED = new QName(NS_ANNOTATION, "deprecated");
+	
+	public static final QName SCHEMA_DOCUMENTATION = new QName(W3C_XML_SCHEMA_NS_URI, "documentation");
+	public static final QName SCHEMA_APP_INFO = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo");
 	
 	public static final QName A_MAX_OCCURS = new QName(NS_ANNOTATION, "maxOccurs");
 	public static final String MULTIPLICITY_UNBONUNDED = "unbounded";

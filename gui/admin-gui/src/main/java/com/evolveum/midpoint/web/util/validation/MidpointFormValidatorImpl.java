@@ -42,11 +42,11 @@ public class MidpointFormValidatorImpl implements MidpointFormValidator {
             UserType user = (UserType)object.asObjectable();
 
             if(user.getName() == null){
-                errors.add(new SimpleValidationError("The name of the user can't be null", new ItemPathType("user/name")));
+                errors.add(new SimpleValidationError("The name of the user can't be null", new ItemPathType(UserType.F_NAME.getLocalPart())));
             }
 
             if(user.getGivenName() == null){
-                errors.add(new SimpleValidationError("The given name of the user can't be null", new ItemPathType("user/givenName")));
+                errors.add(new SimpleValidationError("The given name of the user can't be null", new ItemPathType(UserType.F_GIVEN_NAME.getLocalPart())));
             }
         }
 
@@ -62,11 +62,11 @@ public class MidpointFormValidatorImpl implements MidpointFormValidator {
         }
 
         if(assignment.getTargetRef() == null){
-            errors.add(new SimpleValidationError("The target ref of the assignment can't be null", new ItemPathType("assignment/targetRef")));
+            errors.add(new SimpleValidationError("The target ref of the assignment can't be null", new ItemPathType(AssignmentType.F_TARGET_REF.getLocalPart())));
         }
 
         if(assignment.getTenantRef() == null){
-            errors.add(new SimpleValidationError("The tenant ref of the assignment can't be null", new ItemPathType("assignment/tenantRef")));
+            errors.add(new SimpleValidationError("The tenant ref of the assignment can't be null", new ItemPathType(AssignmentType.F_TENANT_REF.getLocalPart())));
         }
 
         return errors;

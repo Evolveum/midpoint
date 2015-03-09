@@ -34,7 +34,9 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.JasperReportConfigurationPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.ReportConfigurationPanel;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.Base64Model;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -50,6 +52,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
@@ -83,13 +86,13 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     private static final String ID_SAVE_BUTTON = "save";
     private static final String ID_CANCEL_BUTTON = "cancel";
 
-    private LoadableModel<PrismObject<ReportType>> model;
+    private LoadableModel<ReportDto> model;
 
     public PageReport() {
-        model = new LoadableModel<PrismObject<ReportType>>(false) {
+        model = new LoadableModel<ReportDto>(false) {
 
             @Override
-            protected PrismObject<ReportType> load() {
+            protected ReportDto load() {
                 return loadReport();
             }
         };
@@ -97,7 +100,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
         initLayout();
     }
 
-    private PrismObject<ReportType> loadReport() {
+    private ReportDto loadReport() {
         StringValue reportOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
 
         OperationResult result = new OperationResult(OPERATION_LOAD_REPORT);
@@ -107,8 +110,10 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
             LOGGER.error("Couldn't load report.");
             throw new RestartResponseException(PageReports.class);
         }
+        
+        return new ReportDto(prismReport.asObjectable());
 
-        return prismReport;
+//        return prismReport;
     }
 
     private void initLayout() {
@@ -127,9 +132,10 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplate");
-                IModel<String> data = new Base64Model(new PrismPropertyModel<>(model, ReportType.F_TEMPLATE));
-                return new AceEditorPanel(panelId, title, data);
+            	return new JasperReportConfigurationPanel(panelId, model);
+//                IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplate");
+//                IModel<String> data = new Base64Model(new PrismPropertyModel<>(model, ReportType.F_TEMPLATE));
+//                return new AceEditorPanel(panelId, title, data);
             }
         });
         tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplateStyle")) {
@@ -137,21 +143,21 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
                 IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplateStyle");
-                IModel<String> data = new Base64Model(new PrismPropertyModel<>(model, ReportType.F_TEMPLATE_STYLE));
+                IModel<String> data = new Base64Model(new PropertyModel(model, "templateStyle"));
                 return new AceEditorPanel(panelId, title, data);
             }
         });
-        tabs.add(new AbstractTab(createStringResource("PageReport.fullXml")) {
-
-            @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                IModel<String> title = PageReport.this.createStringResource("PageReport.fullXml");
-
-                AceEditorPanel panel = new AceEditorPanel(panelId, title, createFullXmlModel());
-                panel.getEditor().add(createFullXmlValidator());
-                return panel;
-            }
-        });
+//        tabs.add(new AbstractTab(createStringResource("PageReport.fullXml")) {
+//
+//            @Override
+//            public WebMarkupContainer getPanel(String panelId) {
+//                IModel<String> title = PageReport.this.createStringResource("PageReport.fullXml");
+//
+//                AceEditorPanel panel = new AceEditorPanel(panelId, title, createFullXmlModel());
+//                panel.getEditor().add(createFullXmlValidator());
+//                return panel;
+//            }
+//        });
 
         TabbedPanel reportTabPanel = new TabbedPanel(ID_TAB_PANEL, tabs){
             @Override
@@ -215,7 +221,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 
             @Override
             public String getObject() {
-                PrismObject report = model.getObject();
+                PrismObject report = model.getObject().getObject();
                 if (report == null) {
                     return null;
                 }
@@ -235,7 +241,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 
                 try {
                     validateObject(object, reportHolder, true, result);
-                    model.setObject(reportHolder.getValue());
+                    model.getObject().setObject(reportHolder.getValue());
                 } catch (Exception e){
                     LOGGER.error("Could not set object. Validation problem occured." + result.getMessage());
                     result.recordFatalError("Could not set object. Validation problem occured,", e);
@@ -284,7 +290,8 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
         try {
             Task task = createSimpleTask(OPERATION_SAVE_REPORT);
 
-            PrismObject<ReportType> newReport = model.getObject();
+            //TODO TODO TODO
+            PrismObject<ReportType> newReport = model.getObject().getObject();
             PrismObject<ReportType> oldReport = WebModelUtils.loadObject(ReportType.class, newReport.getOid(),
                     result, this);
 

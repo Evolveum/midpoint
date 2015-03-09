@@ -58,9 +58,16 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
     private QName valueType;
     private T[] allowedValues;
     private Boolean indexed = null;
+    private T defaultValue;
 
     public PrismPropertyDefinition(QName elementName, QName typeName, PrismContext prismContext) {
         super(elementName, typeName, prismContext);
+    }
+    
+    public PrismPropertyDefinition(QName elementName, QName typeName, PrismContext prismContext, T[] allowevValues, T defaultValue) {
+        super(elementName, typeName, prismContext);
+        this.allowedValues = allowevValues;
+        this.defaultValue = defaultValue;
     }
 
     /**
@@ -72,6 +79,9 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
         return allowedValues;
     }
 
+    public T defaultValue(){
+    	return defaultValue;
+    }
     /**
      * Returns QName of the property value type.
      * <p/>

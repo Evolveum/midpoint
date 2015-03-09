@@ -782,19 +782,25 @@ public class AssignmentProcessor {
     
     private <F extends FocusType> void collectToZero(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, 
     		EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean forceRecon) {
-    	evaluatedAssignment.setForceRecon(forceRecon);
+        if (forceRecon) {
+            evaluatedAssignment.setForceRecon(true);
+        }
     	evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
     }
 
     private <F extends FocusType> void collectToPlus(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, 
     		EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean forceRecon) {
-    	evaluatedAssignment.setForceRecon(forceRecon);
+        if (forceRecon) {
+            evaluatedAssignment.setForceRecon(true);
+        }
     	evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
     }
 
     private <F extends FocusType> void collectToMinus(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, 
     		EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean forceRecon) {
-    	evaluatedAssignment.setForceRecon(forceRecon);
+        if (forceRecon) {
+            evaluatedAssignment.setForceRecon(true);
+        }
     	evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
     }
 
@@ -1192,6 +1198,16 @@ public class AssignmentProcessor {
                     OrgType.COMPLEX_TYPE.equals(assignment.getAssignmentType().getTargetRef().getType())) {
                 forceRecon = true;
                 break;
+            }
+        }
+        // for zero and minus sets we check isForceRecon for all non-construction-related assignments (MID-2242)
+        if (!forceRecon) {
+            for (EvaluatedAssignmentImpl assignment: evaluatedAssignmentTriple.getNonPositiveValues()) {
+                if (assignment.isForceRecon() &&
+                        (assignment.getConstructions() == null || assignment.getConstructions().isEmpty())) {
+                    forceRecon = true;
+                    break;
+                }
             }
         }
 

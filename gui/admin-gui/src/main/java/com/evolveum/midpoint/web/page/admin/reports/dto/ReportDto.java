@@ -19,8 +19,11 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import java.io.Serializable;
+
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * @author lazyman
@@ -36,13 +39,33 @@ public class ReportDto implements Serializable {
 
     private boolean parent;
     private String oid;
-    private String xml;
+//    private String xml;
     private String name;
     private String description;
+    private boolean searchOnResource;
     private ExportType exportType;
-    private PrismObject<ReportType> object;
+    private JasperReportDto jasperReportDto;
+    private byte[] templateStyle;
+    
+//    private PrismObject<ReportType> object;
+    
 
+    private ReportType reportType;
+    
     public ReportDto() {
+    }
+    
+    public ReportDto(ReportType reportType){
+    	this.oid = reportType.getOid();
+    	this.name = reportType.getName().getOrig();
+    	this.exportType = reportType.getExport();
+    	this.searchOnResource = false;
+    	this.description = reportType.getDescription();
+//    	this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
+    	this.jasperReportDto = new JasperReportDto(reportType.getTemplate());
+    	this.templateStyle = reportType.getTemplateStyle();
+    	this.parent = reportType.isParent();
+    	this.reportType = reportType;
     }
 
     public ReportDto(String name, String description) {
@@ -50,13 +73,15 @@ public class ReportDto implements Serializable {
         this.name = name;
     }
 
-    public ReportDto(String name, String description, String xml, ExportType export, boolean parent) {
+    public ReportDto(String name, String description, ExportType export, boolean parent) {
         this.name = name;
         this.description = description;
-        this.xml = xml;
+//        this.xml = xml;
         this.exportType = export;
         this.parent = parent;
     }
+    
+    
 
     public boolean isParent() {
         return parent;
@@ -67,11 +92,16 @@ public class ReportDto implements Serializable {
     }
 
     public PrismObject<ReportType> getObject() {
-        return object;
+    	reportType.setName(new PolyStringType(name));
+    	reportType.setExport(exportType);
+    	reportType.setTemplate(jasperReportDto.getTemplate());
+    	reportType.setTemplateStyle(templateStyle);
+    	reportType.setDescription(description);
+        return reportType.asPrismObject();
     }
 
     public void setObject(PrismObject<ReportType> object) {
-        this.object = object;
+       this.reportType = object.asObjectable();
     }
 
     public String getOid() {
@@ -82,13 +112,13 @@ public class ReportDto implements Serializable {
         this.oid = oid;
     }
 
-    public String getXml() {
-        return xml;
-    }
-
-    public void setXml(String xml) {
-        this.xml = xml;
-    }
+//    public String getXml() {
+//        return xml;
+//    }
+//
+//    public void setXml(String xml) {
+//        this.xml = xml;
+//    }
 
     public String getName() {
         return name;
@@ -113,4 +143,8 @@ public class ReportDto implements Serializable {
     public void setExportType(ExportType exportType) {
         this.exportType = exportType;
     }
+    
+    public JasperReportDto getJasperReportDto() {
+		return jasperReportDto;
+	}
 }
