@@ -126,7 +126,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	
 	protected static final String ACCOUNT_0_UID = "u00000000";
 
-	private static final int NUMBER_OF_GENERTED_ACCOUNTS = 4000;
+	private static final int NUMBER_OF_GENERATED_ACCOUNTS = 4000;
 	
 	protected ResourceType resourceType;
 	protected PrismObject<ResourceType> resource;
@@ -286,6 +286,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
         assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
         
+        PrismObject<ShadowType> shadow = shadows.get(0);
+        assertA
         // TODO: check shadow
 	}
 	
@@ -314,10 +316,10 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         TestUtil.displayWhen(TEST_NAME);
 		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
         
-        assertEquals("Unexpected number of accounts", NUMBER_OF_GENERTED_ACCOUNTS + 1, count.getValue());
-        
-        // TODO: count shadows
-	}
+        assertEquals("Unexpected number of accounts", NUMBER_OF_GENERATED_ACCOUNTS + 1, count.getValue());
+    }
+	
+    // TODO: count shadows
 	
 	@Test
     public void test200AssignAccountToBarbossa() throws Exception {

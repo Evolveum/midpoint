@@ -549,8 +549,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 
 	@Test
-	public void test121renameAccountWillOnResource() throws Exception{
-		String TEST_NAME = "test500renameAccountOnResource";
+	public void test121RenameAccountWillOnResource() throws Exception{
+		String TEST_NAME = "test121RenameAccountWillOnResource";
 		TestUtil.displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
