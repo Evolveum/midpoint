@@ -1739,7 +1739,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public PrismProperty<?> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass,
+	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -1781,7 +1781,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return null;
 		}
 
-		PrismProperty<?> property = getToken(syncToken);
+		PrismProperty<T> property = getToken(syncToken);
 		result.recordSuccess();
 		return property;
 	}
@@ -2395,8 +2395,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return syncToken;
 	}
 
-	private PrismProperty<?> getToken(SyncToken syncToken) {
-		Object object = syncToken.getValue();
+	private <T> PrismProperty<T> getToken(SyncToken syncToken) {
+		T object = (T) syncToken.getValue();
 		return createTokenProperty(object);
 	}
 

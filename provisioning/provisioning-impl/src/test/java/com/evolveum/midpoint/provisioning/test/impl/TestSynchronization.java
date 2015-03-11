@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import org.testng.AssertJUnit;
 import org.testng.annotations.*;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-
 import org.opends.server.core.AddOperation;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -40,8 +37,6 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -49,17 +44,13 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -227,6 +218,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_CALYPSO_FILENAME);
 		LDIFReader ldifReader = new LDIFReader(importConfig);
 		Entry entry = ldifReader.readEntry();
+		ldifReader.close();
 		display("Entry from LDIF", entry);
 		AddOperation addOperation = openDJController.getInternalConnection().processAdd(entry);
 
@@ -234,7 +226,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 				addOperation.getResultCode());
 
 		// WHEN
-		provisioningService.synchronize(resourceType.getOid(), ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType),
+		provisioningService.synchronize(resourceType.getOid(), AbstractOpenDJTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS,
 				syncTask, result);
 		
 		// THEN

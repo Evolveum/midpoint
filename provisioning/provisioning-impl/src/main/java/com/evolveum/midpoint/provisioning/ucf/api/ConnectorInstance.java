@@ -289,7 +289,7 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public PrismProperty<?> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".

@@ -363,12 +363,15 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchChanges");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_INETORGPERSON_NAME);
-		PrismProperty lastToken = cc.fetchCurrentToken(accountDefinition, result);
+		PrismProperty<Integer> lastToken = cc.fetchCurrentToken(accountDefinition, result);
 
 		System.out.println("Property:");
 		System.out.println(SchemaDebugUtil.prettyPrint(lastToken));
-
 		System.out.println("token " + lastToken.toString());
+		
+		assertNotNull("No last token", lastToken);
+		assertNotNull("No last token value", lastToken.getRealValue());
+
 		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, result);
 		AssertJUnit.assertEquals(0, changes.size());
 	}
