@@ -45,6 +45,46 @@ public class RelationalValueSearchQuery {
 		this.searchType = searchType;
 	}
 
+	public QName getColumn() {
+		return column;
+	}
+
+	public void setColumn(QName column) {
+		this.column = column;
+	}
+
+	public String getSearchValue() {
+		return searchValue;
+	}
+
+	public void setSearchValue(String searchValue) {
+		this.searchValue = searchValue;
+	}
+
+	public RelationalValueSearchType getSearchType() {
+		return searchType;
+	}
+
+	public void setSearchType(RelationalValueSearchType searchType) {
+		this.searchType = searchType;
+	}
+
+	public ObjectPaging getPaging() {
+		return paging;
+	}
+
+	public void setPaging(ObjectPaging paging) {
+		this.paging = paging;
+	}
+
+	public RelationalValueSearchQuery clone() {
+		RelationalValueSearchQuery clone = new RelationalValueSearchQuery(column, searchValue, searchType);
+		if (this.paging != null) {
+			clone.paging = this.paging.clone();
+		}
+		return clone;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

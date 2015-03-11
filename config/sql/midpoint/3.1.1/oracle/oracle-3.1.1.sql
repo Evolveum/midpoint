@@ -233,13 +233,14 @@ CREATE TABLE m_lookup_table (
 ) INITRANS 30;
 
 CREATE TABLE m_lookup_table_row (
-  row_key             VARCHAR2(255 CHAR) NOT NULL,
-  owner_oid           VARCHAR2(36 CHAR)  NOT NULL,
+  id                  NUMBER(5, 0)      NOT NULL,
+  owner_oid           VARCHAR2(36 CHAR) NOT NULL,
+  row_key             VARCHAR2(255 CHAR),
   label_norm          VARCHAR2(255 CHAR),
   label_orig          VARCHAR2(255 CHAR),
   lastChangeTimestamp TIMESTAMP,
   row_value           VARCHAR2(255 CHAR),
-  PRIMARY KEY (row_key, owner_oid)
+  PRIMARY KEY (id, owner_oid)
 ) INITRANS 30;
 
 CREATE TABLE m_node (

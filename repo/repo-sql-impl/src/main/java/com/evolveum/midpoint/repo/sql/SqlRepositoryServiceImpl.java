@@ -31,6 +31,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -578,6 +579,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (UserType.class.equals(savedObject.getCompileTimeClass())) {
             savedObject.removeProperty(UserType.F_JPEG_PHOTO);
+        } else if (LookupTableType.class.equals(savedObject.getCompileTimeClass())) {
+            PrismContainer table = savedObject.findContainer(LookupTableType.F_TABLE);
+            savedObject.remove(table);
         }
 
         String xml = getPrismContext().serializeObjectToString(savedObject, PrismContext.LANG_XML);
@@ -914,11 +918,37 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 applyShadowAttributeDefinitions(classes[i], prismObject, session);
             }
             LOGGER.debug("Definitions for attributes loaded. Counts: {}", Arrays.toString(counts));
+        } else if (LookupTableType.class.equals(prismObject.getCompileTimeClass())) {
+            updateLoadedLookupTable(prismObject, options, session);
         }
 
         validateObjectType(prismObject, type);
 
         return prismObject;
+    }
+
+    private <T extends ObjectType> void updateLoadedLookupTable(PrismObject<T> object,
+                                         Collection<SelectorOptions<GetOperationOptions>> options,
+                                         Session session) {
+        if (!SelectorOptions.hasToLoadPath(LookupTableType.F_TABLE, options)) {
+            return;
+        }
+
+        LOGGER.debug("Loading lookup table data.");
+        Query query = session.getNamedQuery("get.lookupTableData");
+        query.setString("oid", object.getOid());
+        List<RLookupTableRow> rows = query.list();
+
+        if (rows == null || rows.isEmpty()) {
+            return;
+        }
+
+        LookupTableType lookup = (LookupTableType) object.asObjectable();
+        List<LookupTableTableType> jaxbRows = lookup.getTable();
+        for (RLookupTableRow row : rows) {
+            LookupTableTableType jaxbRow = row.toJAXB();
+            jaxbRows.add(jaxbRow);
+        }
     }
 
     private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,

@@ -10,13 +10,13 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -60,34 +60,17 @@ public class RLookupTable extends RObject<LookupTableType> {
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
 
-//        LookupTableTableType table = jaxb.getTable();
-//        if (table == null) {
-//            return;
-//        }
-//
-//        for (LookupTableRowType row : table.getRow()) {
-//            RLookupTableRow rRow = new RLookupTableRow();
-//            rRow.setOwner(repo);
-//            rRow.setKey(row.getKey());
-//            rRow.setLabel(RPolyString.copyFromJAXB(row.getLabel()));
-//            rRow.setLastChangeTimestamp(row.getLastChangeTimestamp());
-//            rRow.setValue(row.getValue());
-//
-//            repo.getRows().add(rRow);
-//        }
-    }
+        List<LookupTableTableType> rows = jaxb.getTable();
+        for (LookupTableTableType row : rows) {
+            RLookupTableRow rRow = new RLookupTableRow();
+            rRow.setOwner(repo);
+            rRow.setId(RUtil.toShort(row.getId()));
+            rRow.setKey(row.getKey());
+            rRow.setLabel(RPolyString.copyFromJAXB(row.getLabel()));
+            rRow.setLastChangeTimestamp(row.getLastChangeTimestamp());
+            rRow.setValue(row.getValue());
 
-    protected static <T extends ObjectType> void copyToJAXB(RLookupTable repo, LookupTableType jaxb, PrismContext prismContext,
-                                                            Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-
-        //todo wtf with this
-
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        if (repo.getRows() != null && !repo.getRows().isEmpty()) {
-
-
+            repo.getRows().add(rRow);
         }
     }
 
