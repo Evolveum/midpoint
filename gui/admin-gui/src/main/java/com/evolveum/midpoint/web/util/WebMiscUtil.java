@@ -213,39 +213,63 @@ public final class WebMiscUtil {
                 }, true);
     }
     
-	public static <E extends Enum> DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def,
+	public static DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def,
 			String id, final IModel model, final Component component) {
 		// final Class clazz = model.getObject().getClass();
 		final Object o = model.getObject();
 		
-		IModel<List<String>> enumModelValues = new AbstractReadOnlyModel<List<String>>() {
+		final IModel<List<DisplayableValue>> enumModelValues = new AbstractReadOnlyModel<List<DisplayableValue>>() {
 			@Override
-			public List<String> getObject() {
-				List<String> values = null;
+			public List<DisplayableValue> getObject() {
+				List<DisplayableValue> values = null;
 				if (def.getAllowedValues() != null){
 					values = new ArrayList<>(def.getAllowedValues().length);
 					for (Object v : def.getAllowedValues()){
 						if (v instanceof DisplayableValue){
-							values.add(((DisplayableValue) v).getLabel());
+							values.add(((DisplayableValue) v));
 						}
 					}
 				}
 				return values;
 			}
+			
+			
 		};
 		
 		return new DropDownChoicePanel(id, model, enumModelValues,
-				new IChoiceRenderer<String>() {
+				new IChoiceRenderer() {
+			
+					
 
 					@Override
-					public Object getDisplayValue(String object) {
+					public Object getDisplayValue(Object object) {
+						if (object instanceof DisplayableValue){
+							return ((DisplayableValue)object).getLabel();
+						}
+						for (DisplayableValue v : enumModelValues.getObject()){
+							if (object.equals(v.getValue())){
+								return v.getLabel();
+							}
+						}
 						return object;
+						
 					}
 
 					@Override
-					public String getIdValue(String object, int index) {
-						return Integer.toString(index);
+					public String getIdValue(Object object, int index) {
+						if (object instanceof DisplayableValue){
+							return ((DisplayableValue)object).getValue().toString();
+						}
+						return object.toString();
+//						for (DisplayableValue v : enumModelValues.getObject()){
+//							if (object.equals(v.getValue())){
+//								return v.getLabel();
+//							}
+//						}
+//						return object.getValue().toString();//Integer.toString(index);
 					}
+					
+					
 				}, true);
 	}
 

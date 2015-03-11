@@ -120,15 +120,13 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	private static final String ACCOUNT_LECHUCK_NAME = "lechuck";
 	private static final String ACCOUNT_CHARLES_NAME = "charles";
 	
-	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 100;
-
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 
 	private static final String ATTRIBUTE_ENTRY_UUID = "entryUuid";
 	
 	protected static final String ACCOUNT_0_UID = "u00000000";
-	protected static final String ACCOUNT_0_CN = "Riwibmix Juvotut (00000000)";
+
+	private static final int NUMBER_OF_GENERTED_ACCOUNTS = 4000;
 	
 	protected ResourceType resourceType;
 	protected PrismObject<ResourceType> resource;
@@ -198,6 +196,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected String getScriptDirectoryName() {
 		return "/opt/Bamboo/local/conntest";
 	}
+	
+	protected abstract String getAccount0Cn();
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -314,7 +314,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         TestUtil.displayWhen(TEST_NAME);
 		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
         
-        assertEquals("Unexpected number of accounts", 123, count.getValue());
+        assertEquals("Unexpected number of accounts", NUMBER_OF_GENERTED_ACCOUNTS + 1, count.getValue());
         
         // TODO: count shadows
 	}
