@@ -1030,6 +1030,9 @@ public abstract class ShadowCache {
 		InternalMonitor.recordShadowOtherOperation();
 		
 		RefinedObjectClassDefinition refinedObjectClassDefinition = determineObjectClassDefinition(objectClass, resourceType);
+		if (refinedObjectClassDefinition == null) {
+			throw new SchemaException("Unknown object class "+objectClass+" in "+resourceType);
+		}
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 		
 		List<Change<ShadowType>> changes = null;

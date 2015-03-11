@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -32,16 +33,17 @@
 	<name>Embedded Test OpenDJ</name>
 	<!-- NOTE: The connector OID will get dynamically replaced in the integration tests -->
 	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>
-	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
+	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
 					   
 		<icfc:configurationProperties>
 			<icfcldap:port>10389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
-			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-			<icfcldap:principal>cn=directory manager</icfcldap:principal>
-			<icfcldap:credentials><clearValue>secret</clearValue></icfcldap:credentials>
-			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-			<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
+			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+			<icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+ 			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
 		</icfc:configurationProperties>
 		
 		<icfc:connectorPoolConfiguration>
@@ -68,6 +70,10 @@
 				<icfc:sync>-1</icfc:sync>
 				<icfc:schema>-1</icfc:schema>
 			</icfc:timeouts>
+			
+			<icfc:resultsHandlerConfiguration>
+				<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			</icfc:resultsHandlerConfiguration>
 
 	</connectorConfiguration>
 	
@@ -91,14 +97,14 @@
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
 			
 			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
-			<xsd:complexType name="GroupObjectClass">
+			<xsd:complexType name="groupsOfUniqueNames">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<ra:resourceObject/>
 	                     <ra:identifier>icfs:uid</ra:identifier>
 	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
 	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-	                     <ra:nativeObjectClass>__GROUP__</ra:nativeObjectClass>
+	                     <ra:nativeObjectClass>groupsOfUniqueNames</ra:nativeObjectClass>
 					</xsd:appinfo>
 				</xsd:annotation>
 				<xsd:sequence>
@@ -115,14 +121,14 @@
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
 				</xsd:sequence>
 			</xsd:complexType>
-			<xsd:complexType name="AccountObjectClass">
+			<xsd:complexType name="inetOrgPerson">
 				<xsd:annotation>
 					<xsd:appinfo>
 						 <ra:resourceObject/>
 	                     <ra:identifier>icfs:uid</ra:identifier>
 	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
 	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-	                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+	                     <ra:nativeObjectClass>inetOrgPerson</ra:nativeObjectClass>
 	                     <ra:account/>
 	                     <ra:default/>
 					</xsd:appinfo>
@@ -195,7 +201,7 @@
             <intent>default</intent>
             <displayName>Default Account</displayName>
             <default>true</default>
-            <objectClass>ri:AccountObjectClass</objectClass>
+            <objectClass>ri:inetOrgPerson</objectClass>
             <association>
             	<ref>ri:group</ref>
             	<displayName>LDAP Group Membership</displayName>
@@ -211,7 +217,7 @@
         	<kind>entitlement</kind>
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
-            <objectClass>ri:GroupObjectClass</objectClass>
+            <objectClass>ri:groupsOfUniqueNames</objectClass>
         </objectType>
                 
 	</schemaHandling>

@@ -266,7 +266,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-      QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+      QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
       ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
       
@@ -296,7 +296,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-      QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+      QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
       ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
       
@@ -546,7 +546,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-      QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+      QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
       ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
       
@@ -575,7 +575,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-      QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+      QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
       ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
       

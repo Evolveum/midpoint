@@ -255,7 +255,11 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType) {
 		assertDummyResourceSchemaSanity(resourceSchema, resourceType);
 		
-		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);		
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+		assertNotNull("No default account definition", accountDef);
+		ObjectClassComplexTypeDefinition accountObjectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+		assertNotNull("No AccountObjectClass definition", accountObjectClassDef);
+		assertTrue("Default account definition is not same as AccountObjectClass", accountDef == accountObjectClassDef);
 		assertEquals("Unexpected number of defnitions", 17, accountDef.getDefinitions().size());
 		ResourceAttributeDefinition treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
 		assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());

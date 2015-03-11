@@ -77,6 +77,7 @@ import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.QualifiedUid;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
+import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.ScriptContext;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.SortKey;
@@ -471,6 +472,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		this.resourceSchema = resourceSchema;
 		this.capabilities = capabilities;
 		this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
+		
+		if (resourceSchema != null) {
+			legacySchema = isLegacySchema(resourceSchema);
+		}
 
 		if (resourceSchema == null || capabilities == null) {
 			try {
@@ -621,15 +626,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// New instance of midPoint schema object
 		resourceSchema = new ResourceSchema(getSchemaNamespace(), prismContext);
 
-		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
-		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
-			if (objectClassInfo.is(ObjectClass.ACCOUNT_NAME) || objectClassInfo.is(ObjectClass.GROUP_NAME)) {
-				legacySchema = true;
-				LOGGER.trace("This is legacy schema"); 
-				break;
-			}
-		}
+		legacySchema = isLegacySchema(icfSchema);
 		
+		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
 		// Let's convert every objectclass in the ICF schema ...		
 		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
 
@@ -902,6 +901,23 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
+	private boolean isLegacySchema(Schema icfSchema) {
+		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
+		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
+			if (objectClassInfo.is(ObjectClass.ACCOUNT_NAME) || objectClassInfo.is(ObjectClass.GROUP_NAME)) {
+				LOGGER.trace("This is legacy schema");
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean isLegacySchema(ResourceSchema resourceSchema) {
+		ComplexTypeDefinition accountObjectClass = resourceSchema.findComplexTypeDefinition(
+				new QName(getSchemaNamespace(), ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+		return accountObjectClass != null;
+	}
+	
 	private boolean shouldBeGenerated(List<QName> generateObjectClasses,
 			QName objectClassXsdName) {
 		if (generateObjectClasses == null || generateObjectClasses.isEmpty()){

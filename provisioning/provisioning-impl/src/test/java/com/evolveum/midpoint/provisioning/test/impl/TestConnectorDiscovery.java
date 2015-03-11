@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 @DirtiesContext
 public class TestConnectorDiscovery extends AbstractIntegrationTest {
 
-	private static final String LDAP_CONNECTOR_TYPE = "org.identityconnectors.ldap.LdapConnector";
+	private static final String LDAP_CONNECTOR_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
 
 	@Autowired
 	private ProvisioningService provisioningService;
@@ -120,9 +120,10 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	
 	@Test
 	public void testSearchConnectorSimple() throws SchemaException{
-		TestUtil.displayTestTile("testSearchConnectorSimple");
+		final String TEST_NAME = "testSearchConnectorSimple";
+		TestUtil.displayTestTile(TEST_NAME);
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
-				+ ".testSearchConnector");
+				+ "." + TEST_NAME);
 		
 		PrismObject<ConnectorType> ldapConnector = findConnectorByType(LDAP_CONNECTOR_TYPE, result);
 		assertEquals("Type does not match", LDAP_CONNECTOR_TYPE, ldapConnector.asObjectable().getConnectorType());
@@ -136,16 +137,6 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 				+ ".testSearchConnector");
 		
 		Document doc = DOMUtil.getDocument();
-//		Element filter = QueryUtil
-//				.createAndFilter(
-//						doc,
-//						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_FRAMEWORK,
-//								ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI),
-//						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE,
-//								LDAP_CONNECTOR_TYPE));
-//	
-//		QueryType query = new QueryType();
-//		query.setFilter(filter);
 		AndFilter filter = AndFilter.createAnd(
 				EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorType.class, prismContext, null, ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI),
 				EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, LDAP_CONNECTOR_TYPE));
