@@ -297,13 +297,14 @@ CREATE TABLE m_lookup_table (
   ENGINE = InnoDB;
 
 CREATE TABLE m_lookup_table_row (
-  row_key             VARCHAR(255) NOT NULL,
-  owner_oid           VARCHAR(36)  NOT NULL,
+  id                  SMALLINT    NOT NULL,
+  owner_oid           VARCHAR(36) NOT NULL,
+  row_key             VARCHAR(255),
   label_norm          VARCHAR(255),
   label_orig          VARCHAR(255),
-  lastChangeTimestamp DATETIME(6),
+  lastChangeTimestamp DATETIME,
   row_value           VARCHAR(255),
-  PRIMARY KEY (row_key, owner_oid)
+  PRIMARY KEY (id, owner_oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
