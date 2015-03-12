@@ -70,7 +70,7 @@
     <logger name="com.evolveum.midpoint.model.impl.sync.FocusValidityScannerTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationService" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.controller.ModelController" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.controller.ModelController" level="TRACE" />
     <logger name="com.evolveum.icf.dummy" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
     

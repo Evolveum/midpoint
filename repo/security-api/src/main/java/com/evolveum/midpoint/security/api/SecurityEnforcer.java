@@ -74,5 +74,5 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * It may return null in case that the original filter was also null.
 	 */
 	<O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
-			Class<O> objectType, ObjectFilter origFilter) throws SchemaException; 
+			Class<O> objectType, ObjectFilter origFilter, boolean useTarget) throws SchemaException; 
 }

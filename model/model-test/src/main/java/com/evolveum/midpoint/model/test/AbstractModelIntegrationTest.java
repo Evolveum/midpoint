@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
@@ -93,6 +94,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -159,6 +161,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -2753,4 +2756,38 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		TestUtil.assertSuccess(result);
 		return editSchema;
 	}
+	
+	protected void assertRoleTypes(String... expectedRoleTypes) throws ObjectNotFoundException, SchemaException, ConfigurationException {
+		assertRoleTypes(getAssignableRoleSpecification(), expectedRoleTypes);
+	}
+	
+	protected RoleSelectionSpecification getAssignableRoleSpecification() throws ObjectNotFoundException, SchemaException, ConfigurationException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".getAssignableRoleSpecification");
+		RoleSelectionSpecification spec = modelInteractionService.getAssignableRoleSpecification(result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return spec;
+	}
+
+	protected void assertRoleTypes(RoleSelectionSpecification roleSpec, String... expectedRoleTypes) {
+		assertNotNull("Null role spec", roleSpec);
+        display("Role spec", roleSpec);
+        List<DisplayableValue<String>> roleTypes = roleSpec.getRoleTypes();
+        if (roleTypes.size() != expectedRoleTypes.length) {
+        	AssertJUnit.fail("Expected role types "+Arrays.toString(expectedRoleTypes)+" but got "+roleTypes);
+        }
+        for(String expectedRoleType: expectedRoleTypes) {
+        	boolean found = false;
+        	for (DisplayableValue<String> roleTypeDval: roleTypes) {
+        		if (expectedRoleType.equals(roleTypeDval.getValue())) {
+        			found = true;
+        			break;
+        		}
+        	}
+        	if (!found) {
+        		AssertJUnit.fail("Expected role type "+expectedRoleType+" but it was not present (got "+roleTypes+")");
+        	}
+        }
+	}
+
 }

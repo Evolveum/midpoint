@@ -156,8 +156,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 
     @Override
 	public <O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
-			Class<O> objectType, ObjectFilter origFilter) throws SchemaException {
-		return securityEnforcer.preProcessObjectFilter(operationUrl, phase, objectType, origFilter);
+			Class<O> objectType, ObjectFilter origFilter, boolean useTarget) throws SchemaException {
+		return securityEnforcer.preProcessObjectFilter(operationUrl, phase, objectType, origFilter, useTarget);
 	}
     
     
