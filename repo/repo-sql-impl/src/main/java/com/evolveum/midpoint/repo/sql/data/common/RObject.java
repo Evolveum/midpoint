@@ -70,6 +70,7 @@ import java.util.Set;
         @NamedQuery(name = "getDefinition.ROExtReference", query = "select c.name, c.type, c.valueType from ROExtReference as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
         @NamedQuery(name = "isAnySubordinateAttempt.oneLowerOid", query = "select count(*) from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid=:dOid"),
         @NamedQuery(name = "isAnySubordinateAttempt.moreLowerOids", query = "select count(*) from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid in (:dOids)"),
+        @NamedQuery(name = "get.lookupTableData", query = "select r from RLookupTableRow r where r.ownerOid = :oid"),
 })
 @Entity
 @Table(name = "m_object", indexes = {

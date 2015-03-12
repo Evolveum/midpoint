@@ -817,7 +817,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, userOid, 
-				UserType.F_ASSIGNMENT, prismContext);
+				UserType.F_ASSIGNMENT, prismContext, new PrismContainerValue[0]);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		modelService.executeChanges(deltas, null, task, result);		
 	}
@@ -1658,7 +1658,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".purgeResourceSchema");
         OperationResult result = task.getResult();
         
-        ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class, resourceOid, ResourceType.F_SCHEMA, prismContext);
+        ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class, 
+        		resourceOid, ResourceType.F_SCHEMA, prismContext, new PrismContainerValue[0]);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
         
         modelService.executeChanges(deltas, null, task, result);
