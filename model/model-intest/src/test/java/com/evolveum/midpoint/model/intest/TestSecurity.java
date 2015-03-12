@@ -15,11 +15,13 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertNull;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -41,7 +43,9 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -80,6 +84,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -533,6 +538,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+        
+        assertRoleTypes();
 	}
 	
 	@Test
@@ -548,7 +555,10 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertReadAllow();
         assertAddAllow();
         assertModifyAllow();
-        assertDeleteAllow();        
+        assertDeleteAllow();
+        
+        RoleSelectionSpecification roleSpec = getAssignableRoleSpecification();
+        assertNull("Non-null role spec "+roleSpec, roleSpec);
 	}
 	
 	@Test
@@ -1257,12 +1267,13 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 2);
+        
+        assertRoleTypes("application");
 	}
-
 	
 	@Test
     public void test280AutzJackEndUserAndModify() throws Exception {
-		final String TEST_NAME = "test270AutzJackAssignApplicationRoles";
+		final String TEST_NAME = "test280AutzJackEndUserAndModify";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
@@ -1294,7 +1305,6 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         user = getUser(USER_JACK_OID);
         assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, "Jack", "changed");
-
        
 	}
 
@@ -1336,8 +1346,6 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, "Jack", "changed");
 
 	}
-
-
 	
 	private void assertItemFlags(PrismObjectDefinition<UserType> editSchema, QName itemName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
 		assertItemFlags(editSchema, new ItemPath(itemName), expectedRead, expectedAdd, expectedModify);

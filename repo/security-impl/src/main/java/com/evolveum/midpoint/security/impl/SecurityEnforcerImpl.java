@@ -762,7 +762,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	@Override
 	public <O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase, 
-			Class<O> objectType, ObjectFilter origFilter) throws SchemaException {
+			Class<O> objectType, ObjectFilter origFilter, boolean useTarget) throws SchemaException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		if (principal == null) {
 			throw new IllegalArgumentException("No vaild principal");
@@ -774,11 +774,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		ObjectFilter finalFilter;
 		if (phase != null) {
-			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, true, objectType, origFilter);
+			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, true, objectType, origFilter, useTarget);
 		} else {
-			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, false, objectType, origFilter);
-			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST, false, objectType, origFilter);
-			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION, false, objectType, origFilter);
+			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, false, objectType, origFilter, useTarget);
+			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST, 
+					false, objectType, origFilter, useTarget);
+			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION,
+					false, objectType, origFilter, useTarget);
 			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
 		LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", 
@@ -792,7 +794,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	
 	private <O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String operationUrl, 
 			AuthorizationPhaseType phase, boolean includeNullPhase, 
-			Class<O> objectType, ObjectFilter origFilter) throws SchemaException {
+			Class<O> objectType, ObjectFilter origFilter, boolean useTarget) throws SchemaException {
 		Collection<Authorization> authorities = principal.getAuthorities();
 		ObjectFilter securityFilterAllow = null;
 		ObjectFilter securityFilterDeny = null;
@@ -819,7 +821,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	
 					// object
 					ObjectFilter autzObjSecurityFilter = null;
-					List<OwnedObjectSpecificationType> objectSpecTypes = autz.getObject();
+					List<OwnedObjectSpecificationType> objectSpecTypes;
+					if (useTarget) {
+						objectSpecTypes = autz.getTarget();
+					} else {
+						objectSpecTypes = autz.getObject();
+					}
 					boolean applicable = true;
 					if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
 						applicable = false;
