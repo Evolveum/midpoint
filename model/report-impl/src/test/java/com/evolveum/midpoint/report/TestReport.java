@@ -23,7 +23,6 @@ import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.report.impl.MidPointQueryExecutorFactory;
 import com.evolveum.midpoint.report.impl.ReportCreateTaskHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -122,10 +121,10 @@ public class TestReport extends AbstractModelIntegrationTest{
 	  
 	  Task task = taskManager.createTaskInstance();
 	  Map<String, Object> params = new HashMap<String, Object>();
-	  params.put(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION, modelService);
-	  params.put(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, prismContext);
-	  params.put(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER, taskManager);
-	  params.put(MidPointQueryExecutorFactory.PARAMETER_EXPRESSION_FACTORY, expressionFactory);
+//	  params.put(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION, modelService);
+//	  params.put(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, prismContext);
+//	  params.put(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER, taskManager);
+//	  params.put(MidPointQueryExecutorFactory.PARAMETER_EXPRESSION_FACTORY, expressionFactory);
 	  params.put("userName", new PolyString("administrator"));
 	  
 	  

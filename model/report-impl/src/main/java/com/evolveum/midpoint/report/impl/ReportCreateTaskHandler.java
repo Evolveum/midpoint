@@ -1,20 +1,8 @@
 package com.evolveum.midpoint.report.impl;
 
-import java.util.List;
-
-import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskRunResult;
-
-
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,15 +15,10 @@ import javax.annotation.PostConstruct;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
-import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.design.JRDesignExpression;
-import net.sf.jasperreports.engine.design.JRDesignParameter;
-import net.sf.jasperreports.engine.design.JRDesignReportTemplate;
-import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.export.JRXhtmlExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.engine.export.oasis.JROdsExporter;
@@ -43,18 +26,12 @@ import net.sf.jasperreports.engine.export.oasis.JROdtExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRDocxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRPptxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
-import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import net.sf.jasperreports.engine.xml.JRXmlTemplateLoader;
-import net.sf.jasperreports.engine.xml.JRXmlTemplateWriter;
-import net.sf.jasperreports.engine.xml.JRXmlWriter;
 import net.sf.jasperreports.export.Exporter;
 import net.sf.jasperreports.export.ExporterInput;
 import net.sf.jasperreports.export.ExporterOutput;
-import net.sf.jasperreports.export.OutputStreamExporterOutput;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
-import net.sf.jasperreports.export.SimpleWriterExporterOutput;
-import net.sf.jasperreports.export.WriterExporterOutput;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
@@ -68,6 +45,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -111,16 +89,21 @@ public class ReportCreateTaskHandler implements TaskHandler{
     
     @Autowired
 	private PrismContext prismContext;
-
-	
-	@Autowired(required = true)
+//
+//	
+//	
+//	
+//	 @Autowired(required=true)
+//	    private ExpressionFactory expressionFactory;
+//	 
+//	 @Autowired(required=true)
+//	    private AuditService auditService;
+    
+    @Autowired(required = true)
+    private ReportService reportService;
+    
+    @Autowired(required = true)
 	private ObjectResolver objectResolver;
-	
-	 @Autowired(required=true)
-	    private ExpressionFactory expressionFactory;
-	 
-	 @Autowired(required=true)
-	    private AuditService auditService;
 
 	 
 	 @PostConstruct
@@ -258,13 +241,14 @@ public class ReportCreateTaskHandler implements TaskHandler{
 			// for our special datasource
 			params.put(PARAMETER_REPORT_OID, reportType.getOid());
 			params.put(PARAMETER_OPERATION_RESULT, parentResult);
-			params.put(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION, modelService);
-			params.put(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, prismContext);
-			params.put(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER, taskManager);
-			params.put(MidPointQueryExecutorFactory.PARAMETER_EXPRESSION_FACTORY, expressionFactory);
-			params.put(MidPointQueryExecutorFactory.PARAMETER_AUDIT_SERVICE, auditService);
-			ReportFunctions reportFunctions = new ReportFunctions(prismContext, modelService, taskManager, auditService);
-    		params.put(MidPointQueryExecutorFactory.PARAMETER_REPORT_FUNCTIONS, reportFunctions);
+			params.put(ReportService.PARAMETER_REPORT_SERVICE, reportService);
+//			params.put(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION, modelService);
+//			params.put(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, prismContext);
+//			params.put(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER, taskManager);
+//			params.put(MidPointQueryExecutorFactory.PARAMETER_EXPRESSION_FACTORY, expressionFactory);
+//			params.put(MidPointQueryExecutorFactory.PARAMETER_AUDIT_SERVICE, auditService);
+//			ReportFunctions reportFunctions = new ReportFunctions(prismContext, modelService, taskManager, auditService);
+//    		params.put(MidPointQueryExecutorFactory.PARAMETER_REPORT_FUNCTIONS, reportFunctions);
 			
 			return params;
 	    }

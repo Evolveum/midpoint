@@ -1,6 +1,7 @@
-package com.evolveum.midpoint.report.impl;
+package com.evolveum.midpoint.report.ds.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,11 +26,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class MidPointDataSource implements JRDataSource{
 
-	List<PrismObject<? extends ObjectType>> resultList = null;
+	Collection<PrismObject<? extends ObjectType>> resultList = null;
 	Iterator<PrismObject<? extends ObjectType>> iterator = null;
 	PrismObject<? extends ObjectType> currentObject = null; 
 	
-	public MidPointDataSource(List<PrismObject<? extends ObjectType>> results) {
+	public MidPointDataSource(Collection<PrismObject<? extends ObjectType>> results) {
 		this.resultList = results;
 		if (results != null){
 			iterator = results.iterator();
