@@ -970,6 +970,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         AssignablePopupContent content = (AssignablePopupContent) modal.get(modal.getContentId());
         content.setType(type);
         showModalWindow(MODAL_ID_ASSIGNABLE, target);
+        target.add(getFeedbackPanel());
     }
 
     private void initResourceModal() {
@@ -1872,6 +1873,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private void showModalWindow(String id, AjaxRequestTarget target) {
         ModalWindow window = (ModalWindow) get(id);
         window.show(target);
+        target.add(getFeedbackPanel());
     }
 
     private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
