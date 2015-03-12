@@ -2757,13 +2757,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return editSchema;
 	}
 	
-	protected void assertRoleTypes(String... expectedRoleTypes) throws ObjectNotFoundException, SchemaException, ConfigurationException {
-		assertRoleTypes(getAssignableRoleSpecification(), expectedRoleTypes);
+	protected <F extends FocusType> void assertRoleTypes(PrismObject<F> focus, String... expectedRoleTypes) throws ObjectNotFoundException, SchemaException, ConfigurationException {
+		assertRoleTypes(getAssignableRoleSpecification(focus), expectedRoleTypes);
 	}
 	
-	protected RoleSelectionSpecification getAssignableRoleSpecification() throws ObjectNotFoundException, SchemaException, ConfigurationException {
+	protected <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus) throws ObjectNotFoundException, SchemaException, ConfigurationException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".getAssignableRoleSpecification");
-		RoleSelectionSpecification spec = modelInteractionService.getAssignableRoleSpecification(result);
+		RoleSelectionSpecification spec = modelInteractionService.getAssignableRoleSpecification(focus, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		return spec;

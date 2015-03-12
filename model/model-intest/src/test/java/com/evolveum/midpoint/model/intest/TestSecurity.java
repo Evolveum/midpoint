@@ -531,6 +531,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         login(USER_JACK_USERNAME);
         
         // WHEN
@@ -539,7 +540,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyDeny();
         assertDeleteDeny();
         
-        assertRoleTypes();
+        assertRoleTypes(userJack);
 	}
 	
 	@Test
@@ -557,7 +558,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyAllow();
         assertDeleteAllow();
         
-        RoleSelectionSpecification roleSpec = getAssignableRoleSpecification();
+        RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
         assertNull("Non-null role spec "+roleSpec, roleSpec);
 	}
 	
@@ -1268,7 +1269,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 2);
         
-        assertRoleTypes("application");
+        assertRoleTypes(getUser(USER_JACK_OID), "application");
 	}
 	
 	@Test
