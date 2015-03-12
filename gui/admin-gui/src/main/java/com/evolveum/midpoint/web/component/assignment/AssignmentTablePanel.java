@@ -233,6 +233,11 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
                     return query;
                 }
             }
+
+            @Override
+            protected void handlePartialError(OperationResult result) {
+                AssignmentTablePanel.this.handlePartialError(result);
+            }
         });
         add(assignWindow);
 
@@ -551,4 +556,9 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
         assignment.getConstruction().setResourceRef(ref);
         assignment.getConstruction().setResource(null);
     }
+
+    /**
+     *  Override to provide handle operation for partial error during provider iterator operation.
+     * */
+    protected void handlePartialError(OperationResult result){}
 }

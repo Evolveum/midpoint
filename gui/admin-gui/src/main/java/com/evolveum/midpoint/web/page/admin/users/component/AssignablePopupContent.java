@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.users.dto.OrgUnitSearchDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -119,13 +119,28 @@ public class AssignablePopupContent extends BasePanel {
 
     private TablePanel createTable() {
         List<IColumn> columns = createMultiSelectColumns();
-        ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), type);
+        ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), type){
+
+            @Override
+            protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
+                if(result.isPartialError()){
+                    handlePartialError(result);
+                } else {
+                    super.handleNotSuccessOrHandledErrorInIterator(result);
+                }
+            }
+        };
         provider.setQuery(getProviderQuery());
         TablePanel table = new TablePanel(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
 
         return table;
     }
+
+    /**
+     *  Override to provide handle operation for partial error during provider iterator operation.
+     * */
+    protected void handlePartialError(OperationResult result){}
 
     public ObjectQuery getProviderQuery(){
         return null;

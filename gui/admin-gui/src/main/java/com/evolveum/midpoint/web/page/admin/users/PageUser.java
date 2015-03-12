@@ -1004,6 +1004,11 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         window.setContent(new AssignablePopupContent(window.getContentId()) {
 
             @Override
+            protected void handlePartialError(OperationResult result) {
+                showResult(result);
+            }
+
+            @Override
             protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
                 addSelectedAssignablePerformed(target, selected);
             }
