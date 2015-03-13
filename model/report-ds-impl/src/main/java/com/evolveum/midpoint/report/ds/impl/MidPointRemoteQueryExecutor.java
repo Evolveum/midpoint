@@ -16,7 +16,6 @@ import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.base.JRBaseParameter;
 import net.sf.jasperreports.engine.query.JRAbstractQueryExecuter;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.interceptor.LoggingInInterceptor;
 import org.apache.cxf.interceptor.LoggingOutInterceptor;
@@ -24,19 +23,10 @@ import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.wss4j.dom.WSConstants;
 import org.apache.wss4j.dom.handler.WSHandlerConstants;
 
-import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.GetOperationOptionsType;
@@ -47,7 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportPortType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportService;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 public class MidPointRemoteQueryExecutor extends JRAbstractQueryExecuter{
 	
@@ -204,7 +193,7 @@ public class MidPointRemoteQueryExecutor extends JRAbstractQueryExecuter{
 				Serializable v = (Serializable) getParameterValue(param.getName());
 				EntryType entry = new EntryType();
 				entry.setKey(param.getName());
-				entry.setEntryValue(new JAXBElement<Serializable>(SchemaConstants.C_PARAM_VALUE, Serializable.class, v));
+				entry.setEntryValue(new JAXBElement<Serializable>(SchemaConstantsGenerated.C_PARAM_VALUE, Serializable.class, v));
 				parameters.getEntry().add(entry);
 				LOGGER.trace("p.val: {}", v);
 			} catch (Exception e){

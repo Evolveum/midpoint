@@ -13,6 +13,7 @@ import net.sf.jasperreports.engine.JRField;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -40,7 +41,7 @@ public class MidPointDataSource implements JRDataSource{
 	public MidPointDataSource(ObjectListType results){
 		resultList = new ArrayList<>();
 		for (ObjectType objType : results.getObject()){
-			resultList.add(objType.asPrismObject());
+			resultList.add(((Objectable)objType).asPrismObject());
 		}
 		iterator = resultList.iterator();
 	}
