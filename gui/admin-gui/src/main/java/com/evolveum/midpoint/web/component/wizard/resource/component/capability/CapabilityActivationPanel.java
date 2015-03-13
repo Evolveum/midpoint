@@ -172,7 +172,4 @@ public class CapabilityActivationPanel extends SimplePanel{
     public IModel<List<QName>> createAttributeChoiceModel(){
         return null;
     }
-
-
-
 }
