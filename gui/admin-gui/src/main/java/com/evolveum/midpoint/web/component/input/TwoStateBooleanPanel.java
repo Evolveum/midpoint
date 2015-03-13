@@ -99,6 +99,7 @@ public class TwoStateBooleanPanel extends SimplePanel<Boolean>{
 
     private void stateChanged(Boolean newValue, AjaxRequestTarget target){
         getModel().setObject(newValue);
+        onStateChanged(target, newValue);
         target.add(this);
     }
 
@@ -123,4 +124,9 @@ public class TwoStateBooleanPanel extends SimplePanel<Boolean>{
             return new AttributeAppender("class", " " + cssClass);
         }
     }
+
+    /**
+     *  Override to provide custom action on change state event
+     * */
+    protected void onStateChanged(AjaxRequestTarget target, Boolean newValue){}
 }

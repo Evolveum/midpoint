@@ -121,9 +121,11 @@ public interface ModelInteractionService {
     Collection<? extends DisplayableValue<String>> getActionUrls();
     
     /**
-     * Returns an object that defines which roles can be assigned to the currently logged-in user.
+     * Returns an object that defines which roles can be assigned by the currently logged-in user.
      * Returns null if there is no information about what a user can or cannot assign.
      * Returns object with empty type list if the user is not authorized to assign anything.
+     * 
+     * @param focus Object of the operation. The object (usually user) to whom the roles should be assigned.
      */
-    RoleSelectionSpecification getAssignableRoleSpecification(OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
+    <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
 }

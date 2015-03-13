@@ -1103,16 +1103,39 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 
 	@Override
-	public RoleSelectionSpecification getAssignableRoleSpecification(OperationResult parentResult) 
+	public <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, OperationResult parentResult) 
 			throws ObjectNotFoundException, SchemaException, ConfigurationException {
 		OperationResult result = parentResult.createMinorSubresult(GET_ASSIGNABLE_ROLE_SPECIFICATION);
-		// TODO: check for permission to modify assignment property directly
+		
+		RoleSelectionSpecification spec = new RoleSelectionSpecification();
+		
+		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(focus, null);
+		AuthorizationDecisionType decision = securityConstraints.findItemDecision(new ItemPath(FocusType.F_ASSIGNMENT), 
+				ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
+		if (decision == AuthorizationDecisionType.ALLOW) {
+			spec = getAllRoleTypesSpec(result);
+			result.recordSuccess();
+			return spec;
+		}
+		if (decision == AuthorizationDecisionType.DENY) {
+			result.recordSuccess();
+			return spec;
+		}
+		decision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
+		if (decision == AuthorizationDecisionType.ALLOW) {
+			spec = getAllRoleTypesSpec(result);
+			result.recordSuccess();
+			return spec;
+		}
+		if (decision == AuthorizationDecisionType.DENY) {
+			result.recordSuccess();
+			return spec;
+		}
 		
 		try {
 			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.ASSIGN.getUrl(), 
-					AuthorizationPhaseType.REQUEST, RoleType.class, AllFilter.createAll(), true);
+					AuthorizationPhaseType.REQUEST, RoleType.class, focus, AllFilter.createAll());
 			LOGGER.trace("assignableRoleSpec filter: {}", filter);
-			RoleSelectionSpecification spec = new RoleSelectionSpecification();
 			if (filter instanceof NoneFilter) {
 				result.recordSuccess();
 				return spec;
@@ -2028,7 +2051,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
     	if (origQuery != null) {
     		origFilter = origQuery.getFilter();
     	}
-		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, origFilter, false);
+		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, null, origFilter);
 		if (origQuery != null) {
 			origQuery.setFilter(secFilter);
 			return origQuery;

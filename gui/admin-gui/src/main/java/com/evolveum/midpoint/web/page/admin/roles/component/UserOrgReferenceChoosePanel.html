@@ -14,17 +14,23 @@
   ~ limitations under the License.
   -->
 
-<wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div wicket:id="content" style="padding: 10px;">
-        <form wicket:id="searchForm" class="form-inline pull-right">
-            <div wicket:id="basicSearch" />
-        </form>
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
 
-        <div wicket:id="extraContentContainer" />
-        <div wicket:id="table" />
+    <div class="row" style="margin: 0 0 0 0">
+        <div class="col-xs-4">
+            <span><wicket:message key="UserOrgReferenceChoosePanel.type"/></span>
+        </div>
 
-        <p align="right">
-            <a class="btn btn-default btn-sm" wicket:id="cancelButton"/>
-        </p>
+        <div class="col-xs-8">
+            <div class="row">
+                <div class="col-xs-9">
+                    <div wicket:id="type" />
+                </div>
+            </div>
+        </div>
     </div>
+
 </wicket:panel>
+</html>

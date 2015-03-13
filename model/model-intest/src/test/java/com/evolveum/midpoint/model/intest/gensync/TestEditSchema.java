@@ -718,6 +718,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		final String TEST_NAME="test300RoleTypes";
         TestUtil.displayTestTile(this, TEST_NAME);
 
-        assertRoleTypes("application","system","it");        
+        assertRoleTypes(getUser(USER_JACK_OID), "application","system","it");        
     }
 }

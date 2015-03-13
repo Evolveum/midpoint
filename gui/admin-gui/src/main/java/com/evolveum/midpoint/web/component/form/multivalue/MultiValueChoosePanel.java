@@ -40,7 +40,6 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
-import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 
@@ -152,7 +151,7 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
         add(repeater);
     }
 
-    private void initDialog(Class<T> type){
+    protected void initDialog(Class<T> type){
         ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_CHOOSE_PANEL, type){
 
             @Override
