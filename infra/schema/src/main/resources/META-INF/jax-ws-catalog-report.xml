@@ -17,24 +17,19 @@
   -->
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
 
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../xml/ns/public/model/model-3.wsdl" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../xml/ns/public/model/model-3.wsdl" />
-    
-    <!-- Report WSDL location -->
-<!--     <public publicId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" /> -->
-<!--     <system systemId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" /> -->
+  <!-- Report WSDL location -->
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" />
 
-    <!--<public publicId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../xml/ns/public/common/api-types-3.xsd" />-->
-    <!--<system systemId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../xml/ns/public/common/api-types-3.xsd" />-->
 
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd" />
+     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd" />
 
-	<public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" uri="../../../../../../infra/schema/src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" uri="../../../../../../infra/schema/src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd" />
+<!--     <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/annotation-3.xsd" /> -->
+<!--     <system systemId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/annotation-3.xsd" /> -->
 
-    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/annotation-3.xsd" />
-    <system systemId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/annotation-3.xsd" />
+ <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../xml/ns/public/common/api-types-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../xml/ns/public/common/api-types-3.xsd" />
 
     <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/types-3.xsd" />
     <system systemId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/types-3.xsd" />
@@ -42,14 +37,14 @@
     <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/query-3.xsd" />
     <system systemId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/query-3.xsd" />
 
-    <!--<public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />-->
-    <!--<system systemId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />-->
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />
 
     <!--<public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3" uri="../xml/ns/public/model/scripting/extension-3.xsd" />-->
     <!--<system systemId="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3" uri="../xml/ns/public/model/scripting/extension-3.xsd" />-->
 
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/gui/admin-1.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/gui/admin-1.xsd" />
+<!--     <public publicId="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/gui/admin-1.xsd" /> -->
+<!--     <system systemId="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/gui/admin-1.xsd" /> -->
 
     <!-- Bundled standard schemas -->
     <public publicId="datatypes" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/datatypes.dtd"/>

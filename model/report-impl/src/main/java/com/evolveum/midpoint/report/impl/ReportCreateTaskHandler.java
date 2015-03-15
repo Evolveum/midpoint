@@ -49,6 +49,7 @@ import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -131,7 +132,7 @@ public class ReportCreateTaskHandler implements TaskHandler{
 		try {
 			ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null, "resolving report", result);
 			
-			JasperReport jasperReport = ReportUtils.loadJasperReport(parentReport);
+			JasperReport jasperReport = ReportTypeUtil.loadJasperReport(parentReport);
 			
 			LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
     		Map<String, Object> parameters = completeReport(parentReport, result);
@@ -274,7 +275,7 @@ public class ReportCreateTaskHandler implements TaskHandler{
 		Map<String, Object> parameters = prepareReportParameters(reportType, subResult);
 		reportParams.putAll(parameters);
 
-		JasperReport jasperReport = ReportUtils.loadJasperReport(reportType);
+		JasperReport jasperReport = ReportTypeUtil.loadJasperReport(reportType);
 		reportParams.put(subreportType.getName(), jasperReport);
 
 		Map<String, Object> subReportParams = processSubreportParameters(reportType, subResult);
