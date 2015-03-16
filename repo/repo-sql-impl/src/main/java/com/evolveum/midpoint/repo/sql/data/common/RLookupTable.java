@@ -3,6 +3,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -14,10 +15,8 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.*;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -68,6 +67,11 @@ public class RLookupTable extends RObject<LookupTableType> {
             rRow.setKey(row.getKey());
             rRow.setLabel(RPolyString.copyFromJAXB(row.getLabel()));
             rRow.setLastChangeTimestamp(row.getLastChangeTimestamp());
+            if (rRow.getLastChangeTimestamp() == null) {
+                XMLGregorianCalendar cal = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
+                rRow.setLastChangeTimestamp(cal);
+                row.setLastChangeTimestamp(cal);
+            }
             rRow.setValue(row.getValue());
 
             repo.getRows().add(rRow);
