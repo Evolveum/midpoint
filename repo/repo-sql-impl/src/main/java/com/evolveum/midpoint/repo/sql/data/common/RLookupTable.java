@@ -11,7 +11,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
@@ -29,23 +28,19 @@ public class RLookupTable extends RObject<LookupTableType> {
     private RPolyString name;
     private Set<RLookupTableRow> rows;
 
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Override
+    @Embedded
+    public RPolyString getName() {
+        return name;
+    }
+
+    @Transient
     public Set<RLookupTableRow> getRows() {
-        if (rows == null) {
-            rows = new HashSet<>();
-        }
         return rows;
     }
 
     public void setRows(Set<RLookupTableRow> rows) {
         this.rows = rows;
-    }
-
-    @Override
-    @Embedded
-    public RPolyString getName() {
-        return name;
     }
 
     @Override
@@ -60,9 +55,14 @@ public class RLookupTable extends RObject<LookupTableType> {
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
 
         List<LookupTableTableType> rows = jaxb.getTable();
+        if (!rows.isEmpty()) {
+            repo.setRows(new HashSet<RLookupTableRow>());
+        }
+
         for (LookupTableTableType row : rows) {
             RLookupTableRow rRow = new RLookupTableRow();
             rRow.setOwner(repo);
+            rRow.setTransient(generatorResult.isTransient(row.asPrismContainerValue()));
             rRow.setId(RUtil.toShort(row.getId()));
             rRow.setKey(row.getKey());
             rRow.setLabel(RPolyString.copyFromJAXB(row.getLabel()));
