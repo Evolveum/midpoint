@@ -54,6 +54,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -1003,6 +1004,22 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return prismObject;
     }
 
+    private GetOperationOptions findLookupTableGetOption(Collection<SelectorOptions<GetOperationOptions>> options) {
+        ItemPath path = new ItemPath(LookupTableType.F_TABLE);
+
+        Collection<SelectorOptions<GetOperationOptions>> filtered = SelectorOptions.filterRetrieveOptions(options);
+        for (SelectorOptions<GetOperationOptions> option : filtered) {
+            ObjectSelector selector = option.getSelector();
+            ItemPath selected = selector.getPath();
+
+            if (path.equals(selected)) {
+                return option.getOptions();
+            }
+        }
+
+        return null;
+    }
+
     private <T extends ObjectType> void updateLoadedLookupTable(PrismObject<T> object,
                                                                 Collection<SelectorOptions<GetOperationOptions>> options,
                                                                 Session session) {
@@ -1011,10 +1028,34 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         LOGGER.debug("Loading lookup table data.");
-        Query query = session.getNamedQuery("get.lookupTableData");
-        query.setString("oid", object.getOid());
-        List<RLookupTableRow> rows = query.list();
 
+        GetOperationOptions getOption = findLookupTableGetOption(options);
+        RelationalValueSearchQuery queryDef = getOption == null ? null : getOption.getRelationalValueSearchQuery();
+        Criteria criteria = setupLookupTableRowsQuery(session, queryDef, object.getOid());
+        if (queryDef != null && queryDef.getPaging() != null) {
+            ObjectPaging paging = queryDef.getPaging();
+
+            if (paging.getOffset() != null) {
+                criteria.setFirstResult(paging.getOffset());
+            }
+            if (paging.getMaxSize() != null) {
+                criteria.setMaxResults(paging.getMaxSize());
+            }
+
+            if (paging.getDirection() != null && paging.getOrderBy() != null) {
+                String orderBy = paging.getOrderBy().getLocalPart();
+                switch (paging.getDirection()) {
+                    case ASCENDING:
+                        criteria.addOrder(Order.asc(orderBy));
+                        break;
+                    case DESCENDING:
+                        criteria.addOrder(Order.desc(orderBy));
+                        break;
+                }
+            }
+        }
+
+        List<RLookupTableRow> rows = criteria.list();
         if (rows == null || rows.isEmpty()) {
             return;
         }
@@ -1025,6 +1066,32 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LookupTableTableType jaxbRow = row.toJAXB();
             jaxbRows.add(jaxbRow);
         }
+    }
+
+    private Criteria setupLookupTableRowsQuery(Session session, RelationalValueSearchQuery queryDef, String oid) {
+        Criteria criteria = session.createCriteria(RLookupTableRow.class);
+        criteria.add(Restrictions.eq("ownerOid", oid));
+
+        if (queryDef != null
+                && queryDef.getColumn() != null
+                && queryDef.getSearchType() != null
+                && StringUtils.isNotEmpty(queryDef.getSearchValue())) {
+
+            String param = queryDef.getColumn().getLocalPart();
+            String value = queryDef.getSearchValue();
+            switch (queryDef.getSearchType()) {
+                case EXACT:
+                    criteria.add(Restrictions.eq(param, value));
+                    break;
+                case STARTS_WITH:
+                    criteria.add(Restrictions.eq(param, value + "%"));
+                    break;
+                case SUBSTRING:
+                    criteria.add(Restrictions.like(param, "%" + value + "%"));
+            }
+        }
+
+        return criteria;
     }
 
     private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,
