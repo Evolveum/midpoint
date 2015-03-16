@@ -1084,7 +1084,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     criteria.add(Restrictions.eq(param, value));
                     break;
                 case STARTS_WITH:
-                    criteria.add(Restrictions.eq(param, value + "%"));
+                    criteria.add(Restrictions.like(param, value + "%"));
                     break;
                 case SUBSTRING:
                     criteria.add(Restrictions.like(param, "%" + value + "%"));
