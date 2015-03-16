@@ -20,6 +20,7 @@
 	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -32,27 +33,22 @@
 			<q:and>
 				<q:equal>
 					<q:path>c:connectorType</q:path>
-					<q:value>org.identityconnectors.ldap.LdapConnector</q:value>
+					<q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
 				</q:equal>
 			</q:and>
 		</filter>
 	</connectorRef>
-	<connectorConfiguration 
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
+	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+					   
 		<icfc:configurationProperties>
 			<icfcldap:port>10389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
-			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-			<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
-			<icfcldap:credentials>
-				<t:clearValue>secret</t:clearValue>
-			</icfcldap:credentials>
-			<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
-			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
-			<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
+			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+			<icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+ 			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
 		</icfc:configurationProperties>
 		<icfc:resultsHandlerConfiguration>
 			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
@@ -65,7 +61,7 @@
 			<intent>default</intent>
 			<displayName>Default Account</displayName>
 			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
+			<objectClass>ri:inetOrgPerson</objectClass>
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Distinguished Name</displayName>
@@ -188,7 +184,7 @@
         	<kind>entitlement</kind>
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
-            <objectClass>ri:GroupObjectClass</objectClass>
+            <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
 				<ref>icfs:name</ref>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>

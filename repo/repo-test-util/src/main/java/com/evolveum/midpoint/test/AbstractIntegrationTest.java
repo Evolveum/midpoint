@@ -539,9 +539,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
                                       QName objectClass, MatchingRule<String> nameMatchingRule) {
 		assertShadow(accountShadow);
-		assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
+		if (oid != null) {
+			assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
+		}
 		ShadowType ResourceObjectShadowType = accountShadow.asObjectable();
-		assertEquals("Account shadow OID mismatch (jaxb)", oid, ResourceObjectShadowType.getOid());
+		if (oid != null) {
+			assertEquals("Account shadow OID mismatch (jaxb)", oid, ResourceObjectShadowType.getOid());
+		}
 		assertEquals("Account shadow objectclass", objectClass, ResourceObjectShadowType.getObjectClass());
 		assertEquals("Account shadow resourceRef OID", resourceType.getOid(), accountShadow.asObjectable().getResourceRef().getOid());
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);

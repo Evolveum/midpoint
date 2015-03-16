@@ -202,7 +202,6 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		modelService.postInit(initResult);
 		
 		// System Configuration
         PrismObject<SystemConfigurationType> config;
@@ -212,6 +211,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
+		
+		modelService.postInit(initResult);
 
         // to get profiling facilities (until better API is available)
 //        LoggingConfigurationManager.configure(
@@ -287,8 +288,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
         
         PrismObject<ShadowType> shadow = shadows.get(0);
-        assertA
-        // TODO: check shadow
+        assertAccountShadowCommon(shadow, null, ACCOUNT_0_UID, resourceType);
 	}
 	
 	@Test
