@@ -1113,22 +1113,26 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		AuthorizationDecisionType decision = securityConstraints.findItemDecision(new ItemPath(FocusType.F_ASSIGNMENT), 
 				ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
 		if (decision == AuthorizationDecisionType.ALLOW) {
-			spec = getAllRoleTypesSpec(result);
+			 getAllRoleTypesSpec(spec, result);
 			result.recordSuccess();
 			return spec;
 		}
 		if (decision == AuthorizationDecisionType.DENY) {
 			result.recordSuccess();
+			spec.setNoRoleTypes();
+			spec.setFilter(NoneFilter.createNone());
 			return spec;
 		}
 		decision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
 		if (decision == AuthorizationDecisionType.ALLOW) {
-			spec = getAllRoleTypesSpec(result);
+			getAllRoleTypesSpec(spec, result);
 			result.recordSuccess();
 			return spec;
 		}
 		if (decision == AuthorizationDecisionType.DENY) {
 			result.recordSuccess();
+			spec.setNoRoleTypes();
+			spec.setFilter(NoneFilter.createNone());
 			return spec;
 		}
 		
@@ -1136,18 +1140,24 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.ASSIGN.getUrl(), 
 					AuthorizationPhaseType.REQUEST, RoleType.class, focus, AllFilter.createAll());
 			LOGGER.trace("assignableRoleSpec filter: {}", filter);
+			spec.setFilter(filter);
 			if (filter instanceof NoneFilter) {
 				result.recordSuccess();
+				spec.setNoRoleTypes();
 				return spec;
 			} else if (filter == null || filter instanceof AllFilter) {
-				spec = getAllRoleTypesSpec(result);
+				getAllRoleTypesSpec(spec, result);
 				result.recordSuccess();
 				return spec;
 			} else if (filter instanceof OrFilter) {
 				for (ObjectFilter subfilter: ((OrFilter)filter).getConditions()) {
 					DisplayableValue<String> roleTypeDval =  getRoleSelectionSpec(subfilter);
 					if (roleTypeDval == null) {
-						spec = getAllRoleTypesSpec(result);
+						// This branch of the OR clause does not have any constraint for roleType
+						// therefore all role types are possible (regardless of other branches, this is OR)
+						spec = new RoleSelectionSpecification();
+						spec.setFilter(filter);
+						getAllRoleTypesSpec(spec, result);
 						result.recordSuccess();
 						return spec;
 					} else {
@@ -1157,7 +1167,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			} else {
 				DisplayableValue<String> roleTypeDval = getRoleSelectionSpec(filter);
 				if (roleTypeDval == null) {
-					spec = getAllRoleTypesSpec(result);
+					getAllRoleTypesSpec(spec, result);
 					result.recordSuccess();
 					return spec;					
 				} else {
@@ -1172,11 +1182,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 	}
 
-	private RoleSelectionSpecification getAllRoleTypesSpec(OperationResult result) 
+	private RoleSelectionSpecification getAllRoleTypesSpec(RoleSelectionSpecification spec, OperationResult result) 
 			throws ObjectNotFoundException, SchemaException, ConfigurationException {
 		ObjectTemplateType objectTemplateType = determineObjectTemplate(RoleType.class, AuthorizationPhaseType.REQUEST, result);
 		if (objectTemplateType == null) {
-			return null;
+			return spec;
 		}
 		for(ObjectTemplateItemDefinitionType itemDef: objectTemplateType.getItem()) {
 			ItemPathType ref = itemDef.getRef();
@@ -1191,13 +1201,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			if (QNameUtil.match(RoleType.F_ROLE_TYPE, itemName)) {
 				ObjectReferenceType valueEnumerationRef = itemDef.getValueEnumerationRef();
 				if (valueEnumerationRef == null || valueEnumerationRef.getOid() == null) {
-					return null;
+					return spec;
 				}
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE, 
 		    			GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 				PrismObject<LookupTableType> lookup = cacheRepositoryService.getObject(LookupTableType.class, valueEnumerationRef.getOid(), 
 						options, result);
-				RoleSelectionSpecification spec = new RoleSelectionSpecification();
 				for (LookupTableTableType row: lookup.asObjectable().getTable()) {
 					PolyStringType polyLabel = row.getLabel();
 					String key = row.getKey();
@@ -1211,7 +1220,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				return spec;
 			}
 		}
-		return null;
+		return spec;
 	}
 
 	private DisplayableValue<String> getRoleSelectionSpec(ObjectFilter filter) throws SchemaException {
