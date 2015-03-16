@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class DerbyControllerTest {
 		
 		Connection conn = controller.getConnection();
 		
-		// Check if it empty
+		// Check if it is empty
 		Statement stmt = conn.createStatement();
 		stmt.execute("select * from users");
 		ResultSet rs = stmt.getResultSet();
@@ -58,11 +58,12 @@ public class DerbyControllerTest {
         conn.commit();
         
 		// Try to connect over the "network" (localhost)
-        //Class.forName("org.apache.derby.jdbc.ClientDriver").newInstance();
+        Class.forName("org.apache.derby.jdbc.ClientDriver").newInstance();
 		String networkJdbcUrl = "jdbc:derby://"+controller.getListenHostname()+":"+controller.getListentPort()+"/"+controller.getDbName();
 		Properties props = new Properties();
 		props.setProperty("user",controller.getUsername());
 		props.setProperty("password",controller.getPassword());
+		System.out.println("JDBC Connecting to "+networkJdbcUrl+" as "+controller.getUsername());
 		Connection networkConn = DriverManager.getConnection(networkJdbcUrl,props);
 
 		// Check if it empty
