@@ -16,7 +16,10 @@
   -->
 
 <configuration>
-
+	
+	<!-- !!! WARNING !!! -->
+	<!-- This file is used only for early system init.
+	     The logging config is then taken from system-configuration.xml -->
 
 	<appender name="X" class="ch.qos.logback.core.FileAppender">
 		<file>./target/test.log</file>

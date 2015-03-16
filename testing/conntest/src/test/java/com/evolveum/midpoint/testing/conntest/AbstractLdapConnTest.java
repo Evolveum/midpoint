@@ -16,6 +16,7 @@ package com.evolveum.midpoint.testing.conntest;
  */
 
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -169,7 +170,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected abstract File getResourceFile();
 	
 	protected QName getAccountObjectClass() {
-		return new QName(MidPointConstants.NS_RI, "AccountObjectClass");
+		return new QName(MidPointConstants.NS_RI, "inetOrgPerson");
 	}
 
 	
@@ -274,6 +275,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
         ObjectClassComplexTypeDefinition objectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
+        assertNotNull("No definition for object class "+getAccountObjectClass(), objectClassDefinition);
         ResourceAttributeDefinition ldapUidAttrDef = objectClassDefinition.findAttributeDefinition("uid");
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
@@ -288,7 +290,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
         
         PrismObject<ShadowType> shadow = shadows.get(0);
-        assertAccountShadowCommon(shadow, null, ACCOUNT_0_UID, resourceType);
+        assertShadowCommon(shadow, null, toDn(ACCOUNT_0_UID), resourceType, getAccountObjectClass(), null);
 	}
 	
 	@Test
