@@ -970,6 +970,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         AssignablePopupContent content = (AssignablePopupContent) modal.get(modal.getContentId());
         content.setType(type);
         showModalWindow(MODAL_ID_ASSIGNABLE, target);
+        target.add(getFeedbackPanel());
     }
 
     private void initResourceModal() {
@@ -1002,6 +1003,11 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         ModalWindow window = createModalWindow(MODAL_ID_ASSIGNABLE,
                 createStringResource("pageUser.title.selectAssignable"), 1100, 560);
         window.setContent(new AssignablePopupContent(window.getContentId()) {
+
+            @Override
+            protected void handlePartialError(OperationResult result) {
+                showResult(result);
+            }
 
             @Override
             protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
@@ -1867,6 +1873,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private void showModalWindow(String id, AjaxRequestTarget target) {
         ModalWindow window = (ModalWindow) get(id);
         window.show(target);
+        target.add(getFeedbackPanel());
     }
 
     private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {

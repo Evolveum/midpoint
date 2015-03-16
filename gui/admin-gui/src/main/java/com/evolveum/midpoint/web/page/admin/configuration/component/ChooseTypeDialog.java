@@ -48,7 +48,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,6 +60,7 @@ public class ChooseTypeDialog extends ModalWindow{
 
     private static final String DEFAULT_SORTABLE_PROPERTY = null;
 
+    private static final String ID_EXTRA_CONTENT_CONTAINER = "extraContentContainer";
     private static final String ID_TABLE = "table";
     private static final String ID_BUTTON_CANCEL = "cancelButton";
     private static final String ID_SEARCH_FORM = "searchForm";
@@ -138,6 +138,8 @@ public class ChooseTypeDialog extends ModalWindow{
         };
         searchForm.add(basicSearch);
 
+        content.add(createExtraContentContainer(ID_EXTRA_CONTENT_CONTAINER));
+
         List<IColumn<SelectableBean<ObjectType>, String>> columns = initColumns();
         ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), this.objectType);
         provider.setQuery(getDataProviderQuery());
@@ -173,6 +175,13 @@ public class ChooseTypeDialog extends ModalWindow{
         return columns;
     }
 
+    protected WebMarkupContainer createExtraContentContainer(String extraContentId){
+        WebMarkupContainer container = new WebMarkupContainer(extraContentId);
+        container.setOutputMarkupId(true);
+        container.setOutputMarkupPlaceholderTag(true);
+        return container;
+    }
+
     private TablePanel getTablePanel(){
         return (TablePanel) get(StringUtils.join(new String[]{CONTENT_ID, ID_TABLE}, ":"));
     }
@@ -181,14 +190,27 @@ public class ChooseTypeDialog extends ModalWindow{
         return (Form) get(StringUtils.join(new String[]{CONTENT_ID, ID_SEARCH_FORM}, ":"));
     }
 
+    private WebMarkupContainer getExtraContentContainer(){
+        return (WebMarkupContainer) get(StringUtils.join(new String[]{CONTENT_ID, ID_EXTRA_CONTENT_CONTAINER}, ":"));
+    }
+
+    public void updateTableByTypePerformed(AjaxRequestTarget target, Class<? extends ObjectType> newType){
+        this.objectType = newType;
+        TablePanel table = getTablePanel();
+        DataTable dataTable = table.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider)dataTable.getDataProvider();
+        provider.setType(objectType);
+
+        target.add(get(CONTENT_ID), getPageBase().getFeedbackPanel(), table);
+    }
+
     public void updateTablePerformed(AjaxRequestTarget target, ObjectQuery query){
         TablePanel table = getTablePanel();
         DataTable dataTable = table.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider)dataTable.getDataProvider();
         provider.setQuery(query);
 
-        target.add(get(CONTENT_ID));
-        target.add(table);
+        target.add(get(CONTENT_ID), getPageBase().getFeedbackPanel(), table);
     }
 
     protected ObjectQuery getDataProviderQuery(){

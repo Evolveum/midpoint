@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
+
+  <!-- Report WSDL location -->
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" />
+
+
+     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd" />
+
+<!--     <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/annotation-3.xsd" /> -->
+<!--     <system systemId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/annotation-3.xsd" /> -->
+
+ <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../xml/ns/public/common/api-types-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../xml/ns/public/common/api-types-3.xsd" />
+
+    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/types-3.xsd" />
+    <system systemId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/types-3.xsd" />
+
+    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/query-3.xsd" />
+    <system systemId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/query-3.xsd" />
+
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />
+
+    <!--<public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3" uri="../xml/ns/public/model/scripting/extension-3.xsd" />-->
+    <!--<system systemId="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3" uri="../xml/ns/public/model/scripting/extension-3.xsd" />-->
+
+<!--     <public publicId="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/gui/admin-1.xsd" /> -->
+<!--     <system systemId="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/gui/admin-1.xsd" /> -->
+
+    <!-- Bundled standard schemas -->
+    <public publicId="datatypes" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/datatypes.dtd"/>
+    <system systemId="datatypes" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/datatypes.dtd" />
+
+    <public publicId="-//W3C//DTD XMLSchema 200102//EN" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/XMLSchema.dtd" />
+    <public publicId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/XMLSchema.dtd" />
+    <system systemId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/XMLSchema.dtd" />
+
+    <public publicId="XMLSchema.dtd" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/XMLSchema.dtd" />
+    <system systemId="XMLSchema.dtd" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/XMLSchema.dtd" />
+
+    <public publicId="http://www.w3.org/2001/04/xmlenc" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/xenc-schema.xsd" />
+    <system systemId="http://www.w3.org/2001/04/xmlenc" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/xenc-schema.xsd" />
+
+    <public publicId="http://www.w3.org/2001/XMLSchema" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/XMLSchema.xsd" />
+    <system systemId="http://www.w3.org/2001/XMLSchema" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/XMLSchema.xsd" />
+
+    <public publicId="http://www.w3.org/XML/1998/namespace" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/xml.xsd" />
+    <system systemId="http://www.w3.org/XML/1998/namespace" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/xml.xsd" />
+
+    <public publicId="http://www.w3.org/2000/09/xmldsig" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/xmldsig-core-schema.xsd" />
+    <system systemId="http://www.w3.org/2000/09/xmldsig" uri="../../../../../../infra/prism/src/main/resources/xml/ns/standard/xmldsig-core-schema.xsd" />
+
+</catalog>

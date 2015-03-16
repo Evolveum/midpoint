@@ -16,7 +16,9 @@ import net.sf.jasperreports.engine.xml.JRXmlWriter;
 
 import org.apache.commons.codec.binary.Base64;
 
-import com.evolveum.midpoint.report.impl.ReportUtils;
+
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
+//import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class JasperReportDto implements Serializable{
@@ -41,7 +43,7 @@ public class JasperReportDto implements Serializable{
 		}
 		
 		try {
-			design = ReportUtils.loadJasperDesign(jasperReportXml);
+			design = ReportTypeUtil.loadJasperDesign(jasperReportXml);
 			query = design.getQuery().getText();
 			
 			fields = new ArrayList<JasperReportFieldDto>();
@@ -93,6 +95,9 @@ public class JasperReportDto implements Serializable{
 	public byte[] getTemplate(){
 		try{
 		for (JasperReportFieldDto field : fields){
+			if (field.isEmpty()){
+				continue;
+			}
 			JRDesignField f = new JRDesignField();
 			f.setValueClassName(field.getTypeAsString());
 			f.setValueClass(Class.forName(field.getTypeAsString()));
@@ -101,6 +106,9 @@ public class JasperReportDto implements Serializable{
 		}
 		
 		for (JasperReportParameterDto param : parameters){
+			if (param.isEmpty()){
+				continue;
+			}
 			JRDesignParameter p = new JRDesignParameter();
 			p.setValueClassName(param.getTypeAsString());
 			p.setValueClass(Class.forName(param.getTypeAsString()));
@@ -108,7 +116,7 @@ public class JasperReportDto implements Serializable{
 			design.addParameter(p);
 		}
 		
-		JasperDesign oldDesign = ReportUtils.loadJasperDesign(jasperReportXml);
+		JasperDesign oldDesign = ReportTypeUtil.loadJasperDesign(jasperReportXml);
 		oldDesign.getParametersList().clear();
 		oldDesign.getParametersList().addAll(design.getParametersList());
 		

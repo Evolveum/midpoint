@@ -78,41 +78,49 @@
     <!-- BOOTSTRAP RESOURCES END -->
 </head>
 <body>
-
-<div id="blackWindow"></div>
-<div id="xmlExport">
-	<span id="xmlExportContent"></span>
-</div>
-
-<div wicket:id="topMenu" />
-
-<div wicket:id="version" class="pull-right version-info">
-    <wicket:message key="pageBase.midPointVersion"/>
-</div>
-<img id="ajax_busy" class="pull-right version-info" src="img/ajax-loader.gif"/>
-
-<div class="row mainContainer">
-    <div class="page-header" wicket:id="pageTitleContainer">
-        <h1 wicket:id="pageTitle">
-            <span wicket:id="pageTitleReal"></span>
-            <small wicket:id="pageSubtitle"></small>
-        </h1>
+    <div id="blackWindow"></div>
+    <div id="xmlExport">
+        <span id="xmlExportContent"></span>
     </div>
 
-    <!--<div wicket:id="feedbackList"/>-->
-    <!--<div wicket:id="feedbackDetails"/>-->
+    <div wicket:id="topMenu" />
 
-    <div wicket:id="feedbackContainer" class="feedbackContainer">
-        <div wicket:id="feedback" class="messagePanel"/>
-        <div wicket:id="tempFeedback" class="tempMessage"/>
+    <div wicket:id="version" class="pull-right version-info">
+        <wicket:message key="pageBase.midPointVersion"/>
     </div>
-    <wicket:child/>
+    <img id="ajax_busy" class="pull-right version-info" src="img/ajax-loader.gif"/>
 
-</div>
+    <div class="mp-main-container">
+        <div class="row mainContainer">
+            <div class="page-header" wicket:id="pageTitleContainer">
+                <h1 wicket:id="pageTitle">
+                    <span wicket:id="pageTitleReal"></span>
+                    <small wicket:id="pageSubtitle"></small>
+                </h1>
+            </div>
 
-<div class="wicket-debug-buttons" wicket:id="debugBar">
-    <a wicket:id="clearCssCache">Clear css cache</a>
-</div>
-<div wicket:id="debugPanel" style="z-index: 10000;"/>
+            <!--<div wicket:id="feedbackList"/>-->
+            <!--<div wicket:id="feedbackDetails"/>-->
+
+            <div wicket:id="feedbackContainer" class="feedbackContainer">
+                <div wicket:id="feedback" class="messagePanel"/>
+                <div wicket:id="tempFeedback" class="tempMessage"/>
+            </div>
+            <wicket:child/>
+
+        </div>
+
+        <div class="wicket-debug-buttons" wicket:id="debugBar">
+            <a wicket:id="clearCssCache">Clear css cache</a>
+        </div>
+        <div wicket:id="debugPanel" style="z-index: 10000;"/>
+    </div>
+
+    <!-- Footer -->
+    <div class="mp-footer">
+        Thanks for using <a href="http://midpoint.evolveum.com">midPoint</a>, developed by<br>
+        <a href="https://www.evolveum.com/">Evolveum</a>,&nbsp;Open Source Identity Management, &copy;&nbsp;2015&nbsp;
+    </div>
+
 </body>
 </html>

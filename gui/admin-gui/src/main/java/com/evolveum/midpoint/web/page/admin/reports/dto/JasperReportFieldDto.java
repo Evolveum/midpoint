@@ -2,10 +2,13 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.Validatable;
 
-public class JasperReportFieldDto extends Selectable implements Serializable, Editable{
+public class JasperReportFieldDto extends Selectable implements Serializable, Editable, Validatable{
 
 	private String name;
 	private Class type;
@@ -43,5 +46,13 @@ public class JasperReportFieldDto extends Selectable implements Serializable, Ed
 	@Override
 	public void setEditing(boolean editing) {
 		this.editing = editing;
+	}
+	
+	@Override
+	public boolean isEmpty(){
+		if (StringUtils.isBlank(name) && StringUtils.isBlank(typeAsString)){
+			return true;
+		}
+		return false;
 	}
 }

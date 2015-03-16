@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,6 +87,9 @@ public class AbstractGenericSyncTest extends AbstractInitializedModelIntegration
     protected static final File SYSTEM_CONFIGURATION_GENSYNC_FILE = new File(TEST_DIR, "system-configuration.xml");
 
     protected static final File OBJECT_TEMPLATE_ROLE_FILE = new File(TEST_DIR, "object-template-role.xml");
+    
+    public static final File LOOKUP_ROLE_TYPE_FILE = new File(TEST_DIR, "lookup-role-type.xml");
+	public static final String LOOKUP_ROLE_TYPE_OID = "70000000-0000-0000-1111-000000000021";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -94,6 +97,7 @@ public class AbstractGenericSyncTest extends AbstractInitializedModelIntegration
 
         repoAddObjectFromFile(OBJECT_TEMPLATE_ROLE_FILE, ObjectTemplateType.class, initResult);
         repoAddObjectFromFile(ROLE_META_DUMMYGROUP_FILE, RoleType.class, initResult);
+        repoAddObjectFromFile(LOOKUP_ROLE_TYPE_FILE, ObjectTemplateType.class, initResult);
     }
     
     @Override

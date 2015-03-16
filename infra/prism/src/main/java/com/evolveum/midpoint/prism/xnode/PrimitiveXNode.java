@@ -25,15 +25,18 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.commons.lang.Validate;
 
 public class PrimitiveXNode<T> extends XNode implements Serializable {
@@ -192,6 +195,10 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
         if (value instanceof QName) {
             return QNameUtil.qNameToUri((QName) value);
         }
+        if (value instanceof DisplayableValue) {
+        	return ((DisplayableValue) value).getValue().toString();
+        }
+        
         return XmlTypeConverter.toXmlTextContent(value, null);
     }
 

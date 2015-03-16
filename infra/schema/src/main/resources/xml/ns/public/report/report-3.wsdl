@@ -38,6 +38,8 @@
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
+            			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
  
      
         <xsd:complexType name="ProcessReportType">
@@ -59,6 +61,121 @@
           </xsd:sequence>
         </xsd:complexType>
       <xsd:element name="processReportResponse" type="tns:ProcessReportResponseType"/>
+      
+<!--        <xsd:complexType name="ParseQueryType"> -->
+<!--           <xsd:sequence> -->
+<!--             <xsd:element name="query" type="xsd:string"/> -->
+<!--             <xsd:element name="parameters" type="c:ParamsType"/> -->
+<!--           </xsd:sequence> -->
+<!--         </xsd:complexType> -->
+<!--       <xsd:element name="parseQuery" type="tns:ParseQueryType" /> -->
+      
+<!--         <xsd:complexType name="ParseQueryResponseType"> -->
+<!--           <xsd:sequence> -->
+<!--           <xsd:element name="parsedQuery" type="q:QueryType"> -->
+<!--                         <xsd:annotation> -->
+<!--                             <xsd:documentation> -->
+<!--                                 parsedQuery -->
+<!--                             </xsd:documentation> -->
+<!--                         </xsd:annotation> -->
+<!--                     </xsd:element> -->
+<!--           </xsd:sequence> -->
+<!--         </xsd:complexType> -->
+<!--       <xsd:element name="parseQueryResponse" type="tns:ParseQueryResponseType"/> -->
+      
+      
+       <xsd:complexType name="SearchObjectsType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    
+                    <xsd:element name="query" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Search criteria. If not specified, all objects of a given type are returned.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                     <xsd:element name="parameters" type="c:ParamsType"/>
+                    <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options influencing the retrieval and processing of objects.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="searchObjects" type="tns:SearchObjectsType"/>
+
+            <xsd:complexType name="SearchObjectsResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="objectList" type="apit:ObjectListType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of objects that match given criteria.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                   
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="searchObjectsResponse" type="tns:SearchObjectsResponseType"/>
+            
+            <xsd:complexType name="EvaluateScriptType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    
+                    <xsd:element name="script" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Script to evaluate
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                     <xsd:element name="parameters" type="c:ParamsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Parameters needed for script evaluation
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="evaluateScript" type="tns:EvaluateScriptType"/>
+
+            <xsd:complexType name="EvaluateScriptResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="objectList" type="apit:ObjectListType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of objects that match given criteria.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                   
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="evaluateScriptResponse" type="tns:EvaluateScriptResponseType"/>
+      
+       
     </xsd:schema>
   </types>
   
@@ -69,12 +186,47 @@
     <part element="tns:processReportResponse" name="parameters"/>
   </message>
   
+<!--    <message name="parseQuery"> -->
+<!--     <part element="tns:parseQuery" name="parameters"/> -->
+<!--   </message> -->
+<!--   <message name="parseQueryResponse"> -->
+<!--     <part element="tns:parseQueryResponse" name="parameters"/> -->
+<!--   </message> -->
+  
+   <message name="searchObjects">
+    <part element="tns:searchObjects" name="parameters"/>
+  </message>
+  <message name="searchObjectsResponse">
+    <part element="tns:searchObjectsResponse" name="parameters"/>
+  </message>
+  
+  <message name="evaluateScript">
+    <part element="tns:evaluateScript" name="parameters"/>
+  </message>
+  <message name="evaluateScriptResponse">
+    <part element="tns:evaluateScriptResponse" name="parameters"/>
+  </message>
+  
   <portType name="reportPortType">
     <operation name="processReport">
       <input message="tns:processReport"/>
       <output message="tns:processReportResponse"/>
     </operation>
+<!--      <operation name="parseQuery"> -->
+<!--       <input message="tns:parseQuery"/> -->
+<!--       <output message="tns:parseQueryResponse"/> -->
+<!--     </operation> -->
+     <operation name="searchObjects">
+      <input message="tns:searchObjects"/>
+      <output message="tns:searchObjectsResponse"/>
+    </operation>
+    <operation name="evaluateScript">
+      <input message="tns:evaluateScript"/>
+      <output message="tns:evaluateScriptResponse"/>
+    </operation>
   </portType>
+  
+  
   <binding name="reportBinding" type="tns:reportPortType">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <operation name="processReport">
@@ -83,6 +235,33 @@
         <soap:body use="literal"/>
       </input>
       <output name="processReportResponse">
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+<!--      <operation name="parseQuery"> -->
+<!--       <soap:operation name="parseQuery"/> -->
+<!--       <input> -->
+<!--         <soap:body use="literal"/> -->
+<!--       </input> -->
+<!--       <output name="parseQueryResponse"> -->
+<!--         <soap:body use="literal"/> -->
+<!--       </output> -->
+<!--     </operation> -->
+     <operation name="searchObjects">
+      <soap:operation name="searchObjects"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output name="searchObjectsResponse">
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="evaluateScript">
+      <soap:operation name="evaluateScript"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output name="evaluateScriptResponse">
         <soap:body use="literal"/>
       </output>
     </operation>

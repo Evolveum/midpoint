@@ -27,6 +27,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ProgressListener;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressio
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.python.antlr.PythonParser.continue_stmt_return;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -77,6 +79,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.prism.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -85,6 +88,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -94,10 +98,15 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.query.AllFilter;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -108,6 +117,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -137,11 +147,15 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
@@ -154,6 +168,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -163,6 +178,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * This used to be an interface, but it was switched to class for simplicity. I
@@ -863,7 +879,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		
 		ObjectTemplateType objectTemplateType;
 		try {
-			objectTemplateType = determineObjectTemplate(object, phase, result);
+			objectTemplateType = determineObjectTemplate(object.getCompileTimeClass(), phase, result);
 		} catch (ConfigurationException | ObjectNotFoundException e) {
 			result.recordFatalError(e);
 			throw e;
@@ -998,12 +1014,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
     	}
 	}
     
-    public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+    public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(Class<O> objectType, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
     	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfiguration(cacheRepositoryService, result);
     	if (systemConfiguration == null) {
     		return null;
     	}
-    	ObjectPolicyConfigurationType objectPolicyConfiguration = ModelUtils.determineObjectPolicyConfiguration(object.getCompileTimeClass(), systemConfiguration.asObjectable());
+    	ObjectPolicyConfigurationType objectPolicyConfiguration = ModelUtils.determineObjectPolicyConfiguration(objectType, systemConfiguration.asObjectable());
     	if (objectPolicyConfiguration == null) {
     		return null;
     	}
@@ -1086,6 +1102,150 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		return Arrays.asList(ModelAuthorizationAction.values());
 	}
 
+	@Override
+	public <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, OperationResult parentResult) 
+			throws ObjectNotFoundException, SchemaException, ConfigurationException {
+		OperationResult result = parentResult.createMinorSubresult(GET_ASSIGNABLE_ROLE_SPECIFICATION);
+		
+		RoleSelectionSpecification spec = new RoleSelectionSpecification();
+		
+		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(focus, null);
+		AuthorizationDecisionType decision = securityConstraints.findItemDecision(new ItemPath(FocusType.F_ASSIGNMENT), 
+				ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
+		if (decision == AuthorizationDecisionType.ALLOW) {
+			spec = getAllRoleTypesSpec(result);
+			result.recordSuccess();
+			return spec;
+		}
+		if (decision == AuthorizationDecisionType.DENY) {
+			result.recordSuccess();
+			return spec;
+		}
+		decision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
+		if (decision == AuthorizationDecisionType.ALLOW) {
+			spec = getAllRoleTypesSpec(result);
+			result.recordSuccess();
+			return spec;
+		}
+		if (decision == AuthorizationDecisionType.DENY) {
+			result.recordSuccess();
+			return spec;
+		}
+		
+		try {
+			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.ASSIGN.getUrl(), 
+					AuthorizationPhaseType.REQUEST, RoleType.class, focus, AllFilter.createAll());
+			LOGGER.trace("assignableRoleSpec filter: {}", filter);
+			if (filter instanceof NoneFilter) {
+				result.recordSuccess();
+				return spec;
+			} else if (filter == null || filter instanceof AllFilter) {
+				spec = getAllRoleTypesSpec(result);
+				result.recordSuccess();
+				return spec;
+			} else if (filter instanceof OrFilter) {
+				for (ObjectFilter subfilter: ((OrFilter)filter).getConditions()) {
+					DisplayableValue<String> roleTypeDval =  getRoleSelectionSpec(subfilter);
+					if (roleTypeDval == null) {
+						spec = getAllRoleTypesSpec(result);
+						result.recordSuccess();
+						return spec;
+					} else {
+						spec.addRoleType(roleTypeDval);
+					}
+				}
+			} else {
+				DisplayableValue<String> roleTypeDval = getRoleSelectionSpec(filter);
+				if (roleTypeDval == null) {
+					spec = getAllRoleTypesSpec(result);
+					result.recordSuccess();
+					return spec;					
+				} else {
+					spec.addRoleType(roleTypeDval);
+				}
+			}
+			result.recordSuccess();
+			return spec;
+		} catch (SchemaException | ConfigurationException | ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+	}
+
+	private RoleSelectionSpecification getAllRoleTypesSpec(OperationResult result) 
+			throws ObjectNotFoundException, SchemaException, ConfigurationException {
+		ObjectTemplateType objectTemplateType = determineObjectTemplate(RoleType.class, AuthorizationPhaseType.REQUEST, result);
+		if (objectTemplateType == null) {
+			return null;
+		}
+		for(ObjectTemplateItemDefinitionType itemDef: objectTemplateType.getItem()) {
+			ItemPathType ref = itemDef.getRef();
+			if (ref == null) {
+				continue;
+			}
+			ItemPath itemPath = ref.getItemPath();
+			QName itemName = ItemPath.getName(itemPath.first());
+			if (itemName == null) {
+				continue;
+			}
+			if (QNameUtil.match(RoleType.F_ROLE_TYPE, itemName)) {
+				ObjectReferenceType valueEnumerationRef = itemDef.getValueEnumerationRef();
+				if (valueEnumerationRef == null || valueEnumerationRef.getOid() == null) {
+					return null;
+				}
+				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE, 
+		    			GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+				PrismObject<LookupTableType> lookup = cacheRepositoryService.getObject(LookupTableType.class, valueEnumerationRef.getOid(), 
+						options, result);
+				RoleSelectionSpecification spec = new RoleSelectionSpecification();
+				for (LookupTableTableType row: lookup.asObjectable().getTable()) {
+					PolyStringType polyLabel = row.getLabel();
+					String key = row.getKey();
+					String label = key;
+					if (polyLabel != null) {
+						label = polyLabel.getOrig();
+					}
+					DisplayableValue<String> roleTypeDval = new DisplayableValueImpl<>(key, label, null);
+					spec.addRoleType(roleTypeDval);
+				}
+				return spec;
+			}
+		}
+		return null;
+	}
+
+	private DisplayableValue<String> getRoleSelectionSpec(ObjectFilter filter) throws SchemaException {
+		if (filter instanceof EqualFilter<?>) {
+			return getRoleSelectionSpecEq((EqualFilter)filter);
+		} else if (filter instanceof AndFilter) {
+			for (ObjectFilter subfilter: ((AndFilter)filter).getConditions()) {
+				if (subfilter instanceof EqualFilter<?>) {
+					DisplayableValue<String> roleTypeDval = getRoleSelectionSpecEq((EqualFilter)subfilter);
+					if (roleTypeDval != null) {
+						return roleTypeDval;
+					}
+				}
+			}
+			return null;
+		} else if (filter instanceof TypeFilter) {
+			return getRoleSelectionSpec(((TypeFilter)filter).getFilter());
+		} else {
+			throw new UnsupportedOperationException("Unexpected filter "+filter);
+		}
+	}
+	
+	private DisplayableValue<String> getRoleSelectionSpecEq(EqualFilter<String> eqFilter) throws SchemaException {
+		if (QNameUtil.match(RoleType.F_ROLE_TYPE,eqFilter.getElementName())) {
+			List<PrismPropertyValue<String>> ppvs = eqFilter.getValues();
+			if (ppvs.size() > 1) {
+				throw new SchemaException("More than one value in roleType search filter");
+			}
+			String roleType = ppvs.get(0).getValue();
+			DisplayableValue<String> roleTypeDval = new DisplayableValueImpl<>(roleType, roleType, null);
+			return roleTypeDval;
+		}
+		return null;
+	}
 
 	private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
         PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
@@ -1891,7 +2051,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
     	if (origQuery != null) {
     		origFilter = origQuery.getFilter();
     	}
-		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, origFilter);
+		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, null, origFilter);
 		if (origQuery != null) {
 			origQuery.setFilter(secFilter);
 			return origQuery;

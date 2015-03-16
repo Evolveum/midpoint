@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -36,6 +35,8 @@ import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.*;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
+import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -47,11 +48,15 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -80,8 +85,8 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
     private static final String DOT_CLASS = PageRole.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE = DOT_CLASS + "loadRole";
     private static final String OPERATION_CREATE_ROLE_WRAPPER = DOT_CLASS + "createRoleWrapper";
-    private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
     private static final String OPERATION_SAVE_ROLE = DOT_CLASS + "saveRole";
+    private static final String OPERATION_LOAD_OWNER = "getOwner";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_BUTTON_BACK = "backButton";
@@ -100,9 +105,14 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
     private static final String ID_EXTENSION_LABEL = "extensionLabel";
     private static final String ID_EXTENSION_PROPERTY = "property";
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
+    private static final String ID_OWNER_WRAPPER = "ownerRefWrapper";
+    private static final String ID_OWNER_EDIT = "ownerRefEdit";
+    private static final String ID_OWNER_LABEL = "ownerRefLabel";
 
     private static final String ID_INDUCEMENTS = "inducementsPanel";
     private static final String ID_ASSIGNMENTS = "assignmentsPanel";
+
+    private static final String ID_MODAL_OWNER_CHOOSER = "ownerChooser";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-6";
@@ -112,7 +122,6 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
     private ObjectWrapper roleWrapper;
 
     private ProgressReporter progressReporter;
-    private ObjectDelta delta;
 
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
             = new LoadableModel<ExecuteChangeOptionsDto>(false) {
@@ -212,7 +221,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
     private ContainerWrapper loadRoleWrapper(){
         OperationResult result = new OperationResult(OPERATION_CREATE_ROLE_WRAPPER);
         ContainerStatus status = isEditingRole() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-        ObjectWrapper wrapper = null;
+        ObjectWrapper wrapper;
         ContainerWrapper extensionContainer = null;
         PrismObject<RoleType> role = model.getObject();
 
@@ -244,26 +253,6 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
     private boolean isEditingRole(){
         StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         return oid != null && StringUtils.isNotEmpty(oid.toString());
-    }
-
-    private PrismObject getReference(ObjectReferenceType ref, OperationResult result) {
-        OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
-        subResult.addParam("targetRef", ref.getOid());
-        PrismObject target = null;
-        try {
-            Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT);
-            Class type = ObjectType.class;
-            if (ref.getType() != null) {
-                type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(ref.getType());
-            }
-            target = getModelService().getObject(type, ref.getOid(), null, task, subResult);
-            subResult.recordSuccess();
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't get assignment target ref", ex);
-            subResult.recordFatalError("Couldn't get assignment target ref.", ex);
-        }
-
-        return target;
     }
 
     private void initLayout(){
@@ -313,36 +302,52 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
                 createStringResource("ActivationType.validTo"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(validTo);
 
-        AssignmentTablePanel assignments = new AssignmentTablePanel(ID_ASSIGNMENTS, new Model<AssignmentTableDto>(),
-                createStringResource("PageRoleEditor.title.assignments")){
+        WebMarkupContainer ownerRefContainer = new WebMarkupContainer(ID_OWNER_WRAPPER);
+        ownerRefContainer.setOutputMarkupId(true);
+        form.add(ownerRefContainer);
+
+        TextField ownerRefLabel = new TextField<>(ID_OWNER_LABEL, createOwnerRefLabelModel());
+        ownerRefLabel.setEnabled(false);
+        ownerRefContainer.add(ownerRefLabel);
+
+        AjaxLink editOwnerRef = new AjaxLink(ID_OWNER_EDIT) {
 
             @Override
-            public List<AssignmentType> getAssignmentTypeList(){
-                return model.getObject().asObjectable().getAssignment();
-            }
-
-            @Override
-            public String getExcludeOid(){
-                return model.getObject().asObjectable().getOid();
-            }
-        };
-        form.add(assignments);
-
-        AssignmentTablePanel inducements = new AssignmentTablePanel(ID_INDUCEMENTS, new Model<AssignmentTableDto>(),
-                createStringResource("PageRoleEditor.title.inducements")){
-
-            @Override
-            public List<AssignmentType> getAssignmentTypeList(){
-                return model.getObject().asObjectable().getInducement();
-            }
-
-            @Override
-            public String getExcludeOid(){
-                return model.getObject().asObjectable().getOid();
+            public void onClick(AjaxRequestTarget target) {
+                editOwnerRefPerformed(target);
             }
         };
-        form.add(inducements);
+        ownerRefContainer.add(editOwnerRef);
 
+        initModalWindows();
+        initExtension(form);
+        initAssignmentsAndInducements(form);
+        initButtons(form);
+    }
+
+    private void initModalWindows(){
+        ModalWindow ownerChooser = new ChooseTypeDialog(ID_MODAL_OWNER_CHOOSER, UserType.class){
+
+            @Override
+            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
+                ownerChoosePerformed(target, object);
+            }
+
+            @Override
+            protected WebMarkupContainer createExtraContentContainer(String extraContentId) {
+                return new UserOrgReferenceChoosePanel(extraContentId, Boolean.FALSE){
+
+                    @Override
+                    protected void onReferenceTypeChangePerformed(AjaxRequestTarget target, Boolean newValue) {
+                        updateTableByTypePerformed(target, Boolean.FALSE.equals(newValue) ? UserType.class : OrgType.class);
+                    }
+                };
+            }
+        };
+        add(ownerChooser);
+    }
+
+    private void initExtension(final Form form){
         Label extensionLabel = new Label(ID_EXTENSION_LABEL, createStringResource("PageRoleEditor.subtitle.extension"));
         extensionLabel.add(new VisibleEnableBehaviour(){
 
@@ -372,8 +377,38 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         };
         extensionProperties.setReuseItems(true);
         form.add(extensionProperties);
+    }
 
-        initButtons(form);
+    private void initAssignmentsAndInducements(Form form){
+        AssignmentTablePanel assignments = new AssignmentTablePanel(ID_ASSIGNMENTS, new Model<AssignmentTableDto>(),
+                createStringResource("PageRoleEditor.title.assignments")){
+
+            @Override
+            public List<AssignmentType> getAssignmentTypeList(){
+                return model.getObject().asObjectable().getAssignment();
+            }
+
+            @Override
+            public String getExcludeOid(){
+                return model.getObject().asObjectable().getOid();
+            }
+        };
+        form.add(assignments);
+
+        AssignmentTablePanel inducements = new AssignmentTablePanel(ID_INDUCEMENTS, new Model<AssignmentTableDto>(),
+                createStringResource("PageRoleEditor.title.inducements")){
+
+            @Override
+            public List<AssignmentType> getAssignmentTypeList(){
+                return model.getObject().asObjectable().getInducement();
+            }
+
+            @Override
+            public String getExcludeOid(){
+                return model.getObject().asObjectable().getOid();
+            }
+        };
+        form.add(inducements);
     }
 
     private IModel<String> createStyleClassModel(final IModel<PropertyWrapper> wrapper) {
@@ -383,6 +418,45 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
             public String getObject() {
                 PropertyWrapper property = wrapper.getObject();
                 return property.isVisible() ? "visible" : null;
+            }
+        };
+    }
+
+    private IModel<String> createOwnerRefLabelModel(){
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                if(model == null || model.getObject() == null || model.getObject().asObjectable() == null){
+                    return getString("PageRoleEditor.label.ownerRef.placeholder");
+                }
+
+                StringBuilder sb = new StringBuilder();
+                RoleType role = model.getObject().asObjectable();
+
+                if(role.getOwnerRef() == null){
+                    return getString("PageRoleEditor.label.ownerRef.placeholder");
+                }
+
+                ObjectReferenceType ownerRef = role.getOwnerRef();
+                FocusType owner;
+                OperationResult result = new OperationResult(OPERATION_LOAD_OWNER);
+
+                if(UserType.COMPLEX_TYPE.equals(ownerRef.getType())){
+                    owner = WebModelUtils.loadObject(UserType.class, ownerRef.getOid(), result, PageRole.this).asObjectable();
+                    sb.append(WebMiscUtil.getName(owner));
+                    sb.append("- (");
+                    sb.append(UserType.class.getSimpleName());
+                    sb.append(")");
+                } else if(OrgType.COMPLEX_TYPE.equals(ownerRef.getType())){
+                    owner = WebModelUtils.loadObject(OrgType.class, ownerRef.getOid(), result, PageRole.this).asObjectable();
+                    sb.append(WebMiscUtil.getName(owner));
+                    sb.append("- (");
+                    sb.append(OrgType.class.getSimpleName());
+                    sb.append(")");
+                }
+
+                return sb.toString();
             }
         };
     }
@@ -428,9 +502,43 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
                 backPerformed(target);
             }
         };
+        back.setDefaultFormProcessing(false);
         form.add(back);
 
         form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, true));
+    }
+
+    private void editOwnerRefPerformed(AjaxRequestTarget target){
+        ModalWindow window = (ModalWindow)get(ID_MODAL_OWNER_CHOOSER);
+        window.show(target);
+    }
+
+    private WebMarkupContainer getOwnerRefContainer(){
+        return (WebMarkupContainer) get(StringUtils.join(new String[]{ID_MAIN_FORM, ID_OWNER_WRAPPER}, ":"));
+    }
+
+    private void ownerChoosePerformed(AjaxRequestTarget target, ObjectType newOwner){
+        if(model == null || model.getObject() == null || model.getObject().asObjectable() == null){
+            warn(getString("PageRoleEditor.message.cantAddOwner"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        ModalWindow window = (ModalWindow) get(ID_MODAL_OWNER_CHOOSER);
+        window.close(target);
+
+        ObjectReferenceType ownerReference = new ObjectReferenceType();
+        ownerReference.setOid(newOwner.getOid());
+
+        if(newOwner instanceof UserType){
+            ownerReference.setType(UserType.COMPLEX_TYPE);
+        } else if(newOwner instanceof OrgType){
+            ownerReference.setType(OrgType.COMPLEX_TYPE);
+        }
+
+        model.getObject().asObjectable().setOwnerRef(ownerReference);
+        success(getString("PageRoleEditor.message.addOwnerOk", WebMiscUtil.getName(newOwner)));
+        target.add(getFeedbackPanel(), getOwnerRefContainer());
     }
 
     private void savePerformed(AjaxRequestTarget target){
@@ -439,7 +547,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
             WebMiscUtil.revive(model, getPrismContext());
             PrismObject<RoleType> newRole = model.getObject();
 
-            delta = null;
+            ObjectDelta delta = null;
             if (!isEditingRole()) {
 
                 //handle assignments

@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -57,6 +58,7 @@ import org.w3c.dom.Element;
 import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -118,7 +120,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
             public String getObject() {
                 ResourceAttributeDefinitionType attribute = getModelObject();
 
-                if(attribute.getDisplayName() == null && attribute.getRef() == null){
+                if(attribute.getRef() == null || attribute.getRef().equals(new ItemPathType())){
                     return getString("ResourceAttributeEditor.label.new");
                 } else {
                     return getString("ResourceAttributeEditor.label.edit", ItemPathUtil.getOnlySegmentQName(attribute.getRef()).getLocalPart());
@@ -161,7 +163,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         refTooltip.setOutputMarkupId(true);
         schemaRefPanel.add(refTooltip);
 
-        DropDownChoice refSelect = new DropDownChoice<>(ID_REFERENCE_SELECT, new PropertyModel<ItemPathType>(getModel(), "ref"),
+        DropDownChoice refSelect = new DropDownChoice<ItemPathType>(ID_REFERENCE_SELECT, new PropertyModel<ItemPathType>(getModel(), "ref"),
                 new AbstractReadOnlyModel<List<ItemPathType>>() {
 
                     @Override
@@ -179,7 +181,20 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
             public String getIdValue(ItemPathType object, int index) {
                 return Integer.toString(index);
             }
-        });
+        }){
+
+            @Override
+            protected boolean isSelected(ItemPathType object, int index, String selected) {
+                if(getModelObject() == null || getModelObject().equals(new ItemPathType())){
+                    return false;
+                }
+
+                QName referenceQName = ItemPathUtil.getOnlySegmentQName(getModelObject());
+                QName optionQName = ItemPathUtil.getOnlySegmentQName(object);
+
+                return referenceQName.equals(optionQName);
+            }
+        };
         refSelect.setNullValid(false);
 
         refSelect.setOutputMarkupId(true);
@@ -391,7 +406,8 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
             if(objectType != null && def.getTypeName().equals(objectType.getObjectClass())){
 
                 for (ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
-                    references.add(new ItemPathType(attributeDefinition.getName().getLocalPart()));
+                    ItemPath itemPath = new ItemPath(attributeDefinition.getName());
+                    references.add(new ItemPathType(itemPath));
                 }
             }
         }

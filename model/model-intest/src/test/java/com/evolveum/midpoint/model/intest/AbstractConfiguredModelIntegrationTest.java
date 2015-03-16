@@ -336,6 +336,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File TASK_MOCK_JACK_FILE = new File(COMMON_DIR, "task-mock-jack.xml");
 	protected static final String TASK_MOCK_JACK_OID = "10000000-0000-0000-5656-565674633311";
 	
+	public static final File LOOKUP_LANGUAGES_FILE = new File(COMMON_DIR, "lookup-languages.xml");
+	public static final String LOOKUP_LANGUAGES_OID = "70000000-0000-0000-1111-000000000001";
+	public static final String LOOKUP_LANGUAGES_NAME = "Languages";
+	
 	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
 	protected static final QName PIRACY_SHIP = new QName(NS_PIRACY, "ship");
 	protected static final QName PIRACY_TALES = new QName(NS_PIRACY, "tales");
