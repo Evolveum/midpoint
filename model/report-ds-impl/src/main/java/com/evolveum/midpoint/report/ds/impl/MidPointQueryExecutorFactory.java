@@ -1,8 +1,9 @@
-package com.evolveum.midpoint.report.impl;
+package com.evolveum.midpoint.report.ds.impl;
 
 import java.util.Map;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.task.api.TaskManager;
 
 import net.sf.jasperreports.engine.JRDataset;
@@ -21,18 +22,18 @@ import net.sf.jasperreports.engine.query.QueryExecuterFactory;
 public class MidPointQueryExecutorFactory extends AbstractQueryExecuterFactory{
 
 
-	public final static String PARAMETER_MIDPOINT_CONNECTION = "MIDPOINT_CONNECTION";
-	public final static String PARAMETER_PRISM_CONTEXT = "PRISM_CONTEXT";
-	public final static String PARAMETER_TASK_MANAGER = "TASK_MANAGER";
-	public final static String PARAMETER_EXPRESSION_FACTORY = "EXPRESSION_FACTORY";
-	public final static String PARAMETER_OBJECT_RESOLVER = "OBJECT_RESOLVER";
-	public final static String PARAMETER_MIDPOINT_FUNCTION = "MIDPOINT_FUNCTION";
-	public final static String PARAMETER_AUDIT_SERVICE = "AUDIT_SERVICE";
-	public final static String PARAMETER_REPORT_FUNCTIONS = "reportFunctions";
+//	public final static String PARAMETER_MIDPOINT_CONNECTION = "MIDPOINT_CONNECTION";
+//	public final static String PARAMETER_PRISM_CONTEXT = "PRISM_CONTEXT";
+//	public final static String PARAMETER_TASK_MANAGER = "TASK_MANAGER";
+//	public final static String PARAMETER_EXPRESSION_FACTORY = "EXPRESSION_FACTORY";
+//	public final static String PARAMETER_OBJECT_RESOLVER = "OBJECT_RESOLVER";
+//	public final static String PARAMETER_MIDPOINT_FUNCTION = "MIDPOINT_FUNCTION";
+//	public final static String PARAMETER_AUDIT_SERVICE = "AUDIT_SERVICE";
+//	public final static String PARAMETER_REPORT_FUNCTIONS = "reportFunctions";
 	
 	
 	private final static Object[] MIDPOINT_BUILTIN_PARAMETERS = {
-		PARAMETER_MIDPOINT_CONNECTION, PARAMETER_PRISM_CONTEXT, PARAMETER_TASK_MANAGER, "midpoint.connection"
+		ReportService.PARAMETER_REPORT_SERVICE, "midpoint.connection"
 		};
 	
 	

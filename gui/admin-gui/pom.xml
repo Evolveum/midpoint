@@ -334,11 +334,35 @@
             <version>3.2-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
+<!--         <dependency> -->
+<!--             <groupId>com.evolveum.midpoint.model</groupId> -->
+<!--             <artifactId>report-api</artifactId> -->
+<!--             <version>3.2-SNAPSHOT</version> -->
+<!--             <scope>runtime</scope> -->
+<!--         </dependency> -->
 	<dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-impl</artifactId>
             <version>3.2-SNAPSHOT</version>
-<!--             <scope>runtime,compile</scope> -->
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>report-ds-impl</artifactId>
+            <version>3.2-SNAPSHOT</version>
+			<scope>runtime</scope>
+			 <exclusions>
+            	<exclusion>
+            		<artifactId>jaxb-impl</artifactId>
+            		<groupId>com.sun.xml.bind</groupId>
+            	</exclusion>
+            </exclusions>
+<!-- 			<exclusions> -->
+<!-- 				<exclusion> -->
+<!-- 					<groupId>*</groupId> -->
+<!-- 					<artifactId>*</artifactId> -->
+<!-- 				</exclusion> -->
+<!--     		</exclusions> -->
         </dependency>
 	<dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>

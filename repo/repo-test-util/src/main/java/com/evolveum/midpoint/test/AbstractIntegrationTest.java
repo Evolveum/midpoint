@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -887,6 +888,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotNull("No password value in "+shadow, passwordValue);
 		protector.decrypt(passwordValue);
 		assertEquals("Wrong password in "+shadow, expectedPassword, passwordValue.getClearValue());
+	}
+	
+	protected void assertFilter(ObjectFilter filter, Class<? extends ObjectFilter> expectedClass) {
+		if (expectedClass == null) {
+			assertNull("Expected that filter is null, but it was "+filter, filter);
+		} else {
+			assertNotNull("Expected that filter is of class "+expectedClass.getName()+", but it was null", filter);
+			if (!(expectedClass.isAssignableFrom(filter.getClass()))) {
+				AssertJUnit.fail("Expected that filter is of class "+expectedClass.getName()+", but it was "+filter);
+			}
+		}
 	}
 
 }

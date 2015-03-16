@@ -139,49 +139,49 @@ public class ReportUtils {
     
     //new
     
-    public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
-    	try	 {
-    	byte[] reportTemplate = Base64.decodeBase64(template);
-	 	
-	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
-	 	JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
-	 	LOGGER.trace("load jasper design : {}", jasperDesign);
-	 	return jasperDesign;
-    	} catch (JRException ex){
-    		throw new SchemaException(ex.getMessage(), ex.getCause());
-    	}
-    }
-    
-public static JasperReport loadJasperReport(ReportType reportType) throws SchemaException{
-		
-		if (reportType.getTemplate() == null) {
-			throw new IllegalStateException("Could not create report. No jasper template defined.");
-		}
-		try	 {
-//	    	 	byte[] reportTemplate = Base64.decodeBase64(reportType.getTemplate());
-//	    	 	
-//	    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
-	    	 	JasperDesign jasperDesign = loadJasperDesign(reportType.getTemplate());//JRXmlLoader.load(inputStreamJRXML);
-//	    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
-			 
-			 if (reportType.getTemplateStyle() != null){
-				JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
-				jasperDesign.addTemplate(templateStyle);
-				JRDesignParameter parameter = new JRDesignParameter();
-				parameter.setName(PARAMETER_TEMPLATE_STYLES);
-				parameter.setValueClass(JRTemplate.class);
-				parameter.setForPrompting(false);
-				jasperDesign.addParameter(parameter);
-			 } 
-			 JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
-			 return jasperReport;
-		 } catch (JRException ex){ 
-			 LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
-			 throw new SchemaException(ex.getMessage(), ex.getCause());
-		 }
-		 
-		 
-}
+//    public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
+//    	try	 {
+//    	byte[] reportTemplate = Base64.decodeBase64(template);
+//	 	
+//	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
+//	 	JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+//	 	LOGGER.trace("load jasper design : {}", jasperDesign);
+//	 	return jasperDesign;
+//    	} catch (JRException ex){
+//    		throw new SchemaException(ex.getMessage(), ex.getCause());
+//    	}
+//    }
+//    
+//public static JasperReport loadJasperReport(ReportType reportType) throws SchemaException{
+//		
+//		if (reportType.getTemplate() == null) {
+//			throw new IllegalStateException("Could not create report. No jasper template defined.");
+//		}
+//		try	 {
+////	    	 	byte[] reportTemplate = Base64.decodeBase64(reportType.getTemplate());
+////	    	 	
+////	    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
+//	    	 	JasperDesign jasperDesign = loadJasperDesign(reportType.getTemplate());//JRXmlLoader.load(inputStreamJRXML);
+////	    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
+//			 
+//			 if (reportType.getTemplateStyle() != null){
+//				JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
+//				jasperDesign.addTemplate(templateStyle);
+//				JRDesignParameter parameter = new JRDesignParameter();
+//				parameter.setName(PARAMETER_TEMPLATE_STYLES);
+//				parameter.setValueClass(JRTemplate.class);
+//				parameter.setForPrompting(false);
+//				jasperDesign.addParameter(parameter);
+//			 } 
+//			 JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+//			 return jasperReport;
+//		 } catch (JRException ex){ 
+//			 LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
+//			 throw new SchemaException(ex.getMessage(), ex.getCause());
+//		 }
+//		 
+//		 
+//}
 
 public static List<PrismObject<? extends ObjectType>> getReportData(PrismContext prismContext, Task task, ReportFunctions reportFunctions, String script, ExpressionVariables variables, ObjectResolver objectResolver) throws ExpressionSyntaxException, ExpressionEvaluationException, ObjectNotFoundException{
 	List<PrismObject<? extends ObjectType>> results = new ArrayList<>();

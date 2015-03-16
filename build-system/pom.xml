@@ -74,6 +74,7 @@
         <xmlsec.version>2.0.1</xmlsec.version>
         <connid.version>1.4.2.0-SNAPSHOT</connid.version>
         <jasper.version>6.0.0</jasper.version>
+        <derby.version>10.11.1.1</derby.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -568,6 +569,21 @@
                 <artifactId>velocity</artifactId>
                 <version>1.7</version>
             </dependency>
+            <dependency>
+				<groupId>org.apache.derby</groupId>
+				<artifactId>derby</artifactId>
+				<version>${derby.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.derby</groupId>
+				<artifactId>derbynet</artifactId>
+				<version>${derby.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.derby</groupId>
+				<artifactId>derbyclient</artifactId>
+				<version>${derby.version}</version>
+			</dependency>
             <!-- Jasper reports -->
             <dependency>
                 <groupId>net.sf.jasperreports</groupId>

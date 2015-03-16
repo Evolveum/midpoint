@@ -56,6 +56,7 @@ public interface ModelInteractionService {
 	static final String CLASS_NAME_WITH_DOT = ModelInteractionService.class.getName() + ".";
 	static final String PREVIEW_CHANGES = CLASS_NAME_WITH_DOT + "previewChanges";
 	static final String GET_EDIT_OBJECT_DEFINITION = CLASS_NAME_WITH_DOT + "getEditObjectDefinition";
+	static final String GET_ASSIGNABLE_ROLE_SPECIFICATION = CLASS_NAME_WITH_DOT + "getAssignableRoleSpecification";
 	
 	/**
 	 * Computes the most likely changes triggered by the provided delta. The delta may be any change of any object, e.g.
@@ -118,4 +119,11 @@ public interface ModelInteractionService {
      * @return
      */
     Collection<? extends DisplayableValue<String>> getActionUrls();
+    
+    /**
+     * Returns an object that defines which roles can be assigned by the currently logged-in user.
+     * 
+     * @param focus Object of the operation. The object (usually user) to whom the roles should be assigned.
+     */
+    <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
 }
