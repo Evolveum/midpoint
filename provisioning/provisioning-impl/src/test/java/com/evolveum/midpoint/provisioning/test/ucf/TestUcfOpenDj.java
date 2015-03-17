@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
@@ -587,7 +588,9 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(capabilities,
 				CredentialsCapabilityType.class);
 		assertNotNull("password capability not present", capCred.getPassword());
-
+		
+		PagedSearchCapabilityType capPage = CapabilityUtil.getCapability(capabilities, PagedSearchCapabilityType.class);
+		assertNotNull("paged search capability not present", capPage);
 	}
 
 	@Test

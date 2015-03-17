@@ -116,6 +116,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
@@ -329,6 +330,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         // Therefore the following should succeed
         capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
         assertNotNull("activation capability not found",capAct);
+        
+        PagedSearchCapabilityType capPage =  ResourceTypeUtil.getEffectiveCapability(resource, PagedSearchCapabilityType.class);
+		assertNotNull("paged search capability not present", capPage);
         
         assertShadows(1);
 	}
@@ -1307,6 +1311,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		QueryType queryType = PrismTestUtil.parseAtomicValue(new File("src/test/resources/impl/query-filter-all-accounts.xml"),
                 QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
 		List<PrismObject<ShadowType>> searchResults = 
@@ -1318,6 +1325,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("Search resutls", searchResults);
 		
 		assertEquals("Unexpected number of search results", 14, searchResults.size());
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 
 	@Test
@@ -1331,9 +1341,14 @@ public class TestOpenDJ extends AbstractOpenDJTest {
                 QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+		
+		// WHEN
 		List<PrismObject<ShadowType>> objListType = 
 			provisioningService.searchObjects(ShadowType.class, query, null, result);
 		
+		// THEN
 		for (PrismObject<ShadowType> objType : objListType) {
 			if (objType == null) {
 				System.out.println("Object not found in repository.");
@@ -1341,6 +1356,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				System.out.println("found object: " + objType.asObjectable().getName());
 			}
 		}
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 
 	@Test
@@ -1356,6 +1374,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		ObjectPaging paging = ObjectPaging.createPaging(null, 3);
 		query.setPaging(paging);
+		
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
 		List<PrismObject<ShadowType>> searchResults = 
@@ -1367,6 +1388,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("Search resutls", searchResults);
 		
 		assertSearchResults(searchResults, "cook", "drake", "hbarbossa" );
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 	
 	@Test
@@ -1382,6 +1406,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		ObjectPaging paging = ObjectPaging.createPaging(0, 4);
 		query.setPaging(paging);
+		
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
 		List<PrismObject<ShadowType>> searchResults = 
@@ -1393,6 +1420,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("Search resutls", searchResults);
 		
 		assertSearchResults(searchResults, "drake", "hbarbossa", "idm", "jbeckett");
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 	
 	@Test
@@ -1408,6 +1438,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		ObjectPaging paging = ObjectPaging.createPaging(2, 5);
 		query.setPaging(paging);
+		
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
 		List<PrismObject<ShadowType>> searchResults = 
@@ -1419,6 +1452,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		display("Search resutls", searchResults);
 		
 		assertSearchResults(searchResults, "hbarbossa", "idm", "jbeckett", "jbond", "jgibbs" );
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 	
 	private void assertSearchResults(List<PrismObject<ShadowType>> searchResults, String... expectedUids) {

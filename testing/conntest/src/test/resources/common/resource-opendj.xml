@@ -49,6 +49,7 @@
 			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
  			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+ 			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
 		</icfc:configurationProperties>
 		<icfc:resultsHandlerConfiguration>
 			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
@@ -152,6 +153,11 @@
                     </target>
 				</inbound>
 			</attribute>
+			<attribute>
+				<ref>ri:isMemberOf</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<fetchStrategy>explicit</fetchStrategy>
+			</attribute>
 			
 			<iteration>
 				<maxIterations>5</maxIterations>
@@ -165,6 +171,8 @@
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
+            	<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>icfs:name</shortcutValueAttribute>
             	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
 			

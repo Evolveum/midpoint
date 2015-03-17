@@ -134,6 +134,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	private long lastScriptCompileCount = 0;
 	private long lastScriptExecutionCount = 0;
 	private long lastConnectorOperationCount = 0;
+	private long lastConnectorSimulatedPagingSearchCount = 0;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -705,8 +706,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		lastConnectorOperationCount = currentCount;
 	}
 	
-	
-	
+	protected void rememberConnectorSimulatedPagingSearchCount() {
+		lastConnectorSimulatedPagingSearchCount = InternalMonitor.getConnectorSimulatedPagingSearchCount();
+	}
+
+	protected void assertConnectorSimulatedPagingSearchIncrement(int expectedIncrement) {
+		long currentCount = InternalMonitor.getConnectorSimulatedPagingSearchCount();
+		long actualIncrement = currentCount - lastConnectorSimulatedPagingSearchCount;
+		assertEquals("Unexpected increment in connector simulated paged search count", (long)expectedIncrement, actualIncrement);
+		lastConnectorSimulatedPagingSearchCount = currentCount;
+	}
 	
 	protected void rememberResourceCacheStats() {
 		lastResourceCacheStats  = InternalMonitor.getResourceCacheStats().clone();

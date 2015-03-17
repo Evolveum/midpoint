@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +60,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -126,6 +128,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	private static final String ATTRIBUTE_ENTRY_UUID = "entryUuid";
 	
 	protected static final String ACCOUNT_0_UID = "u00000000";
+	protected static final String ACCOUNT_20_UID = "u00000020";
 
 	private static final int NUMBER_OF_GENERATED_ACCOUNTS = 4000;
 	
@@ -290,9 +293,11 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
         
         PrismObject<ShadowType> shadow = shadows.get(0);
-        assertShadowCommon(shadow, null, toDn(ACCOUNT_0_UID), resourceType, getAccountObjectClass(), null);
+        assertAccountShadow(shadow, ACCOUNT_0_UID);
+        
 	}
 	
+
 	@Test
     public void test150SeachAllAccounts() throws Exception {
 		final String TEST_NAME = "test150SeachAllAccounts";
@@ -308,7 +313,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
-				LOGGER.trace("Found {}", object);
+//				LOGGER.trace("Found {}", object);
 				count.increment();
 				return true;
 			}
@@ -320,6 +325,133 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
         assertEquals("Unexpected number of accounts", NUMBER_OF_GENERATED_ACCOUNTS + 1, count.getValue());
     }
+	
+	/**
+	 * Blocksize is 100, so this is in one block.
+	 */
+	@Test
+    public void test152SeachFirst50Accounts() throws Exception {
+		final String TEST_NAME = "test152SeachFirst50Accounts";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        paging.setMaxSize(50);
+		query.setPaging(paging);
+        
+        final MutableInt count = new MutableInt(0);
+        final Holder<PrismObject<ShadowType>> firstShadowHolder = new Holder<PrismObject<ShadowType>>();
+        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+//				LOGGER.trace("Found {}", object);
+				count.increment();
+				if (firstShadowHolder.getValue() == null) {
+					firstShadowHolder.setValue(object);
+				}
+				return true;
+			}
+		};
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+        
+        assertEquals("Unexpected number of accounts", 50, count.getValue());
+        
+        assertAccountShadow(firstShadowHolder.getValue(), ACCOUNT_0_UID);
+        
+    }
+	
+	/**
+	 * Blocksize is 100, so this gets more than two blocks.
+	 */
+	@Test
+    public void test154SeachFirst222Accounts() throws Exception {
+		final String TEST_NAME = "test154SeachFirst222Accounts";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        paging.setMaxSize(222);
+		query.setPaging(paging);
+        
+        final MutableInt count = new MutableInt(0);
+        final Holder<PrismObject<ShadowType>> firstShadowHolder = new Holder<PrismObject<ShadowType>>();
+        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+//				LOGGER.trace("Found {}", object);
+				count.increment();
+				if (firstShadowHolder.getValue() == null) {
+					firstShadowHolder.setValue(object);
+				}
+				return true;
+			}
+		};
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+        
+        assertEquals("Unexpected number of accounts", 222, count.getValue());
+        
+        assertAccountShadow(firstShadowHolder.getValue(), ACCOUNT_0_UID);
+        
+    }
+	
+	/**
+	 * Blocksize is 100, so this is in one block.
+	 * There is offset, so VLV should be used.
+	 */
+	@Test
+    public void test162Seac50AccountsOffset20() throws Exception {
+		final String TEST_NAME = "test162Seac50AccountsOffset20";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        ObjectPaging paging = ObjectPaging.createPaging(20, 50);
+		query.setPaging(paging);
+        
+        final MutableInt count = new MutableInt(0);
+        final Holder<PrismObject<ShadowType>> firstShadowHolder = new Holder<PrismObject<ShadowType>>();
+        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+//				LOGGER.trace("Found {}", object);
+				count.increment();
+				if (firstShadowHolder.getValue() == null) {
+					firstShadowHolder.setValue(object);
+				}
+				return true;
+			}
+		};
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+        
+        assertEquals("Unexpected number of accounts", 50, count.getValue());
+        
+        assertAccountShadow(firstShadowHolder.getValue(), ACCOUNT_20_UID);
+        
+    }
+
 	
     // TODO: count shadows
 	
@@ -449,4 +581,9 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected void ldapDisconnect(LdapNetworkConnection connection) throws IOException {
 		connection.close();
 	}
+	
+	protected void assertAccountShadow(PrismObject<ShadowType> shadow, String ldapUid) {
+		assertShadowCommon(shadow, null, toDn(ldapUid), resourceType, getAccountObjectClass(), null);
+	}
+
 }

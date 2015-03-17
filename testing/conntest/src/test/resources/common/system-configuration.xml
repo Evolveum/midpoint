@@ -51,6 +51,10 @@
 	        <level>INFO</level>
 	        <package>org.identityconnectors</package>
       	</classLogger>
+      	<classLogger>
+	        <level>TRACE</level>
+	        <package>org.identityconnectors.framework</package>
+      	</classLogger>
         <classLogger>
 	        <level>TRACE</level>
 	        <package>com.evolveum.polygon</package>

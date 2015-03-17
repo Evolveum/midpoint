@@ -72,6 +72,7 @@ import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
+import org.identityconnectors.framework.common.objects.OperationOptionInfo;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
@@ -166,6 +167,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
@@ -898,6 +900,29 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 			capabilities.add(capabilityObjectFactory.createScript(capScript));
 		}
+		
+		boolean canPageSize = false;
+		boolean canPageOffset = false;
+		boolean canSort = false;
+		for (OperationOptionInfo searchOption: icfSchema.getSupportedOptionsByOperation(SearchApiOp.class)) {
+			switch (searchOption.getName()) {
+				case OperationOptions.OP_PAGE_SIZE:
+					canPageSize = true;
+					break;
+				case OperationOptions.OP_PAGED_RESULTS_OFFSET:
+					canPageOffset = true;
+					break;
+				case OperationOptions.OP_SORT_KEYS:
+					canSort = true;
+					break;
+			}
+			
+		}
+		
+		if (canPageSize || canPageOffset || canSort) {
+			PagedSearchCapabilityType capPage = new PagedSearchCapabilityType();
+			capabilities.add(capabilityObjectFactory.createPagedSearch(capPage));
+		}
 
 	}
 
@@ -931,6 +956,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		
 		return false;
+	}
+	
+	 private <C extends CapabilityType> C getCapability(Class<C> capClass) {
+		if (capabilities == null) {
+			return null;
+		}
+		for (Object cap: capabilities) {
+			if (capClass.isAssignableFrom(cap.getClass())) {
+				return (C) cap;
+			}
+		}
+		return null;
 	}
 
 	@Override
@@ -981,6 +1018,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (attributesToGet != null) {
 			optionsBuilder.setAttributesToGet(attributesToGet);
 		}
+		optionsBuilder.setAllowPartialResults(true);
 		OperationOptions options = optionsBuilder.build();
 		
 		ConnectorObject co = null;
@@ -1927,7 +1965,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		final PrismObjectDefinition<T> objectDefinition = toShadowDefinition(objectClassDefinition);
 
+		if (pagedSearchCapabilityType == null) {
+			pagedSearchCapabilityType = getCapability(PagedSearchCapabilityType.class);
+		}
+		
         final boolean useConnectorPaging = pagedSearchCapabilityType != null;
+        if (!useConnectorPaging && query.getPaging() != null && 
+        		(query.getPaging().getOffset() != null || query.getPaging().getMaxSize() != null)) {
+        	InternalMonitor.recordConnectorSimulatedPagingSearchCount();
+        }
 
         final Holder<Integer> countHolder = new Holder<>(0);
 
@@ -1970,6 +2016,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		String[] attributesToGet = convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn);
 		if (attributesToGet != null) {
 			optionsBuilder.setAttributesToGet(attributesToGet);
+		}
+		if (query != null && query.isAllowPartialResults()) {
+			optionsBuilder.setAllowPartialResults(query.isAllowPartialResults());
 		}
         // preparing paging-related options
         if (useConnectorPaging && query != null && query.getPaging() != null) {
@@ -2065,7 +2114,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return metadata;
 	}
 
-    @Override
+	@Override
     public int count(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
                      PagedSearchCapabilityType pagedSearchCapabilityType, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException {
