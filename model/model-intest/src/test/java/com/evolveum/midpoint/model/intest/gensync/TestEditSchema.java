@@ -349,13 +349,21 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        boolean exception = false;
+        try {
+            modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        } catch (ObjectAlreadyExistsException ex) {
+            exception = true;
+        }
+        AssertJUnit.assertTrue(exception);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-		TestUtil.assertSuccess(result);
-		
+		TestUtil.assertFailure(result);
+
+        task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        result = task.getResult();
 		PrismObject<LookupTableType> lookup = getLookupTableAll(LOOKUP_LANGUAGES_OID, task, result);
 		
 		result.computeStatus();
@@ -376,12 +384,18 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertLookupRow(tableContainer, "gi_GI", "gi", "Gibberish");
 		assertLookupRow(tableContainer, "gi_GO", null, "Gobbledygook");
 		
-		assertLookupRow(tableContainer, "gi_HU", "gi", "Humbug");
+		assertLookupRow(tableContainer, "gi_HU", "gi", null);
 		
         assertSteadyResources();
     }
 
-    @Test
+    /**
+     * disabled because we can't delete container based on it's properties. It's against prism containers
+     * identification concepts - prism container is identified by object OID and container ID attribute.
+     *
+     * @throws Exception
+     */
+    @Test(enabled = false)
     public void test162LookupLanguagesDeleteRowFullNoId() throws Exception {
 		final String TEST_NAME="test162LookupLanguagesDeleteRowFullNoId";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -466,13 +480,14 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
 		assertNotNull("Table container missing", tableContainer);
-		assertEquals("Unexpected table container size", 5, tableContainer.size());
+		assertEquals("Unexpected table container size", 6, tableContainer.size());
 
 		assertLookupRow(tableContainer, "en_PR", "en", "English (pirate)");
 		assertLookupRow(tableContainer, "tr_TR", "tr", "Turkish");
 		assertLookupRow(tableContainer, "gi_GI", "gi", "Gibberish");
 		assertLookupRow(tableContainer, "gi_GO", null, "Gobbledygook");
-		assertLookupRow(tableContainer, "gi_HU", "gi", "Humbug");
+		assertLookupRow(tableContainer, "gi_HU", "gi", null);
+        assertLookupRow(tableContainer, "sk_SK", "sk", "Slovak");
 		
         assertSteadyResources();
     }
@@ -511,17 +526,24 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
 		assertNotNull("Table container missing", tableContainer);
-		assertEquals("Unexpected table container size", 4, tableContainer.size());
+		assertEquals("Unexpected table container size", 5, tableContainer.size());
 
 		assertLookupRow(tableContainer, "en_PR", "en", "English (pirate)");
 		assertLookupRow(tableContainer, "gi_GI", "gi", "Gibberish");
 		assertLookupRow(tableContainer, "gi_GO", null, "Gobbledygook");
-		assertLookupRow(tableContainer, "gi_HU", "gi", "Humbug");
+		assertLookupRow(tableContainer, "gi_HU", "gi", null);
+        assertLookupRow(tableContainer, "tr_TR", "tr", "Turkish");
 		
         assertSteadyResources();
     }
-    
-    @Test
+
+    /**
+     * disabled because we can't delete container based on it's properties. It's against prism containers
+     * identification concepts - prism container is identified by object OID and container ID attribute.
+     *
+     * @throws Exception
+     */
+    @Test(enabled = false)
     public void test168LookupLanguagesDeleteRowByKey() throws Exception {
 		final String TEST_NAME="test168LookupLanguagesDeleteRowByKey";
         TestUtil.displayTestTile(this, TEST_NAME);
