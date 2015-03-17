@@ -18,14 +18,25 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.StringUtils;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -69,7 +80,51 @@ public class ValueDisplayUtil {
             return value.toString();
         } else if (value instanceof ResourceAttributeDefinitionType) {
             ResourceAttributeDefinitionType radt = (ResourceAttributeDefinitionType) value;
-            return "(a value or a more complex mapping for the '" + radt.getRef() + "' attribute)";
+            ItemPathType ref = radt.getRef();
+            String path;
+            if (ref != null) {
+                path = ref.getItemPath().toString();
+            } else {
+                path = "(null)";
+            }
+            StringBuilder sb = new StringBuilder();
+            MappingType mappingType = radt.getOutbound();
+            if (mappingType != null) {
+                if (mappingType.getExpression() == null) {
+                    sb.append("Empty mapping for ").append(path);
+                } else {
+                    sb.append(path).append(" = ");
+                    boolean first = true;
+                    for (JAXBElement<?> evaluator : mappingType.getExpression().getExpressionEvaluator()) {
+                        if (first) {
+                            first = false;
+                        } else {
+                            sb.append(", ");
+                        }
+                        if (QNameUtil.match(SchemaConstants.C_VALUE, evaluator.getName()) && evaluator.getValue() instanceof RawType) {
+                            RawType raw = (RawType) evaluator.getValue();
+                            try {
+                                XNode xnode = raw.serializeToXNode();
+                                if (xnode instanceof PrimitiveXNode) {
+                                    sb.append(((PrimitiveXNode) xnode).getStringValue());
+                                } else {
+                                    sb.append("(a complex value)");
+                                }
+                            } catch (SchemaException e) {
+                                sb.append("(an invalid value)");
+                            }
+                        } else {
+                            sb.append("(a complex expression)");
+                        }
+                    }
+                }
+                if (mappingType.getStrength() != null) {
+                    sb.append(" (").append(mappingType.getStrength().value()).append(")");
+                }
+            } else {
+                sb.append("Empty mapping for ").append(path);
+            }
+            return sb.toString();
         } else if (value instanceof QName) {
             QName qname = (QName) value;
             if (StringUtils.isNotEmpty(qname.getNamespaceURI())) {
