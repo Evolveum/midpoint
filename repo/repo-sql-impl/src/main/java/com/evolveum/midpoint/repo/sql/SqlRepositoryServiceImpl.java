@@ -1005,14 +1005,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private GetOperationOptions findLookupTableGetOption(Collection<SelectorOptions<GetOperationOptions>> options) {
-        ItemPath path = new ItemPath(LookupTableType.F_TABLE);
+        final ItemPath tablePath = new ItemPath(LookupTableType.F_TABLE);
 
         Collection<SelectorOptions<GetOperationOptions>> filtered = SelectorOptions.filterRetrieveOptions(options);
         for (SelectorOptions<GetOperationOptions> option : filtered) {
             ObjectSelector selector = option.getSelector();
             ItemPath selected = selector.getPath();
 
-            if (path.equals(selected)) {
+            if (tablePath.equivalent(selected)) {
                 return option.getOptions();
             }
         }

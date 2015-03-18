@@ -120,7 +120,14 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		return options;
 	}
 
-	public Boolean getResolve() {
+    public static GetOperationOptions createRetrieve(RelationalValueSearchQuery query) {
+        GetOperationOptions options = new GetOperationOptions();
+        options.retrieve = RetrieveOption.INCLUDE;
+        options.setRelationalValueSearchQuery(query);
+        return options;
+    }
+
+    public Boolean getResolve() {
 		return resolve;
 	}
 
