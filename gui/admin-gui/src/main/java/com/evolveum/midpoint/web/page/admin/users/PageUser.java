@@ -1493,8 +1493,10 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             if(userModel != null && userModel.getObject() != null && userModel.getObject().getObject() != null){
                 user = userModel.getObject().getObject();
 
-                for(ObjectDelta delta: deltas){
-                    delta.applyTo(user);
+                for (ObjectDelta delta: deltas) {
+                    if (UserType.class.isAssignableFrom(delta.getObjectTypeClass())) {  // because among deltas there can be also ShadowType deltas
+                        delta.applyTo(user);
+                    }
                 }
             }
         }
