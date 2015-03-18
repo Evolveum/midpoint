@@ -131,9 +131,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
 	protected static final String ACCOUNT_0_UID = "u00000000";
 	protected static final String ACCOUNT_19_UID = "u00000019";
 	protected static final String ACCOUNT_20_UID = "u00000020";
-	protected static final String ACCOUNT_39_UID = "u00000039";
 	protected static final String ACCOUNT_68_UID = "u00000068";
-	protected static final String ACCOUNT_261_UID = "u00000261";
+	protected static final String ACCOUNT_240_UID = "u00000240";
 
 	private static final int NUMBER_OF_GENERATED_ACCOUNTS = 4000;
 	
@@ -533,7 +532,7 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         assertEquals("Unexpected number of accounts", 222, count.getValue());
         
         assertAccountShadow(firstShadowHolder.getValue(), toDn("u00002934"));
-        assertAccountShadow(lastShadowHolder.getValue(), toDn(ACCOUNT_261_UID));
+        assertAccountShadow(lastShadowHolder.getValue(), toDn("u00002857"));
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -636,8 +635,8 @@ public abstract class AbstractLdapConnTest extends AbstractModelIntegrationTest 
         
         assertEquals("Unexpected number of accounts", 222, count.getValue());
         
-        assertAccountShadow(firstShadowHolder.getValue(), toDn(ACCOUNT_39_UID));
-        assertAccountShadow(lastShadowHolder.getValue(), toDn(ACCOUNT_261_UID));
+        assertAccountShadow(firstShadowHolder.getValue(), toDn(ACCOUNT_19_UID));
+        assertAccountShadow(lastShadowHolder.getValue(), toDn(ACCOUNT_240_UID));
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
