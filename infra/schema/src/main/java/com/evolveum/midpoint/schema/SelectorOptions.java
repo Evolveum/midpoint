@@ -133,8 +133,8 @@ public class SelectorOptions<T> implements Serializable {
 		return false;
 	}
 
-    public static boolean hasToLoadPath(QName container, Collection<SelectorOptions<GetOperationOptions>> options) {
-        return hasToLoadPath(new ItemPath(container), options);
+    public static boolean hasToLoadPath(QName itemName, Collection<SelectorOptions<GetOperationOptions>> options) {
+        return hasToLoadPath(new ItemPath(itemName), options);
     }
 
     // TODO find a better way to specify this
