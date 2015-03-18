@@ -191,6 +191,7 @@ public class MappingTypeDto implements Serializable {
                 mappingObject.setExpression(new ExpressionType());
             }
 
+            mappingObject.getExpression().getExpressionEvaluator().clear();
             mappingObject.getExpression().getExpressionEvaluator().add(deserializeExpression(prismContext, expression));
         }
 
@@ -199,6 +200,7 @@ public class MappingTypeDto implements Serializable {
                 mappingObject.setCondition(new ExpressionType());
             }
 
+            mappingObject.getCondition().getExpressionEvaluator().clear();
             mappingObject.getCondition().getExpressionEvaluator().add(deserializeExpression(prismContext, condition));
         }
 
