@@ -15,64 +15,55 @@
  */
 package com.evolveum.midpoint.model.intest.gensync;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.TestModelServiceContract;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
+import com.evolveum.midpoint.schema.RelationalValueSearchType;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import java.util.Collection;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author semancik
@@ -167,25 +158,267 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
-		IntegrationTestTools.display("Languages", lookup);
-		
-		assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
-		
-		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
-		assertNotNull("Table container missing", tableContainer);
-		assertEquals("Unexpected table container size", 4, tableContainer.size());
-		
-		assertLookupRow(tableContainer, "en_US", "en", "English (US)");
-		assertLookupRow(tableContainer, "en_PR", "en", "English (pirate)");
-		assertLookupRow(tableContainer, "sk_SK", "sk", "Slovak");
-		assertLookupRow(tableContainer, "tr_TR", "tr", "Turkish");
-		
-        assertSteadyResources();
+        checkLookupResult(lookup, new String[]{"en_US", "en", "English (US)"},
+                new String[]{"en_PR", "en", "English (pirate)"},
+                new String[]{"sk_SK", "sk", "Slovak"},
+                new String[]{"tr_TR", "tr", "Turkish"});
     }
     
-    // TODO: get a single row: exact, substring
-    
+    @Test
+    public void test120LookupLanguagesGetByKeyExact() throws Exception {
+        final String TEST_NAME="test120LookupLanguagesGetByKeyExact";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_KEY, "sk_SK", RelationalValueSearchType.EXACT);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+                GetOperationOptions.createRetrieve(query));
+        PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        checkLookupResult(lookup, new String[] { "sk_SK", "sk", "Slovak" });
+    }
+
+    @Test
+    public void test121LookupLanguagesGetByKeyStartingWith() throws Exception {
+        final String TEST_NAME="test121LookupLanguagesGetByKeyStartingWith";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_KEY, "e", RelationalValueSearchType.STARTS_WITH);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+                GetOperationOptions.createRetrieve(query));
+        PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        checkLookupResult(lookup, new String[]{"en_US", "en", "English (US)"},
+                new String[]{"en_PR", "en", "English (pirate)"});
+    }
+
+    @Test
+    public void test122LookupLanguagesGetByKeyContaining() throws Exception {
+        final String TEST_NAME="test122LookupLanguagesGetByKeyContaining";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_KEY, "r", RelationalValueSearchType.SUBSTRING);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+                GetOperationOptions.createRetrieve(query));
+        PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        checkLookupResult(lookup, new String[]{"tr_TR", "tr", "Turkish"});
+    }
+
+    @Test
+    public void test123LookupLanguagesGetByKeyContainingWithPaging() throws Exception {
+        final String TEST_NAME="test123LookupLanguagesGetByKeyContainingWithPaging";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        ObjectPaging paging = ObjectPaging.createPaging(2, 1, LookupTableTableType.F_KEY, OrderDirection.ASCENDING);
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_KEY, "_", RelationalValueSearchType.SUBSTRING, paging);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+                GetOperationOptions.createRetrieve(query));
+        PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        checkLookupResult(lookup, new String[] { "sk_SK", "sk", "Slovak" });
+    }
+
+    @Test
+    public void test124LookupLanguagesGetByKeyContainingReturningNothing() throws Exception {
+        final String TEST_NAME="test124LookupLanguagesGetByKeyContainingReturningNothing";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_KEY, "xyz", RelationalValueSearchType.SUBSTRING);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+                GetOperationOptions.createRetrieve(query));
+        PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        IntegrationTestTools.display("Languages", lookup);
+
+        assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
+
+        PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+        assertTrue("Unexpected content in tableContainer", tableContainer == null || tableContainer.size() == 0);
+
+        assertSteadyResources();
+    }
+
+    @Test
+    public void test130LookupLanguagesGetByValueExact() throws Exception {
+        final String TEST_NAME="test130LookupLanguagesGetByValueExact";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_VALUE, "sk", RelationalValueSearchType.EXACT);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+                GetOperationOptions.createRetrieve(query));
+        PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        checkLookupResult(lookup, new String[] { "sk_SK", "sk", "Slovak" });
+    }
+
+    /**
+     * Disabled because it's not clear how to treat polystrings in searches.
+     *
+     */
+    @Test(enabled = false)
+    public void test131LookupLanguagesGetByLabelStartingWith() throws Exception {
+        final String TEST_NAME="test131LookupLanguagesGetByLabelStartingWith";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        String fragment = "Eng";
+        // TODO or fragment = new PolyStringType(new PolyString("Eng", "eng")) ?
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_LABEL, fragment, RelationalValueSearchType.STARTS_WITH);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+                GetOperationOptions.createRetrieve(query));
+        PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        checkLookupResult(lookup, new String[]{"en_US", "en", "English (US)"},
+                new String[]{"en_PR", "en", "English (pirate)"});
+    }
+
+    @Test
+    public void test133LookupLanguagesGetByValueContainingWithPaging() throws Exception {
+        final String TEST_NAME="test123LookupLanguagesGetByKeyContainingWithPaging";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        ObjectPaging paging = ObjectPaging.createPaging(0, 1, LookupTableTableType.F_LABEL, OrderDirection.DESCENDING); // using sorting key other than the one used in search
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_VALUE, "n", RelationalValueSearchType.SUBSTRING, paging);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+                GetOperationOptions.createRetrieve(query));
+        PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        checkLookupResult(lookup, new String[] { "en_US", "en", "English (US)" });
+    }
+
+    /**
+     * This test is disabled because id-based searching is not available yet (and it's unclear if it would be eventually necessary).
+     */
+    @Test(enabled = false)
+    public void test140LookupLanguagesGetByIdExisting() throws Exception {
+        final String TEST_NAME="test140LookupLanguagesGetByIdExisting";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
+                new ItemPath(
+                        new NameItemPathSegment(LookupTableType.F_TABLE),
+                        new IdItemPathSegment(1L)),
+                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+        PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        checkLookupResult(lookup, new String[] { "en_US", "en", "English (US)" });
+    }
+
+
+    private void checkLookupResult(PrismObject<LookupTableType> lookup, String[]... tuples) {
+        IntegrationTestTools.display("Languages", lookup);
+
+        assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
+
+        PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+        assertNotNull("Table container missing", tableContainer);
+        assertEquals("Unexpected table container size", tuples.length, tableContainer.size());
+
+        for (String[] tuple : tuples) {
+            assertLookupRow(tableContainer, tuple[0], tuple[1], tuple[2]);
+        }
+        assertSteadyResources();
+    }
+
+
     @Test
     public void test150LookupLanguagesAddRowFull() throws Exception {
 		final String TEST_NAME="test150LookupLanguagesAddRow";
@@ -349,13 +582,21 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        boolean exception = false;
+        try {
+            modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        } catch (ObjectAlreadyExistsException ex) {
+            exception = true;
+        }
+        AssertJUnit.assertTrue(exception);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-		TestUtil.assertSuccess(result);
-		
+		TestUtil.assertFailure(result);
+
+        task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        result = task.getResult();
 		PrismObject<LookupTableType> lookup = getLookupTableAll(LOOKUP_LANGUAGES_OID, task, result);
 		
 		result.computeStatus();
@@ -376,12 +617,18 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertLookupRow(tableContainer, "gi_GI", "gi", "Gibberish");
 		assertLookupRow(tableContainer, "gi_GO", null, "Gobbledygook");
 		
-		assertLookupRow(tableContainer, "gi_HU", "gi", "Humbug");
+		assertLookupRow(tableContainer, "gi_HU", "gi", null);
 		
         assertSteadyResources();
     }
 
-    @Test
+    /**
+     * disabled because we can't delete container based on it's properties. It's against prism containers
+     * identification concepts - prism container is identified by object OID and container ID attribute.
+     *
+     * @throws Exception
+     */
+    @Test(enabled = false)
     public void test162LookupLanguagesDeleteRowFullNoId() throws Exception {
 		final String TEST_NAME="test162LookupLanguagesDeleteRowFullNoId";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -466,13 +713,14 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
 		assertNotNull("Table container missing", tableContainer);
-		assertEquals("Unexpected table container size", 5, tableContainer.size());
+		assertEquals("Unexpected table container size", 6, tableContainer.size());
 
 		assertLookupRow(tableContainer, "en_PR", "en", "English (pirate)");
 		assertLookupRow(tableContainer, "tr_TR", "tr", "Turkish");
 		assertLookupRow(tableContainer, "gi_GI", "gi", "Gibberish");
 		assertLookupRow(tableContainer, "gi_GO", null, "Gobbledygook");
-		assertLookupRow(tableContainer, "gi_HU", "gi", "Humbug");
+		assertLookupRow(tableContainer, "gi_HU", "gi", null);
+        assertLookupRow(tableContainer, "sk_SK", "sk", "Slovak");
 		
         assertSteadyResources();
     }
@@ -511,17 +759,24 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
 		assertNotNull("Table container missing", tableContainer);
-		assertEquals("Unexpected table container size", 4, tableContainer.size());
+		assertEquals("Unexpected table container size", 5, tableContainer.size());
 
 		assertLookupRow(tableContainer, "en_PR", "en", "English (pirate)");
 		assertLookupRow(tableContainer, "gi_GI", "gi", "Gibberish");
 		assertLookupRow(tableContainer, "gi_GO", null, "Gobbledygook");
-		assertLookupRow(tableContainer, "gi_HU", "gi", "Humbug");
+		assertLookupRow(tableContainer, "gi_HU", "gi", null);
+        assertLookupRow(tableContainer, "tr_TR", "tr", "Turkish");
 		
         assertSteadyResources();
     }
-    
-    @Test
+
+    /**
+     * disabled because we can't delete container based on it's properties. It's against prism containers
+     * identification concepts - prism container is identified by object OID and container ID attribute.
+     *
+     * @throws Exception
+     */
+    @Test(enabled = false)
     public void test168LookupLanguagesDeleteRowByKey() throws Exception {
 		final String TEST_NAME="test168LookupLanguagesDeleteRowByKey";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -563,8 +818,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
         assertSteadyResources();
     }
-    
-    @Test
+
+    /**
+     * todo probably enable this test, implementation in repository is not available yet.
+     */
+    @Test(enabled = false)
     public void test170LookupLanguagesReplaceRows() throws Exception {
 		final String TEST_NAME="test170LookupLanguagesReplaceRows";
         TestUtil.displayTestTile(this, TEST_NAME);

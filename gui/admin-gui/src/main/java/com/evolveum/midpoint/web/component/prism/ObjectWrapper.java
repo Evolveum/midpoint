@@ -537,6 +537,11 @@ public class ObjectWrapper implements Serializable, Revivable {
                                     // password change will always look like add,
                                     // therefore we push replace
                                     pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+                                } else if (propertyDef.isSingleValue()) {
+                                    // values for single-valued properties should be pushed via replace
+                                    // in order to prevent problems e.g. with summarizing deltas for
+                                    // unreachable resources
+                                    pDelta.setValueToReplace(newValCloned);
                                 } else {
                                     pDelta.addValueToAdd(newValCloned);
                                 }
