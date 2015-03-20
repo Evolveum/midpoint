@@ -113,6 +113,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
     private static final String ID_OWNER_EDIT = "ownerRefEdit";
     private static final String ID_OWNER_LABEL = "ownerRefLabel";
     private static final String ID_APPROVER_REF = "approverRef";
+    private static final String ID_RISK_LEVEL = "riskLevel";
 
     private static final String ID_INDUCEMENTS = "inducementsPanel";
     private static final String ID_ASSIGNMENTS = "assignmentsPanel";
@@ -326,6 +327,10 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         TextFormGroup identifier = new TextFormGroup(ID_IDENTIFIER, new PrismPropertyModel(model, RoleType.F_IDENTIFIER),
                 createStringResource("PageRoleEditor.label.identifier"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(identifier);
+
+        TextFormGroup riskLevel = new TextFormGroup(ID_RISK_LEVEL, new PrismPropertyModel(model, RoleType.F_RISK_LEVEL),
+                createStringResource("PageRoleEditor.label.riskLevel"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        form.add(riskLevel);
 
         IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ActivationStatusType.class);
         IChoiceRenderer renderer = new EnumChoiceRenderer();
