@@ -41,19 +41,18 @@
 	<connectorConfiguration 
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
 		<icfc:configurationProperties>
 			<icfcldap:port>11389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
-			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-			<icfcldap:principal>cn=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
-			<icfcldap:credentials>
-				<c:clearValue>secret</c:clearValue>
-			</icfcldap:credentials>
+			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+			<icfcldap:bindDn>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
+			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 			<icfcldap:passwordHashAlgorithm>SSHA</icfcldap:passwordHashAlgorithm>
-			<icfcldap:groupMemberAttribute>member</icfcldap:groupMemberAttribute>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-			<icfcldap:modifiersNamesToFilterOut>cn=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
+			<icfcldap:vlvSortOrderingRule>2.5.13.3</icfcldap:vlvSortOrderingRule>
+			<icfcldap:operationalAttributes>memberOf</icfcldap:operationalAttributes>
 		</icfc:configurationProperties>
 		<icfc:resultsHandlerConfiguration>
 			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
@@ -66,7 +65,7 @@
 			<intent>default</intent>
 			<displayName>Default Account</displayName>
 			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
+			<objectClass>ri:inetOrgPerson</objectClass>
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Distinguished Name</displayName>
@@ -157,6 +156,11 @@
                     </target>
 				</inbound>
 			</attribute>
+			<attribute>
+				<ref>ri:memberOf</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<fetchStrategy>explicit</fetchStrategy>
+			</attribute>
 			
 			<iteration>
 				<maxIterations>5</maxIterations>
@@ -168,8 +172,10 @@
             	<kind>entitlement</kind>
             	<intent>ldapGroup</intent>
             	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<associationAttribute>ri:member</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
+            	<shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>icfs:name</shortcutValueAttribute>
             	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
 			
@@ -189,7 +195,7 @@
         	<kind>entitlement</kind>
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
-            <objectClass>ri:GroupObjectClass</objectClass>
+            <objectClass>ri:groupOfNames</objectClass>
             <attribute>
 				<ref>icfs:name</ref>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -213,7 +219,7 @@
 				</outbound>
 			</attribute>
 			<attribute>
-				<ref>ri:uniqueMember</ref>
+				<ref>ri:member</ref>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 			</attribute>
 			<attribute>
@@ -237,32 +243,6 @@
         </objectType>
 		
 	</schemaHandling>
-	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-	<!-- Storing native capabilities here and don't letting midpoint to fetch it from the resource.
-		Some tests work without running resource, generating fetching capabilities would fail. -->
-		<native>
-	      <cap:credentials>
-	         <cap:password/>
-	      </cap:credentials>
-	      <cap:liveSync/>
-	      <cap:testConnection/>
-	      <cap:script>
-	         <cap:host>
-	            <cap:type>connector</cap:type>
-	         </cap:host>
-	      </cap:script>
-      </native>
-      <configured>
-	        <cap:activation>
-	            <cap:status>
-	                <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-	                <cap:enableValue/>
-	                <cap:disableValue>true</cap:disableValue>
-	            </cap:status>
-	        </cap:activation>
-		</configured>
-    </capabilities>
     
     <consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>

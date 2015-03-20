@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<object xsi:type="ResourceType" oid="371ffc38-c424-11e4-8467-001e8c717e5b" 
+<object xsi:type="ResourceType" oid="eaee8a88-ce54-11e4-a311-001e8c717e5b" 
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
@@ -27,7 +27,7 @@
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
 	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
-	<name>Localhost OpenDJ</name>
+	<name>Localhost 389ds</name>
 	<connectorRef type="ConnectorType">
 	    <filter>
 			<q:and>
@@ -38,24 +38,25 @@
 			</q:and>
 		</filter>
 	</connectorRef>
-	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
-					   
+	<connectorConfiguration 
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
 		<icfc:configurationProperties>
-			<icfcldap:port>10389</icfcldap:port>
+			<icfcldap:port>2389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
 			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
 			<icfcldap:bindDn>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
 			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:uidAttribute>dn</icfcldap:uidAttribute>
 			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
- 			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
- 			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+			<icfcldap:operationalAttributes>memberOf</icfcldap:operationalAttributes>
 		</icfc:configurationProperties>
 		<icfc:resultsHandlerConfiguration>
 			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
 		</icfc:resultsHandlerConfiguration>
 	</connectorConfiguration>
-	
 	
 	<schemaHandling>
 		<objectType>
@@ -82,7 +83,7 @@
 			</attribute>
 			<attribute>
 				<ref>icfs:uid</ref>
-				<displayName>Entry UUID</displayName>
+				<displayName>Entry DN</displayName>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 			</attribute>
 			<attribute>
@@ -154,7 +155,7 @@
 				</inbound>
 			</attribute>
 			<attribute>
-				<ref>ri:isMemberOf</ref>
+				<ref>ri:memberOf</ref>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>
@@ -171,7 +172,7 @@
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
-            	<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+            	<shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
             	<shortcutValueAttribute>icfs:name</shortcutValueAttribute>
             	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
@@ -240,19 +241,7 @@
         </objectType>
 		
 	</schemaHandling>
-	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-      <configured>
-	        <cap:activation>
-	            <cap:status>
-	                <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-	                <cap:enableValue/>
-	                <cap:disableValue>true</cap:disableValue>
-	            </cap:status>
-	        </cap:activation>
-		</configured>
-    </capabilities>
-    
+	    
     <consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
 	</consistency>
