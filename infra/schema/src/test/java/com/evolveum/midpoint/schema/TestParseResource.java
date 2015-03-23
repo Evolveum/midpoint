@@ -76,11 +76,8 @@ import static org.testng.AssertJUnit.assertNotNull;
  */
 public class TestParseResource {
 	
-	public static final File RESOURCE_FILE = new File(TestConstants.COMMON_DIR, "resource-opendj.xml");
-    public static final File RESOURCE_NO_XMLNS_FILE = new File(TestConstants.COMMON_DIR, "resource-opendj-no-xmlns.xml");
+	public static final File RESOURCE_NO_XMLNS_FILE = new File(TestConstants.COMMON_DIR, "resource-opendj-no-xmlns.xml");
 	public static final File RESOURCE_SIMPLE_FILE = new File(TestConstants.COMMON_DIR, "resource-opendj-simple.xml");
-	private static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-	private static final String RESOURCE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -97,7 +94,7 @@ public class TestParseResource {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_FILE);
+		PrismObject<ResourceType> resource = prismContext.parseObject(TestConstants.RESOURCE_FILE);
 		
 		// THEN
 		System.out.println("Parsed resource:");
@@ -133,7 +130,7 @@ public class TestParseResource {
 		
 		// WHEN
 		DomParser parserDom = prismContext.getParserDom();
-		XNode xnode = parserDom.parse(RESOURCE_FILE);
+		XNode xnode = parserDom.parse(TestConstants.RESOURCE_FILE);
 		PrismObject<ResourceType> resource = prismContext.getXnodeProcessor().parseObject(xnode);
 		
 		// THEN
@@ -173,7 +170,7 @@ public class TestParseResource {
 		JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 
 		// WHEN
-		ResourceType resourceType = jaxbProcessor.unmarshalObject(RESOURCE_FILE, ResourceType.class);
+		ResourceType resourceType = jaxbProcessor.unmarshalObject(TestConstants.RESOURCE_FILE, ResourceType.class);
 		
 		// THEN
 		// HACK: the JAXB parsing methods do not support filter yet, so avoid checking for it
@@ -211,7 +208,7 @@ public class TestParseResource {
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
-		ObjectType resourceType = jaxbProcessor.unmarshalObject(RESOURCE_FILE, ObjectType.class);
+		ObjectType resourceType = jaxbProcessor.unmarshalObject(TestConstants.RESOURCE_FILE, ObjectType.class);
 		
 		// THEN
 		// HACK: the JAXB parsing methods do not support filter yet, so avoid checking for it
@@ -231,7 +228,7 @@ public class TestParseResource {
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
-		JAXBElement<ResourceType> jaxbElement = jaxbProcessor.unmarshalElement(RESOURCE_FILE, ResourceType.class);
+		JAXBElement<ResourceType> jaxbElement = jaxbProcessor.unmarshalElement(TestConstants.RESOURCE_FILE, ResourceType.class);
 		ResourceType resourceType = jaxbElement.getValue();
 		
 		// THEN
@@ -252,7 +249,7 @@ public class TestParseResource {
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
-		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(RESOURCE_FILE, ObjectType.class);
+		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(TestConstants.RESOURCE_FILE, ObjectType.class);
 		ObjectType resourceType = jaxbElement.getValue();
 		
 		// THEN
@@ -267,7 +264,7 @@ public class TestParseResource {
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
-		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_FILE);
+		PrismObject<ResourceType> resource = prismContext.parseObject(TestConstants.RESOURCE_FILE);
 		
 		System.out.println("Parsed resource:");
 		System.out.println(resource.debugDump());
@@ -371,7 +368,7 @@ public class TestParseResource {
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
-		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_FILE);
+		PrismObject<ResourceType> resource = prismContext.parseObject(TestConstants.RESOURCE_FILE);
 				
 		assertResource(resource, true, false, false);
 		
@@ -426,7 +423,7 @@ public class TestParseResource {
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-		assertEquals("Wrong oid (prism)", RESOURCE_OID, resource.getOid());
+		assertEquals("Wrong oid (prism)", TestConstants.RESOURCE_OID, resource.getOid());
 //		assertEquals("Wrong version", "42", resource.getVersion());
 		PrismObjectDefinition<ResourceType> resourceDefinition = resource.getDefinition();
 		assertNotNull("No resource definition", resourceDefinition);
@@ -440,7 +437,7 @@ public class TestParseResource {
 		assertPropertyDefinition(resource, "name", PolyStringType.COMPLEX_TYPE, 0, 1);		
 		
 		if (!isSimple) {
-			assertPropertyValue(resource, "namespace", RESOURCE_NAMESPACE);
+			assertPropertyValue(resource, "namespace", TestConstants.RESOURCE_NAMESPACE);
 			assertPropertyDefinition(resource, "namespace", DOMUtil.XSD_ANYURI, 0, 1);
 		}
 		
@@ -524,9 +521,9 @@ public class TestParseResource {
 	}
 
     private void assertResourceJaxb(ResourceType resourceType, boolean isSimple) throws SchemaException {
-		assertEquals("Wrong oid (JAXB)", RESOURCE_OID, resourceType.getOid());
+		assertEquals("Wrong oid (JAXB)", TestConstants.RESOURCE_OID, resourceType.getOid());
 		assertEquals("Wrong name (JAXB)", PrismTestUtil.createPolyStringType("Embedded Test OpenDJ"), resourceType.getName());
-		String expectedNamespace = RESOURCE_NAMESPACE;
+		String expectedNamespace = TestConstants.RESOURCE_NAMESPACE;
 		if (isSimple) {
 			expectedNamespace = MidPointConstants.NS_RI;
 		}

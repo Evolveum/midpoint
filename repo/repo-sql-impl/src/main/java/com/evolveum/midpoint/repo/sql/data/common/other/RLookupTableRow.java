@@ -6,6 +6,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
 import org.hibernate.annotations.ForeignKey;
@@ -14,6 +15,7 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -66,7 +68,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
     }
 
     @Id
-    @Column(name = "row_key")
+    @Column(name = "row_key", unique = true)
     public String getKey() {
         return key;
     }
@@ -158,6 +160,23 @@ public class RLookupTableRow implements Container<RLookupTable> {
         row.setLastChangeTimestamp(lastChangeTimestamp);
         row.setValue(value);
         row.setLabel(RPolyString.copyToJAXB(label));
+
+        return row;
+    }
+
+    public static RLookupTableRow toRepo(String ownerOid, LookupTableTableType table) {
+        RLookupTableRow row = new RLookupTableRow();
+        row.setOwnerOid(ownerOid);
+        row.setId(RUtil.toShort(table.getId()));
+        row.setKey(table.getKey());
+        row.setLabel(RPolyString.copyFromJAXB(table.getLabel()));
+        row.setLastChangeTimestamp(table.getLastChangeTimestamp());
+        if (row.getLastChangeTimestamp() == null) {
+            XMLGregorianCalendar cal = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
+            row.setLastChangeTimestamp(cal);
+            table.setLastChangeTimestamp(cal);
+        }
+        row.setValue(table.getValue());
 
         return row;
     }

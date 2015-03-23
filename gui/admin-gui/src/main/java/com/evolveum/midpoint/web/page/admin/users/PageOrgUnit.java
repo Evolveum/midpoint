@@ -580,6 +580,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
                     }
                 }
             }
+
         //We are editing OrgUnit
         }else if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) {
             for (OrgType parent : parentOrgUnitsModel.getObject()) {

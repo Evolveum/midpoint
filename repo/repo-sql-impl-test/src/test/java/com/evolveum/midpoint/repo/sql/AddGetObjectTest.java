@@ -159,6 +159,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 if (UserType.class.equals(clazz)) {
                     o = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
                             GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                } else if (LookupTableType.class.equals(clazz)) {
+                    o = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+                            GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
                 }
                 PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), o, result);
                 LOGGER.info("Old\n{}\nnew\n{}", new Object[]{object.debugDump(3), newObject.debugDump(3)});

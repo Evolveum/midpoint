@@ -3,6 +3,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -10,14 +11,11 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.*;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -30,23 +28,19 @@ public class RLookupTable extends RObject<LookupTableType> {
     private RPolyString name;
     private Set<RLookupTableRow> rows;
 
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Override
+    @Embedded
+    public RPolyString getName() {
+        return name;
+    }
+
+    @Transient
     public Set<RLookupTableRow> getRows() {
-        if (rows == null) {
-            rows = new HashSet<>();
-        }
         return rows;
     }
 
     public void setRows(Set<RLookupTableRow> rows) {
         this.rows = rows;
-    }
-
-    @Override
-    @Embedded
-    public RPolyString getName() {
-        return name;
     }
 
     @Override
@@ -61,13 +55,23 @@ public class RLookupTable extends RObject<LookupTableType> {
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
 
         List<LookupTableTableType> rows = jaxb.getTable();
+        if (!rows.isEmpty()) {
+            repo.setRows(new HashSet<RLookupTableRow>());
+        }
+
         for (LookupTableTableType row : rows) {
             RLookupTableRow rRow = new RLookupTableRow();
             rRow.setOwner(repo);
+            rRow.setTransient(generatorResult.isTransient(row.asPrismContainerValue()));
             rRow.setId(RUtil.toShort(row.getId()));
             rRow.setKey(row.getKey());
             rRow.setLabel(RPolyString.copyFromJAXB(row.getLabel()));
             rRow.setLastChangeTimestamp(row.getLastChangeTimestamp());
+            if (rRow.getLastChangeTimestamp() == null) {
+                XMLGregorianCalendar cal = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
+                rRow.setLastChangeTimestamp(cal);
+                row.setLastChangeTimestamp(cal);
+            }
             rRow.setValue(row.getValue());
 
             repo.getRows().add(rRow);

@@ -145,6 +145,8 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
 
 	protected void copyDefinitionData(PrismPropertyDefinition<T> clone) {
 		super.copyDefinitionData(clone);
+        clone.indexed = this.indexed;
+        clone.defaultValue = this.defaultValue;
 		clone.allowedValues = this.allowedValues;
 		clone.valueType = this.valueType;
 	}

@@ -27,4 +27,17 @@
             <code>midpoint.oid2ort(user.getOid())</code>
         </script>
     </approverExpression>
+    
+    <policyConstraints>
+    	<minAssignees>
+    		<enforcement>report</enforcement>
+    		<multiplicity>2</multiplicity>
+    	</minAssignees>
+    	<minAssignees>
+    		<multiplicity>1</multiplicity>
+    	</minAssignees>
+    	<maxAssignees>
+    		<multiplicity>unbounded</multiplicity>
+    	</maxAssignees>
+    </policyConstraints>
 </role>

@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.intest;
 
 import static org.testng.AssertJUnit.assertNull;
+
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
@@ -29,7 +30,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.NoneFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -540,7 +545,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyDeny();
         assertDeleteDeny();
         
-        assertRoleTypes(userJack);
+        RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(userJack);
+        assertNotNull("Null role spec "+roleSpec, roleSpec);
+        assertRoleTypes(roleSpec);
+        assertFilter(roleSpec.getFilter(), NoneFilter.class);
+        
 	}
 	
 	@Test
@@ -559,9 +568,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteAllow();
         
         RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertNull("Non-null role spec "+roleSpec, roleSpec);
+        assertNotNull("Null role spec "+roleSpec, roleSpec);
+        assertNull("Non-null role types in spec "+roleSpec, roleSpec.getRoleTypes());
+        assertFilter(roleSpec.getFilter(), null);
 	}
-	
+
 	@Test
     public void test202AutzJackReadonlyRole() throws Exception {
 		final String TEST_NAME = "test202AutzJackReadonlyRole";
@@ -1269,7 +1280,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 2);
         
-        assertRoleTypes(getUser(USER_JACK_OID), "application");
+        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+        assertRoleTypes(spec, "application");
+        assertFilter(spec.getFilter(), TypeFilter.class);
 	}
 	
 	@Test

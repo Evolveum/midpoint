@@ -996,6 +996,9 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	ContainerDelta<C> containerDelta = objectDelta.createContainerModification(propertyPath);
     	if (containerValues != null && containerValues.length > 0) {
 	    	containerDelta.setValuesToReplace(containerValues);
+    	} else {
+    		// Means: clear all values
+    		containerDelta.setValuesToReplace();
     	}
     }
     

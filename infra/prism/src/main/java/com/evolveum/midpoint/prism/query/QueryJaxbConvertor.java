@@ -119,23 +119,13 @@ public class QueryJaxbConvertor {
 		return createObjectQueryInternal(objDef, filterType, pagingType, prismContext);
     }
 
-    private static boolean isNotEmpty(SearchFilterType filterType, PagingType pagingType){
-    	 boolean filterNotEmpty = filterType != null && filterType.containsFilterClause();
- 		if (!filterNotEmpty && pagingType == null) {
- 			return false;
- 		}
- 		return true;
-    }
-    
     public static <O extends Objectable> ObjectQuery createObjectQueryInternal(PrismObjectDefinition<O> objDef, SearchFilterType filterType, PagingType pagingType, PrismContext prismContext)
 			throws SchemaException {
-
-       
 
 		try {
 			ObjectQuery query = new ObjectQuery();
 			
-			if (isNotEmpty(filterType, pagingType)) {
+			if (filterType != null && filterType.containsFilterClause()) {
 				MapXNode rootFilter = filterType.getFilterClauseXNode();
 				ObjectFilter filter = QueryConvertor.parseFilter(rootFilter, objDef);
 				query.setFilter(filter);
