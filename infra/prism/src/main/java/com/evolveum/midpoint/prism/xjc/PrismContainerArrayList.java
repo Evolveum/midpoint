@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,10 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.commons.lang.Validate;
 
+import java.io.Serializable;
 import java.util.AbstractList;
 import java.util.Collection;
 import java.util.List;
@@ -35,10 +37,14 @@ import java.util.List;
  *
  * TODO: account for concurrent structural modifications using modCount property
  */
-public abstract class PrismContainerArrayList<T extends Containerable> extends AbstractList<T> {
+public abstract class PrismContainerArrayList<T extends Containerable> extends AbstractList<T> implements Serializable {
 
     private PrismContainer<T> container;
 
+    // For deserialization
+    public PrismContainerArrayList() {
+    }
+    
     public PrismContainerArrayList(PrismContainer<T> container) {
         Validate.notNull(container);
         this.container = container;

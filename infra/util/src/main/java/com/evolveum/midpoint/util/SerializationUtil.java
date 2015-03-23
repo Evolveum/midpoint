@@ -35,15 +35,15 @@ import org.apache.commons.codec.binary.Base64;
  */
 public class SerializationUtil {
 
-    public static Object fromString(String string) throws IOException, ClassNotFoundException {
+    public static <T> T fromString(String string) throws IOException, ClassNotFoundException {
         byte[] data = Base64.decodeBase64(string);
         ObjectInputStream objectInputStream = new ObjectInputStream(new ByteArrayInputStream(data));
         Object object  = objectInputStream.readObject();
         objectInputStream.close();
-        return object;
+        return (T)object;
     }
 
-    public static String toString(Serializable object) throws IOException {
+    public static String toString(Object object) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
         objectOutputStream.writeObject(object);
