@@ -29,6 +29,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -40,9 +41,11 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -250,12 +253,17 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         assertEquals("Unexpected number of accounts: "+accounts, 3, accounts.size());
 	}
 	
+	/**
+	 * Upgrading connector in RESOURCE_DUMMY_FAKE by changing the connectorRef in resource (add/delete case)
+	 * The connectorRef is changed from fake to real dummy.
+	 */
 	@Test
     public void test100UpgradeModelAddDelete() throws Exception {
-        TestUtil.displayTestTile(this, "test100UpgradeModelAddDelete");
+		final String TEST_NAME = "test100UpgradeModelAddDelete";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test100UpgradeModelAddDelete");
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -269,6 +277,9 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         ReferenceDelta connectorRefDeltaAdd = ReferenceDelta.createModificationAdd(ResourceType.F_CONNECTOR_REF, 
         		getResourceDefinition(), connectorDummyOid);
 		resourceDelta.addModification(connectorRefDeltaAdd);
+		// Purge the schema. New connector schema is not compatible.
+		resourceDelta.addModificationReplaceContainer(ResourceType.F_SCHEMA);
+		display("Delta", resourceDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
         
 		// WHEN
@@ -514,6 +525,8 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         // Check if resource view of the model has changed as well
         resourceDummyFake = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, null, task, result);
         display("Upgraded fake resource (model)", resourceDummyFake);
+        Element resourceDummyFakeSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resourceDummyFake);
+        display("Upgraded fake resource schema (model)", DOMUtil.serializeDOMToString(resourceDummyFakeSchemaElement));
         assertNotNull("Null fake resource after getObject (model)", resourceDummyFake);
         assertEquals("Oooops. The OID of fake resource mysteriously changed. Call the police! (model)", RESOURCE_DUMMY_FAKE_OID, resourceDummyFake.getOid());
         assertEquals("Wrong connectorRef in fake resource (model)", connectorDummyOid, 

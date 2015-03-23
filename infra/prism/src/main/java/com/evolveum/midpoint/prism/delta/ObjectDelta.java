@@ -883,6 +883,11 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     }
     
     public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationAddContainer(Class<O> type, String oid, 
+    		QName propertyName, PrismContext prismContext, C... containerValues) throws SchemaException {
+    	return createModificationAddContainer(type, oid, new ItemPath(propertyName), prismContext, containerValues);
+    }
+    
+    public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationAddContainer(Class<O> type, String oid, 
     		ItemPath propertyPath, PrismContext prismContext, C... containerValues) throws SchemaException {
     	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setOid(oid);
@@ -931,7 +936,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     protected static <O extends Objectable, C extends Containerable> void fillInModificationDeleteContainer(ObjectDelta<O> objectDelta,
     		ItemPath propertyPath, PrismContainerValue<C>... containerValues) {
     	ContainerDelta<C> containerDelta = objectDelta.createContainerModification(propertyPath);
-    	if (containerValues != null) {
+    	if (containerValues != null && containerValues.length > 0) {
 	    	containerDelta.addValuesToDelete(containerValues);
     	}
     }
@@ -949,10 +954,15 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	return objectDelta;
     }
     
+    public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationReplaceContainer(Class<O> type, String oid, 
+    		QName propertyName, PrismContext prismContext, C... containerValues) throws SchemaException {
+    	return createModificationReplaceContainer(type, oid, new ItemPath(propertyName), prismContext, containerValues);
+    }
+        
     protected static <O extends Objectable, C extends Containerable> void fillInModificationAddContainer(ObjectDelta<O> objectDelta,
     		ItemPath propertyPath, PrismContainerValue<C>... containerValues) {
     	ContainerDelta<C> containerDelta = objectDelta.createContainerModification(propertyPath);
-    	if (containerValues != null) {
+    	if (containerValues != null && containerValues.length > 0) {
 	    	containerDelta.addValuesToAdd(containerValues);
     	}
     }
@@ -984,8 +994,11 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     protected static <O extends Objectable, C extends Containerable> void fillInModificationReplaceContainer(ObjectDelta<O> objectDelta,
     		ItemPath propertyPath, PrismContainerValue<C>... containerValues) {
     	ContainerDelta<C> containerDelta = objectDelta.createContainerModification(propertyPath);
-    	if (containerValues != null) {
+    	if (containerValues != null && containerValues.length > 0) {
 	    	containerDelta.setValuesToReplace(containerValues);
+    	} else {
+    		// Means: clear all values
+    		containerDelta.setValuesToReplace();
     	}
     }
     

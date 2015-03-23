@@ -1,6 +1,7 @@
-package com.evolveum.midpoint.report.impl;
+package com.evolveum.midpoint.report.ds.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import net.sf.jasperreports.engine.JRField;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -25,11 +27,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class MidPointDataSource implements JRDataSource{
 
-	List<PrismObject<? extends ObjectType>> resultList = null;
+	Collection<PrismObject<? extends ObjectType>> resultList = null;
 	Iterator<PrismObject<? extends ObjectType>> iterator = null;
 	PrismObject<? extends ObjectType> currentObject = null; 
 	
-	public MidPointDataSource(List<PrismObject<? extends ObjectType>> results) {
+	public MidPointDataSource(Collection<PrismObject<? extends ObjectType>> results) {
 		this.resultList = results;
 		if (results != null){
 			iterator = results.iterator();
@@ -39,7 +41,7 @@ public class MidPointDataSource implements JRDataSource{
 	public MidPointDataSource(ObjectListType results){
 		resultList = new ArrayList<>();
 		for (ObjectType objType : results.getObject()){
-			resultList.add(objType.asPrismObject());
+			resultList.add(((Objectable)objType).asPrismObject());
 		}
 		iterator = resultList.iterator();
 	}

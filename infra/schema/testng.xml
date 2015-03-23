@@ -44,6 +44,7 @@
             <class name="com.evolveum.midpoint.schema.TestDynamicSchema"/>
             <class name="com.evolveum.midpoint.schema.TestJsonParsing"/>
             <class name="com.evolveum.midpoint.schema.TestSchemaDelta"/>
+            <class name="com.evolveum.midpoint.schema.TestSerialization"/>
             <class name="com.evolveum.midpoint.schema.util.SelectorOptionsTest"/>
         </classes>
     </test>

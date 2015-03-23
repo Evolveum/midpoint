@@ -81,6 +81,10 @@
             <groupId>org.apache.cxf.xjc-utils</groupId>
             <artifactId>cxf-xjc-runtime</artifactId>
         </dependency>
+        <dependency>
+			<groupId>net.sf.jasperreports</groupId>
+			<artifactId>jasperreports</artifactId>
+		</dependency>
         <!--<dependency>-->
             <!--<groupId>org.apache.cxf</groupId>-->
             <!--<artifactId>cxf-rt-transports-http-jetty</artifactId>-->
@@ -237,7 +241,7 @@
                                 <wsdlOption>
                                     <wsdl>src/main/resources/xml/ns/private/report/reportWrapper.wsdl</wsdl>
                                     <wsdlLocation>classpath:xml/ns/private/report/reportWrapper.wsdl</wsdlLocation>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-compile-time.xml</catalog>
+                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-report.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
@@ -255,7 +259,16 @@
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
-
+ <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://midpoint.evolveum.com/xml/ns/public/common/common-3</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/2001/04/xmlenc</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/2001/XMLSchema</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/XML/1998/namespace</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/2000/09/xmldsig</extraarg>
                                         <extraarg>-xjc-Xmidpoint</extraarg>
                                     </extraargs>
                                 </wsdlOption>
@@ -265,7 +278,7 @@
                                          schemas (namely, common-3); we need to use -nexclude parameter that is
                                          available only in wsdl codegen plugin. -->
                                     <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper-report.wsdl</wsdl>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-compile-time.xml</catalog>
+                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-report.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>

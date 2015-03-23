@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
@@ -44,6 +45,7 @@ public class ACAttributeDto implements Serializable {
     public static final String F_NAME = "name";
     public static final String F_VALUES = "values";
 
+    // construction.getRef should point to the same attribute as definition
     private PrismPropertyDefinition definition;
     private ResourceAttributeDefinitionType construction;
     private List<ACValueConstructionDto> values;
@@ -131,8 +133,18 @@ public class ACAttributeDto implements Serializable {
         }
 
         ResourceAttributeDefinitionType attrConstruction = new ResourceAttributeDefinitionType();
-        attrConstruction.setRef(new ItemPathType(new ItemPath(definition.getName())));
-        MappingType outbound = construction != null && construction.getOutbound() != null ? construction.getOutbound().clone() : new MappingType();
+        if (construction != null && construction.getRef() != null) {
+            attrConstruction.setRef(construction.getRef());         // preserves original ref (including xmlns prefix!) - in order to avoid false deltas when comparing old and new values
+        } else {
+            attrConstruction.setRef(new ItemPathType(new ItemPath(definition.getName())));
+        }
+        MappingType outbound;
+        if (construction != null && construction.getOutbound() != null) {
+            outbound = construction.getOutbound().clone();
+        } else {
+            outbound = new MappingType();
+            outbound.setStrength(MappingStrengthType.STRONG);
+        }
         attrConstruction.setOutbound(outbound);
 
         ExpressionType expression = new ExpressionType();

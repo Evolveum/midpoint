@@ -22,6 +22,16 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRTemplate;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.design.JRDesignExpression;
+import net.sf.jasperreports.engine.design.JRDesignParameter;
+import net.sf.jasperreports.engine.design.JRDesignReportTemplate;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.xml.JRXmlLoader;
+
 import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Element;
 
@@ -42,7 +52,54 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
  * @author lazyman
  */
 public class ReportTypeUtil {
+	
+	private static String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
 
+	
+	 public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
+	    	try	 {
+	    	byte[] reportTemplate = Base64.decodeBase64(template);
+		 	
+		 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
+		 	JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+//		 	LOGGER.trace("load jasper design : {}", jasperDesign);
+		 	return jasperDesign;
+	    	} catch (JRException ex){
+	    		throw new SchemaException(ex.getMessage(), ex.getCause());
+	    	}
+	    }
+	    
+	public static JasperReport loadJasperReport(ReportType reportType) throws SchemaException{
+			
+			if (reportType.getTemplate() == null) {
+				throw new IllegalStateException("Could not create report. No jasper template defined.");
+			}
+			try	 {
+//		    	 	byte[] reportTemplate = Base64.decodeBase64(reportType.getTemplate());
+//		    	 	
+//		    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
+		    	 	JasperDesign jasperDesign = loadJasperDesign(reportType.getTemplate());//JRXmlLoader.load(inputStreamJRXML);
+//		    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
+				 
+				 if (reportType.getTemplateStyle() != null){
+					JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
+					jasperDesign.addTemplate(templateStyle);
+					JRDesignParameter parameter = new JRDesignParameter();
+					parameter.setName(PARAMETER_TEMPLATE_STYLES);
+					parameter.setValueClass(JRTemplate.class);
+					parameter.setForPrompting(false);
+					jasperDesign.addParameter(parameter);
+				 } 
+				 JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+				 return jasperReport;
+			 } catch (JRException ex){ 
+//				 LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
+				 throw new SchemaException(ex.getMessage(), ex.getCause());
+			 }
+			 
+			 
+	}
+	
     public static PrismSchema parseReportConfigurationSchema(PrismObject<ReportType> report, PrismContext context)
             throws SchemaException {
 

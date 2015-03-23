@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSType;
+
 import org.apache.commons.lang.Validate;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.HashCode;
@@ -85,6 +86,8 @@ import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
+
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -1246,6 +1249,7 @@ public class SchemaProcessor implements Processor {
             throw new RuntimeException(ex.getMessage(), ex);
         }
 
+        anonymous._implements(Serializable.class);
         anonymous._extends(clazz);
         JMethod constructor = anonymous.constructor(JMod.PUBLIC);
         constructor.param(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME);
@@ -1592,8 +1596,8 @@ public class SchemaProcessor implements Processor {
             throw new RuntimeException(ex.getMessage(), ex);
         }
 
+        anonymous._implements(Serializable.class);
         anonymous._extends(clazz);
-        JMethod constructor = anonymous.constructor(JMod.PUBLIC);
 
         JClass list = (JClass) field.type();
         JClass listType = list.getTypeParameters().get(0);
@@ -1601,10 +1605,16 @@ public class SchemaProcessor implements Processor {
         JClass container = CLASS_MAP.get(PrismContainer.class);
         container.narrow(listType);
 
+        JMethod constructor = anonymous.constructor(JMod.PUBLIC);
         constructor.param(container, "container");
         JBlock constructorBody = constructor.body();
         JInvocation invocation = constructorBody.invoke("super");
         invocation.arg(constructor.listParams()[0]);
+
+        // Default constructor, for deserialization
+        JMethod defaultConstructor = anonymous.constructor(JMod.PUBLIC);
+        JBlock defaultConstructorBody = defaultConstructor.body();
+        defaultConstructorBody.invoke("super");
 
         JMethod createItem = anonymous.method(JMod.PROTECTED, listType, "createItem");
         createItem.annotate(CLASS_MAP.get(Override.class));

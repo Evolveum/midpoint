@@ -82,6 +82,24 @@ public class MiscUtil {
 		return resultSet;
 	}
 	
+	public static <T> boolean listEquals(List<T> a, List<T> b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (a.size() != b.size()) {
+			return false;
+		}
+		for (int i = 0; i < a.size(); i++) {
+			if (!a.get(i).equals(b.get(i))) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	public static boolean unorderedCollectionEquals(Collection a, Collection b) {
 		Comparator<?> comparator = new Comparator<Object>() {
 			@Override

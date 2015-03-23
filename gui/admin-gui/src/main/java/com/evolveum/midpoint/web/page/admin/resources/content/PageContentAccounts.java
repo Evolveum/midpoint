@@ -654,6 +654,9 @@ public class PageContentAccounts extends PageAdminResources {
         }
 
         RefinedObjectClassDefinition refinedObjectClassDefinition = resourceSchema.getRefinedDefinition(typeDefinition.getTypeName());
+        if (refinedObjectClassDefinition == null) {
+            return false;
+        }
         return refinedObjectClassDefinition.isObjectCountingEnabled();
     }
 

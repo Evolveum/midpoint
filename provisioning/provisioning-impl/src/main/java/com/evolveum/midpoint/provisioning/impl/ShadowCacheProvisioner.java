@@ -162,9 +162,14 @@ public class ShadowCacheProvisioner extends ShadowCache{
 			Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
 					deltaType.getItemDelta(), shadow.getDefinition());
 
-			return ObjectDelta.summarize(ObjectDelta.createModifyDelta(shadow.getOid(), modifications,
-					ShadowType.class, getPrismContext()), ObjectDelta.createModifyDelta(shadow.getOid(),
-					pendingModifications, ShadowType.class, getPrismContext()));
+            // pendingModifications must come before modifications, otherwise REPLACE of value X (pending),
+            // followed by ADD of value Y (current) would become "REPLACE X", which is obviously wrong.
+            // See e.g. MID-1709.
+			return ObjectDelta.summarize(
+                    ObjectDelta.createModifyDelta(shadow.getOid(), pendingModifications,
+                            ShadowType.class, getPrismContext()),
+                    ObjectDelta.createModifyDelta(shadow.getOid(), modifications,
+                            ShadowType.class, getPrismContext()));
 		}
 		return null;
 	}

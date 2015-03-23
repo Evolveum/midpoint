@@ -230,13 +230,14 @@ CREATE TABLE m_lookup_table (
 );
 
 CREATE TABLE m_lookup_table_row (
-  row_key             NVARCHAR(255) COLLATE database_default NOT NULL,
-  owner_oid           NVARCHAR(36) COLLATE database_default  NOT NULL,
+  id                  SMALLINT                              NOT NULL,
+  owner_oid           NVARCHAR(36) COLLATE database_default NOT NULL,
+  row_key             NVARCHAR(255) COLLATE database_default,
   label_norm          NVARCHAR(255) COLLATE database_default,
   label_orig          NVARCHAR(255) COLLATE database_default,
   lastChangeTimestamp DATETIME2,
   row_value           NVARCHAR(255) COLLATE database_default,
-  PRIMARY KEY (row_key, owner_oid)
+  PRIMARY KEY (id, owner_oid)
 );
 
 CREATE TABLE m_node (
