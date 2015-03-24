@@ -48,7 +48,7 @@ public class RAssignmentExtension implements Serializable {
 
     private RAssignment owner;
     private String ownerOid;
-    private Short ownerId;
+    private Integer ownerId;
 
     private Short stringsCount;
     private Short longsCount;
@@ -80,7 +80,7 @@ public class RAssignmentExtension implements Serializable {
 
     @Id
     @Column(name = "owner_id", length = RUtil.COLUMN_LENGTH_OID)
-    public Short getOwnerId() {
+    public Integer getOwnerId() {
         if (ownerId == null && owner != null) {
             ownerId = owner.getId();
         }
@@ -200,7 +200,7 @@ public class RAssignmentExtension implements Serializable {
         this.owner = owner;
     }
 
-    public void setOwnerId(Short ownerId) {
+    public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
     }
 

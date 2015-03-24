@@ -298,7 +298,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         try {
             Query query = session.createSQLQuery("select count(*) from m_assignment where owner_oid=:oid and id=:id");
             query.setParameter("oid", delta.getOid());
-            query.setParameter("id", (short) 4);
+            query.setParameter("id", 4);
             Number number = (Number) query.uniqueResult();
             AssertJUnit.assertEquals(0, number.intValue());
         } finally {

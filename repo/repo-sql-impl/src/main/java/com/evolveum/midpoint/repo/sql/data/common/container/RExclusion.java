@@ -54,7 +54,7 @@ public class RExclusion implements Container {
     //owner
     private RObject owner;
     private String ownerOid;
-    private Short id;
+    private Integer id;
 
     //exclusion
     private REmbeddedReference targetRef;
@@ -88,7 +88,7 @@ public class RExclusion implements Container {
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
-    public Short getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -121,7 +121,7 @@ public class RExclusion implements Container {
         this.ownerOid = ownerOid;
     }
 
-    public void setId(Short id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -176,7 +176,7 @@ public class RExclusion implements Container {
 
         repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
         repo.setOwnerOid(parent.getOid());
-        repo.setId(RUtil.toShort(jaxb.getId()));
+        repo.setId(RUtil.toInteger(jaxb.getId()));
 
         repo.setPolicy(RUtil.getRepoEnumValue(jaxb.getPolicy(), RExclusionPolicy.class));
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));

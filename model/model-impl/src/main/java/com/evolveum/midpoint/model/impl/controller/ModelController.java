@@ -47,7 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressio
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.python.antlr.PythonParser.continue_stmt_return;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -147,14 +146,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -1203,11 +1201,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				if (valueEnumerationRef == null || valueEnumerationRef.getOid() == null) {
 					return spec;
 				}
-				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE, 
+				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
 		    			GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 				PrismObject<LookupTableType> lookup = cacheRepositoryService.getObject(LookupTableType.class, valueEnumerationRef.getOid(), 
 						options, result);
-				for (LookupTableTableType row: lookup.asObjectable().getTable()) {
+				for (LookupTableRowType row: lookup.asObjectable().getRow()) {
 					PolyStringType polyLabel = row.getLabel();
 					String key = row.getKey();
 					String label = key;

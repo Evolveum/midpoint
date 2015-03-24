@@ -24,7 +24,7 @@ import java.io.Serializable;
 public class RAExtReferenceId implements Serializable {
 
     private String ownerOid;
-    private Short ownerId;
+    private Integer ownerId;
     private String value;
     private String name;
 
@@ -36,11 +36,11 @@ public class RAExtReferenceId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public Short getOwnerId() {
+    public Integer getOwnerId() {
         return ownerId;
     }
 
-    public void setOwnerId(Short ownerId) {
+    public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
     }
 
