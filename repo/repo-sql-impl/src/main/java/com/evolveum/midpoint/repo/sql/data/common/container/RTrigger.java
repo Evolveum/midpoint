@@ -35,7 +35,7 @@ public class RTrigger implements Container {
     //identificator
     private RObject owner;
     private String ownerOid;
-    private Short id;
+    private Integer id;
     //trigger fields
     private String handlerUri;
     private XMLGregorianCalendar timestamp;
@@ -68,7 +68,7 @@ public class RTrigger implements Container {
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
-    public Short getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -100,7 +100,7 @@ public class RTrigger implements Container {
         this.ownerOid = ownerOid;
     }
 
-    public void setId(Short id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -154,7 +154,7 @@ public class RTrigger implements Container {
 
         repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
         repo.setOwnerOid(parent.getOid());
-        repo.setId(RUtil.toShort(jaxb.getId()));
+        repo.setId(RUtil.toInteger(jaxb.getId()));
 
         repo.setHandlerUri(jaxb.getHandlerUri());
         repo.setTimestamp(jaxb.getTimestamp());

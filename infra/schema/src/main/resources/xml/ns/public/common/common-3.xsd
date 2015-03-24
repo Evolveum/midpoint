@@ -1836,7 +1836,7 @@
             <xsd:documentation>
             	User object represents a physical user of the system.
             	It differs from the account, as "account" represents a data structure in a target system while
-            	"user" represents data structure in midPoint. One user typically haves many accounts.
+            	"user" represents data structure in midPoint. One user typically has many accounts.
             	Properties of User object typically describe the user as a physical person.
             	Therefore the user obect defines handful of properties that are commonly used to describe users
             	in the IDM solutions (employees, customers, partners, etc.) Custom extensions are possible by utilizing
@@ -7552,7 +7552,7 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                	<xsd:element name="table" type="tns:LookupTableTableType" minOccurs="0" maxOccurs="unbounded"/>
+                	<xsd:element name="row" type="tns:LookupTableRowType" minOccurs="0" maxOccurs="unbounded"/>
                 	<!-- TODO: Maybe more settings describing the intended use of the lookup table. -->
                 	<!-- TODO: Lookup table synchronization settings? (e.g. resourceRef) -->
                 </xsd:sequence>
@@ -7561,10 +7561,10 @@
    </xsd:complexType>
    <xsd:element name="lookupTable" type="tns:LookupTableType" substitutionGroup="c:object"/>
    
-   <xsd:complexType name="LookupTableTableType">
+   <xsd:complexType name="LookupTableRowType">
        	<xsd:annotation>
     		<xsd:documentation>
-    			Data structure that represents entire content of the lookup table.
+    			Data structure that represents entire content of the lookup table, organized into table rows.
     			The delta semantics has a slightly different meaning for the lookup tables. Each key must be unique and the key
     			functions as an implicit identifier. E.g. adding a new row with a key that does not exist yet
     			will insert a new row. Adding a new row with key that already exists will overwrite existing row.

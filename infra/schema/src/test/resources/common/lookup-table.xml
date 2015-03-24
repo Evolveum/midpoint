@@ -20,13 +20,13 @@
              oid="44444444-4444-4444-4444-000000001111">
     <name>first lookup</name>
     <description>description of lookup table</description>
-    <table>
+    <row>
             <key>first key</key>
             <value>first value</value>
             <label>first label</label>
             <lastChangeTimestamp>2013-05-07T10:38:21.350+02:00</lastChangeTimestamp>
-   	</table>
-    <table>
+   	</row>
+    <row>
             <key>2 key</key>
             <value>2 value</value>
             <label>
@@ -34,5 +34,5 @@
                 <t:norm>second label</t:norm>
             </label>
             <lastChangeTimestamp>2013-05-07T10:40:21.350+02:00</lastChangeTimestamp>
-    </table>
+    </row>
 </lookupTable>

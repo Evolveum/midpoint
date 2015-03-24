@@ -25,26 +25,26 @@
 
 	<name>Languages</name>
 	
-	<table>
+	<row>
 		<key>en_US</key>
 		<value>en</value>
 		<label>English (US)</label>
-	</table>    
-	<table>
+	</row>
+	<row>
 		<key>en_PR</key>
 		<value>en</value>
 		<label>English (pirate)</label>
-	</table>    
-	<table>
+	</row>
+	<row>
 		<key>sk_SK</key>
 		<value>sk</value>
 		<label>Slovak</label>
-	</table>
-	<table>
+	</row>
+	<row>
 		<key>tr_TR</key>
 		<value>tr</value>
 		<label>Turkish</label>
-	</table>
+	</row>
   
 
 </lookupTable>

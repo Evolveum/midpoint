@@ -3,18 +3,16 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
-import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
 /**
@@ -54,27 +52,14 @@ public class RLookupTable extends RObject<LookupTableType> {
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
 
-        List<LookupTableTableType> rows = jaxb.getTable();
+        List<LookupTableRowType> rows = jaxb.getRow();
         if (!rows.isEmpty()) {
             repo.setRows(new HashSet<RLookupTableRow>());
-        }
-
-        for (LookupTableTableType row : rows) {
-            RLookupTableRow rRow = new RLookupTableRow();
-            rRow.setOwner(repo);
-            rRow.setTransient(generatorResult.isTransient(row.asPrismContainerValue()));
-            rRow.setId(RUtil.toShort(row.getId()));
-            rRow.setKey(row.getKey());
-            rRow.setLabel(RPolyString.copyFromJAXB(row.getLabel()));
-            rRow.setLastChangeTimestamp(row.getLastChangeTimestamp());
-            if (rRow.getLastChangeTimestamp() == null) {
-                XMLGregorianCalendar cal = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
-                rRow.setLastChangeTimestamp(cal);
-                row.setLastChangeTimestamp(cal);
+            for (LookupTableRowType row : rows) {
+                RLookupTableRow rRow = RLookupTableRow.toRepo(repo, row);
+                rRow.setTransient(generatorResult.isTransient(row.asPrismContainerValue()));
+                repo.getRows().add(rRow);
             }
-            rRow.setValue(row.getValue());
-
-            repo.getRows().add(rRow);
         }
     }
 

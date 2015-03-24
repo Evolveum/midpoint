@@ -25,29 +25,29 @@
 
 	<name>Employee Type</name>
 	
-	<table>
+	<row>
 		<key>FTE</key>
 		<label>Full-time employee</label>
-	</table>    
-	<table>
+	</row>
+	<row>
 		<key>PTE</key>
 		<label>Part-time employee</label>
-	</table>    
-	<table>
+	</row>
+	<row>
 		<key>TE</key>
 		<label>Temporary employee</label>
-	</table>
-	<table>
+	</row>
+	<row>
 		<key>C</key>
 		<label>Contractor</label>
-	</table>
-	<table>
+	</row>
+	<row>
 		<key>S</key>
 		<label>Serviceperson</label>
-	</table>
-	<table>
+	</row>
+	<row>
 		<key>O</key>
 		<label>Other</label>
-	</table>
+	</row>
   
 </lookupTable>
