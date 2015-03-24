@@ -554,7 +554,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         updateFullObject(rObject, object);
         RObject merged = (RObject) session.merge(rObject);
         addLookupTableRows(session, rObject, modifications != null);
-        //todo handle lookuptable rows merge [lazyman]
 
         if (getClosureManager().isEnabled()) {
             OrgClosureManager.Operation operation;
@@ -724,20 +723,28 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (!(object instanceof RLookupTable)) {
             return;
         }
-
         RLookupTable table = (RLookupTable) object;
-        if (table.getRows() == null) {
-            return;
-        }
 
         if (merge) {
-            // TODO check if this works
-            deleteLookupTableRows(session, object.getOid());
+            deleteLookupTableRows(session, table.getOid());
         }
-        for (RLookupTableRow row : table.getRows()) {
+        if (table.getRows() != null) {
+            for (RLookupTableRow row : table.getRows()) {
+                session.save(row);
+            }
+        }
+    }
+
+    private void addLookupTableRows(Session session, String tableOid, Collection<PrismContainerValue> values, int currentId) {
+        for (PrismContainerValue value : values) {
+            LookupTableRowType rowType = new LookupTableRowType();
+            rowType.setupContainerValue(value);
+
+            RLookupTableRow row = RLookupTableRow.toRepo(tableOid, rowType);
+            row.setId(currentId);
+            currentId++;
             session.save(row);
         }
-
     }
 
     private void updateLookupTableData(Session session, RObject object, Collection<? extends ItemDelta> modifications) {
@@ -774,18 +781,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 deleteLookupTableRows(session, tableOid);
                 addLookupTableRows(session, tableOid, containerDelta.getValuesToReplace(), 1);
             }
-        }
-    }
-
-    private void addLookupTableRows(Session session, String tableOid, Collection<PrismContainerValue> values, int currentId) {
-        for (PrismContainerValue value : values) {
-            LookupTableRowType rowType = new LookupTableRowType();
-            rowType.setupContainerValue(value);
-
-            RLookupTableRow row = RLookupTableRow.toRepo(tableOid, rowType);
-            row.setId(currentId);
-            currentId++;
-            session.save(row);
         }
     }
 

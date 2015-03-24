@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest.gensync;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.TestModelServiceContract;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -58,6 +59,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.util.Collection;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -72,7 +74,9 @@ import static org.testng.AssertJUnit.assertTrue;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestEditSchema extends AbstractGenericSyncTest {
-	
+
+    public static final File LOOKUP_LANGUAGES_REPLACEMENT_FILE = new File(TEST_DIR, "lookup-languages-replacement.xml");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -819,9 +823,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertSteadyResources();
     }
 
-    /**
-     * todo probably enable this test, implementation in repository is not available yet.
-     */
     @Test
     public void test170LookupLanguagesReplaceRows() throws Exception {
 		final String TEST_NAME="test170LookupLanguagesReplaceRows";
@@ -877,7 +878,48 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
         assertSteadyResources();
     }
-    
+
+    @Test
+    public void test180LookupLanguagesReplaceObject() throws Exception {
+        final String TEST_NAME="test180LookupLanguagesReplaceObject";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<LookupTableType> replacement = PrismTestUtil.parseObject(LOOKUP_LANGUAGES_REPLACEMENT_FILE);
+        ObjectDelta<LookupTableType> delta = ObjectDelta.createAddDelta(replacement);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        ModelExecuteOptions options = ModelExecuteOptions.createOverwrite();
+        options.setRaw(true);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<LookupTableType> lookup = getLookupTableAll(LOOKUP_LANGUAGES_OID, task, result);
+
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        IntegrationTestTools.display("Languages", lookup);
+
+        assertEquals("Wrong lang lookup name", "Languages Replaced", lookup.asObjectable().getName().getOrig());
+
+        PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
+        assertNotNull("Table container missing", tableContainer);
+        assertEquals("Unexpected table container size", 1, tableContainer.size());
+
+        assertLookupRow(tableContainer, "fr_FR", "fr", "Francais");
+        assertSteadyResources();
+    }
+
+
     private void assertLookupRow(PrismContainer<LookupTableRowType> tableContainer, String key, String value,
 			String label) {
 		for (PrismContainerValue<LookupTableRowType> row: tableContainer.getValues()) {
