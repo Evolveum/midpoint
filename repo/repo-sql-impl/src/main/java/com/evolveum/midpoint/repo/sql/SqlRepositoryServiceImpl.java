@@ -730,13 +730,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return;
         }
 
-        if (!merge) {
-            for (RLookupTableRow row : table.getRows()) {
-                session.save(row);
-            }
-        } else {
-            //todo implement lookup table rows merge !!!!!!!!!
+        if (merge) {
+            // TODO check if this works
+            deleteLookupTableRows(session, object.getOid());
         }
+        for (RLookupTableRow row : table.getRows()) {
+            session.save(row);
+        }
+
     }
 
     private void updateLookupTableData(Session session, RObject object, Collection<? extends ItemDelta> modifications) {
@@ -747,15 +748,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (!(object instanceof RLookupTable)) {
             throw new IllegalStateException("Object being modified is not a LookupTable; it is " + object.getClass());
         }
-        RLookupTable rLookupTable = (RLookupTable) object;
-
-        // todo compute only if necessary
-        Query query = session.getNamedQuery("get.lookupTableLastId");
-        query.setString("oid", object.getOid());
-        Integer lastId = (Integer) query.uniqueResult();
-        if (lastId == null) {
-            lastId = 0;
-        }
+        final RLookupTable rLookupTable = (RLookupTable) object;
+        final String tableOid = object.getOid();
 
         for (ItemDelta delta : modifications) {
             if (!(delta instanceof ContainerDelta) || delta.getPath().size() != 1) {
@@ -763,45 +757,46 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
             // one "table" container modification
             ContainerDelta containerDelta = (ContainerDelta) delta;
+
             if (containerDelta.getValuesToDelete() != null) {
                 for (PrismContainerValue value : (Collection<PrismContainerValue>) containerDelta.getValuesToDelete()) {
-                    query = session.getNamedQuery("delete.lookupTableDataRow");
-                    query.setString("oid", object.getOid());
+                    Query query = session.getNamedQuery("delete.lookupTableDataRow");
+                    query.setString("oid", tableOid);
                     query.setInteger("id", RUtil.toInteger(value.getId()));
                     query.executeUpdate();
                 }
             }
             if (containerDelta.getValuesToAdd() != null) {
-                for (PrismContainerValue value : (Collection<PrismContainerValue>) containerDelta.getValuesToAdd()) {
-                    lastId++;
-
-                    LookupTableRowType table = new LookupTableRowType();
-                    table.setupContainerValue(value);
-
-                    RLookupTableRow row = RLookupTableRow.toRepo(object.getOid(), table);
-                    row.setId(lastId);
-                    session.save(row);
-                }
+                int currentId = findLastIdInRepo(session, tableOid) + 1;
+                addLookupTableRows(session, tableOid, containerDelta.getValuesToAdd(), currentId);
             }
             if (containerDelta.getValuesToReplace() != null) {
-//                rLookupTable.getRows().clear();
-//                for (PrismContainerValue rowValue : (Collection<PrismContainerValue>) containerDelta.getValuesToReplace()) {
-//
-//                    LookupTableRowType rowType = new LookupTableRowType();
-//                    rowType.setupContainerValue(rowValue);
-//
-//                    if (rowType.getId() != null) {
-//                        // TODO
-//                    }
-//
-//                    RLookupTableRow rRow = RLookupTableRow.toRepo(object.getOid(), rowType);
-//                    lastId++;
-//
-//                    rRow.setId(lastId);
-//                    session.save(rRow);
-//                }
+                deleteLookupTableRows(session, tableOid);
+                addLookupTableRows(session, tableOid, containerDelta.getValuesToReplace(), 1);
             }
         }
+    }
+
+    private void addLookupTableRows(Session session, String tableOid, Collection<PrismContainerValue> values, int currentId) {
+        for (PrismContainerValue value : values) {
+            LookupTableRowType rowType = new LookupTableRowType();
+            rowType.setupContainerValue(value);
+
+            RLookupTableRow row = RLookupTableRow.toRepo(tableOid, rowType);
+            row.setId(currentId);
+            currentId++;
+            session.save(row);
+        }
+    }
+
+    private int findLastIdInRepo(Session session, String tableOid) {
+        Query query = session.getNamedQuery("get.lookupTableLastId");
+        query.setString("oid", tableOid);
+        Integer lastId = (Integer) query.uniqueResult();
+        if (lastId == null) {
+            lastId = 0;
+        }
+        return lastId;
     }
 
     @Override

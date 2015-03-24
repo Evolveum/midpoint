@@ -822,7 +822,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     /**
      * todo probably enable this test, implementation in repository is not available yet.
      */
-    @Test(enabled = false)
+    @Test
     public void test170LookupLanguagesReplaceRows() throws Exception {
 		final String TEST_NAME="test170LookupLanguagesReplaceRows";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -841,8 +841,13 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         row2.setValue("ja");
         row2.setLabel(PrismTestUtil.createPolyStringType("Mumbojumbo"));
 
+        LookupTableRowType row3 = new LookupTableRowType();
+        row3.setKey("en_PR");       // existing key
+        row3.setValue("en1");
+        row3.setLabel(PrismTestUtil.createPolyStringType("English (pirate1)"));
+
         ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationReplaceContainer(LookupTableType.class,
-        		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row1, row2);
+        		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row1, row2, row3);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -864,10 +869,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNotNull("Table container missing", tableContainer);
-		assertEquals("Unexpected table container size", 2, tableContainer.size());
+		assertEquals("Unexpected table container size", 3, tableContainer.size());
 
 		assertLookupRow(tableContainer, "ja_JA", "ja", "Jabber");
 		assertLookupRow(tableContainer, "ja_MJ", "ja", "Mumbojumbo");
+        assertLookupRow(tableContainer, "en_PR", "en1", "English (pirate1)");
 		
         assertSteadyResources();
     }
