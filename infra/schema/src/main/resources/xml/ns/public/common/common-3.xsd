@@ -193,146 +193,19 @@
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                Common supertype for all identity objects. Defines basic properties
-                that each object must have to live in our system (identifier, name).
+	                Common supertype for all identity objects. Defines basic properties
+	                that each object must have to live in our system (identifier, name).
                 </p>
-
                 <p>
-                Objects consists of identifier and name (see definition below)
-                and a set of properties represented as XML elements in the
-                object's body. The properties are represented as first-level
-                XML elements (tags) of the object XML representation and may
-                be also contained in other tags (e.g. extension, attributes)
-                that are marked by a propertyContainer annotation. The QName
-                (namespace and local name) of the element holding the property
-                is considered to be a property name.
+                	All objects are identified by ﻿OID﻿﻿. The OID is an immutable identifier
+                	(usually UUID). Except the OID all the objects have human-readable name.
+                	The name is usually unique for each object type, but this is not a
+                	strict requirement.
                 </p>
-
-                <p>
-                Single-value properties must appear as a none or one instance
-                of the XML element holding the value.
-                </p>
-
-                <p>
-                Multi-value properties must appear as none or more instances of
-                the same XML element. Multi-valued properties are regarded as
-                unordered sets. Duplicate values are allowed, but duplicates
-                should not be preserved by the implementations. The implementations
-                should reduce duplicate values to a single value if it is
-                possible and efficient.
-                </p>
-
-                <p>
-                If an element for a specific property does not appear in the
-                object it means that the property value is undefined (property
-                does not exists). This is a different state as compared to
-                passing an empty XML element. Empty XML element means that the
-                property exists, but has an empty (null) value. Implementations
-                must be able to handle undefined (non-existent) properties, but
-                may NOT be able to handle empty (null) values. The use of empty
-                (null) values is DISCOURADGED.
-                </p>
-
-                <p>
-                It is not mandated by this specification how to pass ordered
-                lists and multi-value properties with duplicates. However it is
-                recommended to use single value properties with appropriate complex
-                XML data structures to hold such data.
-                </p>
-
-                <p>
-                The following XML snippet is an example of the object (omitting
-                namespace definitions, but assuming default namespace to be the
-                target namespace of this schema definition):
-                </p>
-
-                <pre>
-                <![CDATA[
-        <user oid="d3adm3a4" version="42">
-            <name>foobar</name>
-            <extension>
-              <foo:geekName>F00 B4r</foo:geekName>
-              <org:guild>Societus Geekus Europeus</org:guild>
-              <org:guild>Basset User Group</org:guild>
-              <pet:pet><pet:species>dog</pet:species><pet:breed>basset</pet:breed><pet:name>Doggie</pet:name></pet:pet>
-              <pet:pet><pet:species>mouse</pet:species><pet:breed>logitech</pet:breed><pet:name>Mousee</pet:name></pet:pet>
-              <com:shoppingPreferences>
-                  <com:tShirt><com:size>XXL</com:size><com:color>#000000</com:color></com:tShirt>
-                  <com:tie><com:preference>no thanks</com:preference></com:tie>
-              </com:shoppingPreferences>
-            </extension>
-            <fullName>Foo Bar</fullName>
-            <givenName>Foo</givenName>
-            <familyName>Bar</familyName>
-        </user>
-]]></pre>
-                <p>
-                The above example describes an object with identifier "d3adm3a4",
-                name "foobar" and type defined by its top-level element User that
-                corresponds to URI "http://midpoint.evolveum.com/xml/ns/identity/1#User".
-                The object has 7 properties. Three of them are standard
-                properties defined by this schema:
-                </p>
-
-                <p>
-                Standard properties "fullName", "givenName" and "familyName"
-                in default namespace. These are single-valued string properties.
-                </p>
-
-                <p>
-                All the other properties are non-standard "extended" properties,
-                but they are considered equal to the standard attributes. They are
-                quarantined in the &lt;extension&gt; tag only to avoid XSD unique
-                particle attribution (UPA) problems. In the above example the
-                non-standard properties are:
-                </p>
-
-                <p>
-                Property "geekName" in namespace defined by "foo" prefix. This is also
-                single-valued string property.
-                </p>
-
-                <p>
-                Multi-valued non-standard property "guild". It is a string property
-                with multiple values. Multiple values are represented by providing
-                multiple instances of XML elements in the document.
-                Such properties are typically used for roles, groups, etc.
-                </p>
-
-                <p>
-                Complex property "pet". This property is defined by
-                complex XML type, using XML sub-elements to
-                represent structured data. Note that the use of XML attributes
-                is discouraged in the properties, although it might be possible in
-                some cases. This is also multi-valued property.
-                </p>
-
-                <p>
-                Complex property "shoppingPreferences". This property is using
-                complex XML type to form a structure of XML elements to
-                represent data. This is a single-valued property.
-                Note that the sub-elements "tShirt" and "tie" are NOT considered
-                to be properties.
-                </p>
-
-                <p>
-                QName-URI mapping:
-                </p>
-
-                <p>
-                For the purpose of this schema and all components that are using it,
-                URIs and QNames are considered equivalent. This is required by WWW
-                architecture and also helps avoid some drawbacks and bugs in XML-related
-                implementations that usually do not deal QNames well.
-                </p>
-
-                <p>
-                The QNames are mapped to URIs by concatenating namespace URI and a local
-                name. If URI does not end with slash (/) or hash (#) character, slash is
-                concatenated to the URI before adding the local name. The URI-QName
-                mapping is the reverse process.
-                </p>
-
+				<p>
+					Note: object type is fixed, it cannot be changed. The object retains its
+					type from the time it was created to the end of its life.
+				</p>
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -346,40 +219,36 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                        Human-readable, mutable name of the object. It
-                        may also be an identifier (login name, group name).
-                        Should be unique in the respective context of
-                        interpretation. E.g. the name of the UserType subtype
-                        should be unique in the whole system.
-                        The name of the AccountType subtype should be unique in the
-                        scope of resource (target system) that it belongs to.
+	                        Human-readable, mutable name of the object. It
+	                        may also be an identifier (login name, group name).
+	                        It is usually unique in the respective context of
+	                        interpretation. E.g. the name of the UserType subtype
+	                        is usually unique in the whole system.
+	                        The name of the ShadowType subtype is usually unique in the
+	                        scope of resource (target system) that it belongs to.
                         </p>
 
                         <p>
-                        This may not be human-readable in a sense to display
-                        to a common end-user. It is intended to be displayed to
-                        IDM system administrator. Therefore it may contain quite
-                        a "ugly" structures such as LDAP DN or URL.
+	                        The name may not be human-readable in a sense to display
+	                        to a common end-user. It is intended to be displayed to
+	                        IDM system administrator. Therefore it may contain quite
+	                        a "ugly" structures such as LDAP DN or URL.
                         </p>
 
                         <p>
-                        Name is considered to be ordinary property of the object.
-                        Therefore it can be changed by invoking usual modifyObject
-                        operations. However, change of the name may have side
-                        effects (rename process).
+	                        Name is mutable. It is considered to be ordinary property
+	                        of the object. Therefore it can be changed by invoking
+	                        usual modifyObject operations. However, change of the name
+	                        may have side effects (rename process).
                         </p>
 
-                        <p>
-                		Name is mutable. It can change any time. However, a special
-                		handling may be needed in some cases (e.g. "rename" provisioning flow).
-                        </p>
 
                         <p>
-                        Although name is specified as optional by this schema, it
-                        is in fact mandatory for most object types. The reason for
-                        specifying the name as optional is that the name may be
-                        generated by the system instead of supplied by the clients.
-                        However, all objects stored in the repository must have a name.
+	                        Although name is specified as optional by this schema, it
+	                        is in fact mandatory for most object types. The reason for
+	                        specifying the name as optional is that the name may be
+	                        generated by the system instead of supplied by the clients.
+	                        However, all objects stored in the repository must have a name.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -393,7 +262,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                        Free-form textual description of the object.
+	                        Free-form textual description of the object. This is meant to
+	                        be displayed in the user interface.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -407,17 +277,17 @@
 				<xsd:annotation>
 					<xsd:documentation>
                         <p>
-						Result of the operation that fetched this instance of the object.
-						It is mostly used to indicate that the object is not complete or
-						there is some problem with the object. This is used instead of
-						exception if the object is part of larger structures (lists as in
-						list/search operations or composite objets). If not present then
-						the "SUCCESS" state is assumed.
+							Result of the operation that fetched this instance of the object.
+							It is mostly used to indicate that the object is not complete or
+							there is some problem with the object. This is used instead of
+							exception if the object is part of larger structures (lists as in
+							list/search operations or composite objets). If not present then
+							the "SUCCESS" state is assumed.
                         </p>
 
                         <p>
-						This field is TRANSIENT. It must only be used in runtime. It should
-						never be stored in the repository.
+							This field is TRANSIENT. It must only be used in runtime. It should
+							never be stored in the repository.
                         </p>
 					</xsd:documentation>
                     <xsd:appinfo>
@@ -430,11 +300,12 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                        Container that provides generic extensibility mechanism.
-                        Almost any extension property can be placed in this container.
-                        The extension is treated exactly the same as other object
-                        properties by the code (storage, modifications, etc), except
-                        that the system may not be able to understand their meaning.
+	                        Extension container that provides generic extensibility mechanism.
+	                        Almost any extension property can be placed in this container.
+	                        This mechanism is used to extend objects with new properties.
+	                        The extension is treated exactly the same as other object
+	                        properties by the code (storage, modifications, etc), except
+	                        that the system may not be able to understand their meaning.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -455,9 +326,9 @@
 	            <xsd:annotation>
 	                <xsd:documentation>
                         <p>
-	                    Set of the orgs (organizational units, projects, teams) that the object relates to.
-	                    This usually means that the object belongs to them but it may have other meanings as well
-	                    (e.g. user manages an organizational unit).
+		                    Set of the orgs (organizational units, projects, teams) that the object relates to.
+		                    This usually means that the object belongs to them but it may have other meanings as well
+		                    (e.g. user manages an organizational unit).
                         </p>
 	                </xsd:documentation>
 	                <xsd:appinfo>
@@ -473,7 +344,7 @@
 	        	<xsd:annotation>
 	        		<xsd:documentation>
                         <p>
-	        			Meta-data about object creation, modification, etc.
+	        				Meta-data about object creation, modification, etc.
                         </p>
 	        		</xsd:documentation>
                     <xsd:appinfo>
@@ -486,9 +357,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                        Reference to the tenant to which this object belongs. It is a computed value set automatically
-                        by midPoint. It is determined from the organizational structure. Even though this value is
-                        compted it is also stored in the repository due to performance reasons.
+	                        Reference to the tenant to which this object belongs. It is a computed value set automatically
+	                        by midPoint. It is determined from the organizational structure. Even though this value is
+	                        compted it is also stored in the repository due to performance reasons.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -502,54 +373,59 @@
         <xsd:attribute name="oid" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                    System-wide immutable identifier for the object.
-                    Will be probably quite long and not human-readable. It
-                    should not be displayed to user. It has no meaning
-                    outside of IDM system and should not be directly
-                    passed to any third-party systems.
+                	<p>
+	                    System-wide immutable identifier for the object.
+	                    Will be probably quite long and not human-readable. It
+	                    should NOT be displayed to user.
+                    </p>
+					<p>
+                    	This identifier must be unique in the entire system.
+                    </p>
+					<p>
+	                    This attribute is immutable.
+	                    It cannot be changed. Any operation attempting
+	                    to change this identifier must fail.
+	                    However OID is not property and therefore cannot
+	                    be "addressed" in usual operations.
+                    </p>
+					<p>
+	                    OID must be provided for all objects that are persistently
+	                    stored. There may be detached objects without OID.
+	                    Such objects have the same structure as normal objects,
+	                    they are just not stored in the repository. E.g.
+	                    object that are only stored on resource and are
+	                    not replicated in the repository. Such objects
+	                    do not have OID therefore their XML representation
+	                    cannot contain oid attribute.
+                    </p>
+					<p>
+	                    The OID should be unique in both time and space. That
+	                    means that OIDs must be unique in the whole system
+	                    in any moment and should not be re-used. If an object is
+	                    deleted, the OID of that object should not be used by
+	                    a new object. The reason is to avoid problems with stale
+	                    links pointing to a wrong object and appearing valid.
+	                    However, this is not a strict requirement. Some marginal
+	                    probability of OID reuse is tolerated. The recommended
+	                    practice is to add some randomness to the process of
+	                    OID generation.
+                    </p>
 
-                    This identifier must be unique in the entire system.
-
-                    This attribute is immutable.
-                    It cannot be changed. Any operation attempting
-                    to change this identifier must fail.
-
-                    OID is not property and therefore cannot be "addressed"
-                    in usual operations.
-
-                    OID must be provided for all objects that are persistently
-                    stored. There may be detached objects without OID.
-                    Such objects have the same structure as normal objects,
-                    they are just not stored in the repository. E.g.
-                    object that are only stored on resource and are
-                    not replicated in the repository. Such objects
-                    do not have OID therefore their XML representation
-                    cannot contain oid attribute.
-
-                    The OID should be unique in both time and space. That
-                    means that OIDs must be unique in the whole system
-                    in any moment and should not be re-used. If an object is
-                    deleted, the OID of that object should not be used by
-                    a new object. The reason is to avoid problems with stale
-                    links pointing to a wrong object and appearing valid.
-                    However, this is not a strict requirement. Some marginal
-                    probability of OID reuse is tolerated. The recommended
-                    practice is to add some randomness to the process of
-                    OID generation.
-
-                    This attribute is NOT (necessarily) ASN.1 OID and should not
-                    be confused with it.
-
-                    The attribute is named "oid" meaning object identifier.
-                    It is not named "id" to avoid confusion with xml:id
-                    attribute as it is easy to confuse these two if
-                    namespace prefix is omitted. The confusion with ASN.1
-                    OID id not likely.
-
-                    The oid is XML attribute of this object instead of
-                    element because it has special purpose of identifying
-                    the object. It is also immutable, therefore we do not
-                    need to handle changes to it.
+					<p>
+	                    This attribute is NOT (necessarily) ASN.1 OID and should not
+	                    be confused with it.
+	                    The attribute is named "oid" meaning object identifier.
+	                    It is not named "id" to avoid confusion with xml:id
+	                    attribute as it is easy to confuse these two if
+	                    namespace prefix is omitted. The confusion with ASN.1
+	                    OID id not likely.
+                    </p>
+					<p>
+	                    The oid is XML attribute of this object instead of
+	                    element because it has special purpose of identifying
+	                    the object. It is also immutable, therefore we do not
+	                    need to handle changes to it.
+                    </p>
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
@@ -557,15 +433,20 @@
         <xsd:attribute name="version" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                    Version for optimistic locking.
-
-                    Contains the version in which this object was read from the
-                    repository, fetched from the resource, etc.
-
-                    Type of the version attribute is string, not integer to provide
-                    flexibility for various versioning schemes in implementation
-                    (e.g. ETags). The type really does not matter, the only
-                    things that matters is if the version is the same or different.
+                	<p>
+	                    Object version for the purposes of optimistic locking, cache
+	                    coherency, etc.
+                    </p>
+					<p>
+	                    Contains the version in which this object was read from the
+	                    repository, fetched from the resource, etc.
+                    </p>
+					<p>
+	                    Type of the version attribute is string, not integer to provide
+	                    flexibility for various versioning schemes in implementation
+	                    (e.g. ETags). The type really does not matter, the only
+	                    things that matters is if the version is the same or different.
+                    </p>
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
@@ -577,8 +458,10 @@
     <xsd:complexType name="ObjectReferenceType">
         <xsd:annotation>
             <xsd:documentation>
-                Reference to an object. It contains OID of the object that it
-                refers to.
+            	<p>
+	                Reference to an object. It contains OID of the object that it
+	                refers to.
+                </p>
             </xsd:documentation>
             <xsd:appinfo>
             	<a:objectReference/>
@@ -589,9 +472,12 @@
             <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
 			    <xsd:annotation>
 			        <xsd:documentation>
-			            Filter that can be used to dynamically lookup the reference OID e.g. during imports.
-			            It must not be used for normal operations and references with the filter must not
-			            be stored in the repository.
+			        	<p>
+				            Filter that can be used to dynamically lookup the reference OID e.g. during imports.
+				            It must not be used for normal operations. The filter may be stored in the repository
+				            to avoid data loss. But even if it is stored it will not be used beyond initial
+				            import or unless explicitly requested.
+			            </p>
 			        </xsd:documentation>
 			    </xsd:annotation>
             </xsd:element>
@@ -599,33 +485,38 @@
         <xsd:attribute name="oid" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                    Target of the reference.
-
-                    Optional only during imports. The objects stored in the repository must have the OID
-                    value filled in.
+                	<p>
+	                    Target of the reference.
+                    </p>
+					<p>
+	                    Optional only during imports. The objects stored in the repository must have the OID
+	                    value filled in.
+                    </p>
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="type" type="xsd:QName" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                    XSD type of the reference target object.
-
-                    It should be provided if the type is known (e.g. when
-                    reading object from the repository).
-
-                    The primary reason for this is to have some kind of
-                    type safety but especially to be able to use
-                    this in the XPaths that specify what references to resolve.
+                	<p>
+                    	Type of the reference target object.
+                    </p>
+					<p>
+	                    It has to be provided unless the schema explicitly defines
+	                    a non-polymorphic type for the reference target type. 
+                    </p>
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="relation" type="xsd:QName" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                    The relation or a "role" of this reference. It may further specify
-                    the meaning of the reference. E.g. it may specify whether the objects
-                    linked by the reference are analogous, form a composition, aggregation, etc.
+                	<p>
+	                    The relation or a "role" of this reference. It may further specify
+	                    the meaning of the reference. E.g. it may specify whether the objects
+	                    linked by the reference are analogous, form a composition, aggregation, 
+	                    are mebers of the org or managers of the org, etc.
+                    </p>
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
@@ -7467,12 +7358,30 @@
     <xsd:complexType name="OrgType">
         <xsd:annotation>
             <xsd:documentation>
-            	Organizational unit, division, section, object gropup, team or any other form of
-            	organizing things and/or people.
-            	
-            	OrgType is also a role (RoleType). This feature may not be used for majority of
-            	OrgType instances. But it is very useful if membership in an org unit automatically
-            	grants some accounts or roles.
+            	<p>
+	            	Organizational unit, division, section, object gropup, team, project or any other form of
+	            	organizing things and/or people. The OrgType objects are designed to form a hierarchical
+	            	organizational structure (or rather several parallel organizational structures).
+            	</p>
+            	<p>
+            		Orgs are designed for grouping of objects. Orgs usually group users, but they can group any kind
+            		of objects (roles, policies, resources, etc.) This can be used to create a flexible delegated
+            		administration setup.
+            	</p>
+            	<p>
+            		See <a href="https://wiki.evolveum.com/display/midPoint/Organizational+Structure">Organizational Structure</a>
+            		in midPoint wiki for a general introduction to the concepts.
+            	</p>
+            	<p>
+            		The OrgType is also used as a focal object for generic synchronization. In that case the Orgs can correspond
+            		to LDAP OUs or groups or any similar resource objects.
+            	</p>
+            	<p>
+	            	OrgType is also a role (RoleType). This feature may not be used for majority of
+	            	OrgType instances. But it is very useful if membership in an org unit automatically
+	            	grants some accounts or roles. Although roles and orgs are very similar there is one principal
+	            	difference: Orgs are designed for grouping, roles are designed for flexible policy definition.
+            	</p>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -7482,7 +7391,26 @@
                     <xsd:element name="orgType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Type of the org. This may specify whether it is department, division, project, team, ...
+                            	<p>
+                                	Type of the organizational tree. It is used to distinguish what a specific
+                                	Org represents. Whether it is a functional organizational unit, project, team,
+                                	etc. 
+                                </p>
+                                <p>
+                                	It is generally assumed that all Org objects in the same tree will have
+                                	the same value of this property. Although this is not a strict requirement
+                                	the operation in the scripting libraries and some pre-defined structures
+                                	work with this assumption. 
+                                </p>
+                                <p>
+                                Examples:
+                                    <ul>
+                                        <li>functional</li>
+                                        <li>project</li>
+                                        <li>team</li>
+                                        <li>realm</li>
+                                    </ul>
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Type</a:displayName>
@@ -7494,9 +7422,11 @@
 					<xsd:element name="tenant" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Flag indicating whether this object is a tenant or not. Tenants are top-level
-                                organizational units of organizational structures that are designed to be independent
-                                of one another. It represents a "customer" is service provider environment.
+                            	<p>
+	                                Flag indicating whether this object is a tenant or not. Tenants are top-level
+	                                organizational units of organizational structures that are designed to be independent
+	                                of one another. It represents a "customer" is service provider environment.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Is tenant</a:displayName>
@@ -7508,7 +7438,9 @@
                     <xsd:element name="costCenter" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The name of the cost center that applies to this org.
+                            	<p>
+                                	The name, identifier or code of the cost center that applies to this org.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Cost Center</a:displayName>
@@ -7520,10 +7452,12 @@
                     <xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Primary locality of the org, the place where
-                                the org is usually placed, the country, city or
-                                building that it belongs to. The specific meaning
-                                and form of this property is deployment-specific.
+                            	<p>
+	                                Primary locality of the org, the place where
+	                                the org is usually placed, the country, city or
+	                                building that it belongs to. The specific meaning
+	                                and form of this property is deployment-specific.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Locality</a:displayName>
@@ -7535,7 +7469,9 @@
                     <xsd:element name="mailDomain" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Domain part of RFC822 e-mail address that applies to this organization.
+                            	<p>
+                                	Domain part of RFC822 e-mail address that applies to this organization.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Mail Domain</a:displayName>
@@ -7547,12 +7483,14 @@
                     <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The content of this property specifies an order in which the organization
-                                should be displayed relative to other organizations at the same level.
-                                Organizations will be displayed by sorting them by the values of displayOrder
-                                property (ascending). These that do not have any displayOrder annotation
-                                will be displayed last. Organizations with the same displayOrder
-                                are displayed in alphabetic order.
+                            	<p>
+	                                The content of this property specifies an order in which the organization
+	                                should be displayed relative to other organizations at the same level.
+	                                Organizations will be displayed by sorting them by the values of displayOrder
+	                                property (ascending). These that do not have any displayOrder annotation
+	                                will be displayed last. Organizations with the same displayOrder
+	                                are displayed in alphabetic order.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Display Order</a:displayName>
@@ -7564,9 +7502,9 @@
                     <xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Reference to the password policy settings which will be used for generate/validate password for this organization.
-
-                                TODO: better documentation
+                            	<p>
+                                	Reference to the password policy settings which will be used for generate/validate password for this organization.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
