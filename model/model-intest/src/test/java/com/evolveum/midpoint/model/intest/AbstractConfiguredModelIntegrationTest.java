@@ -349,6 +349,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final QName PIRACY_FUNERAL_TIMESTAMP = new QName(NS_PIRACY, "funeralTimestamp");
 	protected static final QName PIRACY_SEA_QNAME = new QName(NS_PIRACY, "sea");
 	protected static final QName PIRACY_COLORS = new QName(NS_PIRACY, "colors");
+	protected static final QName PIRACY_MARK = new QName(NS_PIRACY, "mark");
 
     protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = new ItemPath(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
 

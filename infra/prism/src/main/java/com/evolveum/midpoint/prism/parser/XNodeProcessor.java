@@ -449,7 +449,7 @@ public class XNodeProcessor {
         if (prismContext.getBeanConverter().canProcess(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE) && !typeName.equals(ItemPathType.COMPLEX_TYPE)) {
             // Primitive elements may also have complex Java representations (e.g. enums)
             return prismContext.getBeanConverter().unmarshallPrimitive(xprim, typeName);
-        } else if (def != null && def.isRuntimeSchema() && def.getAllowedValues() != null && def.getAllowedValues().length > 0){
+        } else if (def != null && def.isRuntimeSchema() && def.getAllowedValues() != null && def.getAllowedValues().size() > 0){
         	//TODO: ugly hack to support enum in extension schemas --- need to be fixed
         	
         		realValue = xprim.getParsedValue(DOMUtil.XSD_STRING);
@@ -479,9 +479,9 @@ public class XNodeProcessor {
         return realValue;
     }
     
-    private <T> boolean isAllowed(T realValue, Object[] allowedValues){
-    	for (Object o : allowedValues){
-    		if (realValue.equals(((DisplayableValue)o).getValue())){
+    private <T> boolean isAllowed(T realValue, Collection<DisplayableValue<T>> collection){
+    	for (DisplayableValue<T> o : collection){
+    		if (realValue.equals(o.getValue())){
     			return true;
     		}
     	}
