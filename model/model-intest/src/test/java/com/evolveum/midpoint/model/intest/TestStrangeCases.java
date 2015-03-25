@@ -757,7 +757,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
      * Guybrush has stored mark "bravery". Change schema so this value becomes illegal.
      * They try to read it.
      */
-    @Test(enabled=false) // MID-2260
+    @Test // MID-2260
     public void test510EnumerationGetBad() throws Exception {
 		final String TEST_NAME = "test510EnumerationGetBad";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -786,7 +786,47 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
         
         PrismProperty<String> markProp = user.findProperty(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
-        assertEquals("Bad mark", "bravery", markProp.getRealValue());
+        assertEquals("Bad mark", null, markProp.getRealValue());
+    }
+    
+    /**
+     * Store value in extension/ship. Then remove extension/ship definition from the schema.
+     * The next read should NOT fail.
+     */
+    @Test
+    public void test520ShipReadBad() throws Exception {
+		final String TEST_NAME = "test520ShipReadBad";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_SHIP), 
+        		task, result, "The Pink Lady");
+        result.computeStatus();
+        assertSuccess(result);
+        
+        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismContainerDefinition<?> extensionDefinition = userDef.getExtensionDefinition();
+        List<? extends ItemDefinition> extensionDefs = extensionDefinition.getComplexTypeDefinition().getDefinitions();
+        Iterator<? extends ItemDefinition> iterator = extensionDefs.iterator();
+        while (iterator.hasNext()) {
+        	ItemDefinition itemDefinition = iterator.next();
+        	if (itemDefinition.getName().equals(PIRACY_SHIP)) {
+        		iterator.remove();
+        	}
+        }
+        
+        // WHEN
+        PrismObject<UserType> user = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        assertSuccess(result);        
     }
     
 	private <O extends ObjectType, T> void assertExtension(PrismObject<O> object, QName propName, T... expectedValues) {
