@@ -766,6 +766,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             ContainerDelta containerDelta = (ContainerDelta) delta;
 
             if (containerDelta.getValuesToDelete() != null) {
+                // todo do 'bulk' delete like delete from ... where oid=? and id in (...)
                 for (PrismContainerValue value : (Collection<PrismContainerValue>) containerDelta.getValuesToDelete()) {
                     Query query = session.getNamedQuery("delete.lookupTableDataRow");
                     query.setString("oid", tableOid);
