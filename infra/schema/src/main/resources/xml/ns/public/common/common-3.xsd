@@ -8664,6 +8664,7 @@
                     <xsd:element name="maxHistory" type="xsd:int"/>
                     <xsd:element name="maxFileSize" type="xsd:string"/>
                     <xsd:element name="append" type="xsd:boolean"/>
+                    <xsd:element name="cleanHistoryOnStart" type="xsd:boolean" minOccurs="0" default="false"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
