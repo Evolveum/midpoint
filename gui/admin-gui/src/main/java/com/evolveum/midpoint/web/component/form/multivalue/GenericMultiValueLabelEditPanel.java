@@ -16,14 +16,10 @@
 
 package com.evolveum.midpoint.web.component.form.multivalue;
 
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -40,41 +36,47 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 
 /**
- *  TODO - not finished, work in progress
+ *  This is a generic component that server to edit various types
+ *  of Serializable objects in GUI. It is aimed for multi-value
+ *  objects and it requires to add custom modal window as an
+ *  editor for object.
+ *
  *  @author shood
  * */
-public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<List<T>>{
+public class GenericMultiValueLabelEditPanel <T extends Serializable> extends SimplePanel<List<T>>{
 
-    private static final Trace LOGGER = TraceManager.getTrace(MultiValueChoosePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(GenericMultiValueLabelEditPanel.class);
 
     private static final String ID_LABEL = "label";
     private static final String ID_REPEATER = "repeater";
     private static final String ID_TEXT_WRAPPER = "textWrapper";
     private static final String ID_TEXT = "text";
     private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_ADD_FIRST_CONTAINER = "addFirstContainer";
+    private static final String ID_ADD_FIRST = "addFirst";
     private static final String ID_ADD = "add";
     private static final String ID_REMOVE = "remove";
     private static final String ID_BUTTON_GROUP = "buttonGroup";
     private static final String ID_EDIT = "edit";
 
-    protected static final String MODAL_ID_CHOOSE_PANEL = "showPopup";
+    protected static final String ID_MODAL_EDITOR = "modalEditor";
 
     private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
-    public MultiValueChoosePanel(String id, IModel<List<T>> value, IModel<String> label, String labelSize,
-                                 String textSize, boolean required, Class<T> type){
+    public GenericMultiValueLabelEditPanel(String id, IModel<List<T>> value, IModel<String> label,
+                                           String labelSize, String textSize){
         super(id, value);
         setOutputMarkupId(true);
 
-        initLayout(label, labelSize, textSize, required, type);
+        initLayout(label, labelSize, textSize);
     }
 
-    private void initLayout(final IModel<String> label, final String labelSize, final String textSize,
-                            final boolean required, Class<T> type){
+    private void initLayout(final IModel<String> label, final String labelSize, final String textSize){
 
         Label l = new Label(ID_LABEL, label);
 
@@ -82,6 +84,27 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
             l.add(AttributeAppender.prepend("class", labelSize));
         }
         add(l);
+
+        WebMarkupContainer addFirstContainer = new WebMarkupContainer(ID_ADD_FIRST_CONTAINER);
+        addFirstContainer.setOutputMarkupId(true);
+        addFirstContainer.setOutputMarkupPlaceholderTag(true);
+        addFirstContainer.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return getModelObject().isEmpty();
+            }
+        });
+        add(addFirstContainer);
+
+        AjaxLink addFirst = new AjaxLink(ID_ADD_FIRST) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addFirstPerformed(target);
+            }
+        };
+        addFirstContainer.add(addFirst);
 
         ListView repeater = new ListView<T>(ID_REPEATER, getModel()) {
 
@@ -110,7 +133,6 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
                     @Override
                     protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {}
                 });
-                text.setRequired(required);
                 text.setEnabled(false);
                 text.add(AttributeAppender.replace("placeholder", label));
                 text.setLabel(label);
@@ -136,7 +158,7 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        editValuePerformed(target);
+                        editValuePerformed(target, listItem.getModel());
                     }
                 };
                 textWrapper.add(edit);
@@ -147,29 +169,15 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
             }
         };
 
-        initDialog(type);
+        initDialog();
         add(repeater);
     }
 
-    protected void initDialog(Class<T> type){
-        ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_CHOOSE_PANEL, type){
-
-            @Override
-            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
-                choosePerformed(target, (T)object);
-            }
-
-            @Override
-            protected ObjectQuery getDataProviderQuery(){
-                return createChooseQuery();
-            }
-        };
-        add(dialog);
-    }
-
-    protected ObjectQuery createChooseQuery(){
-        return null;
-    }
+    /**
+     *  Override to provide a dialog that serves to edit
+     *  the object
+     * */
+    protected void initDialog(){}
 
     /**
      * @return css class for off-setting other values (not first, left to the first there is a label)
@@ -241,12 +249,10 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
         return false;
     }
 
-    protected void editValuePerformed(AjaxRequestTarget target){
-        ModalWindow window = (ModalWindow) get(MODAL_ID_CHOOSE_PANEL);
-        ChooseTypeDialog dialog = (ChooseTypeDialog)window;
-        dialog.updateTablePerformed(target, createChooseQuery());
-        window.show(target);
-    }
+    /**
+     *  Override to provide call-back to edit button click event
+     * */
+    protected void editValuePerformed(AjaxRequestTarget target, IModel<T> rowModel){}
 
     protected boolean isRemoveButtonVisible() {
         int size = getModelObject().size();
@@ -264,44 +270,22 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
         target.add(this);
     }
 
-    protected T createNewEmptyItem() {
-        return null;
-    }
-
-    /*
-     * TODO - this method contains check, if chosen object already is not in selected values array
-     *  This is a temporary solution until we well be able to create "already-chosen" query
-     *
-     */
-    protected void choosePerformed(AjaxRequestTarget target, T object){
-        choosePerformedHook(target, object);
-        ModalWindow window = (ModalWindow)get(MODAL_ID_CHOOSE_PANEL);
-        window.close(target);
-
-        if(isObjectUnique(object)){
-            replaceIfEmpty(object);
-        }
-
-        if(LOGGER.isTraceEnabled()){
-            LOGGER.trace("New object instance has been added to the model.");
-        }
+    /**
+     *  Override to provide a special handling for addition of first
+     *  value to attribute.
+     * */
+    protected void addFirstPerformed(AjaxRequestTarget target){
+        List<T> objects = getModelObject();
+        objects.add(createNewEmptyItem());
 
         target.add(this);
     }
 
-    protected void replaceIfEmpty(Object object){
-        List<T> objects = getModelObject();
-        objects.add((T)object);
-    }
-
-    protected boolean isObjectUnique(Object object){
-
-        for(T o: getModelObject()){
-            if(o.equals(object)){
-                return false;
-            }
-        }
-        return true;
+    /**
+     *  Override to provide creation of a new empty item
+     * */
+    protected T createNewEmptyItem() {
+        return null;
     }
 
     protected void removeValuePerformed(AjaxRequestTarget target, ListItem<T> item) {
@@ -316,16 +300,11 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
             }
         }
 
-        if(objects.size() == 0){
-            objects.add(createNewEmptyItem());
-        }
-
         target.add(this);
     }
 
-    /**
-     *  A custom code in form of hook that can be run on event of
-     *  choosing new object with this chooser component
-     * */
-    protected void choosePerformedHook(AjaxRequestTarget target, T object){}
+    public void closeModalWindow(AjaxRequestTarget target){
+        ModalWindow window = (ModalWindow) get(ID_MODAL_EDITOR);
+        window.close(target);
+    }
 }
