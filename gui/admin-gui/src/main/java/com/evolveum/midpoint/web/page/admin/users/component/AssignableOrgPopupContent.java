@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.extensions.ajax.markup.html.tabs.AjaxTabbedPanel;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -74,7 +75,7 @@ public class AssignableOrgPopupContent extends AssignablePopupContent{
 	         }
 	     };
 
-	     TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(0));
+	     AjaxTabbedPanel tabbedPanel = new AjaxTabbedPanel(ID_TABS, tabModel.getObject(), new Model<>(0));
 	     tabbedPanel.setOutputMarkupId(true);
 	     
 //	     add(tabbedPanel);
@@ -129,12 +130,12 @@ public class AssignableOrgPopupContent extends AssignablePopupContent{
 	 
 	 @Override
 	protected Panel getTablePanel() {
-		return (TabbedPanel) get(ID_TABS);
+		return (AjaxTabbedPanel) get(ID_TABS);
 	}
 	 
 	 public List<ObjectType> getSelectedObjects(){
 		 List<ObjectType> selected = new ArrayList<>();
-		TabbedPanel orgPanel = (TabbedPanel) getTablePanel();
+		 AjaxTabbedPanel orgPanel = (AjaxTabbedPanel) getTablePanel();
 		 OrgTreeTablePannel orgPanels = (OrgTreeTablePannel) orgPanel.get("panel");
      	List<OrgTableDto> orgs = orgPanels.getSelectedOrgs();
      	for (OrgTableDto org : orgs){
@@ -148,7 +149,7 @@ public class AssignableOrgPopupContent extends AssignablePopupContent{
 		 
 		         this.type = type;
 		 
-		         TabbedPanel table = (TabbedPanel) getTablePanel();
+		         AjaxTabbedPanel table = (AjaxTabbedPanel) getTablePanel();
 		         if (table != null) {
 ////		             ObjectDataProvider provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
 ////		             provider.setType(type);
