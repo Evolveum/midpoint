@@ -171,5 +171,20 @@
 		   <artifactId>cxf-rt-rs-client</artifactId>
 		</dependency>
 	</dependencies>
-  
+  	<profiles>
+		<profile>
+			<id>extratest</id>
+			<build>
+				<plugins>
+					<plugin>
+					  <artifactId>maven-surefire-plugin</artifactId>
+					  <configuration>
+					    <skip>false</skip>
+                        <argLine>-XX:MaxPermSize=256m</argLine>
+					  </configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
