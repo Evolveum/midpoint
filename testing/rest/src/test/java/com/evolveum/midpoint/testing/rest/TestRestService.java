@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2013-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.testing.rest;
 
 
@@ -88,11 +103,11 @@ public class TestRestService {
          provisioning = (ProvisioningServiceImpl) applicationContext.getBean("provisioningService");
         
          PrismContext prismContext = (PrismContext) applicationContext.getBean("prismContext");
-         PrismObject<UserType> admin = prismContext.getPrismDomProcessor().parseObject(new File(USER_ADMINISTRATOR_FILENAME));
+         PrismObject<UserType> admin = prismContext.parseObject(new File(USER_ADMINISTRATOR_FILENAME));
          OperationResult parentResult = new OperationResult("add");
          repositoryService.addObject(admin, RepoAddOptions.createAllowUnencryptedValues(), parentResult);
      
-         PrismObject<UserType> sysConfig = prismContext.getPrismDomProcessor().parseObject(new File(SYSTEM_CONFIGURATION_FILENAME));
+         PrismObject<UserType> sysConfig = prismContext.parseObject(new File(SYSTEM_CONFIGURATION_FILENAME));
          repositoryService.addObject(sysConfig, RepoAddOptions.createAllowUnencryptedValues(), parentResult);
 	}
 	 
@@ -123,19 +138,11 @@ public class TestRestService {
 		  assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 		  UserType userType = response.readEntity(UserType.class);
 		  assertNotNull("Returned entity in body must not be null.", userType);
-		  LOGGER.info("Returned entity: {}", userType.asPrismObject().dump());
-	}
+		  LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+	}		
 	
 	@Test
-	public void test002getNonExistingUser(){
-		displayTestTile(this, "test002getNonExistingUser");
-		
-		WebClient client = prepareClient(true);
-		
-		client.path("/users/12345");
-	
-	@Test
-	public void test002getNonExistingUser(){
+	public void test002getNonExistingUser() {
 		displayTestTile(this, "test002getNonExistingUser");
 		
 		WebClient client = prepareClient(true);
