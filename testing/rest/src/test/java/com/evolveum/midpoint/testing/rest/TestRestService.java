@@ -30,6 +30,7 @@ import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.transport.local.LocalConduit;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,6 +41,8 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -50,9 +53,13 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -61,24 +68,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRestService {
 	
-	private static final String REPO_DIR_NAME = "src/test/resources/repo/";
+	private static final File REPO_DIR = new File("src/test/resources/repo/");
 	
-	public static final String USER_ADMINISTRATOR_FILENAME = REPO_DIR_NAME + "user-administrator.xml";
+	public static final File USER_ADMINISTRATOR_FILE = new File(REPO_DIR, "user-administrator.xml");
+	public static final File ROLE_SUPERUSER_FILE = new File(REPO_DIR, "role-superuser.xml");
 	
-	public static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "reosurce-opendj.xml";
-	public static final String RESOURCE_OPENDJ_OID = REPO_DIR_NAME + "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	public static final File RESOURCE_OPENDJ_FILE = new File(REPO_DIR, "reosurce-opendj.xml");
+	public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	
-	public static final String USER_TEMPLATE_FILENAME = REPO_DIR_NAME + "user-template.xml";
-	public static final String USER_TEMPLATE_OID = REPO_DIR_NAME + "c0c010c0-d34d-b33f-f00d-777111111111";
+	public static final File USER_TEMPLATE_FILE = new File(REPO_DIR, "user-template.xml");
+	public static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
 	
-	public static final String ACCOUT_CHUCK_FILENAME = REPO_DIR_NAME + "account-chuck.xml";
-	public static final String ACCOUT_CHUCK_OID = REPO_DIR_NAME + "a0c010c0-d34d-b33f-f00d-111111111666";
+	public static final File ACCOUT_CHUCK_FILE = new File(REPO_DIR, "account-chuck.xml");
+	public static final String ACCOUT_CHUCK_OID = REPO_DIR + "a0c010c0-d34d-b33f-f00d-111111111666";
 	
-	public static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
+	public static final File SYSTEM_CONFIGURATION_FILE = new File(REPO_DIR, "system-configuration.xml");
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestRestService.class);
 	
 	private final static String ENDPOINT_ADDRESS = "http://localhost:8080/rest";
+	
+	private static TaskManager taskManager;
+	private static ModelService modelService;
+	
 	private static Server server;
 	
 	private static RepositoryService repositoryService;
@@ -100,15 +112,28 @@ public class TestRestService {
 	     server = sf.create();
 	     
 	     repositoryService = (SqlRepositoryServiceImpl) applicationContext.getBean("repositoryService");
-         provisioning = (ProvisioningServiceImpl) applicationContext.getBean("provisioningService");
+        provisioning = (ProvisioningServiceImpl) applicationContext.getBean("provisioningService");
+        taskManager = (TaskManager) applicationContext.getBean("taskManager");
+        modelService = (ModelService) applicationContext.getBean("modelController");
+
+        Task initTask = taskManager.createTaskInstance(TestRestService.class.getName() + ".startServer");
+        OperationResult result = initTask.getResult();
+
+        PrismContext prismContext = (PrismContext) applicationContext.getBean("prismContext");
+        PrismObject<RoleType> superuser = prismContext.parseObject(ROLE_SUPERUSER_FILE);
+        repositoryService.addObject(superuser, null, result);
+        PrismObject<UserType> admin = prismContext.parseObject(USER_ADMINISTRATOR_FILE);
+        repositoryService.addObject(admin, RepoAddOptions.createAllowUnencryptedValues(), result);
+    
+        PrismObject<UserType> sysConfig = prismContext.parseObject(SYSTEM_CONFIGURATION_FILE);
+        repositoryService.addObject(sysConfig, RepoAddOptions.createAllowUnencryptedValues(), result);
         
-         PrismContext prismContext = (PrismContext) applicationContext.getBean("prismContext");
-         PrismObject<UserType> admin = prismContext.parseObject(new File(USER_ADMINISTRATOR_FILENAME));
-         OperationResult parentResult = new OperationResult("add");
-         repositoryService.addObject(admin, RepoAddOptions.createAllowUnencryptedValues(), parentResult);
-     
-         PrismObject<UserType> sysConfig = prismContext.parseObject(new File(SYSTEM_CONFIGURATION_FILENAME));
-         repositoryService.addObject(sysConfig, RepoAddOptions.createAllowUnencryptedValues(), parentResult);
+        InternalMonitor.reset();
+        
+        modelService.postInit(result);
+        
+        result.computeStatus();
+        TestUtil.assertSuccessOrWarning("startServer failed (result)", result, 1);
 	}
 	 
 	 
@@ -126,19 +151,22 @@ public class TestRestService {
 
 	
 	@Test
-	public void test001getUserAdministrator(){
-		displayTestTile(this, "test001getUserAdministrator");
+	public void test001getUserAdministrator() {
+		final String TEST_NAME = "test001getUserAdministrator";
+		displayTestTile(this, TEST_NAME);
 		
 		WebClient client = prepareClient(true);
 		
 		client.path("/users/"+ SystemObjectsType.USER_ADMINISTRATOR.value());
-		  
-		  Response response = client.get();
-		  
-		  assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
-		  UserType userType = response.readEntity(UserType.class);
-		  assertNotNull("Returned entity in body must not be null.", userType);
-		  LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+			
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+		
+		TestUtil.displayThen(TEST_NAME);  
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		UserType userType = response.readEntity(UserType.class);
+		assertNotNull("Returned entity in body must not be null.", userType);
+		LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
 	}		
 	
 	@Test
@@ -181,7 +209,7 @@ public class TestRestService {
 		  client.query("options", "override");
 		 
 		  LOGGER.info("post starting");
-		  Response response = client.post(new File(SYSTEM_CONFIGURATION_FILENAME));
+		  Response response = client.post(SYSTEM_CONFIGURATION_FILE);
 		  LOGGER.info("post end");
 //		  Response response = client.get();
 		  LOGGER.info("response : {} ", response.getStatus());
@@ -205,7 +233,7 @@ public class TestRestService {
 	  client.path("/objectTemplates");
 	 
 	  LOGGER.info("post starting");
-	  Response response = client.post(new File(USER_TEMPLATE_FILENAME));
+	  Response response = client.post(USER_TEMPLATE_FILE);
 	  LOGGER.info("post end");
 	  LOGGER.info("response : {} ", response.getStatus());
 	  LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
@@ -224,7 +252,7 @@ public class TestRestService {
 	  client.path("/objectTemplates");
 	 
 	  LOGGER.info("post starting");
-	  Response response = client.post(new File(USER_ADMINISTRATOR_FILENAME));
+	  Response response = client.post(USER_ADMINISTRATOR_FILE);
 	  LOGGER.info("post end");
 	  LOGGER.info("response : {} ", response.getStatus());
 	  LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
@@ -244,7 +272,7 @@ public class TestRestService {
 	  client.query("options", "raw");
 	 
 	  LOGGER.info("post starting");
-	  Response response = client.post(new File(ACCOUT_CHUCK_FILENAME));
+	  Response response = client.post(ACCOUT_CHUCK_FILE);
 	  LOGGER.info("post end");
 	  LOGGER.info("response : {} ", response.getStatus());
 	  LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
