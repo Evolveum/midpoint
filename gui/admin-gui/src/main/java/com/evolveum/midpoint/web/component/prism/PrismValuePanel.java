@@ -487,7 +487,7 @@ public class PrismValuePanel extends Panel {
 //    	
 //    	return ((clazz != null && clazz.isEnum()) || ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName()) 
 //    	 || ActivationType.F_LOCKOUT_STATUS.equals(definition.getName()) || );
-    	return (definition.getAllowedValues() != null && definition.getAllowedValues().length > 0);
+    	return (definition.getAllowedValues() != null && definition.getAllowedValues().size() > 0);
     }
     //TODO - try to get rid of <br> attributes when creating new lines in association attributes pop-up
     private String createAssociationTooltipText(PrismProperty property){

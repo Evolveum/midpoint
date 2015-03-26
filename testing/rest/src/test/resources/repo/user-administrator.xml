@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 <c:user oid="00000000-0000-0000-0000-000000000002" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 	<c:name>administrator</c:name>
+	<c:assignment>
+		<c:targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
+	</c:assignment>
 	<c:fullName>midPoint Administrator</c:fullName>
 	<c:givenName>midPoint</c:givenName>
 	<c:familyName>Administrator</c:familyName>

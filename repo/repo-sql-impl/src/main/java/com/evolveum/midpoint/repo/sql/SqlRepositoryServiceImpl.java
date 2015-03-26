@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.NoneFilter;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
@@ -63,6 +65,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
+
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -957,7 +960,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             cleanupSessionAndResult(session, result);
         }
 
-        return new SearchResultList(list);
+        return new SearchResultList<PrismObject<T>>(list);
     }
 
     /**
@@ -970,7 +973,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         String xml = RUtil.getXmlFromByteArray(result.getFullObject(), getConfiguration().isUseZip());
         PrismObject<T> prismObject;
         try {
-            prismObject = getPrismContext().parseObject(xml);
+        	// "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
+            prismObject = getPrismContext().parseObject(xml, XNodeProcessorEvaluationMode.COMPAT);
         } catch (SchemaException e) {
             LOGGER.debug("Couldn't parse object because of schema exception ({}):\nObject: {}", e, xml);
             throw e;

@@ -223,7 +223,7 @@ public final class WebMiscUtil {
 			public List<DisplayableValue> getObject() {
 				List<DisplayableValue> values = null;
 				if (def.getAllowedValues() != null){
-					values = new ArrayList<>(def.getAllowedValues().length);
+					values = new ArrayList<>(def.getAllowedValues().size());
 					for (Object v : def.getAllowedValues()){
 						if (v instanceof DisplayableValue){
 							values.add(((DisplayableValue) v));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
@@ -41,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDef
 /**
  * @author semancik
  */
-public class RefinedAttributeDefinition extends ResourceAttributeDefinition implements DebugDumpable {
+public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T> implements DebugDumpable {
 
 	private static LayerType DEFAULT_LAYER = LayerType.MODEL;
 	
@@ -52,7 +54,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 	protected boolean secondaryIdentifier = false;
     private List<String> intolerantValuePattern;
     private List<String> tolerantValuePattern;
-    private ResourceAttributeDefinition attributeDefinition;
+    private ResourceAttributeDefinition<T> attributeDefinition;
     private AttributeFetchStrategyType fetchStrategy;
     private MappingType outboundMappingType;
     private List<MappingType> inboundMappingTypes;
@@ -61,7 +63,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private Integer modificationPriority;
     private Boolean readReplaceMode;
 
-    protected RefinedAttributeDefinition(ResourceAttributeDefinition attrDef, PrismContext prismContext) {
+    protected RefinedAttributeDefinition(ResourceAttributeDefinition<T> attrDef, PrismContext prismContext) {
         super(attrDef.getName(), attrDef.getTypeName(), prismContext);
         this.attributeDefinition = attrDef;
     }
@@ -184,11 +186,11 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         this.description = description;
     }
 
-    public ResourceAttributeDefinition getAttributeDefinition() {
+    public ResourceAttributeDefinition<T> getAttributeDefinition() {
         return attributeDefinition;
     }
 
-    public void setAttributeDefinition(ResourceAttributeDefinition attributeDefinition) {
+    public void setAttributeDefinition(ResourceAttributeDefinition<T> attributeDefinition) {
         this.attributeDefinition = attributeDefinition;
     }
 
@@ -224,7 +226,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         return attributeDefinition.getNativeAttributeName();
     }
 
-    public Object[] getAllowedValues() {
+    public Collection<? extends DisplayableValue<T>> getAllowedValues() {
         return attributeDefinition.getAllowedValues();
     }
     
@@ -314,11 +316,11 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 	}
 
     // schemaHandlingAttrDefType may be null if we are parsing from schema only
-    static RefinedAttributeDefinition parse(ResourceAttributeDefinition schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
+    static <T> RefinedAttributeDefinition<T> parse(ResourceAttributeDefinition<T> schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
                                             ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext,
                                             String contextDescription) throws SchemaException {
 
-        RefinedAttributeDefinition rAttrDef = new RefinedAttributeDefinition(schemaAttrDef, prismContext);
+        RefinedAttributeDefinition<T> rAttrDef = new RefinedAttributeDefinition<T>(schemaAttrDef, prismContext);
 
         if (schemaHandlingAttrDefType != null && schemaHandlingAttrDefType.getDisplayName() != null) {
             rAttrDef.setDisplayName(schemaHandlingAttrDefType.getDisplayName());

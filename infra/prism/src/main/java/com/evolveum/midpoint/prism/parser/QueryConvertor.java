@@ -592,7 +592,7 @@ public class QueryConvertor {
 				ItemPath rest = itemPath.tail();
 				QName first = ItemPath.getName(itemPath.first());
 				itemDefinition = prismContext.getXnodeProcessor().locateItemDefinition(pcd, first, valueXnode);
-				if (rest.isEmpty()){
+				if (rest.isEmpty()) {
 					return itemDefinition;
 				} else{
 					if (itemDefinition != null && itemDefinition instanceof PrismContainerDefinition){

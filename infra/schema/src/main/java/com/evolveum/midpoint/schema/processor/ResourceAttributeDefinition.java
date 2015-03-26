@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  * @author Radovan Semancik
  * 
  */
-public class ResourceAttributeDefinition extends PrismPropertyDefinition {
+public class ResourceAttributeDefinition<T> extends PrismPropertyDefinition<T> {
 
 	private static final long serialVersionUID = 7092192397127114804L;
 	private String nativeAttributeName;
@@ -51,13 +51,13 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 		super(elementName, typeName, prismContext);
 	}
 
-	public ResourceAttribute instantiate() {
+	public ResourceAttribute<T> instantiate() {
 		return instantiate(getName());
 	}
 
-	public ResourceAttribute instantiate(QName name) {
+	public ResourceAttribute<T> instantiate(QName name) {
         name = addNamespaceIfApplicable(name);
-		return new ResourceAttribute(name, this, prismContext);
+		return new ResourceAttribute<T>(name, this, prismContext);
 	}
 
 	public Boolean getReturnedByDefault() {
@@ -88,7 +88,7 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 	}
 		
 	public boolean isIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
-		for (ResourceAttributeDefinition identifier : objectDefinition.getIdentifiers()) {
+		for (ResourceAttributeDefinition<T> identifier : objectDefinition.getIdentifiers()) {
 			if (this == identifier) {
 				return true;
 			}
@@ -97,7 +97,7 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 	}
 	
 	public boolean isSecondaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
-		for (ResourceAttributeDefinition secondaryIdentifier : objectDefinition.getSecondaryIdentifiers()) {
+		for (ResourceAttributeDefinition<T> secondaryIdentifier : objectDefinition.getSecondaryIdentifiers()) {
 			if (this == secondaryIdentifier) {
 				return true;
 			}
@@ -135,13 +135,13 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 	
 	
 	@Override
-	public ResourceAttributeDefinition clone() {
-		ResourceAttributeDefinition clone = new ResourceAttributeDefinition(getName(), getTypeName(), getPrismContext());
+	public ResourceAttributeDefinition<T> clone() {
+		ResourceAttributeDefinition<T> clone = new ResourceAttributeDefinition<T>(getName(), getTypeName(), getPrismContext());
 		copyDefinitionData(clone);
 		return clone;
 	}
 	
-	protected void copyDefinitionData(ResourceAttributeDefinition clone) {
+	protected void copyDefinitionData(ResourceAttributeDefinition<T> clone) {
 		super.copyDefinitionData(clone);
 		clone.nativeAttributeName = this.nativeAttributeName;
 		clone.returnedByDefault = this.returnedByDefault;

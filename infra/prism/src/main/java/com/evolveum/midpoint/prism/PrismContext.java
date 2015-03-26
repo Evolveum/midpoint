@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.parser.JsonParser;
 import com.evolveum.midpoint.prism.parser.Parser;
 import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.parser.YamlParser;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -237,6 +238,17 @@ public class PrismContext {
 		Parser parser = findParser(dataString);
 		XNode xnode = parser.parse(dataString);
 		return xnodeProcessor.parseObject(xnode);
+	}
+	
+	/**
+	 * Parses a string and creates a prism from it. Autodetect language. 
+	 * Used mostly for testing, but can also be used for built-in editors, etc.
+	 */
+	public <T extends Objectable> PrismObject<T> parseObject(String dataString, XNodeProcessorEvaluationMode mode) throws SchemaException {
+		Parser parser = findParser(dataString);
+		XNode xnode = parser.parse(dataString);
+		XNodeProcessor myXnodeProcessor = new XNodeProcessor(xnodeProcessor.getPrismContext(), mode);
+		return myXnodeProcessor.parseObject(xnode);
 	}
 	
 	/**
