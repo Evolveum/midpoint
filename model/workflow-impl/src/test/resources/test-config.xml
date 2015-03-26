@@ -34,41 +34,6 @@
             <jdbcUsername>sa</jdbcUsername>
             <jdbcPassword/>
             <!-- <autoDeploymentFrom>file:d:/midpoint/home/processes/*.bpmn20.xml</autoDeploymentFrom> -->
-            <changeProcessors>
-                <generalChangeProcessor>
-                    <enabled>true</enabled>
-                    <c:generalChangeProcessorConfiguration xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-                        <c:scenario>
-                            <c:name>primaryScenario</c:name>
-                            <c:activationCondition>
-                                <c:script><c:code>context.getState() == com.evolveum.midpoint.model.api.context.ModelState.PRIMARY</c:code></c:script>
-                            </c:activationCondition>
-                            <c:processName>MyGreatPrimaryProcess</c:processName>
-                        </c:scenario>
-                        <c:scenario>
-                            <c:name>secondaryScenario</c:name>
-                            <c:activationCondition>
-                                <c:script>
-                                    <c:code><![CDATA[
-                                        context.getState() == com.evolveum.midpoint.model.api.context.ModelState.SECONDARY &&
-                                        context.findProjectionContext(new com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator("10000000-0000-0000-0000-000000000004", com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT, null)) != null
-                                        ]]></c:code>
-                                </c:script>
-                            </c:activationCondition>
-                            <c:processName>ApprovingDummyResourceChangesProcess</c:processName>
-                            <c:beanName>approvingDummyResourceChangesScenarioBean</c:beanName>
-                        </c:scenario>
-                    </c:generalChangeProcessorConfiguration>
-                </generalChangeProcessor>
-                <primaryUserChangeProcessor>
-                    <enabled>true</enabled>
-                    <aspect>addRoleAssignmentAspect</aspect>
-                    <aspect>modifyRoleAssignmentAspect</aspect>
-                    <aspect>addResourceAssignmentAspect</aspect>
-                    <aspect>modifyResourceAssignmentAspect</aspect>
-                    <aspect>changePasswordAspect</aspect>
-                </primaryUserChangeProcessor>
-            </changeProcessors>
         </workflow>
         <audit>
             <auditService>

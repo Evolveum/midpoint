@@ -43,22 +43,20 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstr
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AbstractRoleAssignmentApprovalFormType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.ResourceAssignmentApprovalFormType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -81,29 +79,39 @@ public class AddResourceAssignmentAspect extends BasePrimaryChangeAspect {
     @Autowired
     private ItemApprovalProcessInterface itemApprovalProcessInterface;
 
+    @Override
+    public boolean isEnabledByDefault() {
+        return true;
+    }
+
     //region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
-        List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext, change, result);
+        if (!primaryChangeAspectHelper.isUserRelated(modelContext)) {
+            return null;
+        }
+        List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, change, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return null;
         }
         return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }
 
-    private List<ApprovalRequest<AssignmentType>> getApprovalRequests(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, OperationResult result) {
+    private List<ApprovalRequest<AssignmentType>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, OperationResult result) {
         if (change.getChangeType() == ChangeType.ADD) {
-            return getApprovalRequestsFromUserAdd(change, result);
+            return getApprovalRequestsFromUserAdd(wfConfigurationType, change, result);
         } else if (change.getChangeType() == ChangeType.MODIFY) {
-            return getApprovalRequestsFromUserModify(modelContext.getFocusContext().getObjectOld(), change, result);
+            return getApprovalRequestsFromUserModify(wfConfigurationType, modelContext.getFocusContext().getObjectOld(), change, result);
         }
         return null;
     }
 
     // we look for assignments of resources that should be approved
-    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromUserAdd(ObjectDelta<? extends ObjectType> change, OperationResult result) {
+    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromUserAdd(WfConfigurationType wfConfigurationType,
+                                                                                 ObjectDelta<? extends ObjectType> change,
+                                                                                 OperationResult result) {
         List<ApprovalRequest<AssignmentType>> approvalRequestList = new ArrayList<>();
         UserType user = (UserType) change.getObjectToAdd().asObjectable();
 
@@ -130,7 +138,7 @@ public class AddResourceAssignmentAspect extends BasePrimaryChangeAspect {
                 continue;
             }
             AssignmentType assignmentClone = cloneAndCanonicalizeAssignment(assignmentType);
-            approvalRequestList.add(createApprovalRequest(assignmentClone, resourceType));
+            approvalRequestList.add(createApprovalRequest(wfConfigurationType, assignmentClone, resourceType));
             assignmentTypeIterator.remove();
         }
         return approvalRequestList;
@@ -149,7 +157,10 @@ public class AddResourceAssignmentAspect extends BasePrimaryChangeAspect {
         return assignmentClone;
     }
 
-    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromUserModify(PrismObject<? extends ObjectType> userOld, ObjectDelta<? extends ObjectType> change, OperationResult result) {
+    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromUserModify(WfConfigurationType wfConfigurationType,
+                                                                                    PrismObject<? extends ObjectType> userOld,
+                                                                                    ObjectDelta<? extends ObjectType> change,
+                                                                                    OperationResult result) {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Resource-related assignments in user modify delta: ");
@@ -173,7 +184,7 @@ public class AddResourceAssignmentAspect extends BasePrimaryChangeAspect {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Assignment to add = {}", assignmentValue.debugDump());
                     }
-                    ApprovalRequest<AssignmentType> req = processAssignmentToAdd(assignmentValue, result);
+                    ApprovalRequest<AssignmentType> req = processAssignmentToAdd(wfConfigurationType, assignmentValue, result);
                     if (req != null) {
                         approvalRequestList.add(req);
                         valueIterator.remove();
@@ -190,7 +201,7 @@ public class AddResourceAssignmentAspect extends BasePrimaryChangeAspect {
                     if (existsEquivalentValue(userOld, assignmentValue)) {
                         continue;
                     }
-                    ApprovalRequest<AssignmentType> req = processAssignmentToAdd(assignmentValue, result);
+                    ApprovalRequest<AssignmentType> req = processAssignmentToAdd(wfConfigurationType, assignmentValue, result);
                     if (req != null) {
                         approvalRequestList.add(req);
                         valueIterator.remove();
@@ -218,7 +229,7 @@ public class AddResourceAssignmentAspect extends BasePrimaryChangeAspect {
         return false;
     }
 
-    private ApprovalRequest<AssignmentType> processAssignmentToAdd(PrismContainerValue<AssignmentType> assignmentCVal, OperationResult result) {
+    private ApprovalRequest<AssignmentType> processAssignmentToAdd(WfConfigurationType wfConfigurationType, PrismContainerValue<AssignmentType> assignmentCVal, OperationResult result) {
         if (assignmentCVal == null) {
             return null;
         }
@@ -240,13 +251,15 @@ public class AddResourceAssignmentAspect extends BasePrimaryChangeAspect {
         }
         AssignmentType assignmentClone = assignmentType.clone();
         PrismContainerValue.copyDefinition(assignmentClone, assignmentType);
-        return createApprovalRequest(assignmentClone, resourceType);
+        return createApprovalRequest(wfConfigurationType, assignmentClone, resourceType);
     }
 
     // creates an approval request for a given resource assignment
     // @pre there are approvers defined
-    private ApprovalRequest<AssignmentType> createApprovalRequest(AssignmentType a, ResourceType resourceType) {
-        return new ApprovalRequestImpl(a, null, resourceType.getBusiness().getApproverRef(), null, null, prismContext);
+    private ApprovalRequest<AssignmentType> createApprovalRequest(WfConfigurationType wfConfigurationType, AssignmentType a, ResourceType resourceType) {
+        PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(
+                wfConfigurationType, this);
+        return new ApprovalRequestImpl(a, config, null, resourceType.getBusiness().getApproverRef(), null, null, prismContext);
     }
 
     // @pre there is a construction with a resource ref

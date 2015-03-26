@@ -40,11 +40,32 @@ public class ApprovalRequestImpl<I extends Serializable> implements ApprovalRequ
 
     private ApprovalSchema approvalSchema;
 
-    public ApprovalRequestImpl(I itemToApprove, ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved, PrismContext prismContext) {
-
+    private ApprovalRequestImpl(I itemToApprove, PrismContext prismContext) {
         setPrismContext(prismContext);
         setItemToApprove(itemToApprove);
-        setApprovalSchema(new ApprovalSchemaImpl(approvalSchema, approverRef, approverExpression, automaticallyApproved, prismContext));
+    }
+
+    public ApprovalRequestImpl(I itemToApprove, PcpAspectConfigurationType config, PrismContext prismContext) {
+        this(itemToApprove, prismContext);
+        if (config != null) {
+            setApprovalSchema(new ApprovalSchemaImpl(config.getApprovalSchema(), config.getApproverRef(),
+                    config.getApproverExpression(), config.getAutomaticallyApproved(), prismContext));
+        }
+    }
+
+    public ApprovalRequestImpl(I itemToApprove, PcpAspectConfigurationType config, ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved, PrismContext prismContext) {
+        this(itemToApprove, prismContext);
+        if (config != null &&
+                (!config.getApproverRef().isEmpty() ||
+                config.getApprovalSchema() != null ||
+                !config.getApproverExpression().isEmpty() ||
+                config.getAutomaticallyApproved() != null)) {
+            setApprovalSchema(new ApprovalSchemaImpl(config.getApprovalSchema(), config.getApproverRef(),
+                    config.getApproverExpression(), config.getAutomaticallyApproved(), prismContext));
+        } else {
+            setApprovalSchema(new ApprovalSchemaImpl(approvalSchema, approverRef,
+                    approverExpression, automaticallyApproved, prismContext));
+        }
     }
 
     @Override

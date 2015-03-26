@@ -50,9 +50,6 @@ public class GcpConfigurationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(GcpConfigurationHelper.class);
 
-    private static final String KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION = "generalChangeProcessorConfiguration";
-    private static final List<String> LOCALLY_KNOWN_KEYS = Arrays.asList(KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION);
-
     @Autowired
     private BaseConfigurationHelper baseConfigurationHelper;
 
@@ -62,51 +59,4 @@ public class GcpConfigurationHelper {
     @Autowired
     private PrismContext prismContext;
 
-    GeneralChangeProcessorConfigurationType configure(GeneralChangeProcessor generalChangeProcessor) {
-        baseConfigurationHelper.configureProcessor(generalChangeProcessor, LOCALLY_KNOWN_KEYS);
-        if (generalChangeProcessor.isEnabled()) {
-            return readConfiguration(generalChangeProcessor);
-        } else {
-            return null;
-        }
-    }
-
-    private GeneralChangeProcessorConfigurationType readConfiguration(GeneralChangeProcessor generalChangeProcessor) {
-        String beanName = generalChangeProcessor.getBeanName();
-
-        String path = determineConfigurationPath(generalChangeProcessor);
-        LOGGER.info("Configuration path: " + path);
-
-        Document midpointConfig = midpointConfiguration.getXmlConfigAsDocument();
-        Validate.notNull(midpointConfig, "XML version of midPoint configuration couldn't be found");
-
-        XPath xpath = XPathFactory.newInstance().newXPath();
-        try {
-            Element processorConfig = (Element) xpath.evaluate(path + "/*[local-name()='" + KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION + "']", midpointConfig, XPathConstants.NODE);
-            if (processorConfig == null) {
-                throw new SystemException("There's no " + KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION + " element in " + beanName + " configuration.");
-            }
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("processor configuration = {}", DOMUtil.printDom(processorConfig));
-            }
-            try {
-                baseConfigurationHelper.validateElement(processorConfig);
-            } catch (SchemaException e) {
-                throw new SystemException("Schema validation failed for " + KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION + " element in " + beanName + " configuration: " + e.getMessage(), e);
-            }
-            return prismContext.parseAnyValue(processorConfig);
-        } catch (XPathExpressionException|SchemaException e) {
-            throw new SystemException("Couldn't read general workflow processor configuration in " + beanName, e);
-        }
-    }
-
-    // if this would not work, use simply "/configuration/midpoint/workflow/changeProcessors/generalChangeProcessor/" :)
-    private String determineConfigurationPath(GeneralChangeProcessor generalChangeProcessor) {
-        Configuration c = generalChangeProcessor.getProcessorConfiguration();
-        if (!(c instanceof SubsetConfiguration)) {
-            throw new IllegalStateException(generalChangeProcessor.getBeanName() + " configuration is not a subset configuration, it is " + c.getClass());
-        }
-        SubsetConfiguration sc = (SubsetConfiguration) c;
-        return "/*/" + sc.getPrefix().replace(".", "/");
-    }
 }

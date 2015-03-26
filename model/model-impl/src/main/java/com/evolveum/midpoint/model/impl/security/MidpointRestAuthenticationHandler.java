@@ -79,12 +79,14 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         
         if (policy == null){
         	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic").build());
+        	return;
         }
         
         String username = policy.getUserName();
         
         if (username == null){
         	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic").build());
+        	return;
         }
         
         

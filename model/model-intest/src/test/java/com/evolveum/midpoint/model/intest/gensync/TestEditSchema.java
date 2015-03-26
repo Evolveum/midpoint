@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest.gensync;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.TestModelServiceContract;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -47,7 +48,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -58,6 +59,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.util.Collection;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -72,7 +74,9 @@ import static org.testng.AssertJUnit.assertTrue;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestEditSchema extends AbstractGenericSyncTest {
-	
+
+    public static final File LOOKUP_LANGUAGES_REPLACEMENT_FILE = new File(TEST_DIR, "lookup-languages-replacement.xml");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -104,7 +108,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 		
-		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNull("Table container sneaked in", tableContainer);
 		
         assertSteadyResources();
@@ -119,7 +123,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE, 
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
     			GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
         
 		// WHEN
@@ -135,7 +139,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 		
-		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNull("Table container sneaked in", tableContainer);
 		
         assertSteadyResources();
@@ -176,8 +180,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_KEY, "sk_SK", RelationalValueSearchType.EXACT);
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableRowType.F_KEY, "sk_SK", RelationalValueSearchType.EXACT);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                 GetOperationOptions.createRetrieve(query));
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
 
@@ -200,8 +204,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_KEY, "e", RelationalValueSearchType.STARTS_WITH);
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableRowType.F_KEY, "e", RelationalValueSearchType.STARTS_WITH);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                 GetOperationOptions.createRetrieve(query));
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
 
@@ -225,8 +229,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_KEY, "r", RelationalValueSearchType.SUBSTRING);
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableRowType.F_KEY, "r", RelationalValueSearchType.SUBSTRING);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                 GetOperationOptions.createRetrieve(query));
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
 
@@ -249,9 +253,9 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        ObjectPaging paging = ObjectPaging.createPaging(2, 1, LookupTableTableType.F_KEY, OrderDirection.ASCENDING);
-        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_KEY, "_", RelationalValueSearchType.SUBSTRING, paging);
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+        ObjectPaging paging = ObjectPaging.createPaging(2, 1, LookupTableRowType.F_KEY, OrderDirection.ASCENDING);
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableRowType.F_KEY, "_", RelationalValueSearchType.SUBSTRING, paging);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                 GetOperationOptions.createRetrieve(query));
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
 
@@ -274,8 +278,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_KEY, "xyz", RelationalValueSearchType.SUBSTRING);
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableRowType.F_KEY, "xyz", RelationalValueSearchType.SUBSTRING);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                 GetOperationOptions.createRetrieve(query));
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
 
@@ -287,7 +291,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 
-        PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+        PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
         assertTrue("Unexpected content in tableContainer", tableContainer == null || tableContainer.size() == 0);
 
         assertSteadyResources();
@@ -305,8 +309,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_VALUE, "sk", RelationalValueSearchType.EXACT);
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableRowType.F_VALUE, "sk", RelationalValueSearchType.EXACT);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                 GetOperationOptions.createRetrieve(query));
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
 
@@ -335,8 +339,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         String fragment = "Eng";
         // TODO or fragment = new PolyStringType(new PolyString("Eng", "eng")) ?
-        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_LABEL, fragment, RelationalValueSearchType.STARTS_WITH);
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableRowType.F_LABEL, fragment, RelationalValueSearchType.STARTS_WITH);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                 GetOperationOptions.createRetrieve(query));
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
 
@@ -360,9 +364,9 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        ObjectPaging paging = ObjectPaging.createPaging(0, 1, LookupTableTableType.F_LABEL, OrderDirection.DESCENDING); // using sorting key other than the one used in search
-        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableTableType.F_VALUE, "n", RelationalValueSearchType.SUBSTRING, paging);
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE,
+        ObjectPaging paging = ObjectPaging.createPaging(0, 1, LookupTableRowType.F_LABEL, OrderDirection.DESCENDING); // using sorting key other than the one used in search
+        RelationalValueSearchQuery query = new RelationalValueSearchQuery(LookupTableRowType.F_VALUE, "n", RelationalValueSearchType.SUBSTRING, paging);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                 GetOperationOptions.createRetrieve(query));
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
 
@@ -390,7 +394,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
                 new ItemPath(
-                        new NameItemPathSegment(LookupTableType.F_TABLE),
+                        new NameItemPathSegment(LookupTableType.F_ROW),
                         new IdItemPathSegment(1L)),
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
         PrismObject<LookupTableType> lookup = modelService.getObject(LookupTableType.class, LOOKUP_LANGUAGES_OID, options, task, result);
@@ -408,7 +412,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 
-        PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+        PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
         assertNotNull("Table container missing", tableContainer);
         assertEquals("Unexpected table container size", tuples.length, tableContainer.size());
 
@@ -428,12 +432,12 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LookupTableTableType row = new LookupTableTableType();
+        LookupTableRowType row = new LookupTableRowType();
         row.setKey("gi_GI");
         row.setValue("gi");
         row.setLabel(PrismTestUtil.createPolyStringType("Gibberish"));
         ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationAddContainer(LookupTableType.class,
-        		LOOKUP_LANGUAGES_OID, LookupTableType.F_TABLE, prismContext, row);
+        		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -453,7 +457,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 		
-		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNotNull("Table container missing", tableContainer);
 		assertEquals("Unexpected table container size", 5, tableContainer.size());
 
@@ -476,11 +480,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LookupTableTableType row = new LookupTableTableType();
+        LookupTableRowType row = new LookupTableRowType();
         row.setKey("gi_GO");
         row.setLabel(PrismTestUtil.createPolyStringType("Gobbledygook"));
         ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationAddContainer(LookupTableType.class,
-        		LOOKUP_LANGUAGES_OID, LookupTableType.F_TABLE, prismContext, row);
+        		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -500,7 +504,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 		
-		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNotNull("Table container missing", tableContainer);
 		assertEquals("Unexpected table container size", 6, tableContainer.size());
 
@@ -524,11 +528,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LookupTableTableType row = new LookupTableTableType();
+        LookupTableRowType row = new LookupTableRowType();
         row.setKey("gi_HU");
         row.setValue("gi");
         ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationAddContainer(LookupTableType.class,
-        		LOOKUP_LANGUAGES_OID, LookupTableType.F_TABLE, prismContext, row);
+        		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -548,7 +552,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 		
-		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNotNull("Table container missing", tableContainer);
 		assertEquals("Unexpected table container size", 7, tableContainer.size());
 
@@ -573,12 +577,12 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LookupTableTableType row = new LookupTableTableType();
+        LookupTableRowType row = new LookupTableRowType();
         row.setKey("gi_HU");
         row.setValue("gi");
         row.setLabel(PrismTestUtil.createPolyStringType("Humbug"));
         ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationAddContainer(LookupTableType.class,
-        		LOOKUP_LANGUAGES_OID, LookupTableType.F_TABLE, prismContext, row);
+        		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -606,7 +610,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 		
-		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNotNull("Table container missing", tableContainer);
 		assertEquals("Unexpected table container size", 7, tableContainer.size());
 
@@ -637,12 +641,12 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LookupTableTableType row = new LookupTableTableType();
+        LookupTableRowType row = new LookupTableRowType();
         row.setKey("sk_SK");
         row.setValue("sk");
         row.setLabel(PrismTestUtil.createPolyStringType("Slovak"));
         ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationDeleteContainer(LookupTableType.class,
-        		LOOKUP_LANGUAGES_OID, LookupTableType.F_TABLE, prismContext, row);
+        		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -662,7 +666,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 		
-		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNotNull("Table container missing", tableContainer);
 		assertEquals("Unexpected table container size", 6, tableContainer.size());
 
@@ -685,13 +689,13 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LookupTableTableType row = new LookupTableTableType();
+        LookupTableRowType row = new LookupTableRowType();
         row.setKey("en_US");
         row.setValue("en");
         row.setLabel(PrismTestUtil.createPolyStringType("English (US)"));
         row.setId(1L);
         ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationDeleteContainer(LookupTableType.class,
-        		LOOKUP_LANGUAGES_OID, LookupTableType.F_TABLE, prismContext, row);
+        		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -711,7 +715,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 		
-		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNotNull("Table container missing", tableContainer);
 		assertEquals("Unexpected table container size", 6, tableContainer.size());
 
@@ -734,10 +738,10 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LookupTableTableType row = new LookupTableTableType();
+        LookupTableRowType row = new LookupTableRowType();
         row.setId(3L);
         ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationDeleteContainer(LookupTableType.class,
-        		LOOKUP_LANGUAGES_OID, LookupTableType.F_TABLE, prismContext, row);
+        		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -757,7 +761,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 		
-		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNotNull("Table container missing", tableContainer);
 		assertEquals("Unexpected table container size", 5, tableContainer.size());
 
@@ -785,10 +789,10 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LookupTableTableType row = new LookupTableTableType();
+        LookupTableRowType row = new LookupTableRowType();
         row.setKey("gi_GI");
         ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationDeleteContainer(LookupTableType.class,
-        		LOOKUP_LANGUAGES_OID, LookupTableType.F_TABLE, prismContext, row);
+        		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -808,7 +812,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 		
-		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNotNull("Table container missing", tableContainer);
 		assertEquals("Unexpected table container size", 3, tableContainer.size());
 
@@ -819,10 +823,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertSteadyResources();
     }
 
-    /**
-     * todo probably enable this test, implementation in repository is not available yet.
-     */
-    @Test(enabled = false)
+    @Test
     public void test170LookupLanguagesReplaceRows() throws Exception {
 		final String TEST_NAME="test170LookupLanguagesReplaceRows";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -831,18 +832,23 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LookupTableTableType row1 = new LookupTableTableType();
+        LookupTableRowType row1 = new LookupTableRowType();
         row1.setKey("ja_JA");
         row1.setValue("ja");
         row1.setLabel(PrismTestUtil.createPolyStringType("Jabber"));
 
-        LookupTableTableType row2 = new LookupTableTableType();
+        LookupTableRowType row2 = new LookupTableRowType();
         row2.setKey("ja_MJ");
         row2.setValue("ja");
         row2.setLabel(PrismTestUtil.createPolyStringType("Mumbojumbo"));
 
+        LookupTableRowType row3 = new LookupTableRowType();
+        row3.setKey("en_PR");       // existing key
+        row3.setValue("en1");
+        row3.setLabel(PrismTestUtil.createPolyStringType("English (pirate1)"));
+
         ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationReplaceContainer(LookupTableType.class,
-        		LOOKUP_LANGUAGES_OID, LookupTableType.F_TABLE, prismContext, row1, row2);
+        		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row1, row2, row3);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -862,20 +868,62 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 		
-		PrismContainer<LookupTableTableType> tableContainer = lookup.findContainer(LookupTableType.F_TABLE);
+		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNotNull("Table container missing", tableContainer);
-		assertEquals("Unexpected table container size", 2, tableContainer.size());
+		assertEquals("Unexpected table container size", 3, tableContainer.size());
 
 		assertLookupRow(tableContainer, "ja_JA", "ja", "Jabber");
 		assertLookupRow(tableContainer, "ja_MJ", "ja", "Mumbojumbo");
+        assertLookupRow(tableContainer, "en_PR", "en1", "English (pirate1)");
 		
         assertSteadyResources();
     }
-    
-    private void assertLookupRow(PrismContainer<LookupTableTableType> tableContainer, String key, String value,
+
+    @Test
+    public void test180LookupLanguagesReplaceObject() throws Exception {
+        final String TEST_NAME="test180LookupLanguagesReplaceObject";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<LookupTableType> replacement = PrismTestUtil.parseObject(LOOKUP_LANGUAGES_REPLACEMENT_FILE);
+        ObjectDelta<LookupTableType> delta = ObjectDelta.createAddDelta(replacement);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        ModelExecuteOptions options = ModelExecuteOptions.createOverwrite();
+        options.setRaw(true);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<LookupTableType> lookup = getLookupTableAll(LOOKUP_LANGUAGES_OID, task, result);
+
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        IntegrationTestTools.display("Languages", lookup);
+
+        assertEquals("Wrong lang lookup name", "Languages Replaced", lookup.asObjectable().getName().getOrig());
+
+        PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
+        assertNotNull("Table container missing", tableContainer);
+        assertEquals("Unexpected table container size", 1, tableContainer.size());
+
+        assertLookupRow(tableContainer, "fr_FR", "fr", "Francais");
+        assertSteadyResources();
+    }
+
+
+    private void assertLookupRow(PrismContainer<LookupTableRowType> tableContainer, String key, String value,
 			String label) {
-		for (PrismContainerValue<LookupTableTableType> row: tableContainer.getValues()) {
-			LookupTableTableType rowType = row.asContainerable();
+		for (PrismContainerValue<LookupTableRowType> row: tableContainer.getValues()) {
+			LookupTableRowType rowType = row.asContainerable();
 			if (key.equals(rowType.getKey())) {
 				assertEquals("Wrong value for key "+key, value, rowType.getValue());
 				if (label == null) {
@@ -890,7 +938,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 	}
 
 	private PrismObject<LookupTableType> getLookupTableAll(String oid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-    	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE, 
+    	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
     			GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 		return modelService.getObject(LookupTableType.class, oid, options, task, result);
     }

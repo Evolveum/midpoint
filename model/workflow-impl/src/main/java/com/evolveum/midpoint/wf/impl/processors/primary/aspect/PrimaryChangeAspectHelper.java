@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -40,16 +41,23 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpJob;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericPcpAspectConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import org.apache.velocity.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -213,6 +221,79 @@ public class PrimaryChangeAspectHelper {
                 }
             }
         }
+    }
+
+    public boolean isEnabled(PrimaryChangeProcessorConfigurationType processorConfigurationType, PrimaryChangeAspect aspect) {
+        if (processorConfigurationType == null) {
+            return aspect.isEnabledByDefault();
+        }
+        PcpAspectConfigurationType aspectConfigurationType = getPcpAspectConfigurationType(processorConfigurationType, aspect);     // result may be null
+        return isEnabled(aspectConfigurationType, aspect.isEnabledByDefault());
+    }
+
+    public PcpAspectConfigurationType getPcpAspectConfigurationType(WfConfigurationType wfConfigurationType, PrimaryChangeAspect aspect) {
+        if (wfConfigurationType == null) {
+            return null;
+        }
+        return getPcpAspectConfigurationType(wfConfigurationType.getPrimaryChangeProcessor(), aspect);
+    }
+
+    public PcpAspectConfigurationType getPcpAspectConfigurationType(PrimaryChangeProcessorConfigurationType processorConfigurationType, PrimaryChangeAspect aspect) {
+        if (processorConfigurationType == null) {
+            return null;
+        }
+        String aspectName = aspect.getBeanName();
+        String getterName = "get" + StringUtils.capitalizeFirstLetter(aspectName);
+        Object aspectConfigurationObject;
+        try {
+            Method getter = processorConfigurationType.getClass().getDeclaredMethod(getterName);
+            try {
+                aspectConfigurationObject = getter.invoke(processorConfigurationType);
+            } catch (IllegalAccessException|InvocationTargetException e) {
+                throw new SystemException("Couldn't obtain configuration for aspect " + aspectName + " from the workflow configuration.", e);
+            }
+            if (aspectConfigurationObject != null) {
+                return (PcpAspectConfigurationType) aspectConfigurationObject;
+            }
+            LOGGER.trace("Specific configuration for {} not found, trying generic configuration", aspectName);
+        } catch (NoSuchMethodException e) {
+            // nothing wrong with this, let's try generic configuration
+            LOGGER.trace("Configuration getter method for {} not found, trying generic configuration", aspectName);
+        }
+
+        for (GenericPcpAspectConfigurationType genericConfig : processorConfigurationType.getOtherAspect()) {
+            if (aspectName.equals(genericConfig.getName())) {
+                return genericConfig;
+            }
+        }
+        return null;
+    }
+
+    private boolean isEnabled(PcpAspectConfigurationType configurationType, boolean enabledByDefault) {
+        if (configurationType == null) {
+            return enabledByDefault;
+        } else if (Boolean.FALSE.equals(configurationType.isEnabled())) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public boolean isUserRelated(ModelContext<? extends ObjectType> context) {
+        return isRelatedToType(context, UserType.class);
+    }
+
+    public boolean isRelatedToType(ModelContext<? extends ObjectType> context, Class<?> type) {
+        if (context.getFocusContext() == null) {
+            return false;
+        }
+
+        ObjectDelta<? extends ObjectType> change = context.getFocusContext().getPrimaryDelta();
+        if (change == null) {
+            return false;
+        }
+
+        return type.isAssignableFrom(change.getObjectTypeClass());
     }
     //endregion
 

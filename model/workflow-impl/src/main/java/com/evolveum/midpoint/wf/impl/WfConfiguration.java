@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 
 import org.apache.commons.configuration.Configuration;
@@ -53,7 +54,7 @@ public class WfConfiguration implements BeanFactoryAware {
     private static final transient Trace LOGGER = TraceManager.getTrace(WfConfiguration.class);
 
     private static final String WF_CONFIG_SECTION = "midpoint.workflow";
-    private static final String CHANGE_PROCESSORS_SECTION = "changeProcessors";
+    private static final String CHANGE_PROCESSORS_SECTION = "changeProcessors";         // deprecated
 
     public static final String KEY_ENABLED = "enabled";
     public static final String KEY_JDBC_DRIVER = "jdbcDriver";
@@ -68,9 +69,11 @@ public class WfConfiguration implements BeanFactoryAware {
 
     public static final List<String> KNOWN_KEYS = Arrays.asList("midpoint.home", KEY_ENABLED, KEY_JDBC_DRIVER, KEY_JDBC_URL,
             KEY_JDBC_USERNAME, KEY_JDBC_PASSWORD, KEY_DATA_SOURCE, KEY_ACTIVITI_SCHEMA_UPDATE, KEY_PROCESS_CHECK_INTERVAL,
-            KEY_AUTO_DEPLOYMENT_FROM, KEY_ALLOW_APPROVE_OTHERS_ITEMS, CHANGE_PROCESSORS_SECTION);
+            KEY_AUTO_DEPLOYMENT_FROM, KEY_ALLOW_APPROVE_OTHERS_ITEMS);
 
-    @Autowired(required = true)
+    public static final List<String> DEPRECATED_KEYS = Arrays.asList(CHANGE_PROCESSORS_SECTION);
+
+    @Autowired
     private MidpointConfiguration midpointConfiguration;
 
     private BeanFactory beanFactory;
@@ -95,7 +98,7 @@ public class WfConfiguration implements BeanFactoryAware {
 
     private boolean allowApproveOthersItems;
 
-    private List<ChangeProcessor> changeProcessors = null;
+    private List<ChangeProcessor> changeProcessors = new ArrayList<>();
 
     private int processCheckInterval;
     private String[] autoDeploymentFrom;
@@ -105,7 +108,7 @@ public class WfConfiguration implements BeanFactoryAware {
 
         Configuration c = midpointConfiguration.getConfiguration(WF_CONFIG_SECTION);
 
-        checkAllowedKeys(c, KNOWN_KEYS);
+        checkAllowedKeys(c, KNOWN_KEYS, DEPRECATED_KEYS);
 
         enabled = c.getBoolean(KEY_ENABLED, true);
         if (!enabled) {
@@ -180,8 +183,9 @@ public class WfConfiguration implements BeanFactoryAware {
         validate();
     }
 
-    public void checkAllowedKeys(Configuration c, List<String> knownKeys) {
-        Set<String> knownKeysSet = new HashSet<String>(knownKeys);
+    public void checkAllowedKeys(Configuration c, List<String> knownKeys, List<String> deprecatedKeys) {
+        Set<String> knownKeysSet = new HashSet<>(knownKeys);
+        Set<String> deprecatedKeysSet = new HashSet<>(deprecatedKeys);
 
         Iterator<String> keyIterator = c.getKeys();
         while (keyIterator.hasNext())  {
@@ -191,6 +195,9 @@ public class WfConfiguration implements BeanFactoryAware {
             int colon = normalizedKeyName.indexOf(':');                                                 // because of c:generalChangeProcessorConfiguration
             if (colon != -1) {
                 normalizedKeyName = normalizedKeyName.substring(colon + 1);
+            }
+            if (deprecatedKeysSet.contains(keyName) || deprecatedKeysSet.contains(normalizedKeyName)) {
+                throw new SystemException("Deprecated key " + keyName + " in workflow configuration. Please see https://wiki.evolveum.com/display/midPoint/Workflow+configuration.");
             }
             if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(normalizedKeyName)) {         // ...we need to test both because of keys like 'midpoint.home'
                 throw new SystemException("Unknown key " + keyName + " in workflow configuration");
@@ -267,51 +274,21 @@ public class WfConfiguration implements BeanFactoryAware {
         return allowApproveOthersItems;
     }
 
-    public synchronized List<ChangeProcessor> getChangeProcessors() {
-        if (changeProcessors != null) {
-            return changeProcessors;
-        }
-
-        changeProcessors = new ArrayList<ChangeProcessor>();
-
-        if (!enabled) {
-            return changeProcessors;
-        }
-
-        List<String> changeProcessorNames = new ArrayList<String>();            // list - to preserve order
-
-        Iterator<String> cpIterator = getChangeProcessorsConfig().getKeys();         // returns 'processor-name' but also 'other-processor-name.aspect-name' etc.
-        while (cpIterator.hasNext()) {
-            String keyName = cpIterator.next();
-            String processorName = StringUtils.substringBefore(keyName, ".");
-            if (!changeProcessorNames.contains(processorName)) {
-                changeProcessorNames.add(processorName);
-            }
-        }
-
-        LOGGER.trace("Resolving change processors: {}", changeProcessorNames);
-
-        for (String processorName : changeProcessorNames) {
-            LOGGER.trace("Searching for change processor {}", processorName);
-            try {
-                ChangeProcessor processor = (ChangeProcessor) beanFactory.getBean(processorName);
-                changeProcessors.add(processor);
-            } catch(BeansException e) {
-                throw new SystemException("Change processor " + processorName + " could not be found.", e);
-            }
-        }
-
-        LOGGER.debug("Resolved " + changeProcessors.size() + " change processors.");
-        return changeProcessors;
-    }
-
     public ChangeProcessor findChangeProcessor(String processorClassName) {
-        for (ChangeProcessor cp : getChangeProcessors()) {
+        for (ChangeProcessor cp : changeProcessors) {
             if (processorClassName.equals(cp.getClass().getName())) {
                 return cp;
             }
         }
 
         throw new IllegalStateException("Change processor " + processorClassName + " is not registered.");
+    }
+
+    public void registerProcessor(ChangeProcessor changeProcessor) {
+        changeProcessors.add(changeProcessor);
+    }
+
+    public List<ChangeProcessor> getChangeProcessors() {
+        return changeProcessors;
     }
 }

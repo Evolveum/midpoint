@@ -48,7 +48,9 @@ import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AbstractRoleAssignmentModificationApprovalFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -82,24 +84,35 @@ public class ModifyRoleAssignmentAspect extends BasePrimaryChangeAspect {
     @Autowired
     private ItemApprovalProcessInterface itemApprovalProcessInterface;
 
+    @Override
+    public boolean isEnabledByDefault() {
+        return true;
+    }
+
     //region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
-        List<ApprovalRequest<AbstractRoleAssignmentModification>> approvalRequestList = getApprovalRequests(modelContext, change, result);
+        if (!primaryChangeAspectHelper.isUserRelated(modelContext)) {
+            return null;
+        }
+        List<ApprovalRequest<AbstractRoleAssignmentModification>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, change, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return null;
         }
         return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }
 
-    private List<ApprovalRequest<AbstractRoleAssignmentModification>> getApprovalRequests(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, OperationResult result) throws SchemaException {
+    private List<ApprovalRequest<AbstractRoleAssignmentModification>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, OperationResult result) throws SchemaException {
         if (change.getChangeType() != ChangeType.MODIFY) {
             return null;
         }
         PrismObject<UserType> userOld = (PrismObject) modelContext.getFocusContext().getObjectOld();
         UserType userTypeOld = userOld.asObjectable();
+
+        PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(
+                wfConfigurationType, this);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Role-related assignments in user modify delta: ");
@@ -145,7 +158,7 @@ public class ModifyRoleAssignmentAspect extends BasePrimaryChangeAspect {
                 PrismContainerValue.copyDefinition(aCopy, assignmentType);
                 AbstractRoleType role = (AbstractRoleType) primaryChangeAspectHelper.resolveObjectRef(assignmentType, result);
                 AbstractRoleAssignmentModification itemToApprove = new AbstractRoleAssignmentModification(aCopy, role, entry.getValue());
-                ApprovalRequest approvalRequest = new ApprovalRequestImpl(itemToApprove, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext);
+                ApprovalRequest approvalRequest = new ApprovalRequestImpl(itemToApprove, config, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext);
                 approvalRequestList.add(approvalRequest);
             }
         }

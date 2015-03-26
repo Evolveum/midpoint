@@ -68,7 +68,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     private RObject owner;
     private String ownerOid;
-    private Short id;
+    private Integer id;
 
     private RAssignmentOwner assignmentOwner;
     //extension
@@ -118,7 +118,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
-    public Short getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -227,7 +227,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         this.ownerOid = ownerOid;
     }
 
-    public void setId(Short id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -332,7 +332,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
 
         repo.setOwnerOid(parent.getOid());
-        repo.setId(RUtil.toShort(jaxb.getId()));
+        repo.setId(RUtil.toInteger(jaxb.getId()));
         repo.setOrder(jaxb.getOrder());
 
         if (jaxb.getExtension() != null) {

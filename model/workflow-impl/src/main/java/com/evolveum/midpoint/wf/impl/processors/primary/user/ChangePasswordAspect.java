@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,7 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
     private ItemApprovalProcessInterface itemApprovalProcessInterface;
 
     @Override
-    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<String>> approvalRequestList = new ArrayList<ApprovalRequest<String>>();
         List<PcpChildJobCreationInstruction> instructions = new ArrayList<>();
@@ -125,7 +126,7 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
         List<ObjectReferenceType> approvers = new ArrayList<ObjectReferenceType>();
         approvers.add(approverRef);
 
-        return new ApprovalRequestImpl("Password change", null, approvers, null, null, prismContext);
+        return new ApprovalRequestImpl("Password change", null, null, approvers, null, null, prismContext);
     }
 
     private PcpChildJobCreationInstruction createStartProcessInstruction(ModelContext<?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
