@@ -17,16 +17,25 @@
 package com.evolveum.midpoint.wf.impl.processors;
 
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
@@ -55,40 +64,29 @@ public class BaseConfigurationHelper {
     @Autowired
     private PrismContext prismContext;
 
-    public void configureProcessor(BaseChangeProcessor changeProcessor, List<String> locallyKnownKeys) {
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
 
-        String beanName = changeProcessor.getBeanName();
-
-        Validate.notNull(beanName, "Bean name was not set correctly.");
-
-        Configuration c = wfConfiguration.getChangeProcessorsConfig().subset(beanName);
-        if (c.isEmpty()) {
-            LOGGER.info("Skipping reading configuration of " + beanName + ", as it is not on the list of change processors or is empty.");
-            return;
-        }
-
-        List<String> allKnownKeys = new ArrayList<>(KNOWN_KEYS);
-        if (locallyKnownKeys != null) {
-            allKnownKeys.addAll(locallyKnownKeys);
-        }
-        wfConfiguration.checkAllowedKeys(c, allKnownKeys);
-
-        boolean enabled = c.getBoolean(KEY_ENABLED, true);
-        if (!enabled) {
-            LOGGER.info("Change processor " + beanName + " is DISABLED.");
-        }
-        changeProcessor.setEnabled(enabled);
-        changeProcessor.setProcessorConfiguration(c);
+    public void registerProcessor(BaseChangeProcessor changeProcessor) {
+        wfConfiguration.registerProcessor(changeProcessor);
     }
 
-    public void validateElement(Element element) throws SchemaException {
-        OperationResult result = new OperationResult("validateElement");
-        Validator validator = new Validator(prismContext);
-        validator.validateSchema(element, result);
-        result.computeStatus();
-        if (!result.isSuccess()) {
-            throw new SchemaException(result.getMessage(), result.getCause());
+    public WfConfigurationType getWorkflowConfiguration(ModelContext<? extends ObjectType> context, OperationResult result) {
+        if (context != null && context.getSystemConfiguration() != null) {
+            SystemConfigurationType systemConfigurationType = context.getSystemConfiguration().asObjectable();
+            return systemConfigurationType.getWorkflowConfiguration();
         }
+        PrismObject<SystemConfigurationType> systemConfigurationTypePrismObject = null;
+        try {
+            systemConfigurationTypePrismObject = Utils.getSystemConfiguration(repositoryService, result);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't get system configuration because of schema exception - cannot continue", e);
+        }
+        if (systemConfigurationTypePrismObject == null) {
+            // this is possible e.g. when importing initial objects; warning is already issued by Utils.getSystemConfiguration method
+            return null;
+        }
+        return systemConfigurationTypePrismObject.asObjectable().getWorkflowConfiguration();
     }
-
 }

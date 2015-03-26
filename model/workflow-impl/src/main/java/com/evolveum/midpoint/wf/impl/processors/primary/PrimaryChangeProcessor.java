@@ -48,31 +48,42 @@ import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
+import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseExternalizationHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author mederly
  */
-public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
+@Component
+public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessor.class);
 
     @Autowired
     private PcpConfigurationHelper pcpConfigurationHelper;
+
+    @Autowired
+    private BaseConfigurationHelper baseConfigurationHelper;
 
     @Autowired
     private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
@@ -100,7 +111,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     public static final String UNKNOWN_OID = "?";
 
-    List<PrimaryChangeAspect> changeAspects;
+    Set<PrimaryChangeAspect> allChangeAspects = new HashSet<>();
 
     public enum ExecutionMode {
         ALL_AFTERWARDS, ALL_IMMEDIATELY, MIXED;
@@ -110,11 +121,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     // =================================================================================== Configuration
     @PostConstruct
     public void init() {
-        pcpConfigurationHelper.configure(this);
-    }
-
-    public void setChangeAspects(List<PrimaryChangeAspect> changeAspects) {
-        this.changeAspects = changeAspects;
+        baseConfigurationHelper.registerProcessor(this);
     }
     //endregion
 
@@ -122,7 +129,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     // =================================================================================== Processing model invocation
 
     @Override
-    public HookOperationMode processModelInvocation(ModelContext context, Task taskFromModel, OperationResult result) throws SchemaException {
+    public HookOperationMode processModelInvocation(ModelContext context, WfConfigurationType wfConfigurationType, Task taskFromModel, OperationResult result) throws SchemaException {
 
         if (context.getState() != ModelState.PRIMARY || context.getFocusContext() == null) {
             return null;
@@ -136,7 +143,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         // examine the request using process aspects
 
         ObjectDelta<? extends ObjectType> changeBeingDecomposed = change.clone();
-        List<PcpChildJobCreationInstruction> jobCreationInstructions = gatherStartInstructions(context, changeBeingDecomposed, taskFromModel, result);
+        List<PcpChildJobCreationInstruction> jobCreationInstructions = gatherStartInstructions(context, wfConfigurationType, changeBeingDecomposed, taskFromModel, result);
 
         // start the process(es)
 
@@ -148,11 +155,26 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private List<PcpChildJobCreationInstruction> gatherStartInstructions(ModelContext context, ObjectDelta<? extends ObjectType> changeBeingDecomposed, Task taskFromModel, OperationResult result) throws SchemaException {
+    private List<PcpChildJobCreationInstruction> gatherStartInstructions(ModelContext<? extends ObjectType> context,
+                                                                         WfConfigurationType wfConfigurationType,
+                                                                         ObjectDelta<? extends ObjectType> changeBeingDecomposed,
+                                                                         Task taskFromModel, OperationResult result) throws SchemaException {
         List<PcpChildJobCreationInstruction> startProcessInstructions = new ArrayList<>();
 
-        for (PrimaryChangeAspect aspect : changeAspects) {
-            List<PcpChildJobCreationInstruction> instructions = aspect.prepareJobCreationInstructions(context, changeBeingDecomposed, taskFromModel, result);
+        PrimaryChangeProcessorConfigurationType processorConfigurationType =
+                wfConfigurationType.getPrimaryChangeProcessor();
+
+        if (processorConfigurationType != null && Boolean.FALSE.equals(processorConfigurationType.isEnabled())) {
+            LOGGER.debug("Primary change processor is disabled.");
+            return startProcessInstructions;
+        }
+
+        for (PrimaryChangeAspect aspect : getActiveChangeAspects(processorConfigurationType)) {
+            if (changeBeingDecomposed.isEmpty()) {      // nothing left
+                break;
+            }
+            List<PcpChildJobCreationInstruction> instructions = aspect.prepareJobCreationInstructions(
+                    context, wfConfigurationType, changeBeingDecomposed, taskFromModel, result);
             logAspectResult(aspect, instructions);
             if (instructions != null) {
                 startProcessInstructions.addAll(instructions);
@@ -162,7 +184,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         // tweaking the instructions returned from aspects a bit...
 
         // if we are adding a new object, we have to set OBJECT_TO_BE_ADDED variable in all instructions
-        if (changeBeingDecomposed.isAdd()) {
+        if (changeBeingDecomposed.isAdd() && changeBeingDecomposed.getObjectToAdd() != null) {
             String objectToBeAdded;
             try {
                 objectToBeAdded = MiscDataUtil.serializeObjectToXml(changeBeingDecomposed.getObjectToAdd());
@@ -183,6 +205,16 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
 
         return startProcessInstructions;
+    }
+
+    private Collection<PrimaryChangeAspect> getActiveChangeAspects(PrimaryChangeProcessorConfigurationType processorConfigurationType) {
+        Collection<PrimaryChangeAspect> rv = new HashSet<>();
+        for (PrimaryChangeAspect aspect : getAllChangeAspects()) {
+            if (aspect.isEnabled(processorConfigurationType)) {
+                rv.add(aspect);
+            }
+        }
+        return rv;
     }
 
     private void logAspectResult(PrimaryChangeAspect aspect, List<? extends JobCreationInstruction> instructions) {
@@ -250,7 +282,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     // Child job0 - in modes 2, 3 we have to prepare first child that executes all changes that do not require approval
     private Job createJob0(ModelContext context, ObjectDelta<? extends ObjectType> changeWithoutApproval, Job rootJob, ExecutionMode executionMode, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (!changeWithoutApproval.isEmpty() && executionMode != ExecutionMode.ALL_AFTERWARDS) {
+        if (changeWithoutApproval != null && !changeWithoutApproval.isEmpty() && executionMode != ExecutionMode.ALL_AFTERWARDS) {
             ModelContext modelContext = contextCopyWithDeltaReplaced(context, changeWithoutApproval);
             JobCreationInstruction instruction0 = JobCreationInstruction.createModelOperationChildJob(rootJob, modelContext);
             instruction0.setTaskName("Executing changes that do not require approval");
@@ -279,7 +311,11 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private LensContext contextCopyWithDeltaReplaced(ModelContext context, ObjectDelta<? extends ObjectType> change) throws SchemaException {
         LensContext contextCopy = ((LensContext) context).clone();
-        contextCopy.replacePrimaryFocusDeltas(Arrays.asList(change));
+        if (change != null) {
+            contextCopy.replacePrimaryFocusDeltas(Arrays.asList(change));
+        } else {
+            contextCopy.replacePrimaryFocusDeltas(null);
+        }
         return contextCopy;
     }
 
@@ -399,8 +435,8 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     //endregion
 
     //region Getters and setters
-    public List<PrimaryChangeAspect> getChangeAspects() {
-        return changeAspects;
+    public Collection<PrimaryChangeAspect> getAllChangeAspects() {
+        return allChangeAspects;
     }
 
     PrimaryChangeAspect getChangeAspect(Map<String, Object> variables) {
@@ -414,12 +450,16 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         if (getBeanFactory().containsBean(name)) {
             return getBeanFactory().getBean(name, PrimaryChangeAspect.class);
         }
-        for (PrimaryChangeAspect w : changeAspects) {
+        for (PrimaryChangeAspect w : allChangeAspects) {
             if (name.equals(w.getClass().getName())) {
                 return w;
             }
         }
         throw new IllegalStateException("Aspect " + name + " is not registered.");
+    }
+
+    public void registerChangeAspect(PrimaryChangeAspect changeAspect) {
+        allChangeAspects.add(changeAspect);
     }
 
     WfTaskUtil getWfTaskUtil() {     // ugly hack - used in PcpJob

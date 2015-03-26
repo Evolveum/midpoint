@@ -26,9 +26,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -42,16 +40,15 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.modifyResourceAssignment.ResourceAssignmentModification;
-import com.evolveum.midpoint.wf.impl.processes.modifyRoleAssignment.AbstractRoleAssignmentModification;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AbstractRoleAssignmentModificationApprovalFormType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.ResourceAssignmentModificationApprovalFormType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -85,23 +82,34 @@ public class ModifyResourceAssignmentAspect extends BasePrimaryChangeAspect {
     @Autowired
     private ItemApprovalProcessInterface itemApprovalProcessInterface;
 
+    @Override
+    public boolean isEnabledByDefault() {
+        return true;
+    }
+
     //region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
-        List<ApprovalRequest<ResourceAssignmentModification>> approvalRequestList = getApprovalRequests(modelContext, change, result);
+        if (!primaryChangeAspectHelper.isUserRelated(modelContext)) {
+            return null;
+        }
+        List<ApprovalRequest<ResourceAssignmentModification>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, change, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return null;
         }
         return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }
 
-    private List<ApprovalRequest<ResourceAssignmentModification>> getApprovalRequests(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, OperationResult result) throws SchemaException {
+    private List<ApprovalRequest<ResourceAssignmentModification>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, OperationResult result) throws SchemaException {
         if (change.getChangeType() != ChangeType.MODIFY) {
             return null;
         }
         PrismObject<UserType> userOld = (PrismObject) modelContext.getFocusContext().getObjectOld();
+
+        PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(
+                wfConfigurationType, this);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Resource-related assignments in user modify delta: ");
@@ -145,7 +153,7 @@ public class ModifyResourceAssignmentAspect extends BasePrimaryChangeAspect {
                 PrismContainerValue.copyDefinition(aCopy, assignmentType);
                 ResourceType resourceType = primaryChangeAspectHelper.resolveResourceRef(assignmentType, result);   // todo eliminate redundant fetch
                 ResourceAssignmentModification itemToApprove = new ResourceAssignmentModification(aCopy, resourceType, entry.getValue());
-                ApprovalRequest approvalRequest = new ApprovalRequestImpl(itemToApprove, null, resourceType.getBusiness().getApproverRef(), null, null, prismContext);
+                ApprovalRequest approvalRequest = new ApprovalRequestImpl(itemToApprove, config, null, resourceType.getBusiness().getApproverRef(), null, null, prismContext);
                 approvalRequestList.add(approvalRequest);
             }
         }

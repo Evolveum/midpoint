@@ -102,7 +102,9 @@ public class DeltaConvertor {
             ObjectType objectToAddElement = objectDeltaType.getObjectToAdd();
 //            PrismObject<T> objectToAdd = prismContext.getXnodeProcessor().parseObject(objectToAddElement.getXnode());
 //            PrismObject<T> objectToAdd = prismContext.getJaxbDomHack().parseObjectFromJaxb(objectToAddElement);
-            objectDelta.setObjectToAdd(objectToAddElement.asPrismObject());
+            if (objectToAddElement != null) {
+                objectDelta.setObjectToAdd(objectToAddElement.asPrismObject());
+            }
             return objectDelta;
         } else if (objectDeltaType.getChangeType() == ChangeTypeType.MODIFY) {
         	ObjectDelta<T> objectDelta = new ObjectDelta<T>(type, ChangeType.MODIFY, prismContext);
