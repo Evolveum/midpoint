@@ -28,14 +28,15 @@ import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
+import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseExternalizationHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.DefaultGcpScenarioBean;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.GcpScenarioBean;
-import com.evolveum.midpoint.wf.impl.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
@@ -74,6 +75,9 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     private BaseExternalizationHelper baseExternalizationHelper;
 
     @Autowired
+    private BaseConfigurationHelper baseConfigurationHelper;
+
+    @Autowired
     private BaseAuditHelper baseAuditHelper;
 
     @Autowired
@@ -85,30 +89,10 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     @Autowired
     private GcpExternalizationHelper gcpExternalizationHelper;
 
-    private GeneralChangeProcessorConfigurationType processorConfigurationType;
-
     //region Initialization and Configuration
     @PostConstruct
     public void init() {
-        processorConfigurationType = gcpConfigurationHelper.configure(this);
-        if (isEnabled()) {
-            // print startup message
-            int scenarios = processorConfigurationType.getScenario().size();
-            if (scenarios > 0) {
-                LOGGER.info(getBeanName() + " initialized correctly (number of scenarios: " + scenarios + ")");
-            } else {
-                LOGGER.warn(getBeanName() + " initialized correctly, but there are no scenarios - so it will never be invoked");
-            }
-        }
-    }
-
-    private GeneralChangeProcessorScenarioType findScenario(String scenarioName) {
-        for (GeneralChangeProcessorScenarioType scenario : processorConfigurationType.getScenario()) {
-            if (scenarioName.equals(scenario.getName())) {
-                return scenario;
-            }
-        }
-        throw new SystemException("Scenario named " + scenarioName + " couldn't be found");
+        baseConfigurationHelper.registerProcessor(this);
     }
 
     private GcpScenarioBean getScenarioBean(Map<String, Object> variables) {
@@ -131,23 +115,23 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         return Character.toLowerCase(name.charAt(0)) + name.substring(1);
     }
 
-    public void disableScenario(String scenarioName) {
-        findScenario(scenarioName).setEnabled(false);
-    }
-
-    public void enableScenario(String scenarioName) {
-        findScenario(scenarioName).setEnabled(true);
-    }
     //endregion
 
     //region Processing model invocation
     @Override
-    public HookOperationMode processModelInvocation(ModelContext context, Task taskFromModel, OperationResult result) throws SchemaException {
+    public HookOperationMode processModelInvocation(ModelContext context, WfConfigurationType wfConfigurationType, Task taskFromModel, OperationResult result) throws SchemaException {
 
-        if (processorConfigurationType.getScenario().isEmpty()) {
-            LOGGER.warn("No scenarios for " + getBeanName());
+        if (wfConfigurationType.getGeneralChangeProcessor() != null && Boolean.FALSE.equals(wfConfigurationType.getGeneralChangeProcessor().isEnabled())) {
+            LOGGER.trace("{} is disabled", getBeanName());
+            return null;
         }
 
+        if (wfConfigurationType.getGeneralChangeProcessor() == null || wfConfigurationType.getGeneralChangeProcessor().getScenario().isEmpty()) {
+            LOGGER.trace("No scenarios for {}", getBeanName());
+            return null;
+        }
+
+        GeneralChangeProcessorConfigurationType processorConfigurationType = wfConfigurationType.getGeneralChangeProcessor();
         for (GeneralChangeProcessorScenarioType scenarioType : processorConfigurationType.getScenario()) {
             GcpScenarioBean scenarioBean = findScenarioBean(scenarioType.getBeanName());
             if (Boolean.FALSE.equals(scenarioType.isEnabled())) {
@@ -162,7 +146,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             }
         }
         LOGGER.trace("No scenario found to be applicable, exiting the change processor.");
-        return HookOperationMode.FOREGROUND;
+        return null;
     }
 
     private HookOperationMode applyScenario(GeneralChangeProcessorScenarioType scenarioType, GcpScenarioBean scenarioBean, ModelContext context, Task taskFromModel, OperationResult result) {

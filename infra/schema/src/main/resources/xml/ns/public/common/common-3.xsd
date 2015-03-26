@@ -6513,6 +6513,9 @@
 	                                For explicitness, only one of approverRef(s)/approverExpression(s),
 	                                approvalSchema and approvalProcess should be specified.
                                 </p>
+                                <p>
+                                    THIS PROPERTY (approvalProcess) IS NOT SUPPORTED YET.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -10027,6 +10030,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Order in which the change processor should be invoked. (Unspecified means "at the end".)
+                        NOT IMPLEMENTED YET.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -10111,8 +10115,9 @@
                     <xsd:element name="addRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="modifyRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="addRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="modifyRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="modifyUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
@@ -10132,6 +10137,12 @@
                 They take all the approver information directly from the object (role or resource) being assigned.
                 However, there are some others (namely, role/resource/user/whatever add/modify aspects) that need
                 the explicit information about approver(s) in order to know where to route the request.
+
+                For the former aspects, the approver information specified here takes precedence over
+                approver information derived from the objects being used (e.g. role or resource).
+                More specifically, if any approver information is here, no approver information is
+                taken from the objects. This could be changed (e.g. by allowing to tune this behavior)
+                in the future.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -10180,6 +10191,8 @@
 
                         For explicitness, only one of approverRef(s)/approverExpression(s),
                         approvalSchema and approvalProcess should be specified.
+
+                        THIS PROPERTY (approvalProcess) IS NOT SUPPORTED YET.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

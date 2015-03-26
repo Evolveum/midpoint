@@ -417,4 +417,45 @@
     </xsd:complexType>
     <xsd:element name="resourceAssignmentModificationApprovalFormType" type="tns:ResourceAssignmentModificationApprovalFormType" substitutionGroup="c:object"/>
 
+    <xsd:complexType name="AddObjectApprovalFormType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:QuestionFormType">
+                <xsd:sequence>
+                    <xsd:element name="objectToAdd" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Object to be added</a:displayName>
+                                <a:displayOrder>100</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requesterComment" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Requester's comment</a:displayName>
+                                <a:displayOrder>110</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="comment" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Your comment</a:displayName>
+                                <a:displayOrder>120</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="addObjectApprovalFormType" type="tns:AddObjectApprovalFormType" substitutionGroup="c:object"/>
+
 </xsd:schema>

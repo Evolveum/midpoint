@@ -30,8 +30,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -56,6 +59,9 @@ public class WfHook implements ChangeHook {
 
     @Autowired
     private WfConfiguration wfConfiguration;
+
+    @Autowired
+    private BaseConfigurationHelper baseConfigurationHelper;
 
     @Autowired
     private HookRegistry hookRegistry;
@@ -84,11 +90,30 @@ public class WfHook implements ChangeHook {
         result.addParam("taskFromModel", task.toString());
         result.addContext("model state", context.getState());
 
+        WfConfigurationType wfConfigurationType = baseConfigurationHelper.getWorkflowConfiguration(context, result);
+        if (wfConfigurationType == null) {      // should not occur, but ... (e.g. when initially loading objects into repository; if done in non-raw mode)
+            LOGGER.warn("No system configuration. Workflow approvals are disabled. Proceeding with operation execution as if everything is approved.");
+            result.recordSuccess();
+            return HookOperationMode.FOREGROUND;
+        }
+        if (Boolean.FALSE.equals(wfConfigurationType.isModelHookEnabled())) {
+            LOGGER.info("Workflow model hook is disabled. Proceeding with operation execution as if everything is approved.");
+            result.recordSuccess();
+            return HookOperationMode.FOREGROUND;
+        }
+
         logOperationInformation(context);
 
-        HookOperationMode retval = processModelInvocation(context, task, result);
-        result.recordSuccessIfUnknown();
-        return retval;
+        try {
+            HookOperationMode retval = processModelInvocation(context, wfConfigurationType, task, result);
+            result.recordSuccessIfUnknown();
+            return retval;
+        } catch (RuntimeException e) {
+            if (result.isUnknown()) {
+                result.recordFatalError("Couldn't process model invocation in workflow module: " + e.getMessage(), e);
+            }
+            throw e;
+        }
     }
 
     @Override
@@ -123,7 +148,7 @@ public class WfHook implements ChangeHook {
         }
     }
 
-    HookOperationMode processModelInvocation(ModelContext context, Task taskFromModel, OperationResult result) {
+    HookOperationMode processModelInvocation(ModelContext<? extends ObjectType> context, WfConfigurationType wfConfigurationType, Task taskFromModel, OperationResult result) {
 
         try {
 
@@ -133,12 +158,8 @@ public class WfHook implements ChangeHook {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Trying change processor: " + changeProcessor.getClass().getName());
                 }
-                if (!changeProcessor.isEnabled()) {
-                    LOGGER.trace("It is disabled, continuing with next one.");
-                    continue;
-                }
                 try {
-                    HookOperationMode hookOperationMode = changeProcessor.processModelInvocation(context, taskFromModel, result);
+                    HookOperationMode hookOperationMode = changeProcessor.processModelInvocation(context, wfConfigurationType, taskFromModel, result);
                     if (hookOperationMode != null) {
                         return hookOperationMode;
                     }
@@ -167,6 +188,5 @@ public class WfHook implements ChangeHook {
         result.recordSuccess();
         return HookOperationMode.FOREGROUND;
     }
-
 
 }

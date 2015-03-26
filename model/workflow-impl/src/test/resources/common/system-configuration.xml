@@ -64,4 +64,38 @@
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>
     </notificationConfiguration>
+    <workflowConfiguration>
+        <primaryChangeProcessor>
+            <enabled>true</enabled>
+            <addAbstractRoleAspect>
+                <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+            </addAbstractRoleAspect>
+            <otherAspect>
+                <name>changePasswordAspect</name>
+            </otherAspect>
+        </primaryChangeProcessor>
+        <generalChangeProcessor>
+            <enabled>false</enabled>
+            <scenario>
+                <name>primaryScenario</name>
+                <activationCondition>
+                    <script><code>context.getState() == com.evolveum.midpoint.model.api.context.ModelState.PRIMARY</code></script>
+                </activationCondition>
+                <processName>MyGreatPrimaryProcess</processName>
+            </scenario>
+            <scenario>
+                <name>secondaryScenario</name>
+                <activationCondition>
+                    <script>
+                        <code><![CDATA[
+                                        context.getState() == com.evolveum.midpoint.model.api.context.ModelState.SECONDARY &&
+                                        context.findProjectionContext(new com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator("10000000-0000-0000-0000-000000000004", com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT, null)) != null
+                                        ]]></code>
+                    </script>
+                </activationCondition>
+                <processName>ApprovingDummyResourceChangesProcess</processName>
+                <beanName>approvingDummyResourceChangesScenarioBean</beanName>
+            </scenario>
+        </generalChangeProcessor>
+    </workflowConfiguration>
 </systemConfiguration>

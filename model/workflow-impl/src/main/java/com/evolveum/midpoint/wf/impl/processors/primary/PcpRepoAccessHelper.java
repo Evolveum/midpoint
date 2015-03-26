@@ -120,10 +120,23 @@ public class PcpRepoAccessHelper {
             return null;
         }
 
-        PrismObject<? extends ObjectType> objectAfter = objectBefore.clone();
-        delta.applyTo(objectAfter);
+        PrismObject<? extends ObjectType> objectAfter;
+        if (delta.isAdd()) {
+            if (delta.getObjectToAdd() != null) {
+                objectAfter = delta.getObjectToAdd().clone();
+            } else {
+                return null;
+            }
+        } else if (delta.isModify()) {
+            objectAfter = objectBefore.clone();
+            delta.applyTo(objectAfter);
+        } else if (delta.isDelete()) {
+            return null;
+        } else {
+            return null;        // should not occur
+        }
 
-        if (objectAfter.asObjectable() instanceof UserType) {
+        if (objectAfter.asObjectable() instanceof UserType) {   // quite a hack
             miscDataUtil.resolveAssignmentTargetReferences((PrismObject) objectAfter, result);
         }
         return objectAfter;

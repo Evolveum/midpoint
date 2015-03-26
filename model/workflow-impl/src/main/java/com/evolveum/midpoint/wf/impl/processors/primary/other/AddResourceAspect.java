@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,28 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary;
+package com.evolveum.midpoint.wf.impl.processors.primary.other;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Component;
 
 /**
- * Temporarily no responsibilities here.
+ * Change aspect that manages resource addition.
  *
  * @author mederly
  */
 @Component
-public class PcpConfigurationHelper {
-    private static final Trace LOGGER = TraceManager.getTrace(PcpConfigurationHelper.class);
+public class AddResourceAspect extends AddObjectAspect<ResourceType> {
 
-    @Autowired
-    private BaseConfigurationHelper baseConfigurationHelper;
+    @Override
+    protected Class<ResourceType> getObjectClass() {
+        return ResourceType.class;
+    }
 
+    @Override
+    protected String getObjectLabel(ResourceType object) {
+        Validate.notNull(object);
+        return "resource " + object.getName();
+    }
 }
