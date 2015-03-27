@@ -47,12 +47,14 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -915,7 +917,46 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertNotNull("Table container missing", tableContainer);
         assertEquals("Unexpected table container size", 1, tableContainer.size());
 
-        assertLookupRow(tableContainer, "fr_FR", "fr", "Francais");
+        assertLookupRow(tableContainer, "fr_FR", "fr", "Français");
+        assertSteadyResources();
+    }
+    
+    @Test
+    public void test182LookupLanguagesReimport() throws Exception {
+        final String TEST_NAME="test182LookupLanguagesReimport";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ImportOptionsType options = new ImportOptionsType();
+        options.setOverwrite(true);
+        options.setKeepOid(true);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.importObjectsFromFile(LOOKUP_LANGUAGES_FILE, options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<LookupTableType> lookup = getLookupTableAll(LOOKUP_LANGUAGES_OID, task, result);
+
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        IntegrationTestTools.display("Languages", lookup);
+
+        assertEquals("Wrong lang lookup name", "Languages", lookup.asObjectable().getName().getOrig());
+
+        checkLookupResult(lookup, new String[]{"en_US", "en", "English (US)"},
+                new String[]{"en_PR", "en", "English (pirate)"},
+                new String[]{"sk_SK", "sk", "Slovak"},
+                new String[]{"tr_TR", "tr", "Turkish"});
+        
         assertSteadyResources();
     }
 

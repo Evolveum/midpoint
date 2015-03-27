@@ -258,10 +258,10 @@ public class ObjectImporter {
 	        if (options.getStopAfterErrors() != null) {
 	            validator.setStopAfterErrors(options.getStopAfterErrors().longValue());
 	        }
-	        if (options.isSummarizeErrors()) {
+	        if (BooleanUtils.isTrue(options.isSummarizeErrors())) {
 	        	parentResult.setSummarizeErrors(true);
 	        }
-	        if (options.isSummarizeSucceses()) {
+	        if (BooleanUtils.isTrue(options.isSummarizeSucceses())) {
 	        	parentResult.setSummarizeSuccesses(true);
 	        }
         }

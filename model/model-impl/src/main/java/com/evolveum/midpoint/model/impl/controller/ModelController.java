@@ -16,6 +16,9 @@
 package com.evolveum.midpoint.model.impl.controller;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressio
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -1806,13 +1810,29 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 	@Override
 	public void importObjectsFromFile(File input, ImportOptionsType options, Task task,
-			OperationResult parentResult) {
-		// OperationResult result =
-		// parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
-		// TODO Auto-generated method stub
-		RepositoryCache.enter();
-		RepositoryCache.exit();
-		throw new NotImplementedException();
+			OperationResult parentResult) throws FileNotFoundException {
+		 OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
+		 FileInputStream fis;
+		 try {
+			fis = new FileInputStream(input);
+		} catch (FileNotFoundException e) {
+			String msg = "Error reading from file "+input+": "+e.getMessage();
+			result.recordFatalError(msg, e);
+			throw e;
+		}
+		try {
+			importObjectsFromStream(fis, options, task, parentResult);
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			throw e;
+		} finally {
+			try {
+				fis.close();
+			} catch (IOException e) {
+				Log.error("Error closing file "+input+": "+e.getMessage(), e);
+			}
+		}
+		result.computeStatus();
 	}
 
 	@Override
