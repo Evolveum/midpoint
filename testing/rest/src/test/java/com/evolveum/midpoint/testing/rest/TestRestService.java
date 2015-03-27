@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
+import java.io.IOException;
 
 import javax.ws.rs.core.Response;
 
@@ -39,6 +40,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -46,7 +48,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -58,10 +59,13 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -77,7 +81,25 @@ public class TestRestService {
 	public static final File USER_ADMINISTRATOR_FILE = new File(REPO_DIR, "user-administrator.xml");
 	public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 	public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
+
+	// No authorization
+	public static final File USER_NOBODY_FILE = new File(REPO_DIR, "user-nobody.xml");
+	public static final String USER_NOBODY_USERNAME = "nobody";
+	public static final String USER_NOBODY_PASSWORD = "nopassword";
+
+	// REST authorization only
+	public static final File USER_CYCLOPS_FILE = new File(REPO_DIR, "user-cyclops.xml");
+	public static final String USER_CYCLOPS_USERNAME = "cyclops";
+	public static final String USER_CYCLOPS_PASSWORD = "cyclopassword";
+	
+	// REST and reader authorization
+	public static final File USER_SOMEBODY_FILE = new File(REPO_DIR, "user-somebody.xml");
+	public static final String USER_SOMEBODY_USERNAME = "somebody";
+	public static final String USER_SOMEBODY_PASSWORD = "somepassword";
+
 	public static final File ROLE_SUPERUSER_FILE = new File(REPO_DIR, "role-superuser.xml");
+	public static final File ROLE_REST_FILE = new File(REPO_DIR, "role-rest.xml");
+	public static final File ROLE_READER_FILE = new File(REPO_DIR, "role-reader.xml");
 
 	public static final File RESOURCE_OPENDJ_FILE = new File(REPO_DIR, "reosurce-opendj.xml");
 	public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
@@ -94,6 +116,7 @@ public class TestRestService {
 
 	private final static String ENDPOINT_ADDRESS = "http://localhost:18080/rest";
 
+	private static PrismContext prismContext;
 	private static TaskManager taskManager;
 	private static ModelService modelService;
 
@@ -126,14 +149,17 @@ public class TestRestService {
 		Task initTask = taskManager.createTaskInstance(TestRestService.class.getName() + ".startServer");
 		OperationResult result = initTask.getResult();
 
-		PrismContext prismContext = (PrismContext) applicationContext.getBean("prismContext");
-		PrismObject<RoleType> superuser = prismContext.parseObject(ROLE_SUPERUSER_FILE);
-		repositoryService.addObject(superuser, null, result);
-		PrismObject<UserType> admin = prismContext.parseObject(USER_ADMINISTRATOR_FILE);
-		repositoryService.addObject(admin, RepoAddOptions.createAllowUnencryptedValues(), result);
-
-		PrismObject<UserType> sysConfig = prismContext.parseObject(SYSTEM_CONFIGURATION_FILE);
-		repositoryService.addObject(sysConfig, RepoAddOptions.createAllowUnencryptedValues(), result);
+		InternalsConfig.encryptionChecks = false;
+		
+		prismContext = (PrismContext) applicationContext.getBean("prismContext");
+		addObject(ROLE_SUPERUSER_FILE, result);
+		addObject(ROLE_REST_FILE, result);
+		addObject(ROLE_READER_FILE, result);
+		addObject(USER_ADMINISTRATOR_FILE, result);
+		addObject(USER_NOBODY_FILE, result);
+		addObject(USER_CYCLOPS_FILE, result);
+		addObject(USER_SOMEBODY_FILE, result);
+		addObject(SYSTEM_CONFIGURATION_FILE, result);
 
 		dummyAuditService = DummyAuditService.getInstance();
 		
@@ -143,6 +169,13 @@ public class TestRestService {
 
 		result.computeStatus();
 		TestUtil.assertSuccessOrWarning("startServer failed (result)", result, 1);
+	}
+	
+	private static <O extends ObjectType> PrismObject<O> addObject(File file, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException {
+		PrismObject<O> object = prismContext.parseObject(file);
+		String oid = repositoryService.addObject(object, null, result);
+		object.setOid(oid);
+		return object;
 	}
 
 	@AfterClass
@@ -155,12 +188,6 @@ public class TestRestService {
 		super();
 	}
 
-	// TODO: authenticate as user that: has no authorization
-	// TODO: authenticate as user that: has only authorization for REST
-	// TODO: authenticate as user that: has only authorization for some REST operations
-	
-	// TODO: check audit
-	
 	@Test
 	public void test001GetUserAdministrator() {
 		final String TEST_NAME = "test001GetUserAdministrator";
@@ -212,7 +239,7 @@ public class TestRestService {
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient(null, null);
-		client.path("/users/12345");
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 		
 		dummyAuditService.clear();
 
@@ -232,8 +259,8 @@ public class TestRestService {
 		final String TEST_NAME = "test004GetAuthBadUsername";
 		displayTestTile(this, TEST_NAME);
 
-		WebClient client = prepareClient("nobody", null);
-		client.path("/users/12345");
+		WebClient client = prepareClient("NoSUCHuser", null);
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 		
 		dummyAuditService.clear();
 
@@ -254,7 +281,7 @@ public class TestRestService {
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, null);
-		client.path("/users/12345");
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 		
 		dummyAuditService.clear();
 
@@ -275,7 +302,7 @@ public class TestRestService {
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, "forgot");
-		client.path("/users/12345");
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 		
 		dummyAuditService.clear();
 
@@ -288,6 +315,72 @@ public class TestRestService {
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(1);
 		dummyAuditService.assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
+	@Test
+	public void test007GetUnauthorizedUser() {
+		final String TEST_NAME = "test007GetUnauthorizedUser";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_NOBODY_USERNAME, USER_NOBODY_PASSWORD);
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		assertEquals("Expected 403 but got " + response.getStatus(), 403, response.getStatus());
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(1);
+		dummyAuditService.assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
+	@Test
+	public void test008GetUserAdministratorByCyclops() {
+		final String TEST_NAME = "test008GetUserAdministratorByCyclops";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_CYCLOPS_USERNAME, USER_CYCLOPS_PASSWORD);
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		assertEquals("Expected 403 but got " + response.getStatus(), 403, response.getStatus());
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
+	@Test
+	public void test009GetUserAdministratorBySomebody() {
+		final String TEST_NAME = "test009GetUserAdministratorBySomebody";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_SOMEBODY_USERNAME, USER_SOMEBODY_PASSWORD);
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		UserType userType = response.readEntity(UserType.class);
+		assertNotNull("Returned entity in body must not be null.", userType);
+		LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
 
 	@Test

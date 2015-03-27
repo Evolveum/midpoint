@@ -36,7 +36,7 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_ALL_QNAME = new QName(NS_AUTHORIZATION, "all");
 	public static final String AUTZ_ALL_URL = QNameUtil.qNameToUri(AUTZ_ALL_QNAME);
 	
-	public static final QName AUTZ_REST_QNAME = new QName(NS_AUTHORIZATION, "all");
+	public static final QName AUTZ_REST_QNAME = new QName(NS_AUTHORIZATION_REST, "all");
 	public static final String AUTZ_REST_URL = QNameUtil.qNameToUri(AUTZ_REST_QNAME);
 	
 //	public static final QName AUTZ_DEVEL_QNAME = new QName(NS_AUTHORIZATION, "devel");
