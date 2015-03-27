@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.api;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
@@ -522,7 +523,7 @@ public interface ModelService {
 	 * @param input
 	 * @param task
 	 */
-	void importObjectsFromFile(File input, ImportOptionsType options, Task task, OperationResult parentResult);
+	void importObjectsFromFile(File input, ImportOptionsType options, Task task, OperationResult parentResult) throws FileNotFoundException;
 
 	/**
 	 * Import objects from stream.
