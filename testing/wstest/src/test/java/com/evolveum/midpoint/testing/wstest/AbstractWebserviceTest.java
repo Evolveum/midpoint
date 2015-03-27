@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.testing.wstest;
 
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.crypto.AESProtector;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
@@ -71,7 +68,7 @@ import javax.xml.ws.Holder;
 *
 * */
 
-public class AbstractWebserviceTest extends AbstractModelIntegrationTest {
+public class AbstractWebserviceTest {
 
     protected static final Trace LOGGER = TraceManager.getTrace(AbstractWebserviceTest.class);
 
@@ -89,67 +86,20 @@ public class AbstractWebserviceTest extends AbstractModelIntegrationTest {
     public static final String MULTIPLE_THREAD_USER_SEARCH_NAME = "Barbara";
     public static Element MULTIPLE_THREAD_SEARCH_FILTER;
 
-    @Autowired(required=true)
-    
-    
-    @Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		
-		// get the jetty server form the destination
-		EndpointInfo ei = new EndpointInfo();
-		ei.setAddress(serviceFactory.getAddress());
-		Destination destination = df.getDestination(ei);
-		JettyHTTPDestination jettyDestination = (JettyHTTPDestination) destination;
-		ServerEngine engine = jettyDestination.getEngine();
-		Handler handler = engine.getServant(new URL(serviceFactory.getAddress()));
-		org.mortbay.jetty.Server server = handler.getServer(); // The Server
-		 
-		// We have to create a HandlerList structure that includes both a ResourceHandler for the static
-		// content as well as the ContextHandlerCollection created by CXF (which we retrieve as serverHandler).
-		Handler serverHandler = server.getHandler();
-		HandlerList handlerList = new HandlerList();
-		ResourceHandler resourceHandler = new ResourceHandler();
-		handlerList.addHandler(resourceHandler);
-		handlerList.addHandler(serverHandler);
-		 
-		// replace the CXF servlet connect collection with the list.
-		server.setHandler(handlerList);
-		// and tell the handler list that it is alive.
-		handlerList.start();
-		 
-		// setup the resource handler
-		File staticContentFile = new File(staticContentPath); // ordinary pathname.
-		URL targetURL = new URL("file://" + staticContentFile.getCanonicalPath());
-		FileResource fileResource = new FileResource(targetURL);
-		resourceHandler.setBaseResource(fileResource);
-	}
-
 	/**
-     * Takes care of system inicialization. Need to be done before any tests are to be run.
+     * Takes care of system initialization. Need to be done before any tests are to be run.
      * */
-    protected static void initSystem(){
-        try{
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            domDocumentBuilder = factory.newDocumentBuilder();
-
-            MULTIPLE_THREAD_SEARCH_FILTER = parseElement(
-                    "<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
-                            "<path>c:givenName</path>" +
-                            "<value>" + MULTIPLE_THREAD_USER_SEARCH_NAME + "</value>" +
-                            "</equal>"
-            );
-
-        }catch(ParserConfigurationException ex){
-            throw new IllegalStateException("Error creating XML document " + ex.getMessage());
-        }
-        catch (SAXException se){
-            throw new IllegalStateException("Error creating XML document " + se.getMessage());
-        }
-        catch (IOException ioe){
-            throw new IllegalStateException("Error creating XML document " + ioe.getMessage());
-        }
+    protected static void initSystem() {
+        try {
+			MULTIPLE_THREAD_SEARCH_FILTER = parseElement(
+			        "<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
+			                "<path>c:givenName</path>" +
+			                "<value>" + MULTIPLE_THREAD_USER_SEARCH_NAME + "</value>" +
+			                "</equal>"
+			);
+		} catch (SAXException | IOException e) {
+			throw new IllegalStateException("Error creating XML document " + e.getMessage(), e);
+		}
     }
 
     /**
@@ -189,7 +139,9 @@ public class AbstractWebserviceTest extends AbstractModelIntegrationTest {
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 
-		modelPort.getObject(getTypeUri(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, objectHolder, resultHolder);
+        
+		modelPort.getObject(getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
+        		null, objectHolder, resultHolder);
 
         return (SystemConfigurationType) objectHolder.value;
     }
@@ -202,11 +154,15 @@ public class AbstractWebserviceTest extends AbstractModelIntegrationTest {
         return typeUri;
     }
 
+    protected static QName getTypeQName(Class<? extends ObjectType> type){
+        return new QName(NS_COMMON, type.getSimpleName());
+    }
+
     /**
      * Returns documentBuilder instance - used to create documents and polystrings
      * */
     protected static Document getDocument(){
-        return domDocumentBuilder.newDocument();
+        return DOMUtil.getDocument();
     }
 
     /**
@@ -260,37 +216,19 @@ public class AbstractWebserviceTest extends AbstractModelIntegrationTest {
     }
 
     protected static Element parseElement(String stringXml) throws SAXException, IOException {
-        Document document = domDocumentBuilder.parse(IOUtils.toInputStream(stringXml, "utf-8"));
-        return getFirstChildElement(document);
-    }
-
-    protected static Element getFirstChildElement(Node parent) {
-        if (parent == null || parent.getChildNodes() == null) {
-            return null;
-        }
-
-        NodeList nodes = parent.getChildNodes();
-        for (int i = 0; i < nodes.getLength(); i++) {
-            Node child = nodes.item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE) {
-                return (Element) child;
-            }
-        }
-
-        return null;
+    	return DOMUtil.getFirstChildElement(DOMUtil.parseDocument(stringXml));
     }
 
     /**
      *  Clean the repository after tests. Preserves user administrator
      * */
     protected void cleanRepository() throws FaultMessage {
-        OperationOptionsType options = new OperationOptionsType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
         PagingType paging = new PagingType();
         String adminOid = "00000000-0000-0000-0000-000000000002";
 
-        modelPort.listObjects(getTypeUri(UserType.class), paging, options, objectListHolder, resultHolder);
+        modelPort.listObjects(getTypeUri(UserType.class), paging, null, objectListHolder, resultHolder);
 
         ObjectListType objectList = objectListHolder.value;
         List<ObjectType> objects = objectList.getObject();
