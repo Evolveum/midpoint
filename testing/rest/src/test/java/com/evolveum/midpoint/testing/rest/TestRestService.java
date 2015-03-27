@@ -43,6 +43,7 @@ import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -50,15 +51,20 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.DummyAuditService;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -69,6 +75,8 @@ public class TestRestService {
 	private static final File REPO_DIR = new File("src/test/resources/repo/");
 
 	public static final File USER_ADMINISTRATOR_FILE = new File(REPO_DIR, "user-administrator.xml");
+	public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
+	public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
 	public static final File ROLE_SUPERUSER_FILE = new File(REPO_DIR, "role-superuser.xml");
 
 	public static final File RESOURCE_OPENDJ_FILE = new File(REPO_DIR, "reosurce-opendj.xml");
@@ -84,7 +92,7 @@ public class TestRestService {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestRestService.class);
 
-	private final static String ENDPOINT_ADDRESS = "http://localhost:8080/rest";
+	private final static String ENDPOINT_ADDRESS = "http://localhost:18080/rest";
 
 	private static TaskManager taskManager;
 	private static ModelService modelService;
@@ -93,6 +101,7 @@ public class TestRestService {
 
 	private static RepositoryService repositoryService;
 	private static ProvisioningService provisioning;
+	private static DummyAuditService dummyAuditService;
 
 	@BeforeClass
 	public static void initialize() throws Exception {
@@ -126,6 +135,8 @@ public class TestRestService {
 		PrismObject<UserType> sysConfig = prismContext.parseObject(SYSTEM_CONFIGURATION_FILE);
 		repositoryService.addObject(sysConfig, RepoAddOptions.createAllowUnencryptedValues(), result);
 
+		dummyAuditService = DummyAuditService.getInstance();
+		
 		InternalMonitor.reset();
 
 		modelService.postInit(result);
@@ -155,9 +166,10 @@ public class TestRestService {
 		final String TEST_NAME = "test001GetUserAdministrator";
 		displayTestTile(this, TEST_NAME);
 
-		WebClient client = prepareClient(true);
-
+		WebClient client = prepareClient();
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+		
+		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.get();
@@ -167,6 +179,10 @@ public class TestRestService {
 		UserType userType = response.readEntity(UserType.class);
 		assertNotNull("Returned entity in body must not be null.", userType);
 		LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
 
 	@Test
@@ -174,9 +190,10 @@ public class TestRestService {
 		final String TEST_NAME = "test002GetNonExistingUser";
 		displayTestTile(this, TEST_NAME);
 
-		WebClient client = prepareClient(true);
-
+		WebClient client = prepareClient();
 		client.path("/users/12345");
+		
+		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.get();
@@ -184,16 +201,20 @@ public class TestRestService {
 		TestUtil.displayThen(TEST_NAME);
 		assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
 
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
 
 	@Test
-	public void test003GetNonAuthneticated() {
-		final String TEST_NAME = "test003GetNonAuthneticated";
+	public void test003GetNoAuthHeaders() {
+		final String TEST_NAME = "test003GetNoAuthHeaders";
 		displayTestTile(this, TEST_NAME);
 
-		WebClient client = prepareClient(false);
-
+		WebClient client = prepareClient(null, null);
 		client.path("/users/12345");
+		
+		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.get();
@@ -201,6 +222,72 @@ public class TestRestService {
 		TestUtil.displayThen(TEST_NAME);
 		assertEquals("Expected 401 but got " + response.getStatus(), 401, response.getStatus());
 
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		// No records. There are no auth headers so this is not considered to be a login attempt
+		dummyAuditService.assertRecords(0);
+	}
+
+	@Test
+	public void test004GetAuthBadUsername() {
+		final String TEST_NAME = "test004GetAuthBadUsername";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient("nobody", null);
+		client.path("/users/12345");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		assertEquals("Expected 401 but got " + response.getStatus(), 401, response.getStatus());
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(1);
+		dummyAuditService.assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
+	@Test
+	public void test005GetAuthNoPassword() {
+		final String TEST_NAME = "test005GetAuthNoPassword";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, null);
+		client.path("/users/12345");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		assertEquals("Expected 401 but got " + response.getStatus(), 401, response.getStatus());
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(1);
+		dummyAuditService.assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+	}
+
+	@Test
+	public void test006GetAuthBadPassword() {
+		final String TEST_NAME = "test006GetAuthBadPassword";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, "forgot");
+		client.path("/users/12345");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		assertEquals("Expected 401 but got " + response.getStatus(), 401, response.getStatus());
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(1);
+		dummyAuditService.assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
 	}
 
 	@Test
@@ -208,9 +295,10 @@ public class TestRestService {
 		final String TEST_NAME = "test102AddUserTemplate";
 		displayTestTile(this, TEST_NAME);
 
-		WebClient client = prepareClient(true);
-
+		WebClient client = prepareClient();
 		client.path("/objectTemplates");
+		
+		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.post(USER_TEMPLATE_FILE);
@@ -221,6 +309,10 @@ public class TestRestService {
 
 		assertEquals("Expected 201 but got " + response.getStatus(), 201, response.getStatus());
 
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(4);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		dummyAuditService.assertHasDelta(1, ChangeType.ADD, ObjectTemplateType.class);
 	}
 
 	@Test
@@ -228,9 +320,10 @@ public class TestRestService {
 		final String TEST_NAME = "test103AddUserBadTargetCollection";
 		displayTestTile(this, TEST_NAME);
 
-		WebClient client = prepareClient(true);
-
+		WebClient client = prepareClient();
 		client.path("/objectTemplates");
+		
+		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.post(USER_ADMINISTRATOR_FILE);
@@ -241,6 +334,9 @@ public class TestRestService {
 
 		assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
 
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
 
 	@Test
@@ -248,10 +344,11 @@ public class TestRestService {
 		final String TEST_NAME = "test104AddAccountRaw";
 		displayTestTile(this, TEST_NAME);
 
-		WebClient client = prepareClient(true);
-
+		WebClient client = prepareClient();
 		client.path("/shadows");
 		client.query("options", "raw");
+		
+		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.post(ACCOUT_CHUCK_FILE);
@@ -274,6 +371,10 @@ public class TestRestService {
 			// the repository
 		}
 
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(4);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		dummyAuditService.assertHasDelta(1, ChangeType.ADD, ShadowType.class);
 	}
 
 	@Test
@@ -281,10 +382,11 @@ public class TestRestService {
 		final String TEST_NAME = "test401AddSystemConfigurationOverwrite";
 		displayTestTile(this, TEST_NAME);
 
-		WebClient client = prepareClient(true);
+		WebClient client = prepareClient();
 		client.path("/systemConfigurations");
-
 		client.query("options", "overwrite");
+		
+		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.post(SYSTEM_CONFIGURATION_FILE);
@@ -298,10 +400,19 @@ public class TestRestService {
 		assertEquals(
 				ENDPOINT_ADDRESS + "/systemConfigurations/" + SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 				location);
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(4);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		dummyAuditService.assertHasDelta(1, ChangeType.ADD, SystemConfigurationType.class);
 
 	}
 
-	private WebClient prepareClient(boolean authenticate) {
+	private WebClient prepareClient() {
+		return prepareClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
+	}
+	
+	private WebClient prepareClient(String username, String password) {
 		WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
 		ClientConfiguration clientConfig = WebClient.getConfig(client);
@@ -310,9 +421,9 @@ public class TestRestService {
 
 		client.accept("application/xml");
 
-		if (authenticate) {
+		if (username != null) {
 			String authorizationHeader = "Basic "
-					+ org.apache.cxf.common.util.Base64Utility.encode("administrator:5ecr3t".getBytes());
+					+ org.apache.cxf.common.util.Base64Utility.encode((username+":"+(password==null?"":password)).getBytes());
 			client.header("Authorization", authorizationHeader);
 		}
 		return client;
