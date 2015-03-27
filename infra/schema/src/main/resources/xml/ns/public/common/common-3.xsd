@@ -2594,6 +2594,22 @@
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="orgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                        Reference to the organization (org. unit, project, ...) to which this assignment refers. This is an argument to the target of this
+                        assignment. E.g. is if frequently used to parametrize the role which is assigned by this assignment.
+                        However the exact interpretation of this value depends on the logic of the target role. It may be
+                        significant or it may be entirely ignored.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                        <a:displayName>Org reference</a:displayName>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             
             <xsd:element name="condition" type="tns:MappingType" minOccurs="0">
                 <xsd:annotation>

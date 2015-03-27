@@ -61,6 +61,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     public static final String F_ACTIVATION = "activation";
     public static final String F_RELATION = "relation";
     public static final String F_TENANT_REF = "tenantRef";
+    public static final String F_ORG_REF = "orgRef";
     public static final String F_ALT_NAME = "altName";
     public static final String F_IS_ORG_UNIT_MANAGER = "isOrgUnitManager";
 
@@ -70,6 +71,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     private UserDtoStatus status;
     private AssignmentType oldAssignment;
     private ObjectViewDto<OrgType> tenantRef;
+    private ObjectViewDto<OrgType> orgRef;
 
     private boolean showEmpty = false;
     private boolean minimized = true;
@@ -101,6 +103,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 //        }
 
         this.tenantRef = loadTenantReference(targetObject, assignment, pageBase);
+        this.orgRef = loadOrgReference(targetObject, assignment, pageBase);
 
         this.name = getNameForTargetObject(targetObject);
         this.altName = getAlternativeName(assignment);
@@ -236,6 +239,34 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         dto.setType(OrgType.class);
         return dto;
     }
+    
+    private ObjectViewDto loadOrgReference(ObjectType object, AssignmentType assignment, PageBase page){
+        ObjectViewDto dto;
+
+        if(object instanceof RoleType){
+            if(assignment.getOrgRef() != null){
+                ObjectReferenceType ref = assignment.getOrgRef();
+
+                OperationResult result = new OperationResult(OPERATION_LOAD_ORG_TENANT);
+                PrismObject<OrgType> org = WebModelUtils.loadObject(OrgType.class, ref.getOid(), result, page);
+
+                //TODO - show user some error about not loading role tenants of OrgType
+                if(org == null){
+                    dto = new ObjectViewDto(ObjectViewDto.BAD_OID);
+                    dto.setType(OrgType.class);
+                    return dto;
+                }
+
+                dto = new ObjectViewDto(ref.getOid(), WebMiscUtil.getName(org.asObjectable()));
+                dto.setType(OrgType.class);
+                return dto;
+            }
+        }
+
+        dto = new ObjectViewDto();
+        dto.setType(OrgType.class);
+        return dto;
+    }
 
     private String getNameForTargetObject(ObjectType object) {
         if (object == null) {
@@ -270,6 +301,13 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
                     builder.append(" - ").append("(tenant not found)");
                 } else if(tenantRef.getOid() != null){
                     builder.append(" - ").append(tenantRef.getName());
+                }
+            }
+            if(orgRef != null){
+                if(ObjectViewDto.BAD_OID.equals(orgRef.getOid())){
+                    builder.append(" - ").append("(org not found)");
+                } else if(orgRef.getOid() != null){
+                    builder.append(" - ").append(orgRef.getName());
                 }
             }
 
@@ -381,6 +419,17 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
                 newAssignment.setTenantRef(ref);
             }
         }
+        
+        if(orgRef != null && AssignmentEditorDtoType.ROLE.equals(this.type)){
+            if(orgRef.getOid() == null){
+                newAssignment.setOrgRef(null);;
+            } else {
+                ObjectReferenceType ref = new ObjectReferenceType();
+                ref.setOid(this.orgRef.getOid());
+                ref.setType(OrgType.COMPLEX_TYPE);
+                newAssignment.setOrgRef(ref);
+            }
+        }
 
         ConstructionType construction = newAssignment.getConstruction();
         if (construction == null) {
@@ -462,6 +511,14 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     public void setTenantRef(ObjectViewDto<OrgType> tenantRef) {
         this.tenantRef = tenantRef;
     }
+    
+    public ObjectViewDto<OrgType> getOrgRef() {
+		return orgRef;
+	}
+    
+    public void setOrgRef(ObjectViewDto<OrgType> orgRef) {
+		this.orgRef = orgRef;
+	}
 
     public String getAltName() {
         return altName;
@@ -490,6 +547,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
             return false;
         if (status != that.status) return false;
         if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) return false;
+        if (orgRef != null ? !orgRef.equals(that.orgRef) : that.orgRef != null) return false;
         if (type != that.type) return false;
 
         return true;
@@ -503,6 +561,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (oldAssignment != null ? oldAssignment.hashCode() : 0);
         result = 31 * result + (tenantRef != null ? tenantRef.hashCode() : 0);
+        result = 31 * result + (orgRef != null ? orgRef.hashCode() : 0);
         result = 31 * result + (showEmpty ? 1 : 0);
         result = 31 * result + (minimized ? 1 : 0);
         result = 31 * result + (isOrgUnitManager ? 1 : 0);
