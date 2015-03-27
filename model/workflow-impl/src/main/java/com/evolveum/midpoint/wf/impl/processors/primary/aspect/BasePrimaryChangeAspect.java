@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.Proc
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -52,6 +53,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
     private String beanName;
 
     @Autowired
+    @Qualifier("cacheRepositoryService")
     protected RepositoryService repositoryService;
 
     @Autowired
