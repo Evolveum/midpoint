@@ -135,7 +135,10 @@ public class ModifyResourceAssignmentAspect extends BasePrimaryChangeAspect {
             AssignmentType assignmentType = ModifyRoleAssignmentAspect.getAssignmentToBeModified(assignmentsOld, id);
 
             ResourceType resourceType = primaryChangeAspectHelper.resolveResourceRef(assignmentType, result);
-            boolean approvalRequired = AddResourceAssignmentAspect.shouldResourceBeApproved(resourceType);
+            if (resourceType == null) {
+                continue;
+            }
+            boolean approvalRequired = shouldAssignmentBeApproved(config, resourceType);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(" - resource: {} (approval required = {})", resourceType, approvalRequired);
             }
@@ -159,6 +162,13 @@ public class ModifyResourceAssignmentAspect extends BasePrimaryChangeAspect {
         }
         return approvalRequestList;
     }
+
+    // TODO deduplicate
+    protected boolean shouldAssignmentBeApproved(PcpAspectConfigurationType config, ResourceType resourceType) {
+        return primaryChangeAspectHelper.hasApproverInformation(config) ||
+                (resourceType.getBusiness() != null && !resourceType.getBusiness().getApproverRef().isEmpty());
+    }
+
 
     private void addToDeltas(Map<Long, List<ItemDeltaType>> deltasById, Long id, ItemDelta delta) throws SchemaException {
         List<ItemDeltaType> deltas = deltasById.get(id);

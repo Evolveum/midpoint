@@ -68,8 +68,8 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
         return getBean(MiscDataUtil.class);
     }
 
-    public static RepositoryService getRepositoryService() {
-        return getBean(RepositoryService.class);
+    public static RepositoryService getCacheRepositoryService() {
+        return getBean("cacheRepositoryService", RepositoryService.class);
     }
 
     public static PrismContext getPrismContext() {

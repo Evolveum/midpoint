@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -56,6 +57,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
     private PrismContext prismContext;
     
     @Autowired
+    @Qualifier("cacheRepositoryService")
     private com.evolveum.midpoint.repo.api.RepositoryService repositoryService;
 
     @Autowired
