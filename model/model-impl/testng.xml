@@ -59,7 +59,6 @@
         <classes>
             <class name="com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestAssignmentEvaluator"/>
-            <class name="com.evolveum.midpoint.model.impl.lens.TestProjectorAddUser"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestProjector"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestProjectorRoleEntitlement"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestDependencies"/>

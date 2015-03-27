@@ -67,8 +67,8 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		// DO NOT call super.initSystem() as this will install system config. We do not want that here.
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
 		login(userAdministrator);
 	}
 	

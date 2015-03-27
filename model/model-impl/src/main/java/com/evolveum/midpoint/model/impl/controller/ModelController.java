@@ -1263,7 +1263,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
                 SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("System configuration version read from repo: " + config.getVersion());
+        	if (config == null) {
+        		LOGGER.warn("No system configuration object");
+        	} else {
+        		LOGGER.trace("System configuration version read from repo: " + config.getVersion());
+        	}
         }
         return config;
     }
