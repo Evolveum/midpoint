@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
@@ -14,28 +15,17 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="assignablePopup" />
-    <div wicket:id="assignableOrgPopup" />
-    <div wicket:id="deleteAssignmentPopup" />
+    <div class="popupWindow">
 
-    <div wicket:id="assignments">
-        <div class="row assignable-header">
-
-            <div class="col-xs-10">
-                <input type="checkbox" wicket:id="assignmentsCheckAll" />
-                <h3><span wicket:id="assignmentsHeader" /></h3>
-            </div>
-
-            <div class="col-xs-2 cog" wicket:id="assignmentsMenu" />
-
+        <div class="clearfix">
+            <div wicket:id="tabs" class="tabbable" style="padding-top: 10px"/>
         </div>
 
-        <div wicket:id="assignmentList">
-            <div class="assignment-item" wicket:id="assignmentEditor"/>
-        </div>
-    </div>
+        <p align="center">
+            <a class="btn btn-success" wicket:id="add" />
+        </p>
+   	</div>
 </wicket:panel>
 </html>

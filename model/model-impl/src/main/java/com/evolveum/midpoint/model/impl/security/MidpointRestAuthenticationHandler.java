@@ -79,12 +79,14 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         
         if (policy == null){
         	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic").build());
+        	return;
         }
         
         String username = policy.getUserName();
         
         if (username == null){
         	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic").build());
+        	return;
         }
         
         
@@ -98,6 +100,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 		}
         
         if (principal == null ){
+        	auditLoginFailure(username);
         	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic").build());
         	return;
         }
@@ -191,7 +194,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setParameter(username);
 
-        record.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        record.setChannel(SchemaConstants.CHANNEL_REST_URI);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.FATAL_ERROR);
 

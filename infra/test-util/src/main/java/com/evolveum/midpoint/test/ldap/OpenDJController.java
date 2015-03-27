@@ -248,6 +248,7 @@ public class OpenDJController extends AbstractResourceController {
 		LOGGER.debug("Try to localize OpenDJ Template in JARs as " + templateRootPath);
 
 		URL srcUrl = ClassLoader.getSystemResource(templateRootPath);
+		LOGGER.debug("srcUrl " + srcUrl);
 		// sample:
 		// file:/C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar!/test-data/opendj.template
 		// output:
