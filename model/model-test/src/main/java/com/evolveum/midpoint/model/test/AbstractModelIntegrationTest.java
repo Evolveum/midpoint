@@ -151,6 +151,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.FilterInvocation;
 import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -265,6 +266,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected void startResources() throws Exception {
 		// Nothing to do by default
+	}
+	
+	@AfterClass
+	protected void cleanUpSecurity() {
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		securityContext.setAuthentication(null);
 	}
 	
 	protected void importObjectFromFile(String filename) throws FileNotFoundException {

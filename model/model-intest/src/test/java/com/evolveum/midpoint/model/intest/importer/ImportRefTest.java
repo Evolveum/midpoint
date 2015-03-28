@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
@@ -71,17 +72,10 @@ import static org.testng.AssertJUnit.assertNotNull;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
-public class ImportRefTest extends AbstractTestNGSpringContextTests {
+public class ImportRefTest extends AbstractConfiguredModelIntegrationTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(ImportRefTest.class);
 	private static final File IMPORT_FILE_NAME = new File("src/test/resources/importer/import-ref.xml");
-
-	@Autowired(required = true)
-	ModelService modelService;
-	@Autowired(required = true)
-	private RepositoryService repositoryService;
-	@Autowired(required = true)
-	private TaskManager taskManager;
 
     @AfterClass
     @Override
@@ -93,14 +87,13 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
         AbstractConfiguredModelIntegrationTest.nullAllFields(this, getClass());
 
         LOGGER.info("###>>> springTestContextAfterTestClass end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
-    }
-
-	@BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
+    }	
 	
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
+	}
+
 	/**
 	 * Test integrity of the test setup.
 	 * 
@@ -114,11 +107,12 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void test001GoodRefImport() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
-		TestUtil.displayTestTile(this,"test001GoodRefImport");
+	public void test010GoodRefImport() throws Exception {
+		final String TEST_NAME = "test010GoodRefImport";
+		TestUtil.displayTestTile(this,TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
-		OperationResult result = new OperationResult(ImportRefTest.class.getName() + "test001GoodRefImport");
+		OperationResult result = new OperationResult(ImportRefTest.class.getName() + "." +TEST_NAME);
 		FileInputStream stream = new FileInputStream(IMPORT_FILE_NAME);
 
 		// WHEN

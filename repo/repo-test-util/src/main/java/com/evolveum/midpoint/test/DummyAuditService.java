@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.test;
 
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.*;
@@ -184,9 +185,15 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		assert records.size() > 1 : "Expected at least two audit records but got "+records.size();
 		Iterator<AuditEventRecord> iterator = records.iterator();
 		AuditEventRecord requestRecord = iterator.next();
+		if (requestRecord.getEventType() == AuditEventType.CREATE_SESSION) {
+			requestRecord = iterator.next();
+		}
 		assert requestRecord.getEventStage() == AuditEventStage.REQUEST : "Expected first record to be request, it was "+requestRecord.getEventStage()+" instead: "+requestRecord;
 		while (iterator.hasNext()) {
 			AuditEventRecord executionRecord = iterator.next();
+			if (executionRecord.getEventType() == AuditEventType.TERMINATE_SESSION) {
+				break;
+			}
 			assert executionRecord.getEventStage() == AuditEventStage.EXECUTION : "Expected following record to be execution, it was "+executionRecord.getEventStage()+" instead: "+executionRecord;
 		}		
 	}
@@ -264,27 +271,27 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		assert records.isEmpty() : "Expected no audit record but some sneaked in: "+records;
 	}
 	
-	public void asserHasDelta(ChangeType expectedChangeType, Class<?> expectedClass) {
-		asserHasDelta(null, 0, expectedChangeType, expectedClass);
+	public void assertHasDelta(ChangeType expectedChangeType, Class<?> expectedClass) {
+		assertHasDelta(null, 0, expectedChangeType, expectedClass);
 	}
 	
-	public void asserHasDelta(ChangeType expectedChangeType, Class<?> expectedClass, OperationResultStatus expextedResult) {
-		asserHasDelta(null, 0, expectedChangeType, expectedClass, expextedResult);
+	public void assertHasDelta(ChangeType expectedChangeType, Class<?> expectedClass, OperationResultStatus expextedResult) {
+		assertHasDelta(null, 0, expectedChangeType, expectedClass, expextedResult);
 	}
 	
-	public void asserHasDelta(int index, ChangeType expectedChangeType, Class<?> expectedClass) {
-		asserHasDelta(null, index, expectedChangeType, expectedClass);
+	public void assertHasDelta(int index, ChangeType expectedChangeType, Class<?> expectedClass) {
+		assertHasDelta(null, index, expectedChangeType, expectedClass);
 	}
 	
-	public void asserHasDelta(int index, ChangeType expectedChangeType, Class<?> expectedClass, OperationResultStatus expextedResult) {
-		asserHasDelta(null, index, expectedChangeType, expectedClass, expextedResult);
+	public void assertHasDelta(int index, ChangeType expectedChangeType, Class<?> expectedClass, OperationResultStatus expextedResult) {
+		assertHasDelta(null, index, expectedChangeType, expectedClass, expextedResult);
 	}
 	
-	public void asserHasDelta(String message, int index, ChangeType expectedChangeType, Class<?> expectedClass) {
-		asserHasDelta(message, index, expectedChangeType, expectedClass, null);
+	public void assertHasDelta(String message, int index, ChangeType expectedChangeType, Class<?> expectedClass) {
+		assertHasDelta(message, index, expectedChangeType, expectedClass, null);
 	}
 	
-	public void asserHasDelta(String message, int index, ChangeType expectedChangeType, Class<?> expectedClass, OperationResultStatus expextedResult) {
+	public void assertHasDelta(String message, int index, ChangeType expectedChangeType, Class<?> expectedClass, OperationResultStatus expextedResult) {
 		ObjectDeltaOperation<? extends ObjectType> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
 		assert deltaOp != null : (message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in audit trail";
 		if (expextedResult != null) {
@@ -314,6 +321,41 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		}
 		assert false : "Target "+expectedOid+" not found in audit records; found "+targets;
 	}
+	
+	/**
+	 * Checks that the first record is login and the last is logout.
+	 */
+	public void assertLoginLogout() {
+		assertLoginLogout(null);
+	}
+	
+	/**
+	 * Checks that the first record is login and the last is logout.
+	 */
+	public void assertLoginLogout(String expectedChannel) {
+		AuditEventRecord firstRecord = records.get(0);
+		assertEquals("Wrong type of first audit record: "+firstRecord.getEventType(), AuditEventType.CREATE_SESSION, firstRecord.getEventType());
+		assertEquals("Wrong outcome of first audit record: "+firstRecord.getOutcome(), OperationResultStatus.SUCCESS, firstRecord.getOutcome());
+		AuditEventRecord lastRecord = records.get(records.size()-1);
+		assertEquals("Wrong type of last audit record: "+lastRecord.getEventType(), AuditEventType.TERMINATE_SESSION, lastRecord.getEventType());
+		assertEquals("Wrong outcome of last audit record: "+lastRecord.getOutcome(), OperationResultStatus.SUCCESS, lastRecord.getOutcome());
+		assertEquals("Audit session ID does not match", firstRecord.getSessionIdentifier(), lastRecord.getSessionIdentifier());
+		assertFalse("Same login and logout event IDs", firstRecord.getEventIdentifier().equals(lastRecord.getEventIdentifier()));
+		if (expectedChannel != null) {
+			assertEquals("Wrong channel in first audit record", expectedChannel, firstRecord.getChannel());
+			assertEquals("Wrong channel in last audit record", expectedChannel, lastRecord.getChannel());
+		}
+	}
+	
+	public void assertFailedLogin(String expectedChannel) {
+		AuditEventRecord firstRecord = records.get(0);
+		assertEquals("Wrong type of first audit record: "+firstRecord.getEventType(), AuditEventType.CREATE_SESSION, firstRecord.getEventType());
+		assertEquals("Wrong outcome of first audit record: "+firstRecord.getOutcome(), OperationResultStatus.FATAL_ERROR, firstRecord.getOutcome());
+		if (expectedChannel != null) {
+			assertEquals("Wrong channel in first audit record", expectedChannel, firstRecord.getChannel());
+		}
+	}
+
 
 	@Override
 	public String toString() {
@@ -339,5 +381,6 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 
 }

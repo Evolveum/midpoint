@@ -1736,7 +1736,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		logAllow("delete", type, oid, null);
 	}
 	
-	private void assertImportDeny(File file) {
+	private void assertImportDeny(File file) throws FileNotFoundException {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertImportDeny");
         OperationResult result = task.getResult();
         // This does not throw exception, failure is indicated in the result
@@ -1745,7 +1745,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		TestUtil.assertFailure(result);
 	}
 
-	private void assertImportAllow(File file) {
+	private void assertImportAllow(File file) throws FileNotFoundException {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertImportAllow");
         OperationResult result = task.getResult();
         modelService.importObjectsFromFile(file, null, task, result);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,18 +55,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
-public class BadImportTest extends AbstractTestNGSpringContextTests {
+public class BadImportTest extends AbstractConfiguredModelIntegrationTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(BadImportTest.class);
 	private static final File BAD_IMPORT_FILE_NAME = new File("src/test/resources/importer/import-bad.xml");
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
-
-	@Autowired(required = true)
-	ModelService modelService;
-	@Autowired(required = true)
-	private RepositoryService repositoryService;
-	@Autowired(required = true)
-	private TaskManager taskManager;
 
     @AfterClass
     @Override
@@ -118,7 +111,7 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, null, null, result);
 
 		AssertJUnit.assertNotNull(users);
-		AssertJUnit.assertEquals("Search retuned unexpected results: "+users, 2, users.size());
+		AssertJUnit.assertEquals("Search retuned unexpected results: "+users, 3, users.size());
 
 	}
 	

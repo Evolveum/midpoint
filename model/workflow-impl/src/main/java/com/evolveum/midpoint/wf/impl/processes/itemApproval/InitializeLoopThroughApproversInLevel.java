@@ -38,7 +38,6 @@ import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpRepoAccessHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -46,7 +45,6 @@ import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.apache.commons.lang.Validate;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import java.util.*;
@@ -201,7 +199,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
     private ExpressionVariables getDefaultVariables(DelegateExecution execution, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        RepositoryService repositoryService = SpringApplicationContextHolder.getRepositoryService();
+        RepositoryService repositoryService = SpringApplicationContextHolder.getCacheRepositoryService();
         MiscDataUtil miscDataUtil = SpringApplicationContextHolder.getMiscDataUtil();
 
         ExpressionVariables variables = new ExpressionVariables();

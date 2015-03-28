@@ -23,6 +23,9 @@ import java.util.Date;
 //        @Index(name = "i_row_key", columnList = "key"),
 //        @Index(name = "i_row_label_orig", columnList = "label.orig"),
 //        @Index(name = "i_row_label_norm", columnList = "label.norm")
+},
+uniqueConstraints = {
+        @UniqueConstraint(name = "uc_row_key_unique", columnNames = {"row_key"})
 })
 @IdClass(RContainerId.class)
 public class RLookupTableRow implements Container<RLookupTable> {
@@ -65,7 +68,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
     }
 
     @Id
-    @Column(name = "row_key", unique = true)
+    @Column(name = "row_key")
     public String getKey() {
         return key;
     }

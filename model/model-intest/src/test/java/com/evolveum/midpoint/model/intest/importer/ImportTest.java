@@ -180,7 +180,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ConnectorType.class);
+        dummyAuditService.assertHasDelta(ChangeType.ADD, ConnectorType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -445,7 +445,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, TaskType.class);
+        dummyAuditService.assertHasDelta(ChangeType.ADD, TaskType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -496,7 +496,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceType.class);
+        dummyAuditService.assertHasDelta(ChangeType.ADD, ResourceType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -551,7 +551,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceType.class);
+        dummyAuditService.assertHasDelta(ChangeType.ADD, ResourceType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -602,7 +602,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ResourceType.class);
+        dummyAuditService.assertHasDelta(ChangeType.ADD, ResourceType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -649,7 +649,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.ADD, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	

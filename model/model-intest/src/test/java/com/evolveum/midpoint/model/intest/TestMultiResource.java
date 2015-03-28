@@ -1153,14 +1153,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,3);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1,3);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(1,ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
         
         // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
@@ -1237,14 +1237,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,2);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1,2);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
         
         // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
@@ -1286,10 +1286,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,2);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1,1);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
     
@@ -1324,10 +1324,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,2);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1,1);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
     
@@ -1364,7 +1364,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,1);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
     
@@ -1435,7 +1435,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,1);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
     
@@ -1470,14 +1470,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,2);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1,2);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
         
         // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
@@ -1525,11 +1525,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,1);
         dummyAuditService.assertExecutionDeltas(1,2);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();        
 	}
     
@@ -1591,13 +1591,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,3);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1,3);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(1,ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(2,1);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);        
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class);        
 	}
     
     // MID-1566
@@ -1632,14 +1632,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,2);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1,2);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
         
     }
@@ -1684,11 +1684,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,1);
         dummyAuditService.assertExecutionDeltas(1,2);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(1,ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();        
 	}
     
@@ -1748,10 +1748,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,3);
-        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1,1);
-        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
 //        dummyAuditService.assertExecutionDeltas(2,1);
 //        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
         

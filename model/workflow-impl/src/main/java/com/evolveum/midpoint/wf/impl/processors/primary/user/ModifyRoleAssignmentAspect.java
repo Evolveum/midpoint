@@ -136,7 +136,7 @@ public class ModifyRoleAssignmentAspect extends BasePrimaryChangeAspect {
 
             Long id = getAssignmentIdFromDeltaPath(assignmentsOld, delta.getPath());            // id may be null
             AssignmentType assignmentType = getAssignmentToBeModified(assignmentsOld, id);
-            ObjectType objectType = primaryChangeAspectHelper.resolveObjectRef(assignmentType, result);
+            ObjectType objectType = primaryChangeAspectHelper.resolveTargetRef(assignmentType, result);
             if (objectType instanceof AbstractRoleType) {
                 AbstractRoleType role = (AbstractRoleType) objectType;
                 boolean approvalRequired = shouldRoleBeApproved(role);
@@ -156,7 +156,7 @@ public class ModifyRoleAssignmentAspect extends BasePrimaryChangeAspect {
                 AssignmentType assignmentType = getAssignmentToBeModified(assignmentsOld, id);
                 AssignmentType aCopy = assignmentType.clone();
                 PrismContainerValue.copyDefinition(aCopy, assignmentType);
-                AbstractRoleType role = (AbstractRoleType) primaryChangeAspectHelper.resolveObjectRef(assignmentType, result);
+                AbstractRoleType role = (AbstractRoleType) primaryChangeAspectHelper.resolveTargetRef(assignmentType, result);
                 AbstractRoleAssignmentModification itemToApprove = new AbstractRoleAssignmentModification(aCopy, role, entry.getValue());
                 ApprovalRequest approvalRequest = new ApprovalRequestImpl(itemToApprove, config, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext);
                 approvalRequestList.add(approvalRequest);

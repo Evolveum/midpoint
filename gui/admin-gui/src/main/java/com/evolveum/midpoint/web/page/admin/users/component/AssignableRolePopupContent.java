@@ -33,21 +33,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class AssignableRolePopupContent extends AssignablePopupContent{
-	
-	public AssignableRolePopupContent(String id) {
-		super(id);
-		// TODO Auto-generated constructor stub
-	}
 
-	private static final String ID_TABLE = "table";
-	private static final String ID_SEARCH_FORM = "searchForm";
-	private static final String ID_BASIC_SEARCH = "basicSearch";
-	private IModel<AssignmentSearchDto> searchModel;
-
-	private static final Trace LOGGER = TraceManager.getTrace(AssignableRolePopupContent.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssignableRolePopupContent.class);
 
     private QName searchParameter = RoleType.F_NAME;
-	
+
+    private static final String ID_TABLE = "table";
+    private static final String ID_SEARCH_FORM = "searchForm";
+    private static final String ID_BASIC_SEARCH = "basicSearch";
+
+	public AssignableRolePopupContent(String id) {
+		super(id);
+	}
+
 	protected Panel createPopupContent(){
 		Form searchForm = new Form(ID_SEARCH_FORM);
         searchForm.setOutputMarkupId(true);

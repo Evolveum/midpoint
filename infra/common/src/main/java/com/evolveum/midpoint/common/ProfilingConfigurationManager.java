@@ -41,6 +41,9 @@ public class ProfilingConfigurationManager {
      *  related to profilingConfiguration
      * */
     public static LoggingConfigurationType checkSystemProfilingConfiguration(PrismObject<SystemConfigurationType> systemConfigurationPrism){
+    	if (systemConfigurationPrism == null) {
+    		return null;
+    	}
         SystemConfigurationType systemConfig = systemConfigurationPrism.asObjectable();
         ProfilingConfigurationType profilingConfig = systemConfig.getProfilingConfiguration();
         boolean isSubsystemConfig;

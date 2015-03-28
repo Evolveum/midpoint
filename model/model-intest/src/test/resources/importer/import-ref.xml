@@ -21,16 +21,6 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
 
-	<connector>
-		<name>ICF org.identityconnectors.ldap.LdapConnector</name>
-		<framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1
-		</framework>
-		<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-		<connectorVersion>1.0.5531</connectorVersion>
-		<namespace>http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector
-		</namespace>
-	</connector>
-
 	<resource xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 		<name>Sample Resource</name>
 		<connectorRef type="ConnectorType">

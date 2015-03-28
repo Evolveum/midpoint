@@ -1030,7 +1030,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         add(window);
         
         window = createModalWindow(MODAL_ID_ASSIGNABLE_ORG,
-                createStringResource("pageUser.title.selectAssignable"), 1100, 560);
+                createStringResource("pageUser.title.selectAssignable"), 1150, 600);
         window.setContent(new AssignableOrgPopupContent(window.getContentId()) {
 
             @Override
@@ -1045,8 +1045,6 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         });
         add(window);
     }
-    
-       
 
     private boolean isEditingUser() {
         StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
