@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.DisplayableValue;
+
 import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
@@ -96,6 +98,9 @@ public class ValueWrapper<T> implements Serializable {
             if (poly.getOrig()==null) {
                 value.setValue((T) new PolyString(""));
             }
+        } else if (value.getValue() instanceof DisplayableValue){
+        	DisplayableValue displayableValue = (DisplayableValue) value.getValue();
+        	value.setValue((T) displayableValue.getValue());
         }
     }
 
