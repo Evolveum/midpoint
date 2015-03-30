@@ -427,10 +427,10 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             }
         };
 
-        summaryContainer.add(new Label(ID_SUMMARY_NAME, new PrismPropertyModel<UserType>(summaryUser, UserType.F_NAME)));
-        summaryContainer.add(new Label(ID_SUMMARY_FULL_NAME, new PrismPropertyModel<UserType>(summaryUser, UserType.F_FULL_NAME)));
-        summaryContainer.add(new Label(ID_SUMMARY_GIVEN_NAME, new PrismPropertyModel<UserType>(summaryUser, UserType.F_GIVEN_NAME)));
-        summaryContainer.add(new Label(ID_SUMMARY_FAMILY_NAME, new PrismPropertyModel<UserType>(summaryUser, UserType.F_FAMILY_NAME)));
+        summaryContainer.add(new Label(ID_SUMMARY_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_NAME)));
+        summaryContainer.add(new Label(ID_SUMMARY_FULL_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_FULL_NAME)));
+        summaryContainer.add(new Label(ID_SUMMARY_GIVEN_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_GIVEN_NAME)));
+        summaryContainer.add(new Label(ID_SUMMARY_FAMILY_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_FAMILY_NAME)));
 
         Image img = new Image(ID_SUMMARY_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
 
@@ -1025,6 +1025,11 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             @Override
             protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
                 addSelectedAssignablePerformed(target, selected, MODAL_ID_ASSIGNABLE);
+            }
+
+            @Override
+            protected PrismObject<UserType> getUserDefinition() {
+                return userModel.getObject().getObject();
             }
         });
         add(window);
