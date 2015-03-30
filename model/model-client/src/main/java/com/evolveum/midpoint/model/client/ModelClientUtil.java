@@ -36,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.FilterClauseType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -248,6 +249,31 @@ public class ModelClientUtil {
 		} catch (ParserConfigurationException ex) {
 			throw new IllegalStateException("Error creating XML document " + ex.getMessage());
 		}
+	}
+
+	public static <O extends ObjectType> String toString(O obj) {
+		if (obj == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		String className = obj.getClass().getSimpleName();
+		if (className.endsWith("Type")) {
+			className = className.substring(0, className.lastIndexOf("Type")).toLowerCase();
+		}
+		sb.append(className);
+		sb.append("(");
+		sb.append(toString(obj.getName()));
+		sb.append(":");
+		sb.append(obj.getOid());
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String toString(PolyStringType poly) {
+		if (poly == null) {
+			return null;
+		}
+		return getOrig(poly);
 	}
 
 }
