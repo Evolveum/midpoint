@@ -9,7 +9,7 @@ CREATE TABLE m_abstract_role (
 ) INITRANS 30;
 
 CREATE TABLE m_assignment (
-  id                      NUMBER(5, 0)      NOT NULL,
+  id                      NUMBER(10, 0)      NOT NULL,
   owner_oid               VARCHAR2(36 CHAR) NOT NULL,
   administrativeStatus    NUMBER(10, 0),
   archiveTimestamp        TIMESTAMP,
@@ -39,14 +39,14 @@ CREATE TABLE m_assignment (
   tenantRef_relation      VARCHAR2(157 CHAR),
   tenantRef_targetOid     VARCHAR2(36 CHAR),
   tenantRef_type          NUMBER(10, 0),
-  extId                   NUMBER(5, 0),
+  extId                   NUMBER(10, 0),
   extOid                  VARCHAR2(36 CHAR),
   PRIMARY KEY (id, owner_oid)
 ) INITRANS 30;
 
 CREATE TABLE m_assignment_ext_date (
   eName                        VARCHAR2(157 CHAR) NOT NULL,
-  anyContainer_owner_id        NUMBER(5, 0)       NOT NULL,
+  anyContainer_owner_id        NUMBER(10, 0)       NOT NULL,
   anyContainer_owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
   dateValue                    TIMESTAMP          NOT NULL,
   extensionType                NUMBER(10, 0),
@@ -58,7 +58,7 @@ CREATE TABLE m_assignment_ext_date (
 
 CREATE TABLE m_assignment_ext_long (
   eName                        VARCHAR2(157 CHAR) NOT NULL,
-  anyContainer_owner_id        NUMBER(5, 0)       NOT NULL,
+  anyContainer_owner_id        NUMBER(10, 0)       NOT NULL,
   anyContainer_owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
   longValue                    NUMBER(19, 0)      NOT NULL,
   extensionType                NUMBER(10, 0),
@@ -70,7 +70,7 @@ CREATE TABLE m_assignment_ext_long (
 
 CREATE TABLE m_assignment_ext_poly (
   eName                        VARCHAR2(157 CHAR) NOT NULL,
-  anyContainer_owner_id        NUMBER(5, 0)       NOT NULL,
+  anyContainer_owner_id        NUMBER(10, 0)       NOT NULL,
   anyContainer_owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
   orig                         VARCHAR2(255 CHAR) NOT NULL,
   extensionType                NUMBER(10, 0),
@@ -83,7 +83,7 @@ CREATE TABLE m_assignment_ext_poly (
 
 CREATE TABLE m_assignment_ext_reference (
   eName                        VARCHAR2(157 CHAR) NOT NULL,
-  anyContainer_owner_id        NUMBER(5, 0)       NOT NULL,
+  anyContainer_owner_id        NUMBER(10, 0)       NOT NULL,
   anyContainer_owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
   targetoid                    VARCHAR2(36 CHAR)  NOT NULL,
   extensionType                NUMBER(10, 0),
@@ -97,7 +97,7 @@ CREATE TABLE m_assignment_ext_reference (
 
 CREATE TABLE m_assignment_ext_string (
   eName                        VARCHAR2(157 CHAR) NOT NULL,
-  anyContainer_owner_id        NUMBER(5, 0)       NOT NULL,
+  anyContainer_owner_id        NUMBER(10, 0)       NOT NULL,
   anyContainer_owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
   stringValue                  VARCHAR2(255 CHAR) NOT NULL,
   extensionType                NUMBER(10, 0),
@@ -108,7 +108,7 @@ CREATE TABLE m_assignment_ext_string (
 ) INITRANS 30;
 
 CREATE TABLE m_assignment_extension (
-  owner_id        NUMBER(5, 0)      NOT NULL,
+  owner_id        NUMBER(10, 0)      NOT NULL,
   owner_owner_oid VARCHAR2(36 CHAR) NOT NULL,
   datesCount      NUMBER(5, 0),
   longsCount      NUMBER(5, 0),
@@ -119,7 +119,7 @@ CREATE TABLE m_assignment_extension (
 ) INITRANS 30;
 
 CREATE TABLE m_assignment_reference (
-  owner_id        NUMBER(5, 0)       NOT NULL,
+  owner_id        NUMBER(10, 0)       NOT NULL,
   owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
   reference_type  NUMBER(10, 0)      NOT NULL,
   relation        VARCHAR2(157 CHAR) NOT NULL,
@@ -193,7 +193,7 @@ CREATE TABLE m_connector_target_system (
 ) INITRANS 30;
 
 CREATE TABLE m_exclusion (
-  id                  NUMBER(5, 0)      NOT NULL,
+  id                  NUMBER(10, 0)      NOT NULL,
   owner_oid           VARCHAR2(36 CHAR) NOT NULL,
   policy              NUMBER(10, 0),
   targetRef_relation  VARCHAR2(157 CHAR),
@@ -233,7 +233,7 @@ CREATE TABLE m_lookup_table (
 ) INITRANS 30;
 
 CREATE TABLE m_lookup_table_row (
-  id                  NUMBER(5, 0)      NOT NULL,
+  id                  NUMBER(10, 0)      NOT NULL,
   owner_oid           VARCHAR2(36 CHAR) NOT NULL,
   row_key             VARCHAR2(255 CHAR),
   label_norm          VARCHAR2(255 CHAR),
@@ -498,7 +498,7 @@ CREATE TABLE m_task_dependent (
 ) INITRANS 30;
 
 CREATE TABLE m_trigger (
-  id             NUMBER(5, 0)      NOT NULL,
+  id             NUMBER(10, 0)      NOT NULL,
   owner_oid      VARCHAR2(36 CHAR) NOT NULL,
   handlerUri     VARCHAR2(255 CHAR),
   timestampValue TIMESTAMP,
@@ -599,6 +599,9 @@ ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm) INITRANS 30;
 
 ALTER TABLE m_lookup_table
 ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm) INITRANS 30;
+
+ALTER TABLE m_lookup_table_row
+ADD CONSTRAINT uc_row_key  unique (row_key) INITRANS 30;
 
 ALTER TABLE m_node
 ADD CONSTRAINT uc_node_name UNIQUE (name_norm) INITRANS 30;

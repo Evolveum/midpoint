@@ -6,7 +6,7 @@ CREATE TABLE m_abstract_role (
 );
 
 CREATE TABLE m_assignment (
-  id                      SMALLINT                              NOT NULL,
+  id                      INT                                   NOT NULL,
   owner_oid               NVARCHAR(36) COLLATE database_default NOT NULL,
   administrativeStatus    INT,
   archiveTimestamp        DATETIME2,
@@ -36,14 +36,14 @@ CREATE TABLE m_assignment (
   tenantRef_relation      NVARCHAR(157) COLLATE database_default,
   tenantRef_targetOid     NVARCHAR(36) COLLATE database_default,
   tenantRef_type          INT,
-  extId                   SMALLINT,
+  extId                   INT,
   extOid                  NVARCHAR(36) COLLATE database_default,
   PRIMARY KEY (id, owner_oid)
 );
 
 CREATE TABLE m_assignment_ext_date (
   eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
-  anyContainer_owner_id        SMALLINT                               NOT NULL,
+  anyContainer_owner_id        INT                                    NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
   dateValue                    DATETIME2                              NOT NULL,
   extensionType                INT,
@@ -55,7 +55,7 @@ CREATE TABLE m_assignment_ext_date (
 
 CREATE TABLE m_assignment_ext_long (
   eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
-  anyContainer_owner_id        SMALLINT                               NOT NULL,
+  anyContainer_owner_id        INT                                    NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
   longValue                    BIGINT                                 NOT NULL,
   extensionType                INT,
@@ -67,7 +67,7 @@ CREATE TABLE m_assignment_ext_long (
 
 CREATE TABLE m_assignment_ext_poly (
   eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
-  anyContainer_owner_id        SMALLINT                               NOT NULL,
+  anyContainer_owner_id        INT                                    NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
   orig                         NVARCHAR(255) COLLATE database_default NOT NULL,
   extensionType                INT,
@@ -80,7 +80,7 @@ CREATE TABLE m_assignment_ext_poly (
 
 CREATE TABLE m_assignment_ext_reference (
   eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
-  anyContainer_owner_id        SMALLINT                               NOT NULL,
+  anyContainer_owner_id        INT                                    NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
   targetoid                    NVARCHAR(36) COLLATE database_default  NOT NULL,
   extensionType                INT,
@@ -94,7 +94,7 @@ CREATE TABLE m_assignment_ext_reference (
 
 CREATE TABLE m_assignment_ext_string (
   eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
-  anyContainer_owner_id        SMALLINT                               NOT NULL,
+  anyContainer_owner_id        INT                                    NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
   stringValue                  NVARCHAR(255) COLLATE database_default NOT NULL,
   extensionType                INT,
@@ -105,7 +105,7 @@ CREATE TABLE m_assignment_ext_string (
 );
 
 CREATE TABLE m_assignment_extension (
-  owner_id        SMALLINT                              NOT NULL,
+  owner_id        INT                                   NOT NULL,
   owner_owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
   datesCount      SMALLINT,
   longsCount      SMALLINT,
@@ -116,7 +116,7 @@ CREATE TABLE m_assignment_extension (
 );
 
 CREATE TABLE m_assignment_reference (
-  owner_id        SMALLINT                               NOT NULL,
+  owner_id        INT                                    NOT NULL,
   owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
   reference_type  INT                                    NOT NULL,
   relation        NVARCHAR(157) COLLATE database_default NOT NULL,
@@ -190,7 +190,7 @@ CREATE TABLE m_connector_target_system (
 );
 
 CREATE TABLE m_exclusion (
-  id                  SMALLINT                              NOT NULL,
+  id                  INT                                   NOT NULL,
   owner_oid           NVARCHAR(36) COLLATE database_default NOT NULL,
   policy              INT,
   targetRef_relation  NVARCHAR(157) COLLATE database_default,
@@ -230,7 +230,7 @@ CREATE TABLE m_lookup_table (
 );
 
 CREATE TABLE m_lookup_table_row (
-  id                  SMALLINT                              NOT NULL,
+  id                  INT                                   NOT NULL,
   owner_oid           NVARCHAR(36) COLLATE database_default NOT NULL,
   row_key             NVARCHAR(255) COLLATE database_default,
   label_norm          NVARCHAR(255) COLLATE database_default,
@@ -488,7 +488,7 @@ CREATE TABLE m_task_dependent (
 );
 
 CREATE TABLE m_trigger (
-  id             SMALLINT                              NOT NULL,
+  id             INT                                   NOT NULL,
   owner_oid      NVARCHAR(36) COLLATE database_default NOT NULL,
   handlerUri     NVARCHAR(255) COLLATE database_default,
   timestampValue DATETIME2,
@@ -589,6 +589,9 @@ ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
 
 ALTER TABLE m_lookup_table
 ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm);
+
+ALTER TABLE m_lookup_table_row
+ADD CONSTRAINT uc_row_key UNIQUE (row_key);
 
 ALTER TABLE m_node
 ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
