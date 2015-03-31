@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary.user;
+package com.evolveum.midpoint.wf.impl.processors.primary.other;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Objectable;
@@ -154,7 +154,7 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
         itemApprovalProcessInterface.prepareStartInstruction(instruction, approvalRequest, approvalTaskName);
 
         // set some aspect-specific variables
-        instruction.addProcessVariable(AddRoleVariableNames.USER_NAME, userName);
+        instruction.addProcessVariable(AddRoleVariableNames.FOCUS_NAME, userName);
 
         return instruction;
     }

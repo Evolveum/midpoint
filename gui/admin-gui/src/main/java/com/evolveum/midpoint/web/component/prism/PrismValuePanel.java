@@ -16,13 +16,11 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -32,18 +30,28 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.input.*;
+import com.evolveum.midpoint.web.component.input.DatePanel;
+import com.evolveum.midpoint.web.component.input.PasswordPanel;
+import com.evolveum.midpoint.web.component.input.TextAreaPanel;
+import com.evolveum.midpoint.web.component.input.TextDetailsPanel;
+import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
+import com.evolveum.midpoint.web.component.input.UploadPanel;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.delta.ModificationsPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AbstractRoleAssignmentApprovalFormType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssignmentCreationApprovalFormType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -59,11 +67,12 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -379,8 +388,8 @@ public class PrismValuePanel extends Panel {
         }
 
         // the same for requester and approver comments in workflows [mederly] - this is really ugly, as it is specific to each approval form
-        if (AbstractRoleAssignmentApprovalFormType.F_REQUESTER_COMMENT.equals(definition.getName()) ||
-                AbstractRoleAssignmentApprovalFormType.F_COMMENT.equals(definition.getName())) {
+        if (AssignmentCreationApprovalFormType.F_REQUESTER_COMMENT.equals(definition.getName()) ||
+                AssignmentCreationApprovalFormType.F_COMMENT.equals(definition.getName())) {
             return new TextAreaPanel(id, new PropertyModel(model, baseExpression));
         }
 

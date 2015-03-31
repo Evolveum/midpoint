@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary.other;
+package com.evolveum.midpoint.wf.impl.processors.primary.assignments;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Component;
 
 /**
- * Change aspect that manages user addition.
+ * Treats adding resource assignment to an abstract role.
  *
  * @author mederly
  */
 @Component
-public class AddUserAspect extends AddObjectAspect<UserType> {
+public class AddAbstractRoleResourceAssignmentAspect extends AddResourceAssignmentAspect<AbstractRoleType> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AddAbstractRoleResourceAssignmentAspect.class);
 
     @Override
-    protected Class<UserType> getObjectClass() {
-        return UserType.class;
+    public boolean isEnabledByDefault() {
+        return false;
     }
 
     @Override
-    protected String getObjectLabel(UserType object) {
-        Validate.notNull(object);
-        return "user " + object.getName();
+    protected boolean isFocusRelevant(ModelContext modelContext) {
+        return primaryChangeAspectHelper.isRelatedToType(modelContext, AbstractRoleType.class);
     }
 }

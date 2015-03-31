@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary.other;
+package com.evolveum.midpoint.wf.impl.processors.primary.assignments;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import org.apache.commons.lang3.Validate;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import org.springframework.stereotype.Component;
 
 /**
- * Change aspect that manages resource addition.
+ * Treats modifying resource assignment to an abstract role.
  *
  * @author mederly
  */
 @Component
-public class AddResourceAspect extends AddObjectAspect<ResourceType> {
+public class ModifyAbstractRoleResourceAssignmentAspect extends ModifyResourceAssignmentAspect<AbstractRoleType> {
+
+    //private static final Trace LOGGER = TraceManager.getTrace(ModifyAbstractRoleResourceAssignmentAspect.class);
 
     @Override
-    protected Class<ResourceType> getObjectClass() {
-        return ResourceType.class;
+    public boolean isEnabledByDefault() {
+        return false;
     }
 
     @Override
-    protected String getObjectLabel(ResourceType object) {
-        Validate.notNull(object);
-        return "resource " + object.getName();
+    protected boolean isFocusRelevant(ModelContext modelContext) {
+        return primaryChangeAspectHelper.isRelatedToType(modelContext, AbstractRoleType.class);
     }
 }

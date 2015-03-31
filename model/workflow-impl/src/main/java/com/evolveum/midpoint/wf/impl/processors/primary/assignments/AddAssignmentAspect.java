@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary.user;
+package com.evolveum.midpoint.wf.impl.processors.primary.assignments;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -42,10 +43,12 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssignmentCreationApprovalFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,12 +64,15 @@ import java.util.Map;
 /**
  * Aspect for adding assignments of any type (abstract role or resource).
  *
+ * T is type of the objects being assigned (AbstractRoleType, ResourceType).
+ * F is the type of the objects to which assignments are made (UserType, AbstractRoleType).
+ *
  * @author mederly
  */
 @Component
-public abstract class AbstractAddAssignmentAspect<T extends ObjectType> extends BasePrimaryChangeAspect {
+public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusType> extends BasePrimaryChangeAspect {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractAddAssignmentAspect.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AddAssignmentAspect.class);
 
     @Autowired
     protected PrismContext prismContext;
@@ -81,7 +87,7 @@ public abstract class AbstractAddAssignmentAspect<T extends ObjectType> extends 
 
     @Override
     public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
-        if (!primaryChangeAspectHelper.isUserRelated(modelContext)) {
+        if (!isFocusRelevant(modelContext)) {
             return null;
         }
         List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, change, result);
@@ -97,18 +103,18 @@ public abstract class AbstractAddAssignmentAspect<T extends ObjectType> extends 
         }
         PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
         if (change.getChangeType() == ChangeType.ADD) {
-            return getApprovalRequestsFromUserAdd(config, change, result);
+            return getApprovalRequestsFromFocusAdd(config, change, result);
         } else {
-            return getApprovalRequestsFromUserModify(config, modelContext.getFocusContext().getObjectOld(), change, result);
+            return getApprovalRequestsFromFocusModify(config, modelContext.getFocusContext().getObjectOld(), change, result);
         }
     }
 
-    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromUserAdd(PcpAspectConfigurationType config, ObjectDelta<? extends ObjectType> change, OperationResult result) {
-        LOGGER.trace("Relevant assignments in user add delta:");
+    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromFocusAdd(PcpAspectConfigurationType config, ObjectDelta<? extends ObjectType> change, OperationResult result) {
+        LOGGER.trace("Relevant assignments in focus add delta:");
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = new ArrayList<>();
-        UserType user = (UserType) change.getObjectToAdd().asObjectable();
-        Iterator<AssignmentType> assignmentTypeIterator = user.getAssignment().iterator();
+        FocusType focusType = (FocusType) change.getObjectToAdd().asObjectable();
+        Iterator<AssignmentType> assignmentTypeIterator = focusType.getAssignment().iterator();
         while (assignmentTypeIterator.hasNext()) {
             AssignmentType a = assignmentTypeIterator.next();
             if (isAssignmentRelevant(a)) {
@@ -125,15 +131,15 @@ public abstract class AbstractAddAssignmentAspect<T extends ObjectType> extends 
         return approvalRequestList;
     }
 
-    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromUserModify(PcpAspectConfigurationType config,
-                                                                                    PrismObject<? extends ObjectType> userOld,
-                                                                                    ObjectDelta<? extends ObjectType> change, OperationResult result) {
-        LOGGER.trace("Relevant assignments in user modify delta:");
+    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromFocusModify(PcpAspectConfigurationType config,
+                                                                                     PrismObject<? extends ObjectType> focusOld,
+                                                                                     ObjectDelta<? extends ObjectType> change, OperationResult result) {
+        LOGGER.trace("Relevant assignments in focus modify delta:");
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = new ArrayList<>();
         Iterator<? extends ItemDelta> deltaIterator = change.getModifications().iterator();
 
-        final ItemPath ASSIGNMENT_PATH = new ItemPath(UserType.F_ASSIGNMENT);
+        final ItemPath ASSIGNMENT_PATH = new ItemPath(FocusType.F_ASSIGNMENT);
 
         while (deltaIterator.hasNext()) {
             ItemDelta delta = deltaIterator.next();
@@ -162,7 +168,7 @@ public abstract class AbstractAddAssignmentAspect<T extends ObjectType> extends 
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Assignment to replace = {}", assignmentValue.debugDump());
                     }
-                    if (existsEquivalentValue(userOld, assignmentValue)) {
+                    if (existsEquivalentValue(focusOld, assignmentValue)) {
                         continue;
                     }
                     ApprovalRequest<AssignmentType> req = processAssignmentToAdd(config, assignmentValue, result);
@@ -183,9 +189,9 @@ public abstract class AbstractAddAssignmentAspect<T extends ObjectType> extends 
         return approvalRequestList;
     }
 
-    private boolean existsEquivalentValue(PrismObject<? extends ObjectType> userOld, PrismContainerValue<AssignmentType> assignmentValue) {
-        UserType userType = (UserType) userOld.asObjectable();
-        for (AssignmentType existing : userType.getAssignment()) {
+    private boolean existsEquivalentValue(PrismObject<? extends ObjectType> focusOld, PrismContainerValue<AssignmentType> assignmentValue) {
+        FocusType focusType = (FocusType) focusOld.asObjectable();
+        for (AssignmentType existing : focusType.getAssignment()) {
             if (existing.asPrismContainerValue().equalsRealValue(assignmentValue)) {
                 return true;
             }
@@ -247,7 +253,7 @@ public abstract class AbstractAddAssignmentAspect<T extends ObjectType> extends 
             itemApprovalProcessInterface.prepareStartInstruction(instruction, approvalRequest, approvalTaskName);
 
             // set some aspect-specific variables
-            instruction.addProcessVariable(AddRoleVariableNames.USER_NAME, assigneeName);
+            instruction.addProcessVariable(AddRoleVariableNames.FOCUS_NAME, assigneeName);
 
             instructions.add(instruction);
         }
@@ -256,14 +262,16 @@ public abstract class AbstractAddAssignmentAspect<T extends ObjectType> extends 
 
     // creates an ObjectDelta that will be executed after successful approval of the given assignment
     private ObjectDelta<? extends ObjectType> assignmentToDelta(ModelContext<?> modelContext, AssignmentType assignmentType, String objectOid) {
-        PrismObject<UserType> user = (PrismObject<UserType>) modelContext.getFocusContext().getObjectNew();
-        PrismContainerDefinition<AssignmentType> prismContainerDefinition = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+        PrismObject<FocusType> focus = (PrismObject<FocusType>) modelContext.getFocusContext().getObjectNew();
+        PrismContainerDefinition<AssignmentType> prismContainerDefinition = focus.getDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 
-        ItemDelta<PrismContainerValue<AssignmentType>> addRoleDelta = new ContainerDelta<>(new ItemPath(), UserType.F_ASSIGNMENT, prismContainerDefinition, prismContext);
+        ItemDelta<PrismContainerValue<AssignmentType>> addRoleDelta = new ContainerDelta<>(new ItemPath(), FocusType.F_ASSIGNMENT, prismContainerDefinition, prismContext);
         PrismContainerValue<AssignmentType> assignmentValue = assignmentType.asPrismContainerValue().clone();
         addRoleDelta.addValueToAdd(assignmentValue);
 
-        return ObjectDelta.createModifyDelta(objectOid != null ? objectOid : PrimaryChangeProcessor.UNKNOWN_OID, addRoleDelta, UserType.class, ((LensContext) modelContext).getPrismContext());
+        Class focusClass = primaryChangeAspectHelper.getFocusClass(modelContext);
+        String focusOid = objectOid != null ? objectOid : PrimaryChangeProcessor.UNKNOWN_OID;
+        return ObjectDelta.createModifyDelta(focusOid, addRoleDelta, focusClass, ((LensContext) modelContext).getPrismContext());
     }
 
     //endregion
@@ -285,8 +293,17 @@ public abstract class AbstractAddAssignmentAspect<T extends ObjectType> extends 
         AssignmentType assignment = (AssignmentType) request.getItemToApprove();
         Validate.notNull(assignment, "Approval request does not contain as assignment");
 
-        String userName = (String) variables.get(AddRoleVariableNames.USER_NAME);
-        PrismObject<? extends QuestionFormType> formPrism = createSpecificQuestionForm(assignment, userName, result);
+        T target = getAssignmentApprovalTarget(assignment, result);     // may throw an (unchecked) exception
+
+        PrismObjectDefinition<AssignmentCreationApprovalFormType> formDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(AssignmentCreationApprovalFormType.COMPLEX_TYPE);
+        PrismObject<AssignmentCreationApprovalFormType> formPrism = formDefinition.instantiate();
+        AssignmentCreationApprovalFormType form = formPrism.asObjectable();
+
+        String focusName = (String) variables.get(AddRoleVariableNames.FOCUS_NAME);
+        form.setFocusName(focusName);                                   // TODO disginguish somehow between users/roles/orgs
+        form.setAssignedObjectName(getTargetDisplayName(target));
+        form.setRequesterComment(assignment.getDescription());
+        form.setTimeInterval(formatTimeIntervalBrief(assignment));
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Resulting prism object instance = {}", formPrism.debugDump());
@@ -333,18 +350,31 @@ public abstract class AbstractAddAssignmentAspect<T extends ObjectType> extends 
 
     //region ------------------------------------------------------------ Things to override in concrete aspect classes
 
-    // a quick check whether to deal with this assignment
+    // a quick check whether expected focus type (User, Role) matches the actual focus type in current model operation context
+    protected abstract boolean isFocusRelevant(ModelContext modelContext);
+
+    // is the assignment relevant for a given aspect? (e.g. is this an assignment of a role?)
     protected abstract boolean isAssignmentRelevant(AssignmentType assignmentType);
 
+    // should the given assignment be approved? (typically, does the target object have an approver specified?)
     protected abstract boolean shouldAssignmentBeApproved(PcpAspectConfigurationType config, T target);
 
+    // before creating a delta for the assignment, it has to be cloned and canonicalized by removing full target object
     protected abstract AssignmentType cloneAndCanonicalizeAssignment(AssignmentType a);
 
+    // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
     protected abstract ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType assignmentType, T target);
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource
     protected abstract T getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result);
 
-    protected abstract PrismObject<? extends QuestionFormType> createSpecificQuestionForm(AssignmentType assignment, String userName, OperationResult result) throws ObjectNotFoundException, SchemaException;
+    // creates name to be displayed in the question form (may be overriden by child objects)
+    protected String getTargetDisplayName(T target) {
+        if (target.getName() != null) {
+            return target.getName().getOrig();
+        } else {
+            return target.getOid();
+        }
+    }
     //endregion
 }

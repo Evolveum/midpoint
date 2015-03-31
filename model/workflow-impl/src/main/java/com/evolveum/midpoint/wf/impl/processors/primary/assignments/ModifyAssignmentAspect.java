@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary.user;
+package com.evolveum.midpoint.wf.impl.processors.primary.assignments;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -38,20 +38,19 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.modifyRoleAssignment.AbstractRoleAssignmentModification;
+import com.evolveum.midpoint.wf.impl.processes.modifyAssignment.AssignmentModification;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AbstractRoleAssignmentModificationApprovalFormType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssignmentModificationApprovalFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
@@ -68,61 +67,59 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Change aspect that manages abstract role assignment modification approval.
- * It starts one process instance for each abstract role that has to be approved.
+ * Change aspect that manages assignment modification approval.
+ * It starts one process instance for each assignment change that has to be approved.
+ *
+ * T is type of the objects being assigned (AbstractRoleType, ResourceType).
+ * F is the type of the objects to which assignments are made (UserType, AbstractRoleType).
+ *
+ * Assumption: assignment target is never modified
  *
  * @author mederly
  */
 @Component
-public class ModifyRoleAssignmentAspect extends BasePrimaryChangeAspect {
+public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends FocusType> extends BasePrimaryChangeAspect {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ModifyRoleAssignmentAspect.class);
-
-    @Autowired
-    private PrismContext prismContext;
+    private static final Trace LOGGER = TraceManager.getTrace(ModifyAssignmentAspect.class);
 
     @Autowired
-    private ItemApprovalProcessInterface itemApprovalProcessInterface;
+    protected PrismContext prismContext;
 
-    @Override
-    public boolean isEnabledByDefault() {
-        return true;
-    }
+    @Autowired
+    protected ItemApprovalProcessInterface itemApprovalProcessInterface;
 
     //region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
     public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
-
-        if (!primaryChangeAspectHelper.isUserRelated(modelContext)) {
+        if (!isFocusRelevant(modelContext)) {
             return null;
         }
-        List<ApprovalRequest<AbstractRoleAssignmentModification>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, change, result);
+        List<ApprovalRequest<AssignmentModification>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, change, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return null;
         }
         return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }
 
-    private List<ApprovalRequest<AbstractRoleAssignmentModification>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, OperationResult result) throws SchemaException {
+    private List<ApprovalRequest<AssignmentModification>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, OperationResult result) throws SchemaException {
         if (change.getChangeType() != ChangeType.MODIFY) {
             return null;
         }
-        PrismObject<UserType> userOld = (PrismObject) modelContext.getFocusContext().getObjectOld();
-        UserType userTypeOld = userOld.asObjectable();
+        PrismObject<F> focusOld = (PrismObject<F>) modelContext.getFocusContext().getObjectOld();
+        F focusTypeOld = focusOld.asObjectable();
 
-        PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(
-                wfConfigurationType, this);
+        PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Role-related assignments in user modify delta: ");
+            LOGGER.trace("Relevant assignments in focus modify delta: ");
         }
 
-        List<ApprovalRequest<AbstractRoleAssignmentModification>> approvalRequestList = new ArrayList<>();
+        List<ApprovalRequest<AssignmentModification>> approvalRequestList = new ArrayList<>();
 
         final ItemPath ASSIGNMENT_PATH = new ItemPath(UserType.F_ASSIGNMENT);
 
-        PrismContainer<AssignmentType> assignmentsOld = userOld.findContainer(ASSIGNMENT_PATH);
+        PrismContainer<AssignmentType> assignmentsOld = focusOld.findContainer(ASSIGNMENT_PATH);
 
         // deltas sorted by assignment to which they are related
         Map<Long,List<ItemDeltaType>> deltasById = new HashMap<>();
@@ -136,12 +133,11 @@ public class ModifyRoleAssignmentAspect extends BasePrimaryChangeAspect {
 
             Long id = getAssignmentIdFromDeltaPath(assignmentsOld, delta.getPath());            // id may be null
             AssignmentType assignmentType = getAssignmentToBeModified(assignmentsOld, id);
-            ObjectType objectType = primaryChangeAspectHelper.resolveTargetRef(assignmentType, result);
-            if (objectType instanceof AbstractRoleType) {
-                AbstractRoleType role = (AbstractRoleType) objectType;
-                boolean approvalRequired = shouldRoleBeApproved(role);
+            if (isAssignmentRelevant(assignmentType)) {
+                T target = getAssignmentApprovalTarget(assignmentType, result);
+                boolean approvalRequired = shouldAssignmentBeApproved(config, target);
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(" - abstract role: " + role + " (approval required = " + approvalRequired + ")");
+                    LOGGER.trace(" - target: {} (approval required = {})", target, approvalRequired);
                 }
                 if (approvalRequired) {
                     addToDeltas(deltasById, assignmentType.getId(), delta);
@@ -154,11 +150,9 @@ public class ModifyRoleAssignmentAspect extends BasePrimaryChangeAspect {
             for (Map.Entry<Long,List<ItemDeltaType>> entry : deltasById.entrySet()) {
                 Long id = entry.getKey();
                 AssignmentType assignmentType = getAssignmentToBeModified(assignmentsOld, id);
-                AssignmentType aCopy = assignmentType.clone();
-                PrismContainerValue.copyDefinition(aCopy, assignmentType);
-                AbstractRoleType role = (AbstractRoleType) primaryChangeAspectHelper.resolveTargetRef(assignmentType, result);
-                AbstractRoleAssignmentModification itemToApprove = new AbstractRoleAssignmentModification(aCopy, role, entry.getValue());
-                ApprovalRequest approvalRequest = new ApprovalRequestImpl(itemToApprove, config, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext);
+                AssignmentType aCopy = cloneAndCanonicalizeAssignment(assignmentType);
+                T target = getAssignmentApprovalTarget(assignmentType, result);
+                ApprovalRequest approvalRequest = createApprovalRequestForModification(config, aCopy, target, entry.getValue());
                 approvalRequestList.add(approvalRequest);
             }
         }
@@ -204,12 +198,12 @@ public class ModifyRoleAssignmentAspect extends BasePrimaryChangeAspect {
     }
 
 
-    private List<PcpChildJobCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result, List<ApprovalRequest<AbstractRoleAssignmentModification>> approvalRequestList) throws SchemaException {
+    private List<PcpChildJobCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result, List<ApprovalRequest<AssignmentModification>> approvalRequestList) throws SchemaException {
         List<PcpChildJobCreationInstruction> instructions = new ArrayList<>();
 
-        String userName = MiscDataUtil.getFocusObjectName(modelContext);
+        String focusName = MiscDataUtil.getFocusObjectName(modelContext);
 
-        for (ApprovalRequest<AbstractRoleAssignmentModification> approvalRequest : approvalRequestList) {
+        for (ApprovalRequest<AssignmentModification> approvalRequest : approvalRequestList) {
 
             assert(approvalRequest.getPrismContext() != null);
 
@@ -217,14 +211,13 @@ public class ModifyRoleAssignmentAspect extends BasePrimaryChangeAspect {
                 LOGGER.trace("Approval request = {}", approvalRequest);
             }
 
-            AbstractRoleAssignmentModification itemToApprove = approvalRequest.getItemToApprove();
+            AssignmentModification itemToApprove = approvalRequest.getItemToApprove();
 
-            AbstractRoleType roleType = itemToApprove.getAbstractRoleType();
-            Validate.notNull(roleType);
-            Validate.notNull(roleType.getName());
-            String roleName = roleType.getName().getOrig();
+            T target = (T) itemToApprove.getTarget();
+            Validate.notNull(target);
+            String targetName = getTargetDisplayName(target);
 
-            String objectOid = primaryChangeAspectHelper.getObjectOid(modelContext);
+            String focusOid = primaryChangeAspectHelper.getObjectOid(modelContext);
             PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
 
             // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
@@ -232,39 +225,36 @@ public class ModifyRoleAssignmentAspect extends BasePrimaryChangeAspect {
                     PcpChildJobCreationInstruction.createInstruction(getChangeProcessor());
 
             // set some common task/process attributes
-            instruction.prepareCommonAttributes(this, modelContext, objectOid, requester);
+            instruction.prepareCommonAttributes(this, modelContext, focusOid, requester);
 
             // prepare and set the delta that has to be approved
-            ObjectDelta<? extends ObjectType> delta = requestToDelta(modelContext, approvalRequest, objectOid);
+            ObjectDelta<? extends ObjectType> delta = requestToDelta(modelContext, approvalRequest, focusOid);
             instruction.setDeltaProcessAndTaskVariables(delta);
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
-            instruction.setTaskName("Workflow for approving " + andExecuting + "modifying assignment of " + roleName + " to " + userName);
-            instruction.setProcessInstanceName("Modifying assignment of " + roleName + " to " + userName);
+            instruction.setTaskName("Workflow for approving " + andExecuting + "modifying assignment of " + targetName + " to " + focusName);
+            instruction.setProcessInstanceName("Modifying assignment of " + targetName + " to " + focusName);
 
             // setup general item approval process
-            String approvalTaskName = "Approve modifying assignment of " + roleName + " to " + userName;
+            String approvalTaskName = "Approve modifying assignment of " + targetName + " to " + focusName;
             itemApprovalProcessInterface.prepareStartInstruction(instruction, approvalRequest, approvalTaskName);
 
             // set some aspect-specific variables
-            instruction.addProcessVariable(AddRoleVariableNames.USER_NAME, userName);
+            instruction.addProcessVariable(AddRoleVariableNames.FOCUS_NAME, focusName);
 
             instructions.add(instruction);
         }
         return instructions;
     }
 
-    private ObjectDelta<? extends ObjectType> requestToDelta(ModelContext<?> modelContext, ApprovalRequest<AbstractRoleAssignmentModification> approvalRequest, String objectOid) throws SchemaException {
+    private ObjectDelta<? extends ObjectType> requestToDelta(ModelContext<?> modelContext, ApprovalRequest<AssignmentModification> approvalRequest, String objectOid) throws SchemaException {
         List<ItemDelta> modifications = new ArrayList<>();
+        Class<? extends ObjectType> focusClass = primaryChangeAspectHelper.getFocusClass(modelContext);
         for (ItemDeltaType itemDeltaType : approvalRequest.getItemToApprove().getModifications()) {
-            modifications.add(DeltaConvertor.createItemDelta(itemDeltaType, UserType.class, prismContext));
+            modifications.add(DeltaConvertor.createItemDelta(itemDeltaType, focusClass, prismContext));
         }
-        return ObjectDelta.createModifyDelta(objectOid, modifications, UserType.class, ((LensContext) modelContext).getPrismContext());
-    }
-
-    private boolean shouldRoleBeApproved(AbstractRoleType role) {
-        return !role.getApproverRef().isEmpty() || !role.getApproverExpression().isEmpty() || role.getApprovalSchema() != null;
+        return ObjectDelta.createModifyDelta(objectOid, modifications, focusClass, ((LensContext) modelContext).getPrismContext());
     }
     //endregion
 
@@ -274,51 +264,38 @@ public class ModifyRoleAssignmentAspect extends BasePrimaryChangeAspect {
     public PrismObject<? extends QuestionFormType> prepareQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("getRequestSpecific starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
+            LOGGER.trace("prepareQuestionForm starting: execution id {}, pid {}, variables = {}", task.getExecutionId(), task.getProcessInstanceId(), variables);
         }
 
-        PrismObjectDefinition<AbstractRoleAssignmentModificationApprovalFormType> formDefinition =
-                prismContext.getSchemaRegistry().findObjectDefinitionByType(AbstractRoleAssignmentModificationApprovalFormType.COMPLEX_TYPE);
-        PrismObject<AbstractRoleAssignmentModificationApprovalFormType> formPrism = formDefinition.instantiate();
-        AbstractRoleAssignmentModificationApprovalFormType form = formPrism.asObjectable();
+        PrismObjectDefinition<AssignmentModificationApprovalFormType> formDefinition =
+                prismContext.getSchemaRegistry().findObjectDefinitionByType(AssignmentModificationApprovalFormType.COMPLEX_TYPE);
+        PrismObject<AssignmentModificationApprovalFormType> formPrism = formDefinition.instantiate();
+        AssignmentModificationApprovalFormType form = formPrism.asObjectable();
 
-        form.setUser((String) variables.get(AddRoleVariableNames.USER_NAME));
+        form.setFocusName((String) variables.get(AddRoleVariableNames.FOCUS_NAME));         // TODO disginguish somehow between users/roles/orgs
 
         // todo check type compatibility
         ApprovalRequest request = (ApprovalRequest) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
         request.setPrismContext(prismContext);
         Validate.notNull(request, "Approval request is not present among process variables");
 
-        AbstractRoleAssignmentModification itemToApprove = (AbstractRoleAssignmentModification) request.getItemToApprove();
+        AssignmentModification itemToApprove = (AssignmentModification) request.getItemToApprove();
         Validate.notNull(itemToApprove, "Approval request does not contain an item to approve");
 
-//        ObjectReferenceType roleRef = itemToApprove.getTargetRef();
-//        Validate.notNull(roleRef, "Approval request does not contain role reference");
-//        String roleOid = roleRef.getOid();
-//        Validate.notNull(roleOid, "Approval request does not contain role OID");
-//
-//        RoleType role;
-//        try {
-//            role = repositoryService.getObject(RoleType.class, roleOid, null, result).asObjectable();
-//        } catch (ObjectNotFoundException e) {
-//            throw new ObjectNotFoundException("Role with OID " + roleOid + " does not exist anymore.");
-//        } catch (SchemaException e) {
-//            throw new SchemaException("Couldn't get role with OID " + roleOid + " because of schema exception.");
-//        }
-
-        AbstractRoleType role = itemToApprove.getAbstractRoleType();
-        form.setRole(role.getName() == null ? role.getOid() : role.getName().getOrig());        // ==null should not occur
+        T target = (T) itemToApprove.getTarget();           // TODO shouldn't we retrieve fresh value from repo?
+        String targetDisplayName = getTargetDisplayName(target);
+        form.setAssignedObjectName(targetDisplayName);
         //TODO form.setRequesterComment(itemToApprove.getDescription());
 
         ObjectDeltaType objectDeltaType = new ObjectDeltaType();
         objectDeltaType.setOid("?");
         objectDeltaType.setChangeType(ChangeTypeType.MODIFY);
-        objectDeltaType.setObjectType(UserType.COMPLEX_TYPE);
+        objectDeltaType.setObjectType(UserType.COMPLEX_TYPE);           // TODO
         objectDeltaType.getItemDelta().addAll(itemToApprove.getModifications());
         form.setModification(objectDeltaType);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Resulting prism object instance = " + formPrism.debugDump());
+            LOGGER.trace("Resulting prism object instance = {}", formPrism.debugDump());
         }
         return formPrism;
     }
@@ -326,16 +303,45 @@ public class ModifyRoleAssignmentAspect extends BasePrimaryChangeAspect {
     @Override
     public PrismObject<? extends ObjectType> prepareRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        ApprovalRequest<AbstractRoleAssignmentModification> approvalRequest = (ApprovalRequest<AbstractRoleAssignmentModification>)
+        ApprovalRequest<AssignmentModification> approvalRequest = (ApprovalRequest<AssignmentModification>)
                 variables.get(ProcessVariableNames.APPROVAL_REQUEST);
         approvalRequest.setPrismContext(prismContext);
         if (approvalRequest == null) {
             throw new IllegalStateException("No approval request in activiti task " + task);
         }
 
-        return repositoryService.getObject(AbstractRoleType.class, approvalRequest.getItemToApprove().getAbstractRoleType().getOid(), null, result);
+        return approvalRequest.getItemToApprove().getTarget().asPrismObject();
     }
+    //endregion
 
 
+    //region ------------------------------------------------------------ Things to override in concrete aspect classes
+
+    // a quick check whether expected focus type (User, Role) matches the actual focus type in current model operation context
+    protected abstract boolean isFocusRelevant(ModelContext modelContext);
+
+    // is the assignment relevant for a given aspect? (e.g. is this an assignment of a role?)
+    protected abstract boolean isAssignmentRelevant(AssignmentType assignmentType);
+
+    // should the given assignment be approved? (typically, does the target object have an approver specified?)
+    protected abstract boolean shouldAssignmentBeApproved(PcpAspectConfigurationType config, T target);
+
+    // before creating a delta for the assignment, it has to be cloned and canonicalized by removing full target object
+    protected abstract AssignmentType cloneAndCanonicalizeAssignment(AssignmentType a);
+
+    // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
+    protected abstract ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config, AssignmentType assignmentType, T target, List<ItemDeltaType> modifications);
+
+    // retrieves the relevant target for a given assignment - a role, an org, or a resource
+    protected abstract T getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result);
+
+    // creates name to be displayed in the question form (may be overriden by child objects)
+    protected String getTargetDisplayName(T target) {
+        if (target.getName() != null) {
+            return target.getName().getOrig();
+        } else {
+            return target.getOid();
+        }
+    }
     //endregion
 }

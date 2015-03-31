@@ -354,7 +354,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             }
             return wrapper;
         } catch (Exception ex){
-            LoggingUtils.logException(LOGGER, "Couldn't get work item.", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get work item.", ex);
         }
         return null;
         
@@ -378,7 +378,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
 			return wrapper;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get work item.", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get work item.", ex);
 		}
 		return null;
     }
@@ -399,7 +399,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get work item.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't get work item.", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get work item.", ex);
         }
 
         if (!result.isSuccess()) {
@@ -435,7 +435,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             throw getRestartResponseException(PageWorkItems.class);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get process instance for work item.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't get process instance for work item.", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get process instance for work item.", ex);
             showResultInSession(result);
             throw getRestartResponseException(PageWorkItems.class);
         }
@@ -770,7 +770,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             setReinitializePreviousPages(true);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't save work item", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
         }
 
         result.computeStatusIfUnknown();

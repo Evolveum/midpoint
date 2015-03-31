@@ -10128,10 +10128,14 @@
         <xsd:complexContent>
             <xsd:extension base="tns:WfChangeProcessorConfigurationType">
                 <xsd:sequence>
-                    <xsd:element name="addRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="modifyRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="addResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="modifyResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="modifyAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="modifyAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
