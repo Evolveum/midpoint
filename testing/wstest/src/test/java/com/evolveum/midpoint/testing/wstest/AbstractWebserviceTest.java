@@ -67,6 +67,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.xml.sax.SAXException;
 
@@ -96,10 +98,37 @@ public abstract class AbstractWebserviceTest {
 
     protected static final Trace LOGGER = TraceManager.getTrace(AbstractWebserviceTest.class);
 
+    public static final File COMMON_DIR = new File("src/test/resources/common");
+    
     public static final String ENDPOINT = "http://localhost:8080/midpoint/ws/model-3";
     public static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
     public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
     public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
+    
+    // No authorization
+ 	public static final File USER_NOBODY_FILE = new File(COMMON_DIR, "user-nobody.xml");
+ 	public static final String USER_NOBODY_USERNAME = "nobody";
+ 	public static final String USER_NOBODY_GIVEN_NAME = "No";
+ 	public static final String USER_NOBODY_FAMILY_NAME = "Body";
+ 	public static final String USER_NOBODY_PASSWORD = "nopassword";
+
+ 	// WS authorization only
+ 	public static final File USER_CYCLOPS_FILE = new File(COMMON_DIR, "user-cyclops.xml");
+ 	public static final String USER_CYCLOPS_USERNAME = "cyclops";
+ 	public static final String USER_CYCLOPS_PASSWORD = "cyclopassword";
+ 	
+ 	// WS and reader authorization
+ 	public static final File USER_SOMEBODY_FILE = new File(COMMON_DIR, "user-somebody.xml");
+ 	public static final String USER_SOMEBODY_USERNAME = "somebody";
+ 	public static final String USER_SOMEBODY_PASSWORD = "somepassword";
+ 	
+ 	public static final File ROLE_WS_FILE = new File(COMMON_DIR, "role-ws.xml");
+	public static final File ROLE_READER_FILE = new File(COMMON_DIR, "role-reader.xml");
+ 	
+	protected static final Pattern PATTERN_AUDIT_EVENT_ID = Pattern.compile(".*\\seid=([^,]+),\\s.*");
+	protected static final Pattern PATTERN_AUDIT_SESSION_ID = Pattern.compile(".*\\ssid=([^,]+),\\s.*");
+	protected static final Pattern PATTERN_AUDIT_TASK_ID = Pattern.compile(".*\\stid=([^,]+),\\s.*");
+	
     
     public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
     public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
@@ -202,17 +231,21 @@ public abstract class AbstractWebserviceTest {
     /**
      * Retrieves and returns actual system configuration
      * */
-    protected static SystemConfigurationType getConfiguration() throws FaultMessage {
-        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-
-        
-		modelPort.getObject(getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
-        		null, objectHolder, resultHolder);
-
-        return (SystemConfigurationType) objectHolder.value;
+    protected SystemConfigurationType getConfiguration() throws FaultMessage {
+        return getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
     }
 
+    protected <O extends ObjectType> O getObject(Class<O> type, String oid) throws FaultMessage {
+		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        
+		modelPort.getObject(getTypeQName(type), oid, null, objectHolder, resultHolder);
+
+		assertSuccess(resultHolder.value);
+        return (O) objectHolder.value;
+	}
+
+    
     /**
      * returns URI of type passed as argument
      * */
@@ -315,7 +348,27 @@ public abstract class AbstractWebserviceTest {
 		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
 		assertSuccess(deltaOpList);
     }
+	
+	protected <O extends ObjectType> String addObject(O object) throws FaultMessage {
+    	ObjectDeltaListType deltaList = new ObjectDeltaListType();
+    	ObjectDeltaType delta = new ObjectDeltaType();
+    	delta.setObjectType(getTypeQName(object.getClass()));
+    	delta.setChangeType(ChangeTypeType.ADD);
+    	delta.setObjectToAdd(object);
+		deltaList.getDelta().add(delta);
+		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
+		assertSuccess(deltaOpList);
+		return deltaOpList.getDeltaOperation().get(0).getObjectDelta().getOid();
+    }
 
+	protected void assertUser(UserType user, String expOid, String expName, String expGivenName, String expFamilyName) {
+		assertEquals("Wrong user oid", expOid, user.getOid());
+		assertEquals("Wrong user name", expName, ModelClientUtil.getOrig(user.getName()));
+		assertEquals("Wrong user givenName", expGivenName, ModelClientUtil.getOrig(user.getGivenName()));
+		assertEquals("Wrong user familyName", expFamilyName, ModelClientUtil.getOrig(user.getFamilyName()));
+	}
+
+	
     protected void assertSuccess(ObjectDeltaOperationListType deltaOpList) {
     	for (ObjectDeltaOperationType deltaOperation: deltaOpList.getDeltaOperation()) {
     		OperationResultType result = deltaOperation.getExecutionResult();
@@ -400,15 +453,100 @@ public abstract class AbstractWebserviceTest {
 	}
 	
 	protected void assertAuditLoginFailed(LogfileTestTailer tailer, String expectedMessage) {
+        tailer.assertAudit(1);
+        String auditMessage = tailer.getAuditMessages().get(0);
+        assertTrue("Audit: not login: "+auditMessage, auditMessage.contains("et=CREATE_SESSION"));
+        assertTrue("Audit: not failure: "+auditMessage, auditMessage.contains("o=FATAL_ERROR"));
+        assertTrue("Audit: wrong message: "+auditMessage, auditMessage.contains(expectedMessage));
+	}
+	
+	protected void displayAudit(LogfileTestTailer tailer) {
         display("Audit:");
         for (String auditMessage: tailer.getAuditMessages()) {
         	display(auditMessage);
         }
-        tailer.assertAudit(1);
-        String auditMessage = tailer.getAuditMessages().get(0);
-        assertTrue("Audit: not failure: "+auditMessage, auditMessage.contains("FATAL_ERROR"));
-        assertTrue("Audit: wrong message: "+auditMessage, auditMessage.contains(expectedMessage));
 	}
+	
+	protected void assertAuditIds(LogfileTestTailer tailer) {
+		List<String> eids = new ArrayList<String>();
+		String sid = null;
+		String tid = null;
+		for (String auditMessage: tailer.getAuditMessages()) {
+        	
+			String msgEid = getAuditEid(auditMessage);
+        	if (eids.contains(msgEid)) {
+        		AssertJUnit.fail("Event ID "+msgEid+" is not unique: "+auditMessage);
+        	}
+        	
+        	String msgTid = getAuditTid(auditMessage);
+        	if (msgTid == null) {
+        		AssertJUnit.fail("Audit message without task ID: "+auditMessage);
+        	}
+        	if (tid == null) {
+        		tid = msgTid;
+        	} else {
+        		assertEquals("Unmatched audit task ID: "+auditMessage, tid, msgTid);
+        	}
+        	
+        	String msgSid = getAuditSid(auditMessage);
+        	if (msgSid != null) {
+	        	if (sid == null) {
+	        		sid = msgSid;
+	        	} else {
+	        		assertEquals("Unmatched audit session ID: "+auditMessage, sid, msgSid);
+	        	}
+        	}
+        }
+	}
+	
+	protected String getAuditEid(String auditMessage) {
+		return getAuditId(auditMessage, PATTERN_AUDIT_EVENT_ID);
+	}
+	
+	protected String getAuditSid(String auditMessage) {
+		return getAuditId(auditMessage, PATTERN_AUDIT_SESSION_ID);
+	}
+	
+	protected String getAuditTid(String auditMessage) {
+		return getAuditId(auditMessage, PATTERN_AUDIT_TASK_ID);
+	}
+
+	protected String getAuditId(String auditMessage, Pattern pattern) {
+		Matcher matcher = pattern.matcher(auditMessage);
+		if (!matcher.matches()) {
+			return null;
+		}
+		String match = matcher.group(1);
+		if (match == null || match.equals("null")) {
+			return null;
+		}
+		return match;
+	}
+
+	protected void assertAuditLoginLogout(LogfileTestTailer tailer) {
+		List<String> msgs = tailer.getAuditMessages();
+        String firstMsg = msgs.get(0);
+        assertTrue("Audit: first: not login: "+firstMsg, firstMsg.contains("et=CREATE_SESSION"));
+        assertTrue("Audit: first: not success: "+firstMsg, firstMsg.contains("o=SUCCESS"));
+        
+        String lastMsg = msgs.get(msgs.size() - 1);
+        assertTrue("Audit: last: not logout: "+lastMsg, lastMsg.contains("et=TERMINATE_SESSION"));
+        assertTrue("Audit: last: not success: "+lastMsg, lastMsg.contains("o=SUCCESS"));
+	}
+	
+	protected void assertAuditOperation(LogfileTestTailer tailer, String expectedEventType) {
+		List<String> msgs = tailer.getAuditMessages();
+		String reqMsg = msgs.get(1);
+        assertTrue("Audit: request: wrong operation: "+reqMsg, reqMsg.contains("et="+expectedEventType));
+        assertTrue("Audit: request: not request: "+reqMsg, reqMsg.contains("es=REQUEST"));
+        
+        String execMsg = msgs.get(2);
+        assertTrue("Audit: exec: wrong operation: "+execMsg, execMsg.contains("et="+expectedEventType));
+        assertTrue("Audit: exec: not execution: "+execMsg, execMsg.contains("es=EXECUTION"));
+        assertTrue("Audit: exec: not success: "+execMsg, execMsg.contains("o=SUCCESS"));
+	}
+
+
 	
     @Test
     public void test000SanityAndCleanup() throws Exception {

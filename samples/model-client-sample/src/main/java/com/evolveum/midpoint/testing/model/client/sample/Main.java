@@ -303,60 +303,17 @@ public class Main {
 	}
 
 	private static String createUserFromSystemResource(ModelPortType modelPort, String resourcePath) throws FileNotFoundException, JAXBException, FaultMessage {
-		UserType user = unmarshallResource(resourcePath);
+		UserType user = ModelClientUtil.unmarshallResource(resourcePath);
 		
 		return createUser(modelPort, user);
 	}
 
     private static String createRoleFromSystemResource(ModelPortType modelPort, String resourcePath) throws FileNotFoundException, JAXBException, FaultMessage {
-        RoleType role = unmarshallResource(resourcePath);
+        RoleType role = ModelClientUtil.unmarshallResource(resourcePath);
 
         return createRole(modelPort, role);
     }
 	
-	private static <T> T unmarshallFile(File file) throws JAXBException, FileNotFoundException {
-		JAXBContext jc = ModelClientUtil.instantiateJaxbContext();
-		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
-		 
-		InputStream is = null;
-		JAXBElement<T> element = null;
-		try {
-			is = new FileInputStream(file);
-			element = (JAXBElement<T>) unmarshaller.unmarshal(is);
-		} finally {
-			if (is != null) {
-				IOUtils.closeQuietly(is);
-			}
-		}
-		if (element == null) {
-			return null;
-		}
-		return element.getValue();
-	}
-	
-	private static <T> T unmarshallResource(String path) throws JAXBException, FileNotFoundException {
-		JAXBContext jc = ModelClientUtil.instantiateJaxbContext();
-		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
-		 
-		InputStream is = null;
-		JAXBElement<T> element = null;
-		try {
-			is = Main.class.getClassLoader().getResourceAsStream(path);
-			if (is == null) {
-				throw new FileNotFoundException("System resource "+path+" was not found");
-			}
-			element = (JAXBElement<T>) unmarshaller.unmarshal(is);
-		} finally {
-			if (is != null) {
-				IOUtils.closeQuietly(is);
-			}
-		}
-		if (element == null) {
-			return null;
-		}
-		return element.getValue();
-	}
-
     private static String createUser(ModelPortType modelPort, UserType userType) throws FaultMessage {
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));

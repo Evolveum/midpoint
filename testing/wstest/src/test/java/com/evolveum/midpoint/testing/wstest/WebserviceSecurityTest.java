@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.testing.wstest;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 import javax.security.auth.callback.Callback;
@@ -36,6 +37,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.client.ModelClientUtil;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -335,11 +337,11 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
     
     @Test
     public void test110GetConfigGoodPasswordDigest() throws Exception {
-    	final String TEST_NAME = "test103GetConfigEmptyPassword";
+    	final String TEST_NAME = "test110GetConfigGoodPasswordDigest";
     	displayTestTitle(TEST_NAME);
     	
     	LogfileTestTailer tailer = createLogTailer();
-        modelPort = createModelPort(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
+        modelPort = createModelPort(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD, WSConstants.PW_DIGEST);
 
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
@@ -348,17 +350,138 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
         modelPort.getObject(getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
         		null, objectHolder, resultHolder);
         
-        // TODO: check config
+        tailer.tail();
+        assertAuditLoginLogout(tailer);
+        assertAuditIds(tailer);
+        tailer.assertAudit(2);
+    }
+    
+    @Test
+    public void test111GetConfigGoodPasswordText() throws Exception {
+    	final String TEST_NAME = "test111GetConfigGoodPasswordText";
+    	displayTestTitle(TEST_NAME);
+    	
+    	LogfileTestTailer tailer = createLogTailer();
+        modelPort = createModelPort(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD, WSConstants.PW_TEXT);
+
+        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        
+        // WHEN
+        modelPort.getObject(getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
+        		null, objectHolder, resultHolder);
+        
+        tailer.tail();
+        assertAuditLoginLogout(tailer);
+        assertAuditIds(tailer);
+        tailer.assertAudit(2);
+    }
+    
+    @Test
+    public void test120AddUserNobodyAsAdministrator() throws Exception {
+    	final String TEST_NAME = "test120AddUserNobodyAsAdministrator";
+    	displayTestTitle(TEST_NAME);
+    	
+    	LogfileTestTailer tailer = createLogTailer();
+        modelPort = createModelPort(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD, WSConstants.PW_DIGEST);
+
+        UserType userNobody = ModelClientUtil.unmarshallFile(USER_NOBODY_FILE);
+        
+        // WHEN
+        String userNobodyOid = addObject(userNobody);
+     
+        // THEN
+        tailer.tail();
+        displayAudit(tailer);
+        assertAuditLoginLogout(tailer);
+        assertAuditIds(tailer);
+        assertAuditOperation(tailer, "ADD_OBJECT");
+        tailer.assertAudit(4);
+        
+        // GET user
+        UserType userNobodyAfter = getObject(UserType.class, userNobodyOid);
+        assertUser(userNobodyAfter, userNobodyOid, USER_NOBODY_USERNAME, USER_NOBODY_GIVEN_NAME, USER_NOBODY_FAMILY_NAME);
+    }
+    
+    @Test
+    public void test121GetConfigAsNobodyWrongPasswordDigest() throws Exception {
+    	final String TEST_NAME = "test121GetConfigAsNobodyWrongPasswordDigest";
+    	displayTestTitle(TEST_NAME);
+    	
+    	LogfileTestTailer tailer = createLogTailer();
+        modelPort = createModelPort(USER_NOBODY_USERNAME, "wrongNobodyPassword", WSConstants.PW_DIGEST);
+
+        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        
+        // WHEN
+        try {
+        	modelPort.getObject(getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
+        		null, objectHolder, resultHolder);
+        	
+        	AssertJUnit.fail("Unexpected success");
+        	
+        } catch (SOAPFaultException e) {
+        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        }
+        
+        tailer.tail();
+        assertAuditLoginFailed(tailer, "could not be authenticated or authorized");
+    }
+    
+    @Test
+    public void test122GetConfigAsNobodyEmptyPasswordDigest() throws Exception {
+    	final String TEST_NAME = "test103GetConfigEmptyPasswordDigest";
+    	displayTestTitle(TEST_NAME);
+    	
+    	LogfileTestTailer tailer = createLogTailer();
+        modelPort = createModelPort(USER_NOBODY_USERNAME, "", WSConstants.PW_DIGEST);
+
+        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        
+        // WHEN
+        try {
+        	modelPort.getObject(getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
+        		null, objectHolder, resultHolder);
+        	
+        	AssertJUnit.fail("Unexpected success");
+        	
+        } catch (SOAPFaultException e) {
+        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        }
+        
+        tailer.tail();
+        assertAuditLoginFailed(tailer, "could not be authenticated or authorized");
         
     }
+    
+    @Test
+    public void test122GetConfigAsNobodyGoodPasswordDigest() throws Exception {
+    	final String TEST_NAME = "test122GetConfigAsNobodyGoodPasswordDigest";
+    	displayTestTitle(TEST_NAME);
+    	
+    	LogfileTestTailer tailer = createLogTailer();
+        modelPort = createModelPort(USER_NOBODY_USERNAME, USER_NOBODY_PASSWORD, WSConstants.PW_DIGEST);
+
+        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        
+        // WHEN
+        try {
+        	modelPort.getObject(getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
+        		null, objectHolder, resultHolder);
         	
-//        } catch (FaultMessage fault) {
-//        	// this is expected
-//        	assertFaultMessage(fault);
-//        	assertFault(fault, null);
-//        }
-
-
+        	AssertJUnit.fail("Unexpected success");
+        	
+        } catch (SOAPFaultException e) {
+        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        }
+        
+        tailer.tail();
+        assertAuditLoginFailed(tailer, "Not authorized");
+        
+    }
 
 //
 //	/**

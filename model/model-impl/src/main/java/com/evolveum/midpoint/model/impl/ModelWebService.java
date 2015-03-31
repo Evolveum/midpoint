@@ -130,8 +130,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL getObject() failed", ex);
-			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
+		} finally {
+			auditLogout(task);
 		}
 	}
 
@@ -156,8 +157,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			objectListHolder.value = listType;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL searchObjects() failed", ex);
-			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
+		} finally {
+			auditLogout(task);
 		}
 	}
 
@@ -185,8 +187,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
             return retval;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL executeChanges() failed", ex);
-			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
+		} finally {
+			auditLogout(task);
 		}
 	}
 
@@ -207,8 +210,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL findShadowOwner() failed", ex);
-			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
+		} finally {
+			auditLogout(task);
 		}
 	}
 
@@ -223,8 +227,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			return handleOperationResult(testResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed", ex);
-			auditLogout(task);
 			throw createSystemFault(ex, null);
+		} finally {
+			auditLogout(task);
 		}
 	}
 
@@ -238,8 +243,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
             return doExecuteScripts(scriptsToExecute, parameters.getOptions(), task, result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "# MODEL executeScripts() failed", ex);
-            auditLogout(task);
             throw createSystemFault(ex, null);
+		} finally {
+			auditLogout(task);
         }
     }
 
@@ -454,8 +460,5 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 	private TaskType handleTaskResult(Task task) {
 		return task.getTaskPrismObject().asObjectable();
 	}
-	
-	
-	
-	
+		
 }

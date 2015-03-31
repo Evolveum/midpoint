@@ -46,6 +46,7 @@ import org.apache.cxf.phase.PhaseInterceptor;
 import org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor;
 import org.apache.ws.commons.schema.utils.DOMUtil;
 import org.apache.wss4j.common.ext.WSSecurityException;
+import org.apache.wss4j.common.ext.WSSecurityException.ErrorCode;
 import org.apache.wss4j.dom.util.WSSecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -123,7 +124,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         SOAPMessage saajSoapMessage = securityHelper.getSOAPMessage(message);
         if (saajSoapMessage == null) {
         	LOGGER.error("No soap message in handler");
-        	throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILURE));
+        	throw createFault(WSSecurityException.ErrorCode.FAILURE);
         }
         String username = null;
         try {
@@ -133,7 +134,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
             if (StringUtils.isBlank(username)) {
             	message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
             	securityHelper.auditLoginFailure(username, "Empty username", SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-            	throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION));
+            	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
             
         	MidPointPrincipal principal = userDetailsService.getPrincipal(username);
@@ -141,7 +142,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         	if (principal == null) {
         		message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
         		securityHelper.auditLoginFailure(username, "No user", SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-            	throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION));
+            	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
         	}
             Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -166,14 +167,14 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 	        			new Object[]{username, e.getMessage(), e});
 				message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
 				securityHelper.auditLoginFailure(username, "Schema error: "+e.getMessage(), SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-				throw new Fault(e);
+				throw createFault(WSSecurityException.ErrorCode.FAILURE);
 			}
             if (!isAuthorized) {
             	LOGGER.debug("Access to web service denied for user '{}': not authorized", 
             			new Object[]{username});
             	message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
             	securityHelper.auditLoginFailure(username, "Not authorized", SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-            	throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION));
+            	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
             
         } catch (WSSecurityException e) {
@@ -181,19 +182,23 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         			new Object[]{username, e.getMessage(), e});
         	message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
         	securityHelper.auditLoginFailure(username, "Security exception: "+e.getMessage(), SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-            throw new Fault(e);
+            throw new Fault(e, e.getFaultCode());
         } catch (ObjectNotFoundException e) {
         	LOGGER.debug("Access to web service denied for user '{}': object not found: {}", 
         			new Object[]{username, e.getMessage(), e});
         	message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
         	securityHelper.auditLoginFailure(username, "No user", SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-            throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION));
+            throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
 		}
 
         LOGGER.debug("Access to web service allowed for user '{}'", username);
     }
 
-    @Override
+    private Fault createFault(ErrorCode code) {
+    	return new Fault(new WSSecurityException(code), code.getQName());
+	}
+
+	@Override
     public void handleFault(SoapMessage message) {
     	// Nothing to do
     }
