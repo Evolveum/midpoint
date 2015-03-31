@@ -125,7 +125,12 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
     public void handleMessage(SoapMessage message) throws Fault {
         //Note: in constructor we have specified that we will be called after we have been successfully authenticated the user through WS-Security
         //Now we will only set the Spring Authentication object based on the user found in the header
+    	LOGGER.trace("Intercepted message: {}", message);
         SOAPMessage doc = getSOAPMessage(message);
+        if (doc == null) {
+        	LOGGER.error("No soap message in handler");
+        	throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILURE));
+        }
         String username = null;
         try {
             Element securityHeader = WSSecurityUtil.getSecurityHeader(doc.getSOAPPart(), "");
@@ -160,7 +165,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
                 	LOGGER.debug("Access to web service denied for user '{}': not authorized", 
                 			new Object[]{username});
                 	auditLoginFailure(username);
-                	throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, "Not authorized"));
+                	throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION));
                 }
             }
         } catch (WSSecurityException e) {
@@ -172,7 +177,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         	LOGGER.debug("Access to web service denied for user '{}': object not found: {}", 
         			new Object[]{username, e.getMessage(), e});
         	auditLoginFailure(username);
-            throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, "Not authorized"));
+            throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION));
 		}
 
         LOGGER.debug("Access to web service allowed for user '{}'", username);

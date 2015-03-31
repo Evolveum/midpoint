@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -129,10 +130,17 @@ public class PageDebugView extends PageAdminConfiguration {
             if (objectType != null && StringUtils.isNotBlank(objectType.toString())){
             	type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(new QName(SchemaConstantsGenerated.NS_COMMON, objectType.toString()));
             }
+
             if (UserType.class.isAssignableFrom(type)) {
                 options.add(SelectorOptions.create(UserType.F_JPEG_PHOTO,
                         GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
             }
+
+            if(objectType != null && LookupTableType.COMPLEX_TYPE.getLocalPart().equals(objectType.toString())){
+                options.add(SelectorOptions.create(LookupTableType.F_ROW,
+                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+            }
+
             PrismObject<ObjectType> object = getModelService().getObject(type, objectOid.toString(), options, task, result);
 
             PrismContext context = application.getPrismContext();
