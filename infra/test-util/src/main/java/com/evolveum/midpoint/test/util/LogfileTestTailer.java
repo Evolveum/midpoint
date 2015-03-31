@@ -53,10 +53,10 @@ public class LogfileTestTailer {
 	public static final String LEVEL_TRACE = "TRACE";
 
 	// see also the 'optimization' at the beginning of processLogLine() - interfering with these patterns
-	private static final Pattern markerPattern = Pattern.compile(".*\\[[^]]*\\]\\s+[(\\[]\\w+[)\\]]\\s+\\S+\\s+"+MARKER+"\\s+(\\w+).*");
-	private static final Pattern markerPatternPrefix = Pattern.compile(".*\\[[^]]*\\]\\s+[(\\[]\\w+[)\\]]\\s+\\S+\\s+.*"+MARKER+"\\s+(\\w+).*");
-	public static final Pattern levelPattern = 
-			Pattern.compile(".*\\[[^]]*\\]\\s+[(\\[]\\w+[)\\]]\\s+(.*)");
+	private static final Pattern PATTERN_MARKER = Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+\\(\\S+\\):\\s+"+MARKER+"\\s+(\\w+).*");
+	private static final Pattern PATTERN_MARKER_PREFIX = Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+.*"+MARKER+"\\s+(\\w+).*");
+	public static final Pattern PATTERN_LEVEL = 
+			Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+(.*)");
 	
 	final static Trace LOGGER = TraceManager.getTrace(LogfileTestTailer.class);
 	
@@ -84,7 +84,7 @@ public class LogfileTestTailer {
 		
 	public LogfileTestTailer(File logFile, String auditLoggerName, boolean skipCurrentContent) throws IOException {
 		this.auditLoggerName = auditLoggerName;
-		auditPattern = Pattern.compile(".*\\[[^]]*\\]\\s+[(\\[][^]]*[)\\]]\\s+(\\w+)\\s+\\("+auditLoggerName+"\\):\\s*(.*)");
+		auditPattern = Pattern.compile(".*\\[[^]]*\\](\\s+\\[[^]]*\\])?\\s+(\\w+)\\s+\\("+auditLoggerName+"\\):\\s*(.*)");
 		reset();
 
 		// doing skipping on FileInputStream instead of BufferedReader, hoping it is faster
@@ -151,23 +151,37 @@ public class LogfileTestTailer {
 		}
 		
 		// Match marker
-		Pattern pattern = markerPattern;
+		Pattern pattern = PATTERN_MARKER;
 		if (allowPrefix) {
-			pattern = markerPatternPrefix;
+			pattern = PATTERN_MARKER_PREFIX;
 		}
 		Matcher matcher = pattern.matcher(line);
 		while (matcher.find()) {
 			seenMarker = true;
-			String level = matcher.group(1);
-			String subsystemName = matcher.group(2);
+			String level;
+			String subsystemName;
+			if (matcher.groupCount() == 2) {
+				level = matcher.group(1);
+				subsystemName = matcher.group(2);
+			} else {
+				level = matcher.group(2);
+				subsystemName = matcher.group(3);
+			}
 			recordMarker(level,subsystemName);
 		}
 		
 		// Match audit
 		matcher = auditPattern.matcher(line);
 		while (matcher.find()) {
-			String level = matcher.group(1);
-			String message = matcher.group(2);
+			String level;
+			String message;
+			if (matcher.groupCount() == 2) {
+				level = matcher.group(1);
+				message = matcher.group(2);
+			} else {
+				level = matcher.group(2);
+				message = matcher.group(3);
+			}
 			recordAuditMessage(level,message);
 		}
 		if (expectedMessage != null && line.contains(expectedMessage)) {
@@ -175,7 +189,7 @@ public class LogfileTestTailer {
 		}
 		
 		// Match errors and warnings
-		matcher = levelPattern.matcher(line);
+		matcher = PATTERN_LEVEL.matcher(line);
 		while (matcher.find()) {
 			String level = matcher.group(1);
 			String message = matcher.group(2);
