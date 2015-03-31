@@ -17,8 +17,10 @@
 package com.evolveum.midpoint.testing.wstest;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.model.client.ModelClientUtil;
+import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -34,10 +36,13 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.interceptor.LoggingInInterceptor;
 import org.apache.cxf.interceptor.LoggingOutInterceptor;
@@ -66,8 +71,10 @@ import java.util.*;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.soap.SOAPFault;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
+import javax.xml.ws.soap.SOAPFaultException;
 
 /**
 *   Test Framework Util Class
@@ -85,12 +92,14 @@ import javax.xml.ws.Holder;
 *
 * */
 
-public class AbstractWebserviceTest {
+public abstract class AbstractWebserviceTest {
 
     protected static final Trace LOGGER = TraceManager.getTrace(AbstractWebserviceTest.class);
 
     public static final String ENDPOINT = "http://localhost:8080/midpoint/ws/model-3";
-    private static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+    public static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+    public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
+    public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
     
     public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
     public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
@@ -104,19 +113,22 @@ public class AbstractWebserviceTest {
     protected static SystemConfigurationType configurationType;
 
     public static final String MULTIPLE_THREAD_USER_SEARCH_NAME = "Barbara";
+
+	private static final File SERVER_LOG_FILE = new File("/opt/tomcat/logs/idm.log");
+	private static final String AUDIT_LOGGER_NAME = "com.evolveum.midpoint.audit.log";
 	
     public static Element MULTIPLE_THREAD_SEARCH_FILTER;
 
     @BeforeClass
     public void beforeTests(){
     	displayTestTitle("beforeTests");
-        initSystem();
+        init();
     }
     
 	/**
      * Takes care of system initialization. Need to be done before any tests are to be run.
      * */
-    protected static void initSystem() {
+    protected void init() {
         try {
 			MULTIPLE_THREAD_SEARCH_FILTER = parseElement(
 			        "<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
@@ -138,13 +150,17 @@ public class AbstractWebserviceTest {
     }
 
     protected static ModelPortType createModelPort() {
-    	return createModelPort("administrator", "5ecr3t");
+    	return createModelPort(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
+    }
+    
+    protected static ModelPortType createModelPort(String username, String password) {
+    	return createModelPort(username, password, WSConstants.PW_DIGEST);
     }
 
     /**
      * Creates webservice client connecting to midpoint
      * */
-    protected static ModelPortType createModelPort(String username, String password) {
+    protected static ModelPortType createModelPort(String username, String password, String passwordType) {
 
         LOGGER.info("Creating model client endpoint: {} , username={}, password={}", 
         		new Object[] {ENDPOINT, username, password});
@@ -162,7 +178,7 @@ public class AbstractWebserviceTest {
         if (username != null) {
 	        outProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.USERNAME_TOKEN);
 	        outProps.put(WSHandlerConstants.USER, username);
-	        outProps.put(WSHandlerConstants.PASSWORD_TYPE, WSConstants.PW_DIGEST);
+	        outProps.put(WSHandlerConstants.PASSWORD_TYPE, passwordType);
 	        ClientPasswordHandler.setPassword(password);
 	        outProps.put(WSHandlerConstants.PW_CALLBACK_CLASS, ClientPasswordHandler.class.getName());
 
@@ -313,7 +329,7 @@ public class AbstractWebserviceTest {
 		// TODO: look inside
 	}
 	
-	protected <F extends FaultType> void assertFault(FaultMessage fault, Class<F> expectedFaultInfoClass) {
+	protected <F extends FaultType> void assertFaultMessage(FaultMessage fault, Class<F> expectedFaultInfoClass) {
     	FaultType faultInfo = fault.getFaultInfo();
     	if (expectedFaultInfoClass != null && !expectedFaultInfoClass.isAssignableFrom(faultInfo.getClass())) {
     		AssertJUnit.fail("Expected that faultInfo will be of type "+expectedFaultInfoClass+", but it was "+faultInfo.getClass());
@@ -321,6 +337,15 @@ public class AbstractWebserviceTest {
     	OperationResultType result = faultInfo.getOperationResult();
     	assertEquals("Expected that resut in FaultInfo will be fatal error, but it was "+result.getStatus(),
     			OperationResultStatusType.FATAL_ERROR, result.getStatus());
+	}
+	
+	protected void assertSoapFault(SOAPFaultException e, String expectedCode, String expectedMessage) {
+    	SOAPFault fault = e.getFault();
+    	String faultCode = fault.getFaultCode();
+    	display("SOAP fault code: "+faultCode);
+    	assertTrue("Unexpected fault code: "+faultCode, faultCode.endsWith(expectedCode));
+    	String message = e.getMessage();
+    	assertTrue("Unexpected fault message: "+message, message.contains(expectedMessage));
 	}
 
 
@@ -339,13 +364,62 @@ public class AbstractWebserviceTest {
 		LOGGER.info("{}", msg);
 	}
 
+	protected LogfileTestTailer createLogTailer() throws IOException {
+		return new LogfileTestTailer(SERVER_LOG_FILE, AUDIT_LOGGER_NAME, true);
+	}
+
+	private void checkAuditEnabled(SystemConfigurationType configurationType) throws FaultMessage {
+		LoggingConfigurationType loggingConfig = configurationType.getLogging();
+        AuditingConfigurationType auditConfig = loggingConfig.getAuditing();
+        if (auditConfig == null) {
+        	auditConfig = new AuditingConfigurationType();
+        	auditConfig.setEnabled(true);
+        	loggingConfig.setAuditing(auditConfig);
+        } else {
+        	if (BooleanUtils.isTrue(auditConfig.isEnabled())) {
+        		return;
+        	}
+        	auditConfig.setEnabled(true);
+        }
+        
+        ObjectDeltaListType deltaList = new ObjectDeltaListType();
+    	ObjectDeltaType delta = new ObjectDeltaType();
+    	delta.setObjectType(getTypeQName(SystemConfigurationType.class));
+    	delta.setChangeType(ChangeTypeType.MODIFY);
+    	delta.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+    	ItemDeltaType itemDelta = new ItemDeltaType();
+    	itemDelta.setPath(ModelClientUtil.createItemPathType("logging"));
+    	itemDelta.setModificationType(ModificationTypeType.REPLACE);
+    	itemDelta.getValue().add(loggingConfig);
+		delta.getItemDelta().add(itemDelta);
+		deltaList.getDelta().add(delta);
+		
+		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
+		
+		assertSuccess(deltaOpList);
+	}
+	
+	protected void assertAuditLoginFailed(LogfileTestTailer tailer, String expectedMessage) {
+        display("Audit:");
+        for (String auditMessage: tailer.getAuditMessages()) {
+        	display(auditMessage);
+        }
+        tailer.assertAudit(1);
+        String auditMessage = tailer.getAuditMessages().get(0);
+        assertTrue("Audit: not failure: "+auditMessage, auditMessage.contains("FATAL_ERROR"));
+        assertTrue("Audit: wrong message: "+auditMessage, auditMessage.contains(expectedMessage));
+	}
 	
     @Test
     public void test000SanityAndCleanup() throws Exception {
     	final String TEST_NAME = "test000SanityAndCleanup";
     	displayTestTitle(TEST_NAME);
         modelPort = createModelPort();
+        
         configurationType = getConfiguration();
+        checkAuditEnabled(configurationType);
+        
+        
         cleanRepository();
     }
 
