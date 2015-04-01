@@ -101,7 +101,7 @@ public abstract class AbstractWebserviceTest {
     public static final File COMMON_DIR = new File("src/test/resources/common");
     
     public static final String ENDPOINT = "http://localhost:8080/midpoint/ws/model-3";
-    public static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+    public static final String USER_ADMINISTRATOR_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
     public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
     public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
     
@@ -320,21 +320,24 @@ public abstract class AbstractWebserviceTest {
      *  Clean the repository after tests. Preserves user administrator
      * */
     protected void cleanRepository() throws FaultMessage {
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+    	cleanObjects(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value());
+    	cleanObjects(RoleType.class, SystemObjectsType.ROLE_SUPERUSER.value(), SystemObjectsType.ROLE_END_USER.value());
+    }
+    
+    private <O extends ObjectType> void cleanObjects(Class<O> type, String... protectedOids) throws FaultMessage {
+    	Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
         PagingType paging = new PagingType();
 
-        modelPort.searchObjects(getTypeQName(UserType.class), null, null, objectListHolder, resultHolder);
+        modelPort.searchObjects(getTypeQName(type), null, null, objectListHolder, resultHolder);
 
+        List<String> protectedOidList = Arrays.asList(protectedOids);
         ObjectListType objectList = objectListHolder.value;
-        List<ObjectType> objects = objectList.getObject();
-
-        for(int i = 0; i < objects.size(); i++){
-        	UserType user = (UserType) objects.get(i);
-            if(!USER_ADMINISTRATOR_OID.equals(user.getOid())) {
-            	display("Deleting user "+ModelClientUtil.toString(user));
-            	deleteObject(UserType.class, user.getOid());
-            }
+        for (ObjectType object: objectList.getObject()) {
+        	if (!protectedOidList.contains(object.getOid())) {
+        		display("Deleting "+type.getSimpleName()+" "+ModelClientUtil.toString(object));
+            	deleteObject(type, object.getOid());
+        	}
         }
     }
     
@@ -360,6 +363,28 @@ public abstract class AbstractWebserviceTest {
 		assertSuccess(deltaOpList);
 		return deltaOpList.getDeltaOperation().get(0).getObjectDelta().getOid();
     }
+	
+	protected <O extends ObjectType> void assertObjectCount(Class<O> type, int expCount) throws FaultMessage {
+		assertEquals("Unexpected count of "+type.getSimpleName(), expCount, countObjects(type));
+	}
+	
+	protected <O extends ObjectType> int countObjects(Class<O> type) throws FaultMessage {
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+		modelPort.searchObjects(getTypeQName(type), null, null, objectListHolder, resultHolder);
+		assertSuccess(resultHolder.value);
+		Integer count = objectListHolder.value.getCount();
+		if (count != null) {
+			assertEquals("Wrong count", (Integer)objectListHolder.value.getObject().size(), count);
+		}
+		return objectListHolder.value.getObject().size();
+	}
+
+	
+	protected void assertUser(UserType user, String expOid, String expName) {
+		assertEquals("Wrong user oid", expOid, user.getOid());
+		assertEquals("Wrong user name", expName, ModelClientUtil.getOrig(user.getName()));
+	}
 
 	protected void assertUser(UserType user, String expOid, String expName, String expGivenName, String expFamilyName) {
 		assertEquals("Wrong user oid", expOid, user.getOid());

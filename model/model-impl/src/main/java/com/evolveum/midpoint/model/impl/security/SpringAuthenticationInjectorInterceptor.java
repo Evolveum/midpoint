@@ -157,17 +157,32 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 				securityHelper.auditLoginFailure(username, "SOAP error: "+e.getMessage(), SchemaConstants.CHANNEL_WEB_SERVICE_URI);
 				throw new Fault(e);
 			}
-            String action = QNameUtil.qNameToUri(new QName(AuthorizationConstants.NS_AUTHORIZATION_WS, operationName));
-            LOGGER.trace("Determining authorization for web service operation {} (action: {})", operationName, action);
-            boolean isAuthorized;
+			
+			// AUTHORIZATION
+			
+			boolean isAuthorized;
 			try {
-				isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, null, null, null, null);
+				isAuthorized = securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_WS_ALL_URL, AuthorizationPhaseType.REQUEST, null, null, null, null);
+				LOGGER.trace("Determined authorization for web service access (action: {}): {}", AuthorizationConstants.AUTZ_WS_ALL_URL, isAuthorized);
 			} catch (SchemaException e) {
 				LOGGER.debug("Access to web service denied for user '{}': schema error: {}", 
 	        			new Object[]{username, e.getMessage(), e});
 				message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
 				securityHelper.auditLoginFailure(username, "Schema error: "+e.getMessage(), SchemaConstants.CHANNEL_WEB_SERVICE_URI);
 				throw createFault(WSSecurityException.ErrorCode.FAILURE);
+			}
+			if (!isAuthorized) {
+	            String action = QNameUtil.qNameToUri(new QName(AuthorizationConstants.NS_AUTHORIZATION_WS, operationName));
+				try {
+					isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, null, null, null, null);
+					LOGGER.trace("Determined authorization for web service operation {} (action: {}): {}", operationName, action, isAuthorized);
+				} catch (SchemaException e) {
+					LOGGER.debug("Access to web service denied for user '{}': schema error: {}", 
+		        			new Object[]{username, e.getMessage(), e});
+					message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+					securityHelper.auditLoginFailure(username, "Schema error: "+e.getMessage(), SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+					throw createFault(WSSecurityException.ErrorCode.FAILURE);
+				}
 			}
             if (!isAuthorized) {
             	LOGGER.debug("Access to web service denied for user '{}': not authorized", 
@@ -191,6 +206,9 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
             throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
 		}
 
+        // Avoid auditing login attempt again if the operation fails on internal authorization
+        message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+        
         LOGGER.debug("Access to web service allowed for user '{}'", username);
     }
 

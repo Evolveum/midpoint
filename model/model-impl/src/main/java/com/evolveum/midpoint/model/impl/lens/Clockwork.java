@@ -70,6 +70,7 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -916,13 +917,13 @@ public class Clockwork {
 					if (assignmentItemDecision == AuthorizationDecisionType.ALLOW) {
 						// Nothing to do, operation is allowed for all values
 					} else if (assignmentItemDecision == AuthorizationDecisionType.DENY) {
-						throw new SecurityViolationException("Access denied");
+						throw new AuthorizationException("Access denied");
 					} else {
 						AuthorizationDecisionType actionDecision = securityConstraints.getActionDecision(operationUrl, AuthorizationPhaseType.REQUEST);
 						if (actionDecision == AuthorizationDecisionType.ALLOW) {
 							// Nothing to do, operation is allowed for all values
 						} else if (actionDecision == AuthorizationDecisionType.DENY) {
-							throw new SecurityViolationException("Access denied");
+							throw new AuthorizationException("Access denied");
 						} else {
 							// No explicit decision for assignment modification yet
 							// process each assignment individually

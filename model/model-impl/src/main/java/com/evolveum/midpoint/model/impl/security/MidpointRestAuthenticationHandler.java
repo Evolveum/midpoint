@@ -175,7 +175,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         
         
         try {
-			securityEnforcer.authorize(AuthorizationConstants.AUTZ_REST_URL, null, null, null, null, null, authorizeResult);
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_REST_ALL_URL, null, null, null, null, null, authorizeResult);
 		} catch (SecurityViolationException e){
 			securityHelper.auditLoginFailure(username, "Not authorized", SchemaConstants.CHANNEL_REST_URI);
 			requestCtx.abortWith(Response.status(403).header("WWW-Authenticate", "Basic").build());

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -80,6 +81,8 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.cxf.interceptor.Fault;
+import org.apache.wss4j.common.ext.WSSecurityException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -130,7 +133,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL getObject() failed", ex);
-			throw createSystemFault(ex, operationResult);
+			throwFault(ex, operationResult);
 		} finally {
 			auditLogout(task);
 		}
@@ -157,7 +160,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			objectListHolder.value = listType;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL searchObjects() failed", ex);
-			throw createSystemFault(ex, operationResult);
+			throwFault(ex, operationResult);
 		} finally {
 			auditLogout(task);
 		}
@@ -187,7 +190,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
             return retval;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL executeChanges() failed", ex);
-			throw createSystemFault(ex, operationResult);
+			throwFault(ex, operationResult);
+			// notreached
+			return null;
 		} finally {
 			auditLogout(task);
 		}
@@ -210,7 +215,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL findShadowOwner() failed", ex);
-			throw createSystemFault(ex, operationResult);
+			throwFault(ex, operationResult);
 		} finally {
 			auditLogout(task);
 		}
@@ -227,7 +232,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			return handleOperationResult(testResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed", ex);
-			throw createSystemFault(ex, null);
+			throwFault(ex, null);
+			// notreached
+			return null;
 		} finally {
 			auditLogout(task);
 		}
@@ -243,7 +250,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
             return doExecuteScripts(scriptsToExecute, parameters.getOptions(), task, result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "# MODEL executeScripts() failed", ex);
-            throw createSystemFault(ex, null);
+            throwFault(ex, null);
+            // notreached
+         	return null;
 		} finally {
 			auditLogout(task);
         }
@@ -359,7 +368,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		return new FaultMessage(message, faultType);
 	}
 
-    public FaultMessage createSystemFault(Exception ex, OperationResult result) {
+    public void throwFault(Exception ex, OperationResult result) throws FaultMessage {
 		if (result != null) {
 			result.recordFatalError(ex.getMessage(), ex);
 		}
@@ -371,6 +380,12 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			faultType = new IllegalArgumentFaultType();
 		} else if (ex instanceof ObjectAlreadyExistsException){
 			faultType = new ObjectAlreadyExistsFaultType();
+		} else if (ex instanceof AuthorizationException) {
+			throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION),
+					WSSecurityException.ErrorCode.FAILED_AUTHENTICATION.getQName());
+		} else if (ex instanceof SecurityViolationException) {
+			throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILURE),
+					WSSecurityException.ErrorCode.FAILURE.getQName());
 		} else{
 			faultType = new SystemFaultType();
 		}
@@ -379,7 +394,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			faultType.setOperationResult(result.createOperationResultType());
 		}
 
-		return new FaultMessage(ex.getMessage(), faultType, ex);
+		throw new FaultMessage(ex.getMessage(), faultType, ex);
 	}
 
 	@Override
@@ -399,7 +414,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL importFromResource() failed", ex);
 			auditLogout(task);
-			throw createSystemFault(ex, operationResult);
+			throwFault(ex, operationResult);
+			// notreached
+			return null;
 		}
 	}
 	
@@ -418,31 +435,31 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			} catch (ObjectNotFoundException ex) {
 				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 				auditLogout(task);
-				throw createSystemFault(ex, parentResult);
+				throwFault(ex, parentResult);
 			} catch (SchemaException ex) {
 				 LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 				auditLogout(task);
-				throw createSystemFault(ex, parentResult);
+				throwFault(ex, parentResult);
 			} catch (CommunicationException ex) {
 				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 				auditLogout(task);
-				throw createSystemFault(ex, parentResult);
+				throwFault(ex, parentResult);
 			} catch (ConfigurationException ex) {
 				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 				auditLogout(task);
-				throw createSystemFault(ex, parentResult);
+				throwFault(ex, parentResult);
 			} catch (SecurityViolationException ex) {
 				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 				auditLogout(task);
-				throw createSystemFault(ex, parentResult);
+				throwFault(ex, parentResult);
 			} catch (RuntimeException ex){
 				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 				auditLogout(task);
-				throw createSystemFault(ex, parentResult);
+				throwFault(ex, parentResult);
 			} catch (ObjectAlreadyExistsException ex){
 				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 				auditLogout(task);
-				throw createSystemFault(ex, parentResult);
+				throwFault(ex, parentResult);
 			}
 		
 		
