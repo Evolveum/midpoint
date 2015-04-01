@@ -360,7 +360,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         initSummaryInfo(mainForm);
 
         PrismObjectPanel userForm = new PrismObjectPanel(ID_USER_FORM, userModel, new PackageResourceReference(
-                ImgResources.class, ImgResources.USER_PRISM), mainForm) {
+                ImgResources.class, ImgResources.USER_PRISM), mainForm, this) {
 
             @Override
             protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
@@ -620,7 +620,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                             ImgResources.HDD_PRISM);
 
                     panel = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
-                            item.getModel(), "object"), packageRef, (Form) PageUser.this.get(ID_MAIN_FORM)) {
+                            item.getModel(), "object"), packageRef, (Form) PageUser.this.get(ID_MAIN_FORM), PageUser.this) {
 
                         @Override
                         protected Component createHeader(String id, IModel<ObjectWrapper> model) {

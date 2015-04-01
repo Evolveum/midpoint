@@ -487,7 +487,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         mainForm.add(candidates);
 
         PrismObjectPanel requestSpecificForm = new PrismObjectPanel("requestSpecificForm", requestSpecificModel,
-                new PackageResourceReference(ImgResources.class, ImgResources.DECISION_PRISM), mainForm) {
+                new PackageResourceReference(ImgResources.class, ImgResources.DECISION_PRISM), mainForm, this) {
 
             @Override
             protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {
@@ -508,7 +508,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         mainForm.add(additionalInfoAccordion);
 
         PrismObjectPanel requesterForm = new PrismObjectPanel("requesterForm", requesterModel,
-                new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm);
+                new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm, this);
         requesterForm.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
@@ -518,7 +518,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         mainForm.add(requesterForm);
 
         PrismObjectPanel objectOldForm = new PrismObjectPanel("objectOldForm", objectOldModel,
-                new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm);
+                new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm, this);
         objectOldForm.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
@@ -528,7 +528,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         mainForm.add(objectOldForm);
 
         PrismObjectPanel objectNewForm = new PrismObjectPanel("objectNewForm", objectNewModel,
-                new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm);
+                new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm, this);
         objectNewForm.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
@@ -538,11 +538,11 @@ public class PageWorkItem extends PageAdminWorkItems {
         mainForm.add(objectNewForm);
 
         PrismObjectPanel additionalDataForm = new PrismObjectPanel("additionalDataForm", additionalDataModel,
-                new PackageResourceReference(ImgResources.class, ImgResources.ROLE_PRISM), mainForm);
+                new PackageResourceReference(ImgResources.class, ImgResources.ROLE_PRISM), mainForm, this);
         mainForm.add(additionalDataForm);
 
         PrismObjectPanel trackingDataForm = new PrismObjectPanel("trackingDataForm", trackingDataModel,
-                new PackageResourceReference(ImgResources.class, ImgResources.TRACKING_PRISM), mainForm) {
+                new PackageResourceReference(ImgResources.class, ImgResources.TRACKING_PRISM), mainForm, this) {
 
             @Override
             protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {

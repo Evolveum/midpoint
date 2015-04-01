@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -55,8 +56,11 @@ public class PrismPropertyPanel extends Panel {
     private static final String ID_HELP = "help";
     private static final String ID_LABEL_CONTAINER = "labelContainer";
 
-    public PrismPropertyPanel(String id, final IModel<PropertyWrapper> model, Form form) {
+    private PageBase pageBase;
+
+    public PrismPropertyPanel(String id, final IModel<PropertyWrapper> model, Form form, PageBase pageBase) {
         super(id);
+        this.pageBase = pageBase;
 
         setOutputMarkupId(true);
         add(new VisibleEnableBehaviour() {
@@ -147,7 +151,7 @@ public class PrismPropertyPanel extends Panel {
 
             @Override
             protected void populateItem(final ListItem<ValueWrapper> item) {
-                PrismValuePanel panel = new PrismValuePanel("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass());
+                PrismValuePanel panel = new PrismValuePanel("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass(), pageBase);
                 item.add(panel);
                 item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
 

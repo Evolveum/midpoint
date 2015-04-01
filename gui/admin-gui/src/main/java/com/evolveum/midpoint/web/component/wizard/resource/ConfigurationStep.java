@@ -99,7 +99,7 @@ public class ConfigurationStep extends WizardStep {
         form.setOutputMarkupId(true);
         add(form);
         
-        final PrismObjectPanel configuration = new PrismObjectPanel(ID_CONFIGURATION, configurationProperties, null, null);
+        final PrismObjectPanel configuration = new PrismObjectPanel(ID_CONFIGURATION, configurationProperties, null, null, getPageBase());
         form.add(configuration);
 
         AjaxSubmitButton testConnection = new AjaxSubmitButton(ID_TEST_CONNECTION,

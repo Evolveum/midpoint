@@ -133,7 +133,7 @@ public class PageAccount extends PageAdminResources {
         mainForm.add(protectedMessage);
 
         PrismObjectPanel userForm = new PrismObjectPanel("account", accountModel, new PackageResourceReference(
-                ImgResources.class, ImgResources.HDD_PRISM), mainForm) {
+                ImgResources.class, ImgResources.HDD_PRISM), mainForm, this) {
 
             @Override
             protected IModel<String> createDescription(IModel<ObjectWrapper> model) {

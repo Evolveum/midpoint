@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.*;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
 import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyDialog;
 import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
@@ -606,7 +607,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
 
             @Override
             protected void populateItem(ListItem<PropertyWrapper> item) {
-                PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form);
+                PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form, PageRole.this);
                 propertyPanel.get("labelContainer:label").add(new AttributeAppender("style", "font-weight:bold;"));
                 propertyPanel.get("labelContainer").add(new AttributeModifier("class", ID_LABEL_SIZE + " control-label"));
                 item.add(propertyPanel);
