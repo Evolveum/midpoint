@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.testing.rest;
 
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.test.util.TestUtil.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -25,6 +27,7 @@ import java.io.IOException;
 
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
@@ -54,16 +57,19 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -76,7 +82,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRestService {
 
+	private static final File BASE_DIR = new File("src/test/resources");
 	private static final File REPO_DIR = new File("src/test/resources/repo/");
+	private static final File REQ_DIR = new File("src/test/resources/req/");
 
 	public static final File USER_ADMINISTRATOR_FILE = new File(REPO_DIR, "user-administrator.xml");
 	public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
@@ -96,10 +104,24 @@ public class TestRestService {
 	public static final File USER_SOMEBODY_FILE = new File(REPO_DIR, "user-somebody.xml");
 	public static final String USER_SOMEBODY_USERNAME = "somebody";
 	public static final String USER_SOMEBODY_PASSWORD = "somepassword";
+	
+	// REST, reader and adder authorization
+ 	public static final File USER_DARTHADDER_FILE = new File(REPO_DIR, "user-darthadder.xml");
+ 	public static final String USER_DARTHADDER_OID = "1696229e-d90a-11e4-9ce6-001e8c717e5b";
+ 	public static final String USER_DARTHADDER_USERNAME = "darthadder";
+ 	public static final String USER_DARTHADDER_PASSWORD = "iamyouruncle";
+ 	
+ 	// Authorizations, but no password
+ 	public static final File USER_NOPASSWORD_FILE = new File(REPO_DIR, "user-nopassword.xml");
+ 	public static final String USER_NOPASSWORD_USERNAME = "nopassword";
 
 	public static final File ROLE_SUPERUSER_FILE = new File(REPO_DIR, "role-superuser.xml");
 	public static final File ROLE_REST_FILE = new File(REPO_DIR, "role-rest.xml");
 	public static final File ROLE_READER_FILE = new File(REPO_DIR, "role-reader.xml");
+	public static final File ROLE_ADDER_FILE = new File(REPO_DIR, "role-adder.xml");
+	
+	public static final File ROLE_MODIFIER_FILE = new File(REPO_DIR, "role-modifier.xml");
+	public static final String ROLE_MODIFIER_OID = "82005ae4-d90b-11e4-bdcc-001e8c717e5b";
 
 	public static final File RESOURCE_OPENDJ_FILE = new File(REPO_DIR, "reosurce-opendj.xml");
 	public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
@@ -115,6 +137,10 @@ public class TestRestService {
 	private static final Trace LOGGER = TraceManager.getTrace(TestRestService.class);
 
 	private final static String ENDPOINT_ADDRESS = "http://localhost:18080/rest";
+
+	private static final File MODIFICATION_DISABLE = new File(REQ_DIR, "modification-disable.xml");
+	private static final File MODIFICATION_ENABLE = new File(REQ_DIR, "modification-enable.xml");
+	private static final File MODIFICATION_ASSIGN_ROLE_MODIFIER = new File(REQ_DIR, "modification-assign-role-modifier.xml");
 
 	private static PrismContext prismContext;
 	private static TaskManager taskManager;
@@ -188,9 +214,6 @@ public class TestRestService {
 		super();
 	}
 	
-	// TODO: user with no password
-	// TODO: disabled user
-
 	@Test
 	public void test001GetUserAdministrator() {
 		final String TEST_NAME = "test001GetUserAdministrator";
@@ -205,7 +228,7 @@ public class TestRestService {
 		Response response = client.get();
 
 		TestUtil.displayThen(TEST_NAME);
-		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		assertStatus(response, 200);
 		UserType userType = response.readEntity(UserType.class);
 		assertNotNull("Returned entity in body must not be null.", userType);
 		LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
@@ -229,7 +252,7 @@ public class TestRestService {
 		Response response = client.get();
 
 		TestUtil.displayThen(TEST_NAME);
-		assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
+		assertStatus(response, 404);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(2);
@@ -250,7 +273,7 @@ public class TestRestService {
 		Response response = client.get();
 
 		TestUtil.displayThen(TEST_NAME);
-		assertEquals("Expected 401 but got " + response.getStatus(), 401, response.getStatus());
+		assertStatus(response, 401);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		// No records. There are no auth headers so this is not considered to be a login attempt
@@ -271,7 +294,7 @@ public class TestRestService {
 		Response response = client.get();
 
 		TestUtil.displayThen(TEST_NAME);
-		assertEquals("Expected 401 but got " + response.getStatus(), 401, response.getStatus());
+		assertStatus(response, 401);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(1);
@@ -292,7 +315,7 @@ public class TestRestService {
 		Response response = client.get();
 
 		TestUtil.displayThen(TEST_NAME);
-		assertEquals("Expected 401 but got " + response.getStatus(), 401, response.getStatus());
+		assertStatus(response, 401);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(1);
@@ -313,7 +336,7 @@ public class TestRestService {
 		Response response = client.get();
 
 		TestUtil.displayThen(TEST_NAME);
-		assertEquals("Expected 401 but got " + response.getStatus(), 401, response.getStatus());
+		assertStatus(response, 401);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(1);
@@ -334,7 +357,7 @@ public class TestRestService {
 		Response response = client.get();
 
 		TestUtil.displayThen(TEST_NAME);
-		assertEquals("Expected 403 but got " + response.getStatus(), 403, response.getStatus());
+		assertStatus(response, 403);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(1);
@@ -355,7 +378,7 @@ public class TestRestService {
 		Response response = client.get();
 
 		TestUtil.displayThen(TEST_NAME);
-		assertEquals("Expected 403 but got " + response.getStatus(), 403, response.getStatus());
+		assertStatus(response, 403);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(2);
@@ -376,7 +399,9 @@ public class TestRestService {
 		Response response = client.get();
 
 		TestUtil.displayThen(TEST_NAME);
-		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		
+		assertStatus(response, 200);
+		
 		UserType userType = response.readEntity(UserType.class);
 		assertNotNull("Returned entity in body must not be null.", userType);
 		LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
@@ -400,10 +425,9 @@ public class TestRestService {
 		Response response = client.post(USER_TEMPLATE_FILE);
 
 		TestUtil.displayThen(TEST_NAME);
-		LOGGER.info("response : {} ", response.getStatus());
-		LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
+		displayResponse(response);
 
-		assertEquals("Expected 201 but got " + response.getStatus(), 201, response.getStatus());
+		assertStatus(response, 201);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(4);
@@ -425,10 +449,9 @@ public class TestRestService {
 		Response response = client.post(USER_ADMINISTRATOR_FILE);
 
 		TestUtil.displayThen(TEST_NAME);
-		LOGGER.info("response : {} ", response.getStatus());
-		LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
+		displayResponse(response);
 
-		assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
+		assertStatus(response, 400);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(2);
@@ -450,10 +473,9 @@ public class TestRestService {
 		Response response = client.post(ACCOUT_CHUCK_FILE);
 
 		TestUtil.displayThen(TEST_NAME);
-		LOGGER.info("response : {} ", response.getStatus());
-		LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
+		displayResponse(response);
 
-		assertEquals("Expected 201 but got " + response.getStatus(), 201, response.getStatus());
+		assertStatus(response, 201);
 
 		OperationResult parentResult = new OperationResult("get");
 		try {
@@ -472,6 +494,294 @@ public class TestRestService {
 		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 		dummyAuditService.assertHasDelta(1, ChangeType.ADD, ShadowType.class);
 	}
+	
+	@Test
+	public void test120AddRoleAdder() throws Exception {
+		final String TEST_NAME = "test120AddRoleAdder";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/roles");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(ROLE_ADDER_FILE);
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		assertStatus(response, 201);
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(4);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		dummyAuditService.assertHasDelta(1, ChangeType.ADD, RoleType.class);
+	}
+
+	@Test
+	public void test121AddUserDarthAdder() throws Exception {
+		final String TEST_NAME = "test121AddUserDarthAdder";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(USER_DARTHADDER_FILE);
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		assertStatus(response, 201);
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(4);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		dummyAuditService.assertHasDelta(1, ChangeType.ADD, UserType.class);
+	}
+
+	
+	@Test
+	public void test122AddRoleModifierAsDarthAdder() throws Exception {
+		final String TEST_NAME = "test122AddRoleModifierAsDarthAdder";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
+		client.path("/roles");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(ROLE_MODIFIER_FILE);
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		assertStatus(response, 201);
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(4);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		dummyAuditService.assertHasDelta(1, ChangeType.ADD, RoleType.class);
+	}
+	
+	@Test
+	public void test123DarthAdderAssignModifierHimself() throws Exception {
+		final String TEST_NAME = "test123DarthAdderAssignModifierHimself";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
+		client.path("/users/"+USER_DARTHADDER_OID);
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(MiscUtil.readFile(MODIFICATION_ASSIGN_ROLE_MODIFIER));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		assertStatus(response, 403);
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(4);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		dummyAuditService.assertExecutionOutcome(1, OperationResultStatus.FATAL_ERROR);
+	}
+	
+	@Test
+	public void test124DarthAdderAssignModifierByAdministrator() throws Exception {
+		final String TEST_NAME = "test124DarthAdderAssignModifierByAdministrator";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/"+USER_DARTHADDER_OID);
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(MiscUtil.readFile(MODIFICATION_ASSIGN_ROLE_MODIFIER));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		assertStatus(response, 204);
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(4);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		dummyAuditService.assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+		
+		OperationResult result = new OperationResult("test");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_DARTHADDER_OID, null, result);
+		assertEquals("Unexpected number of assignments", 4, user.asObjectable().getAssignment().size());
+	}
+	
+	@Test
+	public void test130DarthAdderDisableHimself() throws Exception {
+		final String TEST_NAME = "test130DarthAdderDisableHimself";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
+		client.path("/users/"+USER_DARTHADDER_OID);
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(MiscUtil.readFile(MODIFICATION_DISABLE));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		assertStatus(response, 204);
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(4);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		dummyAuditService.assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+		
+		OperationResult result = new OperationResult("test");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_DARTHADDER_OID, null, result);
+		assertEquals("Wrong administrativeStatus", ActivationStatusType.DISABLED, user.asObjectable().getActivation().getAdministrativeStatus());
+	}
+	
+	@Test
+	public void test131GetUserAdministratorByDarthAdder() {
+		final String TEST_NAME = "test131GetUserAdministratorByDarthAdder";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		assertStatus(response, 403);
+		assertNoEmptyResponse(response);
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(1);
+		dummyAuditService.assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
+	@Test
+	public void test132DarthAdderEnableByAdministrator() throws Exception {
+		final String TEST_NAME = "test132DarthAdderEnableByAdministrator";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/"+USER_DARTHADDER_OID);
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(MiscUtil.readFile(MODIFICATION_ENABLE));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		assertStatus(response, 204);
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(4);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		dummyAuditService.assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+		
+		OperationResult result = new OperationResult("test");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_DARTHADDER_OID, null, result);
+		assertEquals("Wrong administrativeStatus", ActivationStatusType.ENABLED, user.asObjectable().getActivation().getAdministrativeStatus());
+	}
+	
+	@Test
+	public void test133GetUserAdministratorByDarthAdder() {
+		final String TEST_NAME = "test133GetUserAdministratorByDarthAdder";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		assertStatus(response, 200);
+		UserType userType = response.readEntity(UserType.class);
+		assertNotNull("Returned entity in body must not be null.", userType);
+		LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
+	@Test
+	public void test135AddUserNopasswordAsDarthAdder() throws Exception {
+		final String TEST_NAME = "test135AddUserNopasswordAsDarthAdder";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
+		client.path("/users");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(USER_NOPASSWORD_FILE);
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		assertStatus(response, 201);
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(4);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		dummyAuditService.assertHasDelta(1, ChangeType.ADD, UserType.class);
+	}
+	
+	@Test
+	public void test140GetUserAdministratorByNopassword() {
+		final String TEST_NAME = "test140GetUserAdministratorByNopassword";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_NOPASSWORD_USERNAME, null);
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		assertStatus(response, 401);
+		assertNoEmptyResponse(response);
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(1);
+		dummyAuditService.assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
+	@Test
+	public void test141GetUserAdministratorByNopasswordBadPassword() {
+		final String TEST_NAME = "test140GetUserAdministratorByNopassword";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient(USER_NOPASSWORD_USERNAME, "bad");
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		assertStatus(response, 403);
+		assertNoEmptyResponse(response);
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(1);
+		dummyAuditService.assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
 
 	@Test
 	public void test401AddSystemConfigurationOverwrite() throws Exception {
@@ -488,8 +798,7 @@ public class TestRestService {
 		Response response = client.post(SYSTEM_CONFIGURATION_FILE);
 
 		TestUtil.displayThen(TEST_NAME);
-		LOGGER.info("response : {} ", response.getStatus());
-		LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
+		displayResponse(response);
 
 		assertEquals("Expected 201 but got " + response.getStatus(), 201, response.getStatus());
 		String location = response.getHeaderString("Location");
@@ -524,5 +833,19 @@ public class TestRestService {
 		}
 		return client;
 
+	}
+	
+	private void assertStatus(Response response, int expStatus) {
+		assertEquals("Expected "+expStatus+" but got " + response.getStatus(), expStatus, response.getStatus());
+	}
+
+	private void assertNoEmptyResponse(Response response) {
+		String respBody = response.readEntity(String.class);
+		assertTrue("Unexpected reposponse: "+respBody, StringUtils.isBlank(respBody));
+	}
+	
+	private void displayResponse(Response response) {
+		LOGGER.info("response : {} ", response.getStatus());
+		LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
 	}
 }
