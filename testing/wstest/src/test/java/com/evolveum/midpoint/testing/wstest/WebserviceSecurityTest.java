@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.testing.wstest;
 
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -1024,9 +1026,66 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
         // TODO: check password change timestamp
     }
 	
-	// Set password: satisfies policy
-	// Set password: violates policy
-	// remove password (set no password)
+	
+	@Test
+	public void test165DarthAdderDeleteOwnPassword() throws Exception {
+    	final String TEST_NAME = "test165DarthAdderDeleteOwnPassword";
+    	displayTestTitle(TEST_NAME);
+    	
+    	LogfileTestTailer tailer = createLogTailer();
+
+        ObjectDeltaListType deltaList = ModelClientUtil.createModificationDeltaList(UserType.class, USER_DARTHADDER_OID,
+        		"credentials/password", ModificationTypeType.REPLACE); // no values here
+        
+        // WHEN
+        ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
+        	        
+        // THEN
+        assertSuccess(deltaOpList);
+        
+        tailer.tail();
+        displayAudit(tailer);
+        assertAuditLoginLogout(tailer);
+        assertAuditIds(tailer);
+        assertAuditOperation(tailer, "MODIFY_OBJECT");
+        tailer.assertAudit(4);     
+        
+        modelPort = createModelPort();
+        UserType user = getObject(UserType.class, USER_DARTHADDER_OID);
+        display(user);
+        assertNull("Credentials sneaked in: "+user.getCredentials(), user.getCredentials());        
+    }
+	
+	/**
+	 * Darth Adder has no password.
+	 */
+	@Test
+    public void test166GetConfigAsDarthAdder() throws Exception {
+    	final String TEST_NAME = "test166GetConfigAsDarthAdder";
+    	displayTestTitle(TEST_NAME);
+    	
+    	LogfileTestTailer tailer = createLogTailer();
+        modelPort = createModelPort(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD_NEW2, WSConstants.PW_DIGEST);
+
+        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        
+        try {
+	        /// WHEN
+	        modelPort.getObject(getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
+	        		null, objectHolder, resultHolder);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        	
+        } catch (SOAPFaultException e) {
+        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        }
+        
+        // THEN
+        tailer.tail();
+        assertAuditLoginFailed(tailer, "No user credentials");
+    }
+	
 
 	// TODO: fetch&parse schema http://..?WSDL
 
