@@ -58,6 +58,7 @@ public abstract class SchemaConstants {
 	public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-3";
     public static final String NS_WFCF = "http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-3";
     public static final String NS_WFPIS = "http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3";
+    public static final String NS_FAULT = "http://midpoint.evolveum.com/xml/ns/public/common/fault-3";
 
 	// COMMON NAMESPACE
 	
@@ -230,4 +231,6 @@ public abstract class SchemaConstants {
     public static final QName C_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
 
     public static final QName C_NAME = new QName(SchemaConstants.NS_C, "name");
+    
+	public static final QName FAULT_MESSAGE_ELEMENT_NAME = new QName(NS_FAULT, "fault");
 }

@@ -432,6 +432,7 @@
         <constructor-arg name="userDetailsService" ref="userDetailsService"/>
         <constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
         <constructor-arg name="securityHelper" ref="securityHelper"/>
+        <constructor-arg name="activationComputer" ref="activationComputer"/>
     </bean>
     
     <bean id="wsFaultListener" class="com.evolveum.midpoint.model.impl.security.WsFaultListener">

@@ -110,6 +110,10 @@ public class PrismBeanConverter {
 		return RawType.class.equals(clazz) || clazz.getAnnotation(XmlType.class) != null;
 	}
 	
+	public QName determineTypeForClass(Class<?> clazz) {
+		return inspector.determineTypeForClass(clazz);
+	}
+	
 	public <T> T unmarshall(MapXNode xnode, QName typeQName) throws SchemaException {
 		Class<T> classType = getSchemaRegistry().determineCompileTimeClass(typeQName);
 		return unmarshall(xnode, classType);

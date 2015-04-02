@@ -73,6 +73,7 @@ import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -342,7 +343,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		if (!allow) {
 			String username = getQuotedUsername(principal);
 			LOGGER.error("User {} not authorized for operation {}", username, operationUrl);
-			SecurityViolationException e = new SecurityViolationException("User "+username+" not authorized for operation "
+			AuthorizationException e = new AuthorizationException("User "+username+" not authorized for operation "
 			+operationUrl);
 //			+":\n"+((MidPointPrincipal)principal).debugDump());
 			result.recordFatalError(e.getMessage(), e);

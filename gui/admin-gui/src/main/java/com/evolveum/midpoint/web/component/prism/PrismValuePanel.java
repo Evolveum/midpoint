@@ -16,39 +16,29 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.input.DatePanel;
-import com.evolveum.midpoint.web.component.input.PasswordPanel;
-import com.evolveum.midpoint.web.component.input.TextAreaPanel;
-import com.evolveum.midpoint.web.component.input.TextDetailsPanel;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
-import com.evolveum.midpoint.web.component.input.UploadPanel;
+import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.delta.ModificationsPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssignmentCreationApprovalFormType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -75,6 +65,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -86,11 +77,14 @@ public class PrismValuePanel extends Panel {
     private static final String ID_VALUE_CONTAINER = "valueContainer";
 
     private IModel<ValueWrapper> model;
+    private PageBase pageBase;
 
     public PrismValuePanel(String id, IModel<ValueWrapper> model, IModel<String> label, Form form,
-                           String valueCssClass, String inputCssClass){
+                           String valueCssClass, String inputCssClass, PageBase pageBase){
         super(id);
         Validate.notNull(model, "Property value model must not be null.");
+        Validate.notNull(pageBase, "The reference to page base must not be null.");
+        this.pageBase = pageBase;
         this.model = model;
 
         initLayout(label, form, valueCssClass, inputCssClass);
@@ -410,9 +404,33 @@ public class PrismValuePanel extends Panel {
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
             panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(model, baseExpression));
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
-            InputPanel inputPanel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
-
+            InputPanel inputPanel;
             PrismPropertyDefinition def = property.getDefinition();
+
+            if(def.getValueEnumerationRef() != null){
+                PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
+                String lookupTableUid = valueEnumerationRef.getOid();
+                OperationResult result = new OperationResult("loadLookupTable");
+
+//                GetOperationOptions retrieveOption = GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE);
+//                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(retrieveOption);
+                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
+                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                final PrismObject<LookupTableType> lookupTable = WebModelUtils.loadObject(LookupTableType.class,
+                        lookupTableUid, options, result, pageBase);
+
+                inputPanel = new AutoCompleteTextPanel<String>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class) {
+
+                    @Override
+                    public Iterator<String> getIterator(String input) {
+                        return prepareAutoCompleteList(input, lookupTable).iterator();
+                    }
+                };
+
+            } else {
+                inputPanel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
+            }
+
             if (ObjectType.F_NAME.equals(def.getName()) || UserType.F_FULL_NAME.equals(def.getName())) {
                 inputPanel.getBaseFormComponent().setRequired(true);
             }
@@ -471,17 +489,73 @@ public class PrismValuePanel extends Panel {
             } 
             
             if (isEnum(property)) {
-            		return WebMiscUtil.createEnumPanel(definition, id, new PropertyModel<>(model, baseExpression), this);
-            	
+                return WebMiscUtil.createEnumPanel(definition, id, new PropertyModel<>(model, baseExpression), this);
             }
 //            // default QName validation is a bit weird, so let's treat QNames as strings [TODO finish this - at the parsing side]
 //            if (type == QName.class) {
 //                type = String.class;
 //            }
-            panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression), type);
+
+            PrismPropertyDefinition def = property.getDefinition();
+
+            if(def.getValueEnumerationRef() != null){
+                PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
+                String lookupTableUid = valueEnumerationRef.getOid();
+                OperationResult result = new OperationResult("loadLookupTable");
+
+//                GetOperationOptions retrieveOption = GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE);
+//                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(retrieveOption);
+                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
+                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                final PrismObject<LookupTableType> lookupTable = WebModelUtils.loadObject(LookupTableType.class,
+                        lookupTableUid, options, result, pageBase);
+
+                panel = new AutoCompleteTextPanel<String>(id, new PropertyModel<String>(model, baseExpression), type) {
+
+                    @Override
+                    public Iterator<String> getIterator(String input) {
+                        return prepareAutoCompleteList(input, lookupTable).iterator();
+                    }
+                };
+
+            } else {
+                panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression), type);
+            }
         }
 
         return panel;
+    }
+
+    private List<String> prepareAutoCompleteList(String input, PrismObject<LookupTableType> lookupTable){
+        List<String> values = new ArrayList<>();
+
+        if(lookupTable == null){
+            return values;
+        }
+
+        List<LookupTableRowType> rows = lookupTable.asObjectable().getRow();
+
+        if(input == null || input.isEmpty()){
+            for(LookupTableRowType row: rows){
+                values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
+
+                if(values.size() > 10){
+                    return values;
+                }
+            }
+        } else {
+            for(LookupTableRowType row: rows){
+                if(WebMiscUtil.getOrigStringFromPoly(row.getLabel()).startsWith(input)){
+                    values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
+                }
+
+                if(values.size() > 10){
+                    return values;
+                }
+            }
+        }
+
+        return values;
     }
 
     private boolean isEnum(PrismProperty property){

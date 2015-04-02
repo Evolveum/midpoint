@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.configuration.*;
+import org.apache.wss4j.dom.WSSConfig;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
@@ -175,6 +176,11 @@ public class StartupConfiguration implements MidpointConfiguration {
             LOGGER.info("Safe mode is ON; setting tolerateUndeclaredPrefixes to TRUE");
             QNameUtil.setTolerateUndeclaredPrefixes(true);
         }
+        
+        // Make sure that this is called very early in the startup sequence.
+        // This is needed to properly initialize the resources
+        // (the "org/apache/xml/security/resource/xmlsecurity" resource bundle error)
+        WSSConfig.init();
     }
 
     /**
