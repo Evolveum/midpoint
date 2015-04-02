@@ -138,6 +138,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -1920,12 +1921,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
 			}
 			if (securityConstraints == null) {
-				throw new SecurityViolationException("Access denied");
+				throw new AuthorizationException("Access denied");
 			}
 			AuthorizationDecisionType globalDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), null);
 			if (globalDecision == AuthorizationDecisionType.DENY) {
 				// shortcut
-				throw new SecurityViolationException("Access denied");
+				throw new AuthorizationException("Access denied");
 			}
 			if (globalDecision == AuthorizationDecisionType.ALLOW && securityConstraints.hasNoItemDecisions()) {
 				// shortcut, nothing to do
@@ -1933,7 +1934,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				removeDeniedItems((List)object.getValue().getItems(), securityConstraints, globalDecision);
 				if (object.isEmpty()) {
 					// let's make it explicit
-					throw new SecurityViolationException("Access denied");
+					throw new AuthorizationException("Access denied");
 				}
 			}
 			

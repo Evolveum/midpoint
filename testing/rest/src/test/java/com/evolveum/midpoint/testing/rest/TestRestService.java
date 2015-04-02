@@ -187,6 +187,9 @@ public class TestRestService {
 	public TestRestService() {
 		super();
 	}
+	
+	// TODO: user with no password
+	// TODO: disabled user
 
 	@Test
 	public void test001GetUserAdministrator() {

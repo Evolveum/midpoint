@@ -39,50 +39,30 @@
     </scm>
 
   <dependencies>
-    <dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>util</artifactId>
-			<version>3.2-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>common</artifactId>
-			<version>3.2-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-api</artifactId>
-			<version>3.2-SNAPSHOT</version>
-		</dependency>
-		<dependency>
+        <dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
-			<artifactId>model-impl</artifactId>
+			<artifactId>model-client</artifactId>
 			<version>3.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.provisioning</groupId>
-			<artifactId>provisioning-impl</artifactId>
-			<version>3.2-SNAPSHOT</version>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-core</artifactId>
+        </dependency>
+		<dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxws</artifactId>
+        </dependency>
+        <dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-http</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>task-quartz-impl</artifactId>
-			<version>3.2-SNAPSHOT</version>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-ws-security</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>audit-impl</artifactId>
-			<version>3.2-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-test-util</artifactId>
-			<version>3.2-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>security-api</artifactId>
-			<version>3.2-SNAPSHOT</version>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
 		</dependency>
 		<!-- TEST dependency -->
 		<dependency>
@@ -97,36 +77,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>security-impl</artifactId>
-			<version>3.2-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-ldap</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-databasetable</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>test-util</artifactId>
-			<version>3.2-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-		<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-sql-impl</artifactId>
-			<version>3.2-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.model</groupId>
-			<artifactId>model-test</artifactId>
 			<version>3.2-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
@@ -136,8 +88,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>system-init</artifactId>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>util</artifactId>
 			<version>3.2-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
@@ -151,23 +103,6 @@
 			<artifactId>log4j-over-slf4j</artifactId>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-	        <groupId>org.apache.cxf</groupId>
-	        <artifactId>cxf-core</artifactId>
-        </dependency>
-        <dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-ws-security</artifactId>
-		</dependency>
-        <dependency>
-	        <groupId>org.apache.cxf</groupId>
-	        <artifactId>cxf-rt-transports-http-jetty</artifactId>
-	    </dependency>
   </dependencies>
 
   <profiles>

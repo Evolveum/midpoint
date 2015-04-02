@@ -82,12 +82,9 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 	
 	@Autowired(required = true)
 	private Protector protector;
-	
+		
 	@Autowired(required = true)
-	private TaskManager taskManager;
-	
-	@Autowired(required = true)
-	private AuditService auditService;
+	private SecurityHelper securityHelper;
 	
     public void handleRequest(Message m, ContainerRequestContext requestCtx) {
         AuthorizationPolicy policy = (AuthorizationPolicy)m.get(AuthorizationPolicy.class);
@@ -109,13 +106,13 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 		try {
 			principal = userDetails.getPrincipal(username);
 		} catch (ObjectNotFoundException e) {
-			auditLoginFailure(username);
+			securityHelper.auditLoginFailure(username, "No user", SchemaConstants.CHANNEL_REST_URI);
 			requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic authentication failed. Cannot authenticate user.").build());
 			return;
 		}
         
         if (principal == null ){
-        	auditLoginFailure(username);
+        	securityHelper.auditLoginFailure(username, "No user", SchemaConstants.CHANNEL_REST_URI);
         	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic").build());
         	return;
         }
@@ -125,13 +122,13 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         String password = policy.getPassword();
         
         if (password == null) {
-        	auditLoginFailure(username);
+        	securityHelper.auditLoginFailure(username, "No password", SchemaConstants.CHANNEL_REST_URI);
         	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic authentication failed. Cannot authenticate user without password").build());
         	return;
         }
         
         if (userToAuthenticate.getCredentials() == null) {
-        	auditLoginFailure(username);
+        	securityHelper.auditLoginFailure(username, "No user credentials", SchemaConstants.CHANNEL_REST_URI);
         	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic authentication failed. Cannot authenticate user.").build());
         	return;
         }
@@ -139,7 +136,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         PasswordType pass = userToAuthenticate.getCredentials().getPassword();
         
         if (pass == null) {
-        	auditLoginFailure(username);
+        	securityHelper.auditLoginFailure(username, "No password in user credentials", SchemaConstants.CHANNEL_REST_URI);
         	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic authentication failed. Cannot authenticate user.").build());
         	return;
         }
@@ -147,7 +144,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         ProtectedStringType protectedPass = pass.getValue();
         if (protectedPass.getClearValue() != null) {
         	if (!password.equals(protectedPass.getClearValue())) {
-        		auditLoginFailure(username);
+        		securityHelper.auditLoginFailure(username, "Wrong password", SchemaConstants.CHANNEL_REST_URI);
         		requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic").build());
         		return;
             }
@@ -155,18 +152,18 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         	try{
         		String decrypted = protector.decryptString(protectedPass);
         		if (!password.equals(decrypted)) {
-        			auditLoginFailure(username);
+        			securityHelper.auditLoginFailure(username, "Wrong password", SchemaConstants.CHANNEL_REST_URI);
         			requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic").build());
         			return;
         		}
         	} catch (EncryptionException ex) {
-        		auditLoginFailure(username);
+        		securityHelper.auditLoginFailure(username, "Password cryptographic error: "+ex.getMessage(), SchemaConstants.CHANNEL_REST_URI);
         		requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic").build());
         		return;
         	}
         	
         } else {
-        	auditLoginFailure(username);
+        	securityHelper.auditLoginFailure(username, "Unsupported password format", SchemaConstants.CHANNEL_REST_URI);
         	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic authentication fialed. Cannot obtain password value.").build());
         	return;
         }
@@ -178,13 +175,13 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         
         
         try {
-			securityEnforcer.authorize(AuthorizationConstants.AUTZ_REST_URL, null, null, null, null, null, authorizeResult);
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_REST_ALL_URL, null, null, null, null, null, authorizeResult);
 		} catch (SecurityViolationException e){
-			auditLoginFailure(username);
+			securityHelper.auditLoginFailure(username, "Not authorized", SchemaConstants.CHANNEL_REST_URI);
 			requestCtx.abortWith(Response.status(403).header("WWW-Authenticate", "Basic").build());
 			return;
 		} catch (SchemaException e) {
-			auditLoginFailure(username);
+			securityHelper.auditLoginFailure(username, "Schema error: "+e.getMessage(), SchemaConstants.CHANNEL_REST_URI);
 			requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
 			return;
 		}
@@ -200,20 +197,6 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 	public void filter(ContainerRequestContext requestCtx) throws IOException {
 		Message m = JAXRSUtils.getCurrentMessage();
 		handleRequest(m, requestCtx);
-	}
-
-	private void auditLoginFailure(String username) {
-		Task task = taskManager.createTaskInstance();
-        task.setChannel(SchemaConstants.CHANNEL_REST_URI);
-
-        AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
-        record.setParameter(username);
-
-        record.setChannel(SchemaConstants.CHANNEL_REST_URI);
-        record.setTimestamp(System.currentTimeMillis());
-        record.setOutcome(OperationResultStatus.FATAL_ERROR);
-
-        auditService.audit(record, task);
 	}
 
 }

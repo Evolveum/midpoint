@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.test;
+package com.evolveum.midpoint.test.util;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -32,8 +32,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.util.aspect.MidpointAspect;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,7 +43,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class LogfileTestTailer {
 	
-	private static final String LOG_FILENAME = "target/test.log";
+	public static final File TEST_LOG_FILE = new File("target/test.log");
 	public static final String MARKER = "_M_A_R_K_E_R_";
 	
 	public static final String LEVEL_ERROR = "ERROR";
@@ -55,15 +53,15 @@ public class LogfileTestTailer {
 	public static final String LEVEL_TRACE = "TRACE";
 
 	// see also the 'optimization' at the beginning of processLogLine() - interfering with these patterns
-	private static final Pattern markerPattern = Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\S+\\s+"+MARKER+"\\s+(\\w+).*");
-	private static final Pattern markerPatternPrefix = Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\S+\\s+.*"+MARKER+"\\s+(\\w+).*");
-	public static final Pattern auditPattern = 
-			Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\("+LoggingConfigurationManager.AUDIT_LOGGER_NAME+"\\):\\s*(.*)");
-	public static final Pattern levelPattern = 
-			Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+(.*)");
-	
+	private static final Pattern PATTERN_MARKER = Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+\\(\\S+\\):\\s+"+MARKER+"\\s+(\\w+).*");
+	private static final Pattern PATTERN_MARKER_PREFIX = Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+.*"+MARKER+"\\s+(\\w+).*");
+	public static final Pattern PATTERN_LEVEL = 
+			Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+(.*)");
 	
 	final static Trace LOGGER = TraceManager.getTrace(LogfileTestTailer.class);
+	
+	private String auditLoggerName;
+	public Pattern auditPattern;
 	
 	private Reader fileReader;
 	private BufferedReader reader;
@@ -75,20 +73,25 @@ public class LogfileTestTailer {
 	private boolean allowPrefix = false;
 	private Collection<String> errors = new ArrayList<String>();
 	private Collection<String> warnings = new ArrayList<String>();
-	
-	public LogfileTestTailer() throws IOException {
-		this(true);
+		
+	public LogfileTestTailer(String auditLoggerName) throws IOException {
+		this(TEST_LOG_FILE, auditLoggerName, true);
 	}
 	
-	public LogfileTestTailer(boolean skipCurrentContent) throws IOException {
+	public LogfileTestTailer(String auditLoggerName, boolean skipCurrentContent) throws IOException {
+		this(TEST_LOG_FILE, auditLoggerName, skipCurrentContent);
+	}
+		
+	public LogfileTestTailer(File logFile, String auditLoggerName, boolean skipCurrentContent) throws IOException {
+		this.auditLoggerName = auditLoggerName;
+		auditPattern = Pattern.compile(".*\\[[^]]*\\](\\s+\\[[^]]*\\])?\\s+(\\w+)\\s+\\("+auditLoggerName+"\\):\\s*(.*)");
 		reset();
-		File file = new File(LOG_FILENAME);
 
 		// doing skipping on FileInputStream instead of BufferedReader, hoping it is faster
 		// as the sequential scanning of the file is eliminated
-		FileInputStream fileInputStream = new FileInputStream(file);
+		FileInputStream fileInputStream = new FileInputStream(logFile);
 		if (skipCurrentContent) {
-			long skipped = fileInputStream.skip(file.length());
+			long skipped = fileInputStream.skip(logFile.length());
 			LOGGER.info("Skipped = {}", skipped);
 		}
 		fileReader = new InputStreamReader(fileInputStream);
@@ -148,23 +151,37 @@ public class LogfileTestTailer {
 		}
 		
 		// Match marker
-		Pattern pattern = markerPattern;
+		Pattern pattern = PATTERN_MARKER;
 		if (allowPrefix) {
-			pattern = markerPatternPrefix;
+			pattern = PATTERN_MARKER_PREFIX;
 		}
 		Matcher matcher = pattern.matcher(line);
 		while (matcher.find()) {
 			seenMarker = true;
-			String level = matcher.group(1);
-			String subsystemName = matcher.group(2);
+			String level;
+			String subsystemName;
+			if (matcher.groupCount() == 2) {
+				level = matcher.group(1);
+				subsystemName = matcher.group(2);
+			} else {
+				level = matcher.group(2);
+				subsystemName = matcher.group(3);
+			}
 			recordMarker(level,subsystemName);
 		}
 		
 		// Match audit
 		matcher = auditPattern.matcher(line);
 		while (matcher.find()) {
-			String level = matcher.group(1);
-			String message = matcher.group(2);
+			String level;
+			String message;
+			if (matcher.groupCount() == 2) {
+				level = matcher.group(1);
+				message = matcher.group(2);
+			} else {
+				level = matcher.group(2);
+				message = matcher.group(3);
+			}
 			recordAuditMessage(level,message);
 		}
 		if (expectedMessage != null && line.contains(expectedMessage)) {
@@ -172,7 +189,7 @@ public class LogfileTestTailer {
 		}
 		
 		// Match errors and warnings
-		matcher = levelPattern.matcher(line);
+		matcher = PATTERN_LEVEL.matcher(line);
 		while (matcher.find()) {
 			String level = matcher.group(1);
 			String message = matcher.group(2);
@@ -192,6 +209,10 @@ public class LogfileTestTailer {
 	
 	private void recordAuditMessage(String level, String message) {
 		auditMessages.add(message);
+	}
+
+	public List<String> getAuditMessages() {
+		return auditMessages;
 	}
 
 	private String constructKey(String level, String subsystemName) {

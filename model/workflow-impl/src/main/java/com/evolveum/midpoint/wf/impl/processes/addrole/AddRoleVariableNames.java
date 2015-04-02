@@ -21,7 +21,7 @@ package com.evolveum.midpoint.wf.impl.processes.addrole;
  */
 public class AddRoleVariableNames {
 
-    // Name of user to which an assignment is to be made. [String]
-    public static final String USER_NAME = "UserName";
+    // Name of focal object to which an assignment is to be made. [String]
+    public static final String FOCUS_NAME = "FocusName";
 
 }

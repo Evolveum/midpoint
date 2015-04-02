@@ -28,8 +28,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.connector.DummyConnector;
+import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.test.LogfileTestTailer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.aspect.MidpointAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
@@ -78,7 +79,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
 		PrismObject<SystemConfigurationType> systemConfiguration = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_FILE);
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
@@ -106,7 +107,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
 		OperationResult result = task.getResult();
@@ -160,7 +161,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
 		OperationResult result = task.getResult();
@@ -205,7 +206,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
 		OperationResult result = task.getResult();
@@ -268,7 +269,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
 		java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(JUL_LOGGER_NAME);
 				
@@ -299,7 +300,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
 		java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(JUL_LOGGER_NAME);
 		
@@ -356,7 +357,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		// ICF logging is prefixing the messages;
 		tailer.setAllowPrefix(true);
 		
@@ -418,7 +419,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		TestUtil.displayTestTile("test101EnableBasicAudit");
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test101EnableBasicAudit");
 		OperationResult result = task.getResult();

@@ -15,7 +15,11 @@
  */
 package com.evolveum.midpoint.model.client;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.FilterClauseType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -72,6 +77,7 @@ public class ModelClientUtil {
     public static final QName TYPES_CLEAR_VALUE = new QName(NS_TYPES, "clearValue");
 
 	private static final DocumentBuilder domDocumentBuilder;
+	private static final JAXBContext jaxbContext;
 	
 	public static JAXBContext instantiateJaxbContext() throws JAXBException {
 		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_3:" +
@@ -239,15 +245,89 @@ public class ModelClientUtil {
         }
         return null;
     }
+    
+    public static <O> O unmarshallResource(String path) throws JAXBException, FileNotFoundException {
+		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller(); 
+		 
+		InputStream is = null;
+		JAXBElement<O> element = null;
+		try {
+			is = ModelClientUtil.class.getClassLoader().getResourceAsStream(path);
+			if (is == null) {
+				throw new FileNotFoundException("System resource "+path+" was not found");
+			}
+			element = (JAXBElement<O>) unmarshaller.unmarshal(is);
+		} finally {
+			if (is != null) {
+				IOUtils.closeQuietly(is);
+			}
+		}
+		if (element == null) {
+			return null;
+		}
+		return element.getValue();
+	}
+
+    public static <O> O unmarshallFile(File file) throws JAXBException, FileNotFoundException {
+		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller(); 
+		 
+		InputStream is = null;
+		JAXBElement<O> element = null;
+		try {
+			is = new FileInputStream(file);
+			element = (JAXBElement<O>) unmarshaller.unmarshal(is);
+		} finally {
+			if (is != null) {
+				IOUtils.closeQuietly(is);
+			}
+		}
+		if (element == null) {
+			return null;
+		}
+		return element.getValue();
+	}
+
+    public static <O extends ObjectType> String toString(O obj) {
+		if (obj == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		String className = obj.getClass().getSimpleName();
+		if (className.endsWith("Type")) {
+			className = className.substring(0, className.lastIndexOf("Type")).toLowerCase();
+		}
+		sb.append(className);
+		sb.append("(");
+		sb.append(toString(obj.getName()));
+		sb.append(":");
+		sb.append(obj.getOid());
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String toString(PolyStringType poly) {
+		if (poly == null) {
+			return null;
+		}
+		return getOrig(poly);
+	}
+
 	
 	static {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);
 			domDocumentBuilder = factory.newDocumentBuilder();
-		} catch (ParserConfigurationException ex) {
-			throw new IllegalStateException("Error creating XML document " + ex.getMessage());
+		} catch (ParserConfigurationException e) {
+			throw new IllegalStateException("Error creating XML document " + e.getMessage());
+		}
+		
+		try {
+			jaxbContext = ModelClientUtil.instantiateJaxbContext();
+		} catch (JAXBException e) {
+			throw new IllegalStateException("Error creating JAXB context " + e.getMessage());
 		}
 	}
 
+	
 }

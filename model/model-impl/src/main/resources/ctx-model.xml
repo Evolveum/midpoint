@@ -372,12 +372,12 @@
             -->
         </jaxws:inInterceptors>
         <jaxws:outInterceptors>
-
         </jaxws:outInterceptors>
 
         <!-- this is because of https://jira.evolveum.com/browse/MID-1603 -->
         <jaxws:properties>
             <entry key="javax.xml.stream.XMLOutputFactory" value-ref="modelWsXmlOutputFactory"/>
+            <entry key="org.apache.cxf.logging.FaultListener" value-ref="wsFaultListener"/>
         </jaxws:properties>
 
     </jaxws:endpoint>
@@ -431,8 +431,11 @@
     <bean id="springAuthenticationInjector" class="com.evolveum.midpoint.model.impl.security.SpringAuthenticationInjectorInterceptor">
         <constructor-arg name="userDetailsService" ref="userDetailsService"/>
         <constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
-        <constructor-arg name="auditService" ref="auditService"/>
-        <constructor-arg name="taskManager" ref="taskManager"/>
+        <constructor-arg name="securityHelper" ref="securityHelper"/>
+    </bean>
+    
+    <bean id="wsFaultListener" class="com.evolveum.midpoint.model.impl.security.WsFaultListener">
+        <constructor-arg name="securityHelper" ref="securityHelper"/>
     </bean>
 
     <bean id="springAuthenticationJanitor" class="com.evolveum.midpoint.model.impl.security.SpringAuthenticationJanitorInterceptor">
@@ -442,6 +445,7 @@
     <bean id="passwordCallback" class="com.evolveum.midpoint.model.impl.security.PasswordCallback">
         <constructor-arg name="userDetailsService" ref="userDetailsService"/>
         <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="securityHelper" ref="securityHelper"/>
     </bean>
 
     <!--Example of authorization for WS-->

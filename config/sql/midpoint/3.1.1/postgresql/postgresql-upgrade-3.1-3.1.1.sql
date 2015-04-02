@@ -6,7 +6,7 @@ CREATE TABLE m_lookup_table (
 );
 
 CREATE TABLE m_lookup_table_row (
-  id                  INT2        NOT NULL,
+  id                  INT4        NOT NULL,
   owner_oid           VARCHAR(36) NOT NULL,
   row_key             VARCHAR(255),
   label_norm          VARCHAR(255),
@@ -29,6 +29,9 @@ ADD CONSTRAINT fk_lookup_table_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_lookup_table;
 
+ALTER TABLE m_lookup_table_row
+ADD CONSTRAINT uc_row_key UNIQUE (row_key);
+
 ALTER TABLE m_assignment_reference
 DROP CONSTRAINT m_assignment_reference_pkey,
 ADD CONSTRAINT m_assignment_reference_pkey PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid);
@@ -47,5 +50,4 @@ ALTER TABLE m_assignment_ext_string ALTER COLUMN anyContainer_owner_id TYPE INT4
 ALTER TABLE m_assignment_extension ALTER COLUMN owner_id TYPE INT4;
 ALTER TABLE m_assignment_reference ALTER COLUMN owner_id TYPE INT4;
 ALTER TABLE m_exclusion ALTER COLUMN id TYPE INT4;
-ALTER TABLE m_lookup_table_row ALTER COLUMN id TYPE INT4;
 ALTER TABLE m_trigger ALTER COLUMN id TYPE INT4;

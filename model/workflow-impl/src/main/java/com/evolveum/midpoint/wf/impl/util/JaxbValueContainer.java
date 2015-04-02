@@ -2,18 +2,17 @@ package com.evolveum.midpoint.wf.impl.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
-import javax.xml.bind.JAXB;
-import java.io.Serializable;
-
 /**
  * This is used in process variables that could be used either as XML or as java object (JAXB).
  *
  * Implementation is done using quite a hack where internal XML representation used in SerializationSafeContainer
  * is exposed to clients.
  *
+ * TODO TODO TODO decide how to deal with this one (w.r.t. SerializationSafeContainer vs. its implementations)
+ *
  * @author mederly
  */
-public class JaxbValueContainer<T> extends SerializationSafeContainer<T> {
+public class JaxbValueContainer<T> extends SingleItemSerializationSafeContainerImpl<T> {
 
     private static final long serialVersionUID = 1233214324324368L;
 
