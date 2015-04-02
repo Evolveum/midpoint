@@ -113,10 +113,6 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        if (user == null) {
-            return null;
-        }
-
         return getPrincipal(user);
     }
 
@@ -145,22 +141,16 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     private PrismObject<UserType> findByUsername(String username) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
         ObjectQuery query = ObjectQueryUtil.createNameQuery(usernamePoly, prismContext);
-//        ObjectQuery query = ObjectQuery.createObjectQuery(
-//                EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, usernamePoly));
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
 
         List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, 
                 new OperationResult("Find by username"));
-        if (list == null) {
-            return null;
-        }
-        LOGGER.trace("Users found: {}.", new Object[]{list.size()});
-        if (list.size() == 0 || list.size() > 1) {
+        LOGGER.trace("Users found: {}.", (list != null ? list.size() : 0));
+        if (list == null || list.size() != 1) {
             return null;
         }
         
-        PrismObject<UserType> user = list.get(0);
-        return user;
+        return list.get(0);
     }
         
 	private void addAuthorizations(MidPointPrincipal principal) {

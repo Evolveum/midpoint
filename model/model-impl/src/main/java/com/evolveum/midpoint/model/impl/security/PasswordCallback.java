@@ -62,6 +62,9 @@ public class PasswordCallback implements CallbackHandler {
 		} catch (ObjectNotFoundException e) {
 			throw new SecurityException("unknown user", e);
 		}
+        if (user == null) {
+            throw new SecurityException("unknown user");
+        }
         UserType userType = user.getUser();
         CredentialsType credentials = userType.getCredentials();
         if (user != null && credentials != null && credentials.getPassword() != null 
