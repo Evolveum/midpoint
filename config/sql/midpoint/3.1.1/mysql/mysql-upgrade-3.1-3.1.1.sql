@@ -46,14 +46,53 @@ ALTER TABLE m_reference
 DROP PRIMARY KEY,
 ADD PRIMARY KEY (owner_oid, reference_type, relation, targetOid);
 
+ALTER TABLE m_assignment_reference DROP FOREIGN KEY fk_assignment_reference;
+ALTER TABLE m_assignment_reference MODIFY owner_id INTEGER;
 ALTER TABLE m_assignment MODIFY id INTEGER;
+ALTER TABLE m_assignment_reference
+  ADD CONSTRAINT fk_assignment_reference
+  FOREIGN KEY (owner_id, owner_owner_oid)
+  REFERENCES m_assignment (id, owner_oid);
+
 ALTER TABLE m_assignment MODIFY extId INTEGER;
+
+ALTER TABLE m_assignment_ext_date DROP FOREIGN KEY fk_assignment_ext_date;
+ALTER TABLE m_assignment_ext_long DROP FOREIGN KEY fk_assignment_ext_long;
+ALTER TABLE m_assignment_ext_poly DROP FOREIGN KEY fk_assignment_ext_poly;
+ALTER TABLE m_assignment_ext_reference DROP FOREIGN KEY fk_assignment_ext_reference;
+ALTER TABLE m_assignment_ext_string DROP FOREIGN KEY fk_assignment_ext_string;
+
 ALTER TABLE m_assignment_ext_date MODIFY anyContainer_owner_id INTEGER;
 ALTER TABLE m_assignment_ext_long MODIFY anyContainer_owner_id INTEGER;
 ALTER TABLE m_assignment_ext_poly MODIFY anyContainer_owner_id INTEGER;
 ALTER TABLE m_assignment_ext_reference MODIFY anyContainer_owner_id INTEGER;
 ALTER TABLE m_assignment_ext_string MODIFY anyContainer_owner_id INTEGER;
 ALTER TABLE m_assignment_extension MODIFY owner_id INTEGER;
-ALTER TABLE m_assignment_reference MODIFY owner_id INTEGER;
+
+ALTER TABLE m_assignment_ext_date
+  ADD CONSTRAINT fk_assignment_ext_date
+  FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
+  REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+
+ALTER TABLE m_assignment_ext_long
+  ADD CONSTRAINT fk_assignment_ext_long
+  FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
+  REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+
+ALTER TABLE m_assignment_ext_poly
+  ADD CONSTRAINT fk_assignment_ext_poly
+  FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
+  REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+
+ALTER TABLE m_assignment_ext_reference
+  ADD CONSTRAINT fk_assignment_ext_reference
+  FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
+  REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+
+ALTER TABLE m_assignment_ext_string
+  ADD CONSTRAINT fk_assignment_ext_string
+  FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
+  REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+
 ALTER TABLE m_exclusion MODIFY id INTEGER;
 ALTER TABLE m_trigger MODIFY id INTEGER;
