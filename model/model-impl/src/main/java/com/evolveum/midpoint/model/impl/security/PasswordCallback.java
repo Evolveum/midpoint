@@ -80,9 +80,6 @@ public class PasswordCallback implements CallbackHandler {
 			securityHelper.auditLoginFailure(username, "No user", SchemaConstants.CHANNEL_WEB_SERVICE_URI);
 			throw new PasswordCallbackException("Authentication failed");
 		}
-        if (user == null) {
-            throw new SecurityException("unknown user");
-        }
         UserType userType = user.getUser();
         CredentialsType credentials = userType.getCredentials();
         if (credentials == null) {

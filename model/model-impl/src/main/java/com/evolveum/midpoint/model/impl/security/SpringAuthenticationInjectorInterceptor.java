@@ -19,6 +19,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -79,13 +81,15 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
     private UserProfileService userDetailsService;
     private SecurityEnforcer securityEnforcer;
 	private SecurityHelper securityHelper;
+	private ActivationComputer activationComputer;
 
     public SpringAuthenticationInjectorInterceptor(UserProfileService userDetailsService,
-    		SecurityEnforcer securityEnforcer, SecurityHelper securityHelper) {
+    		SecurityEnforcer securityEnforcer, SecurityHelper securityHelper, ActivationComputer activationComputer) {
         super();
         this.userDetailsService = userDetailsService;
         this.securityEnforcer = securityEnforcer;
         this.securityHelper = securityHelper;
+        this.activationComputer = activationComputer;
         id = getClass().getName();
         phase = Phase.PRE_PROTOCOL;
         getAfter().add(WSS4JInInterceptor.class.getName());
@@ -144,6 +148,14 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         		securityHelper.auditLoginFailure(username, "No user", SchemaConstants.CHANNEL_WEB_SERVICE_URI);
             	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
         	}
+        	
+        	if (!activationComputer.isActive(principal.getUser().getActivation())) {
+        		LOGGER.trace("Refusing access to {} because the user is not active", username);
+        		message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+        		securityHelper.auditLoginFailure(username, "User not active", SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+            	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
+        	}
+        	
             Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             

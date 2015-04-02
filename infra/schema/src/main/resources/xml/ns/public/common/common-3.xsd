@@ -7667,6 +7667,24 @@
                 <xsd:sequence>
                     <xsd:element name="lifetime" type="c:PasswordLifeTimeType" minOccurs="1" maxOccurs="1"/>
                     <xsd:element name="stringPolicy" type="c:StringPolicyType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="minOccurs" type="xsd:string" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Minimal number of value occurences. minOccurs set to zero means that the value
+                    			is optional.
+                    			E.g. when applied to passwords the minOccurs=0 means that the policy will
+                    			accept no password at all. But it will still validate the password using
+                    			stringPolicy if a password is present.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Maximal number of value occurences.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -8020,7 +8038,7 @@
                                 TODO: better documentation
                             </xsd:documentation>
                             <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+                    			<a:objectReferenceTargetType>tns:SecurityPolicyType</a:objectReferenceTargetType>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

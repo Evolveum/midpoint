@@ -420,6 +420,18 @@ public class DomParser implements Parser {
 		Element element = serializer.serialize(xnode);
 		return DOMUtil.serializeDOMToString(element);
 	}
+	
+	public Element serializeUnderElement(XNode xnode, QName rootElementName, Element parentElement) throws SchemaException {
+		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
+		RootXNode xroot;
+		if (xnode instanceof RootXNode) {
+			xroot = (RootXNode) xnode;
+		} else {
+			xroot = new RootXNode(rootElementName);
+			xroot.setSubnode(xnode);
+		}
+		return serializer.serializeUnderElement(xroot, parentElement);
+	}
 
     public Element serializeXMapToElement(MapXNode xmap, QName elementName) throws SchemaException {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);

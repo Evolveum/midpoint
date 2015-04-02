@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPort;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.common.util.AbstractModelWebService;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -66,11 +68,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_3.CommunicationFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_3.ConfigurationFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectAlreadyExistsFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_3.PolicyViolationFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_3.SchemaViolationFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsType;
@@ -380,6 +386,16 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			faultType = new IllegalArgumentFaultType();
 		} else if (ex instanceof ObjectAlreadyExistsException){
 			faultType = new ObjectAlreadyExistsFaultType();
+		} else if (ex instanceof CommunicationException){
+			faultType = new CommunicationFaultType();
+		} else if (ex instanceof ConfigurationException){
+			faultType = new ConfigurationFaultType();
+		} else if (ex instanceof ExpressionEvaluationException){
+			faultType = new SystemFaultType();
+		} else if (ex instanceof SchemaException){
+			faultType = new SchemaViolationFaultType();
+		} else if (ex instanceof PolicyViolationException){
+			faultType = new PolicyViolationFaultType();
 		} else if (ex instanceof AuthorizationException) {
 			throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION),
 					WSSecurityException.ErrorCode.FAILED_AUTHENTICATION.getQName());
@@ -394,7 +410,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			faultType.setOperationResult(result.createOperationResultType());
 		}
 
-		throw new FaultMessage(ex.getMessage(), faultType, ex);
+		FaultMessage fault = new FaultMessage(ex.getMessage(), faultType, ex);
+		LOGGER.trace("Throwing fault message type: {}", faultType.getClass(), fault);
+		throw fault;
 	}
 
 	@Override

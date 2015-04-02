@@ -877,22 +877,31 @@ public class Clockwork {
 				sb.toString());
 	}
 	
-	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
-		final LensFocusContext<F> focusContext = context.getFocusContext();
-		OwnerResolver ownerResolver = null;
-		if (focusContext != null) {
-			ownerResolver = new OwnerResolver() {
-				@Override
-				public <F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow) {
-					return (PrismObject<F>) focusContext.getObjectCurrent();
-				}
-			};
-			authorizeElementContext(context, focusContext, ownerResolver, true, task, result);
+	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException {
+		OperationResult result = parentResult.createMinorSubresult(Clockwork.class.getName()+".authorizeRequest");
+		try {
+			
+			final LensFocusContext<F> focusContext = context.getFocusContext();
+			OwnerResolver ownerResolver = null;
+			if (focusContext != null) {
+				ownerResolver = new OwnerResolver() {
+					@Override
+					public <F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow) {
+						return (PrismObject<F>) focusContext.getObjectCurrent();
+					}
+				};
+				authorizeElementContext(context, focusContext, ownerResolver, true, task, result);
+			}
+			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+				authorizeElementContext(context, projectionContext, ownerResolver, false, task, result);
+			}
+			context.setRequestAuthorized(true);
+			result.recordSuccess();
+			
+		} catch (SecurityViolationException | SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
 		}
-		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-			authorizeElementContext(context, projectionContext, ownerResolver, false, task, result);
-		}
-		context.setRequestAuthorized(true);
 	}
 	
 	private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints authorizeElementContext(LensContext<F> context, LensElementContext<O> elementContext,

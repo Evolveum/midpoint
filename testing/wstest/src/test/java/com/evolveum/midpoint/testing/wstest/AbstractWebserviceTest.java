@@ -111,7 +111,7 @@ public abstract class AbstractWebserviceTest {
  	public static final String USER_NOBODY_GIVEN_NAME = "No";
  	public static final String USER_NOBODY_FAMILY_NAME = "Body";
  	public static final String USER_NOBODY_PASSWORD = "nopassword";
-
+ 	
  	// WS authorization only
  	public static final File USER_CYCLOPS_FILE = new File(COMMON_DIR, "user-cyclops.xml");
  	public static final String USER_CYCLOPS_USERNAME = "cyclops";
@@ -121,9 +121,23 @@ public abstract class AbstractWebserviceTest {
  	public static final File USER_SOMEBODY_FILE = new File(COMMON_DIR, "user-somebody.xml");
  	public static final String USER_SOMEBODY_USERNAME = "somebody";
  	public static final String USER_SOMEBODY_PASSWORD = "somepassword";
+
+ 	// WS, reader and adder authorization
+ 	public static final File USER_DARTHADDER_FILE = new File(COMMON_DIR, "user-darthadder.xml");
+ 	public static final String USER_DARTHADDER_OID = "1696229e-d90a-11e4-9ce6-001e8c717e5b";
+ 	public static final String USER_DARTHADDER_USERNAME = "darthadder";
+ 	public static final String USER_DARTHADDER_PASSWORD = "iamyouruncle";
  	
+ 	// Authorizations, but no password
+ 	public static final File USER_NOPASSWORD_FILE = new File(COMMON_DIR, "user-nopassword.xml");
+ 	public static final String USER_NOPASSWORD_USERNAME = "nopassword";
+
  	public static final File ROLE_WS_FILE = new File(COMMON_DIR, "role-ws.xml");
 	public static final File ROLE_READER_FILE = new File(COMMON_DIR, "role-reader.xml");
+	public static final File ROLE_ADDER_FILE = new File(COMMON_DIR, "role-adder.xml");
+	
+	public static final File ROLE_MODIFIER_FILE = new File(COMMON_DIR, "role-modifier.xml");
+	public static final String ROLE_MODIFIER_OID = "82005ae4-d90b-11e4-bdcc-001e8c717e5b";
  	
 	protected static final Pattern PATTERN_AUDIT_EVENT_ID = Pattern.compile(".*\\seid=([^,]+),\\s.*");
 	protected static final Pattern PATTERN_AUDIT_SESSION_ID = Pattern.compile(".*\\ssid=([^,]+),\\s.*");
@@ -250,12 +264,11 @@ public abstract class AbstractWebserviceTest {
      * returns URI of type passed as argument
      * */
     protected static String getTypeUri(Class<? extends ObjectType> type){
-        String typeUri = NS_COMMON + "#" + type.getSimpleName();
-        return typeUri;
+    	return ModelClientUtil.getTypeUri(type);
     }
 
     protected static QName getTypeQName(Class<? extends ObjectType> type){
-        return new QName(NS_COMMON, type.getSimpleName());
+    	return ModelClientUtil.getTypeQName(type);
     }
 
     /**
@@ -407,10 +420,14 @@ public abstract class AbstractWebserviceTest {
 		// TODO: look inside
 	}
 	
-	protected <F extends FaultType> void assertFaultMessage(FaultMessage fault, Class<F> expectedFaultInfoClass) {
+	protected <F extends FaultType> void assertFaultMessage(FaultMessage fault, Class<F> expectedFaultInfoClass, String expectedMessage) {
     	FaultType faultInfo = fault.getFaultInfo();
     	if (expectedFaultInfoClass != null && !expectedFaultInfoClass.isAssignableFrom(faultInfo.getClass())) {
     		AssertJUnit.fail("Expected that faultInfo will be of type "+expectedFaultInfoClass+", but it was "+faultInfo.getClass());
+    	}
+    	if (expectedMessage != null) {
+    		assertTrue("Wrong message in fault: "+fault.getMessage(), fault.getMessage().contains(expectedMessage));
+    		assertTrue("Wrong message in fault info: "+faultInfo.getMessage(), faultInfo.getMessage().contains(expectedMessage));
     	}
     	OperationResultType result = faultInfo.getOperationResult();
     	assertEquals("Expected that resut in FaultInfo will be fatal error, but it was "+result.getStatus(),
@@ -441,6 +458,12 @@ public abstract class AbstractWebserviceTest {
 		System.out.println(msg);
 		LOGGER.info("{}", msg);
 	}
+	
+	protected <O extends ObjectType> void display(O object) throws JAXBException {
+		String xmlString = ModelClientUtil.marshallToSting(object);
+		System.out.println(xmlString);
+		LOGGER.info("{}", xmlString);
+	}
 
 	protected LogfileTestTailer createLogTailer() throws IOException {
 		return new LogfileTestTailer(SERVER_LOG_FILE, AUDIT_LOGGER_NAME, true);
@@ -460,23 +483,14 @@ public abstract class AbstractWebserviceTest {
         	auditConfig.setEnabled(true);
         }
         
-        ObjectDeltaListType deltaList = new ObjectDeltaListType();
-    	ObjectDeltaType delta = new ObjectDeltaType();
-    	delta.setObjectType(getTypeQName(SystemConfigurationType.class));
-    	delta.setChangeType(ChangeTypeType.MODIFY);
-    	delta.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
-    	ItemDeltaType itemDelta = new ItemDeltaType();
-    	itemDelta.setPath(ModelClientUtil.createItemPathType("logging"));
-    	itemDelta.setModificationType(ModificationTypeType.REPLACE);
-    	itemDelta.getValue().add(loggingConfig);
-		delta.getItemDelta().add(itemDelta);
-		deltaList.getDelta().add(delta);
+        ObjectDeltaListType deltaList = ModelClientUtil.createModificationDeltaList(SystemConfigurationType.class, 
+        		SystemObjectsType.SYSTEM_CONFIGURATION.value(), "logging", ModificationTypeType.REPLACE, loggingConfig);
 		
 		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
 		
 		assertSuccess(deltaOpList);
 	}
-	
+		
 	protected void assertAuditLoginFailed(LogfileTestTailer tailer, String expectedMessage) {
         tailer.assertAudit(1);
         String auditMessage = tailer.getAuditMessages().get(0);
@@ -560,6 +574,11 @@ public abstract class AbstractWebserviceTest {
 	}
 	
 	protected void assertAuditOperation(LogfileTestTailer tailer, String expectedEventType) {
+		assertAuditOperation(tailer, expectedEventType, OperationResultStatusType.SUCCESS, null);
+	}
+	
+	protected void assertAuditOperation(LogfileTestTailer tailer, String expectedEventType, 
+			OperationResultStatusType expectedStatus, String expectedMessage) {
 		List<String> msgs = tailer.getAuditMessages();
 		String reqMsg = msgs.get(1);
         assertTrue("Audit: request: wrong operation: "+reqMsg, reqMsg.contains("et="+expectedEventType));
@@ -568,7 +587,10 @@ public abstract class AbstractWebserviceTest {
         String execMsg = msgs.get(2);
         assertTrue("Audit: exec: wrong operation: "+execMsg, execMsg.contains("et="+expectedEventType));
         assertTrue("Audit: exec: not execution: "+execMsg, execMsg.contains("es=EXECUTION"));
-        assertTrue("Audit: exec: not success: "+execMsg, execMsg.contains("o=SUCCESS"));
+        assertTrue("Audit: exec: wrong status, expected '"+expectedStatus+"': "+execMsg, execMsg.contains("o="+expectedStatus));
+        if (expectedMessage != null) {
+        	assertTrue("Audit: exec: wrong message, expected '"+expectedMessage+"': "+execMsg, execMsg.matches(".*m=.*"+expectedMessage+".*"));
+        }
 	}
 
 

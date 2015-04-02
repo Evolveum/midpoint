@@ -20,6 +20,9 @@
 	<c:assignment>
 		<c:targetRef oid="ac4c987a-d7b3-11e4-9623-001e8c717e5b" type="c:RoleType"/>
 	</c:assignment>
+	<c:activation>
+		<c:administrativeStatus>enabled</c:administrativeStatus>
+	</c:activation>	
 	<c:fullName>Cyclops</c:fullName>
 	<c:givenName>Cyclo</c:givenName>
 	<c:familyName>Cyclops</c:familyName>
