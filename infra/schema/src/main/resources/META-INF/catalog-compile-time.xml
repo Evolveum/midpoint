@@ -72,8 +72,8 @@
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3.xsd" uri="../xml/ns/public/common/fault-3.xsd" />
 
 	<!-- Report WSDL location -->
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" />
+<!--     <public publicId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" /> -->
+<!--     <system systemId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" /> -->
 
     <!-- Bundled standard schemas -->
     <public publicId="datatypes" uri="../xml/ns/standard/datatypes.dtd" />

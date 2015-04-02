@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,21 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.util.Collection;
 
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.connector.DummyConnector;
-import com.evolveum.midpoint.model.test.LogfileTestTailer;
+import com.evolveum.midpoint.common.LoggingConfigurationManager;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -37,6 +40,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.aspect.MidpointAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
@@ -45,8 +49,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -61,18 +67,22 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		// DO NOT call super.initSystem() as this will install system config. We do not want that here.
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
+		login(userAdministrator);
 	}
 	
 	@Test
 	public void test001CreateSystemConfiguration() throws Exception {
-		TestUtil.displayTestTile("test001CreateSystemConfiguration");
+		final String TEST_NAME = "test001CreateSystemConfiguration";
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
-		PrismObject<SystemConfigurationType> systemConfiguration = 
-			PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
-		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test001AddConfiguration");
+		PrismObject<SystemConfigurationType> systemConfiguration = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_FILE);
+		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
 		OperationResult result = task.getResult();
 		ObjectDelta<SystemConfigurationType> systemConfigurationAddDelta = ObjectDelta.createAddDelta(systemConfiguration);		
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigurationAddDelta);
@@ -90,19 +100,19 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		
 	}
 
+	
 	@Test
 	public void test002InitialConfiguration() throws Exception {
 		final String TEST_NAME = "test002InitialConfiguration";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		PrismObject<SystemConfigurationType> systemConfiguration = 
-			PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
+		PrismObject<SystemConfigurationType> systemConfiguration = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_FILE);
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
 		applyTestLoggingConfig(logging);
@@ -140,27 +150,63 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		tailer.close();
 		
 	}
-
-	private void applyTestLoggingConfig(LoggingConfigurationType logging) {
-		// Make sure that this class has a special entry in the config so we will see the messages from this test code
-		ClassLoggerConfigurationType testClassLogger = new ClassLoggerConfigurationType();
-		testClassLogger.setPackage(TestLoggingConfiguration.class.getName());
-		testClassLogger.setLevel(LoggingLevelType.TRACE);
-		logging.getClassLogger().add(testClassLogger);
-		
-		ClassLoggerConfigurationType integrationTestToolsLogger = new ClassLoggerConfigurationType();
-		integrationTestToolsLogger.setPackage(IntegrationTestTools.class.getName());
-		integrationTestToolsLogger.setLevel(LoggingLevelType.TRACE);
-		logging.getClassLogger().add(integrationTestToolsLogger);
-	}
 	
+	/**
+	 * Overwrite initial system configuration by itself. Check that everything
+	 * still works.
+	 */
+	@Test
+	public void test004OverwriteInitialConfiguration() throws Exception {
+		final String TEST_NAME = "test004OverwriteInitialConfiguration";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
+		
+		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		PrismObject<SystemConfigurationType> systemConfiguration = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
+		String previousVersion = systemConfiguration.getVersion();
+		systemConfiguration.setVersion(null);
+				
+		// precondition
+		tailer.logAndTail();		
+		assertBasicLogging(tailer);
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
+		
+		ObjectDelta<SystemConfigurationType> delta = ObjectDelta.createAddDelta(systemConfiguration);
+		ModelExecuteOptions options = ModelExecuteOptions.createOverwrite();
+		
+		// WHEN
+		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
+		
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		tailer.logAndTail();
+		
+		assertBasicLogging(tailer);
+
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
+		
+		tailer.close();
+		
+		PrismObject<SystemConfigurationType> systemConfigurationNew = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
+		String newVersion = systemConfigurationNew.getVersion();
+		assertTrue("Versions do not follow: "+previousVersion+" -> "+newVersion,
+				Integer.parseInt(previousVersion) < Integer.parseInt(newVersion));
+		
+	}
+		
 	@Test
 	public void test010AddModelSubsystemLogger() throws Exception {
 		final String TEST_NAME = "test010AddModelSubsystemLogger";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
 		OperationResult result = task.getResult();
@@ -223,7 +269,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
 		java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(JUL_LOGGER_NAME);
 				
@@ -254,7 +300,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
 		java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(JUL_LOGGER_NAME);
 		
@@ -311,7 +357,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		// ICF logging is prefixing the messages;
 		tailer.setAllowPrefix(true);
 		
@@ -373,7 +419,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		TestUtil.displayTestTile("test101EnableBasicAudit");
 		
 		// GIVEN
-		LogfileTestTailer tailer = new LogfileTestTailer();
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 		
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test101EnableBasicAudit");
 		OperationResult result = task.getResult();
@@ -432,6 +478,18 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		
 	}
 
+	private void applyTestLoggingConfig(LoggingConfigurationType logging) {
+		// Make sure that this class has a special entry in the config so we will see the messages from this test code
+		ClassLoggerConfigurationType testClassLogger = new ClassLoggerConfigurationType();
+		testClassLogger.setPackage(TestLoggingConfiguration.class.getName());
+		testClassLogger.setLevel(LoggingLevelType.TRACE);
+		logging.getClassLogger().add(testClassLogger);
+		
+		ClassLoggerConfigurationType integrationTestToolsLogger = new ClassLoggerConfigurationType();
+		integrationTestToolsLogger.setPackage(IntegrationTestTools.class.getName());
+		integrationTestToolsLogger.setLevel(LoggingLevelType.TRACE);
+		logging.getClassLogger().add(integrationTestToolsLogger);
+	}
 	
 	private void assertBasicLogging(LogfileTestTailer tailer) {
 		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, ProfilingDataManager.Subsystem.MODEL.name());

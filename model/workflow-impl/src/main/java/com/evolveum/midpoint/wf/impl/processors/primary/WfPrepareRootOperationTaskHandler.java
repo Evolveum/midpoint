@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processors.primary;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -96,14 +97,24 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Child job {} returned {} deltas", child, deltas.size());
                     }
+                    LensFocusContext focusContext = rootContext.getFocusContext();
                     for (ObjectDelta delta : deltas) {
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace("Adding delta from job {} to root model context; delta = {}", child, delta.debugDump(0));
                         }
-                        rootContext.getFocusContext().addPrimaryDelta(delta);
+                        if (focusContext.getPrimaryDelta() != null && !focusContext.getPrimaryDelta().isEmpty()) {
+                            focusContext.addPrimaryDelta(delta);
+                        } else {
+                            focusContext.setPrimaryDelta(delta);
+                        }
                         changed = true;
                     }
                 }
+            }
+
+            if (rootContext.getFocusContext().getPrimaryDelta() == null || rootContext.getFocusContext().getPrimaryDelta().isEmpty()) {
+                rootJob.setSkipModelContextProcessingProperty(true, result);
+                changed = true;     // regardless of whether rootContext was changed or not
             }
 
             if (changed) {

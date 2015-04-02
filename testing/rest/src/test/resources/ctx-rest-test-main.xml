@@ -39,6 +39,7 @@
     <import resource="ctx-model.xml"/>
     <import resource="ctx-provisioning.xml"/>
     <import resource="ctx-rest-test.xml"/>
+    <import resource="ctx-task.xml"/>
     <import resource="ctx-audit.xml"/>
     <import resource="ctx-common.xml"/>
     <import resource="ctx-security.xml"/>

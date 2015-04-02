@@ -19,18 +19,21 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.NoneFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -53,6 +56,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -494,9 +498,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     object.getCompileTimeClass().getSimpleName(), oid});
 
             object.setOid(oid);
-        } catch (ObjectAlreadyExistsException ex) {
-            rollbackTransaction(session, ex, result, true);
-            throw ex;
         } catch (ConstraintViolationException ex) {
             handleConstraintViolationException(session, ex, result);
             rollbackTransaction(session, ex, result, true);
@@ -515,7 +516,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
             throw new ObjectAlreadyExistsException("Conflicting object already exists"
                     + (constraintName == null ? "" : " (violated constraint '" + constraintName + "')"), ex);
-        } catch (SchemaException ex) {
+        } catch (ObjectAlreadyExistsException | SchemaException ex) {
             rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
@@ -555,7 +556,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         updateFullObject(rObject, object);
         RObject merged = (RObject) session.merge(rObject);
-        //add and maybe modify
+        addLookupTableRows(session, rObject, modifications != null);
 
         if (getClosureManager().isEnabled()) {
             OrgClosureManager.Operation operation;
@@ -578,6 +579,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (UserType.class.equals(savedObject.getCompileTimeClass())) {
             savedObject.removeProperty(UserType.F_JPEG_PHOTO);
+        } else if (LookupTableType.class.equals(savedObject.getCompileTimeClass())) {
+            PrismContainer table = savedObject.findContainer(LookupTableType.F_ROW);
+            savedObject.remove(table);
         }
 
         String xml = getPrismContext().serializeObjectToString(savedObject, PrismContext.LANG_XML);
@@ -614,6 +618,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         LOGGER.trace("Saving object (non overwrite).");
         String oid = (String) session.save(rObject);
+        addLookupTableRows(session, rObject, false);
 
         if (getClosureManager().isEnabled()) {
             Collection<ReferenceDelta> modifications = createAddParentRefDelta(object);
@@ -692,6 +697,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             getClosureManager().updateOrgClosure(null, null, session, oid, type, OrgClosureManager.Operation.DELETE, closureContext);
 
             session.delete(object);
+            if (LookupTableType.class.equals(type)) {
+                deleteLookupTableRows(session, oid);
+            }
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
@@ -702,6 +710,92 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
             cleanupClosureAndSessionAndResult(closureContext, session, result);
         }
+    }
+
+    /**
+     * This method removes all lookup table rows for object defined by oid
+     */
+    private void deleteLookupTableRows(Session session, String oid) {
+        Query query = session.getNamedQuery("delete.lookupTableData");
+        query.setParameter("oid", oid);
+
+        query.executeUpdate();
+    }
+
+    private void addLookupTableRows(Session session, RObject object, boolean merge) {
+        if (!(object instanceof RLookupTable)) {
+            return;
+        }
+        RLookupTable table = (RLookupTable) object;
+
+        if (merge) {
+            deleteLookupTableRows(session, table.getOid());
+        }
+        if (table.getRows() != null) {
+            for (RLookupTableRow row : table.getRows()) {
+                session.save(row);
+            }
+        }
+    }
+
+    private void addLookupTableRows(Session session, String tableOid, Collection<PrismContainerValue> values, int currentId) {
+        for (PrismContainerValue value : values) {
+            LookupTableRowType rowType = new LookupTableRowType();
+            rowType.setupContainerValue(value);
+
+            RLookupTableRow row = RLookupTableRow.toRepo(tableOid, rowType);
+            row.setId(currentId);
+            currentId++;
+            session.save(row);
+        }
+    }
+
+    private void updateLookupTableData(Session session, RObject object, Collection<? extends ItemDelta> modifications) {
+        if (modifications.isEmpty()) {
+            return;
+        }
+
+        if (!(object instanceof RLookupTable)) {
+            throw new IllegalStateException("Object being modified is not a LookupTable; it is " + object.getClass());
+        }
+        final RLookupTable rLookupTable = (RLookupTable) object;
+        final String tableOid = object.getOid();
+
+        for (ItemDelta delta : modifications) {
+            if (!(delta instanceof ContainerDelta) || delta.getPath().size() != 1) {
+                throw new IllegalStateException("Wrong table delta sneaked into updateLookupTableData: class=" + delta.getClass() + ", path=" + delta.getPath());
+            }
+            // one "table" container modification
+            ContainerDelta containerDelta = (ContainerDelta) delta;
+
+            if (containerDelta.getValuesToDelete() != null) {
+                // todo do 'bulk' delete like delete from ... where oid=? and id in (...)
+                for (PrismContainerValue value : (Collection<PrismContainerValue>) containerDelta.getValuesToDelete()) {
+                    Query query = session.getNamedQuery("delete.lookupTableDataRow");
+                    query.setString("oid", tableOid);
+                    query.setInteger("id", RUtil.toInteger(value.getId()));
+                    query.executeUpdate();
+                }
+            }
+            if (containerDelta.getValuesToAdd() != null) {
+                int currentId = findLastIdInRepo(session, tableOid) + 1;
+                addLookupTableRows(session, tableOid, containerDelta.getValuesToAdd(), currentId);
+            }
+            if (containerDelta.getValuesToReplace() != null) {
+                deleteLookupTableRows(session, tableOid);
+                addLookupTableRows(session, tableOid, containerDelta.getValuesToReplace(), 1);
+            }
+        }
+    }
+
+    private int findLastIdInRepo(Session session, String tableOid) {
+        Query query = session.getNamedQuery("get.lookupTableLastId");
+        query.setString("oid", tableOid);
+        Integer lastId = (Integer) query.uniqueResult();
+        if (lastId == null) {
+            lastId = 0;
+        }
+        return lastId;
     }
 
     @Override
@@ -866,7 +960,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             cleanupSessionAndResult(session, result);
         }
 
-        return new SearchResultList(list);
+        return new SearchResultList<PrismObject<T>>(list);
     }
 
     /**
@@ -879,7 +973,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         String xml = RUtil.getXmlFromByteArray(result.getFullObject(), getConfiguration().isUseZip());
         PrismObject<T> prismObject;
         try {
-            prismObject = getPrismContext().parseObject(xml);
+        	// "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
+            prismObject = getPrismContext().parseObject(xml, XNodeProcessorEvaluationMode.COMPAT);
         } catch (SchemaException e) {
             LOGGER.debug("Couldn't parse object because of schema exception ({}):\nObject: {}", e, xml);
             throw e;
@@ -914,11 +1009,103 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 applyShadowAttributeDefinitions(classes[i], prismObject, session);
             }
             LOGGER.debug("Definitions for attributes loaded. Counts: {}", Arrays.toString(counts));
+        } else if (LookupTableType.class.equals(prismObject.getCompileTimeClass())) {
+            updateLoadedLookupTable(prismObject, options, session);
         }
 
         validateObjectType(prismObject, type);
 
         return prismObject;
+    }
+
+    private GetOperationOptions findLookupTableGetOption(Collection<SelectorOptions<GetOperationOptions>> options) {
+        final ItemPath tablePath = new ItemPath(LookupTableType.F_ROW);
+
+        Collection<SelectorOptions<GetOperationOptions>> filtered = SelectorOptions.filterRetrieveOptions(options);
+        for (SelectorOptions<GetOperationOptions> option : filtered) {
+            ObjectSelector selector = option.getSelector();
+            ItemPath selected = selector.getPath();
+
+            if (tablePath.equivalent(selected)) {
+                return option.getOptions();
+            }
+        }
+
+        return null;
+    }
+
+    private <T extends ObjectType> void updateLoadedLookupTable(PrismObject<T> object,
+                                                                Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                Session session) {
+        if (!SelectorOptions.hasToLoadPath(LookupTableType.F_ROW, options)) {
+            return;
+        }
+
+        LOGGER.debug("Loading lookup table data.");
+
+        GetOperationOptions getOption = findLookupTableGetOption(options);
+        RelationalValueSearchQuery queryDef = getOption == null ? null : getOption.getRelationalValueSearchQuery();
+        Criteria criteria = setupLookupTableRowsQuery(session, queryDef, object.getOid());
+        if (queryDef != null && queryDef.getPaging() != null) {
+            ObjectPaging paging = queryDef.getPaging();
+
+            if (paging.getOffset() != null) {
+                criteria.setFirstResult(paging.getOffset());
+            }
+            if (paging.getMaxSize() != null) {
+                criteria.setMaxResults(paging.getMaxSize());
+            }
+
+            if (paging.getDirection() != null && paging.getOrderBy() != null) {
+                String orderBy = paging.getOrderBy().getLocalPart();
+                switch (paging.getDirection()) {
+                    case ASCENDING:
+                        criteria.addOrder(Order.asc(orderBy));
+                        break;
+                    case DESCENDING:
+                        criteria.addOrder(Order.desc(orderBy));
+                        break;
+                }
+            }
+        }
+
+        List<RLookupTableRow> rows = criteria.list();
+        if (rows == null || rows.isEmpty()) {
+            return;
+        }
+
+        LookupTableType lookup = (LookupTableType) object.asObjectable();
+        List<LookupTableRowType> jaxbRows = lookup.getRow();
+        for (RLookupTableRow row : rows) {
+            LookupTableRowType jaxbRow = row.toJAXB();
+            jaxbRows.add(jaxbRow);
+        }
+    }
+
+    private Criteria setupLookupTableRowsQuery(Session session, RelationalValueSearchQuery queryDef, String oid) {
+        Criteria criteria = session.createCriteria(RLookupTableRow.class);
+        criteria.add(Restrictions.eq("ownerOid", oid));
+
+        if (queryDef != null
+                && queryDef.getColumn() != null
+                && queryDef.getSearchType() != null
+                && StringUtils.isNotEmpty(queryDef.getSearchValue())) {
+
+            String param = queryDef.getColumn().getLocalPart();
+            String value = queryDef.getSearchValue();
+            switch (queryDef.getSearchType()) {
+                case EXACT:
+                    criteria.add(Restrictions.eq(param, value));
+                    break;
+                case STARTS_WITH:
+                    criteria.add(Restrictions.like(param, value + "%"));
+                    break;
+                case SUBSTRING:
+                    criteria.add(Restrictions.like(param, "%" + value + "%"));
+            }
+        }
+
+        return criteria;
     }
 
     private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,
@@ -1031,6 +1218,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                                             Collection<? extends ItemDelta> modifications,
                                                             OperationResult result) throws ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException, SerializationRelatedException {
+
+        // shallow clone - because some methods, e.g. filterLookupTableModifications manipulate this collection
+        modifications = new ArrayList<>(modifications);
+
         LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
         LOGGER_PERFORMANCE.debug("> modify object {}, oid={}, modifications={}",
                 new Object[]{type.getSimpleName(), oid, modifications});
@@ -1045,7 +1236,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             closureContext = getClosureManager().onBeginTransactionModify(session, type, oid, modifications);
 
-            // get user
+            Collection<? extends ItemDelta> lookupTableModifications = filterLookupTableModifications(type, modifications);
+
+            // get object
             PrismObject<T> prismObject = getObject(session, type, oid, null, true);
             // apply diff
             if (LOGGER.isTraceEnabled()) {
@@ -1059,13 +1252,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.debugDump());
             }
-            // merge and update user
+            // merge and update object
             LOGGER.trace("Translating JAXB to data type.");
             RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
             rObject.setVersion(rObject.getVersion() + 1);
 
             updateFullObject(rObject, prismObject);
             session.merge(rObject);
+
+            updateLookupTableData(session, rObject, lookupTableModifications);
 
             if (getClosureManager().isEnabled()) {
                 getClosureManager().updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
@@ -1097,6 +1292,31 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             cleanupClosureAndSessionAndResult(closureContext, session, result);
             LOGGER.trace("Session cleaned up.");
         }
+    }
+
+    private <T extends ObjectType> Collection<? extends ItemDelta> filterLookupTableModifications(Class<T> type,
+                                                                                                  Collection<? extends ItemDelta> modifications) {
+        Collection<ItemDelta> tableDelta = new ArrayList<>();
+        if (!LookupTableType.class.equals(type)) {
+            return tableDelta;
+        }
+
+        ItemPath tablePath = new ItemPath(LookupTableType.F_ROW);
+        for (ItemDelta delta : modifications) {
+            ItemPath path = delta.getPath();
+            if (path.isEmpty()) {
+                throw new UnsupportedOperationException("Lookup table cannot be modified via empty-path modification");
+            } else if (path.equivalent(tablePath)) {
+                tableDelta.add(delta);
+            } else if (path.isSuperPath(tablePath)) {
+                // todo - what about modifications with path like table[id] or table[id]/xxx where xxx=key|value|label?
+                throw new UnsupportedOperationException("Lookup table row can be modified only by specifying path=table");
+            }
+        }
+
+        modifications.removeAll(tableDelta);
+
+        return tableDelta;
     }
 
     private void cleanupClosureAndSessionAndResult(final OrgClosureManager.Context closureContext, final Session session, final OperationResult result) {

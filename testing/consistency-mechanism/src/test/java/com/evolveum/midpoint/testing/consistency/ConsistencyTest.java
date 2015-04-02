@@ -285,6 +285,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String LDIF_MORGAN_FILENAME = "src/test/resources/request/morgan.ldif";
 	private static final String LDIF_DISCOVERY_FILENAME = "src/test/resources/request/discovery.ldif";
 	
+	private static final String LDIF_CREATE_USERS_OU_FILENAME = "src/test/resources/request/usersOu.ldif";
+	
 	private static final String LDIF_MODIFY_RENAME_FILENAME = "src/test/resources/request/modify-rename.ldif";
 
 //	private static final QName IMPORT_OBJECTCLASS = new QName(
@@ -2012,13 +2014,16 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         
+        //prepare new OU in opendj
+        Entry entry = openDJController.addEntryFromLdifFile(LDIF_CREATE_USERS_OU_FILENAME);
+        
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_MORGAN_OID, null, result);
         display("User Morgan: ", user);
         PrismReference linkRef = user.findReference(UserType.F_LINK_REF);
         
         ExpressionType expression = new ExpressionType();
         ObjectFactory of = new ObjectFactory();
-        RawType raw = new RawType(new PrimitiveXNode("uid=morganNew,ou=people,dc=example,dc=com"), prismContext);       
+        RawType raw = new RawType(new PrimitiveXNode("uid=morgan,ou=users,dc=example,dc=com"), prismContext);       
        
         JAXBElement val = of.createValue(raw);
         expression.getExpressionEvaluator().add(val);
@@ -2060,9 +2065,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertAccountShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertAccountShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        ResourceAttribute attributes = ShadowUtil.getAttribute(accountModel, new QName(resourceTypeOpenDjrepo.getNamespace(), "uid"));
+        assertEquals("morgan", attributes.getAnyRealValue());
         // TODO: check OpenDJ Account        
 	}
 	
@@ -2088,6 +2096,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		LOGGER.info("start running task");
 		// WHEN
 		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
+		verbose = true;
 		waitForTaskNextRun(TASK_OPENDJ_RECONCILIATION_OID, false, 60000);
 
 		// THEN

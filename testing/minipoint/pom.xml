@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2013-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">  
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.2.2.RELEASE</version>
+  </parent>
+  <artifactId>minipoint</artifactId>
+  <groupId>com.evolveum.midpoint.testing</groupId>
+  <version>3.2-SNAPSHOT</version>
+  <name>midPoint Testing - MiniPoint</name>
+  <issueManagement>
+  	<system>Atlassian JIRA</system>
+  	<url>http://jira.evolveum.com/</url>
+  </issueManagement>
+    <scm>
+        <connection>https://github.com/Evolveum/midpoint.git</connection>
+        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
+        <url>https://fisheye.evolveum.com/browse/midPoint</url>
+    </scm>
+	<properties>
+        <midpoint.version>3.2-SNAPSHOT</midpoint.version>
+        <testng.version>6.8.8</testng.version>
+        <connid.version>1.4.0.49</connid.version>
+    </properties>
+    <repositories>
+    <repository>
+      <id>central</id>
+      <url>http://central</url>
+      <releases><enabled>false</enabled></releases>
+      <snapshots><enabled>false</enabled></snapshots>
+    </repository>
+    <repository>
+      <id>evolveum-nexus-relases</id>
+      <url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+      <releases><enabled>true</enabled></releases>
+      <snapshots><enabled>false</enabled></snapshots>
+    </repository>
+    <repository>
+      <id>evolveum-nexus-snapshots</id>
+      <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+      <releases><enabled>false</enabled></releases>
+      <snapshots><enabled>true</enabled></snapshots>
+    </repository>
+  </repositories>
+    <distributionManagement>
+      <repository>
+        <id>evolveum-nexus</id>
+        <name>Internal Releases</name>
+        <url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+      </repository>
+      <snapshotRepository>
+        <id>evolveum-nexus</id>
+        <name>Internal Snapshots</name>
+        <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+      </snapshotRepository>
+    </distributionManagement>
+  <dependencies>
+    <dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>util</artifactId>
+			<version>3.2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>common</artifactId>
+			<version>${midpoint.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-api</artifactId>
+			<version>${midpoint.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-sql-impl-test</artifactId>
+			<version>${midpoint.version}</version>
+		</dependency>
+		<dependency>
+			<!-- This one has spring configuration for testing repository -->
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-test-util</artifactId>
+			<version>${midpoint.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.model</groupId>
+			<artifactId>model-impl</artifactId>
+			<version>${midpoint.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.provisioning</groupId>
+			<artifactId>provisioning-impl</artifactId>
+			<version>${midpoint.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>task-quartz-impl</artifactId>
+			<version>${midpoint.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>audit-impl</artifactId>
+			<version>${midpoint.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-api</artifactId>
+			<version>${midpoint.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jetty</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-impl</artifactId>
+			<version>3.2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-ldap</artifactId>
+            <version>1.4.0.49</version>
+		</dependency>
+		<dependency>
+         	<groupId>com.evolveum.polygon</groupId>
+             <artifactId>connector-databasetable</artifactId>
+             <version>1.4.0.49</version>
+         </dependency>
+		<dependency>
+		<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-sql-impl</artifactId>
+			<version>3.2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>system-init</artifactId>
+			<version>3.2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>log4j-over-slf4j</artifactId>
+		</dependency>
+		<!-- TEST dependency -->
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>${testng.version}</version>
+			<scope>test</scope>
+		</dependency>
+  </dependencies>
+  
+  <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+  <profiles>
+		<profile>
+			<id>extratest</id>
+			<build>
+				<plugins>
+					<plugin>
+					  <artifactId>maven-surefire-plugin</artifactId>
+					  <configuration>
+					    <skip>false</skip>
+                        <argLine>-XX:MaxPermSize=256m</argLine>
+					  </configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

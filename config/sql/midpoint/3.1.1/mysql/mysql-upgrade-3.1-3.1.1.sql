@@ -9,13 +9,14 @@ CREATE TABLE m_lookup_table (
   ENGINE = InnoDB;
 
 CREATE TABLE m_lookup_table_row (
-  row_key             VARCHAR(255) NOT NULL,
-  owner_oid           VARCHAR(36)  NOT NULL,
+  id                  INTEGER    NOT NULL,
+  owner_oid           VARCHAR(36) NOT NULL,
+  row_key             VARCHAR(255),
   label_norm          VARCHAR(255),
   label_orig          VARCHAR(255),
-  lastChangeTimestamp DATETIME(6),
+  lastChangeTimestamp DATETIME,
   row_value           VARCHAR(255),
-  PRIMARY KEY (row_key, owner_oid)
+  PRIMARY KEY (id, owner_oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -30,6 +31,9 @@ FOREIGN KEY (oid)
 REFERENCES m_object (oid);
 
 ALTER TABLE m_lookup_table_row
+ADD CONSTRAINT uc_row_key UNIQUE (row_key);
+
+ALTER TABLE m_lookup_table_row
 ADD CONSTRAINT fk_lookup_table_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_lookup_table (oid);
@@ -41,3 +45,15 @@ ADD PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
 ALTER TABLE m_reference
 DROP PRIMARY KEY,
 ADD PRIMARY KEY (owner_oid, reference_type, relation, targetOid);
+
+ALTER TABLE m_assignment MODIFY id INTEGER;
+ALTER TABLE m_assignment MODIFY extId INTEGER;
+ALTER TABLE m_assignment_ext_date MODIFY anyContainer_owner_id INTEGER;
+ALTER TABLE m_assignment_ext_long MODIFY anyContainer_owner_id INTEGER;
+ALTER TABLE m_assignment_ext_poly MODIFY anyContainer_owner_id INTEGER;
+ALTER TABLE m_assignment_ext_reference MODIFY anyContainer_owner_id INTEGER;
+ALTER TABLE m_assignment_ext_string MODIFY anyContainer_owner_id INTEGER;
+ALTER TABLE m_assignment_extension MODIFY owner_id INTEGER;
+ALTER TABLE m_assignment_reference MODIFY owner_id INTEGER;
+ALTER TABLE m_exclusion MODIFY id INTEGER;
+ALTER TABLE m_trigger MODIFY id INTEGER;

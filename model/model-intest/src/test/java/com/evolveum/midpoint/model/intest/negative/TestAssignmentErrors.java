@@ -301,8 +301,8 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class, OperationResultStatus.FATAL_ERROR);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class, OperationResultStatus.FATAL_ERROR);
         dummyAuditService.assertTarget(user.getOid());
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
         dummyAuditService.assertExecutionMessage();

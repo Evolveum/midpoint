@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2011 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2011 [name of copyright owner]
+  -->
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+                     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    <name><t:orig>SystemConfiguration</t:orig></name>    
+    <logging>
+        <classLogger>
+            <!-- disabled because of MID-744, helper insert messages on ERROR
+            level which should not be there (probably should be on TRACE) -->
+            <level>OFF</level>
+            <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
+        </classLogger>
+        <classLogger>
+            <!-- disabled because we don't need to see every property file
+            loading message (unnecessary log pollution) -->
+            <level>WARN</level>
+            <package>org.apache.wicket.resource.PropertiesFactory</package>
+        </classLogger>
+        <appender xsi:type="c:FileAppenderConfigurationType" name="IDM_LOG"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+            <fileName>${catalina.base}/logs/idm.log</fileName>
+            <filePattern>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</filePattern>
+            <maxHistory>10</maxHistory>
+            <maxFileSize>100MB</maxFileSize>
+            <append>true</append>
+        </appender>
+        <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
+    </logging>
+</systemConfiguration>

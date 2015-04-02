@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -74,6 +74,7 @@
         <xmlsec.version>2.0.1</xmlsec.version>
         <connid.version>1.4.0.49</connid.version>
         <jasper.version>6.0.0</jasper.version>
+        <derby.version>10.11.1.1</derby.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -362,6 +363,11 @@
 			</dependency>
 			<dependency>
 			   <groupId>org.apache.cxf</groupId>
+			   <artifactId>cxf-rt-rs-client</artifactId>
+			   <version>${cxf.version}</version>
+			</dependency>
+			<dependency>
+			   <groupId>org.apache.cxf</groupId>
 			   <artifactId>cxf-rt-rs-extension-providers</artifactId>
 			   <version>${cxf.version}</version>
 			</dependency>
@@ -568,6 +574,21 @@
                 <artifactId>velocity</artifactId>
                 <version>1.7</version>
             </dependency>
+            <dependency>
+				<groupId>org.apache.derby</groupId>
+				<artifactId>derby</artifactId>
+				<version>${derby.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.derby</groupId>
+				<artifactId>derbynet</artifactId>
+				<version>${derby.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.derby</groupId>
+				<artifactId>derbyclient</artifactId>
+				<version>${derby.version}</version>
+			</dependency>
             <!-- Jasper reports -->
             <dependency>
                 <groupId>net.sf.jasperreports</groupId>

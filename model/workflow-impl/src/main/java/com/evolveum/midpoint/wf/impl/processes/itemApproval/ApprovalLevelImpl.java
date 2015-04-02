@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
+import com.evolveum.midpoint.wf.impl.util.SingleItemSerializationSafeContainerImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
@@ -141,7 +142,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
     }
 
     public void setAutomaticallyApproved(ExpressionType automaticallyApproved) {
-        this.automaticallyApproved = new SerializationSafeContainer<ExpressionType>(automaticallyApproved, prismContext);
+        this.automaticallyApproved = new SingleItemSerializationSafeContainerImpl<ExpressionType>(automaticallyApproved, prismContext);
     }
 
     @Override
@@ -176,7 +177,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
     }
 
     public void addApproverExpression(ExpressionType expressionType) {
-        approverExpressions.add(new SerializationSafeContainer<ExpressionType>(expressionType, prismContext));
+        approverExpressions.add(new SingleItemSerializationSafeContainerImpl<ExpressionType>(expressionType, prismContext));
     }
 
     @Override

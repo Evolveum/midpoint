@@ -72,7 +72,12 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * TODO
 	 * If it returns NoneFilter then no search should be done. The principal is not authorized for this operation at all.
 	 * It may return null in case that the original filter was also null.
+	 * 
+	 * If object is null then the method will return a filter that is applicable to look for object.
+	 * If object is present then the method will return a filter that is applicable to look for a target.
+	 * 
+	 * The objectType parameter defines the class of the object for which should be the returned filter applicable.
 	 */
-	<O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
-			Class<O> objectType, ObjectFilter origFilter) throws SchemaException; 
+	<T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
+			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException; 
 }

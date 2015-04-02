@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -158,6 +157,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 Collection o = null;
                 if (UserType.class.equals(clazz)) {
                     o = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
+                            GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                } else if (LookupTableType.class.equals(clazz)) {
+                    o = SelectorOptions.createCollection(LookupTableType.F_ROW,
                             GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
                 }
                 PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), o, result);

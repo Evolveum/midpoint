@@ -1293,37 +1293,33 @@
 
     </objectTemplate>
 
-    <!--
     <lookupTable xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
         <name>first lookup</name>
         <description>description of lookuptable</description>
-        <table>
-            <row>
-                <key>first key</key>
-                <label>first label</label>
-                <lastChangeTimestamp>2013-05-07T10:38:21.350+02:00</lastChangeTimestamp>
-                <value>first value</value>
-            </row>
-            <row>
-                <key>2 key</key>
-                <label>
-                    <t:orig>2 label</t:orig>
-                    <t:norm>2 label</t:norm>
-                </label>
-                <lastChangeTimestamp>2013-05-07T10:38:21.350+02:00</lastChangeTimestamp>
-                <value>2 value</value>
-            </row>
-            <row>
-                <key>3 key</key>
-                <label>
-                    <t:orig>3 label</t:orig>
-                    <t:norm>3 label</t:norm>
-                </label>
-                <lastChangeTimestamp>2013-05-07T10:38:21.350+02:00</lastChangeTimestamp>
-                <value>3 value</value>
-            </row>
-        </table>
+        <row id="1">
+            <key>first key</key>
+            <label>first label</label>
+            <lastChangeTimestamp>2013-05-07T10:38:21.350+02:00</lastChangeTimestamp>
+            <value>first value</value>
+        </row>
+        <row id="2">
+            <key>2 key</key>
+            <label>
+                <t:orig>2 label</t:orig>
+                <t:norm>2 label</t:norm>
+            </label>
+            <lastChangeTimestamp>2013-05-07T10:38:21.350+02:00</lastChangeTimestamp>
+            <value>2 value</value>
+        </row>
+        <row id="3">
+            <key>3 key</key>
+            <label>
+                <t:orig>3 label</t:orig>
+                <t:norm>3 label</t:norm>
+            </label>
+            <lastChangeTimestamp>2013-05-07T10:38:21.350+02:00</lastChangeTimestamp>
+            <value>3 value</value>
+        </row>
     </lookupTable>
-    -->
 </objects>

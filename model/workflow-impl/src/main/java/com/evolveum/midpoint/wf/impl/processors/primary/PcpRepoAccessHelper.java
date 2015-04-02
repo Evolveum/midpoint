@@ -36,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
@@ -52,6 +53,7 @@ public class PcpRepoAccessHelper {
     private static final transient Trace LOGGER = TraceManager.getTrace(PcpRepoAccessHelper.class);
 
     @Autowired
+    @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
     @Autowired
@@ -120,10 +122,23 @@ public class PcpRepoAccessHelper {
             return null;
         }
 
-        PrismObject<? extends ObjectType> objectAfter = objectBefore.clone();
-        delta.applyTo(objectAfter);
+        PrismObject<? extends ObjectType> objectAfter;
+        if (delta.isAdd()) {
+            if (delta.getObjectToAdd() != null) {
+                objectAfter = delta.getObjectToAdd().clone();
+            } else {
+                return null;
+            }
+        } else if (delta.isModify()) {
+            objectAfter = objectBefore.clone();
+            delta.applyTo(objectAfter);
+        } else if (delta.isDelete()) {
+            return null;
+        } else {
+            return null;        // should not occur
+        }
 
-        if (objectAfter.asObjectable() instanceof UserType) {
+        if (objectAfter.asObjectable() instanceof UserType) {   // quite a hack
             miscDataUtil.resolveAssignmentTargetReferences((PrismObject) objectAfter, result);
         }
         return objectAfter;

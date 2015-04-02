@@ -20,6 +20,7 @@
         <classes>
             <class name="com.evolveum.midpoint.wf.impl.TestUserChangeApproval"/>
             <class name="com.evolveum.midpoint.wf.impl.TestCreateModifyUser"/>
+            <class name="com.evolveum.midpoint.wf.impl.TestCreateOrg"/>
             <!--<class name="com.evolveum.midpoint.wf.impl.general.TestGeneralChangeProcessor"/>-->
         </classes>
     </test>

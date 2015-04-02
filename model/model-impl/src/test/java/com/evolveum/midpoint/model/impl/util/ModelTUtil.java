@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
@@ -85,7 +86,8 @@ public class ModelTUtil {
 
 	public static void assertIllegalArgumentFault(FaultMessage ex) throws FaultMessage {
 		if (!(ex.getFaultInfo() instanceof IllegalArgumentFaultType)) {
-			Assert.fail("not illegal argument fault.");
+			IntegrationTestTools.display("Unexpected exception in fault", ex.getFaultInfo());
+			Assert.fail("not illegal argument fault. Was: "+ex.getFaultInfo());
 		}
 		throw ex;
 	}

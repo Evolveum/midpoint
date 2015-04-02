@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -132,8 +133,8 @@ public class SelectorOptions<T> implements Serializable {
 		return false;
 	}
 
-    public static boolean hasToLoadPath(QName container, Collection<SelectorOptions<GetOperationOptions>> options) {
-        return hasToLoadPath(new ItemPath(container), options);
+    public static boolean hasToLoadPath(QName itemName, Collection<SelectorOptions<GetOperationOptions>> options) {
+        return hasToLoadPath(new ItemPath(itemName), options);
     }
 
     // TODO find a better way to specify this
@@ -141,7 +142,8 @@ public class SelectorOptions<T> implements Serializable {
             new ItemPath(UserType.F_JPEG_PHOTO),
             new ItemPath(TaskType.F_SUBTASK),
             new ItemPath(TaskType.F_NODE_AS_OBSERVED),
-            new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP)));
+            new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP),
+            new ItemPath(LookupTableType.F_ROW)));
 
     public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
         List<SelectorOptions<GetOperationOptions>> retrieveOptions = filterRetrieveOptions(options);

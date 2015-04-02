@@ -15,11 +15,14 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertNull;
+
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -27,7 +30,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.NoneFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -41,7 +48,9 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -80,6 +89,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -526,6 +536,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         login(USER_JACK_USERNAME);
         
         // WHEN
@@ -533,6 +544,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+        
+        RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(userJack);
+        assertNotNull("Null role spec "+roleSpec, roleSpec);
+        assertRoleTypes(roleSpec);
+        assertFilter(roleSpec.getFilter(), NoneFilter.class);
+        
 	}
 	
 	@Test
@@ -548,9 +565,14 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertReadAllow();
         assertAddAllow();
         assertModifyAllow();
-        assertDeleteAllow();        
+        assertDeleteAllow();
+        
+        RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+        assertNotNull("Null role spec "+roleSpec, roleSpec);
+        assertNull("Non-null role types in spec "+roleSpec, roleSpec.getRoleTypes());
+        assertFilter(roleSpec.getFilter(), null);
 	}
-	
+
 	@Test
     public void test202AutzJackReadonlyRole() throws Exception {
 		final String TEST_NAME = "test202AutzJackReadonlyRole";
@@ -1257,12 +1279,15 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 2);
+        
+        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+        assertRoleTypes(spec, "application");
+        assertFilter(spec.getFilter(), TypeFilter.class);
 	}
-
 	
 	@Test
     public void test280AutzJackEndUserAndModify() throws Exception {
-		final String TEST_NAME = "test270AutzJackAssignApplicationRoles";
+		final String TEST_NAME = "test280AutzJackEndUserAndModify";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
@@ -1294,7 +1319,6 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         user = getUser(USER_JACK_OID);
         assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, "Jack", "changed");
-
        
 	}
 
@@ -1336,8 +1360,6 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, "Jack", "changed");
 
 	}
-
-
 	
 	private void assertItemFlags(PrismObjectDefinition<UserType> editSchema, QName itemName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
 		assertItemFlags(editSchema, new ItemPath(itemName), expectedRead, expectedAdd, expectedModify);
@@ -1714,7 +1736,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		logAllow("delete", type, oid, null);
 	}
 	
-	private void assertImportDeny(File file) {
+	private void assertImportDeny(File file) throws FileNotFoundException {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertImportDeny");
         OperationResult result = task.getResult();
         // This does not throw exception, failure is indicated in the result
@@ -1723,7 +1745,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		TestUtil.assertFailure(result);
 	}
 
-	private void assertImportAllow(File file) {
+	private void assertImportAllow(File file) throws FileNotFoundException {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertImportAllow");
         OperationResult result = task.getResult();
         modelService.importObjectsFromFile(file, null, task, result);

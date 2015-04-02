@@ -31,6 +31,7 @@ import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.impl.jobs.Job;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 
@@ -67,9 +68,9 @@ public interface ChangeProcessor {
      * and arranges everything to carry out that interaction.
      *
      * @param context Model context of the operation.
-     * @param taskFromModel Task in context of which the operation is carried out.
-     * @param result Where to put information on operation execution.
-     * @return non-null value if it processed the request;
+     * @param wfConfigurationType
+     *@param taskFromModel Task in context of which the operation is carried out.
+     * @param result Where to put information on operation execution.   @return non-null value if it processed the request;
      *              BACKGROUND = the process was "caught" by the processor, and continues in background,
      *              FOREGROUND = nothing was left on background, the model operation should continue in foreground,
      *              ERROR = something wrong has happened, there's no point in continuing with this operation.
@@ -78,7 +79,7 @@ public interface ChangeProcessor {
      * Actually, the FOREGROUND return value is quite unusual, because the change processor cannot
      * know in advance whether other processors would not want to process the invocation from the model.
      */
-    HookOperationMode processModelInvocation(ModelContext context, Task taskFromModel, OperationResult result) throws SchemaException;
+    HookOperationMode processModelInvocation(ModelContext context, WfConfigurationType wfConfigurationType, Task taskFromModel, OperationResult result) throws SchemaException;
 
     /**
      * Handles an event from WfMS that indicates finishing of the workflow process instance.
@@ -92,12 +93,6 @@ public interface ChangeProcessor {
      * @throws SchemaException
      */
     void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
-
-    /**
-     * Checks whether this change processor is enabled (typically, using the midpoint configuration file).
-     * @return true if enabled, false if not
-     */
-    boolean isEnabled();
 
     /**
      * Externalizes internal state of the process instance. Typically, uninteresting (auxiliary) data elements

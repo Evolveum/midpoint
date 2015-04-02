@@ -922,15 +922,16 @@ public class ChangeExecutor {
 
     	applyMetadata(context, task, objectTypeToAdd, result);
     	
+    	if (options == null && context != null) {
+    		options = context.getOptions();
+    	}
+    	
         String oid;
         if (objectTypeToAdd instanceof TaskType) {
             oid = addTask((TaskType) objectTypeToAdd, result);
         } else if (objectTypeToAdd instanceof NodeType) {
             throw new UnsupportedOperationException("NodeType cannot be added using model interface");
         } else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
-        	if (options == null && context != null) {
-        		options = context.getOptions();
-        	}
         	ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
         	
         	// TODO: this is probably wrong. We should not have special case for a channel!

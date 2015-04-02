@@ -8,16 +8,12 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -30,23 +26,19 @@ public class RLookupTable extends RObject<LookupTableType> {
     private RPolyString name;
     private Set<RLookupTableRow> rows;
 
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Override
+    @Embedded
+    public RPolyString getName() {
+        return name;
+    }
+
+    @Transient
     public Set<RLookupTableRow> getRows() {
-        if (rows == null) {
-            rows = new HashSet<>();
-        }
         return rows;
     }
 
     public void setRows(Set<RLookupTableRow> rows) {
         this.rows = rows;
-    }
-
-    @Override
-    @Embedded
-    public RPolyString getName() {
-        return name;
     }
 
     @Override
@@ -60,34 +52,14 @@ public class RLookupTable extends RObject<LookupTableType> {
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
 
-//        LookupTableTableType table = jaxb.getTable();
-//        if (table == null) {
-//            return;
-//        }
-//
-//        for (LookupTableRowType row : table.getRow()) {
-//            RLookupTableRow rRow = new RLookupTableRow();
-//            rRow.setOwner(repo);
-//            rRow.setKey(row.getKey());
-//            rRow.setLabel(RPolyString.copyFromJAXB(row.getLabel()));
-//            rRow.setLastChangeTimestamp(row.getLastChangeTimestamp());
-//            rRow.setValue(row.getValue());
-//
-//            repo.getRows().add(rRow);
-//        }
-    }
-
-    protected static <T extends ObjectType> void copyToJAXB(RLookupTable repo, LookupTableType jaxb, PrismContext prismContext,
-                                                            Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-
-        //todo wtf with this
-
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        if (repo.getRows() != null && !repo.getRows().isEmpty()) {
-
-
+        List<LookupTableRowType> rows = jaxb.getRow();
+        if (!rows.isEmpty()) {
+            repo.setRows(new HashSet<RLookupTableRow>());
+            for (LookupTableRowType row : rows) {
+                RLookupTableRow rRow = RLookupTableRow.toRepo(repo, row);
+                rRow.setTransient(generatorResult.isTransient(row.asPrismContainerValue()));
+                repo.getRows().add(rRow);
+            }
         }
     }
 

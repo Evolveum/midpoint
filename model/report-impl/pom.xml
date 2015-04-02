@@ -53,6 +53,16 @@
             <artifactId>report-api</artifactId>
             <version>3.2-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>schema</artifactId>
+            <version>3.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>prism</artifactId>
+            <version>3.2-SNAPSHOT</version>
+        </dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-api</artifactId>
@@ -231,19 +241,19 @@
 			</build>
 		</profile>
 	</profiles>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--     <build> -->
+<!--         <plugins> -->
+<!--             <plugin> -->
+<!--                 <groupId>org.apache.maven.plugins</groupId> -->
+<!--                 <artifactId>maven-jar-plugin</artifactId> -->
+<!--                 <executions> -->
+<!--                     <execution> -->
+<!--                         <goals> -->
+<!--                             <goal>test-jar</goal> -->
+<!--                         </goals> -->
+<!--                     </execution> -->
+<!--                 </executions> -->
+<!--             </plugin> -->
          <!--    <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-codegen-plugin</artifactId>
@@ -299,6 +309,6 @@
                     </dependency>
                 </dependencies>
             </plugin>-->
-        </plugins>
-    </build>
+<!--         </plugins> -->
+<!--     </build> -->
 </project>

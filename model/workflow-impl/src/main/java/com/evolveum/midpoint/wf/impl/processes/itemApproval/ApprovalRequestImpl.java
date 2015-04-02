@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
+import com.evolveum.midpoint.wf.impl.util.SingleItemSerializationSafeContainerImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.Serializable;
@@ -40,11 +41,55 @@ public class ApprovalRequestImpl<I extends Serializable> implements ApprovalRequ
 
     private ApprovalSchema approvalSchema;
 
-    public ApprovalRequestImpl(I itemToApprove, ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved, PrismContext prismContext) {
-
+    private ApprovalRequestImpl(I itemToApprove, PrismContext prismContext) {
         setPrismContext(prismContext);
         setItemToApprove(itemToApprove);
-        setApprovalSchema(new ApprovalSchemaImpl(approvalSchema, approverRef, approverExpression, automaticallyApproved, prismContext));
+    }
+
+    private ApprovalRequestImpl(SerializationSafeContainer wrappedValue, PrismContext prismContext) {
+        setPrismContext(prismContext);
+        setItemToApprove(wrappedValue);
+    }
+
+    public ApprovalRequestImpl(SerializationSafeContainer itemToApproveWrapped, PcpAspectConfigurationType config, PrismContext prismContext) {
+        this(itemToApproveWrapped, prismContext);
+        setSchemaFromConfig(config, prismContext);
+    }
+
+    public ApprovalRequestImpl(I itemToApprove, PcpAspectConfigurationType config, PrismContext prismContext) {
+        this(itemToApprove, prismContext);
+        setSchemaFromConfig(config, prismContext);
+    }
+
+    protected void setSchemaFromConfig(PcpAspectConfigurationType config, PrismContext prismContext) {
+        if (config != null) {
+            setApprovalSchema(new ApprovalSchemaImpl(config.getApprovalSchema(), config.getApproverRef(),
+                    config.getApproverExpression(), config.getAutomaticallyApproved(), prismContext));
+        }
+    }
+
+    public ApprovalRequestImpl(SerializationSafeContainer itemToApproveWrapped, PcpAspectConfigurationType config, ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved, PrismContext prismContext) {
+        this(itemToApproveWrapped, prismContext);
+        setSchemaFromConfigAndParameters(config, approvalSchema, approverRef, approverExpression, automaticallyApproved, prismContext);
+    }
+
+    public ApprovalRequestImpl(I itemToApprove, PcpAspectConfigurationType config, ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved, PrismContext prismContext) {
+        this(itemToApprove, prismContext);
+        setSchemaFromConfigAndParameters(config, approvalSchema, approverRef, approverExpression, automaticallyApproved, prismContext);
+    }
+
+    protected void setSchemaFromConfigAndParameters(PcpAspectConfigurationType config, ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved, PrismContext prismContext) {
+        if (config != null &&
+                (!config.getApproverRef().isEmpty() ||
+                config.getApprovalSchema() != null ||
+                !config.getApproverExpression().isEmpty() ||
+                config.getAutomaticallyApproved() != null)) {
+            setApprovalSchema(new ApprovalSchemaImpl(config.getApprovalSchema(), config.getApproverRef(),
+                    config.getApproverExpression(), config.getAutomaticallyApproved(), prismContext));
+        } else {
+            setApprovalSchema(new ApprovalSchemaImpl(approvalSchema, approverRef,
+                    approverExpression, automaticallyApproved, prismContext));
+        }
     }
 
     @Override
@@ -57,7 +102,11 @@ public class ApprovalRequestImpl<I extends Serializable> implements ApprovalRequ
     }
 
     public void setItemToApprove(I itemToApprove) {
-        this.itemToApprove = new SerializationSafeContainer<Serializable>(itemToApprove, prismContext);
+        this.itemToApprove = new SingleItemSerializationSafeContainerImpl<Serializable>(itemToApprove, prismContext);
+    }
+
+    public void setItemToApprove(SerializationSafeContainer wrappedValue) {
+        this.itemToApprove = wrappedValue;
     }
 
     @Override

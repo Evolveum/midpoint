@@ -17,6 +17,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
+    <div wicket:id="ownerChooser" />
+
     <form wicket:id="mainForm" class="form-horizontal">
 
         <div class="row">
@@ -28,7 +30,34 @@
                 <div class="form-group" wicket:id="roleType" />
                 <div class="form-group" wicket:id="requestable" />
                 <div class="form-group" wicket:id="identifier"/>
+                <div class="form-group" wicket:id="riskLevel"/>
 
+                <!-- Owner ref -->
+                <div class="form-group">
+                    <span class="col-md-4 control-label">
+                        <label><wicket:message key="PageRoleEditor.label.ownerRef"/></label>
+                    </span>
+
+                    <div wicket:id="ownerRefWrapper" class="col-md-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-btn">
+                                <button wicket:id="ownerRefEdit" class="btn btn-primary" type="button">
+                                    <wicket:message key="PageBase.button.edit" />
+                                </button>
+                            </span>
+                            <input type="text" class="form-control input-sm" wicket:id="ownerRefLabel" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Approver ref -->
+                <div class="form-group" wicket:id="approverRef" />
+
+                <!-- Min and Max assignments configuration -->
+                <div class="form-group" wicket:id="minAssignmentsConfig" />
+                <div class="form-group" wicket:id="maxAssignmentsConfig" />
+
+                <!-- Activation -->
                 <h3 style="margin-left: 20px;"><wicket:message key="PageRoleEditor.subtitle.activation"/></h3>
                 <div class="form-group" wicket:id="adminStatus" />
                 <div class="form-group" wicket:id="dateFrom" />

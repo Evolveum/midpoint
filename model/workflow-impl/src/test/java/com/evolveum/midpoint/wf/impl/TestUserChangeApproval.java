@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -30,11 +31,12 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -51,17 +53,27 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,6 +86,7 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * @author mederly
@@ -851,17 +864,17 @@ public class TestUserChangeApproval extends AbstractWfTest {
     }
 
     /**
-     * User modification: modifying single security-sensitive resource assignment.
+     * User modification: modifying validity of single security-sensitive resource assignment.
      */
     @Test(enabled = true)
-    public void test090UserModifyModifyResourceAssignment() throws Exception {
-        TestUtil.displayTestTile(this, "test090UserModifyModifyResourceAssignment");
+    public void test090UserModifyModifyResourceAssignmentValidity() throws Exception {
+        TestUtil.displayTestTile(this, "test090UserModifyModifyResourceAssignmentValidity");
         login(userAdministrator);
 
         final XMLGregorianCalendar validFrom = XmlTypeConverter.createXMLGregorianCalendar(2015, 2, 25, 10, 0, 0);
         final XMLGregorianCalendar validTo = XmlTypeConverter.createXMLGregorianCalendar(2015, 3, 25, 10, 0, 0);
 
-        executeTest("test090UserModifyModifyResourceAssignment", USER_JACK_OID, new TestDetails() {
+        executeTest("test090UserModifyModifyResourceAssignmentValidity", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
@@ -902,5 +915,133 @@ public class TestUserChangeApproval extends AbstractWfTest {
         });
     }
 
+    /**
+     * User modification: modifying attribute of single security-sensitive resource assignment.
+     *
+     * User primary delta:
+     *  ObjectDelta<UserType>(UserType:377205db-33d1-47e5-bf96-bbe2a7d1222e,MODIFY):
+     *  assignment/[1]/construction/attribute
+     *  ADD: ResourceAttributeDefinitionType(ref=ItemPathType{itemPath=lastname}...)
+     *  DELETE: ResourceAttributeDefinitionType(ref=ItemPathType{itemPath=lastname}...)
+     *
+     */
+    @Test(enabled = true)
+    public void test095UserModifyModifyResourceAssignmentConstruction() throws Exception {
+        final String TEST_NAME = "test095UserModifyModifyResourceAssignmentConstruction";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        login(userAdministrator);
+
+        executeTest(TEST_NAME, USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 1; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+            @Override boolean removeAssignmentsBeforeTest() { return false; }
+
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_JACK_OID, result);
+                UserType jack = context.getFocusContext().getObjectOld().asObjectable();
+                modifyAssignmentConstruction(context, jack,
+                        DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water", true);
+                return context;
+            }
+
+            @Override
+            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+                UserType jack = getUser(USER_JACK_OID).asObjectable();
+                checkNoAssignmentConstruction(jack, "drink");
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                assertAssignedResource(USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
+                UserType jack = getUser(USER_JACK_OID).asObjectable();
+                checkAssignmentConstruction(jack, "drink", "water");
+                checkDummyTransportMessages("simpleUserNotifier", 1);
+                //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
+                checkUserApprovers(USER_JACK_OID, Arrays.asList(DUMMYBOSS_OID), result);
+            }
+
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                login(getUser(DUMMYBOSS_OID));
+                return true;
+            }
+        });
+    }
+
+    protected void modifyAssignmentConstruction(LensContext<UserType> context, UserType jack,
+                                                String attributeName, String value, boolean add) throws SchemaException {
+        assertEquals("jack's assignments", 1, jack.getAssignment().size());
+        PrismPropertyDefinition<ResourceAttributeDefinitionType> attributeDef =
+                prismContext.getSchemaRegistry()
+                        .findObjectDefinitionByCompileTimeClass(UserType.class)
+                        .findPropertyDefinition(new ItemPath(UserType.F_ASSIGNMENT,
+                                AssignmentType.F_CONSTRUCTION,
+                                ConstructionType.F_ATTRIBUTE));
+        assertNotNull("no attributeDef", attributeDef);
+
+        Long assignmentId = jack.getAssignment().get(0).getId();
+        PropertyDelta<ResourceAttributeDefinitionType> attributeDelta = new PropertyDelta<ResourceAttributeDefinitionType>(
+                new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
+                        new IdItemPathSegment(assignmentId),
+                        new NameItemPathSegment(AssignmentType.F_CONSTRUCTION),
+                        new NameItemPathSegment(ConstructionType.F_ATTRIBUTE)),
+                attributeDef, prismContext);
+        ResourceAttributeDefinitionType attributeDefinitionType = new ResourceAttributeDefinitionType();
+        attributeDefinitionType.setRef(new ItemPathType(new ItemPath(new QName(RESOURCE_DUMMY_NAMESPACE, attributeName))));
+        MappingType outbound = new MappingType();
+        outbound.setStrength(MappingStrengthType.STRONG);       // to see changes on the resource
+        ExpressionType expression = new ExpressionType();
+        expression.getExpressionEvaluator().add(new ObjectFactory().createValue(value));
+        outbound.setExpression(expression);
+        attributeDefinitionType.setOutbound(outbound);
+
+        if (add) {
+            attributeDelta.addValueToAdd(new PrismPropertyValue<>(attributeDefinitionType));
+        } else {
+            attributeDelta.addValueToDelete(new PrismPropertyValue<>(attributeDefinitionType));
+        }
+
+        ObjectDelta<UserType> userDelta = new ObjectDelta<>(UserType.class, ChangeType.MODIFY, prismContext);
+        userDelta.setOid(USER_JACK_OID);
+        userDelta.addModification(attributeDelta);
+        addFocusDeltaToContext(context, userDelta);
+    }
+
+    private void checkAssignmentConstruction(UserType jack, String attributeName, String value) throws SchemaException {
+        assertEquals("jack's assignments", 1, jack.getAssignment().size());
+        AssignmentType assignmentType = jack.getAssignment().get(0);
+        ConstructionType constructionType = assignmentType.getConstruction();
+        assertNotNull("construction is null", constructionType);
+        boolean found = false;
+        for (ResourceAttributeDefinitionType attributeDefinitionType : constructionType.getAttribute()) {
+            if (attributeDefinitionType.getRef().equivalent(new ItemPathType(new ItemPath(new QName(attributeName))))) {
+                ExpressionType expressionType = attributeDefinitionType.getOutbound().getExpression();
+                assertNotNull("no expression", expressionType);
+                assertEquals("wrong # of expression evaluators", 1, expressionType.getExpressionEvaluator().size());
+                JAXBElement<?> element = expressionType.getExpressionEvaluator().get(0);
+                PrimitiveXNode valueXNode = (PrimitiveXNode) (((RawType) element.getValue()).serializeToXNode());
+                assertEquals("wrong outbound value", value, valueXNode.getStringValue());
+                found = true;
+            }
+        }
+        assertTrue("attribute " + attributeName + " mapping not found", found);
+    }
+
+    private void checkNoAssignmentConstruction(UserType jack, String attributeName) {
+        assertEquals("jack's assignments", 1, jack.getAssignment().size());
+        AssignmentType assignmentType = jack.getAssignment().get(0);
+        ConstructionType constructionType = assignmentType.getConstruction();
+        assertNotNull("construction is null", constructionType);
+        for (ResourceAttributeDefinitionType attributeDefinitionType : constructionType.getAttribute()) {
+            if (attributeDefinitionType.getRef().equivalent(new ItemPathType(new ItemPath(new QName(attributeName))))) {
+                fail("Construction attribute " + attributeName + " present, although it shouldn't");
+            }
+        }
+    }
 
 }

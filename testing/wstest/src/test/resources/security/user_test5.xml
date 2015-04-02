@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!--                                                         -->
+<user oid="c0c010c0-d34d-b33f-f00d-111111111115" 
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
+   xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+   
+    <name><t:orig>Anakin5</t:orig></name>    
+    <fullName><t:orig>Anakin Skywalker</t:orig></fullName>
+    <givenName><t:orig>Anakin</t:orig></givenName>
+    <familyName><t:orig>Skywalker</t:orig></familyName>
+    <additionalName><t:orig>Annie</t:orig></additionalName>
+    <honorificPrefix><t:orig>Jedi Knight</t:orig></honorificPrefix>
+    
+    <honorificSuffix><t:orig>PhD.</t:orig></honorificSuffix>
+    <emailAddress>anakin.skywalker@jediacademy.com</emailAddress>
+    <telephoneNumber>11381138</telephoneNumber>
+    <employeeType>Jedi Knight</employeeType>
+    <organizationalUnit><t:orig>Knights</t:orig></organizationalUnit>
+    <locality><t:orig>Jedi Enclave, Coruscant</t:orig></locality>
+
+    <credentials>        
+		<password>
+        	<value>
+	            <clearValue>ineedmorepower</clearValue>
+            </value>
+        </password>
+    </credentials>
+</user>

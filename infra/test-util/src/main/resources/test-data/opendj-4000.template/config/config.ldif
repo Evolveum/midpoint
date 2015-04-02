@@ -258,19 +258,19 @@ ds-cfg-enabled: TRUE
 ds-cfg-index-entry-limit: 4000
 ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
 ds-cfg-writability-mode: enabled
-ds-cfg-db-cache-percent: 50
+ds-cfg-db-cache-percent: 1
 ds-cfg-db-evictor-lru-only: false
 ds-cfg-entries-compressed: false
-ds-cfg-db-cache-size: 0 megabytes
+ds-cfg-db-cache-size: 5 megabytes
 ds-cfg-db-directory-permissions: 700
 ds-cfg-db-cleaner-min-utilization: 50
 ds-cfg-db-logging-file-handler-on: true
 ds-cfg-db-log-file-max: 100 megabytes
 ds-cfg-db-evictor-nodes-per-scan: 10
-ds-cfg-db-evictor-max-threads: 10
+ds-cfg-db-evictor-max-threads: 2
 ds-cfg-db-log-filecache-size: 100
 ds-cfg-db-evictor-core-threads: 1
-ds-cfg-db-run-cleaner: true
+ds-cfg-db-run-cleaner: false
 ds-cfg-db-txn-no-sync: false
 ds-cfg-db-txn-write-no-sync: true
 modifyTimestamp: 20150309121529Z
@@ -1858,7 +1858,7 @@ dn: cn=UID Unique Attribute,cn=Plugins,cn=config
 objectClass: ds-cfg-unique-attribute-plugin
 objectClass: ds-cfg-plugin
 objectClass: top
-ds-cfg-enabled: false
+ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.plugins.UniqueAttributePlugin
 ds-cfg-plugin-type: preOperationAdd
 ds-cfg-plugin-type: preOperationModify

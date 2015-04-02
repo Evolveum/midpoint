@@ -49,6 +49,9 @@ public class TestConstants {
 	public static final String USER_ACCOUNT_REF_2_OID = "2f9b9299-6f45-498f-aaaa-000000002222";
 	public static final String USER_ACCOUNT_REF_3_OID = "2f9b9299-6f45-498f-aaaa-000000003333";
 	
-	
-	
+	public static final File RESOURCE_FILE = new File(TestConstants.COMMON_DIR, "resource-opendj.xml");
+	public static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	public static final String RESOURCE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+
+	public static final File ROLE_FILE = new File(TestConstants.COMMON_DIR, "role.xml");
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -189,7 +189,9 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
                 throw ws.createIllegalArgumentFault("Unsupported request type: " + requestObject);
             }
         } catch (SchemaException e) {
-            throw createSystemFault(e, operationResultTypeHolder.value);
+        	throwFault(e, operationResultTypeHolder.value);
+        	// not reached
+        	return null;
         }
 
         // brutal hack for MID-2001 (serializing and parsing eliminates the problem!)
@@ -221,11 +223,11 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
         return sw.toString();
     }
 
-    private FaultMessage createSystemFault(Exception ex, OperationResultType resultType) {
+    private void throwFault(Exception ex, OperationResultType resultType) throws FaultMessage {
 		if (resultType != null) {
-            return ws.createSystemFault(ex, OperationResult.createOperationResult(resultType));
+            ws.throwFault(ex, OperationResult.createOperationResult(resultType));
 		} else {
-            return ws.createSystemFault(ex, null);
+            ws.throwFault(ex, null);
         }
 	}
 }

@@ -22,7 +22,7 @@ public class PcpJob extends Job {
     }
 
     public PrimaryChangeAspect getChangeAspect() {
-        return getWfTaskUtil().getPrimaryChangeAspect(getTask(), getPcp().getChangeAspects());
+        return getWfTaskUtil().getPrimaryChangeAspect(getTask(), getPcp().getAllChangeAspects());
     }
 
     private PrimaryChangeProcessor getPcp() {

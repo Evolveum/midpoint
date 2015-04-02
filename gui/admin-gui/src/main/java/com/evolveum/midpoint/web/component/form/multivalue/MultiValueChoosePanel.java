@@ -40,7 +40,6 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
-import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 
@@ -62,7 +61,7 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
     private static final String ID_BUTTON_GROUP = "buttonGroup";
     private static final String ID_EDIT = "edit";
 
-    private static final String MODAL_ID_CHOOSE_PANEL = "showPopup";
+    protected static final String MODAL_ID_CHOOSE_PANEL = "showPopup";
 
     private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
@@ -152,7 +151,7 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
         add(repeater);
     }
 
-    private void initDialog(Class<T> type){
+    protected void initDialog(Class<T> type){
         ModalWindow dialog = new ChooseTypeDialog(MODAL_ID_CHOOSE_PANEL, type){
 
             @Override
@@ -275,6 +274,7 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
      *
      */
     protected void choosePerformed(AjaxRequestTarget target, T object){
+        choosePerformedHook(target, object);
         ModalWindow window = (ModalWindow)get(MODAL_ID_CHOOSE_PANEL);
         window.close(target);
 
@@ -322,4 +322,10 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
 
         target.add(this);
     }
+
+    /**
+     *  A custom code in form of hook that can be run on event of
+     *  choosing new object with this chooser component
+     * */
+    protected void choosePerformedHook(AjaxRequestTarget target, T object){}
 }

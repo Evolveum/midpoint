@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import javax.xml.namespace.QName;
+
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Objectable;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
@@ -40,6 +43,40 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  */
 public class QueryJaxbConvertor {
 
+	public static ObjectQuery createTypeObjectQuery(QueryType queryType, PrismContext prismContext) throws SchemaException{
+		if (queryType == null){
+			return null;
+		}
+		
+		if (queryType.getFilter() == null){
+			return null;
+		}
+		
+		if (queryType.getFilter().containsFilterClause()){
+			MapXNode mapXnode = queryType.getFilter().getFilterClauseXNode();
+			QName type = mapXnode.getParsedPrimitiveValue(QueryConvertor.KEY_FILTER_TYPE_TYPE, DOMUtil.XSD_QNAME);
+			if (type == null){
+				throw new SchemaException("Query does not countain type filter. Cannot by parse.");
+			}
+			
+			Class clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(type);
+			if (clazz == null){
+				PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
+				if (objDef != null){
+					clazz = objDef.getCompileTimeClass();
+				}
+			}
+			
+			if (clazz == null){
+				throw new SchemaException("Type defined in query is not valid. " + type);
+			}
+			
+			return createObjectQuery(clazz, queryType, prismContext);
+			
+		}
+		return null;
+	}
+	
     public static <O extends Objectable> ObjectQuery createObjectQuery(Class<O> clazz, QueryType queryType, PrismContext prismContext)
             throws SchemaException {
         if (queryType == null) {
@@ -85,15 +122,10 @@ public class QueryJaxbConvertor {
     public static <O extends Objectable> ObjectQuery createObjectQueryInternal(PrismObjectDefinition<O> objDef, SearchFilterType filterType, PagingType pagingType, PrismContext prismContext)
 			throws SchemaException {
 
-        boolean filterNotEmpty = filterType != null && filterType.containsFilterClause();
-		if (!filterNotEmpty && pagingType == null) {
-			return null;
-		}
-
 		try {
 			ObjectQuery query = new ObjectQuery();
 			
-			if (filterNotEmpty) {
+			if (filterType != null && filterType.containsFilterClause()) {
 				MapXNode rootFilter = filterType.getFilterClauseXNode();
 				ObjectFilter filter = QueryConvertor.parseFilter(rootFilter, objDef);
 				query.setFilter(filter);
@@ -125,5 +157,7 @@ public class QueryJaxbConvertor {
 		return queryType;
 
 	}
+    
+    
 
 }
