@@ -33,7 +33,7 @@ http://xmlns.oracle.com/weblogic/weblogic-application/1.0/weblogic-application.x
         <package-name>javax.ws.*</package-name>
  	 <!-- // xml processing -->
         <!--package-name>javax.xml.*</package-name-->
-        <package-name>javax.xml.stream.*</package-name>
+        <!--package-name>javax.xml.stream.*</package-name-->
         <!--package-name>org.xml.sax.*</package-name-->
         <!--package-name>org.w3c.*</package-name-->
         <package-name>org.apache.xmlcommons.*</package-name>
