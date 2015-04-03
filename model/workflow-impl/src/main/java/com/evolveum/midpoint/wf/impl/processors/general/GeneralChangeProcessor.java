@@ -120,12 +120,12 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     @Override
     public HookOperationMode processModelInvocation(ModelContext context, WfConfigurationType wfConfigurationType, Task taskFromModel, OperationResult result) throws SchemaException {
 
-        if (wfConfigurationType.getGeneralChangeProcessor() != null && Boolean.FALSE.equals(wfConfigurationType.getGeneralChangeProcessor().isEnabled())) {
+        if (wfConfigurationType != null && wfConfigurationType.getGeneralChangeProcessor() != null && Boolean.FALSE.equals(wfConfigurationType.getGeneralChangeProcessor().isEnabled())) {
             LOGGER.trace("{} is disabled", getBeanName());
             return null;
         }
 
-        if (wfConfigurationType.getGeneralChangeProcessor() == null || wfConfigurationType.getGeneralChangeProcessor().getScenario().isEmpty()) {
+        if (wfConfigurationType == null || wfConfigurationType.getGeneralChangeProcessor() == null || wfConfigurationType.getGeneralChangeProcessor().getScenario().isEmpty()) {
             LOGGER.trace("No scenarios for {}", getBeanName());
             return null;
         }
