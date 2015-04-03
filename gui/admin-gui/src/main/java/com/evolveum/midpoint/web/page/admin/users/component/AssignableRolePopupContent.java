@@ -104,8 +104,10 @@ public class AssignableRolePopupContent extends AssignablePopupContent{
             RoleSelectionSpecification roleSpecification = interactionService.getAssignableRoleSpecification(getUserDefinition(), result);
             List<DisplayableValue<String>> displayableValues = roleSpecification.getRoleTypes();
 
-            for(DisplayableValue<String> displayable: displayableValues){
-                roleTypes.add(displayable.getValue());
+            if (displayableValues != null) {
+                for (DisplayableValue<String> displayable : displayableValues) {
+                    roleTypes.add(displayable.getValue());
+                }
             }
 
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException e) {
