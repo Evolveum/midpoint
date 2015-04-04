@@ -14,7 +14,7 @@ CREATE TABLE m_lookup_table_row (
   row_key             VARCHAR(255),
   label_norm          VARCHAR(255),
   label_orig          VARCHAR(255),
-  lastChangeTimestamp DATETIME,
+  lastChangeTimestamp DATETIME(6),
   row_value           VARCHAR(255),
   PRIMARY KEY (id, owner_oid)
 )
@@ -96,3 +96,52 @@ ALTER TABLE m_assignment_ext_string
 
 ALTER TABLE m_exclusion MODIFY id INTEGER;
 ALTER TABLE m_trigger MODIFY id INTEGER;
+
+CREATE TABLE m_assignment_ext_boolean (
+  eName                        VARCHAR(157) NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
+  booleanValue                 BIT          NOT NULL,
+  extensionType                INTEGER,
+  dynamicDef                   BIT,
+  eType                        VARCHAR(157),
+  valueType                    INTEGER,
+  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, booleanValue)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+ALTER TABLE m_assignment_extension ADD booleansCount SMALLINT;
+
+ALTER TABLE m_object ADD booleansCount SMALLINT;
+
+CREATE TABLE m_object_ext_boolean (
+  eName        VARCHAR(157) NOT NULL,
+  owner_oid    VARCHAR(36)  NOT NULL,
+  ownerType    INTEGER      NOT NULL,
+  booleanValue BIT          NOT NULL,
+  dynamicDef   BIT,
+  eType        VARCHAR(157),
+  valueType    INTEGER,
+  PRIMARY KEY (eName, owner_oid, ownerType, booleanValue)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE INDEX iAExtensionBoolean ON m_assignment_ext_boolean (extensionType, eName, booleanValue);
+
+CREATE INDEX iExtensionBoolean ON m_object_ext_boolean (ownerType, eName, booleanValue);
+
+CREATE INDEX iExtensionBooleanDef ON m_object_ext_boolean (owner_oid, ownerType);
+
+ALTER TABLE m_assignment_ext_boolean
+ADD CONSTRAINT fk_assignment_ext_boolean
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
+REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+
+ALTER TABLE m_object_ext_boolean
+ADD CONSTRAINT fk_object_ext_boolean
+FOREIGN KEY (owner_oid)
+REFERENCES m_object (oid);

@@ -41,6 +41,18 @@ CREATE TABLE m_assignment (
   PRIMARY KEY (id, owner_oid)
 );
 
+CREATE TABLE m_assignment_ext_boolean (
+  eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
+  anyContainer_owner_id        INT                                    NOT NULL,
+  anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
+  booleanValue                 BIT                                    NOT NULL,
+  extensionType                INT,
+  dynamicDef                   BIT,
+  eType                        NVARCHAR(157) COLLATE database_default,
+  valueType                    INT,
+  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, booleanValue)
+);
+
 CREATE TABLE m_assignment_ext_date (
   eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
   anyContainer_owner_id        INT                                    NOT NULL,
@@ -107,6 +119,7 @@ CREATE TABLE m_assignment_ext_string (
 CREATE TABLE m_assignment_extension (
   owner_id        INT                                   NOT NULL,
   owner_owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
+  booleansCount   SMALLINT,
   datesCount      SMALLINT,
   longsCount      SMALLINT,
   polysCount      SMALLINT,
@@ -250,6 +263,7 @@ CREATE TABLE m_node (
 
 CREATE TABLE m_object (
   oid                   NVARCHAR(36) COLLATE database_default NOT NULL,
+  booleansCount         SMALLINT,
   createChannel         NVARCHAR(255) COLLATE database_default,
   createTimestamp       DATETIME2,
   creatorRef_relation   NVARCHAR(157) COLLATE database_default,
@@ -274,6 +288,17 @@ CREATE TABLE m_object (
   tenantRef_type        INT,
   version               INT                                   NOT NULL,
   PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_object_ext_boolean (
+  eName        NVARCHAR(157) COLLATE database_default NOT NULL,
+  owner_oid    NVARCHAR(36) COLLATE database_default  NOT NULL,
+  ownerType    INT                                    NOT NULL,
+  booleanValue BIT                                    NOT NULL,
+  dynamicDef   BIT,
+  eType        NVARCHAR(157) COLLATE database_default,
+  valueType    INT,
+  PRIMARY KEY (eName, owner_oid, ownerType, booleanValue)
 );
 
 CREATE TABLE m_object_ext_date (
@@ -565,6 +590,8 @@ CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
 CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus);
 
+CREATE INDEX iAExtensionBoolean ON m_assignment_ext_boolean (extensionType, eName, booleanValue);
+
 CREATE INDEX iAExtensionDate ON m_assignment_ext_date (extensionType, eName, dateValue);
 
 CREATE INDEX iAExtensionLong ON m_assignment_ext_long (extensionType, eName, longValue);
@@ -603,6 +630,10 @@ CREATE INDEX iObjectNameNorm ON m_object (name_norm);
 CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass);
 
 CREATE INDEX iObjectCreateTimestamp ON m_object (createTimestamp);
+
+CREATE INDEX iExtensionBoolean ON m_object_ext_boolean (ownerType, eName, booleanValue);
+
+CREATE INDEX iExtensionBooleanDef ON m_object_ext_boolean (owner_oid, ownerType);
 
 CREATE INDEX iExtensionDate ON m_object_ext_date (ownerType, eName, dateValue);
 
@@ -691,6 +722,11 @@ ADD CONSTRAINT fk_assignment_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
+ALTER TABLE m_assignment_ext_boolean
+ADD CONSTRAINT fk_assignment_ext_boolean
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
+REFERENCES m_assignment_extension;
+
 ALTER TABLE m_assignment_ext_date
 ADD CONSTRAINT fk_assignment_ext_date
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
@@ -769,6 +805,11 @@ REFERENCES m_lookup_table;
 ALTER TABLE m_node
 ADD CONSTRAINT fk_node
 FOREIGN KEY (oid)
+REFERENCES m_object;
+
+ALTER TABLE m_object_ext_boolean
+ADD CONSTRAINT fk_object_ext_boolean
+FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
 ALTER TABLE m_object_ext_date

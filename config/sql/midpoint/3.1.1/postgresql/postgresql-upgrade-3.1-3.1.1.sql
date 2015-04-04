@@ -51,3 +51,46 @@ ALTER TABLE m_assignment_extension ALTER COLUMN owner_id TYPE INT4;
 ALTER TABLE m_assignment_reference ALTER COLUMN owner_id TYPE INT4;
 ALTER TABLE m_exclusion ALTER COLUMN id TYPE INT4;
 ALTER TABLE m_trigger ALTER COLUMN id TYPE INT4;
+
+CREATE TABLE m_assignment_ext_boolean (
+  eName                        VARCHAR(157) NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
+  anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
+  booleanValue                 BOOLEAN      NOT NULL,
+  extensionType                INT4,
+  dynamicDef                   BOOLEAN,
+  eType                        VARCHAR(157),
+  valueType                    INT4,
+  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, booleanValue)
+);
+
+ALTER TABLE m_assignment_extension ADD booleansCount INT2;
+
+ALTER TABLE m_object ADD booleansCount INT2;
+
+CREATE TABLE m_object_ext_boolean (
+  eName        VARCHAR(157) NOT NULL,
+  owner_oid    VARCHAR(36)  NOT NULL,
+  ownerType    INT4         NOT NULL,
+  booleanValue BOOLEAN      NOT NULL,
+  dynamicDef   BOOLEAN,
+  eType        VARCHAR(157),
+  valueType    INT4,
+  PRIMARY KEY (eName, owner_oid, ownerType, booleanValue)
+);
+
+CREATE INDEX iAExtensionBoolean ON m_assignment_ext_boolean (extensionType, eName, booleanValue);
+
+CREATE INDEX iExtensionBoolean ON m_object_ext_boolean (ownerType, eName, booleanValue);
+
+CREATE INDEX iExtensionBooleanDef ON m_object_ext_boolean (owner_oid, ownerType);
+
+ALTER TABLE m_assignment_ext_boolean
+ADD CONSTRAINT fk_assignment_ext_boolean
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
+REFERENCES m_assignment_extension;
+
+ALTER TABLE m_object_ext_boolean
+ADD CONSTRAINT fk_object_ext_boolean
+FOREIGN KEY (owner_oid)
+REFERENCES m_object;
