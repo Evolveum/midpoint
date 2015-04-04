@@ -196,6 +196,7 @@ public class ShadowQueryWithDisjunction extends CustomQuery {
         projections.add(Projections.property("datesCount"));
         projections.add(Projections.property("referencesCount"));
         projections.add(Projections.property("polysCount"));
+        projections.add(Projections.property("booleansCount"));
 
         cMain.setProjection(projections);
 

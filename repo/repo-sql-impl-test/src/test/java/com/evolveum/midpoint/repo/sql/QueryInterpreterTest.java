@@ -821,6 +821,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             list.add(Projections.groupProperty(prefix + "datesCount"));
             list.add(Projections.groupProperty(prefix + "referencesCount"));
             list.add(Projections.groupProperty(prefix + "polysCount"));
+            list.add(Projections.groupProperty(prefix + "booleansCount"));
         } else {
             list.add(Projections.property(prefix + "fullObject"));
             list.add(Projections.property(prefix + "stringsCount"));
@@ -828,6 +829,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             list.add(Projections.property(prefix + "datesCount"));
             list.add(Projections.property(prefix + "referencesCount"));
             list.add(Projections.property(prefix + "polysCount"));
+            list.add(Projections.property(prefix + "booleansCount"));
         }
     }
 
@@ -1159,6 +1161,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("datesCount"));
             projections.add(Projections.property("referencesCount"));
             projections.add(Projections.property("polysCount"));
+            projections.add(Projections.property("booleansCount"));
 
             main.setProjection(projections);
 
@@ -1650,4 +1653,57 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 //            close(session);
 //        }
 //    }
+
+    @Test
+    public void test430QueryGenericBoolean() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RGenericObject.class, "g");
+
+            Criteria stringExt = main.createCriteria("booleans", "b", JoinType.LEFT_OUTER_JOIN);
+
+            //and
+            Conjunction c2 = Restrictions.conjunction();
+            c2.add(Restrictions.eq("b.ownerType", RObjectExtensionType.EXTENSION));
+            c2.add(Restrictions.eq("b.name", new QName("http://example.com/p", "skipAutogeneration")));
+            c2.add(Restrictions.eq("b.value", true));
+
+            main.add(c2);
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("g", projections, false);
+            main.setProjection(projections);
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            EqualFilter eq = EqualFilter.createEqual(
+                    new ItemPath(ObjectType.F_EXTENSION, new QName("http://example.com/p", "skipAutogeneration")),
+                    GenericObjectType.class, prismContext, true);
+
+            String real = getInterpretedQuery(session, GenericObjectType.class, ObjectQuery.createObjectQuery(eq));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+
+            OperationResult result = new OperationResult("search");
+            List<PrismObject<GenericObjectType>> objects = repositoryService.searchObjects(GenericObjectType.class,
+                    ObjectQuery.createObjectQuery(eq), null, result);
+            result.computeStatus();
+            AssertJUnit.assertTrue(result.isSuccess());
+
+            AssertJUnit.assertNotNull(objects);
+            AssertJUnit.assertEquals(1, objects.size());
+
+            PrismObject<GenericObjectType> obj = objects.get(0);
+            AssertJUnit.assertTrue(obj.getCompileTimeClass().equals(GenericObjectType.class));
+
+            result = new OperationResult("count");
+            long count = repositoryService.countObjects(GenericObjectType.class, ObjectQuery.createObjectQuery(eq),
+                    result);
+            result.computeStatus();
+            AssertJUnit.assertTrue(result.isSuccess());
+            AssertJUnit.assertEquals(1, count);
+        } finally {
+            close(session);
+        }
+    }
 }

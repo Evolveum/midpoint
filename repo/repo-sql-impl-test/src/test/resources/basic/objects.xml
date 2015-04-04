@@ -52,6 +52,7 @@
             <description>Some assignment description</description>
             <extension>
                 <my:dead xsi:type="xsd:int">123</my:dead>
+                <my:skipAutogeneration xsi:type="xsd:boolean">true</my:skipAutogeneration>
             </extension>
             <metadata>
                 <creatorRef oid="dddccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
@@ -635,6 +636,7 @@
                 <t:orig>UserX00002</t:orig>
                 <t:norm>userx00002</t:norm>
             </p:polyType>
+            <p:skipAutogeneration>true</p:skipAutogeneration>
         </extension>
         <objectType>http://myself.me/schemas/objects#SampleConfigType</objectType>
     </genericObject>
