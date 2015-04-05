@@ -34,6 +34,8 @@ AS
     DELETE FROM m_connector_target_system;
     DELETE FROM m_connector;
     DELETE FROM m_connector_host;
+    DELETE FROM m_lookup_table_row;
+    DELETE FROM m_lookup_table;
     DELETE FROM m_node;
     DELETE FROM m_shadow;
     DELETE FROM m_task_dependent;
