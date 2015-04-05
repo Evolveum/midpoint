@@ -19,6 +19,7 @@ AS
     DELETE FROM m_object_ext_string;
     DELETE FROM m_object_ext_poly;
     DELETE FROM m_object_ext_reference;
+    DELETE FROM m_object_ext_boolean;
     DELETE FROM m_reference;
     DELETE FROM m_assignment_ext_date;
     DELETE FROM m_assignment_ext_long;
@@ -27,6 +28,7 @@ AS
     DELETE FROM m_assignment_ext_string;
     DELETE FROM m_assignment_extension;
     DELETE FROM m_assignment_reference;
+    DELETE FROM m_assignment_boolean;
     DELETE FROM m_assignment;
     DELETE FROM m_exclusion;
     DELETE FROM m_connector_target_system;
