@@ -285,16 +285,28 @@ public class PrimaryChangeAspectHelper {
     }
 
     public boolean isRelatedToType(ModelContext<? extends ObjectType> context, Class<?> type) {
-        if (context.getFocusContext() == null) {
+        Class<? extends ObjectType> focusClass = getFocusClass(context);
+        if (focusClass == null) {
             return false;
+        }
+        return type.isAssignableFrom(focusClass);
+    }
+
+    public Class<? extends ObjectType> getFocusClass(ModelContext<? extends ObjectType> context) {
+        if (context.getFocusClass() != null) {
+            return context.getFocusClass();
+        }
+
+        // if for some reason context.focusClass is not set... here is a fallback
+        if (context.getFocusContext() == null) {
+            return null;
         }
 
         ObjectDelta<? extends ObjectType> change = context.getFocusContext().getPrimaryDelta();
         if (change == null) {
-            return false;
+            return null;
         }
-
-        return type.isAssignableFrom(change.getObjectTypeClass());
+        return change.getObjectTypeClass();
     }
 
     //endregion

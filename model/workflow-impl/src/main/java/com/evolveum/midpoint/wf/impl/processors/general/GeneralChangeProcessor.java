@@ -14,7 +14,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -121,12 +120,12 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     @Override
     public HookOperationMode processModelInvocation(ModelContext context, WfConfigurationType wfConfigurationType, Task taskFromModel, OperationResult result) throws SchemaException {
 
-        if (wfConfigurationType.getGeneralChangeProcessor() != null && Boolean.FALSE.equals(wfConfigurationType.getGeneralChangeProcessor().isEnabled())) {
+        if (wfConfigurationType != null && wfConfigurationType.getGeneralChangeProcessor() != null && Boolean.FALSE.equals(wfConfigurationType.getGeneralChangeProcessor().isEnabled())) {
             LOGGER.trace("{} is disabled", getBeanName());
             return null;
         }
 
-        if (wfConfigurationType.getGeneralChangeProcessor() == null || wfConfigurationType.getGeneralChangeProcessor().getScenario().isEmpty()) {
+        if (wfConfigurationType == null || wfConfigurationType.getGeneralChangeProcessor() == null || wfConfigurationType.getGeneralChangeProcessor().getScenario().isEmpty()) {
             LOGGER.trace("No scenarios for {}", getBeanName());
             return null;
         }

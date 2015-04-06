@@ -19,12 +19,14 @@ AS
     DELETE FROM m_object_ext_string;
     DELETE FROM m_object_ext_poly;
     DELETE FROM m_object_ext_reference;
+    DELETE FROM m_object_ext_boolean;
     DELETE FROM m_reference;
     DELETE FROM m_assignment_ext_date;
     DELETE FROM m_assignment_ext_long;
     DELETE FROM m_assignment_ext_poly;
     DELETE FROM m_assignment_ext_reference;
     DELETE FROM m_assignment_ext_string;
+    DELETE FROM m_assignment_ext_boolean;
     DELETE FROM m_assignment_extension;
     DELETE FROM m_assignment_reference;
     DELETE FROM m_assignment;
@@ -32,6 +34,8 @@ AS
     DELETE FROM m_connector_target_system;
     DELETE FROM m_connector;
     DELETE FROM m_connector_host;
+    DELETE FROM m_lookup_table_row;
+    DELETE FROM m_lookup_table;
     DELETE FROM m_node;
     DELETE FROM m_shadow;
     DELETE FROM m_task_dependent;

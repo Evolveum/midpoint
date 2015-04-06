@@ -23,6 +23,7 @@
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
          xmlns:my="http://myself.me/schemas/whatever"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+         xmlns:p="http://example.com/p"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
@@ -52,6 +53,7 @@
             <description>Some assignment description</description>
             <extension>
                 <my:dead xsi:type="xsd:int">123</my:dead>
+                <p:skipAutogeneration xsi:type="xsd:boolean">true</p:skipAutogeneration>
             </extension>
             <metadata>
                 <creatorRef oid="dddccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
@@ -635,6 +637,7 @@
                 <t:orig>UserX00002</t:orig>
                 <t:norm>userx00002</t:norm>
             </p:polyType>
+            <p:skipAutogeneration>true</p:skipAutogeneration>
         </extension>
         <objectType>http://myself.me/schemas/objects#SampleConfigType</objectType>
     </genericObject>

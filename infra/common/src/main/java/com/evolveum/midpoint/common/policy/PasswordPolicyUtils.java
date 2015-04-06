@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -159,21 +160,23 @@ public class PasswordPolicyUtils {
 	 * @return - Operation result of this validation
 	 */
 	public static OperationResult validatePassword(String password, ValuePolicyType pp) {
-		// check input params
-//		if (null == pp) {
-//			throw new IllegalArgumentException("No policy provided: NULL");
-//		}
-//
-//		if (null == password) {
-//			throw new IllegalArgumentException("Password for validaiton is null.");
-//		}
-		
-		Validate.notNull(pp, "Password policy must not be null.");
-		Validate.notNull(password, "Password to validate must not be null.");
 
+		Validate.notNull(pp, "Password policy must not be null.");
+		
         OperationResult ret = new OperationResult(OPERATION_PASSWORD_VALIDATION);
         ret.addParam("policyName", pp.getName());
 		normalize(pp);
+		
+		if (password == null && pp.getMinOccurs() != null && XsdTypeMapper.multiplicityToInteger(pp.getMinOccurs()) == 0) {
+			// No password is allowed
+			ret.recordSuccess();
+			return ret;
+		}
+		
+		if (password == null) {
+			password = "";
+		}
+		
 		LimitationsType lims = pp.getStringPolicy().getLimitations();
 
 		StringBuilder message = new StringBuilder();

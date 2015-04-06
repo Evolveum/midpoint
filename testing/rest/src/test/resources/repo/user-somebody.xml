@@ -23,6 +23,9 @@
 	<c:assignment>
 		<c:targetRef oid="eb243068-d48d-11e4-a83a-001e8c717e5b" type="c:RoleType"/>
 	</c:assignment>
+	<c:activation>
+		<c:administrativeStatus>enabled</c:administrativeStatus>
+	</c:activation>
 	<c:fullName>Some Body</c:fullName>
 	<c:givenName>Some</c:givenName>
 	<c:familyName>body</c:familyName>

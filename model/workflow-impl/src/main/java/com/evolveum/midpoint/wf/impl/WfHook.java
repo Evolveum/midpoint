@@ -91,12 +91,7 @@ public class WfHook implements ChangeHook {
         result.addContext("model state", context.getState());
 
         WfConfigurationType wfConfigurationType = baseConfigurationHelper.getWorkflowConfiguration(context, result);
-        if (wfConfigurationType == null) {      // should not occur, but ... (e.g. when initially loading objects into repository; if done in non-raw mode)
-            LOGGER.warn("No system configuration. Workflow approvals are disabled. Proceeding with operation execution as if everything is approved.");
-            result.recordSuccess();
-            return HookOperationMode.FOREGROUND;
-        }
-        if (Boolean.FALSE.equals(wfConfigurationType.isModelHookEnabled())) {
+        if (wfConfigurationType != null && Boolean.FALSE.equals(wfConfigurationType.isModelHookEnabled())) {
             LOGGER.info("Workflow model hook is disabled. Proceeding with operation execution as if everything is approved.");
             result.recordSuccess();
             return HookOperationMode.FOREGROUND;

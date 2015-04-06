@@ -17,8 +17,10 @@
 package com.evolveum.midpoint.testing.wstest;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.model.client.ModelClientUtil;
+import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -34,10 +36,13 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.interceptor.LoggingInInterceptor;
 import org.apache.cxf.interceptor.LoggingOutInterceptor;
@@ -62,12 +67,16 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.soap.SOAPFault;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
+import javax.xml.ws.soap.SOAPFaultException;
 
 /**
 *   Test Framework Util Class
@@ -85,12 +94,55 @@ import javax.xml.ws.Holder;
 *
 * */
 
-public class AbstractWebserviceTest {
+public abstract class AbstractWebserviceTest {
 
     protected static final Trace LOGGER = TraceManager.getTrace(AbstractWebserviceTest.class);
 
+    public static final File COMMON_DIR = new File("src/test/resources/common");
+    
     public static final String ENDPOINT = "http://localhost:8080/midpoint/ws/model-3";
-    private static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+    public static final String USER_ADMINISTRATOR_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
+    public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
+    public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
+    
+    // No authorization
+ 	public static final File USER_NOBODY_FILE = new File(COMMON_DIR, "user-nobody.xml");
+ 	public static final String USER_NOBODY_USERNAME = "nobody";
+ 	public static final String USER_NOBODY_GIVEN_NAME = "No";
+ 	public static final String USER_NOBODY_FAMILY_NAME = "Body";
+ 	public static final String USER_NOBODY_PASSWORD = "nopassword";
+ 	
+ 	// WS authorization only
+ 	public static final File USER_CYCLOPS_FILE = new File(COMMON_DIR, "user-cyclops.xml");
+ 	public static final String USER_CYCLOPS_USERNAME = "cyclops";
+ 	public static final String USER_CYCLOPS_PASSWORD = "cyclopassword";
+ 	
+ 	// WS and reader authorization
+ 	public static final File USER_SOMEBODY_FILE = new File(COMMON_DIR, "user-somebody.xml");
+ 	public static final String USER_SOMEBODY_USERNAME = "somebody";
+ 	public static final String USER_SOMEBODY_PASSWORD = "somepassword";
+
+ 	// WS, reader and adder authorization
+ 	public static final File USER_DARTHADDER_FILE = new File(COMMON_DIR, "user-darthadder.xml");
+ 	public static final String USER_DARTHADDER_OID = "1696229e-d90a-11e4-9ce6-001e8c717e5b";
+ 	public static final String USER_DARTHADDER_USERNAME = "darthadder";
+ 	public static final String USER_DARTHADDER_PASSWORD = "iamyouruncle";
+ 	
+ 	// Authorizations, but no password
+ 	public static final File USER_NOPASSWORD_FILE = new File(COMMON_DIR, "user-nopassword.xml");
+ 	public static final String USER_NOPASSWORD_USERNAME = "nopassword";
+
+ 	public static final File ROLE_WS_FILE = new File(COMMON_DIR, "role-ws.xml");
+	public static final File ROLE_READER_FILE = new File(COMMON_DIR, "role-reader.xml");
+	public static final File ROLE_ADDER_FILE = new File(COMMON_DIR, "role-adder.xml");
+	
+	public static final File ROLE_MODIFIER_FILE = new File(COMMON_DIR, "role-modifier.xml");
+	public static final String ROLE_MODIFIER_OID = "82005ae4-d90b-11e4-bdcc-001e8c717e5b";
+ 	
+	protected static final Pattern PATTERN_AUDIT_EVENT_ID = Pattern.compile(".*\\seid=([^,]+),\\s.*");
+	protected static final Pattern PATTERN_AUDIT_SESSION_ID = Pattern.compile(".*\\ssid=([^,]+),\\s.*");
+	protected static final Pattern PATTERN_AUDIT_TASK_ID = Pattern.compile(".*\\stid=([^,]+),\\s.*");
+	
     
     public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
     public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
@@ -104,19 +156,22 @@ public class AbstractWebserviceTest {
     protected static SystemConfigurationType configurationType;
 
     public static final String MULTIPLE_THREAD_USER_SEARCH_NAME = "Barbara";
+
+	private static final File SERVER_LOG_FILE = new File("/opt/tomcat/logs/idm.log");
+	private static final String AUDIT_LOGGER_NAME = "com.evolveum.midpoint.audit.log";
 	
     public static Element MULTIPLE_THREAD_SEARCH_FILTER;
 
     @BeforeClass
     public void beforeTests(){
     	displayTestTitle("beforeTests");
-        initSystem();
+        init();
     }
     
 	/**
      * Takes care of system initialization. Need to be done before any tests are to be run.
      * */
-    protected static void initSystem() {
+    protected void init() {
         try {
 			MULTIPLE_THREAD_SEARCH_FILTER = parseElement(
 			        "<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
@@ -138,13 +193,17 @@ public class AbstractWebserviceTest {
     }
 
     protected static ModelPortType createModelPort() {
-    	return createModelPort("administrator", "5ecr3t");
+    	return createModelPort(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
+    }
+    
+    protected static ModelPortType createModelPort(String username, String password) {
+    	return createModelPort(username, password, WSConstants.PW_DIGEST);
     }
 
     /**
      * Creates webservice client connecting to midpoint
      * */
-    protected static ModelPortType createModelPort(String username, String password) {
+    protected static ModelPortType createModelPort(String username, String password, String passwordType) {
 
         LOGGER.info("Creating model client endpoint: {} , username={}, password={}", 
         		new Object[] {ENDPOINT, username, password});
@@ -162,7 +221,7 @@ public class AbstractWebserviceTest {
         if (username != null) {
 	        outProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.USERNAME_TOKEN);
 	        outProps.put(WSHandlerConstants.USER, username);
-	        outProps.put(WSHandlerConstants.PASSWORD_TYPE, WSConstants.PW_DIGEST);
+	        outProps.put(WSHandlerConstants.PASSWORD_TYPE, passwordType);
 	        ClientPasswordHandler.setPassword(password);
 	        outProps.put(WSHandlerConstants.PW_CALLBACK_CLASS, ClientPasswordHandler.class.getName());
 
@@ -186,27 +245,30 @@ public class AbstractWebserviceTest {
     /**
      * Retrieves and returns actual system configuration
      * */
-    protected static SystemConfigurationType getConfiguration() throws FaultMessage {
-        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-
-        
-		modelPort.getObject(getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
-        		null, objectHolder, resultHolder);
-
-        return (SystemConfigurationType) objectHolder.value;
+    protected SystemConfigurationType getConfiguration() throws FaultMessage {
+        return getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
     }
 
+    protected <O extends ObjectType> O getObject(Class<O> type, String oid) throws FaultMessage {
+		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        
+		modelPort.getObject(getTypeQName(type), oid, null, objectHolder, resultHolder);
+
+		assertSuccess(resultHolder.value);
+        return (O) objectHolder.value;
+	}
+
+    
     /**
      * returns URI of type passed as argument
      * */
     protected static String getTypeUri(Class<? extends ObjectType> type){
-        String typeUri = NS_COMMON + "#" + type.getSimpleName();
-        return typeUri;
+    	return ModelClientUtil.getTypeUri(type);
     }
 
     protected static QName getTypeQName(Class<? extends ObjectType> type){
-        return new QName(NS_COMMON, type.getSimpleName());
+    	return ModelClientUtil.getTypeQName(type);
     }
 
     /**
@@ -271,21 +333,24 @@ public class AbstractWebserviceTest {
      *  Clean the repository after tests. Preserves user administrator
      * */
     protected void cleanRepository() throws FaultMessage {
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+    	cleanObjects(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value());
+    	cleanObjects(RoleType.class, SystemObjectsType.ROLE_SUPERUSER.value(), SystemObjectsType.ROLE_END_USER.value());
+    }
+    
+    private <O extends ObjectType> void cleanObjects(Class<O> type, String... protectedOids) throws FaultMessage {
+    	Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
         PagingType paging = new PagingType();
 
-        modelPort.searchObjects(getTypeQName(UserType.class), null, null, objectListHolder, resultHolder);
+        modelPort.searchObjects(getTypeQName(type), null, null, objectListHolder, resultHolder);
 
+        List<String> protectedOidList = Arrays.asList(protectedOids);
         ObjectListType objectList = objectListHolder.value;
-        List<ObjectType> objects = objectList.getObject();
-
-        for(int i = 0; i < objects.size(); i++){
-        	UserType user = (UserType) objects.get(i);
-            if(!USER_ADMINISTRATOR_OID.equals(user.getOid())) {
-            	display("Deleting user "+ModelClientUtil.toString(user));
-            	deleteObject(UserType.class, user.getOid());
-            }
+        for (ObjectType object: objectList.getObject()) {
+        	if (!protectedOidList.contains(object.getOid())) {
+        		display("Deleting "+type.getSimpleName()+" "+ModelClientUtil.toString(object));
+            	deleteObject(type, object.getOid());
+        	}
         }
     }
     
@@ -299,7 +364,49 @@ public class AbstractWebserviceTest {
 		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
 		assertSuccess(deltaOpList);
     }
+	
+	protected <O extends ObjectType> String addObject(O object) throws FaultMessage {
+    	ObjectDeltaListType deltaList = new ObjectDeltaListType();
+    	ObjectDeltaType delta = new ObjectDeltaType();
+    	delta.setObjectType(getTypeQName(object.getClass()));
+    	delta.setChangeType(ChangeTypeType.ADD);
+    	delta.setObjectToAdd(object);
+		deltaList.getDelta().add(delta);
+		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
+		assertSuccess(deltaOpList);
+		return deltaOpList.getDeltaOperation().get(0).getObjectDelta().getOid();
+    }
+	
+	protected <O extends ObjectType> void assertObjectCount(Class<O> type, int expCount) throws FaultMessage {
+		assertEquals("Unexpected count of "+type.getSimpleName(), expCount, countObjects(type));
+	}
+	
+	protected <O extends ObjectType> int countObjects(Class<O> type) throws FaultMessage {
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+		modelPort.searchObjects(getTypeQName(type), null, null, objectListHolder, resultHolder);
+		assertSuccess(resultHolder.value);
+		Integer count = objectListHolder.value.getCount();
+		if (count != null) {
+			assertEquals("Wrong count", (Integer)objectListHolder.value.getObject().size(), count);
+		}
+		return objectListHolder.value.getObject().size();
+	}
 
+	
+	protected void assertUser(UserType user, String expOid, String expName) {
+		assertEquals("Wrong user oid", expOid, user.getOid());
+		assertEquals("Wrong user name", expName, ModelClientUtil.getOrig(user.getName()));
+	}
+
+	protected void assertUser(UserType user, String expOid, String expName, String expGivenName, String expFamilyName) {
+		assertEquals("Wrong user oid", expOid, user.getOid());
+		assertEquals("Wrong user name", expName, ModelClientUtil.getOrig(user.getName()));
+		assertEquals("Wrong user givenName", expGivenName, ModelClientUtil.getOrig(user.getGivenName()));
+		assertEquals("Wrong user familyName", expFamilyName, ModelClientUtil.getOrig(user.getFamilyName()));
+	}
+
+	
     protected void assertSuccess(ObjectDeltaOperationListType deltaOpList) {
     	for (ObjectDeltaOperationType deltaOperation: deltaOpList.getDeltaOperation()) {
     		OperationResultType result = deltaOperation.getExecutionResult();
@@ -313,14 +420,27 @@ public class AbstractWebserviceTest {
 		// TODO: look inside
 	}
 	
-	protected <F extends FaultType> void assertFault(FaultMessage fault, Class<F> expectedFaultInfoClass) {
+	protected <F extends FaultType> void assertFaultMessage(FaultMessage fault, Class<F> expectedFaultInfoClass, String expectedMessage) {
     	FaultType faultInfo = fault.getFaultInfo();
     	if (expectedFaultInfoClass != null && !expectedFaultInfoClass.isAssignableFrom(faultInfo.getClass())) {
     		AssertJUnit.fail("Expected that faultInfo will be of type "+expectedFaultInfoClass+", but it was "+faultInfo.getClass());
     	}
+    	if (expectedMessage != null) {
+    		assertTrue("Wrong message in fault: "+fault.getMessage(), fault.getMessage().contains(expectedMessage));
+    		assertTrue("Wrong message in fault info: "+faultInfo.getMessage(), faultInfo.getMessage().contains(expectedMessage));
+    	}
     	OperationResultType result = faultInfo.getOperationResult();
     	assertEquals("Expected that resut in FaultInfo will be fatal error, but it was "+result.getStatus(),
     			OperationResultStatusType.FATAL_ERROR, result.getStatus());
+	}
+	
+	protected void assertSoapFault(SOAPFaultException e, String expectedCode, String expectedMessage) {
+    	SOAPFault fault = e.getFault();
+    	String faultCode = fault.getFaultCode();
+    	display("SOAP fault code: "+faultCode);
+    	assertTrue("Unexpected fault code: "+faultCode, faultCode.endsWith(expectedCode));
+    	String message = e.getMessage();
+    	assertTrue("Unexpected fault message: "+message, message.contains(expectedMessage));
 	}
 
 
@@ -338,6 +458,141 @@ public class AbstractWebserviceTest {
 		System.out.println(msg);
 		LOGGER.info("{}", msg);
 	}
+	
+	protected <O extends ObjectType> void display(O object) throws JAXBException {
+		String xmlString = ModelClientUtil.marshallToSting(object);
+		System.out.println(xmlString);
+		LOGGER.info("{}", xmlString);
+	}
+
+	protected LogfileTestTailer createLogTailer() throws IOException {
+		return new LogfileTestTailer(SERVER_LOG_FILE, AUDIT_LOGGER_NAME, true);
+	}
+
+	private void checkAuditEnabled(SystemConfigurationType configurationType) throws FaultMessage {
+		LoggingConfigurationType loggingConfig = configurationType.getLogging();
+        AuditingConfigurationType auditConfig = loggingConfig.getAuditing();
+        if (auditConfig == null) {
+        	auditConfig = new AuditingConfigurationType();
+        	auditConfig.setEnabled(true);
+        	loggingConfig.setAuditing(auditConfig);
+        } else {
+        	if (BooleanUtils.isTrue(auditConfig.isEnabled())) {
+        		return;
+        	}
+        	auditConfig.setEnabled(true);
+        }
+        
+        ObjectDeltaListType deltaList = ModelClientUtil.createModificationDeltaList(SystemConfigurationType.class, 
+        		SystemObjectsType.SYSTEM_CONFIGURATION.value(), "logging", ModificationTypeType.REPLACE, loggingConfig);
+		
+		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
+		
+		assertSuccess(deltaOpList);
+	}
+		
+	protected void assertAuditLoginFailed(LogfileTestTailer tailer, String expectedMessage) {
+        tailer.assertAudit(1);
+        String auditMessage = tailer.getAuditMessages().get(0);
+        assertTrue("Audit: not login: "+auditMessage, auditMessage.contains("et=CREATE_SESSION"));
+        assertTrue("Audit: not failure: "+auditMessage, auditMessage.contains("o=FATAL_ERROR"));
+        assertTrue("Audit: wrong message: "+auditMessage, auditMessage.contains(expectedMessage));
+	}
+	
+	protected void displayAudit(LogfileTestTailer tailer) {
+        display("Audit:");
+        for (String auditMessage: tailer.getAuditMessages()) {
+        	display(auditMessage);
+        }
+	}
+	
+	protected void assertAuditIds(LogfileTestTailer tailer) {
+		List<String> eids = new ArrayList<String>();
+		String sid = null;
+		String tid = null;
+		for (String auditMessage: tailer.getAuditMessages()) {
+        	
+			String msgEid = getAuditEid(auditMessage);
+        	if (eids.contains(msgEid)) {
+        		AssertJUnit.fail("Event ID "+msgEid+" is not unique: "+auditMessage);
+        	}
+        	
+        	String msgTid = getAuditTid(auditMessage);
+        	if (msgTid == null) {
+        		AssertJUnit.fail("Audit message without task ID: "+auditMessage);
+        	}
+        	if (tid == null) {
+        		tid = msgTid;
+        	} else {
+        		assertEquals("Unmatched audit task ID: "+auditMessage, tid, msgTid);
+        	}
+        	
+        	String msgSid = getAuditSid(auditMessage);
+        	if (msgSid != null) {
+	        	if (sid == null) {
+	        		sid = msgSid;
+	        	} else {
+	        		assertEquals("Unmatched audit session ID: "+auditMessage, sid, msgSid);
+	        	}
+        	}
+        }
+	}
+	
+	protected String getAuditEid(String auditMessage) {
+		return getAuditId(auditMessage, PATTERN_AUDIT_EVENT_ID);
+	}
+	
+	protected String getAuditSid(String auditMessage) {
+		return getAuditId(auditMessage, PATTERN_AUDIT_SESSION_ID);
+	}
+	
+	protected String getAuditTid(String auditMessage) {
+		return getAuditId(auditMessage, PATTERN_AUDIT_TASK_ID);
+	}
+
+	protected String getAuditId(String auditMessage, Pattern pattern) {
+		Matcher matcher = pattern.matcher(auditMessage);
+		if (!matcher.matches()) {
+			return null;
+		}
+		String match = matcher.group(1);
+		if (match == null || match.equals("null")) {
+			return null;
+		}
+		return match;
+	}
+
+	protected void assertAuditLoginLogout(LogfileTestTailer tailer) {
+		List<String> msgs = tailer.getAuditMessages();
+        String firstMsg = msgs.get(0);
+        assertTrue("Audit: first: not login: "+firstMsg, firstMsg.contains("et=CREATE_SESSION"));
+        assertTrue("Audit: first: not success: "+firstMsg, firstMsg.contains("o=SUCCESS"));
+        
+        String lastMsg = msgs.get(msgs.size() - 1);
+        assertTrue("Audit: last: not logout: "+lastMsg, lastMsg.contains("et=TERMINATE_SESSION"));
+        assertTrue("Audit: last: not success: "+lastMsg, lastMsg.contains("o=SUCCESS"));
+	}
+	
+	protected void assertAuditOperation(LogfileTestTailer tailer, String expectedEventType) {
+		assertAuditOperation(tailer, expectedEventType, OperationResultStatusType.SUCCESS, null);
+	}
+	
+	protected void assertAuditOperation(LogfileTestTailer tailer, String expectedEventType, 
+			OperationResultStatusType expectedStatus, String expectedMessage) {
+		List<String> msgs = tailer.getAuditMessages();
+		String reqMsg = msgs.get(1);
+        assertTrue("Audit: request: wrong operation: "+reqMsg, reqMsg.contains("et="+expectedEventType));
+        assertTrue("Audit: request: not request: "+reqMsg, reqMsg.contains("es=REQUEST"));
+        
+        String execMsg = msgs.get(2);
+        assertTrue("Audit: exec: wrong operation: "+execMsg, execMsg.contains("et="+expectedEventType));
+        assertTrue("Audit: exec: not execution: "+execMsg, execMsg.contains("es=EXECUTION"));
+        assertTrue("Audit: exec: wrong status, expected '"+expectedStatus+"': "+execMsg, execMsg.contains("o="+expectedStatus));
+        if (expectedMessage != null) {
+        	assertTrue("Audit: exec: wrong message, expected '"+expectedMessage+"': "+execMsg, execMsg.matches(".*m=.*"+expectedMessage+".*"));
+        }
+	}
+
 
 	
     @Test
@@ -345,7 +600,11 @@ public class AbstractWebserviceTest {
     	final String TEST_NAME = "test000SanityAndCleanup";
     	displayTestTitle(TEST_NAME);
         modelPort = createModelPort();
+        
         configurationType = getConfiguration();
+        checkAuditEnabled(configurationType);
+        
+        
         cleanRepository();
     }
 

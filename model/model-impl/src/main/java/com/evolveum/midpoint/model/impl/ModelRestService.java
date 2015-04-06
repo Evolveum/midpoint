@@ -315,11 +315,17 @@ public class ModelRestService {
 		return response;
 	}
 	
+	@POST
+	@Path("/{type}/{oid}")
+	public <T extends ObjectType> Response modifyObjectPost(@PathParam("type") String type, @PathParam("oid") String oid, 
+			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
+		return modifyObjectPatch(type, oid, modificationType, options, mc);
+	}
 	
 	@PATCH
 	@Path("/{type}/{oid}")
 //	@Produces({"text/html", "application/xml"})
-	public <T extends ObjectType> Response modifyObject(@PathParam("type") String type, @PathParam("oid") String oid, 
+	public <T extends ObjectType> Response modifyObjectPatch(@PathParam("type") String type, @PathParam("oid") String oid, 
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 		
 		LOGGER.info("model rest service for modify operation start");

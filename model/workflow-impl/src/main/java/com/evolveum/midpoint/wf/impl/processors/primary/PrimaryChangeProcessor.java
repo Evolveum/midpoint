@@ -162,7 +162,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         List<PcpChildJobCreationInstruction> startProcessInstructions = new ArrayList<>();
 
         PrimaryChangeProcessorConfigurationType processorConfigurationType =
-                wfConfigurationType.getPrimaryChangeProcessor();
+                wfConfigurationType != null ? wfConfigurationType.getPrimaryChangeProcessor() : null;
 
         if (processorConfigurationType != null && Boolean.FALSE.equals(processorConfigurationType.isEnabled())) {
             LOGGER.debug("Primary change processor is disabled.");
