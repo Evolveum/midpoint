@@ -8,11 +8,14 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidatable;
@@ -20,7 +23,9 @@ import org.apache.wicket.validation.validator.AbstractValidator;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -105,8 +110,8 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
 		Label filedTitle = new Label(ID_FIELDS_TITLE, JasperReportConfigurationPanel.this.createStringResource("Report fields"));
         add(filedTitle);
         ISortableDataProvider<JasperReportFieldDto, String> provider = new ListDataProvider(this,
-                new PropertyModel<List<JasperReportParameterDto>>(getModel(), "jasperReportDto.fields"));
-        TablePanel table = new TablePanel<>(ID_FIELDS_TABLE, provider, initParameterColumns());
+                new PropertyModel<List<JasperReportFieldDto>>(getModel(), "jasperReportDto.fields"));
+        TablePanel table = new TablePanel<>(ID_FIELDS_TABLE, provider, initFieldColumns());
         table.setOutputMarkupId(true);
         table.setShowPaging(true);
         add(table);
@@ -228,6 +233,22 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
             }
         });
 
+        
+        CheckBoxColumn forPrompting = new CheckBoxColumn<JasperReportParameterDto>(createStringResource("For prompting"), "forPrompting") {
+        	
+        	@Override
+        	public void populateItem(Item<ICellPopulator<JasperReportParameterDto>> cellItem,
+        			String componentId, IModel<JasperReportParameterDto> rowModel) {
+        		// TODO Auto-generated method stub
+        		CheckBoxPanel checkBox = new CheckBoxPanel(componentId, new PropertyModel<Boolean>(rowModel, getPropertyExpression()),  new PropertyModel<Boolean>(rowModel, getPropertyExpression()));
+        		cellItem.add(checkBox);	
+        	}
+        	
+        };
+        
+        
+        columns.add(forPrompting);
+        
         return columns;
     }
 	 private void parameterEditPerformed(AjaxRequestTarget target, IModel<JasperReportParameterDto> rowModel) {
@@ -241,7 +262,7 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
 	        return (TablePanel) get(ID_PARAMETERS_TABLE);
 	    }
 
-		private List<IColumn<JasperReportFieldDto, String>> initFiledColumns() {
+		private List<IColumn<JasperReportFieldDto, String>> initFieldColumns() {
 	        List<IColumn<JasperReportFieldDto, String>> columns = new ArrayList<>();
 	        IColumn column = new CheckBoxHeaderColumn<JasperReportFieldDto>();
 	        columns.add(column);

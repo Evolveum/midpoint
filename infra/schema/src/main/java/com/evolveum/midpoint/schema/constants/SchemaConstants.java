@@ -71,6 +71,7 @@ public abstract class SchemaConstants {
 	public static final QName C_OBJECT_REF = new QName(NS_C, "objectRef");
 	public static final QName C_VALUE = new QName(NS_C, "value");
 	public static final QName C_PARAM_VALUE = new QName(NS_C, "paramValue");
+	public static final QName C_REPORT_PARAM_VALUE = new QName(NS_C, "reportParamValue");
 	public static final QName C_OID_ATTRIBUTE = new QName(NS_C, "oid");
 	public static final QName C_USER_TYPE = new QName(NS_C, "UserType");
 	public static final QName C_TASK_TYPE = new QName(NS_C, "TaskType");
@@ -154,6 +155,8 @@ public abstract class SchemaConstants {
 
 	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
     public static final String NS_MODEL_WS = NS_MODEL + "/model-3";
+    
+    public static final String NS_REPORT = NS_MIDPOINT_PUBLIC + "/report";
 	
 	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-3";
 	public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_MODEL_CHANNEL, "webService");

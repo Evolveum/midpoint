@@ -112,6 +112,10 @@
             <name>PageAdmin.menu.top.reports</name>
             <order>70</order>
             <item>
+                <name>PageAdmin.menu.top.reports.new</name>
+                <page>com.evolveum.midpoint.web.page.admin.reports.PageNewReport</page>
+            </item>
+            <item>
                 <name>PageAdmin.menu.top.reports.list</name>
                 <page>com.evolveum.midpoint.web.page.admin.reports.PageReports</page>
             </item>

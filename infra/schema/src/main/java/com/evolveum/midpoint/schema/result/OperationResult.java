@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import javax.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -30,6 +31,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -929,29 +931,29 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
             return null;
         }
 
-		Map<String, Serializable> params = null;
-		if (result.getParams() != null) {
-			params = new HashMap<String, Serializable>();
-			for (EntryType entry : result.getParams().getEntry()) {
-				params.put(entry.getKey(), (Serializable) entry.getEntryValue());
-			}
-		}
+		Map<String, Serializable> params = ParamsTypeUtil.fromParamsType(result.getParams());
+//		if (result.getParams() != null) {
+//			params = new HashMap<String, Serializable>();
+//			for (EntryType entry : result.getParams().getEntry()) {
+//				params.put(entry.getKey(), (Serializable) entry.getEntryValue());
+//			}
+//		}
 		
-		Map<String, Serializable> context = null;
-		if (result.getContext() != null) {
-			context = new HashMap<String, Serializable>();
-			for (EntryType entry : result.getContext().getEntry()) {
-				context.put(entry.getKey(), (Serializable) entry.getEntryValue());
-			}
-		}
+		Map<String, Serializable> context = ParamsTypeUtil.fromParamsType(result.getContext());
+//		if (result.getContext() != null) {
+//			context = new HashMap<String, Serializable>();
+//			for (EntryType entry : result.getContext().getEntry()) {
+//				context.put(entry.getKey(), (Serializable) entry.getEntryValue());
+//			}
+//		}
 		
-		Map<String, Serializable> returns = null;
-		if (result.getReturns() != null) {
-			returns = new HashMap<String, Serializable>();
-			for (EntryType entry : result.getReturns().getEntry()) {
-				returns.put(entry.getKey(), (Serializable) entry.getEntryValue());
-			}
-		}
+		Map<String, Serializable> returns = ParamsTypeUtil.fromParamsType(result.getReturns());
+//		if (result.getReturns() != null) {
+//			returns = new HashMap<String, Serializable>();
+//			for (EntryType entry : result.getReturns().getEntry()) {
+//				returns.put(entry.getKey(), (Serializable) entry.getEntryValue());
+//			}
+//		}
 
 		List<OperationResult> subresults = null;
 		if (!result.getPartialResults().isEmpty()) {
@@ -1020,35 +1022,35 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			result.setLocalizedMessage(message);
 		}
 
-		Set<Entry<String, Serializable>> params = opResult.getParams().entrySet();
-		if (!params.isEmpty()) {
-			ParamsType paramsType = new ParamsType();
+//		Set<Entry<String, Serializable>> params = opResult.getParams();
+//		if (!params.isEmpty()) {
+			ParamsType paramsType = ParamsTypeUtil.toParamsType(opResult.getParams());
 			result.setParams(paramsType);
 
-			for (Entry<String, Serializable> entry : params) {
-				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
-			}
-		}
+//			for (Entry<String, Serializable> entry : params) {
+//				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
+//			}
+//		}
 
-		Set<Entry<String, Serializable>> context = opResult.getContext().entrySet();
-		if (!context.isEmpty()) {
-			ParamsType paramsType = new ParamsType();
+//		Set<Entry<String, Serializable>> context = opResult.getContext().entrySet();
+//		if (!context.isEmpty()) {
+			paramsType = ParamsTypeUtil.toParamsType(opResult.getContext());
 			result.setContext(paramsType);
 
-			for (Entry<String, Serializable> entry : context) {
-				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
-			}
-		}
+//			for (Entry<String, Serializable> entry : context) {
+//				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
+//			}
+//		}
 
-		Set<Entry<String, Serializable>> returns = opResult.getReturns().entrySet();
-		if (!returns.isEmpty()) {
-			ParamsType paramsType = new ParamsType();
+//		Set<Entry<String, Serializable>> returns = opResult.getReturns().entrySet();
+//		if (!returns.isEmpty()) {
+			paramsType = ParamsTypeUtil.toParamsType(opResult.getReturns());
 			result.setReturns(paramsType);
 
-			for (Entry<String, Serializable> entry : returns) {
-				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
-			}
-		}
+//			for (Entry<String, Serializable> entry : returns) {
+//				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
+//			}
+//		}
 
 		for (OperationResult subResult : opResult.getSubresults()) {
 			result.getPartialResults().add(opResult.createOperationResultType(subResult));
@@ -1057,71 +1059,71 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		return result;
 	}
 
-	/**
-	 * Temporary workaround, brutally hacked -- so that the conversion 
-	 * of OperationResult into OperationResultType 'somehow' works, at least to the point
-	 * where when we:
-	 * - have OR1
-	 * - serialize it into ORT1
-	 * - then deserialize into OR2
-	 * - serialize again into ORT2
-	 * so we get ORT1.equals(ORT2) - at least in our simple test case :)
-	 * 
-	 * FIXME: this should be definitely reworked
-	 * 
-	 * @param entry
-	 * @return
-	 */
-	private EntryType createEntryElement(String key, Serializable value) {
-		EntryType entryType = new EntryType();
-		entryType.setKey(key);
-		if (value != null) {
-			Document doc = DOMUtil.getDocument();
-			if (value instanceof ObjectType && ((ObjectType)value).getOid() != null) {
-				// Store only reference on the OID. This is faster and getObject can be used to retrieve
-				// the object if needed. Although is does not provide 100% accuracy, it is a good tradeoff.
-				setObjectReferenceEntry(entryType, ((ObjectType)value));
-			// these values should be put 'as they are', in order to be deserialized into themselves
-			} else if (value instanceof String || value instanceof Integer || value instanceof Long) {
-				entryType.setEntryValue(new JAXBElement<Serializable>(SchemaConstants.C_PARAM_VALUE, Serializable.class, value));
-			} else if (XmlTypeConverter.canConvert(value.getClass())) {
-//				try {
-//					entryType.setEntryValue(new JXmlTypeConverter.toXsdElement(value, SchemaConstants.C_PARAM_VALUE, doc, true));
-//				} catch (SchemaException e) {
-//					LOGGER.error("Cannot convert value {} to XML: {}",value,e.getMessage());
-//					setUnknownJavaObjectEntry(entryType, value);
-//				}
-			} else if (value instanceof Element || value instanceof JAXBElement<?>) {
-				entryType.setEntryValue((JAXBElement<?>) value);
-			// FIXME: this is really bad code ... it means that 'our' JAXB object should be put as is
-			} else if ("com.evolveum.midpoint.xml.ns._public.common.common_2".equals(value.getClass().getPackage().getName())) {
-				JAXBElement<Object> o = new JAXBElement<Object>(SchemaConstants.C_PARAM_VALUE, Object.class, value);
-				entryType.setEntryValue(o);
-			} else {
-				setUnknownJavaObjectEntry(entryType, value);
-			}
-		}
-		return entryType;
-	}
-
-	private void setObjectReferenceEntry(EntryType entryType, ObjectType objectType) {
-		ObjectReferenceType objRefType = new ObjectReferenceType();
-		objRefType.setOid(objectType.getOid());
-		ObjectTypes type = ObjectTypes.getObjectType(objectType.getClass());
-		if (type != null) {
-			objRefType.setType(type.getTypeQName());
-		}
-		JAXBElement<ObjectReferenceType> element = new JAXBElement<ObjectReferenceType>(
-				SchemaConstants.C_OBJECT_REF, ObjectReferenceType.class, objRefType);
-//		entryType.setAny(element);
-	}
-
-	private void setUnknownJavaObjectEntry(EntryType entryType, Serializable value) {
-		UnknownJavaObjectType ujo = new UnknownJavaObjectType();
-		ujo.setClazz(value.getClass().getName());
-		ujo.setToString(value.toString());
-		entryType.setEntryValue(new ObjectFactory().createUnknownJavaObject(ujo));
-	}
+//	/**
+//	 * Temporary workaround, brutally hacked -- so that the conversion 
+//	 * of OperationResult into OperationResultType 'somehow' works, at least to the point
+//	 * where when we:
+//	 * - have OR1
+//	 * - serialize it into ORT1
+//	 * - then deserialize into OR2
+//	 * - serialize again into ORT2
+//	 * so we get ORT1.equals(ORT2) - at least in our simple test case :)
+//	 * 
+//	 * FIXME: this should be definitely reworked
+//	 * 
+//	 * @param entry
+//	 * @return
+//	 */
+//	private EntryType createEntryElement(String key, Serializable value) {
+//		EntryType entryType = new EntryType();
+//		entryType.setKey(key);
+//		if (value != null) {
+//			Document doc = DOMUtil.getDocument();
+//			if (value instanceof ObjectType && ((ObjectType)value).getOid() != null) {
+//				// Store only reference on the OID. This is faster and getObject can be used to retrieve
+//				// the object if needed. Although is does not provide 100% accuracy, it is a good tradeoff.
+//				setObjectReferenceEntry(entryType, ((ObjectType)value));
+//			// these values should be put 'as they are', in order to be deserialized into themselves
+//			} else if (value instanceof String || value instanceof Integer || value instanceof Long) {
+//				entryType.setEntryValue(new JAXBElement<Serializable>(SchemaConstants.C_PARAM_VALUE, Serializable.class, value));
+//			} else if (XmlTypeConverter.canConvert(value.getClass())) {
+////				try {
+////					entryType.setEntryValue(new JXmlTypeConverter.toXsdElement(value, SchemaConstants.C_PARAM_VALUE, doc, true));
+////				} catch (SchemaException e) {
+////					LOGGER.error("Cannot convert value {} to XML: {}",value,e.getMessage());
+////					setUnknownJavaObjectEntry(entryType, value);
+////				}
+//			} else if (value instanceof Element || value instanceof JAXBElement<?>) {
+//				entryType.setEntryValue((JAXBElement<?>) value);
+//			// FIXME: this is really bad code ... it means that 'our' JAXB object should be put as is
+//			} else if ("com.evolveum.midpoint.xml.ns._public.common.common_2".equals(value.getClass().getPackage().getName())) {
+//				JAXBElement<Object> o = new JAXBElement<Object>(SchemaConstants.C_PARAM_VALUE, Object.class, value);
+//				entryType.setEntryValue(o);
+//			} else {
+//				setUnknownJavaObjectEntry(entryType, value);
+//			}
+//		}
+//		return entryType;
+//	}
+//
+//	private void setObjectReferenceEntry(EntryType entryType, ObjectType objectType) {
+//		ObjectReferenceType objRefType = new ObjectReferenceType();
+//		objRefType.setOid(objectType.getOid());
+//		ObjectTypes type = ObjectTypes.getObjectType(objectType.getClass());
+//		if (type != null) {
+//			objRefType.setType(type.getTypeQName());
+//		}
+//		JAXBElement<ObjectReferenceType> element = new JAXBElement<ObjectReferenceType>(
+//				SchemaConstants.C_OBJECT_REF, ObjectReferenceType.class, objRefType);
+////		entryType.setAny(element);
+//	}
+//
+//	private void setUnknownJavaObjectEntry(EntryType entryType, Serializable value) {
+//		UnknownJavaObjectType ujo = new UnknownJavaObjectType();
+//		ujo.setClazz(value.getClass().getName());
+//		ujo.setToString(value.toString());
+//		entryType.setEntryValue(new ObjectFactory().createUnknownJavaObject(ujo));
+//	}
 	
 	public void summarize() {
 		Iterator<OperationResult> iterator = getSubresults().iterator();

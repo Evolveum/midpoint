@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -113,6 +114,17 @@ public class PrismBeanConverter {
 	public <T> T unmarshall(MapXNode xnode, QName typeQName) throws SchemaException {
 		Class<T> classType = getSchemaRegistry().determineCompileTimeClass(typeQName);
 		return unmarshall(xnode, classType);
+	}
+	
+	public <T> T unmarshall(XNode xnode, Class<T> beanClass) throws SchemaException{
+		if (xnode instanceof PrimitiveXNode){
+			return unmarshallPrimitive((PrimitiveXNode<T>) xnode, beanClass);
+		} else if (xnode instanceof MapXNode){
+			return unmarshall((MapXNode) xnode, beanClass);
+		} else if (xnode instanceof RootXNode){
+			return unmarshall(((RootXNode) xnode).getSubnode(), beanClass);
+		} else 
+			throw new IllegalStateException("Unexpected xnode " + xnode +". Could not unmarshall value");
 	}
 
 	public <T> T unmarshall(MapXNode xnode, Class<T> beanClass) throws SchemaException {

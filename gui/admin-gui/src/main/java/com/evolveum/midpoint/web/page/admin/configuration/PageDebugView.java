@@ -303,9 +303,9 @@ public class PageDebugView extends PageAdminConfiguration {
                 }
                 
                 //quick fix for now (MID-1910), maybe it should be somewhere in model..
-                if (isReport(oldObject)){
-                	ReportTypeUtil.applyConfigurationDefinition((PrismObject)newObject, delta, getPrismContext());
-                }
+//                if (isReport(oldObject)){
+//                	ReportTypeUtil.applyConfigurationDefinition((PrismObject)newObject, delta, getPrismContext());
+//                }
 
                 Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
                 ModelExecuteOptions options = new ModelExecuteOptions();

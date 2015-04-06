@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
+import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
@@ -151,6 +152,7 @@ public class PageAdmin extends PageBase {
 
     private MenuBarItem createReportsItems() {
         MenuBarItem reports = new MenuBarItem(createStringResource("PageAdmin.menu.top.reports"), null);
+        reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.new"), PageNewReport.class));
         reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.list"), PageReports.class));
         reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.created"), PageCreatedReports.class));
 
