@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,7 +205,7 @@ public class PasswordPolicyProcessor {
 			PrismReferenceValue orgRefValue = orgDelta.getAnyValue();
 
 			try {
-				PrismObject<OrgType> org = (PrismObject<OrgType>) resolver.resolve(orgRefValue,
+				PrismObject<OrgType> org = resolver.resolve(orgRefValue,
 						"resolving parent org ref", null, null, result);
 				OrgType orgType = org.asObjectable();
 				ObjectReferenceType ref = orgType.getPasswordPolicyRef();
@@ -248,7 +248,7 @@ public class PasswordPolicyProcessor {
 								"Found more than one policy while trying to validate user's password. Please check your configuration");
 					}
 
-					PrismObject<OrgType> org = (PrismObject<OrgType>) resolver.resolve(orgRefValue,
+					PrismObject<OrgType> org = resolver.resolve(orgRefValue,
 							"resolving parent org ref", null, null, result);
 					orgs.add(org);
 					valuePolicy = resolvePolicy(org, result);

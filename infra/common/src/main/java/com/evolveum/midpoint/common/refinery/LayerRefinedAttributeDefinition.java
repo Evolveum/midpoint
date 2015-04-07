@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -349,12 +350,12 @@ public class LayerRefinedAttributeDefinition<T> extends RefinedAttributeDefiniti
 	}
 
 	@Override
-	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
+	public boolean isValidFor(QName elementQName, Class clazz) {
 		return isValidFor(elementQName, clazz, false);
 	}
 
 	@Override
-	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz, boolean caseInsensitive) {
+	public boolean isValidFor(QName elementQName, Class clazz, boolean caseInsensitive) {
 		return refinedAttributeDefinition.isValidFor(elementQName, clazz, caseInsensitive);
 	}
 

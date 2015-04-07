@@ -80,46 +80,46 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 
     //region Parsing and serialization
     // itemDefinition may be null; in that case we do the best what we can
-	public <V extends PrismValue> V getParsedValue(ItemDefinition itemDefinition, QName itemName) throws SchemaException {
+	public <IV extends PrismValue,ID extends ItemDefinition> IV getParsedValue(ItemDefinition itemDefinition, QName itemName) throws SchemaException {
         if (parsed != null) {
-			return (V) parsed;
+			return (IV) parsed;
 		} else if (xnode != null) {
-            V value;
+            IV value;
 			if (itemDefinition != null) {
                 if (itemName == null) {
                     itemName = itemDefinition.getName();
                 }
                 checkPrismContext();
-				Item<V> subItem = PrismUtil.getXnodeProcessor(prismContext).parseItem(xnode, itemName, itemDefinition);
+				Item<IV,ID> subItem = PrismUtil.getXnodeProcessor(prismContext).parseItem(xnode, itemName, itemDefinition);
 				if (!subItem.isEmpty()){
 					value = subItem.getValue(0);
 				} else {
 					value = null;
 				}
 			} else {
-				PrismProperty<V> subItem = XNodeProcessor.parsePrismPropertyRaw(xnode, itemName, prismContext);
-				value = (V) subItem.getValue();
+				PrismProperty subItem = XNodeProcessor.parsePrismPropertyRaw(xnode, itemName, prismContext);
+				value = (IV) subItem.getValue();
 			}
             xnode = null;
             parsed = value;
-            return (V) parsed;
+            return (IV) parsed;
 		} else {
 		    return null;
         }
 	}
 
-    public <V extends PrismValue> Item<V> getParsedItem(ItemDefinition itemDefinition) throws SchemaException {
+    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getParsedItem(ID itemDefinition) throws SchemaException {
         Validate.notNull(itemDefinition);
         return getParsedItem(itemDefinition, itemDefinition.getName());
     }
 
-    public <V extends PrismValue> Item<V> getParsedItem(ItemDefinition itemDefinition, QName itemName) throws SchemaException {
+    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getParsedItem(ID itemDefinition, QName itemName) throws SchemaException {
         Validate.notNull(itemDefinition);
         Validate.notNull(itemName);
-        Item<V> item = itemDefinition.instantiate();
-        V newValue = getParsedValue(itemDefinition, itemName);
+        Item<IV,ID> item = itemDefinition.instantiate();
+        IV newValue = getParsedValue(itemDefinition, itemName);
         if (newValue != null) {
-            item.add((V) newValue.clone());
+            item.add((IV) newValue.clone());
         }
         return item;
     }

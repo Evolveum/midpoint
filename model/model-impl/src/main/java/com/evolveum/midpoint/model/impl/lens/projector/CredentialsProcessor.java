@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,15 +151,15 @@ public class CredentialsProcessor {
             return;
         }
         
-        Mapping<PrismPropertyValue<ProtectedStringType>> passwordMapping = valueConstructionFactory.createMapping(outboundMappingType, 
+        Mapping<PrismPropertyValue<ProtectedStringType>,PrismPropertyDefinition<ProtectedStringType>> passwordMapping = valueConstructionFactory.createMapping(outboundMappingType, 
         		"outbound password mapping in account type " + rat);
         if (!passwordMapping.isApplicableToChannel(context.getChannel())) {
         	return;
         }
         
         passwordMapping.setDefaultTargetDefinition(accountPasswordPropertyDefinition);
-        ItemDeltaItem<PrismPropertyValue<PasswordType>> userPasswordIdi = focusContext.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
-        Source<PrismPropertyValue<PasswordType>> source = new Source<PrismPropertyValue<PasswordType>>(userPasswordIdi, ExpressionConstants.VAR_INPUT);
+        ItemDeltaItem<PrismPropertyValue<PasswordType>,PrismPropertyDefinition<ProtectedStringType>> userPasswordIdi = focusContext.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
+        Source<PrismPropertyValue<PasswordType>,PrismPropertyDefinition<ProtectedStringType>> source = new Source<>(userPasswordIdi, ExpressionConstants.VAR_INPUT);
 		passwordMapping.setDefaultSource(source);
 		passwordMapping.setOriginType(OriginType.OUTBOUND);
 		passwordMapping.setOriginObject(accCtx.getResource());

@@ -66,8 +66,8 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.ItemDefinition, com.evolveum.midpoint.prism.PrismContext)
 	 */
 	@Override
-	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-			ItemDefinition outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
+	public <V extends PrismValue, D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
+			D outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for path expression evaluator");
 		
@@ -89,7 +89,7 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 //        XPathHolder xpath = new XPathHolder((Element)evaluatorElementObject);
         ItemPath path = ((ItemPathType)evaluatorElementObject).getItemPath();
         
-        return new PathExpressionEvaluator(path, objectResolver, outputDefinition, protector, prismContext);
+        return new PathExpressionEvaluator<>(path, objectResolver, outputDefinition, protector, prismContext);
         
 	}
 

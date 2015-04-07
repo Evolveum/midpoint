@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,19 +34,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author semancik
  *
  */
-public class MappingEvaluatorHelperParams<V extends PrismValue, T extends ObjectType, F extends FocusType> {
+public class MappingEvaluatorHelperParams<V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> {
 	
 	private Collection<MappingType> mappingTypes;
 	private String mappingDesc;
 	private XMLGregorianCalendar now;
-	private MappingInitializer<V> initializer;
+	private MappingInitializer<V,D> initializer;
 	private MappingOutputProcessor<V> processor;
 	private PrismObject<T> aPrioriTargetObject;
 	private ObjectDelta<T> aPrioriTargetDelta;
 	private LensElementContext<T> targetContext;
 	private ItemPath defaultTargetItemPath;
 	// Only needed if defaultTargetItemPath == null
-	private ItemDefinition targetItemDefinition;
+	private D targetItemDefinition;
 	private Boolean evaluateCurrent;
 	private LensContext<F> context;
 	private boolean hasFullTargetObject;
@@ -72,10 +72,10 @@ public class MappingEvaluatorHelperParams<V extends PrismValue, T extends Object
 	public void setNow(XMLGregorianCalendar now) {
 		this.now = now;
 	}
-	public MappingInitializer<V> getInitializer() {
+	public MappingInitializer<V,D> getInitializer() {
 		return initializer;
 	}
-	public void setInitializer(MappingInitializer<V> initializer) {
+	public void setInitializer(MappingInitializer<V,D> initializer) {
 		this.initializer = initializer;
 	}
 	public MappingOutputProcessor<V> getProcessor() {
@@ -139,11 +139,11 @@ public class MappingEvaluatorHelperParams<V extends PrismValue, T extends Object
 		this.fixTarget = fixTarget;
 	}
 
-	public ItemDefinition getTargetItemDefinition() {
+	public D getTargetItemDefinition() {
 		return targetItemDefinition;
 	}
 
-	public void setTargetItemDefinition(ItemDefinition targetItemDefinition) {
+	public void setTargetItemDefinition(D targetItemDefinition) {
 		this.targetItemDefinition = targetItemDefinition;
 	} 
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -244,7 +244,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 	
-	public void swallowToPrimaryDelta(ItemDelta<?> itemDelta) throws SchemaException {
+	public void swallowToPrimaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
         if (primaryDelta == null) {
         	primaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
         	primaryDelta.setOid(oid);
@@ -252,7 +252,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         primaryDelta.swallow(itemDelta);
     }
 	
-	public void swallowToSecondaryDelta(ItemDelta<?> itemDelta) throws SchemaException {
+	public void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
         if (secondaryDelta == null) {
             secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
             secondaryDelta.setOid(oid);

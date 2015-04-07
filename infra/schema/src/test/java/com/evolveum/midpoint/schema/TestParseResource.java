@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -461,7 +461,7 @@ public class TestParseResource {
         PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
-		List<Item<?>> configItems = configContainerValue.getItems();
+		List<Item<?,?>> configItems = configContainerValue.getItems();
 		assertEquals("Wrong number of config items", isSimple ? 1 : 4, configItems.size());
 		
 		PrismContainer<?> ldapConfigPropertiesContainer = configurationContainer.findContainer(ICFC_CONFIGURATION_PROPERTIES);
@@ -469,7 +469,7 @@ public class TestParseResource {
 		PrismContainerDefinition<?> ldapConfigPropertiesContainerDef = ldapConfigPropertiesContainer.getDefinition();
 		assertNotNull("No icfcldap:configurationProperties container definition", ldapConfigPropertiesContainerDef);
 		assertEquals("icfcldap:configurationProperties container definition maxOccurs", 1, ldapConfigPropertiesContainerDef.getMaxOccurs());
-		List<Item<?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
+		List<Item<?,?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
 		assertEquals("Wrong number of ldapConfigPropItems items", 7, ldapConfigPropItems.size());
 		
 		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);

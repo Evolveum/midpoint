@@ -65,16 +65,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author Radovan Semancik
  */
-public class PathExpressionEvaluator<V extends PrismValue> implements ExpressionEvaluator<V> {
+public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
 	
 	private ItemPath path;
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
-	private ItemDefinition outputDefinition;
+	private D outputDefinition;
 	private Protector protector;
 	
     public PathExpressionEvaluator(ItemPath path, ObjectResolver objectResolver, 
-    		ItemDefinition outputDefinition, Protector protector, PrismContext prismContext) {
+    		D outputDefinition, Protector protector, PrismContext prismContext) {
     	this.path = path;
 		this.objectResolver = objectResolver;
 		this.outputDefinition = outputDefinition;
@@ -89,10 +89,10 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 
-		ItemDeltaItem<?> resolveContext = null;
+		ItemDeltaItem<?,?> resolveContext = null;
 		
 		if (params.getSources() != null && params.getSources().size() == 1) {
-			Source<?> source = params.getSources().iterator().next();
+			Source<?,?> source = params.getSources().iterator().next();
 			if (path.isEmpty()) {
 				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) source.toDeltaSetTriple();
 				return outputTriple.clone();
@@ -119,7 +119,7 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
         	if (variableValue == null) {
     			return null;
     		}
-    		if (variableValue instanceof Item || variableValue instanceof ItemDeltaItem<?>) {
+    		if (variableValue instanceof Item || variableValue instanceof ItemDeltaItem<?,?>) {
         		resolveContext = ExpressionUtil.toItemDeltaItem(variableValue, objectResolver, 
         				"path expression in "+params.getContextDescription(), params.getResult());
     		} else if (variableValue instanceof PrismPropertyValue<?>){
@@ -157,8 +157,8 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
         	}
         }
                 
-        PrismValueDeltaSetTriple<V> outputTriple = ItemDelta.toDeltaSetTriple((Item<V>)resolveContext.getItemOld(), 
-        		(ItemDelta<V>)resolveContext.getDelta());
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDelta.toDeltaSetTriple((Item<V,D>)resolveContext.getItemOld(), 
+        		(ItemDelta<V,D>)resolveContext.getDelta());
         
         if (outputTriple == null) {
         	return null;

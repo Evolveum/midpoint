@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -403,7 +403,7 @@ public class QueryConvertor {
 		XNode valueXnode = xmap.get(KEY_FILTER_EQUAL_VALUE);
 		if (valueXnode != null){
 		
-			Item<?> item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
+			Item<?,?> item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
         
 			  if (preliminaryParsingOnly) {
 		            return null;
@@ -569,7 +569,7 @@ public class QueryConvertor {
 	}		
 	
 	private static Item parseItem(XNode valueXnode, QName itemName, ItemDefinition itemDefinition, PrismContext prismContext) throws SchemaException{
-		Item<PrismValue> item;
+		Item<?,?> item;
 		if (prismContext == null) {
 			item = (Item)XNodeProcessor.parsePrismPropertyRaw(valueXnode, itemName, prismContext);
 		} else {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1258,11 +1258,11 @@ public class ChangeExecutor {
     	
     	QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
     	
-    	PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinition(FAKE_SCRIPT_ARGUMENT_NAME,
+    	PrismPropertyDefinition<String> scriptArgumentDefinition = new PrismPropertyDefinition<>(FAKE_SCRIPT_ARGUMENT_NAME,
 				DOMUtil.XSD_STRING, prismContext);
     	
     	String shortDesc = "Provisioning script argument expression";
-    	Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(argument, scriptArgumentDefinition, shortDesc, result);
+    	Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(argument, scriptArgumentDefinition, shortDesc, result);
     	
     	
     	ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);

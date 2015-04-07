@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,8 +58,8 @@ public class AsIsExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement)
 	 */
 	@Override
-	public <V extends PrismValue> AsIsExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
-			ItemDefinition outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
+	public <V extends PrismValue,D extends ItemDefinition> AsIsExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
+			D outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for asIs expression evaluator");
 		
@@ -78,7 +78,7 @@ public class AsIsExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof AsIsExpressionEvaluatorType)) {
             throw new SchemaException("AsIs value constructor cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        return new AsIsExpressionEvaluator<V>((AsIsExpressionEvaluatorType)evaluatorTypeObject, 
+        return new AsIsExpressionEvaluator<V,D>((AsIsExpressionEvaluatorType)evaluatorTypeObject, 
         		outputDefinition, protector, prismContext);
 	}
 

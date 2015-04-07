@@ -311,7 +311,7 @@ public class TestRefinedSchema {
         System.out.println(attributesContainer.debugDump());
         
         // WHEN
-        attributesContainer.applyDefinition(defaultAccountDefinition.toResourceAttributeContainerDefinition(), true);
+        attributesContainer.applyDefinition((PrismContainerDefinition)defaultAccountDefinition.toResourceAttributeContainerDefinition(), true);
 
         // THEN
         System.out.println("Parsed account:");

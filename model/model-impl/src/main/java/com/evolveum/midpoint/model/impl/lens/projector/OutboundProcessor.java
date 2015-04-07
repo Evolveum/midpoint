@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -120,7 +121,7 @@ public class OutboundProcessor {
         String operation = projCtx.getOperation().getValue();
 
         for (QName attributeName : rOcDef.getNamesOfAttributesWithOutboundExpressions()) {
-			RefinedAttributeDefinition refinedAttributeDefinition = rOcDef.getAttributeDefinition(attributeName);
+			RefinedAttributeDefinition<?> refinedAttributeDefinition = rOcDef.getAttributeDefinition(attributeName);
 						
 			final MappingType outboundMappingType = refinedAttributeDefinition.getOutboundMappingType();
 			if (outboundMappingType == null) {
@@ -132,11 +133,11 @@ public class OutboundProcessor {
 				continue;
 			}
 			
-			Mapping<? extends PrismPropertyValue<?>> mapping = mappingFactory.createMapping(outboundMappingType, 
+			Mapping<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> mapping = mappingFactory.createMapping(outboundMappingType, 
 			        "outbound mapping for " + PrettyPrinter.prettyPrint(refinedAttributeDefinition.getName())
 			        + " in " + rOcDef.getResourceType());
 
-			Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, attributeName, refinedAttributeDefinition, 
+			Mapping<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> evaluatedMapping = evaluateMapping(mapping, attributeName, refinedAttributeDefinition, 
 					focusOdo, projectionOdo, operation, rOcDef, null, context, projCtx, task, result);
 			
 			if (evaluatedMapping != null) {
@@ -157,12 +158,12 @@ public class OutboundProcessor {
 //				continue;
 //			}
 			
-			Mapping<? extends PrismPropertyValue<?>> mapping = mappingFactory.createMapping(outboundMappingType, 
+			Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> mapping = mappingFactory.createMapping(outboundMappingType, 
 			        "outbound mapping for " + PrettyPrinter.prettyPrint(associationDefinition.getName())
 			        + " in " + rOcDef.getResourceType());
 
 			PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
-			Mapping<PrismContainerValue<ShadowAssociationType>> evaluatedMapping = (Mapping) evaluateMapping(mapping, 
+			Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = (Mapping) evaluateMapping(mapping, 
 					assocName, outputDefinition, focusOdo, projectionOdo, operation, rOcDef, 
 					associationDefinition.getAssociationTarget(), context, projCtx, task, result);
 			
@@ -174,8 +175,8 @@ public class OutboundProcessor {
         projCtx.setOutboundConstruction(outboundConstruction);
     }
     
-    private <F extends FocusType, V extends PrismValue> Mapping<V> evaluateMapping(final Mapping<V> mapping, QName mappingQName,
-    		ItemDefinition targetDefinition, ObjectDeltaObject<F> focusOdo, ObjectDeltaObject<ShadowType> projectionOdo,
+    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> Mapping<V,D> evaluateMapping(final Mapping<V,D> mapping, QName mappingQName,
+    		D targetDefinition, ObjectDeltaObject<F> focusOdo, ObjectDeltaObject<ShadowType> projectionOdo,
     		String operation, RefinedObjectClassDefinition rOcDef, RefinedObjectClassDefinition assocTargetObjectClassDefinition,
     		LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result) 
     				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {

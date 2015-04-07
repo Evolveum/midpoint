@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,8 +100,8 @@ public class MappingEvaluationHelper {
 //			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		
-	public <V extends PrismValue, T extends ObjectType, F extends FocusType> void evaluateMappingSetProjection(
-			MappingEvaluatorHelperParams<V,T,F> params,
+	public <V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> void evaluateMappingSetProjection(
+			MappingEvaluatorHelperParams<V,D,T,F> params,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		String mappingDesc = params.getMappingDesc();
@@ -112,11 +112,11 @@ public class MappingEvaluationHelper {
 		Map<ItemPath,MappingOutputStruct<V>> outputTripleMap = new HashMap<>(); 
 		XMLGregorianCalendar nextRecomputeTime = null;
 		Collection<MappingType> mappingTypes = params.getMappingTypes();
-		Collection<Mapping<V>> mappings = new ArrayList<Mapping<V>>(mappingTypes.size());
+		Collection<Mapping<V,D>> mappings = new ArrayList<>(mappingTypes.size());
 
 		for (MappingType mappingType: mappingTypes) {
 			
-			Mapping<V> mapping = mappingFactory.createMapping(mappingType, mappingDesc);
+			Mapping<V,D> mapping = mappingFactory.createMapping(mappingType, mappingDesc);
 		
 			if (!mapping.isApplicableToChannel(params.getContext().getChannel())) {
 	        	continue;
@@ -124,7 +124,7 @@ public class MappingEvaluationHelper {
 			
 			mapping.setNow(params.getNow());
 			if (defaultTargetItemPath != null && targetObjectDefinition != null) {
-				ItemDefinition defaultTargetItemDef = targetObjectDefinition.findItemDefinition(defaultTargetItemPath);
+				D defaultTargetItemDef = targetObjectDefinition.findItemDefinition(defaultTargetItemPath);
 				mapping.setDefaultTargetDefinition(defaultTargetItemDef);
 				mapping.setDefaultTargetPath(defaultTargetItemPath);
 			} else {
@@ -150,7 +150,7 @@ public class MappingEvaluationHelper {
 			mappings.add(mapping);
 		}
 		
-		for (Mapping<V> mapping: mappings) {
+		for (Mapping<V,D> mapping: mappings) {
 			
 			if (mapping.getStrength() == MappingStrengthType.WEAK) {
 				// Evaluate weak mappings in a second run.
@@ -163,7 +163,7 @@ public class MappingEvaluationHelper {
 			}
 			
 			if (params.getAPrioriTargetDelta() != null && mappingOutputPath != null) {
-				ItemDelta<PrismValue> aPrioriItemDelta = params.getAPrioriTargetDelta().findItemDelta(mappingOutputPath);
+				ItemDelta<?,?> aPrioriItemDelta = params.getAPrioriTargetDelta().findItemDelta(mappingOutputPath);
 				if (mapping.getStrength() != MappingStrengthType.STRONG) {
 		        	if (aPrioriItemDelta != null && !aPrioriItemDelta.isEmpty()) {
 		        		continue;
@@ -198,7 +198,7 @@ public class MappingEvaluationHelper {
 
 		
 		// Second pass, evaluate only weak mappings
-		for (Mapping<V> mapping: mappings) {
+		for (Mapping<V,D> mapping: mappings) {
 
 			ItemPath mappingOutputPath = mapping.getOutputPath();
 			if (params.isFixTarget() && mappingOutputPath != null && defaultTargetItemPath != null && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
@@ -213,7 +213,7 @@ public class MappingEvaluationHelper {
 			
 			PrismValueDeltaSetTriple<V> outputTriple = mappingOutputStruct.getOutputTriple();
 			
-			Item<?> aPrioriTargetItem = null;
+			Item<V,D> aPrioriTargetItem = null;
 			PrismObject<T> aPrioriTargetObject = params.getAPrioriTargetObject();
 			if (aPrioriTargetObject != null && mappingOutputPath != null) {
 				aPrioriTargetItem = aPrioriTargetObject.findItem(mappingOutputPath);
@@ -262,12 +262,12 @@ public class MappingEvaluationHelper {
 				} else {
 					targetItemDefinition = params.getTargetItemDefinition();
 				}
-				ItemDelta<V> targetItemDelta = targetItemDefinition.createEmptyDelta(mappingOutputPath);
+				ItemDelta<V,D> targetItemDelta = targetItemDefinition.createEmptyDelta(mappingOutputPath);
 				
-				Item<V> aPrioriTargetItem = null;
+				Item<V,D> aPrioriTargetItem = null;
 				PrismObject<T> aPrioriTargetObject = params.getAPrioriTargetObject();
 				if (aPrioriTargetObject != null) {
-					aPrioriTargetItem = (Item<V>) aPrioriTargetObject.findItem(mappingOutputPath);
+					aPrioriTargetItem = aPrioriTargetObject.findItem(mappingOutputPath);
 				}
 				
 				if (targetContext.isAdd()) {
@@ -325,7 +325,7 @@ public class MappingEvaluationHelper {
 		
 		// Figure out recompute time
 		
-		for (Mapping<V> mapping: mappings) {
+		for (Mapping<V,D> mapping: mappings) {
 			XMLGregorianCalendar mappingNextRecomputeTime = mapping.getNextRecomputeTime();
 			if (mappingNextRecomputeTime != null) {
 				if (nextRecomputeTime == null || nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
  * @author semancik
  * 
  */
-public class PrismReference extends Item<PrismReferenceValue> {
+public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefinition> {
 	private static final long serialVersionUID = 1872343401395762657L;
 	
 	public PrismReference(QName name) {
@@ -175,9 +175,9 @@ public class PrismReference extends Item<PrismReferenceValue> {
     
     
 	@Override
-	public <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path) {
+	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-			return new PartiallyResolvedItem<X>((Item<X>)this, null);
+			return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)this, null);
 		}
 		if (!isSingleValue()) {
     		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value reference " + getElementName());
@@ -197,7 +197,7 @@ public class PrismReference extends Item<PrismReferenceValue> {
 	}
 
 	@Override
-	protected void checkDefinition(ItemDefinition def) {
+	protected void checkDefinition(PrismReferenceDefinition def) {
 		if (!(def instanceof PrismReferenceDefinition)) {
 			throw new IllegalArgumentException("Cannot apply definition "+def+" to reference "+this);
 		}

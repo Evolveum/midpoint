@@ -111,11 +111,11 @@ public class ModelObjectResolver implements ObjectResolver {
 				}
 	}
 	
-	public PrismObject<?> resolve(PrismReferenceValue refVal, String string, Task task, OperationResult result) throws ObjectNotFoundException {
+	public <O extends ObjectType> PrismObject<O> resolve(PrismReferenceValue refVal, String string, Task task, OperationResult result) throws ObjectNotFoundException {
 		return resolve(refVal, string, null, task, result);
 	}
 
-	public PrismObject<?> resolve(PrismReferenceValue refVal, String string, GetOperationOptions options, Task task, 
+	public <O extends ObjectType> PrismObject<O> resolve(PrismReferenceValue refVal, String string, GetOperationOptions options, Task task, 
 			OperationResult result) throws ObjectNotFoundException {
 		String oid = refVal.getOid();
 		Class<?> typeClass = ObjectType.class;
@@ -127,7 +127,7 @@ public class ModelObjectResolver implements ObjectResolver {
 		if (typeQName != null) {
 			typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
 		}
-		return ((ObjectType) getObjectSimple((Class)typeClass, oid, options, task, result)).asPrismObject();
+		return (getObjectSimple((Class<O>)typeClass, oid, options, task, result)).asPrismObject();
 	}
 	
 	public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task, 

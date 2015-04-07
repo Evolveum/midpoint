@@ -751,7 +751,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignAllRoles");
 		OperationResult result = task.getResult();
 		PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
-		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		for (AssignmentType assignment: user.asObjectable().getAssignment()) {
 			ObjectReferenceType targetRef = assignment.getTargetRef();
 			if (targetRef != null) {
@@ -858,7 +858,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation, 
 			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
-		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(roleOid, refType, relation, extension, activationType, add)));
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
 		return userDelta;
@@ -926,7 +926,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 //                        ppd,
 //                        newValue);
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add(acDelta);
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
         return userDelta;
@@ -938,7 +938,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected <F extends FocusType> ObjectDelta<F> createAssignmentDelta(Class<F> type, String focusOid,
 			String resourceOid, ShadowKindType kind, String intent, boolean add) throws SchemaException {
-		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add(createAssignmentModification(resourceOid, kind, intent, add));
 		ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(focusOid, modifications, type, prismContext);
 		return userDelta;
@@ -1958,7 +1958,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		int expectedModifications = 0;
 		// There may be metadata modification, we tolerate that
-		Collection<? extends ItemDelta<?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
+		Collection<? extends ItemDelta<?,?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
 		if (metadataDelta != null && !metadataDelta.isEmpty()) {
 			expectedModifications++;
 		}
@@ -1990,7 +1990,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		int expectedModifications = 0;
 		// There may be metadata modification, we tolerate that
-		Collection<? extends ItemDelta<?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
+		Collection<? extends ItemDelta<?,?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
 		if (metadataDelta != null && !metadataDelta.isEmpty()) {
 			expectedModifications++;
 		}

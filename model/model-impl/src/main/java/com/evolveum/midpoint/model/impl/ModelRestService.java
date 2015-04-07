@@ -420,6 +420,8 @@ public class ModelRestService {
 			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
 		} catch (SchemaException e) {
 			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (ConfigurationException e) {
+			response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
 		}
 		
 		parentResult.computeStatus();

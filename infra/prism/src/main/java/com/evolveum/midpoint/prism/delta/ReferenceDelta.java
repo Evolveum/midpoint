@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
+public class ReferenceDelta extends ItemDelta<PrismReferenceValue,PrismReferenceDefinition> {
 
 	public ReferenceDelta(PrismReferenceDefinition itemDefinition, PrismContext prismContext) {
 		super(itemDefinition, prismContext);
@@ -62,7 +62,7 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
 	}
 
 	@Override
-	public void setDefinition(ItemDefinition definition) {
+	public void setDefinition(PrismReferenceDefinition definition) {
 		if (!(definition instanceof PrismReferenceDefinition)) {
 			throw new IllegalArgumentException("Cannot apply "+definition+" to reference delta");
 		}
@@ -70,7 +70,7 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
 	}
 
 	@Override
-	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+	public void applyDefinition(PrismReferenceDefinition definition) throws SchemaException {
 		if (!(definition instanceof PrismReferenceDefinition)) {
 			throw new IllegalArgumentException("Cannot apply definition "+definition+" to reference delta "+this);
 		}
@@ -139,14 +139,14 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
 
     public static Collection<? extends ItemDelta> createModificationAddCollection(QName propertyName,
     		PrismObjectDefinition<?> objectDefinition, PrismReferenceValue refValue) {
-    	Collection<? extends ItemDelta<?>> modifications = createModificationsCollection(1);
+    	Collection<? extends ItemDelta<?,?>> modifications = createModificationsCollection(1);
     	ReferenceDelta delta = createModificationAdd(propertyName, objectDefinition, refValue);
     	((Collection)modifications).add(delta);
     	return modifications;
     }
     
-	private static Collection<? extends ItemDelta<?>> createModificationsCollection(int initSize) {
-		return new ArrayList<ItemDelta<?>>(initSize);
+	private static Collection<? extends ItemDelta<?,?>> createModificationsCollection(int initSize) {
+		return new ArrayList<ItemDelta<?,?>>(initSize);
 	}
 
 	public static ReferenceDelta createModificationAdd(QName refName, PrismObjectDefinition<?> objectDefinition,
@@ -197,7 +197,7 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
     	    
     public static <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, QName refName, PrismContext prismContext,
     		PrismReferenceValue refValue) { 
-    	Collection<? extends ItemDelta<?>> modifications = createModificationsCollection(1);
+    	Collection<? extends ItemDelta<?,?>> modifications = createModificationsCollection(1);
     	ReferenceDelta delta = createModificationAdd(type, refName, prismContext, refValue);
     	((Collection)modifications).add(delta);
     	return modifications;
@@ -211,7 +211,7 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
 
     public static <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, QName refName, PrismContext prismContext,
     		PrismObject<?> refTarget) { 
-    	Collection<? extends ItemDelta<?>> modifications = createModificationsCollection(1);
+    	Collection<? extends ItemDelta<?,?>> modifications = createModificationsCollection(1);
     	ReferenceDelta delta = createModificationAdd(type, refName, prismContext, refTarget);
     	((Collection)modifications).add(delta);
     	return modifications;
@@ -261,7 +261,7 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
     
     public static <T extends Objectable> Collection<? extends ItemDelta> createModificationDeleteCollection(Class<T> type, QName refName, PrismContext prismContext,
     		PrismReferenceValue refValue) { 
-    	Collection<? extends ItemDelta<?>> modifications = createModificationsCollection(1);
+    	Collection<? extends ItemDelta<?,?>> modifications = createModificationsCollection(1);
     	ReferenceDelta delta = createModificationDelete(type, refName, prismContext, refValue);
     	((Collection)modifications).add(delta);
     	return modifications;
@@ -280,7 +280,7 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
     
     public static <T extends Objectable> Collection<? extends ItemDelta> createModificationDeleteCollection(Class<T> type, QName refName, PrismContext prismContext,
     		PrismObject<?> refTarget) { 
-    	Collection<? extends ItemDelta<?>> modifications = createModificationsCollection(1);
+    	Collection<? extends ItemDelta<?,?>> modifications = createModificationsCollection(1);
     	ReferenceDelta delta = createModificationDelete(type, refName, prismContext, refTarget);
     	((Collection)modifications).add(delta);
     	return modifications;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import com.evolveum.midpoint.util.QNameUtil;
  * @author Radovan Semancik
  * 
  */
-public class PrismReferenceDefinition extends ItemDefinition {
+public class PrismReferenceDefinition extends ItemDefinition<PrismReference> {
 
 	private static final long serialVersionUID = 2427488779612517600L;
 	private QName targetTypeName;
