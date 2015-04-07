@@ -74,6 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_3.SchemaViolationFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.SystemFaultType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
@@ -172,7 +173,7 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 		deltaList.getDelta().add(objectChange);
 		
 		// WHEN, THEN
-		assertExecuteChangesFailure(deltaList, null, SystemFaultType.class, "The value of type", "cannot be applied to attribute");
+		assertExecuteChangesFailure(deltaList, null, SchemaViolationFaultType.class, "The value of type", "cannot be applied to attribute");
 	}
 
 	

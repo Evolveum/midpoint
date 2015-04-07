@@ -18,6 +18,10 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -29,10 +33,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -48,9 +49,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -86,12 +85,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignableOrgPopupContent;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignablePopupContent;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignableRolePopupContent;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.ResourcesPopup;
+import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -176,12 +170,14 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_SAVE = DOT_CLASS + "save";
     private static final String OPERATION_SEARCH_RESOURCE = DOT_CLASS + "searchAccountResource";
+    private static final String OPERATION_RECOMPUTE_ASSIGNMENTS = DOT_CLASS + "recomputeAssignments";
 
     private static final String MODAL_ID_RESOURCE = "resourcePopup";
     private static final String MODAL_ID_ASSIGNABLE = "assignablePopup";
     private static final String MODAL_ID_ASSIGNABLE_ORG = "assignableOrgPopup";
     private static final String MODAL_ID_CONFIRM_DELETE_ACCOUNT = "confirmDeleteAccountPopup";
     private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
+    private static final String MODAL_ID_ASSIGNMENTS_PREVIEW = "assignmentsPreviewPopup";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
@@ -198,6 +194,8 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private static final String ID_ASSIGNMENT_MENU = "assignmentMenu";
     private static final String ID_ACCOUNT_CHECK_ALL = "accountCheckAll";
     private static final String ID_ASSIGNMENT_CHECK_ALL = "assignmentCheckAll";
+
+    private  static final String ID_BUTTON_RECOMPUTE_ASSIGNMENTS = "recomputeAssignments";
 
     private static final String ID_SUMMARY_PANEL = "summaryPanel";
     private static final String ID_SUMMARY_NAME = "summaryName";
@@ -958,6 +956,21 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         progressReporter.registerAbortButton(abortButton);
         mainForm.add(abortButton);
 
+        AjaxSubmitButton recomputeAssignments = new AjaxSubmitButton(ID_BUTTON_RECOMPUTE_ASSIGNMENTS,
+                createStringResource("pageUser.button.recompute.assignments")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+                recomputeAssignmentsPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(recomputeAssignments);
+
         AjaxButton back = new AjaxButton("back", createStringResource("pageUser.button.back")) {
 
             @Override
@@ -1049,6 +1062,9 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             }
         });
         add(window);
+
+        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null);
+        add(assignmentPreviewPopup);
     }
 
     private boolean isEditingUser() {
@@ -1371,6 +1387,38 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         // handle assignments
         PrismContainerDefinition def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
         handleAssignmentDeltas(userDelta, def);
+    }
+
+    private void recomputeAssignmentsPerformed(AjaxRequestTarget target){
+        LOGGER.debug("Recompute user assignments");
+        Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
+        OperationResult result = new OperationResult(OPERATION_RECOMPUTE_ASSIGNMENTS);
+        PrismObject<UserType> user = userModel.getObject().getObject();
+        ObjectDelta<UserType> delta = user.createModifyDelta();
+        List<ObjectType> assignments = new ArrayList<>();
+
+        try {
+            ModelContext<UserType> modelContext = getModelInteractionService().previewChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+
+            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+            Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getZeroSet();
+            EvaluatedAssignment<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+            DeltaSetTriple<? extends EvaluatedAbstractRole> rolesTriple = evaluatedAssignment.getRoles();
+            Collection<? extends EvaluatedAbstractRole> evaluatedRoles = rolesTriple.getZeroSet();
+
+            for(EvaluatedAbstractRole role: evaluatedRoles){
+                assignments.add(role.getRole().asObjectable());
+            }
+
+            AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) get(MODAL_ID_ASSIGNMENTS_PREVIEW);
+            dialog.updateData(target, assignments);
+            dialog.show(target);
+
+        } catch (Exception e) {
+            LOGGER.error("Could not create assignments preview.", e);
+            error("Could not create assignments preview. Reason: " + e);
+            target.add(getFeedbackPanel());
+        }
     }
 
     private void savePerformed(AjaxRequestTarget target) {
