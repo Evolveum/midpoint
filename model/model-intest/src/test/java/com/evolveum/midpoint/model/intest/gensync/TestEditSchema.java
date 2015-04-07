@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
@@ -1065,7 +1066,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 				assertEquals("Wrong additionalName displayName", "Middle Name", propDef.getDisplayName());
 				assertTrue("additionalName not readable", propDef.canRead());
 			}
-		});
+		}, PrismTestUtil.createPolyString("Jackie"));
 		
 		assertProperty(user, UserType.F_COST_CENTER, new Validator<PrismPropertyDefinition<String>>() {
 			@Override
@@ -1101,12 +1102,20 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertSteadyResources();
     }
 
+	// TODO: Store jack's preferred language and check the schema again
+    
     private <O extends ObjectType, T> void assertProperty(PrismObject<O> object, QName propName,
-			Validator<PrismPropertyDefinition<T>> validator) throws Exception {
+			Validator<PrismPropertyDefinition<T>> validator, T... expectedValues) throws Exception {
 		PrismProperty<T> prop = object.findProperty(propName);
-		PrismPropertyDefinition<T> propDef = prop.getDefinition();
-		assertNotNull("No definition in property "+propName, propDef);
-		validator.validate(propDef, propName.toString());
+		if (expectedValues.length == 0) {
+			assertNull("Unexpected property "+propName+" in "+object+": "+prop, prop);
+		} else {
+			assertNotNull("No property "+propName+" in "+object, prop);
+			PrismAsserts.assertPropertyValue(prop, expectedValues);
+			PrismPropertyDefinition<T> propDef = prop.getDefinition();
+			assertNotNull("No definition in property "+propName, propDef);
+			validator.validate(propDef, propName.toString());
+		}
 		
 		PrismPropertyDefinition<T> objPropDef = object.getDefinition().findPropertyDefinition(propName);
 		assertNotNull("No definition of property "+propName+" in object "+object, objPropDef);
