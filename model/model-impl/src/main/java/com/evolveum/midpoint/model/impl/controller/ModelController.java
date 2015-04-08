@@ -311,7 +311,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
             
             object = objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
             
-            applySchemasAndSecurity(object, rootOptions, task, result);
+            applySchemasAndSecurity(object, rootOptions, null, task, result);
 			resolve(object, options, task, result);
             resolveNames(object, options, task, result);
             
@@ -440,7 +440,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			PrismObject<O> refObject = refVal.getObject();
 			if (refObject == null) {
 				refObject = objectResolver.resolve(refVal, object.toString(), option.getOptions(), task, result);
-				applySchemasAndSecurity(refObject, option.getOptions(), task, result);
+				applySchemasAndSecurity(refObject, option.getOptions(), null, task, result);
 				refVal.setObject(refObject);
 			}
 			if (!rest.isEmpty()) {
@@ -1016,11 +1016,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 
 	private <D extends ItemDefinition> void applySecurityConstraints(D itemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
-			AuthorizationDecisionType defaultReadDecition, AuthorizationDecisionType defaultAddDecition, AuthorizationDecisionType defaultModifyDecition,
+			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision,
             AuthorizationPhaseType phase) {
-		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecition, phase);
-		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecition, phase);
-		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecition, phase);
+		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecision, phase);
+		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecision, phase);
+		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecision, phase);
 //		LOGGER.trace("Decision for {}: {}", itemPath, readDecision);
 		if (readDecision != AuthorizationDecisionType.ALLOW) {
 			itemDefinition.setCanRead(false);
@@ -1408,7 +1408,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			RepositoryCache.exit();
 		}
 		
-		applySchemasAndSecurityToObjects(list, rootOptions, task, result);
+		applySchemasAndSecurityToObjects(list, rootOptions, null, task, result);
 
 		return list;
 	}
@@ -1454,7 +1454,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                         }
                     }
                     resolveNames(object, options, task, parentResult);
-                    applySchemasAndSecurity(object, rootOptions, task, parentResult);
+                    applySchemasAndSecurity(object, rootOptions, null, task, parentResult);
                 } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
                         | CommunicationException | ConfigurationException ex) {
                     parentResult.recordFatalError(ex);
@@ -1638,7 +1638,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 		if (user != null) {
 			try {
-				applySchemasAndSecurity(user, null, task, result);
+				applySchemasAndSecurity(user, null, null, task, result);
 			} catch (SchemaException | SecurityViolationException | ConfigurationException
 					| ObjectNotFoundException ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
@@ -1931,7 +1931,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			RepositoryCache.exit();
 			throw e;
 		}
-		applySchemasAndSecurityToObjectTypes(discoverConnectors, null, task, result);
+		applySchemasAndSecurityToObjectTypes(discoverConnectors, null, null, task, result);
 		result.computeStatus("Connector discovery failed");
 		RepositoryCache.exit();
 		result.cleanupResult();
@@ -1939,18 +1939,20 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	private <T extends ObjectType> void applySchemasAndSecurityToObjectTypes(Collection<T> objectTypes, 
-			GetOperationOptions options, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException {
+			GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result) 
+					throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException {
 		for (T objectType: objectTypes) {
-			applySchemasAndSecurity(objectType.asPrismObject(), options, task, result);
+			applySchemasAndSecurity(objectType.asPrismObject(), options, phase, task, result);
 		}
 	}
 	
 	private <T extends ObjectType> void applySchemasAndSecurityToObjects(Collection<PrismObject<T>> objects, 
-			GetOperationOptions options, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
+			GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result) 
+					throws SecurityViolationException, SchemaException {
 		for (PrismObject<T> object: objects) {
 			OperationResult subresult = new OperationResult(ModelController.class.getName()+".applySchemasAndSecurityToObjects");
 			try {	
-				applySchemasAndSecurity(object, options, task, subresult);
+				applySchemasAndSecurity(object, options, phase, task, subresult);
 			} catch (IllegalArgumentException|IllegalStateException|SchemaException|SecurityViolationException|ConfigurationException|ObjectNotFoundException e) {
 				LOGGER.error("Error post-processing object {}: {}", new Object[]{object, e.getMessage(), e});
 				OperationResultType fetchResult = object.asObjectable().getFetchResult();
@@ -1966,7 +1968,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	
-	private void applySecurityConstraints(List<Item<?,?>> items, ObjectSecurityConstraints securityContraints, AuthorizationDecisionType defaultDecision) {
+	private void applySecurityConstraints(List<Item<?,?>> items, ObjectSecurityConstraints securityConstraints, 
+			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision, 
+			AuthorizationPhaseType phase) {
 		if (items == null) {
 			return;
 		}
@@ -1974,17 +1978,31 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		while (iterator.hasNext()) {
 			Item<?,?> item = iterator.next();
 			ItemPath itemPath = item.getPath();
-			AuthorizationDecisionType itemDecision = securityContraints.findItemDecision(itemPath, ModelAuthorizationAction.READ.getUrl(), null);
+			AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecision, phase);
+			AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultReadDecision, phase);
+			AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultReadDecision, phase);
+			ItemDefinition<?> itemDef = item.getDefinition();
+			if (itemDef != null) {
+				if (itemReadDecision != AuthorizationDecisionType.ALLOW) {
+					itemDef.setCanRead(false);
+				}
+				if (itemAddDecision != AuthorizationDecisionType.ALLOW) {
+					itemDef.setCanAdd(false);
+				}
+				if (itemModifyDecision != AuthorizationDecisionType.ALLOW) {
+					itemDef.setCanModify(false);
+				}
+			}
 			if (item instanceof PrismContainer<?>) {
-				if (itemDecision == AuthorizationDecisionType.DENY) {
+				if (itemReadDecision == AuthorizationDecisionType.DENY) {
 					// Explicitly denied access to the entire container
 					iterator.remove();
 				} else {
 					// No explicit decision (even ALLOW is not final here as something may be denied deeper inside)
-					AuthorizationDecisionType subDefaultDecision = defaultDecision;
-					if (itemDecision == AuthorizationDecisionType.ALLOW) {
+					AuthorizationDecisionType subDefaultReadDecision = defaultReadDecision;
+					if (itemReadDecision == AuthorizationDecisionType.ALLOW) {
 						// This means allow to all subitems unless otherwise denied.
-						subDefaultDecision = AuthorizationDecisionType.ALLOW;
+						subDefaultReadDecision = AuthorizationDecisionType.ALLOW;
 					}
 					List<? extends PrismContainerValue<?>> values = ((PrismContainer<?>)item).getValues();
 					Iterator<? extends PrismContainerValue<?>> vi = values.iterator();
@@ -1992,7 +2010,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 						PrismContainerValue<?> cval = vi.next();
 						List<Item<?,?>> subitems = cval.getItems();
 						if (subitems != null) {
-							applySecurityConstraints(subitems, securityContraints, subDefaultDecision);
+							applySecurityConstraints(subitems, securityConstraints, subDefaultReadDecision, itemAddDecision, itemModifyDecision, phase);
 							if (subitems.isEmpty()) {
 								vi.remove();
 							}
@@ -2003,7 +2021,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 					}
 				}
 			} else {
-				if (itemDecision == AuthorizationDecisionType.DENY || (itemDecision == null && defaultDecision == null)) {
+				if (itemReadDecision == AuthorizationDecisionType.DENY || (itemReadDecision == null && defaultReadDecision == null)) {
 					iterator.remove();
 				}
 			}
@@ -2016,7 +2034,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	 * any object that is returned from the Model Service.  
 	 */
 	protected <O extends ObjectType> void applySchemasAndSecurity(PrismObject<O> object, GetOperationOptions rootOptions,
-			Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+			AuthorizationPhaseType phase, Task task, OperationResult parentResult) 
+					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
     	OperationResult result = parentResult.createMinorSubresult(ModelController.class.getName()+".applySchemasAndSecurity");
     	validateObject(object, rootOptions, result);
     	
@@ -2030,19 +2049,18 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			if (securityConstraints == null) {
 				throw new AuthorizationException("Access denied");
 			}
-			AuthorizationDecisionType globalDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), null);
-			if (globalDecision == AuthorizationDecisionType.DENY) {
+			AuthorizationDecisionType globalReadDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase);
+			if (globalReadDecision == AuthorizationDecisionType.DENY) {
 				// shortcut
 				throw new AuthorizationException("Access denied");
 			}
-			if (globalDecision == AuthorizationDecisionType.ALLOW && securityConstraints.hasNoItemDecisions()) {
-				// shortcut, nothing to do
-			} else {
-				applySecurityConstraints((List)object.getValue().getItems(), securityConstraints, globalDecision);
-				if (object.isEmpty()) {
-					// let's make it explicit
-					throw new AuthorizationException("Access denied");
-				}
+			applySecurityConstraints((List)object.getValue().getItems(), securityConstraints, globalReadDecision,
+					securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
+					securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase),
+					phase);
+			if (object.isEmpty()) {
+				// let's make it explicit
+				throw new AuthorizationException("Access denied");
 			}
 			
 		} catch (SecurityViolationException | SchemaException e) {

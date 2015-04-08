@@ -74,11 +74,18 @@ public class AbstractGenericSyncTest extends AbstractInitializedModelIntegration
 	
 	public static final File TEST_DIR = new File("src/test/resources/gensync");
 
+	protected static final File USER_OTIS_FILE = new File(TEST_DIR, "user-otis.xml");
+    protected static final String USER_OTIS_OID = "fd5039c8-ddc8-11e4-8ec7-001e8c717e5b";
+    protected static final String USER_OTIS_USERNAME = "otis";
+	
     protected static final File ROLE_SWASHBUCKLER_FILE = new File(TEST_DIR, "role-swashbuckler.xml");
     protected static final String ROLE_SWASHBUCKLER_OID = "12345678-d34d-b33f-f00d-5b5b5b5b5b5b";
     protected static final String ROLE_SWASHBUCKLER_NAME = "Swashbuckler";
     protected static final String ROLE_SWASHBUCKLER_DESCRIPTION = "Requestable role Swashbuckler";
 
+    protected static final File ROLE_PRISONER_FILE = new File(TEST_DIR, "role-prisoner.xml");
+    protected static final String ROLE_PRISONER_OID = "90c332ec-ddc8-11e4-bb3b-001e8c717e5b";
+    
     protected static final String GROUP_SWASHBUCKLER_DUMMY_NAME = "swashbuckler";
 
     protected static final File ROLE_META_DUMMYGROUP_FILE = new File(TEST_DIR, "role-meta-dummygroup.xml");
