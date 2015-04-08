@@ -55,6 +55,10 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto>{
 	
 	public void setReportType(ReportType reportType) {
 		this.reportType = reportType;
+		
+		if (getParametersTable() != null){
+			replace(createTablePanel());
+		}
 	}
 	
 	
@@ -65,19 +69,10 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto>{
 	
 	@Override
 	protected void initLayout() {
-		reportModel = new LoadableModel<ReportDto>() {
-			@Override
-			protected ReportDto load() {
-				return new ReportDto(reportType, true);
-			}
-		};
+		
 
-	        ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<JasperReportParameterDto>(this,
-                new PropertyModel<List<JasperReportParameterDto>>(reportModel, "jasperReportDto.parameters"));
-        TablePanel table = new TablePanel<>(ID_PARAMETERS_TABLE, provider, initParameterColumns());
-        table.setOutputMarkupId(true);
-        table.setShowPaging(true);
-        add(table);
+	   TablePanel table = createTablePanel();
+       add(table);
         
         AjaxButton addButton = new AjaxButton(ID_RUN,
                 createStringResource("runReportPopupContent.button.run")) {
@@ -91,8 +86,28 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto>{
 
 	}
 	
+	private TablePanel createTablePanel(){
+		reportModel = new LoadableModel<ReportDto>() {
+			@Override
+			protected ReportDto load() {
+				return new ReportDto(reportType, true);
+			}
+		};
+		
+		 ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<JasperReportParameterDto>(this,
+	                new PropertyModel<List<JasperReportParameterDto>>(reportModel, "jasperReportDto.parameters"));
+	        TablePanel table = new TablePanel<>(ID_PARAMETERS_TABLE, provider, initParameterColumns());
+	        table.setOutputMarkupId(true);
+	        table.setShowPaging(true);
+	        return table;
+	}
+	
+	private TablePanel getParametersTable(){
+		return (TablePanel) get(ID_PARAMETERS_TABLE);
+	}
+	
 	private List<JasperReportParameterDto> getParameters(){
-		TablePanel table = (TablePanel) get(ID_PARAMETERS_TABLE);
+		TablePanel table = getParametersTable();
 		List<JasperReportParameterDto> params = ((ListDataProvider) table.getDataTable().getDataProvider()).getAvailableData();
 		return params;
 	}
