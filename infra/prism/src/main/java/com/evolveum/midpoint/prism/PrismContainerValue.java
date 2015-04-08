@@ -1325,8 +1325,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	}
 
 	protected void deepCloneDefinition(boolean ultraDeep, PrismContainerDefinition<C> clonedContainerDef) {
-		for (Item<?,?> item: items) {
-			deepCloneDefinitionItem(item, ultraDeep, clonedContainerDef);
+		if (items != null) {
+			for (Item<?,?> item: items) {
+				deepCloneDefinitionItem(item, ultraDeep, clonedContainerDef);
+			}
 		}
 	}
 	

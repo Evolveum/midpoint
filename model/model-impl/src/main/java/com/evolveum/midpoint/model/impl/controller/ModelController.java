@@ -2060,6 +2060,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		applyObjectTemplateToObject(object, objectTemplateType, result);
 		
 		result.computeStatus();
+		result.recordSuccessIfUnknown();
     }
 	
 	private <T extends ObjectType> void validateObject(PrismObject<T> object, GetOperationOptions options, OperationResult result) {

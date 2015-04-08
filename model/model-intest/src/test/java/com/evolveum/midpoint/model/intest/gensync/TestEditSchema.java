@@ -1103,6 +1103,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     }
 
 	// TODO: Store jack's preferred language and check the schema again
+    // TODO: log-in as user with some items restricted and check the schema again
     
     private <O extends ObjectType, T> void assertProperty(PrismObject<O> object, QName propName,
 			Validator<PrismPropertyDefinition<T>> validator, T... expectedValues) throws Exception {
