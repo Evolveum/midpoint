@@ -46,8 +46,10 @@ import java.util.List;
 public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
 
     private OperationResult result;
+    private PageBase pageBase;
 
-    public WizardStep() {
+    public WizardStep(PageBase pageBase) {
+        this.pageBase = pageBase;
         setTitleModel(new StringResourceModel("WizardStep.title", this, null, "WizardStep.title"));
     }
 
@@ -63,7 +65,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     }
 
     public PageBase getPageBase() {
-        return (PageBase) getPage();
+        return pageBase;
     }
 
     public String getString(String resourceKey, Object... objects) {

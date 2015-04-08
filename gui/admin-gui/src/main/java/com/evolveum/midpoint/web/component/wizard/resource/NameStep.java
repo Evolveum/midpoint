@@ -79,7 +79,8 @@ public class NameStep extends WizardStep {
     //filtered, based on selection
     private LoadableModel<List<PrismObject<ConnectorType>>> connectorTypes;
 
-    public NameStep(IModel<PrismObject<ResourceType>> model) {
+    public NameStep(IModel<PrismObject<ResourceType>> model, PageBase pageBase) {
+        super(pageBase);
         this.resourceModel = model;
 
         connectorsModel = new LoadableModel<List<PrismObject<ConnectorType>>>(false) {

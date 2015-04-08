@@ -58,7 +58,8 @@ public class SchemaStep extends WizardStep {
     private static final String ID_RELOAD = "reload";
     private IModel<PrismObject<ResourceType>> model;
 
-    public SchemaStep(IModel<PrismObject<ResourceType>> model) {
+    public SchemaStep(IModel<PrismObject<ResourceType>> model, PageBase pageBase) {
+        super(pageBase);
         this.model = model;
         setOutputMarkupId(true);
 

@@ -68,7 +68,8 @@ public class ConfigurationStep extends WizardStep {
     private boolean isNewResource;
     private IModel<ObjectWrapper> configurationProperties;
 
-    public ConfigurationStep(IModel<PrismObject<ResourceType>> resourceModel, boolean isNewResource) {
+    public ConfigurationStep(IModel<PrismObject<ResourceType>> resourceModel, boolean isNewResource, PageBase pageBase) {
+        super(pageBase);
         this.resourceModel = resourceModel;
         this.isNewResource = isNewResource;
 
