@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,15 +51,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvalua
 /**
  * @author Radovan Semancik
  */
-public class AsIsExpressionEvaluator<V extends PrismValue> implements ExpressionEvaluator<V> {
+public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
 	
 	private PrismContext prismContext;
-	ItemDefinition outputDefinition;
+	D outputDefinition;
 	private AsIsExpressionEvaluatorType asIsExpressionEvaluatorType;
 	private Protector protector;
 
 	public AsIsExpressionEvaluator(AsIsExpressionEvaluatorType asIsExpressionEvaluatorType, 
-			ItemDefinition outputDefinition, Protector protector, PrismContext prismContext) {
+			D outputDefinition, Protector protector, PrismContext prismContext) {
 		this.asIsExpressionEvaluatorType = asIsExpressionEvaluatorType;
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
@@ -70,12 +70,12 @@ public class AsIsExpressionEvaluator<V extends PrismValue> implements Expression
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
         
-		Source<V> source;
+		Source<V,D> source;
     	if (params.getSources().isEmpty()) {
     		throw new ExpressionEvaluationException("asIs evaluator cannot work without a source in "+params.getContextDescription());
     	}
     	if (params.getSources().size() > 1) {
-    		Source<V> defaultSource = (Source<V>) params.getDefaultSource();
+    		Source<V,D> defaultSource = (Source<V,D>) params.getDefaultSource();
     		if (defaultSource != null) {
     			source = defaultSource;
     		} else {
@@ -83,7 +83,7 @@ public class AsIsExpressionEvaluator<V extends PrismValue> implements Expression
     				+" sources specified) without specification of a default source, in "+params.getContextDescription());
     		}
     	} else {
-    		source = (Source<V>) params.getSources().iterator().next();
+    		source = (Source<V,D>) params.getSources().iterator().next();
     	}
         PrismValueDeltaSetTriple<V> sourceTriple = ItemDelta.toDeltaSetTriple(source.getItemOld(), source.getDelta());
         

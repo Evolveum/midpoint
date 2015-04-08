@@ -287,7 +287,7 @@ public class GeneralNotifier extends BaseHandler {
     protected void appendModifications(StringBuilder body, ObjectDelta<? extends ObjectType> delta, List<ItemPath> hiddenPaths, Boolean showValuesBoolean) {
 
         boolean showValues = !Boolean.FALSE.equals(showValuesBoolean);
-        for (ItemDelta<? extends PrismValue> itemDelta : delta.getModifications()) {
+        for (ItemDelta<?,?> itemDelta : delta.getModifications()) {
             if (NotificationsUtil.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
                 continue;
             }

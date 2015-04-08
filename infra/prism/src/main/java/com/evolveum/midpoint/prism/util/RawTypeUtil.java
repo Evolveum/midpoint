@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2013-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.prism.util;
 
 import java.util.ArrayList;
@@ -39,16 +55,16 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 public class RawTypeUtil {
 
 	
-	public static <V extends PrismValue> Item<V> getParsedItem(ItemDefinition itemDefinition, List<RawType> values, QName elementQName, PrismContainerDefinition containerDef) throws SchemaException{
+	public static <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getParsedItem(ID itemDefinition, List<RawType> values, QName elementQName, PrismContainerDefinition containerDef) throws SchemaException{
 		
-		Item<V> subItem = null;
+		Item<IV,ID> subItem = null;
 		
-		List<V> parsedValues = new ArrayList<V>();
+		List<IV> parsedValues = new ArrayList<IV>();
 		for (RawType rawValue : values){
 			if (itemDefinition == null && containerDef != null){
-				itemDefinition = containerDef.getPrismContext().getXnodeProcessor().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());
+				itemDefinition = (ID) containerDef.getPrismContext().getXnodeProcessor().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());
 			}
-			V parsed = rawValue.getParsedValue(itemDefinition, elementQName);
+			IV parsed = rawValue.getParsedValue(itemDefinition, elementQName);
 			if (parsed != null){
 				parsedValues.add(parsed);
 			}
@@ -72,25 +88,25 @@ public class RawTypeUtil {
 			if (itemDefinition instanceof PrismPropertyDefinition<?>) {
 				// property
 				PrismProperty<?> property = ((PrismPropertyDefinition<?>) itemDefinition).instantiate();
-				for (V val : parsedValues){
+				for (IV val : parsedValues){
 					property.add((PrismPropertyValue) val.clone());
 				}
-				subItem = (Item<V>) property;
+				subItem = (Item<IV,ID>) property;
 				
 			} else if (itemDefinition instanceof PrismContainerDefinition<?>) {
 					PrismContainer<?> container = ((PrismContainerDefinition<?>) itemDefinition)
 							.instantiate();
-					for (V val : parsedValues){
+					for (IV val : parsedValues){
 						container.add((PrismContainerValue) val.clone());
 					}
-					subItem = (Item<V>) container;
+					subItem = (Item<IV,ID>) container;
 			} else if (itemDefinition instanceof PrismReferenceDefinition) {
 				// TODO
 					PrismReference reference = ((PrismReferenceDefinition) itemDefinition).instantiate();
-					for (V val : parsedValues){
+					for (IV val : parsedValues){
 						reference.merge((PrismReferenceValue) val.clone());
 					}
-					subItem = (Item<V>) reference;
+					subItem = (Item<IV,ID>) reference;
 
 			} else {
 				throw new IllegalArgumentException("Unsupported definition type " + itemDefinition.getClass());

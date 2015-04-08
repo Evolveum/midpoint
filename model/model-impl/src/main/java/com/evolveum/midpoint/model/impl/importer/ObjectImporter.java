@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -399,7 +399,7 @@ public class ObjectImporter {
 
         	PrismObject<ResourceType> resource = (PrismObject<ResourceType>)object;
             ResourceType resourceType = resource.asObjectable();
-            PrismContainer<Containerable> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resource);
+            PrismContainer<ConnectorConfigurationType> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resource);
             if (configurationContainer == null || configurationContainer.isEmpty()) {
                 // Nothing to check
                 result.recordWarning("The resource has no configuration");
@@ -445,7 +445,7 @@ public class ObjectImporter {
 				return;
 			}
             QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
-    		PrismContainerDefinition<?> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
+    		PrismContainerDefinition<ConnectorConfigurationType> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
     		if (configContainerDef == null) {
     			result.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
                 return;

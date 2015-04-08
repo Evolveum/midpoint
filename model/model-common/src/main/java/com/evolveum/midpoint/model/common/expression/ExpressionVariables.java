@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,8 +78,8 @@ public class ExpressionVariables implements DebugDumpable {
         	if (value instanceof ObjectDeltaObject<?>) {
         		ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>)value;
         		value = odo.getOldObject();
-        	} else if (value instanceof ItemDeltaItem<?>) {
-        		ItemDeltaItem<?> idi = (ItemDeltaItem<?>)value;
+        	} else if (value instanceof ItemDeltaItem<?,?>) {
+        		ItemDeltaItem<?,?> idi = (ItemDeltaItem<?,?>)value;
         		value = idi.getItemOld();
         	}
             variables.put(entry.getKey(), value);
@@ -101,8 +101,8 @@ public class ExpressionVariables implements DebugDumpable {
         	if (value instanceof ObjectDeltaObject<?>) {
         		ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>)value;
         		value = odo.getNewObject();
-        	} else if (value instanceof ItemDeltaItem<?>) {
-        		ItemDeltaItem<?> idi = (ItemDeltaItem<?>)value;
+        	} else if (value instanceof ItemDeltaItem<?,?>) {
+        		ItemDeltaItem<?,?> idi = (ItemDeltaItem<?,?>)value;
         		value = idi.getItemNew();
         	}
             variables.put(entry.getKey(), value);

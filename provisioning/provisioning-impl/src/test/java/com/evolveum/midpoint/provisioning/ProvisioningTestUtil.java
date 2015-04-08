@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,7 +138,7 @@ public class ProvisioningTestUtil {
 		assertEquals("Wrong kind in repo shadow "+repoShadow, kind, repoShadowType.getKind());
 		PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("No attributes in repo shadow "+repoShadow, attributesContainer);
-		List<Item<?>> attributes = attributesContainer.getValue().getItems();
+		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
 		assertFalse("Empty attributes in repo shadow "+repoShadow, attributes.isEmpty());
 		assertEquals("Unexpected number of attributes in repo shadow "+repoShadow, 2, attributes.size());
 	}

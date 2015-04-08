@@ -384,7 +384,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	System.out.println(itemDeltaTypes);
     	
     	// WHEN
-    	ItemDelta<PrismValue> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaTypes.iterator().next(), userDef);
+    	ItemDelta<?,?> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaTypes.iterator().next(), userDef);
     	
     	// THEN
     	System.out.println("Parsed");
@@ -410,7 +410,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	System.out.println(itemDeltaTypes);
     	
     	// WHEN
-    	ItemDelta<PrismValue> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaTypes.iterator().next(), userDef);
+    	ItemDelta<?,?> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaTypes.iterator().next(), userDef);
 
     	// THEN
     	System.out.println("Parsed");
@@ -439,7 +439,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	System.out.println(xml);
     	
     	// WHEN
-    	ItemDelta<PrismValue> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaType, userDef);
+    	ItemDelta<?,?> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaType, userDef);
     	
     	// THEN
     	System.out.println("Parsed");

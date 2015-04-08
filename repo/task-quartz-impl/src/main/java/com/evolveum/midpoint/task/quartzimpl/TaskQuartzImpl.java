@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -281,9 +281,9 @@ public class TaskQuartzImpl implements Task {
         this.recreateQuartzTrigger = recreateQuartzTrigger;
     }
 
-    private Collection<ItemDelta<?>> pendingModifications = null;
+    private Collection<ItemDelta<?,?>> pendingModifications = null;
 
-	public void addPendingModification(ItemDelta<?> delta) {
+	public void addPendingModification(ItemDelta<?,?> delta) {
 		if (pendingModifications == null) {
 			pendingModifications = new ArrayList<>();
         }
@@ -312,7 +312,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
     @Override
-    public Collection<ItemDelta<?>> getPendingModifications() {
+    public Collection<ItemDelta<?,?>> getPendingModifications() {
         return pendingModifications;
     }
 
@@ -329,12 +329,12 @@ public class TaskQuartzImpl implements Task {
         quartzRelatedProperties.add(TaskType.F_HANDLER_URI);
 	}
 	
-	private void synchronizeWithQuartzIfNeeded(Collection<ItemDelta<?>> deltas, OperationResult parentResult) {
+	private void synchronizeWithQuartzIfNeeded(Collection<ItemDelta<?,?>> deltas, OperationResult parentResult) {
         if (isRecreateQuartzTrigger()) {
             synchronizeWithQuartz(parentResult);
             return;
         }
-        for (ItemDelta<?> delta : deltas) {
+        for (ItemDelta<?,?> delta : deltas) {
 			if (delta.getParentPath().isEmpty() && quartzRelatedProperties.contains(delta.getElementName())) {
 				synchronizeWithQuartz(parentResult);
 				return;
@@ -342,17 +342,17 @@ public class TaskQuartzImpl implements Task {
 		}
 	}
 
-	private void processModificationNow(ItemDelta<?> delta, OperationResult parentResult)
+	private void processModificationNow(ItemDelta<?,?> delta, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		if (delta != null) {
-			Collection<ItemDelta<?>> deltas = new ArrayList<ItemDelta<?>>(1);
+			Collection<ItemDelta<?,?>> deltas = new ArrayList<ItemDelta<?,?>>(1);
 			deltas.add(delta);
 			repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
 			synchronizeWithQuartzIfNeeded(deltas, parentResult);
 		}
 	}
 
-	private void processModificationBatched(ItemDelta<?> delta) {
+	private void processModificationBatched(ItemDelta<?,?> delta) {
 		if (delta != null) {
 			addPendingModification(delta);
 		}
@@ -646,14 +646,14 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding) {
-        pushHandlerUri(uri, schedule, binding, (Collection<ItemDelta<?>>) null);
+        pushHandlerUri(uri, schedule, binding, (Collection<ItemDelta<?,?>>) null);
     }
 
     @Override
-    public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?> delta) {
-        Collection<ItemDelta<?>> deltas = null;
+    public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?,?> delta) {
+        Collection<ItemDelta<?,?>> deltas = null;
         if (delta != null) {
-            deltas = new ArrayList<ItemDelta<?>>();
+            deltas = new ArrayList<ItemDelta<?,?>>();
             deltas.add(delta);
         }
         pushHandlerUri(uri, schedule, binding, deltas);
@@ -668,7 +668,7 @@ public class TaskQuartzImpl implements Task {
      * @param binding New binding
      */
     @Override
-	public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, Collection<ItemDelta<?>> extensionDeltas) {
+	public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, Collection<ItemDelta<?,?>> extensionDeltas) {
 
         Validate.notNull(uri);
         if (binding == null) {
@@ -704,7 +704,7 @@ public class TaskQuartzImpl implements Task {
         this.setRecreateQuartzTrigger(true);            // will be applied on modifications save
 	}
 
-    public ItemDelta<?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue) {
+    public ItemDelta<?,?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue) {
         PrismProperty<?> property = (PrismProperty<?>) definition.instantiate();
         property.setRealValue(realValue);
         PropertyDelta propertyDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition, realValue);
@@ -713,7 +713,7 @@ public class TaskQuartzImpl implements Task {
         return propertyDelta;
     }
 
-    private void storeExtensionDeltas(List<ItemDeltaType> result, Collection<ItemDelta<?>> extensionDeltas) {
+    private void storeExtensionDeltas(List<ItemDeltaType> result, Collection<ItemDelta<?,?>> extensionDeltas) {
 
         for (ItemDelta itemDelta : extensionDeltas) {
             Collection<ItemDeltaType> deltaTypes = null;
@@ -1680,7 +1680,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
     @Override
-    public Item<?> getExtensionItem(QName propertyName) {
+    public Item<?,?> getExtensionItem(QName propertyName) {
         if (getExtension() != null) {
             return getExtension().findItem(propertyName);
         } else {
@@ -1783,77 +1783,77 @@ public class TaskQuartzImpl implements Task {
         }
 	}
 	
-    private ItemDelta<?> setExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
+    private ItemDelta<?,?> setExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
         ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
-    private ItemDelta<?> setExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition, Collection<? extends PrismReferenceValue> values) throws SchemaException {
+    private ItemDelta<?,?> setExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition, Collection<? extends PrismReferenceValue> values) throws SchemaException {
         ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
-    private ItemDelta<?> addExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition, Collection<? extends PrismReferenceValue> values) throws SchemaException {
+    private ItemDelta<?,?> addExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition, Collection<? extends PrismReferenceValue> values) throws SchemaException {
         ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return addExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
-    private ItemDelta<?> setExtensionContainerAndPrepareDelta(QName itemName, PrismContainerDefinition definition, Collection<? extends PrismContainerValue> values) throws SchemaException {
+    private ItemDelta<?,?> setExtensionContainerAndPrepareDelta(QName itemName, PrismContainerDefinition definition, Collection<? extends PrismContainerValue> values) throws SchemaException {
         ItemDelta delta = new ContainerDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return setExtensionItemAndPrepareDeltaCommon(delta, values);
     }
 
-    private <V extends PrismValue> ItemDelta<?> setExtensionItemAndPrepareDeltaCommon(ItemDelta delta, Collection<V> values) throws SchemaException {
+    private <V extends PrismValue> ItemDelta<?,?> setExtensionItemAndPrepareDeltaCommon(ItemDelta delta, Collection<V> values) throws SchemaException {
 
         // these values should have no parent, otherwise the following will fail
         delta.setValuesToReplace(values);
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>(1);
         modifications.add(delta);
         PropertyDelta.applyTo(modifications, taskPrism);		// i.e. here we apply changes only locally (in memory)
 
         return isPersistent() ? delta : null;
     }
 
-    private <V extends PrismValue> ItemDelta<?> addExtensionItemAndPrepareDeltaCommon(ItemDelta delta, Collection<V> values) throws SchemaException {
+    private <V extends PrismValue> ItemDelta<?,?> addExtensionItemAndPrepareDeltaCommon(ItemDelta delta, Collection<V> values) throws SchemaException {
 
         // these values should have no parent, otherwise the following will fail
         delta.addValuesToAdd(values);
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>(1);
         modifications.add(delta);
         PropertyDelta.applyTo(modifications, taskPrism);		// i.e. here we apply changes only locally (in memory)
 
         return isPersistent() ? delta : null;
     }
 
-    private ItemDelta<?> modifyExtensionAndPrepareDelta(ItemDelta<?> delta) throws SchemaException {
+    private ItemDelta<?,?> modifyExtensionAndPrepareDelta(ItemDelta<?,?> delta) throws SchemaException {
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<ItemDelta<?,?>>(1);
         modifications.add(delta);
         PropertyDelta.applyTo(modifications, taskPrism);		// i.e. here we apply changes only locally (in memory)
 
         return isPersistent() ? delta : null;
     }
 
-    private ItemDelta<?> addExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
+    private ItemDelta<?,?> addExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
         ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 
         delta.addValuesToAdd(values);
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>(1);
         modifications.add(delta);
         PropertyDelta.applyTo(modifications, taskPrism);		// i.e. here we apply changes only locally (in memory)
 
         return isPersistent() ? delta : null;
     }
 
-    private ItemDelta<?> deleteExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
+    private ItemDelta<?,?> deleteExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
         ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 
         delta.addValuesToDelete(values);
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>(1);
         modifications.add(delta);
         PropertyDelta.applyTo(modifications, taskPrism);		// i.e. here we apply changes only locally (in memory)
 
@@ -2311,7 +2311,7 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Deprecated
-    public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?>> extensionDeltas, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?,?>> extensionDeltas, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "waitForSubtasks");
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);

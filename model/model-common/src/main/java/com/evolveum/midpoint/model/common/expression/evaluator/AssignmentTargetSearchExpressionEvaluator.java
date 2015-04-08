@@ -21,6 +21,7 @@ import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -40,12 +41,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectRefExpre
  * @author Radovan Semancik
  */
 public class AssignmentTargetSearchExpressionEvaluator 
-			extends AbstractSearchExpressionEvaluator<PrismContainerValue<AssignmentType>> {
+			extends AbstractSearchExpressionEvaluator<PrismContainerValue<AssignmentType>,
+			                                          PrismContainerDefinition<AssignmentType>> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTargetSearchExpressionEvaluator.class);
 	
 	public AssignmentTargetSearchExpressionEvaluator(SearchObjectRefExpressionEvaluatorType expressionEvaluatorType, 
-			ItemDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
+			PrismContainerDefinition<AssignmentType> outputDefinition, Protector protector, ObjectResolver objectResolver, 
 			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
 		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
 	}

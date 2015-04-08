@@ -49,7 +49,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
-public class LiteralExpressionEvaluator<V extends PrismValue> implements ExpressionEvaluator<V> {
+public class LiteralExpressionEvaluator<V extends PrismValue,D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
 	
 	PrismValueDeltaSetTriple<V> outputTriple;
 	

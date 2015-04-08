@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,8 +77,8 @@ public class CloneUtil {
         if (orig instanceof RawType){
 			return (T) ((RawType) orig).clone();
 		}
-		if (orig instanceof Item<?>) {
-			return (T) ((Item<?>)orig).clone();
+		if (orig instanceof Item<?,?>) {
+			return (T) ((Item<?,?>)orig).clone();
 		}
 		if (orig instanceof PrismValue) {
 			return (T) ((PrismValue)orig).clone();
@@ -89,8 +89,8 @@ public class CloneUtil {
 		if (orig instanceof ObjectDeltaType) {
 			return (T) ((ObjectDeltaType) orig).clone();
 		}
-		if (orig instanceof ItemDelta<?>) {
-			return (T) ((ItemDelta<?>)orig).clone();
+		if (orig instanceof ItemDelta<?,?>) {
+			return (T) ((ItemDelta<?,?>)orig).clone();
 		}
 		if (orig instanceof Definition) {
 			return (T) ((Definition)orig).clone();

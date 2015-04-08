@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.prism.PrismContext;
-
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
@@ -141,7 +142,7 @@ public class TestExpressionUtil {
     	// GIVEN
 
     	// WHEN
-    	ItemDeltaItem<PrismPropertyValue<PolyString>> idi = resolvePathOdo("$user/fullName", TEST_NAME);
+    	ItemDeltaItem<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> idi = resolvePathOdo("$user/fullName", TEST_NAME);
     	
     	// THEN
     	assertEquals("Wrong resolved idi old value", PrismTestUtil.createPolyString("Jack Sparrow"), 
@@ -162,7 +163,7 @@ public class TestExpressionUtil {
     	// GIVEN
 
     	// WHEN
-    	ItemDeltaItem<PrismPropertyValue<PolyString>> idi = resolvePathOdo("$user/fullName/t:orig", TEST_NAME);
+    	ItemDeltaItem<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> idi = resolvePathOdo("$user/fullName/t:orig", TEST_NAME);
     	
     	// THEN
     	assertEquals("Wrong resolved idi old value", PrismTestUtil.createPolyString("Jack Sparrow"), 
@@ -181,7 +182,7 @@ public class TestExpressionUtil {
     	// GIVEN
 
     	// WHEN
-    	ItemDeltaItem<PrismPropertyValue<PolyString>> idi = resolvePathOdo("$user/fullName/t:norm", TEST_NAME);
+    	ItemDeltaItem<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> idi = resolvePathOdo("$user/fullName/t:norm", TEST_NAME);
     	
     	// THEN
     	assertEquals("Wrong resolved idi old value", PrismTestUtil.createPolyString("Jack Sparrow"), 

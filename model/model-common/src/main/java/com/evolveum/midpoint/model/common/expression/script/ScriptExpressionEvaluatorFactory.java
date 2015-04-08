@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,8 +53,8 @@ public class ScriptExpressionEvaluatorFactory implements ExpressionEvaluatorFact
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.ItemDefinition)
 	 */
 	@Override
-	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-			ItemDefinition outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
+	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
+			D outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
 		
 		if (evaluatorElements.size() > 1) {
 			throw new SchemaException("More than one evaluator specified in "+contextDescription);

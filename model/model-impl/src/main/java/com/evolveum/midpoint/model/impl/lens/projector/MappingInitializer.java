@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -24,8 +25,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
-public interface MappingInitializer<V extends PrismValue> {
+public interface MappingInitializer<V extends PrismValue,D extends ItemDefinition> {
 
-	void initialize(Mapping<V> mapping) throws SchemaException;
+	void initialize(Mapping<V,D> mapping) throws SchemaException;
 	
 }

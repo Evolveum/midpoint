@@ -526,7 +526,7 @@ public class Clockwork {
 		if (delta.isAdd() || delta.isDelete()) {
 			return true;
 		}
-		Collection<? extends ItemDelta<?>> attrDeltas = delta.findItemDeltasSubPath(new ItemPath(ShadowType.F_ATTRIBUTES));
+		Collection<? extends ItemDelta<?,?>> attrDeltas = delta.findItemDeltasSubPath(new ItemPath(ShadowType.F_ATTRIBUTES));
 		if (attrDeltas != null && !attrDeltas.isEmpty()) {
 			return true;
 		}

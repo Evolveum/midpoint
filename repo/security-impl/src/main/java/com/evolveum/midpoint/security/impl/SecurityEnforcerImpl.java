@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -500,14 +500,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		for (ItemPathType itemPathType: itemPaths) {
 			ItemPath itemPath = itemPathType.getItemPath();
 			if (object != null) {
-				Item<?> item = object.findItem(itemPath);
+				Item<?,?> item = object.findItem(itemPath);
 				if (item != null && !item.isEmpty()) {
 					LOGGER.trace("  applicable object item "+itemPath);
 					return true;
 				}
 			}
 			if (delta != null) {
-				ItemDelta<PrismValue> itemDelta = delta.findItemDelta(itemPath);
+				ItemDelta<?,?> itemDelta = delta.findItemDelta(itemPath);
 				if (itemDelta != null && !itemDelta.isEmpty()) {
 					LOGGER.trace("  applicable delta item "+itemPath);
 					return true;

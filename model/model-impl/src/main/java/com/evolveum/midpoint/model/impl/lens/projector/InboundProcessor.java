@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -327,7 +327,7 @@ public class InboundProcessor {
 		return null;
 	}
 
-	private <F extends ObjectType> boolean checkWeakSkip(Mapping<?> inbound, PrismObject<F> newUser) throws SchemaException {
+	private <F extends ObjectType> boolean checkWeakSkip(Mapping<?,?> inbound, PrismObject<F> newUser) throws SchemaException {
         if (inbound.getStrength() != MappingStrengthType.WEAK) {
         	return false;
         }
@@ -350,14 +350,14 @@ public class InboundProcessor {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
         }
     	
-    	Mapping<PrismPropertyValue<U>> mapping = mappingFactory.createMapping(inboundMappingType, 
+    	Mapping<PrismPropertyValue<U>,PrismPropertyDefinition<U>> mapping = mappingFactory.createMapping(inboundMappingType, 
     			"inbound expression for "+accountAttributeName+" in "+resource);
     	
     	if (!mapping.isApplicableToChannel(context.getChannel())) {
     		return null;
     	}
     	
-    	Source<PrismPropertyValue<A>> defaultSource = new Source<PrismPropertyValue<A>>(oldAccountProperty, accountAttributeDelta, null, ExpressionConstants.VAR_INPUT);
+    	Source<PrismPropertyValue<A>,PrismPropertyDefinition<A>> defaultSource = new Source<>(oldAccountProperty, accountAttributeDelta, null, ExpressionConstants.VAR_INPUT);
     	defaultSource.recompute();
 		mapping.setDefaultSource(defaultSource);
 		mapping.setTargetContext(LensUtil.getFocusDefinition(context));
@@ -612,15 +612,15 @@ public class InboundProcessor {
 			        }
 			        
 			        ObjectDelta<ShadowType> aPrioriShadowDelta = getAPrioriDelta(context, accContext);
-			        ItemDelta<PrismPropertyValue<?>> specialAttributeDelta = null;
+			        ItemDelta<PrismPropertyValue<?>,PrismPropertyDefinition<?>> specialAttributeDelta = null;
 			        if (aPrioriShadowDelta != null){
 			        	specialAttributeDelta = aPrioriShadowDelta.findItemDelta(sourcePath);
 			        }
-			        ItemDeltaItem<PrismPropertyValue<?>> sourceIdi = accContext.getObjectDeltaObject().findIdi(sourcePath);
+			        ItemDeltaItem<PrismPropertyValue<?>,PrismPropertyDefinition<?>> sourceIdi = accContext.getObjectDeltaObject().findIdi(sourcePath);
 			        if (specialAttributeDelta == null){
 			        	specialAttributeDelta = sourceIdi.getDelta();
 			        }
-			        Source<PrismPropertyValue<?>> source = new Source<PrismPropertyValue<?>>(sourceIdi.getItemOld(), specialAttributeDelta, 
+			        Source<PrismPropertyValue<?>,PrismPropertyDefinition<?>> source = new Source<>(sourceIdi.getItemOld(), specialAttributeDelta, 
 			        		sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
 					mapping.setDefaultSource(source);
 					
@@ -672,7 +672,7 @@ public class InboundProcessor {
 			}
 		};
         
-        MappingEvaluatorHelperParams<PrismValue, F, F> params = new MappingEvaluatorHelperParams<>();
+        MappingEvaluatorHelperParams<PrismValue, ItemDefinition, F, F> params = new MappingEvaluatorHelperParams<>();
         params.setMappingTypes(inboundMappingTypes);
         params.setMappingDesc("inbound mapping for " + sourcePath + " in " + accContext.getResource());
         params.setNow(now);
@@ -697,7 +697,7 @@ public class InboundProcessor {
 			Collection<MappingType> inboundMappingTypes, String description, String channelUri) {
     	Collection<Mapping> inboundMappings = new ArrayList<Mapping>(); 
 		for (MappingType inboundMappingType : inboundMappingTypes){
-			Mapping<PrismPropertyValue<?>> mapping = mappingFactory.createMapping(inboundMappingType, 
+			Mapping<PrismPropertyValue<?>,PrismPropertyDefinition<?>> mapping = mappingFactory.createMapping(inboundMappingType, 
 	        		description);
 			
 			if (mapping.isApplicableToChannel(channelUri)){

@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2015 Evolveum
+/**
+ * Copyright (c) 2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.evolveum.midpoint.repo.sql.testing;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+package com.evolveum.midpoint.util;
 
 /**
- * @author semancik
- *
+ * Interface for object validation (mostly to be used in tests).
+ * 
+ * @author Radovan Semancik
  */
-public interface CarefulAnt<O extends ObjectType> {
-	ItemDelta<?,?> createDelta(int iteration) throws SchemaException;
-	void assertModification(PrismObject<O> object, int iteration);
+public interface Validator<T> {
+	
+	/**
+	 * Validate the provided object. Throws appropriate exception if
+	 * the object is not valid.
+	 * 
+	 * @param object object to validate
+	 * @param name short string name of the object. Designed to be used in exception messages.
+	 * @throws Exception appropriate exception if the object is not valid.
+	 */
+	void validate(T object, String name) throws Exception;
+
 }

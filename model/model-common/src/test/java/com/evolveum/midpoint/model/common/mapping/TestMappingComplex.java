@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -59,7 +60,7 @@ public class TestMappingComplex {
     			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Jackie");
     	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "321");
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME, 
     			TEST_NAME, "title", delta);
 		    	        
@@ -88,7 +89,7 @@ public class TestMappingComplex {
 		PrismObject<UserType> userOld = evaluator.getUserOld();
 		userOld.asObjectable().getEmployeeType().clear();
 		userOld.asObjectable().getEmployeeType().add("WHATEVER");
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME, 
     			TEST_NAME, "title", delta, userOld);
 		    	        
@@ -114,7 +115,7 @@ public class TestMappingComplex {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			evaluator.toPath("costCenter"), evaluator.getPrismContext(), "X606");
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME, 
     			TEST_NAME, "title", delta);
 		    	        
@@ -142,7 +143,7 @@ public class TestMappingComplex {
     	PrismObject<UserType> userOld = evaluator.getUserOld();
 		userOld.asObjectable().getEmployeeType().clear();
 		userOld.asObjectable().getEmployeeType().add("WHATEVER");
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME, 
     			TEST_NAME, "title", delta, userOld);
 		    	        
@@ -167,7 +168,7 @@ public class TestMappingComplex {
 		user.asObjectable().getEmployeeType().add("WHATEVER");
 		ObjectDelta<UserType> delta = user.createAddDelta();
 		
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME, 
     			TEST_NAME, "title", delta);
 		    	        
@@ -191,7 +192,7 @@ public class TestMappingComplex {
 		user.asObjectable().getEmployeeType().clear();
 		ObjectDelta<UserType> delta = user.createAddDelta();
 		
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME, 
     			TEST_NAME, "title", delta);
 		    	        

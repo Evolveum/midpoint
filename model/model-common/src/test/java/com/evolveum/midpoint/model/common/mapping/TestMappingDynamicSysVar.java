@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -88,7 +89,7 @@ public class TestMappingDynamicSysVar {
     	user.asObjectable().getEmployeeType().add("CAPTAIN");
     	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename, 
     			TEST_NAME, "title", delta);
 		    	        
@@ -116,7 +117,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			evaluator.toPath("employeeNumber"), evaluator.getPrismContext(), "666");
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-script-system-variables-condition-groovy.xml", 
     			TEST_NAME, "title", delta);
 		    	        
@@ -155,7 +156,7 @@ public class TestMappingDynamicSysVar {
     	user.asObjectable().getEmployeeType().add("SAILOR");
     	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename, 
     			TEST_NAME, "title", delta);
 		    	        
@@ -194,7 +195,7 @@ public class TestMappingDynamicSysVar {
     	employeeTypeProperty.clear();
     	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename, 
     			TEST_NAME, "title", delta);
 		    	        
@@ -233,7 +234,7 @@ public class TestMappingDynamicSysVar {
     	user.removeProperty(UserType.F_EMPLOYEE_TYPE);
     	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename, 
     			TEST_NAME, "title", delta);
 		
@@ -266,7 +267,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename, 
     			TEST_NAME, "title", delta);
 		
@@ -304,7 +305,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename, 
     			TEST_NAME, "title", delta);
     	        
@@ -337,7 +338,7 @@ public class TestMappingDynamicSysVar {
     			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
     	delta.addModificationAddProperty(evaluator.toPath("employeeType"), "CAPTAIN");
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename, TEST_NAME, "title", delta);
     	        
     	OperationResult opResult = new OperationResult(TEST_NAME);
@@ -371,7 +372,7 @@ public class TestMappingDynamicSysVar {
     			evaluator.toPath("name"), evaluator.getPrismContext(), "Jack");
     	delta.addModificationDeleteProperty(evaluator.toPath("employeeType"), "CAPTAIN");
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename, TEST_NAME, "title", delta);
 		
 		PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
@@ -421,7 +422,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename, 
     			TEST_NAME, "title", delta);
 		
@@ -461,7 +462,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			evaluator.toPath("employeeNumber"), evaluator.getPrismContext());
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename, 
     			TEST_NAME, "title", delta);
 		
@@ -512,7 +513,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename, 
     			TEST_NAME, "title", delta);
 		
@@ -550,7 +551,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			evaluator.toPath("employeeNumber"), evaluator.getPrismContext(), "666");
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename, 
     			TEST_NAME, "title", delta);
 		
@@ -579,7 +580,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Captain Sparrow");
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-npe.xml", 
     			TEST_NAME, "title", delta);
 		    	        
@@ -604,7 +605,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext());
     	
-		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-npe.xml", 
     			TEST_NAME, "title", delta);
 		
@@ -633,7 +634,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, evaluator.getPrismContext(), ActivationStatusType.DISABLED);
     	
-		Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
 				"mapping-path-enum.xml", 
     			TEST_NAME, "costCenter", delta);
 		    	        
@@ -780,7 +781,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "B");
     	
-		Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
 				"mapping-script-system-variables-employee-type.xml", 
     			TEST_NAME, "employeeType", delta);
 		
@@ -810,7 +811,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "B");
     	
-		Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
 				"mapping-script-system-variables-employee-type.xml", 
     			TEST_NAME, "employeeType", delta);
 		
@@ -840,7 +841,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "B");
     	
-		Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
 				"mapping-script-system-variables-employee-type.xml", 
     			TEST_NAME, "employeeType", delta);
 		
@@ -929,7 +930,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationAddProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), addVal);
     	
-		Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
 				"mapping-script-system-variables-employee-type.xml", 
     			TEST_NAME, "employeeType", delta);
 		
@@ -1021,7 +1022,7 @@ public class TestMappingDynamicSysVar {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), delVal);
     	
-		Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(
+		Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
 				"mapping-script-system-variables-employee-type.xml", 
     			TEST_NAME, "employeeType", delta);
 		

@@ -193,7 +193,7 @@ public class MiscSchemaUtil {
      * Convenience method that helps avoid some compiler warnings.
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public static Collection<? extends ItemDelta<?>> createCollection(ItemDelta<?>... deltas) {
+	public static Collection<? extends ItemDelta<?,?>> createCollection(ItemDelta<?,?>... deltas) {
     	return (Collection)MiscUtil.createCollection(deltas);
     }
     

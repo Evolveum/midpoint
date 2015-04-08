@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,8 +168,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     
     private transient Collection<ResourceObjectTypeDependencyType> dependencies = null;
     
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> squeezedAttributes;
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> squeezedAssociations;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations;
     
     // Cached copy, to avoid constructing it over and over again
     private transient PrismObjectDefinition<ShadowType> shadowDefinition = null;
@@ -464,20 +464,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		this.outboundConstruction = outboundConstruction;
 	}
 
-    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> getSqueezedAttributes() {
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> getSqueezedAttributes() {
 		return squeezedAttributes;
 	}
 
-	public void setSqueezedAttributes(Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> squeezedAttributes) {
+	public void setSqueezedAttributes(Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes) {
 		this.squeezedAttributes = squeezedAttributes;
 	}
 	
-	public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> getSqueezedAssociations() {
+	public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> getSqueezedAssociations() {
 		return squeezedAssociations;
 	}
 
 	public void setSqueezedAssociations(
-			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> squeezedAssociations) {
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations) {
 		this.squeezedAssociations = squeezedAssociations;
 	}
 
@@ -856,19 +856,19 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		clone.wave = this.wave;
 	}
 
-	private Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> cloneSqueezedAttributes() {
+	private Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> cloneSqueezedAttributes() {
 		if (squeezedAttributes == null) {
 			return null;
 		}
-		Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> clonedMap 
-		= new HashMap<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>>();
-		Cloner<ItemValueWithOrigin<PrismPropertyValue<?>>> cloner = new Cloner<ItemValueWithOrigin<PrismPropertyValue<?>>>() {
+		Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> clonedMap 
+		= new HashMap<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>>();
+		Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> cloner = new Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>() {
 			@Override
-			public ItemValueWithOrigin<PrismPropertyValue<?>> clone(ItemValueWithOrigin<PrismPropertyValue<?>> original) {
+			public ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> clone(ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> original) {
 				return original.clone();
 			}
 		};
-		for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> entry: squeezedAttributes.entrySet()) {
+		for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> entry: squeezedAttributes.entrySet()) {
 			clonedMap.put(entry.getKey(), entry.getValue().clone(cloner));
 		}
 		return clonedMap;

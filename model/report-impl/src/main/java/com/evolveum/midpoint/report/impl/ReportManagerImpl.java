@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
@@ -243,7 +244,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
              if (reportType.getTemplate() == null)
              {
             	 PrismSchema reportSchema = null;
-            	 PrismContainer<Containerable> parameterConfiguration = null;  
+            	 PrismContainer<ReportConfigurationType> parameterConfiguration = null;  
             	 try
             	 {
             		reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);

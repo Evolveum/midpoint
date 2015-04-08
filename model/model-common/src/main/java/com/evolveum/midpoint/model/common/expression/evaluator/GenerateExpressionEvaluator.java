@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,17 +64,17 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author semancik
  *
  */
-public class GenerateExpressionEvaluator<V extends PrismValue> implements ExpressionEvaluator<V> {
+public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
 
 	public static final int DEFAULT_LENGTH = 8;
 
 	private GenerateExpressionEvaluatorType generateEvaluatorType;
-	private ItemDefinition outputDefinition;
+	private D outputDefinition;
 	private Protector protector;
 	private PrismContext prismContext;
 	private StringPolicyType elementStringPolicy;
 
-	GenerateExpressionEvaluator(GenerateExpressionEvaluatorType generateEvaluatorType, ItemDefinition outputDefinition,
+	GenerateExpressionEvaluator(GenerateExpressionEvaluatorType generateEvaluatorType, D outputDefinition,
 			Protector protector, StringPolicyType elementStringPolicy, PrismContext prismContext) {
 		this.generateEvaluatorType = generateEvaluatorType;
 		this.outputDefinition = outputDefinition;
@@ -172,7 +172,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
         	throw new IllegalArgumentException("Generate value constructor cannot generate values for properties of type " + outputType);
         }
                 
-		Item<V> output = outputDefinition.instantiate();
+		Item<V,D> output = outputDefinition.instantiate();
 		if (output instanceof PrismProperty) {
 			PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value);
 			((PrismProperty<Object>)output).add(pValue);
