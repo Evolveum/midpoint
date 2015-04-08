@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -193,13 +193,13 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
-		List<Item<?>> configItems = configContainerValue.getItems();
+		List<Item<?,?>> configItems = configContainerValue.getItems();
 		assertEquals("Wrong number of config items", 1, configItems.size());
 		
 		PrismContainer<?> dummyConfigPropertiesContainer = configurationContainer.findContainer(
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 		assertNotNull("No icfc:configurationProperties container", dummyConfigPropertiesContainer);
-		List<Item<?>> dummyConfigPropItems = dummyConfigPropertiesContainer.getValue().getItems();
+		List<Item<?,?>> dummyConfigPropItems = dummyConfigPropertiesContainer.getValue().getItems();
 		assertEquals("Wrong number of dummy ConfigPropItems items", 4, dummyConfigPropItems.size());
 	}
 

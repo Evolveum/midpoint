@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@ import com.evolveum.midpoint.task.api.Task;
  */
 public class ExpressionEvaluationContext {
 
-	private Collection<Source<? extends PrismValue>> sources;
-	private Source<?> defaultSource;
+	private Collection<Source<?,?>> sources;
+	private Source<?,?> defaultSource;
 	private ExpressionVariables variables;
 	private boolean skipEvaluationPlus = false;
 	private boolean skipEvaluationMinus = false;
@@ -50,7 +50,7 @@ public class ExpressionEvaluationContext {
 	private Task task;
 	private OperationResult result;
 	
-	public ExpressionEvaluationContext(Collection<Source<? extends PrismValue>> sources,
+	public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
 			ExpressionVariables variables, String contextDescription, Task task,
 			OperationResult result) {
 		super();
@@ -61,19 +61,19 @@ public class ExpressionEvaluationContext {
 		this.result = result;
 	}
 
-	public Collection<Source<? extends PrismValue>> getSources() {
+	public Collection<Source<?,?>> getSources() {
 		return sources;
 	}
 	
-	public void setSources(Collection<Source<? extends PrismValue>> sources) {
+	public void setSources(Collection<Source<?,?>> sources) {
 		this.sources = sources;
 	}
 	
-	public Source<?> getDefaultSource() {
+	public Source<?,?> getDefaultSource() {
 		return defaultSource;
 	}
 
-	public void setDefaultSource(Source<?> defaultSource) {
+	public void setDefaultSource(Source<?,?> defaultSource) {
 		this.defaultSource = defaultSource;
 	}
 

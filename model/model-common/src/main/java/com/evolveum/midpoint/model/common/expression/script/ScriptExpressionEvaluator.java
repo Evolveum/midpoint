@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.List;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTransformationExpressionEvaluator;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,8 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
 /**
  * @author Radovan Semancik
  */
-public class ScriptExpressionEvaluator<V extends PrismValue> 
-				extends AbstractValueTransformationExpressionEvaluator<V,ScriptExpressionEvaluatorType> {
+public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefinition> 
+				extends AbstractValueTransformationExpressionEvaluator<V,D,ScriptExpressionEvaluatorType> {
 
 	private ScriptExpression scriptExpression;
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -414,7 +414,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 			throw new IllegalStateException(values.size()+" values in ResourceAttributeContainer, expected just one");
 		}
 		PrismContainerValue value = values.get(0);
-		List<Item<?>> items = value.getItems();
+		List<Item<?,?>> items = value.getItems();
 		if (items == null) {
 			return;
 		}

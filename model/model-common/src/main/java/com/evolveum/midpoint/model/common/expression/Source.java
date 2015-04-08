@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,16 +31,16 @@ import com.evolveum.midpoint.util.PrettyPrinter;
  * @author semancik
  *
  */
-public class Source<V extends PrismValue> extends ItemDeltaItem<V> implements DebugDumpable {
+public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemDeltaItem<V,D> implements DebugDumpable {
 
 	private QName name;
 
-	public Source(Item<V> itemOld, ItemDelta<V> delta, Item<V> itemNew, QName name) {
+	public Source(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew, QName name) {
 		super(itemOld, delta, itemNew);
 		this.name = name;
 	}
 	
-	public Source(ItemDeltaItem<V> idi, QName name) {
+	public Source(ItemDeltaItem<V,D> idi, QName name) {
 		super(idi);
 		this.name = name;
 	}
@@ -53,7 +53,7 @@ public class Source<V extends PrismValue> extends ItemDeltaItem<V> implements De
 		this.name = name;
 	}
 	
-	public Item<V> getEmptyItem() {
+	public Item<V,D> getEmptyItem() {
 		ItemDefinition definition = getDefinition();
 		if (definition == null) {
 			throw new IllegalStateException("No definition in source "+this);

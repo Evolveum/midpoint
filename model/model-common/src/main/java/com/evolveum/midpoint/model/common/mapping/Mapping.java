@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueFilterType;
  * @author Radovan Semancik
  *
  */
-public class Mapping<V extends PrismValue> implements DebugDumpable {
+public class Mapping<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
 	
 	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 	
@@ -116,15 +116,15 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 	private MappingType mappingType;
 	private ObjectResolver objectResolver = null;
     private SecurityEnforcer securityEnforcer;          // in order to get c:actor variable
-	private Source<?> defaultSource = null;
-	private ItemDefinition defaultTargetDefinition = null;
+	private Source<?,?> defaultSource = null;
+	private D defaultTargetDefinition = null;
 	private ItemPath defaultTargetPath = null;
 	private ObjectDeltaObject<?> sourceContext = null;
 	private PrismObjectDefinition<?> targetContext = null;
 	private PrismValueDeltaSetTriple<V> outputTriple = null;
-	private ItemDefinition outputDefinition;
+	private D outputDefinition;
 	private ItemPath outputPath;
-	private Collection<Source<?>> sources = new ArrayList<Source<?>>();
+	private Collection<Source<?,?>> sources = new ArrayList<Source<?,?>>();
 	private boolean conditionMaskOld = true;
 	private boolean conditionMaskNew = true;
 	private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionOutputTriple;
@@ -146,7 +146,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 	
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
-	private Expression<V> expression;
+	private Expression<V,D> expression;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Mapping.class);
 	
@@ -189,23 +189,23 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		this.originObject = originObject;
 	}
 
-	public void addSource(Source<?> source) {
+	public void addSource(Source<?,?> source) {
 		sources.add(source);
 	}
 	
-	public Source<?> getDefaultSource() {
+	public Source<?,?> getDefaultSource() {
 		return defaultSource;
 	}
 
-	public void setDefaultSource(Source<?> defaultSource) {
+	public void setDefaultSource(Source<?,?> defaultSource) {
 		this.defaultSource = defaultSource;
 	}
 
-	public ItemDefinition getDefaultTargetDefinition() {
+	public D getDefaultTargetDefinition() {
 		return defaultTargetDefinition;
 	}
 
-	public void setDefaultTargetDefinition(ItemDefinition defaultTargetDefinition) {
+	public void setDefaultTargetDefinition(D defaultTargetDefinition) {
 		this.defaultTargetDefinition = defaultTargetDefinition;
 	}
 
@@ -640,7 +640,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		sb.append(" in ");
 		sb.append(contextDescription);
 		sb.append("]---------------------------");
-		for (Source<?> source: sources) {
+		for (Source<?,?> source: sources) {
 			sb.append("\nSource: ");
 			sb.append(source.shortDebugDump());
 		}
@@ -769,9 +769,9 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 			return null;
 		}
 		PrismProperty<XMLGregorianCalendar> timeProperty;
-		if (sourceObject instanceof ItemDeltaItem<?>) {
-			timeProperty = (PrismProperty<XMLGregorianCalendar>) ((ItemDeltaItem<?>)sourceObject).getItemNew();
-		} else if (sourceObject instanceof Item<?>) {
+		if (sourceObject instanceof ItemDeltaItem<?,?>) {
+			timeProperty = (PrismProperty<XMLGregorianCalendar>) ((ItemDeltaItem<?,?>)sourceObject).getItemNew();
+		} else if (sourceObject instanceof Item<?,?>) {
 			timeProperty = (PrismProperty<XMLGregorianCalendar>) sourceObject;
 		} else {
 			throw new IllegalStateException("Unknown resolve result "+sourceObject);
@@ -782,7 +782,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		return timeProperty.getRealValue();
 	}
 
-	private Collection<Source<?>> parseSources(OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private Collection<Source<?,?>> parseSources(OperationResult result) throws SchemaException, ObjectNotFoundException {
 		List<MappingSourceDeclarationType> sourceTypes = mappingType.getSource();
 		if (defaultSource != null) {
 			defaultSource.recompute();
@@ -791,13 +791,13 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		}
 		if (sourceTypes != null) {
 			for (MappingSourceDeclarationType sourceType: sourceTypes) {
-				Source<?> source = parseSource(sourceType, result);
+				Source<?,?> source = parseSource(sourceType, result);
 				source.recompute();
 				
 				// Override existing sources (e.g. default source)
-				Iterator<Source<?>> iterator = sources.iterator();
+				Iterator<Source<?,?>> iterator = sources.iterator();
 				while (iterator.hasNext()) {
-					Source<?> next = iterator.next();
+					Source<?,?> next = iterator.next();
 					if (next.getName().equals(source.getName())) {
 						iterator.remove();
 					}
@@ -809,7 +809,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		return sources;
 	}
 
-	private <X extends PrismValue> Source<X> parseSource(MappingSourceDeclarationType sourceType, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private <IV extends PrismValue, ID extends ItemDefinition> Source<IV,ID> parseSource(MappingSourceDeclarationType sourceType, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		ItemPathType itemPathType = sourceType.getPath();
 		if (itemPathType == null) {
 			throw new SchemaException("No path in source definition in "+getMappingContextDescription());
@@ -824,27 +824,27 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		}
 		ItemPath resolvePath = path;
 		Object sourceObject = ExpressionUtil.resolvePath(path, variables, sourceContext, objectResolver, "source definition in "+getMappingContextDescription(), result);
-		Item<X> itemOld = null;
-		ItemDelta<X> delta = null;
-		Item<X> itemNew = null;
+		Item<IV,ID> itemOld = null;
+		ItemDelta<IV,ID> delta = null;
+		Item<IV,ID> itemNew = null;
 		ItemPath residualPath = null;
-		Collection<? extends ItemDelta<?>> subItemDeltas = null;
+		Collection<? extends ItemDelta<?,?>> subItemDeltas = null;
 		if (sourceObject != null) {
-			if (sourceObject instanceof ItemDeltaItem<?>) {
-				itemOld = ((ItemDeltaItem<X>)sourceObject).getItemOld();
-				delta = ((ItemDeltaItem<X>)sourceObject).getDelta();
-				itemNew = ((ItemDeltaItem<X>)sourceObject).getItemNew();
-				residualPath = ((ItemDeltaItem<X>)sourceObject).getResidualPath();
-				resolvePath = ((ItemDeltaItem<X>)sourceObject).getResolvePath();
-				subItemDeltas = ((ItemDeltaItem<X>)sourceObject).getSubItemDeltas();
-			} else if (sourceObject instanceof Item<?>) {
-				itemOld = (Item<X>) sourceObject;
-				itemNew = (Item<X>) sourceObject;
+			if (sourceObject instanceof ItemDeltaItem<?,?>) {
+				itemOld = ((ItemDeltaItem<IV,ID>)sourceObject).getItemOld();
+				delta = ((ItemDeltaItem<IV,ID>)sourceObject).getDelta();
+				itemNew = ((ItemDeltaItem<IV,ID>)sourceObject).getItemNew();
+				residualPath = ((ItemDeltaItem<IV,ID>)sourceObject).getResidualPath();
+				resolvePath = ((ItemDeltaItem<IV,ID>)sourceObject).getResolvePath();
+				subItemDeltas = ((ItemDeltaItem<IV,ID>)sourceObject).getSubItemDeltas();
+			} else if (sourceObject instanceof Item<?,?>) {
+				itemOld = (Item<IV,ID>) sourceObject;
+				itemNew = (Item<IV,ID>) sourceObject;
 			} else {
 				throw new IllegalStateException("Unknown resolve result "+sourceObject);
 			}
 		}
-		Source<X> source = new Source<X>(itemOld, delta, itemNew, name);
+		Source<IV,ID> source = new Source<>(itemOld, delta, itemNew, name);
 		source.setResidualPath(residualPath);
 		source.setResolvePath(resolvePath);
 		source.setSubItemDeltas(subItemDeltas);
@@ -881,7 +881,7 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		}
 	}
 	
-	public ItemDefinition getOutputDefinition() throws SchemaException {
+	public D getOutputDefinition() throws SchemaException {
 		if (outputDefinition == null) {
 			parseTarget();
 		}
@@ -942,8 +942,8 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 			conditionOutputTriple.addToZeroSet(new PrismPropertyValue<Boolean>(Boolean.TRUE));
 			return;
 		}
-		ItemDefinition conditionOutput = new PrismPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
-		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(conditionExpressionType, 
+		PrismPropertyDefinition<Boolean> conditionOutput = new PrismPropertyDefinition<>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
+		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(conditionExpressionType, 
 				conditionOutput, "condition in "+getMappingContextDescription(), result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, 
 				"condition in "+getMappingContextDescription(), task, result);
@@ -1006,16 +1006,16 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		return outputTriple;
 	}
 
-	public Item<V> getOutput() throws SchemaException {
+	public Item<V,D> getOutput() throws SchemaException {
 		if (outputTriple == null) {
 			return null;
 		}
-		Item<V> output = outputDefinition.instantiate();
+		Item<V,D> output = outputDefinition.instantiate();
 		output.addAll(PrismValue.cloneCollection(outputTriple.getNonNegativeValues()));
 		return output;
 	}
 	
-	public ItemDelta<V> createEmptyDelta(ItemPath path) {
+	public ItemDelta<V,D> createEmptyDelta(ItemPath path) {
 		return outputDefinition.createEmptyDelta(path);
 	}
 	
@@ -1038,8 +1038,8 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 	/**
 	 * Shallow clone. Only the output is cloned deeply.
 	 */
-	public Mapping<V> clone() {
-		Mapping<V> clone = new Mapping<V>(mappingType, contextDescription, expressionFactory, securityEnforcer);
+	public Mapping<V,D> clone() {
+		Mapping<V,D> clone = new Mapping<>(mappingType, contextDescription, expressionFactory, securityEnforcer);
 		clone.conditionMaskNew = this.conditionMaskNew;
 		clone.conditionMaskOld = this.conditionMaskOld;
 		if (this.conditionOutputTriple != null) {

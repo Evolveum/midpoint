@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -780,7 +780,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return null;
 	}
 	
-	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByCompileTimeClass(Class<T> compileTimeClass) {
+	public <O extends Objectable> PrismObjectDefinition<O> findObjectDefinitionByCompileTimeClass(Class<O> compileTimeClass) {
 		PrismSchema schema = findSchemaByCompileTimeClass(compileTimeClass);
 		if (schema == null) {
 			return null;
@@ -788,15 +788,15 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return schema.findObjectDefinitionByCompileTimeClass(compileTimeClass);
 	}
 	
-	public void applyDefinition(PrismObject<? extends Objectable> prismObject, Class<? extends Objectable> type) throws SchemaException {
+	public <O extends Objectable> void applyDefinition(PrismObject<O> prismObject, Class<O> type) throws SchemaException {
 		applyDefinition(prismObject, type, true);
 	}
 	
 	/**
 	 * This method will try to locate the appropriate object definition and apply it.
 	 */
-	public void applyDefinition(PrismObject<? extends Objectable> prismObject, Class<? extends Objectable> type, boolean force) throws SchemaException {
-		PrismObjectDefinition<? extends Objectable> objectDefinition = determineDefinitionFromClass(type);
+	public <O extends Objectable> void applyDefinition(PrismObject<O> prismObject, Class<O> type, boolean force) throws SchemaException {
+		PrismObjectDefinition<O> objectDefinition = determineDefinitionFromClass(type);
 		prismObject.applyDefinition(objectDefinition, force);
 	}
 	

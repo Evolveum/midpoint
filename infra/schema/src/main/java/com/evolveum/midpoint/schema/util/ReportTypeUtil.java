@@ -136,7 +136,7 @@ public class ReportTypeUtil {
     public static void applyDefinition(PrismObject<ReportType> report, PrismContext prismContext)
             throws SchemaException {
 
-        PrismContainer<Containerable> configuration = report.findContainer(ReportType.F_CONFIGURATION);
+        PrismContainer<ReportConfigurationType> configuration = report.findContainer(ReportType.F_CONFIGURATION);
         if (configuration == null) {
             //nothing to apply definitions on
             return;

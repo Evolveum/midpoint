@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,17 +59,17 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  * @author semancik
  *
  */
-public class Expression<V extends PrismValue> {
+public class Expression<V extends PrismValue,D extends ItemDefinition> {
 	
 	ExpressionType expressionType;
-	ItemDefinition outputDefinition;
+	D outputDefinition;
 	PrismContext prismContext;
 	ObjectResolver objectResolver;
-	List<ExpressionEvaluator<V>> evaluators = new ArrayList<ExpressionEvaluator<V>>(1);
+	List<ExpressionEvaluator<V,D>> evaluators = new ArrayList<ExpressionEvaluator<V,D>>(1);
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Expression.class);
 
-	public Expression(ExpressionType expressionType, ItemDefinition outputDefinition, ObjectResolver objectResolver, PrismContext prismContext) {
+	public Expression(ExpressionType expressionType, D outputDefinition, ObjectResolver objectResolver, PrismContext prismContext) {
 		//Validate.notNull(outputDefinition, "null outputDefinition");
 		Validate.notNull(objectResolver, "null objectResolver");
 		Validate.notNull(prismContext, "null prismContext");
@@ -98,7 +98,7 @@ public class Expression<V extends PrismValue> {
 		}
 	}
 
-	private ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ExpressionFactory factory,
+	private ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ExpressionFactory factory,
 			String contextDescription, OperationResult result) 
 			throws SchemaException, ObjectNotFoundException {
 		if (evaluatorElements.isEmpty()) {
@@ -112,7 +112,7 @@ public class Expression<V extends PrismValue> {
 		return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, contextDescription, result);
 	}
 
-	private ExpressionEvaluator<V> createDefaultEvaluator(ExpressionFactory factory, String contextDescription, 
+	private ExpressionEvaluator<V,D> createDefaultEvaluator(ExpressionFactory factory, String contextDescription, 
 			OperationResult result) throws SchemaException, ObjectNotFoundException {
 		ExpressionEvaluatorFactory evaluatorFactory = factory.getDefaultEvaluatorFactory();
 		if (evaluatorFactory == null) {
@@ -134,7 +134,7 @@ public class Expression<V extends PrismValue> {
 			ExpressionEvaluationContext processedParameters = context.shallowClone();
 			processedParameters.setVariables(processedVariables);
 			
-			for (ExpressionEvaluator<?> evaluator: evaluators) {
+			for (ExpressionEvaluator<?,?> evaluator: evaluators) {
 				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(processedParameters);
 				if (outputTriple != null) {
 					traceSuccess(context, processedVariables, outputTriple);
@@ -193,11 +193,11 @@ public class Expression<V extends PrismValue> {
 		sb.append(context.getContextDescription());
 		sb.append("]---------------------------");
 		sb.append("\nSources:");
-		Collection<Source<? extends PrismValue>> sources = context.getSources();
+		Collection<Source<?,?>> sources = context.getSources();
 		if (sources == null) {
 			sb.append(" null");
 		} else {
-			for (Source<? extends PrismValue> source: sources) {
+			for (Source<?,?> source: sources) {
 				sb.append("\n");
 				sb.append(source.debugDump(1));
 			}
@@ -278,7 +278,7 @@ public class Expression<V extends PrismValue> {
 			return evaluators.iterator().next().shortDebugDump();
 		}
 		StringBuilder sb = new StringBuilder("[");
-		for (ExpressionEvaluator<V> evaluator: evaluators) {
+		for (ExpressionEvaluator<V,D> evaluator: evaluators) {
 			sb.append(evaluator.shortDebugDump());
 			sb.append(",");
 		}

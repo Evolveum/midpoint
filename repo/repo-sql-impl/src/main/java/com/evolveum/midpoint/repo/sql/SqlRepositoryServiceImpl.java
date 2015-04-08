@@ -1123,24 +1123,23 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         for (Object[] value : values) {
-            ItemDefinition def;
-            QName name = RUtil.stringToQName((String) value[0]);
+        	QName name = RUtil.stringToQName((String) value[0]);
             QName type = RUtil.stringToQName((String) value[1]);
-
-            switch ((RValueType) value[2]) {
-                case PROPERTY:
-                    def = new PrismPropertyDefinition(name, type, object.getPrismContext());
-                    break;
-                case REFERENCE:
-                    def = new PrismReferenceDefinition(name, type, object.getPrismContext());
-                    break;
-                default:
-                    throw new UnsupportedOperationException("Unsupported value type " + value[2]);
-            }
-
-            Item item = attributes.findItem(def.getName());
+            Item item = attributes.findItem(name);
+            
+            // A switch statement used to be here
+            // but that caused strange trouble with OpenJDK. This if-then-else works.
             if (item.getDefinition() == null) {
-                item.applyDefinition(def, true);
+            	RValueType rValType = (RValueType) value[2];
+            	if (rValType == RValueType.PROPERTY) {
+            		PrismPropertyDefinition<Object> def = new PrismPropertyDefinition<Object>(name, type, object.getPrismContext());
+            		item.applyDefinition(def, true);
+            	} else if (rValType == RValueType.REFERENCE) {
+            		PrismReferenceDefinition def = new PrismReferenceDefinition(name, type, object.getPrismContext());
+            		item.applyDefinition(def, true);
+            	} else {
+            		throw new UnsupportedOperationException("Unsupported value type " + rValType);
+            	}
             }
         }
     }

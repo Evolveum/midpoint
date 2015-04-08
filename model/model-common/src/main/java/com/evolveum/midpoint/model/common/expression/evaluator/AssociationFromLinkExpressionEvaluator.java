@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
  *
  */
 public class AssociationFromLinkExpressionEvaluator 
-						implements ExpressionEvaluator<PrismContainerValue<ShadowAssociationType>> {
+						implements ExpressionEvaluator<PrismContainerValue<ShadowAssociationType>,
+						                               PrismContainerDefinition<ShadowAssociationType>> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AssociationFromLinkExpressionEvaluator.class);
 

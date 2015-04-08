@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
+public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDefinition<T>> {
 
     private static final long serialVersionUID = 6843901365945935660L;
 
@@ -85,7 +85,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
      * @return applicable property definition
      */
     public PrismPropertyDefinition<T> getDefinition() {
-        return (PrismPropertyDefinition<T>) definition;
+        return definition;
     }
 
     /**
@@ -363,9 +363,9 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 	}
 
 	@Override
-	public <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path) {
+	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-			return new PartiallyResolvedItem<X>((Item<X>)this, null);
+			return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)this, null);
 		}
 		for (PrismPropertyValue<T> pvalue: getValues()) {
 			T value = pvalue.getValue();
@@ -373,7 +373,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 				throw new IllegalArgumentException("Attempt to resolve sub-path '"+path+"' on non-structured property value "+pvalue);
 			}
 		}
-		return new PartiallyResolvedItem<X>((Item<X>)this, path);
+		return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)this, path);
 	}
 
 	public PropertyDelta<T> diff(PrismProperty<T> other) {
@@ -393,7 +393,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     }
 
 	@Override
-	protected void checkDefinition(ItemDefinition def) {
+	protected void checkDefinition(PrismPropertyDefinition<T> def) {
 		if (!(def instanceof PrismPropertyDefinition)) {
 			throw new IllegalArgumentException("Definition "+def+" cannot be applied to property "+this);
 		}
@@ -413,7 +413,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
         }
     }
 
-    @Override
+	@Override
     public int hashCode() {
         int result = super.hashCode();
         return result;

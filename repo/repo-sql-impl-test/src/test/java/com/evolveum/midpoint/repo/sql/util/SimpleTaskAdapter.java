@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -304,7 +305,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public <T extends PrismValue> Item<T> getExtensionItem(QName propertyName) {
+    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItem(QName propertyName) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -520,12 +521,12 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding,
-                               Collection<ItemDelta<?>> extensionDeltas) {
+                               Collection<ItemDelta<?,?>> extensionDeltas) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
     @Override
-    public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?> delta) {
+    public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?,?> delta) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -616,7 +617,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public Collection<ItemDelta<?>> getPendingModifications() {
+    public Collection<ItemDelta<?,?>> getPendingModifications() {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 

@@ -22,8 +22,10 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -53,12 +55,12 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
-	private ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi;
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 	private DeltaSetTriple<Construction<F>> constructions;
 	private DeltaSetTriple<EvaluatedAbstractRoleImpl> roles;
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<Authorization> authorizations;
-	private Collection<Mapping<? extends PrismPropertyValue<?>>> focusMappings;
+	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings;
 	private PrismObject<?> target;
 	private boolean isValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -71,11 +73,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		focusMappings = new ArrayList<>();
 	}
 
-	public ItemDeltaItem<PrismContainerValue<AssignmentType>> getAssignmentIdi() {
+	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
 		return assignmentIdi;
 	}
 
-	public void setAssignmentIdi(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi) {
+	public void setAssignmentIdi(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
 		this.assignmentIdi = assignmentIdi;
 	}
 	
@@ -141,11 +143,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		authorizations.add(authorization);
 	}
 
-	public Collection<Mapping<? extends PrismPropertyValue<?>>> getFocusMappings() {
+	public Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> getFocusMappings() {
 		return focusMappings;
 	}
 
-	public void addFocusMapping(Mapping<? extends PrismPropertyValue<?>> focusMapping) {
+	public void addFocusMapping(Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> focusMapping) {
 		this.focusMappings.add(focusMapping);
 	}
 
@@ -241,7 +243,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		if (!focusMappings.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "Focus Mappings", indent+1);
-			for (Mapping<? extends PrismPropertyValue<?>> mapping: focusMappings) {
+			for (Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> mapping: focusMappings) {
 				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent+2);
 				sb.append(mapping.toString());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -278,7 +278,7 @@ public class RAssignmentExtension implements Serializable {
 
         Set<RAnyValue> values = new HashSet<RAnyValue>();
         try {
-            List<Item<?>> items = containerValue.getItems();
+            List<Item<?,?>> items = containerValue.getItems();
             for (Item item : items) {
                 values.addAll(converter.convertToRValue(item, true));
             }

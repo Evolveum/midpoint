@@ -53,7 +53,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
  *
  * @author Radovan Semancik
  */
-public class PrismPropertyDefinition<T> extends ItemDefinition {
+public class PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty<T>> {
 
     private static final long serialVersionUID = 7259761997904371009L;
     private QName valueType;

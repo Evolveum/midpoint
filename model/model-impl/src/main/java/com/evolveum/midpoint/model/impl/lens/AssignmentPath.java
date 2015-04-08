@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -38,7 +39,7 @@ public class AssignmentPath implements DebugDumpable {
 		segments = createNewSegments();
 	}
 	
-	AssignmentPath(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi) {
+	AssignmentPath(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
 		this.segments = createNewSegments();
 		segments.add(new AssignmentPathSegment(assignmentIdi, null));
 	}

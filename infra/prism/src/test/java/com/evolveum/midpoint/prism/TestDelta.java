@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ public class TestDelta {
     	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
 		ObjectDelta<UserType> assObjDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
-		ItemDelta<?> assDelta1 = assObjDelta1.getModifications().iterator().next();
+		ItemDelta<?,?> assDelta1 = assObjDelta1.getModifications().iterator().next();
 		assertPath(assDelta1, new ItemPath(UserType.F_ASSIGNMENT));
 		
 		PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
@@ -88,7 +88,7 @@ public class TestDelta {
     	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
 		ObjectDelta<UserType> assObjDelta2 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue2);
-		ItemDelta<?> assDelta2 = assObjDelta2.getModifications().iterator().next();
+		ItemDelta<?,?> assDelta2 = assObjDelta2.getModifications().iterator().next();
 		assertPath(assDelta2, new ItemPath(UserType.F_ASSIGNMENT));
 		
 		PrismPropertyDefinition<String> assDescDefinition = new PrismPropertyDefinition<>(AssignmentType.F_DESCRIPTION, 
@@ -106,7 +106,7 @@ public class TestDelta {
 		
 	}
 	
-	private void assertPath(ItemDelta<?> delta, ItemPath expectedPath) {
+	private void assertPath(ItemDelta<?,?> delta, ItemPath expectedPath) {
 		assertEquals("Wrong path in "+delta, expectedPath, delta.getPath());
 	}
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,8 +140,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName approverOidName = new QName(SchemaConstants.NS_C, "approverOid");
-        PrismPropertyDefinition approverOidDef = new PrismPropertyDefinition(approverOidName, DOMUtil.XSD_STRING, prismContext);
-        Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", result);
+        PrismPropertyDefinition<String> approverOidDef = new PrismPropertyDefinition(approverOidName, DOMUtil.XSD_STRING, prismContext);
+        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, "approverExpression", task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
 
@@ -163,8 +163,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
-        Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", result);
+        PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
+        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, 
         		"automatic approval expression", task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -187,7 +188,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         OperationResult result = task.getResult();
         for(AssignmentType assignmentType: userType.getAssignment()) {
         	try {
-        		ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
         		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
         		assignmentIdi.recompute();
 				EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, false, userType, userType.toString(), task, result);

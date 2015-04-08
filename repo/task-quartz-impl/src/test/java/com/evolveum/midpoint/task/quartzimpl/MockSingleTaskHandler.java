@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@ public class MockSingleTaskHandler implements TaskHandler {
                 taskManager.switchToBackground(t2, opResult);
 
                 try {
-                    ArrayList<ItemDelta<?>> deltas = new ArrayList<ItemDelta<?>>();
+                    ArrayList<ItemDelta<?,?>> deltas = new ArrayList<>();
                     deltas.add(((TaskQuartzImpl) task).createExtensionDelta(wfsFlagDefinition, true));
                     runResult = ((TaskQuartzImpl) task).waitForSubtasks(2, deltas, opResult);
                     runResult.setProgress(1);

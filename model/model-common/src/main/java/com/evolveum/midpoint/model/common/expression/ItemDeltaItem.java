@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,66 +41,66 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class ItemDeltaItem<V extends PrismValue> {
+public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> {
 
-	Item<V> itemOld;
-	ItemDelta<V> delta;
-	Item<V> itemNew;
+	Item<V,D> itemOld;
+	ItemDelta<V,D> delta;
+	Item<V,D> itemNew;
 	ItemPath resolvePath = ItemPath.EMPTY_PATH;
 	ItemPath residualPath = null;
 	
 	// The deltas in sub-items. E.g. if this object represents "ContainerDeltaContainer"
 	// this property contains property deltas that may exist inside the container.
-	Collection<? extends ItemDelta<?>> subItemDeltas;
+	Collection<? extends ItemDelta<?,?>> subItemDeltas;
 	
 	public ItemDeltaItem() { }
 	
-	public ItemDeltaItem(Item<V> itemOld, ItemDelta<V> delta, Item<V> itemNew) {
+	public ItemDeltaItem(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew) {
 		super();
 		this.itemOld = itemOld;
 		this.delta = delta;
 		this.itemNew = itemNew;
 	}
 
-	public ItemDeltaItem(ItemDeltaItem<V> idi) {
+	public ItemDeltaItem(ItemDeltaItem<V,D> idi) {
 		super();
 		this.itemOld = idi.getItemOld();
 		this.itemNew = idi.getItemNew();
 		this.delta = idi.getDelta();
 	}
 	
-	public ItemDeltaItem(Item<V> item) {
+	public ItemDeltaItem(Item<V,D> item) {
 		super();
 		this.itemOld = item;
 		this.itemNew = item;
 		this.delta = null;
 	}
 
-	public Item<V> getItemOld() {
+	public Item<V,D> getItemOld() {
 		return itemOld;
 	}
 
-	public void setItemOld(Item<V> itemOld) {
+	public void setItemOld(Item<V,D> itemOld) {
 		this.itemOld = itemOld;
 	}
 	
-	public ItemDelta<V> getDelta() {
+	public ItemDelta<V,D> getDelta() {
 		return delta;
 	}
 
-	public void setDelta(ItemDelta<V> delta) {
+	public void setDelta(ItemDelta<V,D> delta) {
 		this.delta = delta;
 	}
 
-	public Item<V> getItemNew() {
+	public Item<V,D> getItemNew() {
 		return itemNew;
 	}
 
-	public void setItemNew(Item<V> itemNew) {
+	public void setItemNew(Item<V,D> itemNew) {
 		this.itemNew = itemNew;
 	}
 	
-	public Item<V> getAnyItem() {
+	public Item<V,D> getAnyItem() {
 		if (itemOld != null) {
 			return itemOld;
 		}
@@ -123,11 +123,11 @@ public class ItemDeltaItem<V extends PrismValue> {
 		this.resolvePath = resolvePath;
 	}
 
-	public Collection<? extends ItemDelta<?>> getSubItemDeltas() {
+	public Collection<? extends ItemDelta<?,?>> getSubItemDeltas() {
 		return subItemDeltas;
 	}
 
-	public void setSubItemDeltas(Collection<? extends ItemDelta<?>> subItemDeltas) {
+	public void setSubItemDeltas(Collection<? extends ItemDelta<?,?>> subItemDeltas) {
 		this.subItemDeltas = subItemDeltas;
 	}
 
@@ -136,7 +136,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 	}
 	
 	public QName getElementName() {
-		Item<V> anyItem = getAnyItem();
+		Item<V,D> anyItem = getAnyItem();
 		if (anyItem != null) {
 			return anyItem.getElementName();
 		}
@@ -147,7 +147,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 	}
 	
 	public ItemDefinition getDefinition() {
-		Item<V> anyItem = getAnyItem();
+		Item<V,D> anyItem = getAnyItem();
 		if (anyItem != null) {
 			return anyItem.getDefinition();
 		}
@@ -167,29 +167,29 @@ public class ItemDeltaItem<V extends PrismValue> {
 			if (itemNew == null) {
 				throw new SchemaException("Cannot apply subitem delta to null new item");
 			}
-			for (ItemDelta<?> subItemDelta: subItemDeltas) {
-				itemNew = (Item<V>) subItemDelta.getItemNew((Item) itemNew);
+			for (ItemDelta<?,?> subItemDelta: subItemDeltas) {
+				itemNew = (Item<V,D>) subItemDelta.getItemNew((Item) itemNew);
 			}
 		}
 	}
 
-	public <X extends PrismValue> ItemDeltaItem<X> findIdi(ItemPath path) {
+	public <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(ItemPath path) {
 		if (path.isEmpty()) {
-			return (ItemDeltaItem<X>) this;
+			return (ItemDeltaItem<IV,ID>) this;
 		}
-		Item<X> subItemOld = null;
+		Item<IV,ID> subItemOld = null;
 		ItemPath subResidualPath = null;
 		ItemPath newResolvePath = resolvePath.subPath(path);
 		if (itemOld != null) {
-			PartiallyResolvedItem<X> partialItemOld = itemOld.findPartial(path);
+			PartiallyResolvedItem<IV,ID> partialItemOld = itemOld.findPartial(path);
 			if (partialItemOld != null) {
 				subItemOld = partialItemOld.getItem();
 				subResidualPath = partialItemOld.getResidualPath();
 			}
 		}
-		Item<X> subItemNew = null;
+		Item<IV,ID> subItemNew = null;
 		if (itemNew != null) {
-			PartiallyResolvedItem<X> partialItemNew = itemNew.findPartial(path);
+			PartiallyResolvedItem<IV,ID> partialItemNew = itemNew.findPartial(path);
 			if (partialItemNew != null) {
 				subItemNew = partialItemNew.getItem();
 				if (subResidualPath == null) {
@@ -197,25 +197,25 @@ public class ItemDeltaItem<V extends PrismValue> {
 				}
 			}
 		}
-		ItemDelta<X> subDelta= null;
+		ItemDelta<IV,ID> subDelta= null;
 		if (delta != null) {
 			if (delta instanceof ContainerDelta<?>) {
-				subDelta = (ItemDelta<X>) ((ContainerDelta<?>)delta).getSubDelta(path);
+				subDelta = (ItemDelta<IV,ID>) ((ContainerDelta<?>)delta).getSubDelta(path);
 			} else {
 				CompareResult compareComplex = delta.getPath().compareComplex(newResolvePath);
 				if (compareComplex == CompareResult.EQUIVALENT || compareComplex == CompareResult.SUBPATH) {
-					subDelta = (ItemDelta<X>) delta;	
+					subDelta = (ItemDelta<IV,ID>) delta;	
 				}
 			}
 		}
-		ItemDeltaItem<X> subIdi = new ItemDeltaItem<X>(subItemOld, subDelta, subItemNew);
+		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<IV,ID>(subItemOld, subDelta, subItemNew);
 		subIdi.setResidualPath(subResidualPath);
 		subIdi.resolvePath = newResolvePath;
 		
 		if (subItemDeltas != null) {
-			Item<X> subAnyItem = subIdi.getAnyItem();
-			Collection<ItemDelta<?>> subSubItemDeltas = new ArrayList<>();
-			for (ItemDelta<?> subItemDelta: subItemDeltas) {
+			Item<IV,ID> subAnyItem = subIdi.getAnyItem();
+			Collection<ItemDelta<?,?>> subSubItemDeltas = new ArrayList<>();
+			for (ItemDelta<?,?> subItemDelta: subItemDeltas) {
 				CompareResult compareComplex = subItemDelta.getPath().compareComplex(subAnyItem.getPath());
 				if (compareComplex == CompareResult.EQUIVALENT || compareComplex == CompareResult.SUBPATH) {
 					subSubItemDeltas.add(subItemDelta);
@@ -224,9 +224,9 @@ public class ItemDeltaItem<V extends PrismValue> {
 			if (!subSubItemDeltas.isEmpty()) {
 				// Niceness optimization
 				if (subDelta == null && subSubItemDeltas.size() == 1) {
-					ItemDelta<?> subSubItemDelta = subSubItemDeltas.iterator().next();
+					ItemDelta<?,?> subSubItemDelta = subSubItemDeltas.iterator().next();
 					if (subSubItemDelta.isApplicableTo(subAnyItem)) {
-						subDelta = (ItemDelta<X>) subSubItemDelta;
+						subDelta = (ItemDelta<IV,ID>) subSubItemDelta;
 						subIdi.setDelta(subDelta);
 					} else {
 						subIdi.setSubItemDeltas(subSubItemDeltas);
@@ -245,7 +245,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 	}
 
 	public boolean isContainer() {
-		Item<V> item = getAnyItem();
+		Item<V,D> item = getAnyItem();
 		if (item != null) {
 			return item instanceof PrismContainer<?>;
 		}
@@ -256,7 +256,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 	}
 	
 	public boolean isProperty() {
-		Item<V> item = getAnyItem();
+		Item<V,D> item = getAnyItem();
 		if (item != null) {
 			return item instanceof PrismProperty<?>;
 		}
@@ -287,12 +287,12 @@ public class ItemDeltaItem<V extends PrismValue> {
 	}
 
 	// Assumes that this IDI represents structured property
-	public <X> ItemDeltaItem<PrismPropertyValue<X>> resolveStructuredProperty(ItemPath resolvePath, PrismPropertyDefinition outputDefinition, ItemPath outputPath) {
-		ItemDeltaItem<PrismPropertyValue<Structured>> thisIdi = (ItemDeltaItem<PrismPropertyValue<Structured>>)this;
+	public <X> ItemDeltaItem<PrismPropertyValue<X>,PrismPropertyDefinition<X>> resolveStructuredProperty(ItemPath resolvePath, PrismPropertyDefinition outputDefinition, ItemPath outputPath) {
+		ItemDeltaItem<PrismPropertyValue<Structured>,PrismPropertyDefinition<Structured>> thisIdi = (ItemDeltaItem<PrismPropertyValue<Structured>,PrismPropertyDefinition<Structured>>)this;
 		PrismProperty<X> outputPropertyNew = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemNew(), resolvePath, outputDefinition);
 		PrismProperty<X> outputPropertyOld = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemOld(), resolvePath, outputDefinition);
 		PropertyDelta<X> outputDelta = resolveStructuredPropertyDelta((PropertyDelta<Structured>) thisIdi.getDelta(), resolvePath, outputDefinition, outputPath);
-		return new ItemDeltaItem<PrismPropertyValue<X>>(outputPropertyOld, outputDelta, outputPropertyNew);
+		return new ItemDeltaItem<PrismPropertyValue<X>,PrismPropertyDefinition<X>>(outputPropertyOld, outputDelta, outputPropertyNew);
 	}
 
 	private <X> PrismProperty<X> resolveStructuredPropertyItem(PrismProperty<Structured> sourceProperty, ItemPath resolvePath, PrismPropertyDefinition outputDefinition) {
@@ -340,7 +340,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 		return outputSet;
 	}
 	
-	public void applyDefinition(ItemDefinition def, boolean force) throws SchemaException {
+	public void applyDefinition(D def, boolean force) throws SchemaException {
 		if (itemNew != null) {
 			itemNew.applyDefinition(def, force);
 		}
@@ -352,13 +352,13 @@ public class ItemDeltaItem<V extends PrismValue> {
 		}
 	}
 	
-	public ItemDeltaItem<V> clone() {
-		ItemDeltaItem<V> clone = new ItemDeltaItem<>();
+	public ItemDeltaItem<V,D> clone() {
+		ItemDeltaItem<V,D> clone = new ItemDeltaItem<>();
 		copyValues(clone);
 		return clone;
 	}
 
-	protected void copyValues(ItemDeltaItem<V> clone) {
+	protected void copyValues(ItemDeltaItem<V,D> clone) {
 		if (this.itemNew != null) {
 			clone.itemNew = this.itemNew.clone();
 		}

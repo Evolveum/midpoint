@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2010-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.report.impl;
 
 
@@ -303,10 +319,10 @@ public static List<PrismObject<? extends ObjectType>> getReportData(ModelService
 		return parametersSchema;
 	}
 	
-    public static PrismContainer<Containerable> getParametersContainer(ReportType reportType, PrismSchema schema)
+    public static PrismContainer<ReportConfigurationType> getParametersContainer(ReportType reportType, PrismSchema schema)
 			throws SchemaException, ObjectNotFoundException {
 		
-		PrismContainer<Containerable> configuration = reportType.asPrismObject().findContainer(ReportType.F_CONFIGURATION);
+		PrismContainer<ReportConfigurationType> configuration = reportType.asPrismObject().findContainer(ReportType.F_CONFIGURATION);
 		if (configuration == null) {
 			return null;
 //			throw new SchemaException("No configuration container in " + reportType);
@@ -355,7 +371,7 @@ public static List<PrismObject<? extends ObjectType>> getReportData(ModelService
 		return configuration;
 	}
     
- public static JasperReport getJasperReport(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema) throws JRException
+ public static JasperReport getJasperReport(ReportType reportType, PrismContainer<ReportConfigurationType> parameterConfiguration, PrismSchema reportSchema) throws JRException
  {
 	 JasperDesign jasperDesign;
 	 JasperReport jasperReport;
@@ -503,7 +519,7 @@ public static List<PrismObject<? extends ObjectType>> getReportData(ModelService
 	}
 
 	
-	public static PrismProperty<?> getParameter(String parameterName, PrismContainer<Containerable> parameterConfiguration, String namespace)
+	public static PrismProperty<?> getParameter(String parameterName, PrismContainer<ReportConfigurationType> parameterConfiguration, String namespace)
 	{
 		if (parameterConfiguration == null){
 			return null;
@@ -738,7 +754,7 @@ public static List<PrismObject<? extends ObjectType>> getReportData(ModelService
 		jasperDesign.addStyle(pageFooterStyle);
 	}
 
-	private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema)
+	private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn, PrismContainer<ReportConfigurationType> parameterConfiguration, PrismSchema reportSchema)
 	{
 		JRDesignBand titleBand = createBand(height);
 		JRDesignFrame frame = createFrame(0, 0, 70, reportColumn, "Title");
@@ -859,7 +875,7 @@ public static List<PrismObject<? extends ObjectType>> getReportData(ModelService
 		return pageFooterBand;
 	}
 	
-    public static JasperDesign createJasperDesign(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema) throws JRException
+    public static JasperDesign createJasperDesign(ReportType reportType, PrismContainer<ReportConfigurationType> parameterConfiguration, PrismSchema reportSchema) throws JRException
 	{
     	
 		//JasperDesign

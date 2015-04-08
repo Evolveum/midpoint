@@ -213,7 +213,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	}
 
 	@Override
-	public <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path) {
+	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		throw new UnsupportedOperationException("Attempt to invoke findPartialItem on a property value");
 	}
 

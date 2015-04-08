@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -274,7 +274,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
         // Precondition
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_ORGANIZED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		modifications.add((createAssignmentModification(ORG_SCUMM_BAR_OID, OrgType.COMPLEX_TYPE, null, null, null, true)));
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);

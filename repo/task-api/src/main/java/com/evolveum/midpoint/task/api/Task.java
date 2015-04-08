@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -441,7 +441,7 @@ public interface Task extends DebugDumpable {
      * @param binding Binding to be used to run the handler.
      * @param extensionDeltas The feature is EXPERIMENTAL, do not use if not absolutely necessary.
      */
-    void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, Collection<ItemDelta<?>> extensionDeltas);
+    void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, Collection<ItemDelta<?,?>> extensionDeltas);
 
     /**
      * Same as above, with one extension delta (not a collection of them).
@@ -451,7 +451,7 @@ public interface Task extends DebugDumpable {
      * @param binding
      * @param delta EXPERIMENTAL, do not use if not absolutely necessary.
      */
-    void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?> delta);
+    void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?,?> delta);
 
     /**
      * Same as above, with no extension deltas.
@@ -528,7 +528,7 @@ public interface Task extends DebugDumpable {
      * @param propertyName
      * @return null if extension or item does not exist
      */
-    public <T extends PrismValue> Item<T> getExtensionItem(QName itemName);
+    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItem(QName itemName);
 
     // -------------------------------------------------------------------------- Task extension - SET (replace values)
 
@@ -915,7 +915,7 @@ public interface Task extends DebugDumpable {
      * Returns a list of pending modifications for this task.
      * @return
      */
-    Collection<ItemDelta<?>> getPendingModifications();
+    Collection<ItemDelta<?,?>> getPendingModifications();
 
     LightweightTaskHandler getLightweightTaskHandler();
 
