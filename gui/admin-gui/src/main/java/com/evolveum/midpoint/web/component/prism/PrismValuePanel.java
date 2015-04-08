@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.delta.ModificationsPanel;
+import com.evolveum.midpoint.web.component.util.LookupPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.DateValidator;
@@ -210,7 +211,7 @@ public class PrismValuePanel extends Panel {
     }
 
     private List<ValueWrapper> getUsableValues(PropertyWrapper property) {
-        List<ValueWrapper> values = new ArrayList<ValueWrapper>();
+        List<ValueWrapper> values = new ArrayList<>();
         for (ValueWrapper value : property.getValues()) {
             value.normalize();
             if (ValueStatus.DELETED.equals(value.getStatus())) {
@@ -412,14 +413,13 @@ public class PrismValuePanel extends Panel {
                 String lookupTableUid = valueEnumerationRef.getOid();
                 OperationResult result = new OperationResult("loadLookupTable");
 
-//                GetOperationOptions retrieveOption = GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE);
-//                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(retrieveOption);
                 Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                         GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
                 final PrismObject<LookupTableType> lookupTable = WebModelUtils.loadObject(LookupTableType.class,
                         lookupTableUid, options, result, pageBase);
 
-                inputPanel = new AutoCompleteTextPanel<String>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class) {
+                inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression + ".orig",
+                        lookupTable.asObjectable()), String.class) {
 
                     @Override
                     public Iterator<String> getIterator(String input) {
@@ -503,14 +503,12 @@ public class PrismValuePanel extends Panel {
                 String lookupTableUid = valueEnumerationRef.getOid();
                 OperationResult result = new OperationResult("loadLookupTable");
 
-//                GetOperationOptions retrieveOption = GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE);
-//                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(retrieveOption);
                 Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                         GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
                 final PrismObject<LookupTableType> lookupTable = WebModelUtils.loadObject(LookupTableType.class,
                         lookupTableUid, options, result, pageBase);
 
-                panel = new AutoCompleteTextPanel<String>(id, new PropertyModel<String>(model, baseExpression), type) {
+                panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression, lookupTable.asObjectable()), type) {
 
                     @Override
                     public Iterator<String> getIterator(String input) {
