@@ -1068,6 +1068,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 			}
 		}, PrismTestUtil.createPolyString("Jackie"));
 		
+
 		assertProperty(user, UserType.F_COST_CENTER, new Validator<PrismPropertyDefinition<String>>() {
 			@Override
 			public void validate(PrismPropertyDefinition<String> propDef, String name) throws Exception {
@@ -1101,8 +1102,87 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
         assertSteadyResources();
     }
+    
+    /**
+     * Check that the user definition in schema registry was not ruined
+     * @throws Exception
+     */
+    @Test
+    public void test211SchemaRegistryUntouched() throws Exception {
+		final String TEST_NAME="test211SchemaRegistryUntouched";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
-	// TODO: Store jack's preferred language and check the schema again
+        assertUntouchedUserDefinition();
+        assertSteadyResources();
+    }
+        
+    /**
+     * Modify jack, see if the schema still applies.
+     */
+    @Test
+    public void test213ModifiedUserJack() throws Exception {
+		final String TEST_NAME="test213ModifiedUserJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, UserType.F_PREFERRED_LANGUAGE, task, result, "en_PR");
+                
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        PrismObject<UserType> user = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+        
+		assertProperty(user, UserType.F_ADDITIONAL_NAME, new Validator<PrismPropertyDefinition<PolyString>>() {
+			@Override
+			public void validate(PrismPropertyDefinition<PolyString> propDef, String name) throws Exception {
+				assertNotNull("No definition for additionalName in user", propDef);
+				assertEquals("Wrong additionalName displayName", "Middle Name", propDef.getDisplayName());
+				assertTrue("additionalName not readable", propDef.canRead());
+			}
+		}, PrismTestUtil.createPolyString("Jackie"));
+		
+		assertProperty(user, UserType.F_COST_CENTER, new Validator<PrismPropertyDefinition<String>>() {
+			@Override
+			public void validate(PrismPropertyDefinition<String> propDef, String name) throws Exception {
+				assertNotNull("No definition for costCenter in user", propDef);
+				assertEquals("Wrong costCenter displayOrder", (Integer)123, propDef.getDisplayOrder());
+				assertTrue("costCenter not readable", propDef.canRead());
+			}
+		},"G001"); // This is set by user template
+		
+		assertProperty(user, UserType.F_PREFERRED_LANGUAGE, new Validator<PrismPropertyDefinition<String>>() {
+			@Override
+			public void validate(PrismPropertyDefinition<String> propDef, String name) throws Exception {
+				assertNotNull("No definition for preferredLanguage in user", propDef);
+				assertEquals("Wrong preferredLanguage displayName", "Language", propDef.getDisplayName());
+				assertTrue("preferredLanguage not readable", propDef.canRead());
+				PrismReferenceValue valueEnumerationRef = propDef.getValueEnumerationRef();
+				assertNotNull("No valueEnumerationRef for preferredLanguage", valueEnumerationRef);
+				assertEquals("Wrong valueEnumerationRef OID for preferredLanguage", LOOKUP_LANGUAGES_OID, valueEnumerationRef.getOid());
+			}
+		}, "en_PR");
+		
+
+//		PrismContainerDefinition<CredentialsType> credentialsDef = editDef.findContainerDefinition(UserType.F_CREDENTIALS);
+//		assertNotNull("No definition for credentials in user", credentialsDef);
+//		assertTrue("Credentials not readable", credentialsDef.canRead());
+//		
+//		ItemPath passwdValPath = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+//		PrismPropertyDefinition<ProtectedStringType> passwdValDef = editDef.findPropertyDefinition(passwdValPath);
+//		assertNotNull("No definition for "+passwdValPath+" in user", passwdValDef);
+//		assertTrue("Password not readable", passwdValDef.canRead());
+		
+		assertUntouchedUserDefinition();
+        assertSteadyResources();
+    }
+
     // TODO: log-in as user with some items restricted and check the schema again
     
     private <O extends ObjectType, T> void assertProperty(PrismObject<O> object, QName propName,
@@ -1157,4 +1237,40 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         assertRoleTypes(getUser(USER_JACK_OID), "application","system","it");        
     }
+    
+    private void assertUntouchedUserDefinition() {
+        // WHEN
+        PrismObjectDefinition<UserType> userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+                
+		
+		// THEN
+        
+        PrismPropertyDefinition<PolyString> additionalNameDef = userDefinition.findPropertyDefinition(UserType.F_ADDITIONAL_NAME);
+		assertNotNull("No definition for additionalName in user", additionalNameDef);
+		assertEquals("Wrong additionalName displayName", "Additional Name", additionalNameDef.getDisplayName());
+		assertTrue("additionalName not readable", additionalNameDef.canRead());
+		
+		PrismPropertyDefinition<String> costCenterDef = userDefinition.findPropertyDefinition(UserType.F_COST_CENTER);
+		assertNotNull("No definition for costCenter in user", costCenterDef);
+		assertEquals("Wrong costCenter displayOrder", (Integer)420, costCenterDef.getDisplayOrder());
+		assertTrue("costCenter not readable", costCenterDef.canRead());
+		
+		PrismPropertyDefinition<String> preferredLanguageDef = userDefinition.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
+		assertNotNull("No definition for preferredLanguage in user", preferredLanguageDef);
+		assertEquals("Wrong preferredLanguage displayName", "Preferred Language", preferredLanguageDef.getDisplayName());
+		assertTrue("preferredLanguage not readable", preferredLanguageDef.canRead());
+		PrismReferenceValue valueEnumerationRef = preferredLanguageDef.getValueEnumerationRef();
+		assertNull("valueEnumerationRef for preferredLanguage sneaked in", valueEnumerationRef);
+
+		PrismContainerDefinition<CredentialsType> credentialsDef = userDefinition.findContainerDefinition(UserType.F_CREDENTIALS);
+		assertNotNull("No definition for credentials in user", credentialsDef);
+		assertTrue("Credentials not readable", credentialsDef.canRead());
+		
+		ItemPath passwdValPath = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+		PrismPropertyDefinition<ProtectedStringType> passwdValDef = userDefinition.findPropertyDefinition(passwdValPath);
+		assertNotNull("No definition for "+passwdValPath+" in user", passwdValDef);
+		assertTrue("Password not readable", passwdValDef.canRead());
+		
+    }
+
 }
