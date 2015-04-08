@@ -81,8 +81,10 @@ public class SystemConfigurationHandler implements ChangeHook {
     		LOGGER.warn("Skipping application of repository logging configuration because {}=true", LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS);
     	} else {
 	        LoggingConfigurationType loggingConfig = ProfilingConfigurationManager.checkSystemProfilingConfiguration(systemConfiguration);
-	        applyLoggingConfiguration(loggingConfig, systemConfiguration.asObjectable().getVersion(), parentResult);
-	        //applyLoggingConfiguration(systemConfiguration.asObjectable().getLogging(), systemConfiguration.asObjectable().getVersion(), parentResult);
+	        if (loggingConfig != null) {
+	        	applyLoggingConfiguration(loggingConfig, systemConfiguration.asObjectable().getVersion(), parentResult);
+	        	//applyLoggingConfiguration(systemConfiguration.asObjectable().getLogging(), systemConfiguration.asObjectable().getVersion(), parentResult);
+	        }
     	}
     }
 

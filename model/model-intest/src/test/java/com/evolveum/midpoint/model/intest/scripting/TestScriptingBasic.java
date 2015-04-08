@@ -15,12 +15,12 @@
  */
 package com.evolveum.midpoint.model.intest.scripting;
 
+import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.model.test.LogfileTestTailer;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -36,9 +37,9 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionTy
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionPipelineType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionSequenceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
-
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -138,7 +139,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         OperationResult result = new OperationResult(DOT_CLASS + "test120Log");
         PrismProperty<ScriptingExpressionType> logAction = (PrismProperty) prismContext.parseAnyData(LOG_FILE);
 
-        LogfileTestTailer tailer = new LogfileTestTailer();
+        LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
         tailer.tail();
         tailer.setExpecteMessage("Custom message:");
 

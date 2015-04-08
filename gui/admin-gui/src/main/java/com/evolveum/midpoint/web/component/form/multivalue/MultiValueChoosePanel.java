@@ -328,5 +328,4 @@ public class MultiValueChoosePanel <T extends ObjectType> extends SimplePanel<Li
      *  choosing new object with this chooser component
      * */
     protected void choosePerformedHook(AjaxRequestTarget target, T object){}
-
 }

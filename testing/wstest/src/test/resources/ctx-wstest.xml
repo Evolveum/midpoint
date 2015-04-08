@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:ssec="http://cxf.apache.org/spring-security"
+       xmlns:http="http://cxf.apache.org/transports/http/configuration"
+       xmlns:httpj="http://cxf.apache.org/transports/http-jetty/configuration"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+     http://www.springframework.org/schema/context
+     http://www.springframework.org/schema/context/spring-context-3.0.xsd
+     http://www.springframework.org/schema/util
+     http://www.springframework.org/schema/util/spring-util-3.0.xsd
+     http://cxf.apache.org/jaxws
+     http://cxf.apache.org/schemas/jaxws.xsd
+     http://cxf.apache.org/jaxrs
+     http://cxf.apache.org/schemas/jaxrs.xsd
+     http://cxf.apache.org/spring-security
+     http://cxf-spring-security.googlecode.com/svn/trunk/cxf-spring-security/src/main/resources/schemas/spring-security.xsd"
+       default-lazy-init="false"
+       default-autowire="byName">
+
+    <!-- enabling annotation driven configuration -->
+    <context:annotation-config/>
+    <context:component-scan base-package="com.evolveum.midpoint.testing.wstest"/>
+    <context:spring-configured/>
+    
+    <httpj:engine-factory bus="cxf">
+	 
+	    <httpj:engine port="18080">
+	      <httpj:threadingParameters minThreads="5"
+	                                 maxThreads="15" />
+	      <httpj:connector>
+	        <bean class="org.eclipse.jetty.server.bio.SocketConnector">
+	           <property name = "port" value="18080" />
+	        </bean>
+	      </httpj:connector>
+	      <httpj:handlers>
+	        <bean class="org.eclipse.jetty.server.handler.DefaultHandler"/>        
+	      </httpj:handlers>
+	      <httpj:sessionSupport>true</httpj:sessionSupport>
+	    </httpj:engine>
+	  </httpj:engine-factory>
+    
+</beans>

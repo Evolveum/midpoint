@@ -15,8 +15,14 @@
  */
 package com.evolveum.midpoint.model.client;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +30,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -31,15 +38,21 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.ws.BindingProvider;
 
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.FilterClauseType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -72,6 +85,7 @@ public class ModelClientUtil {
     public static final QName TYPES_CLEAR_VALUE = new QName(NS_TYPES, "clearValue");
 
 	private static final DocumentBuilder domDocumentBuilder;
+	private static final JAXBContext jaxbContext;
 	
 	public static JAXBContext instantiateJaxbContext() throws JAXBException {
 		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_3:" +
@@ -112,6 +126,10 @@ public class ModelClientUtil {
 		PolyStringType polyStringType = new PolyStringType();
 		polyStringType.getContent().add(string);
 		return polyStringType;
+	}
+    
+    public static PolyStringType createPolyStringType(String string) {
+		return createPolyStringType(string, getDocumnent());
 	}
     
     public static String getOrig(PolyStringType polyStringType) {
@@ -171,17 +189,26 @@ public class ModelClientUtil {
 	}
 
 	public static String getTypeUri(Class<? extends ObjectType> type) {
-//		QName typeQName = JAXBUtil.getTypeQName(type);
-//		String typeUri = QNameUtil.qNameToUri(typeQName);
 		String typeUri = NS_COMMON + "#" + type.getSimpleName();
 		return typeUri;
 	}
 	
 	public static QName getTypeQName(Class<? extends ObjectType> type) {
-//		QName typeQName = JAXBUtil.getTypeQName(type);
 		QName typeQName = new QName(NS_COMMON, type.getSimpleName());
 		return typeQName;
 	}
+
+	public static QName getElementName(Class<? extends ObjectType> type) {
+		String local = type.getSimpleName();
+		int typeIndex = local.lastIndexOf("Type");
+		if (typeIndex > 0) {
+			local = local.substring(0, typeIndex);
+		}
+		if (Character.isUpperCase(local.charAt(0))) {
+			local = local.substring(0,1).toLowerCase() + local.substring(1);
+		}
+		return new QName(NS_COMMON, local);
+	}	
 	
 	public static Element parseElement(String stringXml) throws SAXException, IOException {
 		Document document = domDocumentBuilder.parse(IOUtils.toInputStream(stringXml, "utf-8"));
@@ -239,15 +266,142 @@ public class ModelClientUtil {
         }
         return null;
     }
+    
+    public static <O extends ObjectType> ObjectDeltaListType createModificationDeltaList(Class<O> type, String oid, 
+    		String path, ModificationTypeType modType, Object... values) {
+		ObjectDeltaListType deltaList = new ObjectDeltaListType();
+    	ObjectDeltaType delta = new ObjectDeltaType();
+    	delta.setObjectType(getTypeQName(type));
+    	delta.setChangeType(ChangeTypeType.MODIFY);
+    	delta.setOid(oid);
+    	ItemDeltaType itemDelta = new ItemDeltaType();
+    	itemDelta.setPath(ModelClientUtil.createItemPathType(path));
+    	itemDelta.setModificationType(modType);
+    	itemDelta.getValue().addAll(Arrays.asList(values));
+		delta.getItemDelta().add(itemDelta);
+		deltaList.getDelta().add(delta);
+		return deltaList;
+	}
+    
+    public static <O extends ObjectType, T extends ObjectType> ObjectDeltaListType createAssignDeltaList(Class<O> focusType, String focusOid, 
+    		Class<T> targetType, String targetOid) {
+    	return createAssignmentDeltaList(focusType, focusOid, targetType, targetOid, ModificationTypeType.ADD);
+    }
+
+    public static <O extends ObjectType, T extends ObjectType> ObjectDeltaListType createUnassignDeltaList(Class<O> focusType, String focusOid, 
+    		Class<T> targetType, String targetOid) {
+    	return createAssignmentDeltaList(focusType, focusOid, targetType, targetOid, ModificationTypeType.DELETE);
+    }
+
+    private static <O extends ObjectType, T extends ObjectType> ObjectDeltaListType createAssignmentDeltaList(Class<O> focusType, String focusOid, 
+    		Class<T> targetType, String targetOid, ModificationTypeType modificationType) {
+    	AssignmentType assignment = new AssignmentType();
+    	ObjectReferenceType targetRef = new ObjectReferenceType();
+    	targetRef.setOid(targetOid);
+    	targetRef.setType(getTypeQName(targetType));
+		assignment.setTargetRef(targetRef);
+    	return createModificationDeltaList(focusType, focusOid, "assignment", modificationType, assignment);
+    }
+    
+    public static <O> O unmarshallResource(String path) throws JAXBException, FileNotFoundException {
+		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller(); 
+		 
+		InputStream is = null;
+		JAXBElement<O> element = null;
+		try {
+			is = ModelClientUtil.class.getClassLoader().getResourceAsStream(path);
+			if (is == null) {
+				throw new FileNotFoundException("System resource "+path+" was not found");
+			}
+			element = (JAXBElement<O>) unmarshaller.unmarshal(is);
+		} finally {
+			if (is != null) {
+				IOUtils.closeQuietly(is);
+			}
+		}
+		if (element == null) {
+			return null;
+		}
+		return element.getValue();
+	}
+
+    public static <O> O unmarshallFile(File file) throws JAXBException, FileNotFoundException {
+		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller(); 
+		 
+		InputStream is = null;
+		JAXBElement<O> element = null;
+		try {
+			is = new FileInputStream(file);
+			element = (JAXBElement<O>) unmarshaller.unmarshal(is);
+		} finally {
+			if (is != null) {
+				IOUtils.closeQuietly(is);
+			}
+		}
+		if (element == null) {
+			return null;
+		}
+		return element.getValue();
+	}
+    
+    public static <O extends ObjectType> String marshallToSting(O object) throws JAXBException {
+    	return marshallToSting(object, true);
+    }
+    
+    public static <O extends ObjectType> String marshallToSting(O object, boolean formatted) throws JAXBException {
+    	Marshaller marshaller = jaxbContext.createMarshaller();
+    	marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+    	if (formatted) {
+    		marshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE );
+    	}
+    	java.io.StringWriter sw = new StringWriter();
+    	Class<O> type = (Class<O>) object.getClass();
+    	JAXBElement<O> element = new JAXBElement<O>(getElementName(type), type, object);
+    	marshaller.marshal(element, sw);
+    	return sw.toString();
+    }
+
+    public static <O extends ObjectType> String toString(O obj) {
+		if (obj == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		String className = obj.getClass().getSimpleName();
+		if (className.endsWith("Type")) {
+			className = className.substring(0, className.lastIndexOf("Type")).toLowerCase();
+		}
+		sb.append(className);
+		sb.append("(");
+		sb.append(toString(obj.getName()));
+		sb.append(":");
+		sb.append(obj.getOid());
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String toString(PolyStringType poly) {
+		if (poly == null) {
+			return null;
+		}
+		return getOrig(poly);
+	}
+
 	
 	static {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);
 			domDocumentBuilder = factory.newDocumentBuilder();
-		} catch (ParserConfigurationException ex) {
-			throw new IllegalStateException("Error creating XML document " + ex.getMessage());
+		} catch (ParserConfigurationException e) {
+			throw new IllegalStateException("Error creating XML document " + e.getMessage());
+		}
+		
+		try {
+			jaxbContext = ModelClientUtil.instantiateJaxbContext();
+		} catch (JAXBException e) {
+			throw new IllegalStateException("Error creating JAXB context " + e.getMessage());
 		}
 	}
 
+	
 }

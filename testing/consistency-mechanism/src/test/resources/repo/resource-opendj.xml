@@ -257,6 +257,7 @@ This is now the only account type that midPoint can work with. -->
 				<displayName>Login Name</displayName>
 				<secondaryIdentifier>true</secondaryIdentifier>
 				<outbound>
+				<strength>weak</strength>
 				<description>
                 		It is mapped from (and also to) "name" property of user. It is essentially a login name.
                 		This outbound construction is using a Groovy expression.

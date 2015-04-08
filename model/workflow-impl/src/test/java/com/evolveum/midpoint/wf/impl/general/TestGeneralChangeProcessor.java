@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -134,10 +135,21 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 			throws Exception {
 		super.initSystem(initTask, initResult);
         importObjectFromFile(AbstractWfTest.USERS_AND_ROLES_FILENAME, initResult);
-
+        modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                new ItemPath(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
+                        WfConfigurationType.F_PRIMARY_CHANGE_PROCESSOR,
+                        PrimaryChangeProcessorConfigurationType.F_ENABLED),
+                initTask, initResult,
+                false);
+        modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                new ItemPath(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
+                        WfConfigurationType.F_GENERAL_CHANGE_PROCESSOR,
+                        GeneralChangeProcessorConfigurationType.F_ENABLED),
+                initTask, initResult,
+                true);
 	}
 
-	@Test(enabled = true)
+	@Test
     public void test010AddRole1() throws Exception {
         TestUtil.displayTestTile(this, "test010UserModifyAddRole");
         executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
@@ -192,14 +204,11 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         });
 	}
 
-    @Test(enabled = true)
+    @Test
     public void test020AddAccountRejected() throws Exception {
         TestUtil.displayTestTile(this, "test020AddAccountRejected");
 
-        primaryChangeProcessor.setEnabled(false);
-        generalChangeProcessor.setEnabled(true);
-        generalChangeProcessor.disableScenario("primaryScenario");
-        generalChangeProcessor.enableScenario("secondaryScenario");
+        enableDisableScenarios(false, true);
 
         executeTest("test020AddAccountRejected", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
@@ -252,6 +261,21 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         });
     }
 
+    protected void enableDisableScenarios(boolean... values) throws ObjectNotFoundException, SchemaException, com.evolveum.midpoint.util.exception.ExpressionEvaluationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException, com.evolveum.midpoint.model.api.PolicyViolationException, com.evolveum.midpoint.util.exception.SecurityViolationException {
+        OperationResult result = new OperationResult("execution");
+        Task task = taskManager.createTaskInstance("execution");
+        GeneralChangeProcessorConfigurationType gcpConfig = getSystemConfiguration().getWorkflowConfiguration().getGeneralChangeProcessor();
+        for (int i = 0; i < values.length; i++) {
+            gcpConfig.getScenario().get(i).setEnabled(values[i]);
+        }
+        modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                new ItemPath(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
+                        WfConfigurationType.F_GENERAL_CHANGE_PROCESSOR,
+                        GeneralChangeProcessorConfigurationType.F_ENABLED),
+                task, result,
+                gcpConfig);
+    }
+
 //    @Test(enabled = false)
 //    public void test028CurrentRepo() throws Exception {
 //        TestUtil.displayTestTile(this, "test029NewRepo");
@@ -280,14 +304,11 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 //        LOGGER.info("Parsed:\n{}", o.debugDump());
 //    }
 
-    @Test(enabled = true)
+    @Test
     public void test030AddAccountApproved() throws Exception {
         TestUtil.displayTestTile(this, "test030AddAccountApproved");
 
-        primaryChangeProcessor.setEnabled(false);
-        generalChangeProcessor.setEnabled(true);
-        generalChangeProcessor.disableScenario("primaryScenario");
-        generalChangeProcessor.enableScenario("secondaryScenario");
+        enableDisableScenarios(false, true);
 
         executeTest("test030AddAccountApproved", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override

@@ -34,6 +34,7 @@ package com.evolveum.midpoint.util.exception;
  * @author Radovan Semancik
  *
  */
+@Deprecated
 public class ConsistencyViolationException extends CommonException {
 	private static final long serialVersionUID = -4194650066561884619L;
 

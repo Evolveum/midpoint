@@ -16,6 +16,9 @@
 package com.evolveum.midpoint.model.impl.controller;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressio
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.python.antlr.PythonParser.continue_stmt_return;
+import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -135,6 +138,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -147,14 +151,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -1203,11 +1206,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				if (valueEnumerationRef == null || valueEnumerationRef.getOid() == null) {
 					return spec;
 				}
-				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_TABLE, 
+				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
 		    			GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 				PrismObject<LookupTableType> lookup = cacheRepositoryService.getObject(LookupTableType.class, valueEnumerationRef.getOid(), 
 						options, result);
-				for (LookupTableTableType row: lookup.asObjectable().getTable()) {
+				for (LookupTableRowType row: lookup.asObjectable().getRow()) {
 					PolyStringType polyLabel = row.getLabel();
 					String key = row.getKey();
 					String label = key;
@@ -1261,7 +1264,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
                 SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("System configuration version read from repo: " + config.getVersion());
+        	if (config == null) {
+        		LOGGER.warn("No system configuration object");
+        	} else {
+        		LOGGER.trace("System configuration version read from repo: " + config.getVersion());
+        	}
         }
         return config;
     }
@@ -1808,13 +1815,29 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 	@Override
 	public void importObjectsFromFile(File input, ImportOptionsType options, Task task,
-			OperationResult parentResult) {
-		// OperationResult result =
-		// parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
-		// TODO Auto-generated method stub
-		RepositoryCache.enter();
-		RepositoryCache.exit();
-		throw new NotImplementedException();
+			OperationResult parentResult) throws FileNotFoundException {
+		 OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
+		 FileInputStream fis;
+		 try {
+			fis = new FileInputStream(input);
+		} catch (FileNotFoundException e) {
+			String msg = "Error reading from file "+input+": "+e.getMessage();
+			result.recordFatalError(msg, e);
+			throw e;
+		}
+		try {
+			importObjectsFromStream(fis, options, task, parentResult);
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			throw e;
+		} finally {
+			try {
+				fis.close();
+			} catch (IOException e) {
+				Log.error("Error closing file "+input+": "+e.getMessage(), e);
+			}
+		}
+		result.computeStatus();
 	}
 
 	@Override
@@ -1898,12 +1921,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
 			}
 			if (securityConstraints == null) {
-				throw new SecurityViolationException("Access denied");
+				throw new AuthorizationException("Access denied");
 			}
 			AuthorizationDecisionType globalDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), null);
 			if (globalDecision == AuthorizationDecisionType.DENY) {
 				// shortcut
-				throw new SecurityViolationException("Access denied");
+				throw new AuthorizationException("Access denied");
 			}
 			if (globalDecision == AuthorizationDecisionType.ALLOW && securityConstraints.hasNoItemDecisions()) {
 				// shortcut, nothing to do
@@ -1911,7 +1934,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				removeDeniedItems((List)object.getValue().getItems(), securityConstraints, globalDecision);
 				if (object.isEmpty()) {
 					// let's make it explicit
-					throw new SecurityViolationException("Access denied");
+					throw new AuthorizationException("Access denied");
 				}
 			}
 			

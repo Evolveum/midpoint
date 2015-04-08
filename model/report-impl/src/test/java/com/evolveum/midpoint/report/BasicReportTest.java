@@ -750,7 +750,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		LOGGER.info("jasper report template: " + new String(Base64.decodeBase64(reportType.getTemplateStyle())));
 		//WHEN 	
 		TestUtil.displayWhen(TEST_NAME);
-		reportManager.runReport(reportType.asPrismObject(), task, result);
+		reportManager.runReport(reportType.asPrismObject(), new ArrayList(), task, result);
 		
 		// THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1260,7 +1260,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
-			reportManager.runReport(reportType.asPrismObject(), task, result);
+			reportManager.runReport(reportType.asPrismObject(), new ArrayList(), task, result);
 			
 			// THEN
 	        TestUtil.displayThen(TEST_NAME);
@@ -1365,7 +1365,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
-			reportManager.runReport(reportType.asPrismObject(), task, result);
+			reportManager.runReport(reportType.asPrismObject(), new ArrayList(), task, result);
 			
 			// THEN
 	        TestUtil.displayThen(TEST_NAME);
@@ -1431,7 +1431,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
-			reportManager.runReport(reportType.asPrismObject(), task, result);
+			reportManager.runReport(reportType.asPrismObject(), new ArrayList(), task, result);
 			
 			// THEN
 	        TestUtil.displayThen(TEST_NAME);
@@ -1470,7 +1470,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
-			reportManager.runReport(reportType.asPrismObject(), task, result);
+			reportManager.runReport(reportType.asPrismObject(), new ArrayList(), task, result);
 			
 			// THEN
 	        TestUtil.displayThen(TEST_NAME);

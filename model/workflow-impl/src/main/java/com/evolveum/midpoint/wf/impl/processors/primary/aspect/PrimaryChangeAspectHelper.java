@@ -23,9 +23,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -35,21 +33,27 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.Decision;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpJob;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericPcpAspectConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import org.apache.velocity.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +66,7 @@ public class PrimaryChangeAspectHelper {
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeAspectHelper.class);
 
     @Autowired
+    @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
     @Autowired
@@ -126,7 +131,7 @@ public class PrimaryChangeAspectHelper {
         return requester;
     }
 
-    public ObjectType resolveObjectRef(AssignmentType a, OperationResult result) {
+    public <T extends ObjectType> T resolveTargetRefUnchecked(AssignmentType a, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (a == null) {
             return null;
@@ -137,21 +142,25 @@ public class PrimaryChangeAspectHelper {
             if (a.getTargetRef() == null || a.getTargetRef().getOid() == null) {
                 return null;
             }
-            try {
-                Class<? extends ObjectType> clazz = null;
-                if (a.getTargetRef().getType() != null) {
-                    clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(a.getTargetRef().getType());
-                }
-                if (clazz == null) {
-                    clazz = ObjectType.class;
-                }
-                object = repositoryService.getObject(clazz, a.getTargetRef().getOid(), null, result).asObjectable();
-            } catch (ObjectNotFoundException|SchemaException e) {
-                throw new SystemException(e);
+            Class<? extends ObjectType> clazz = null;
+            if (a.getTargetRef().getType() != null) {
+                clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(a.getTargetRef().getType());
             }
+            if (clazz == null) {
+                clazz = ObjectType.class;
+            }
+            object = repositoryService.getObject(clazz, a.getTargetRef().getOid(), null, result).asObjectable();
             a.setTarget(object);
         }
-        return object;
+        return (T) object;
+    }
+
+    public <T extends ObjectType> T resolveTargetRef(AssignmentType a, OperationResult result) {
+        try {
+            return resolveTargetRefUnchecked(a, result);
+        } catch (SchemaException|ObjectNotFoundException e) {
+            throw new SystemException(e);
+        }
     }
 
     public ResourceType resolveResourceRef(AssignmentType a, OperationResult result) {
@@ -175,7 +184,7 @@ public class PrimaryChangeAspectHelper {
         }
     }
 
-    public ObjectType resolveObjectRef(ObjectReferenceType referenceType, OperationResult result) {
+    public <T extends ObjectType> T resolveTargetRef(ObjectReferenceType referenceType, Class<T> defaultObjectType, OperationResult result) {
         if (referenceType == null) {
             return null;
         }
@@ -185,9 +194,9 @@ public class PrimaryChangeAspectHelper {
                 clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(referenceType.getType());
             }
             if (clazz == null) {
-                clazz = ObjectType.class;
+                clazz = defaultObjectType;
             }
-            return repositoryService.getObject(clazz, referenceType.getOid(), null, result).asObjectable();
+            return (T) repositoryService.getObject(clazz, referenceType.getOid(), null, result).asObjectable();
         } catch (ObjectNotFoundException|SchemaException e) {
             throw new SystemException(e);
         }
@@ -214,6 +223,96 @@ public class PrimaryChangeAspectHelper {
             }
         }
     }
+
+    public boolean isEnabled(PrimaryChangeProcessorConfigurationType processorConfigurationType, PrimaryChangeAspect aspect) {
+        if (processorConfigurationType == null) {
+            return aspect.isEnabledByDefault();
+        }
+        PcpAspectConfigurationType aspectConfigurationType = getPcpAspectConfigurationType(processorConfigurationType, aspect);     // result may be null
+        return isEnabled(aspectConfigurationType, aspect.isEnabledByDefault());
+    }
+
+    public PcpAspectConfigurationType getPcpAspectConfigurationType(WfConfigurationType wfConfigurationType, PrimaryChangeAspect aspect) {
+        if (wfConfigurationType == null) {
+            return null;
+        }
+        return getPcpAspectConfigurationType(wfConfigurationType.getPrimaryChangeProcessor(), aspect);
+    }
+
+    public PcpAspectConfigurationType getPcpAspectConfigurationType(PrimaryChangeProcessorConfigurationType processorConfigurationType, PrimaryChangeAspect aspect) {
+        if (processorConfigurationType == null) {
+            return null;
+        }
+        String aspectName = aspect.getBeanName();
+        String getterName = "get" + StringUtils.capitalizeFirstLetter(aspectName);
+        Object aspectConfigurationObject;
+        try {
+            Method getter = processorConfigurationType.getClass().getDeclaredMethod(getterName);
+            try {
+                aspectConfigurationObject = getter.invoke(processorConfigurationType);
+            } catch (IllegalAccessException|InvocationTargetException e) {
+                throw new SystemException("Couldn't obtain configuration for aspect " + aspectName + " from the workflow configuration.", e);
+            }
+            if (aspectConfigurationObject != null) {
+                return (PcpAspectConfigurationType) aspectConfigurationObject;
+            }
+            LOGGER.trace("Specific configuration for {} not found, trying generic configuration", aspectName);
+        } catch (NoSuchMethodException e) {
+            // nothing wrong with this, let's try generic configuration
+            LOGGER.trace("Configuration getter method for {} not found, trying generic configuration", aspectName);
+        }
+
+        for (GenericPcpAspectConfigurationType genericConfig : processorConfigurationType.getOtherAspect()) {
+            if (aspectName.equals(genericConfig.getName())) {
+                return genericConfig;
+            }
+        }
+        return null;
+    }
+
+    private boolean isEnabled(PcpAspectConfigurationType configurationType, boolean enabledByDefault) {
+        if (configurationType == null) {
+            return enabledByDefault;
+        } else if (Boolean.FALSE.equals(configurationType.isEnabled())) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public boolean isUserRelated(ModelContext<? extends ObjectType> context) {
+        return isRelatedToType(context, UserType.class);
+    }
+
+    public boolean isRelatedToType(ModelContext<? extends ObjectType> context, Class<?> type) {
+        Class<? extends ObjectType> focusClass = getFocusClass(context);
+        if (focusClass == null) {
+            return false;
+        }
+        return type.isAssignableFrom(focusClass);
+    }
+
+    public Class<? extends ObjectType> getFocusClass(ModelContext<? extends ObjectType> context) {
+        if (context.getFocusClass() != null) {
+            return context.getFocusClass();
+        }
+
+        // if for some reason context.focusClass is not set... here is a fallback
+        if (context.getFocusContext() == null) {
+            return null;
+        }
+
+        ObjectDelta<? extends ObjectType> change = context.getFocusContext().getPrimaryDelta();
+        if (change == null) {
+            return null;
+        }
+        return change.getObjectTypeClass();
+    }
+
     //endregion
+
+    public boolean hasApproverInformation(PcpAspectConfigurationType config) {
+        return config != null && (!config.getApproverRef().isEmpty() || !config.getApproverExpression().isEmpty() || config.getApprovalSchema() != null);
+    }
 
 }

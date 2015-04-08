@@ -365,13 +365,13 @@ public class PasswordPolicyProcessor {
     // On missing password this returns empty string (""). It is then up to password policy whether it allows empty passwords or not.
 	private String determinePasswordValue(PrismProperty<PasswordType> password) {
 		if (password == null || password.getValue(ProtectedStringType.class) == null) {
-			return "";
+			return null;
 		}
 
 		ProtectedStringType passValue = password.getValue(ProtectedStringType.class).getValue();
 
 		if (passValue == null) {
-			return "";
+			return null;
 		}
 
 		String passwordStr = passValue.getClearValue();
@@ -385,7 +385,7 @@ public class PasswordPolicyProcessor {
 			}
 		}
 
-		return passwordStr != null ? passwordStr : "";
+		return passwordStr;
 	}
 
 

@@ -32,12 +32,15 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.form.*;
+import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.*;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
+import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyDialog;
 import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
@@ -114,6 +117,8 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
     private static final String ID_OWNER_LABEL = "ownerRefLabel";
     private static final String ID_APPROVER_REF = "approverRef";
     private static final String ID_RISK_LEVEL = "riskLevel";
+    private static final String ID_MIN_ASSIGNMENTS = "minAssignmentsConfig";
+    private static final String ID_MAX_ASSIGNMENTS = "maxAssignmentsConfig";
 
     private static final String ID_INDUCEMENTS = "inducementsPanel";
     private static final String ID_ASSIGNMENTS = "assignmentsPanel";
@@ -126,6 +131,8 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
     private IModel<PrismObject<RoleType>> model;
     private IModel<List<ObjectType>> approversModel;
     private IModel<ContainerWrapper> extensionModel;
+    private IModel<List<MultiplicityPolicyConstraintType>> minAssignmentModel;
+    private IModel<List<MultiplicityPolicyConstraintType>> maxAssignmentsModel;
     private ObjectWrapper roleWrapper;
 
     private ProgressReporter progressReporter;
@@ -161,6 +168,34 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
             @Override
             protected List<ObjectType> load() {
                 return loadApprovers();
+            }
+        };
+
+        minAssignmentModel = new LoadableModel<List<MultiplicityPolicyConstraintType>>(false) {
+
+            @Override
+            protected List<MultiplicityPolicyConstraintType> load() {
+                RoleType role = model.getObject().asObjectable();
+
+                if(role.getPolicyConstraints() == null){
+                    role.setPolicyConstraints(new PolicyConstraintsType());
+                }
+
+                return role.getPolicyConstraints().getMinAssignees();
+            }
+        };
+
+        maxAssignmentsModel = new LoadableModel<List<MultiplicityPolicyConstraintType>>(false) {
+
+            @Override
+            protected List<MultiplicityPolicyConstraintType> load() {
+                RoleType role = model.getObject().asObjectable();
+
+                if(role.getPolicyConstraints() == null){
+                    role.setPolicyConstraints(new PolicyConstraintsType());
+                }
+
+                return model.getObject().asObjectable().getPolicyConstraints().getMaxAssignees();
             }
         };
 
@@ -380,12 +415,6 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
             }
 
             @Override
-            protected ObjectQuery createChooseQuery() {
-//                TODO
-                return super.createChooseQuery();
-            }
-
-            @Override
             protected void replaceIfEmpty(Object object) {
                 boolean added = false;
 
@@ -430,10 +459,109 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         approverRef.setOutputMarkupId(true);
         form.add(approverRef);
 
+        GenericMultiValueLabelEditPanel minAssignments = new GenericMultiValueLabelEditPanel<MultiplicityPolicyConstraintType>(ID_MIN_ASSIGNMENTS,
+                minAssignmentModel, createStringResource("PageRoleEditor.label.minAssignments"), ID_LABEL_SIZE, ID_INPUT_SIZE){
+
+            @Override
+            protected void initDialog() {
+                ModalWindow dialog = new MultiplicityPolicyDialog(ID_MODAL_EDITOR, null){
+
+                    @Override
+                    protected void savePerformed(AjaxRequestTarget target) {
+                        closeModalWindow(target);
+                        target.add(getMinAssignmentsContainer());
+                    }
+                };
+                add(dialog);
+            }
+
+            @Override
+            protected IModel<String> createTextModel(IModel<MultiplicityPolicyConstraintType> model) {
+                return createMultiplicityPolicyLabel(model);
+            }
+
+            @Override
+            protected void editValuePerformed(AjaxRequestTarget target, IModel<MultiplicityPolicyConstraintType> rowModel) {
+                MultiplicityPolicyDialog window = (MultiplicityPolicyDialog) get(ID_MODAL_EDITOR);
+                window.updateModel(target, rowModel.getObject());
+                window.show(target);
+            }
+
+            @Override
+            protected MultiplicityPolicyConstraintType createNewEmptyItem() {
+                return new MultiplicityPolicyConstraintType();
+            }
+        };
+        minAssignments.setOutputMarkupId(true);
+        form.add(minAssignments);
+
+        GenericMultiValueLabelEditPanel maxAssignments = new GenericMultiValueLabelEditPanel<MultiplicityPolicyConstraintType>(ID_MAX_ASSIGNMENTS,
+                maxAssignmentsModel, createStringResource("PageRoleEditor.label.maxAssignments"), ID_LABEL_SIZE, ID_INPUT_SIZE){
+
+            @Override
+            protected void initDialog() {
+                ModalWindow dialog = new MultiplicityPolicyDialog(ID_MODAL_EDITOR, null){
+
+                    @Override
+                    protected void savePerformed(AjaxRequestTarget target) {
+                        closeModalWindow(target);
+                        target.add(getMaxAssignmentsContainer());
+                    }
+                };
+                add(dialog);
+            }
+
+            @Override
+            protected IModel<String> createTextModel(IModel<MultiplicityPolicyConstraintType> model) {
+                return createMultiplicityPolicyLabel(model);
+            }
+
+            @Override
+            protected void editValuePerformed(AjaxRequestTarget target, IModel<MultiplicityPolicyConstraintType> rowModel) {
+                MultiplicityPolicyDialog window = (MultiplicityPolicyDialog) get(ID_MODAL_EDITOR);
+                window.updateModel(target, rowModel.getObject());
+                window.show(target);
+            }
+
+            @Override
+            protected MultiplicityPolicyConstraintType createNewEmptyItem() {
+                return new MultiplicityPolicyConstraintType();
+            }
+        };
+        maxAssignments.setOutputMarkupId(true);
+        form.add(maxAssignments);
+
         initModalWindows();
         initExtension(form);
         initAssignmentsAndInducements(form);
         initButtons(form);
+    }
+
+    private IModel<String> createMultiplicityPolicyLabel(final IModel<MultiplicityPolicyConstraintType> model){
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                StringBuilder sb = new StringBuilder();
+
+                if(model == null || model.getObject() == null || model.getObject().getMultiplicity() == null
+                        || model.getObject().getMultiplicity().isEmpty()){
+                    return getString("PageRoleEditor.label.assignmentConstraint.placeholder");
+                }
+
+                MultiplicityPolicyConstraintType policy = model.getObject();
+
+                sb.append(policy.getMultiplicity());
+
+                if(policy.getEnforcement() != null){
+                    sb.append(" (");
+                    sb.append(policy.getEnforcement());
+                    sb.append(")");
+                }
+
+                return sb.toString();
+           }
+        };
     }
 
     private void initModalWindows(){
@@ -479,7 +607,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
 
             @Override
             protected void populateItem(ListItem<PropertyWrapper> item) {
-                PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form);
+                PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form, PageRole.this);
                 propertyPanel.get("labelContainer:label").add(new AttributeAppender("style", "font-weight:bold;"));
                 propertyPanel.get("labelContainer").add(new AttributeModifier("class", ID_LABEL_SIZE + " control-label"));
                 item.add(propertyPanel);
@@ -640,7 +768,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                backPerformed(target);
+                backPerformed();
             }
         };
         back.setDefaultFormProcessing(false);
@@ -656,6 +784,14 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
 
     private WebMarkupContainer getOwnerRefContainer(){
         return (WebMarkupContainer) get(StringUtils.join(new String[]{ID_MAIN_FORM, ID_OWNER_WRAPPER}, ":"));
+    }
+
+    private WebMarkupContainer getMinAssignmentsContainer(){
+        return (WebMarkupContainer) get(StringUtils.join(new String[]{ID_MAIN_FORM, ID_MIN_ASSIGNMENTS}, ":"));
+    }
+
+    private WebMarkupContainer getMaxAssignmentsContainer(){
+        return (WebMarkupContainer) get(StringUtils.join(new String[]{ID_MAIN_FORM, ID_MAX_ASSIGNMENTS}, ":"));
     }
 
     private void ownerChoosePerformed(AjaxRequestTarget target, ObjectType newOwner){
@@ -855,7 +991,7 @@ public class PageRole extends PageAdminRoles implements ProgressReportingAwarePa
         return delta;
     }
 
-    private void backPerformed(AjaxRequestTarget target){
+    private void backPerformed(){
         setResponsePage(new PageRoles(false));
     }
 }

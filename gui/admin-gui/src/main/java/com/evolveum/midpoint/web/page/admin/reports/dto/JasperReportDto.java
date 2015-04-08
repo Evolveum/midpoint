@@ -31,13 +31,17 @@ public class JasperReportDto implements Serializable{
 	
 	private byte[] jasperReportXml;
 	
-	public JasperReportDto(byte[] jasperReportxml) {
+	public JasperReportDto(byte[] jasperReportxml, boolean onlyForPromptingParams) {
 		this.jasperReportXml = jasperReportxml;
 		
-		initFileds();
+		initFileds(onlyForPromptingParams);
 	}
 	
-	private void initFileds(){
+	public JasperReportDto(byte[] jasperReportxml) {
+		this(jasperReportxml, false);
+	}
+	
+	private void initFileds(boolean onlyForPromptingParams){
 		if (jasperReportXml == null){
 			return;
 		}
@@ -60,7 +64,10 @@ public class JasperReportDto implements Serializable{
 				if (parameter.isSystemDefined()){
 					continue;
 				}
-				parameters.add(new JasperReportParameterDto(parameter.getName(), parameter.getValueClass(), parameter.getValueClassName()));
+				if (onlyForPromptingParams && !parameter.isForPrompting()){
+					continue;
+				}
+				parameters.add(new JasperReportParameterDto(parameter.getName(), parameter.getValueClass(), parameter.getValueClassName(), parameter.isForPrompting()));
 			}
 			
 			for (JasperReportParameterDto param : parameters){
@@ -92,8 +99,16 @@ public class JasperReportDto implements Serializable{
 		return fields;
 	}
 	
+	
+	public String getQuery() {
+		return query;
+	}
+	
 	public byte[] getTemplate(){
 		try{
+//			design.remadgetFields().
+			design.getFieldsList().clear();
+			design.getParametersList().clear();
 		for (JasperReportFieldDto field : fields){
 			if (field.isEmpty()){
 				continue;
@@ -113,8 +128,10 @@ public class JasperReportDto implements Serializable{
 			p.setValueClassName(param.getTypeAsString());
 			p.setValueClass(Class.forName(param.getTypeAsString()));
 			p.setName(param.getName());
+			p.setForPrompting(param.isForPrompting());
 			design.addParameter(p);
 		}
+		
 		
 		JasperDesign oldDesign = ReportTypeUtil.loadJasperDesign(jasperReportXml);
 		oldDesign.getParametersList().clear();

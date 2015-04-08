@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
+import org.h2.Driver;
 import org.hibernate.dialect.*;
 
 /**
@@ -36,6 +37,11 @@ public class SqlRepositoryConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryConfiguration.class);
 
+    enum Database {
+        H2, MYSQL, POSTGRESQL, SQLSERVER, ORACLE
+    }
+
+    public static final String PROPERTY_DATABASE = "database";
     public static final String PROPERTY_BASE_DIR = "baseDir";
     public static final String PROPERTY_DROP_IF_EXISTS = "dropIfExists";
     public static final String PROPERTY_AS_SERVER = "asServer";
@@ -71,6 +77,8 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_ORG_CLOSURE_STARTUP_ACTION = "orgClosureStartupAction";
     public static final String PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK = "skipOrgClosureStructureCheck";
     public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
+
+    private String database;
 
     //embedded configuration
     private boolean embedded;
@@ -108,6 +116,10 @@ public class SqlRepositoryConfiguration {
     private boolean stopOnOrgClosureStartupFailure;
 
     public SqlRepositoryConfiguration(Configuration configuration) {
+        setDatabase(configuration.getString(PROPERTY_DATABASE, Database.H2.name()));
+
+        computeDefaultDatabaseParameters();
+
         setAsServer(configuration.getBoolean(PROPERTY_AS_SERVER, false));
         setBaseDir(configuration.getString(PROPERTY_BASE_DIR, baseDir));
         setDriverClassName(configuration.getString(PROPERTY_DRIVER_CLASS_NAME, driverClassName));
@@ -144,6 +156,37 @@ public class SqlRepositoryConfiguration {
         setOrgClosureStartupAction(configuration.getString(PROPERTY_ORG_CLOSURE_STARTUP_ACTION, OrgClosureManager.StartupAction.REBUILD_IF_NEEDED.toString()));
         setSkipOrgClosureStructureCheck(configuration.getBoolean(PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK, false));
         setStopOnOrgClosureStartupFailure(configuration.getBoolean(PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE, true));
+    }
+
+    private void computeDefaultDatabaseParameters() {
+        if (getDatabase() == null) {
+            setDatabase(Database.H2.name());
+        }
+
+        if (Database.H2.name().equalsIgnoreCase(getDatabase())) {
+            embedded = true;
+            hibernateHbm2ddl = "update";
+
+            hibernateDialect = H2Dialect.class.getName();
+            driverClassName = Driver.class.getName();
+        } else {
+            embedded = false;
+            hibernateHbm2ddl = "validate";
+
+            if (Database.MYSQL.name().equalsIgnoreCase(getDatabase())) {
+                hibernateDialect = MidPointMySQLDialect.class.getName();
+                driverClassName = "com.mysql.jdbc.Driver";
+            } else if (Database.POSTGRESQL.name().equalsIgnoreCase(getDatabase())) {
+                hibernateDialect = MidPointPostgreSQLDialect.class.getName();
+                driverClassName = "org.postgresql.Driver";
+            } else if (Database.ORACLE.name().equalsIgnoreCase(getDatabase())) {
+                hibernateDialect = Oracle10gDialect.class.getName();
+                driverClassName = "oracle.jdbc.OracleDriver";
+            } else if (Database.SQLSERVER.name().equalsIgnoreCase(getDatabase())) {
+                hibernateDialect = UnicodeSQLServer2008Dialect.class.getName();
+                driverClassName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+            }
+        }
     }
 
     private void computeDefaultConcurrencyParameters() {
@@ -551,5 +594,13 @@ public class SqlRepositoryConfiguration {
 
     public void setSkipOrgClosureStructureCheck(boolean skipOrgClosureStructureCheck) {
         this.skipOrgClosureStructureCheck = skipOrgClosureStructureCheck;
+    }
+
+    public String getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
     }
 }

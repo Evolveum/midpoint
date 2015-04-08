@@ -21,10 +21,7 @@
         </webApplication>
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
-            <embedded>false</embedded>
-            <driverClassName>com.microsoft.sqlserver.jdbc.SQLServerDriver</driverClassName>
-            <hibernateHbm2ddl>validate</hibernateHbm2ddl>
-            <hibernateDialect>com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect</hibernateDialect>
+            <database>sqlserver</database>
             <jdbcPassword>qwer1234X</jdbcPassword>
             <jdbcUsername>bamboo</jdbcUsername>
             <jdbcUrl>jdbc:sqlserver://192.168.1.27:11433;database=midpoint</jdbcUrl>

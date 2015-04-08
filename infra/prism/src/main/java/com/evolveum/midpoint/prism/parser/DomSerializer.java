@@ -86,19 +86,27 @@ public class DomSerializer {
 
 	public Element serialize(RootXNode rootxnode) throws SchemaException {
 		initialize();
-        return serializeInternal(rootxnode);
+        return serializeInternal(rootxnode, null);
     }
 
     // this one is used only from within JaxbDomHack.toAny(..) - hopefully it will disappear soon
     @Deprecated
     public Element serialize(RootXNode rootxnode, Document document) throws SchemaException {
         initializeWithExistingDocument(document);
-        return serializeInternal(rootxnode);
+        return serializeInternal(rootxnode, null);
+    }
+    
+    public Element serializeUnderElement(RootXNode rootxnode, Element parentElement) throws SchemaException {
+    	initializeWithExistingDocument(parentElement.getOwnerDocument());
+    	return serializeInternal(rootxnode, parentElement);
     }
 
-    private Element serializeInternal(RootXNode rootxnode) throws SchemaException {
+    private Element serializeInternal(RootXNode rootxnode, Element parentElement) throws SchemaException {
 		QName rootElementName = rootxnode.getRootElementName();
-		Element topElement = createElement(rootElementName, null);
+		Element topElement = createElement(rootElementName, parentElement);
+		if (parentElement != null) {
+			parentElement.appendChild(topElement);
+		}
 		QName typeQName = rootxnode.getTypeQName();
         if (typeQName == null && rootxnode.getSubnode().getTypeQName() != null) {
             typeQName = rootxnode.getSubnode().getTypeQName();

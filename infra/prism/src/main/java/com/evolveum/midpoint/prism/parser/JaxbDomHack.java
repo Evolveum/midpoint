@@ -222,6 +222,9 @@ public class JaxbDomHack {
 		
 		if (itemDefinition == null) {
 			itemDefinition = locateItemDefinition(definition, elementName, element);
+			if (itemDefinition == null) {
+	            throw new SchemaException("No definition for item "+elementName);
+			}
 		}
 		
 		PrismContext prismContext = definition.getPrismContext();

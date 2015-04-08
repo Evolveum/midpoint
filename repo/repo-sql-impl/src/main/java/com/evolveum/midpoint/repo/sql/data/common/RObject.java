@@ -54,15 +54,15 @@ import java.util.Set;
  */
 @NamedQueries({
         @NamedQuery(name = "get.userPhoto", query = "select p.photo from RUserPhoto p where p.ownerOid = :oid"),
-        @NamedQuery(name = "get.object", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount from RObject as o where o.oid=:oid"),
+        @NamedQuery(name = "get.object", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount from RObject as o where o.oid=:oid"),
         @NamedQuery(name = "searchShadowOwner.getShadow", query = "select s.oid from RShadow as s where s.oid = :oid"),
-        @NamedQuery(name = "searchShadowOwner.getOwner", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount from RFocus as o left join o.linkRef as ref where ref.targetOid = :oid"),
-        @NamedQuery(name = "listAccountShadowOwner.getUser", query = "select u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount from RUser as u left join u.linkRef as ref where ref.targetOid = :oid"),
-        @NamedQuery(name = "getExtCount", query = "select stringsCount, longsCount, datesCount, referencesCount, polysCount from RObject where oid = :oid"),
+        @NamedQuery(name = "searchShadowOwner.getOwner", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount from RFocus as o left join o.linkRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "listAccountShadowOwner.getUser", query = "select u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount from RUser as u left join u.linkRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "getExtCount", query = "select stringsCount, longsCount, datesCount, referencesCount, polysCount, booleansCount from RObject where oid = :oid"),
         @NamedQuery(name = "getVersion", query = "select o.version from RObject as o where o.oid = :oid"),
         @NamedQuery(name = "existOrgClosure", query = "select count(*) from ROrgClosure as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid"),
         @NamedQuery(name = "sqlDeleteOrgClosure", query = "delete from ROrgClosure as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
-        @NamedQuery(name = "listResourceObjectShadows", query = "select s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "listResourceObjectShadows", query = "select s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid"),
         @NamedQuery(name = "getDefinition.ROExtDate", query = "select c.name, c.type, c.valueType from ROExtDate as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
         @NamedQuery(name = "getDefinition.ROExtString", query = "select c.name, c.type, c.valueType from ROExtString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
         @NamedQuery(name = "getDefinition.ROExtPolyString", query = "select c.name, c.type, c.valueType from ROExtPolyString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
@@ -111,6 +111,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private Set<RObjectReference> modifyApproverRef;
     private String modifyChannel;
     //extension, and other "any" like shadow/attributes
+    private Short booleansCount;
     private Short stringsCount;
     private Short longsCount;
     private Short datesCount;
@@ -121,6 +122,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private Set<ROExtDate> dates;
     private Set<ROExtReference> references;
     private Set<ROExtPolyString> polys;
+    private Set<ROExtBoolean> booleans;
 
     @Id
     @GeneratedValue(generator = "ObjectOidGenerator")
@@ -240,6 +242,15 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<ROExtBoolean> getBooleans() {
+        if (booleans == null) {
+            booleans = new HashSet<>();
+        }
+        return booleans;
+    }
+
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtString> getStrings() {
         if (strings == null) {
             strings = new HashSet<>();
@@ -279,6 +290,13 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             stringsCount = 0;
         }
         return stringsCount;
+    }
+
+    public Short getBooleansCount() {
+        if (booleansCount == null) {
+            booleansCount = 0;
+        }
+        return booleansCount;
     }
 
     public Short getLongsCount() {
@@ -436,6 +454,14 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.strings = strings;
     }
 
+    public void setBooleansCount(Short booleansCount) {
+        this.booleansCount = booleansCount;
+    }
+
+    public void setBooleans(Set<ROExtBoolean> booleans) {
+        this.booleans = booleans;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -472,6 +498,9 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             return false;
         if (strings != null ? !strings.equals(rObject.strings) : rObject.strings != null) return false;
         if (stringsCount != null ? !stringsCount.equals(rObject.stringsCount) : rObject.stringsCount != null)
+            return false;
+        if (booleans != null ? !booleans.equals(rObject.booleans) : rObject.booleans != null) return false;
+        if (booleansCount != null ? !booleansCount.equals(rObject.booleansCount) : rObject.booleansCount != null)
             return false;
 
         return true;
@@ -587,6 +616,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
                 repo.getStrings().add(value);
             } else if (value instanceof ROExtPolyString) {
                 repo.getPolys().add(value);
+            } else if (value instanceof ROExtBoolean) {
+                repo.getBooleans().add(value);
             }
         }
 
@@ -595,5 +626,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         repo.setPolysCount((short) repo.getPolys().size());
         repo.setReferencesCount((short) repo.getReferences().size());
         repo.setLongsCount((short) repo.getLongs().size());
+        repo.setBooleansCount((short) repo.getBooleans().size());
     }
 }

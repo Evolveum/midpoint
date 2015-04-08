@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<c:user oid="1696229e-d90a-11e4-9ce6-001e8c717e5b" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<c:name>darthadder</c:name>
+	<c:assignment>
+		<!-- WS -->
+		<c:targetRef oid="ac4c987a-d7b3-11e4-9623-001e8c717e5b" type="c:RoleType"/>
+	</c:assignment>
+	<c:assignment>
+		<!-- Reader -->
+		<c:targetRef oid="eb243068-d48d-11e4-a83a-001e8c717e5b" type="c:RoleType"/>
+	</c:assignment>
+	<c:assignment>
+		<!-- Adder -->
+		<c:targetRef oid="8a48a97e-d909-11e4-8413-001e8c717e5b" type="c:RoleType"/>
+	</c:assignment>
+	<c:activation>
+		<c:administrativeStatus>enabled</c:administrativeStatus>
+	</c:activation>
+	<c:fullName>Darth Adder</c:fullName>
+	<c:givenName>Darth</c:givenName>
+	<c:familyName>Adder</c:familyName>
+	<c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+		<c:password>
+			<c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+				<clearValue>iamyouruncle</clearValue>
+			</c:value>
+		</c:password>
+	</c:credentials>
+</c:user>

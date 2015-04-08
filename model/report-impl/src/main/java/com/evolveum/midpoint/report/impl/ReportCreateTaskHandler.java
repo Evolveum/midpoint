@@ -3,6 +3,7 @@ package com.evolveum.midpoint.report.impl;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBElement;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
@@ -36,19 +38,29 @@ import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.param.ParameterSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.parser.XNodeSerializer;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.RawTypeUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -64,10 +76,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubreportType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 @Component
 public class ReportCreateTaskHandler implements TaskHandler{
@@ -131,12 +147,32 @@ public class ReportCreateTaskHandler implements TaskHandler{
 		
 		try {
 			ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null, "resolving report", result);
+			Map<String, Object> parameters = completeReport(parentReport, result);
+			
+			PrismProperty<ReportParameterType> reportParams = task.getExtensionProperty(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+			if (reportParams != null){
+			List<PrismPropertyValue<ReportParameterType>> reportParamsValues = reportParams.getValues();
+			
+			for (PrismPropertyValue<ReportParameterType> paramValue : reportParamsValues){
+				ReportParameterType val = paramValue.getValue();
+				Class clazz = Class.forName(val.getType());
+				Object value = null;
+				if (XmlTypeConverter.canConvert(clazz)){
+					value =  XmlTypeConverter.toJavaValue(val.getValue(), clazz);
+				} else {
+					XNode xnode = prismContext.getParserDom().parse(val.getValue());
+					 value = prismContext.getBeanConverter().unmarshall(xnode, clazz);
+					
+				}
+				parameters.put(val.getName(), value);
+			}
+			}
+			
 			
 			JasperReport jasperReport = ReportTypeUtil.loadJasperReport(parentReport);
-			
 			LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
-    		Map<String, Object> parameters = completeReport(parentReport, result);
-			
+    		
+    		
     		LOGGER.trace("All Report parameters : {}", parameters);
     		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters);
     		LOGGER.trace("fill report : {}", jasperPrint);
@@ -243,13 +279,6 @@ public class ReportCreateTaskHandler implements TaskHandler{
 			params.put(PARAMETER_REPORT_OID, reportType.getOid());
 			params.put(PARAMETER_OPERATION_RESULT, parentResult);
 			params.put(ReportService.PARAMETER_REPORT_SERVICE, reportService);
-//			params.put(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION, modelService);
-//			params.put(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, prismContext);
-//			params.put(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER, taskManager);
-//			params.put(MidPointQueryExecutorFactory.PARAMETER_EXPRESSION_FACTORY, expressionFactory);
-//			params.put(MidPointQueryExecutorFactory.PARAMETER_AUDIT_SERVICE, auditService);
-//			ReportFunctions reportFunctions = new ReportFunctions(prismContext, modelService, taskManager, auditService);
-//    		params.put(MidPointQueryExecutorFactory.PARAMETER_REPORT_FUNCTIONS, reportFunctions);
 			
 			return params;
 	    }

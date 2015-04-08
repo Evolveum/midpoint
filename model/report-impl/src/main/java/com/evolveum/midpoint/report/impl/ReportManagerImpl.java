@@ -19,11 +19,13 @@ package com.evolveum.midpoint.report.impl;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
@@ -53,6 +55,8 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.LessFilter;
@@ -65,6 +69,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -81,6 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 
@@ -150,10 +156,24 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
      */
     
     @Override
-    public void runReport(PrismObject<ReportType> object, Task task, OperationResult parentResult) {    	
+    public void runReport(PrismObject<ReportType> object, List<ReportParameterType> params, Task task, OperationResult parentResult) {    	
         task.setHandlerUri(ReportCreateTaskHandler.REPORT_CREATE_TASK_URI);
         task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
-
+        try {
+        	if (params != null && !params.isEmpty()){
+        		PrismPropertyDefinition propertyDef = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+        		PrismProperty<ReportParameterType> paramProperty = propertyDef.instantiate();
+        		for (ReportParameterType reportParam : params){
+        			paramProperty.addRealValue(reportParam);
+        		}
+        		
+        		task.addExtensionProperty(paramProperty);
+        		
+        	}
+		} catch (SchemaException e) {
+			throw new SystemException(e);
+		}
+        
         task.setThreadStopAction(ThreadStopActionType.CLOSE);
     	task.makeSingle();
     	

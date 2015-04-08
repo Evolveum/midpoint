@@ -88,8 +88,8 @@ public class ReportServiceImpl implements ReportService {
 				}
 				
 				ObjectFilter subFilter = ((TypeFilter) f).getFilter();
-				if (subFilter instanceof PropertyValueFilter || subFilter instanceof InOidFilter){
-					if (containsExpression(subFilter)){
+//				if (subFilter instanceof PropertyValueFilter || subFilter instanceof InOidFilter){
+//					if (containsExpression(subFilter)){
 						ObjectQuery q = ObjectQuery.createObjectQuery(subFilter);
 						Task task = taskManager.createTaskInstance();
 						ExpressionVariables variables = new ExpressionVariables();
@@ -97,8 +97,8 @@ public class ReportServiceImpl implements ReportService {
 					
 						q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionFactory, prismContext, "parsing expression values for report", task, task.getResult());
 						((TypeFilter) f).setFilter(q.getFilter());
-					} 
-				} 
+//					} 
+//				} 
 				
 //				if (parsedQuery == null) {
 				parsedQuery = ObjectQuery.createObjectQuery(f);

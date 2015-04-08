@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="modalEditor" />
+
+    <label class="control-label" wicket:id="label" />
+
+    <div class="col-md-6" wicket:id="addFirstContainer">
+        <a class="btn btn-success btn-sm" wicket:id="addFirst"><i class="glyphicon glyphicon-plus"/></a>
+    </div>
+
+    <wicket:container wicket:id="repeater">
+        <div wicket:id="textWrapper">
+            <div class="input-group input-group-sm">
+                <span class="input-group-btn">
+                    <button wicket:id="edit" class="btn btn-primary" type="button">
+                        <wicket:message key="PageBase.button.edit" />
+                    </button>
+                </span>
+                <input type="text" class="form-control input-sm" wicket:id="text" />
+                <span class="text-danger" wicket:id="feedback" />
+            </div>
+        </div>
+
+        <div class="col-md-2" wicket:id="buttonGroup">
+            <span class="btn-group">
+                <a class="btn btn-danger btn-sm" wicket:id="remove"><i class="glyphicon glyphicon-minus"/></a>
+                <a class="btn btn-success btn-sm" wicket:id="add"><i class="glyphicon glyphicon-plus"/></a>
+            </span>
+        </div>
+    </wicket:container>
+</wicket:panel>
+</html>

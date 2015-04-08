@@ -25,17 +25,17 @@
 
 	<name>Role Types</name>
 	
-	<table>
+	<row>
 		<key>application</key>
 		<label>Application role</label>
-	</table>
-	<table>
+	</row>
+	<row>
 		<key>system</key>
 		<label>System role</label>
-	</table>
-    <table>
+	</row>
+    <row>
 		<key>it</key>
 		<label>IT role</label>
-	</table>
+	</row>
 
 </lookupTable>

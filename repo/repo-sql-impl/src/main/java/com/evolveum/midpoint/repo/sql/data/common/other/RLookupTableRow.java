@@ -1,20 +1,17 @@
 package com.evolveum.midpoint.repo.sql.data.common.other;
 
 import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -26,6 +23,9 @@ import java.util.Date;
 //        @Index(name = "i_row_key", columnList = "key"),
 //        @Index(name = "i_row_label_orig", columnList = "label.orig"),
 //        @Index(name = "i_row_label_norm", columnList = "label.norm")
+},
+uniqueConstraints = {
+        @UniqueConstraint(name = "uc_row_key", columnNames = {"row_key"})
 })
 @IdClass(RContainerId.class)
 public class RLookupTableRow implements Container<RLookupTable> {
@@ -35,7 +35,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
 
     private RLookupTable owner;
     private String ownerOid;
-    private Short id;
+    private Integer id;
 
     private String key;
     private String value;
@@ -63,12 +63,12 @@ public class RLookupTableRow implements Container<RLookupTable> {
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
-    public Short getId() {
+    public Integer getId() {
         return id;
     }
 
     @Id
-    @Column(name = "row_key", unique = true)
+    @Column(name = "row_key")
     public String getKey() {
         return key;
     }
@@ -119,7 +119,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
     }
 
     @Override
-    public void setId(Short id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -153,8 +153,8 @@ public class RLookupTableRow implements Container<RLookupTable> {
         return result;
     }
 
-    public LookupTableTableType toJAXB() {
-        LookupTableTableType row = new LookupTableTableType();
+    public LookupTableRowType toJAXB() {
+        LookupTableRowType row = new LookupTableRowType();
         row.setId(Long.valueOf(id));
         row.setKey(key);
         row.setLastChangeTimestamp(lastChangeTimestamp);
@@ -164,20 +164,31 @@ public class RLookupTableRow implements Container<RLookupTable> {
         return row;
     }
 
-    public static RLookupTableRow toRepo(String ownerOid, LookupTableTableType table) {
-        RLookupTableRow row = new RLookupTableRow();
-        row.setOwnerOid(ownerOid);
-        row.setId(RUtil.toShort(table.getId()));
-        row.setKey(table.getKey());
-        row.setLabel(RPolyString.copyFromJAXB(table.getLabel()));
-        row.setLastChangeTimestamp(table.getLastChangeTimestamp());
-        if (row.getLastChangeTimestamp() == null) {
-            XMLGregorianCalendar cal = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
-            row.setLastChangeTimestamp(cal);
-            table.setLastChangeTimestamp(cal);
-        }
-        row.setValue(table.getValue());
+    public static RLookupTableRow toRepo(RLookupTable owner, LookupTableRowType row) {
+        RLookupTableRow rRow = toRepo(row);
+        rRow.setOwner(owner);
+        return rRow;
+    }
 
-        return row;
+    public static RLookupTableRow toRepo(String ownerOid, LookupTableRowType row) {
+        RLookupTableRow rRow = toRepo(row);
+        rRow.setOwnerOid(ownerOid);
+        return rRow;
+    }
+
+    private static RLookupTableRow toRepo(LookupTableRowType row) {
+        RLookupTableRow rRow = new RLookupTableRow();
+        rRow.setId(RUtil.toInteger(row.getId()));
+        rRow.setKey(row.getKey());
+        rRow.setLabel(RPolyString.copyFromJAXB(row.getLabel()));
+        rRow.setLastChangeTimestamp(row.getLastChangeTimestamp());
+        if (rRow.getLastChangeTimestamp() == null) {
+            XMLGregorianCalendar cal = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
+            rRow.setLastChangeTimestamp(cal);
+            row.setLastChangeTimestamp(cal);
+        }
+        rRow.setValue(row.getValue());
+
+        return rRow;
     }
 }

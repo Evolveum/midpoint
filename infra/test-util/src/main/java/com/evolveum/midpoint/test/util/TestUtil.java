@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -102,6 +103,11 @@ public class TestUtil {
         } else {
             assertEquals(expectedSet, actualSet);
         }
+    }
+    
+    public static <T> void assertSetEquals(String message, T[] actual, T[] expected) {
+        assertTrue(message+"expected "+Arrays.toString(expected)+", was "+Arrays.toString(actual), 
+        		MiscUtil.unorderedArrayEquals(actual, expected));
     }
     
     public static String getNodeOid(Node node) {

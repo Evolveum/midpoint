@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2013-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.model.impl;
 
 import java.net.URI;
@@ -300,11 +315,17 @@ public class ModelRestService {
 		return response;
 	}
 	
+	@POST
+	@Path("/{type}/{oid}")
+	public <T extends ObjectType> Response modifyObjectPost(@PathParam("type") String type, @PathParam("oid") String oid, 
+			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
+		return modifyObjectPatch(type, oid, modificationType, options, mc);
+	}
 	
 	@PATCH
 	@Path("/{type}/{oid}")
 //	@Produces({"text/html", "application/xml"})
-	public <T extends ObjectType> Response modifyObject(@PathParam("type") String type, @PathParam("oid") String oid, 
+	public <T extends ObjectType> Response modifyObjectPatch(@PathParam("type") String type, @PathParam("oid") String oid, 
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 		
 		LOGGER.info("model rest service for modify operation start");
