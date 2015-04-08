@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +22,8 @@ import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.export.JRCsvExporter;
+import net.sf.jasperreports.engine.export.JRRtfExporter;
 import net.sf.jasperreports.engine.export.JRXhtmlExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.engine.export.oasis.JROdsExporter;
@@ -34,6 +37,8 @@ import net.sf.jasperreports.export.ExporterInput;
 import net.sf.jasperreports.export.ExporterOutput;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import net.sf.jasperreports.export.SimpleWriterExporterOutput;
+import net.sf.jasperreports.export.WriterExporterOutput;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
@@ -337,10 +342,16 @@ public class ReportCreateTaskHandler implements TaskHandler{
 	        	case XML_EMBED :
 	        		JasperExportManager.exportReportToXmlFile(jasperPrint, destinationFileName, true);
 	        		break;
+	        	case XHTML :
 	        	case HTML :	
 	        		JasperExportManager.exportReportToHtmlFile(jasperPrint, destinationFileName);
 	        		break;
-              	case CSV : 
+              	case CSV :  
+              		JRCsvExporter csvExporter = new JRCsvExporter();
+              		csvExporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+              		csvExporter.setExporterOutput(new SimpleWriterExporterOutput(destinationFileName));
+              		csvExporter.exportReport();
+              		break;
               	case RTF :
 	          	case XLS :
 	          	case ODT :
@@ -348,7 +359,7 @@ public class ReportCreateTaskHandler implements TaskHandler{
 	          	case DOCX :
 	          	case XLSX :
 	          	case PPTX :
-	          	case XHTML :
+	          	
 	          	case JXL : 		          		
 	          		ExporterInput input = new SimpleExporterInput(jasperPrint);
 	          		ExporterOutput output = new SimpleOutputStreamExporterOutput(destinationFileName);
@@ -370,7 +381,9 @@ public class ReportCreateTaskHandler implements TaskHandler{
 	private Exporter createExporter(ExportType type) {
 		switch (type) {
 			case CSV:
+				return new JRCsvExporter();
 			case RTF:
+				return new JRRtfExporter();
 			case XLS:
 				return new JRXlsExporter();
 			case ODT:
@@ -383,8 +396,6 @@ public class ReportCreateTaskHandler implements TaskHandler{
 				return new JRXlsxExporter();
 			case PPTX:
 				return new JRPptxExporter();
-			case XHTML:
-				return new JRXhtmlExporter();
 			default:
 				return null;
 		}
