@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.capability.*;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -103,7 +104,8 @@ public class CapabilityStep extends WizardStep {
     private IModel<CapabilityStepDto> model;
     private IModel<PrismObject<ResourceType>> resourceModel;
 
-    public CapabilityStep(IModel<PrismObject<ResourceType>> prismModel){
+    public CapabilityStep(IModel<PrismObject<ResourceType>> prismModel, PageBase pageBase){
+        super(pageBase);
         this.resourceModel = prismModel;
 
         model = new LoadableModel<CapabilityStepDto>() {
