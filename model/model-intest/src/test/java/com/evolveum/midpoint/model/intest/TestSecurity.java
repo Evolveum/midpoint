@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertNull;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -71,6 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -550,6 +552,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertRoleTypes(roleSpec);
         assertFilter(roleSpec.getFilter(), NoneFilter.class);
         
+        assertGlobalStateUntouched();
 	}
 	
 	@Test
@@ -571,6 +574,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertNotNull("Null role spec "+roleSpec, roleSpec);
         assertNull("Non-null role types in spec "+roleSpec, roleSpec.getRoleTypes());
         assertFilter(roleSpec.getFilter(), null);
+        
+        assertGlobalStateUntouched();
 	}
 
 	@Test
@@ -587,6 +592,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
 	}
 
 	/**
@@ -606,6 +613,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
 	}
 	
 	/**
@@ -625,6 +634,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
 	}
 	
 	@Test
@@ -641,6 +652,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
 	}
 
 	@Test
@@ -657,6 +670,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
 	}
 	
 	@Test
@@ -673,6 +688,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
 	}
 	
 	@Test
@@ -702,6 +719,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertDeleteDeny();
         assertDeleteDeny(UserType.class, USER_JACK_OID);
+        
+        assertGlobalStateUntouched();
 	}
 	
 	@Test
@@ -725,6 +744,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
         
         assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
 	}
 	
 	@Test
@@ -760,6 +781,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
         
         assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
 	}
 	
 	@Test
@@ -786,6 +809,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
         
         assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
 	}
 	
 	@Test
@@ -869,6 +894,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, PrismTestUtil.createPolyString("Brethren of the Coast"));
         
         assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
 	}
 
 	@Test
@@ -897,6 +924,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteAllow(UserType.class, USER_ESTEVAN_OID);
         
         assertVisibleUsers(2);
+        
+        assertGlobalStateUntouched();
 	}
 
 	@Test
@@ -924,6 +953,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetDeny(UserType.class, userRumRogersOid);
         assertModifyDeny(UserType.class, userRumRogersOid, UserType.F_TITLE, PrismTestUtil.createPolyString("drunk"));
         assertAddDeny(USER_MANCOMB_FILE);
+        
+        assertGlobalStateUntouched();
 	}
 
 	@Test
@@ -999,6 +1030,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         PrismObjectDefinition<ShadowType> shadowEditSchema = getEditObjectDefinition(shadow);
         // TODO: assert items
+        
+        assertGlobalStateUntouched();
 	}
 
 	@Test
@@ -1067,6 +1100,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertDeleteAllow(ShadowType.class, accountRedOid);
         assertDeleteDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+        
+        assertGlobalStateUntouched();
 	}
 
     @Test
@@ -1138,6 +1173,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 //
 //        assertDeleteAllow(ShadowType.class, accountRedOid);
 //        assertDeleteDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+        
+        assertGlobalStateUntouched();
     }
 
     @Test
@@ -1187,6 +1224,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         String accountRedOid = getLinkRefOid(user, RESOURCE_DUMMY_RED_OID);
         assertNotNull("Strange, red account not linked to jack", accountRedOid);
         assertGetAllow(ShadowType.class, accountRedOid);
+        
+        assertGlobalStateUntouched();
 	}
 
 
@@ -1226,6 +1265,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertUser(angelica, null, USER_ANGELICA_NAME, "angelika", "angelika", "angelika");
 		assertAssignedRole(angelica, ROLE_BASIC_OID);
 		assertAccount(angelica, RESOURCE_DUMMY_OID);
+		
+		assertGlobalStateUntouched();
 	}
     
 	@Test
@@ -1283,6 +1324,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
         assertRoleTypes(spec, "application");
         assertFilter(spec.getFilter(), TypeFilter.class);
+        
+        assertGlobalStateUntouched();
 	}
 	
 	@Test
@@ -1320,6 +1363,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         user = getUser(USER_JACK_OID);
         assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, "Jack", "changed");
        
+        assertGlobalStateUntouched();
 	}
 
 
@@ -1359,6 +1403,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         user = getUser(USER_JACK_OID);
         assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, "Jack", "changed");
 
+        assertGlobalStateUntouched();
 	}
 	
 	private void assertItemFlags(PrismObjectDefinition<UserType> editSchema, QName itemName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
@@ -1939,6 +1984,15 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	interface Attempt {
 		void run(Task task, OperationResult result) throws Exception;
+	}
+	
+	private void assertGlobalStateUntouched() throws SchemaException {
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceDummy);
+		RefinedObjectClassDefinition rOcDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+		assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);
+        assertAttributeFlags(rOcDef, SchemaConstants.ICFS_NAME, true, true, true);
+        assertAttributeFlags(rOcDef, new QName("location"), true, true, true);
+        assertAttributeFlags(rOcDef, new QName("weapon"), true, true, true);
 	}
 	
 }

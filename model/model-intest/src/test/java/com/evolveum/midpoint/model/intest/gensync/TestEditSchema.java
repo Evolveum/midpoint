@@ -38,7 +38,9 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
 import com.evolveum.midpoint.schema.RelationalValueSearchType;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -52,6 +54,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
@@ -1343,6 +1346,17 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 				assertTrue(name+" is modifiable", !propDef.canModify());
 			}
 		}, PrismTestUtil.createPolyString("jack"));
+		
+		assertPropertyValues(user, UserType.F_DESCRIPTION, new Validator<PrismPropertyDefinition<String>>() {
+			@Override
+			public void validate(PrismPropertyDefinition<String> propDef, String name) throws Exception {
+				assertNotNull("No definition for description in user", propDef);
+				assertEquals("Wrong description displayName", "Comment", propDef.getDisplayName());
+				assertTrue(name+" not readable", propDef.canRead());
+				assertTrue(name+" is creatable", !propDef.canAdd());
+				assertTrue(name+" not modifiable", propDef.canModify());
+			}
+		}, "Where's the rum?");
         
 		assertPropertyValues(user, UserType.F_ADDITIONAL_NAME, new Validator<PrismPropertyDefinition<PolyString>>() {
 			@Override
@@ -1386,9 +1400,81 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertSteadyResources();
     }
 
-    
-    // TODO: Search, check schema
+    @Test
+    public void test820OtisSearchUsers() throws Exception {
+		final String TEST_NAME="test820OtisSearchUsers";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
+        // GIVEN
+        login(USER_OTIS_USERNAME);
+        
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		assertEquals("Unexepected number of users found", 6, users.size());
+		
+		for (final PrismObject<UserType> user: users) {
+			assertProperty(user, UserType.F_NAME, new Validator<PrismPropertyDefinition<PolyString>>() {
+				@Override
+				public void validate(PrismPropertyDefinition<PolyString> propDef, String name) throws Exception {
+					assertNotNull("No definition for name in user", propDef);
+					assertEquals("Wrong name displayName", "Name", propDef.getDisplayName());
+					assertTrue(name+" of "+user+" not readable", propDef.canRead());
+					assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
+					assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
+				}
+			});
+			assertProperty(user, UserType.F_ADDITIONAL_NAME, new Validator<PrismPropertyDefinition<PolyString>>() {
+				@Override
+				public void validate(PrismPropertyDefinition<PolyString> propDef, String name) throws Exception {
+					assertNotNull("No definition for additionalName in user", propDef);
+					assertEquals("Wrong additionalName displayName", "Middle Name", propDef.getDisplayName());
+					assertTrue(name+" of "+user+" is readable", !propDef.canRead());
+					assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
+					assertTrue(name+" of "+user+" not modifiable", propDef.canModify());
+				}
+			});
+			assertProperty(user, UserType.F_COST_CENTER, new Validator<PrismPropertyDefinition<String>>() {
+				@Override
+				public void validate(PrismPropertyDefinition<String> propDef, String name) throws Exception {
+					assertNotNull("No definition for costCenter in user", propDef);
+					assertEquals("Wrong costCenter displayOrder", (Integer)123, propDef.getDisplayOrder());
+					assertTrue(name+" of "+user+" is readable", !propDef.canRead());
+					assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
+					assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
+				}
+			});
+			
+			assertProperty(user, UserType.F_PREFERRED_LANGUAGE, new Validator<PrismPropertyDefinition<String>>() {
+				@Override
+				public void validate(PrismPropertyDefinition<String> propDef, String name) throws Exception {
+					assertNotNull("No definition for preferredLanguage in user", propDef);
+					assertEquals("Wrong preferredLanguage displayName", "Language", propDef.getDisplayName());
+					PrismReferenceValue valueEnumerationRef = propDef.getValueEnumerationRef();
+					assertNotNull("No valueEnumerationRef for preferredLanguage", valueEnumerationRef);
+					assertEquals("Wrong valueEnumerationRef OID for preferredLanguage", LOOKUP_LANGUAGES_OID, valueEnumerationRef.getOid());
+					assertTrue(name+" of "+user+" is readable", !propDef.canRead());
+					assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
+					assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
+				}
+			});
+
+			PrismAsserts.assertNoItem(user, UserType.F_CREDENTIALS);
+			
+			assertUntouchedUserDefinition();
+		}
+		
+    }
+    
     
     private <O extends ObjectType, T> void assertPropertyValues(PrismObject<O> object, QName propName,
 			Validator<PrismPropertyDefinition<T>> validator, T... expectedValues) throws Exception {
@@ -1398,6 +1484,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     private <O extends ObjectType, T> void assertProperty(PrismObject<O> object, ItemPath path,
 			Validator<PrismPropertyDefinition<T>> validator) throws Exception {
     	assertPropertyValues(object, path, validator, (T[])null);
+    }
+    
+    private <O extends ObjectType, T> void assertProperty(PrismObject<O> object, QName propname,
+			Validator<PrismPropertyDefinition<T>> validator) throws Exception {
+    	assertPropertyValues(object, new ItemPath(propname), validator, (T[])null);
     }
     
     private <O extends ObjectType, T> void assertPropertyValues(PrismObject<O> object, ItemPath path,
@@ -1464,31 +1555,48 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		// THEN
         
+        PrismPropertyDefinition<PolyString> descriptionDef = userDefinition.findPropertyDefinition(UserType.F_DESCRIPTION);
+		assertNotNull("No definition for description in user", descriptionDef);
+		assertEquals("Wrong description displayName", "Description", descriptionDef.getDisplayName());
+		assertTrue("description not readable", descriptionDef.canRead());
+		assertTrue("description not creatable", descriptionDef.canAdd());
+		assertTrue("description not modifiable", descriptionDef.canModify());
+        
         PrismPropertyDefinition<PolyString> additionalNameDef = userDefinition.findPropertyDefinition(UserType.F_ADDITIONAL_NAME);
 		assertNotNull("No definition for additionalName in user", additionalNameDef);
 		assertEquals("Wrong additionalName displayName", "Additional Name", additionalNameDef.getDisplayName());
 		assertTrue("additionalName not readable", additionalNameDef.canRead());
+		assertTrue("additionalName not creatable", additionalNameDef.canAdd());
+		assertTrue("additionalName not modifiable", additionalNameDef.canModify());
 		
 		PrismPropertyDefinition<String> costCenterDef = userDefinition.findPropertyDefinition(UserType.F_COST_CENTER);
 		assertNotNull("No definition for costCenter in user", costCenterDef);
 		assertEquals("Wrong costCenter displayOrder", (Integer)420, costCenterDef.getDisplayOrder());
 		assertTrue("costCenter not readable", costCenterDef.canRead());
+		assertTrue("costCenter not creatable", costCenterDef.canAdd());
+		assertTrue("costCenter not modifiable", costCenterDef.canModify());
 		
 		PrismPropertyDefinition<String> preferredLanguageDef = userDefinition.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
 		assertNotNull("No definition for preferredLanguage in user", preferredLanguageDef);
 		assertEquals("Wrong preferredLanguage displayName", "Preferred Language", preferredLanguageDef.getDisplayName());
 		assertTrue("preferredLanguage not readable", preferredLanguageDef.canRead());
+		assertTrue("preferredLanguage not creatable", preferredLanguageDef.canAdd());
+		assertTrue("preferredLanguage not modifiable", preferredLanguageDef.canModify());
 		PrismReferenceValue valueEnumerationRef = preferredLanguageDef.getValueEnumerationRef();
 		assertNull("valueEnumerationRef for preferredLanguage sneaked in", valueEnumerationRef);
 
 		PrismContainerDefinition<CredentialsType> credentialsDef = userDefinition.findContainerDefinition(UserType.F_CREDENTIALS);
 		assertNotNull("No definition for credentials in user", credentialsDef);
 		assertTrue("Credentials not readable", credentialsDef.canRead());
+		assertTrue("Credentials not creatable", credentialsDef.canAdd());
+		assertTrue("Credentials not modifiable", credentialsDef.canModify());
 		
 		ItemPath passwdValPath = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 		PrismPropertyDefinition<ProtectedStringType> passwdValDef = userDefinition.findPropertyDefinition(passwdValPath);
 		assertNotNull("No definition for "+passwdValPath+" in user", passwdValDef);
 		assertTrue("Password not readable", passwdValDef.canRead());
+		assertTrue("Password not creatable", passwdValDef.canAdd());
+		assertTrue("Password not modifiable", passwdValDef.canModify());
 		
     }
 }

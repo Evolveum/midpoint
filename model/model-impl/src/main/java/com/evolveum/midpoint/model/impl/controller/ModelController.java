@@ -892,7 +892,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 		applyObjectTemplateToDefinition(objectDefinition, objectTemplateType, result);
 		
-		applySecurityConstraints(objectDefinition, new ItemPath(), securityConstraints,
+		applySecurityConstraints(objectDefinition, ItemPath.EMPTY_PATH, securityConstraints,
 				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
@@ -2039,7 +2039,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
     	OperationResult result = parentResult.createMinorSubresult(ModelController.class.getName()+".applySchemasAndSecurity");
     	validateObject(object, rootOptions, result);
     	
-    	object.deepCloneDefinition(true);
+    	PrismObjectDefinition<O> objectDefinition = object.deepCloneDefinition(true);
     	
     	try {
 			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
@@ -2054,14 +2054,16 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				// shortcut
 				throw new AuthorizationException("Access denied");
 			}
+			AuthorizationDecisionType globalAddDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
+			AuthorizationDecisionType globalModifyDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
 			applySecurityConstraints((List)object.getValue().getItems(), securityConstraints, globalReadDecision,
-					securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
-					securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase),
-					phase);
+					globalAddDecision, globalModifyDecision, phase);
 			if (object.isEmpty()) {
 				// let's make it explicit
 				throw new AuthorizationException("Access denied");
 			}
+			
+			applySecurityConstraints(objectDefinition, ItemPath.EMPTY_PATH, securityConstraints, globalReadDecision, globalAddDecision, globalModifyDecision, phase);
 			
 		} catch (SecurityViolationException | SchemaException e) {
 			result.recordFatalError(e);

@@ -62,6 +62,7 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
     private QName matchingRuleQName = null;
     private Integer modificationPriority;
     private Boolean readReplaceMode;
+    private PropertyAccessType accessOverride = new PropertyAccessType();
 
     protected RefinedAttributeDefinition(ResourceAttributeDefinition<T> attrDef, PrismContext prismContext) {
         super(attrDef.getName(), attrDef.getTypeName(), prismContext);
@@ -95,6 +96,9 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
     }
 	
 	public boolean canAdd(LayerType layer) {
+		if (accessOverride.isAdd() != null) {
+			return accessOverride.isAdd();
+		}
         return limitationsMap.get(layer).getAccess().isAdd();
     }
 
@@ -104,6 +108,9 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
     }
 
     public boolean canRead(LayerType layer) {
+		if (accessOverride.isRead() != null) {
+			return accessOverride.isRead();
+		}
         return limitationsMap.get(layer).getAccess().isRead();
     }
 
@@ -113,12 +120,15 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
     }
     
     public boolean canModify(LayerType layer) {
+		if (accessOverride.isModify() != null) {
+			return accessOverride.isModify();
+		}
         return limitationsMap.get(layer).getAccess().isModify();
     }
 
     @Override
     public void setReadOnly() {
-        throw new UnsupportedOperationException("Parts of refined attribute are immutable");
+        setCanRead(false);
     }
 
     @Override
@@ -138,17 +148,17 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
 
     @Override
     public void setCanRead(boolean read) {
-        throw new UnsupportedOperationException("Parts of refined attribute are immutable");
+        accessOverride.setRead(read);
     }
 
     @Override
     public void setCanModify(boolean update) {
-        throw new UnsupportedOperationException("Parts of refined attribute are immutable");
+        accessOverride.setModify(update);
     }
 
     @Override
     public void setCanAdd(boolean create) {
-        throw new UnsupportedOperationException("Parts of refined attribute are immutable");
+    	accessOverride.setAdd(create);
     }
 
     @Override
@@ -469,6 +479,34 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
     }
     
     @Override
+	public RefinedAttributeDefinition<T> clone() {
+    	ResourceAttributeDefinition<T> attrDefClone = this.attributeDefinition.clone();
+		RefinedAttributeDefinition<T> clone = new RefinedAttributeDefinition<>(attrDefClone, prismContext);
+		copyDefinitionData(clone);
+		return clone;
+	}
+
+	protected void copyDefinitionData(RefinedAttributeDefinition<T> clone) {
+		clone.accessOverride = this.accessOverride.clone();
+		clone.description = this.description;
+		clone.displayName = this.displayName;
+		clone.fetchStrategy = this.fetchStrategy;
+		clone.inboundMappingTypes = this.inboundMappingTypes;
+		clone.intolerantValuePattern = this.intolerantValuePattern;
+		clone.isExclusiveStrong = this.isExclusiveStrong;
+		clone.limitationsMap = this.limitationsMap;
+		clone.matchingRuleQName = this.matchingRuleQName;
+		clone.modificationPriority = this.modificationPriority;
+		clone.outboundMappingType = this.outboundMappingType;
+		clone.readReplaceMode = this.readReplaceMode;
+		clone.secondaryIdentifier = this.secondaryIdentifier;
+		clone.tolerant = this.tolerant;
+		clone.tolerantValuePattern = this.tolerantValuePattern;
+	}
+	
+	
+
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(super.toString());
