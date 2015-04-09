@@ -21,15 +21,15 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public class AssignmentPreviewDialog extends ModalWindow{
 
     public void updateData(AjaxRequestTarget target, List<? extends ObjectType> newData){
         data.setObject(newData);
-        target.add(getContent());
+        target.add(get(getContentId() + ":" + ID_TABLE));
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
@@ -95,8 +95,8 @@ public class AssignmentPreviewDialog extends ModalWindow{
     }
 
     public void initLayout(WebMarkupContainer content){
-        List<IColumn<SelectableBean<ObjectType>, String>> columns = initColumns();
-        ListDataProvider provider = new ListDataProvider(getPageBase(), new Model(data));
+        List<IColumn<RoleType, String>> columns = initColumns();
+        ListDataProvider provider = new ListDataProvider(getPageBase(), data);
 
         TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
@@ -113,18 +113,21 @@ public class AssignmentPreviewDialog extends ModalWindow{
         content.add(cancelButton);
     }
 
-    private List<IColumn<SelectableBean<ObjectType>, String>> initColumns(){
-        List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
+    private List<IColumn<RoleType, String>> initColumns(){
+        List<IColumn<RoleType, String>> columns = new ArrayList<>();
 
-        IColumn column = new LinkColumn<SelectableBean<ObjectType>>(createStringResource("AssignmentPreviewDialog.column.name"), "value.name"){
+        IColumn column = new LinkColumn<RoleType>(createStringResource("AssignmentPreviewDialog.column.name"), "name"){
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ObjectType>> rowModel){
-                ObjectType object = rowModel.getObject().getValue();
-                chooseOperationPerformed(target, object);
+            public void onClick(AjaxRequestTarget target, IModel<RoleType> rowModel){
+                RoleType role = rowModel.getObject();
+                chooseOperationPerformed(target, role);
             }
 
         };
+        columns.add(column);
+
+        column = new PropertyColumn<RoleType, String>(createStringResource("AssignmentPreviewDialog.column.description"), "description");
         columns.add(column);
 
         return columns;
