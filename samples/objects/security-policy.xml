@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2014-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 <securityPolicy oid="28bf845a-b107-11e3-85bc-001e8c717e5b" 
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
 	<name>Security Policy</name>
-	<authentication/> <!-- TODO: radovan -->
 	<credentials>
 		<password>
 			<passwordPolicyRef oid="5d075a9e-b107-11e3-9d9c-001e8c717e5b"/>
@@ -27,11 +26,11 @@
 			<question>
 				<identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</identifier>
 				<enabled>true</enabled>
-				<!-- TODO: sabri -->
+				<questionText>How much wood would a woodchuck chuck if woodchuck could chuck wood?</questionText>
 			</question>
 			<question>
 				<identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q002</identifier>
-				<!-- TODO: sabri -->
+				<questionText>What is your mother's best friend's uncle's grandaughter's dog's mother maiden name?</questionText>
 			</question>
 		</securityQuestions>
 	</credentials>
