@@ -18,12 +18,14 @@ package com.evolveum.midpoint.prism.delta;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * @author semancik
  *
  */
-public class PartiallyResolvedDelta<V extends PrismValue,D extends ItemDefinition> {
+public class PartiallyResolvedDelta<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
 	
 	private ItemDelta<V,D> delta;
 	private ItemPath residualPath;
@@ -79,6 +81,22 @@ public class PartiallyResolvedDelta<V extends PrismValue,D extends ItemDefinitio
 		} else if (!residualPath.equivalent(other.residualPath))     // TODO: ok?
 			return false;
 		return true;
+	}
+	
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("PartiallyResolvedDelta\n");
+		DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "residual path", residualPath==null?"null":residualPath.toString(), indent + 1);
+		return sb.toString();
 	}
 
 	@Override

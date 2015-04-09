@@ -406,6 +406,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected Task createTask(String operationName) {
 		Task task = taskManager.createTaskInstance(operationName);
 		task.setOwner(userAdministrator);
+		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
 		return task;
 	}
 	

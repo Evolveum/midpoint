@@ -2406,6 +2406,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Timestamps and general metadata describing the credential change.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:operational>true</a:operational>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>

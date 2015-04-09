@@ -55,7 +55,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -63,6 +65,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -87,6 +90,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificati
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
@@ -1281,4 +1285,42 @@ public class LensUtil {
 			return ((PrismContainer<AssignmentType>)assignmentIdi.getItemNew()).getValue(0).asContainerable();
 		}
 	}
+	
+	public static <F extends ObjectType> MetadataType createCreateMetadata(LensContext<F> context, XMLGregorianCalendar now, Task task) {
+		MetadataType metaData = new MetadataType();
+		String channel = getChannel(context, task);
+		metaData.setCreateChannel(channel);
+		metaData.setCreateTimestamp(now);
+		if (task.getOwner() != null) {
+			metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
+		}
+		return metaData;
+	}
+	
+	public static <F extends ObjectType, T extends ObjectType> Collection<? extends ItemDelta<?,?>> createModifyMetadataDeltas(LensContext<F> context, 
+			ItemPath metadataPath, PrismObjectDefinition<T> def, XMLGregorianCalendar now, Task task) {
+		Collection<? extends ItemDelta<?,?>> deltas = new ArrayList<>();
+		String channel = getChannel(context, task);
+		if (channel != null) {
+            PropertyDelta<String> delta = PropertyDelta.createModificationReplaceProperty(metadataPath.subPath(MetadataType.F_MODIFY_CHANNEL), def, channel);
+            ((Collection)deltas).add(delta);
+        }
+		PropertyDelta<XMLGregorianCalendar> delta = PropertyDelta.createModificationReplaceProperty(metadataPath.subPath(MetadataType.F_MODIFY_TIMESTAMP), def, now);
+		((Collection)deltas).add(delta);
+		if (task.getOwner() != null) {
+            ReferenceDelta refDelta = ReferenceDelta.createModificationReplace(
+            		metadataPath.subPath(MetadataType.F_MODIFIER_REF), def, task.getOwner().getOid());
+            ((Collection)deltas).add(refDelta);
+		}
+		return deltas;
+	}
+	
+	public static <F extends ObjectType> String getChannel(LensContext<F> context, Task task) {
+    	if (context != null && context.getChannel() != null){
+    		return context.getChannel();
+    	} else if (task.getChannel() != null){
+    		return task.getChannel();
+    	}
+    	return null;
+    }
 }

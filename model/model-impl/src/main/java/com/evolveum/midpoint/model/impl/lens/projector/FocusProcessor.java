@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@ public class FocusProcessor {
 	private PrismContext prismContext;
 
 	@Autowired(required = true)
-	private PasswordPolicyProcessor passwordPolicyProcessor;
+	private CredentialsProcessor credentialsProcessor;
 	
 	@Autowired(required = true)
 	private ModelObjectResolver modelObjectResolver;
@@ -275,9 +275,9 @@ public class FocusProcessor {
 		        		now, task, result);
 		        context.recompute();
 		        
-		        // PASSWORD POLICY
+		        // CREDENTIALS (including PASSWORD POLICY)
 				
-		        passwordPolicyProcessor.processPasswordPolicy(focusContext, context, result);
+		        credentialsProcessor.processFocusCredentials(context, now, task, result);
 		        
 		        
 		        // Processing done, check for success
