@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.synchroniza
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.SynchronizationReactionEditor;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectSynchronizationTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceSynchronizationDto;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -118,7 +119,8 @@ public class SynchronizationStep extends WizardStep {
     private IModel<PrismObject<ResourceType>> resourceModel;
     private IModel<ResourceSynchronizationDto> model;
 
-    public SynchronizationStep(IModel<PrismObject<ResourceType>> resourceModel) {
+    public SynchronizationStep(IModel<PrismObject<ResourceType>> resourceModel, PageBase pageBase) {
+        super(pageBase);
         this.resourceModel = resourceModel;
 
         model = new LoadableModel<ResourceSynchronizationDto>(false) {
