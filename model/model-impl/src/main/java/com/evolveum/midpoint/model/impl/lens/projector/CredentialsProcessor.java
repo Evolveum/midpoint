@@ -276,6 +276,9 @@ public class CredentialsProcessor {
     }
 
     private <F extends FocusType> boolean hasValueDelta(ObjectDelta<F> focusDelta, ItemPath credentialsPath) {
+    	if (focusDelta == null) {
+    		return false;
+    	}
 		for (PartiallyResolvedDelta<PrismValue, ItemDefinition> partialDelta: focusDelta.findPartial(credentialsPath)) {
 			LOGGER.trace("Residual delta:\n{}", partialDelta.debugDump());
 			ItemPath residualPath = partialDelta.getResidualPath();

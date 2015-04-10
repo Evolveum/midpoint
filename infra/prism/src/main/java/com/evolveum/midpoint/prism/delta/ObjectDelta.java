@@ -260,7 +260,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         if (changeType == ChangeType.ADD) {
             PartiallyResolvedItem<IV,ID> partialValue = objectToAdd.findPartial(propertyPath);
             if (partialValue == null || partialValue.getItem() == null) {
-                return null;
+                return new ArrayList<>(0);
             }
             Item<IV,ID> item = partialValue.getItem();
             ItemDelta<IV,ID> itemDelta = item.createDelta();
@@ -283,7 +283,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         	}
             return deltas;
         } else {
-            return null;
+            return new ArrayList<>(0);
         }
     }
 

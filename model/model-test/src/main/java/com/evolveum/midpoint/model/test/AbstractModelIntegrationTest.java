@@ -1990,9 +1990,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		int expectedModifications = 0;
 		// There may be metadata modification, we tolerate that
-		Collection<? extends ItemDelta<?,?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
-		if (metadataDelta != null && !metadataDelta.isEmpty()) {
-			expectedModifications++;
+		for (ItemDelta<?,?> modification: focusDelta.getModifications()) {
+			if (modification.getPath().containsName(ObjectType.F_METADATA)) {
+				expectedModifications++;
+			}
 		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
 			expectedModifications++;
