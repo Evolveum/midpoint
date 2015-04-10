@@ -13,6 +13,8 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
+  ~
+  ~ Portions Copyright (c) 2015 Evolveum
   -->
 
 
@@ -293,19 +295,27 @@ This contains configuration for a managed (non federated) Office 365 domain
                  -->
                 <reaction>
                     <situation>linked</situation>
-                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+                    <action>
+                    	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+                    </action>
                 </reaction>
                 <reaction>
                     <situation>deleted</situation>
-                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+                    <action>
+                    	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+                    </action>
                 </reaction>
                 <reaction>
                     <situation>unlinked</situation>
-                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+                    <action>
+                    	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+                    </action>
                 </reaction>
                 <reaction>
                     <situation>unmatched</situation>
-                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+                    <action>
+                    	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+                    </action>
                 </reaction>
             </objectSynchronization>
         </synchronization>
