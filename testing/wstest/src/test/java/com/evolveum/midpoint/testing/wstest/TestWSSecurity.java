@@ -87,24 +87,19 @@ import java.util.Map;
  *  This class has several tests, that aims on security
  *  of webservice interface provided by midpoint
  *
+ *  @author Radovan Semancik
  *  @author Erik Suta
  * */
 
 @ContextConfiguration(locations = {"classpath:ctx-wstest-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class WebserviceSecurityTest extends AbstractWebserviceTest {
+public class TestWSSecurity extends AbstractWebserviceTest {
 
 	private static final String USER_DARTHADDER_PASSWORD_NEW1 = "iamyourgreatgranduncle";
 	private static final String USER_DARTHADDER_PASSWORD_NEW2 = "iamyourdog";
 	private XMLGregorianCalendar dartAdderLastPasswordChangeStartTs;
 	private XMLGregorianCalendar dartAdderLastPasswordChangeEndTs;
 	private PasswordType dartAdderLastPassword;
-
-    
-    /*===============================================================================================================*/
-    /*                                                      TESTS                                                    */
-    /*===============================================================================================================*/
-
 
     @Test
     public void test100GetConfigNoSecurity() throws Exception {
@@ -376,6 +371,8 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
         		null, objectHolder, resultHolder);
         
         // THEN
+        assertSuccess(resultHolder);
+        		
         tailer.tail();
         assertAuditLoginLogout(tailer);
         assertAuditIds(tailer);
@@ -572,6 +569,8 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
         		null, objectHolder, resultHolder);
         
         // THEN
+        assertSuccess(resultHolder);
+        
         tailer.tail();
         assertAuditLoginLogout(tailer);
         assertAuditIds(tailer);
@@ -627,6 +626,8 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
         		null, objectHolder, resultHolder);
         
         // THEN
+        assertSuccess(resultHolder);
+        
         tailer.tail();
         assertAuditLoginLogout(tailer);
         assertAuditIds(tailer);
@@ -1116,10 +1117,6 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
         tailer.tail();
         assertAuditLoginFailed(tailer, "No user credentials");
     }
-	
-
-	// TODO: fetch&parse schema http://..?WSDL
-
 
 }
 

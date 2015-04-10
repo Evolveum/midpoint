@@ -141,6 +141,11 @@ public abstract class AbstractWebserviceTest {
 	
 	public static final File ROLE_MODIFIER_FILE = new File(COMMON_DIR, "role-modifier.xml");
 	public static final String ROLE_MODIFIER_OID = "82005ae4-d90b-11e4-bdcc-001e8c717e5b";
+	
+	public static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj.xml");
+	public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	
+	public static final String CONNECTOR_LDAP_TYPE = "org.identityconnectors.ldap.LdapConnector";
  	
 	protected static final Pattern PATTERN_AUDIT_EVENT_ID = Pattern.compile(".*\\seid=([^,]+),\\s.*");
 	protected static final Pattern PATTERN_AUDIT_SESSION_ID = Pattern.compile(".*\\ssid=([^,]+),\\s.*");
@@ -163,24 +168,28 @@ public abstract class AbstractWebserviceTest {
 	private static final String AUDIT_LOGGER_NAME = "com.evolveum.midpoint.audit.log";
 	
     @BeforeClass
-    public void beforeTests(){
+    public void beforeTests() throws Exception {
     	displayTestTitle("beforeTests");
-        init();
+    	startResources();
     }
     
 	/**
      * Takes care of system initialization. Need to be done before any tests are to be run.
      * */
-    protected void init() {
+    protected void startResources() throws Exception {
     }
     
     @AfterClass
-    public void afterTests() throws FaultMessage {
+    public void afterTests() throws Exception {
     	displayTestTitle("afterTests");
         modelPort = createModelPort();
         cleanRepository();
+        stopResources();
         LOGGER.info("WebService test suite finished.");
     }
+    
+    protected void stopResources() throws Exception {
+    } 
 
     protected static ModelPortType createModelPort() {
     	return createModelPort(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
@@ -397,6 +406,10 @@ public abstract class AbstractWebserviceTest {
     	}
 	}
 
+    protected void assertSuccess(Holder<OperationResultType> resultHolder) {
+		assertSuccess(resultHolder.value);
+	}
+    
 	protected void assertSuccess(OperationResultType result) {
 		assertEquals("Operation "+result.getOperation()+" failed:"+result.getStatus()+": " + result.getMessage(),
 				OperationResultStatusType.SUCCESS, result.getStatus());
@@ -446,6 +459,13 @@ public abstract class AbstractWebserviceTest {
 		String xmlString = ModelClientUtil.marshallToSting(object);
 		System.out.println(xmlString);
 		LOGGER.info("{}", xmlString);
+	}
+	
+	protected void display(OperationResultType result) throws JAXBException {
+		String xmlString = ModelClientUtil.marshallToSting(new QName(NS_COMMON,"result"), result, true);
+		System.out.println("Result:");
+		System.out.println(xmlString);
+		LOGGER.info("Result:\n{}", xmlString);
 	}
 
 	protected LogfileTestTailer createLogTailer() throws IOException {
@@ -576,6 +596,20 @@ public abstract class AbstractWebserviceTest {
         }
 	}
 
+	protected <O extends ObjectType> void assertModifyMetadata(O object, String actorOid, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+        MetadataType metadata = object.getMetadata();
+        assertEquals("Wrong metadata modifierRef in "+object, actorOid, metadata.getModifierRef().getOid());
+        assertEquals("Wrong metadata modify channel in "+object, CHANNEL_WS, metadata.getModifyChannel());
+        TestUtil.assertBetween("Wrong password modifyTimestamp in "+object, startTs, endTs, metadata.getModifyTimestamp());		
+	}
+
+	protected <O extends ObjectType> void assertCreateMetadata(O object, String actorOid, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+        MetadataType metadata = object.getMetadata();
+        assertEquals("Wrong metadata creatorRef in "+object, actorOid, metadata.getCreatorRef().getOid());
+        assertEquals("Wrong metadata create channel in "+object, CHANNEL_WS, metadata.getCreateChannel());
+        TestUtil.assertBetween("Wrong createTimestamp in "+object, startTs, endTs, metadata.getCreateTimestamp());		
+	}
+	
 	protected void assertPasswordModifyMetadata(UserType user, String actorOid, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
         MetadataType passwordMetadata = user.getCredentials().getPassword().getMetadata();
         assertEquals("Wrong password metadata modifierRef", actorOid, passwordMetadata.getModifierRef().getOid());
@@ -589,6 +623,7 @@ public abstract class AbstractWebserviceTest {
         assertEquals("Wrong password metadata create channel", CHANNEL_WS, passwordMetadata.getCreateChannel());
         TestUtil.assertBetween("Wrong password createTimestamp", startTs, endTs, passwordMetadata.getCreateTimestamp());		
 	}
+	
     @Test
     public void test000SanityAndCleanup() throws Exception {
     	final String TEST_NAME = "test000SanityAndCleanup";
