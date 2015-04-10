@@ -82,9 +82,12 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -370,6 +373,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // This one should still be here, even if ignored
         IntegrationTestTools.assertAttribute(account, getAttributeQName(resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME), 
         		"cold");
+        
+        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(account);
+        assertNotNull("No attribute container from "+account, attributesContainer);
+        Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
+        assertNotNull("No identifiers (null) in attributes container in "+accountOid, identifiers);
+        assertFalse("No identifiers (empty) in attributes container in "+accountOid, identifiers.isEmpty());
         
         assertSteadyResources();
 	}

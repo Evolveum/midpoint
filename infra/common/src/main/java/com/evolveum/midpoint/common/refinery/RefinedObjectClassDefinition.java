@@ -274,21 +274,41 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     private void copyDefinitionData(RefinedObjectClassDefinition clone) {
         super.copyDefinitionData(clone);
         clone.intent = this.intent;
-        clone.attributeDefinitions = cloneAttributes();
+        clone.kind = this.kind;
+        clone.attributeDefinitions = cloneDefinitions(this.attributeDefinitions);
+        clone.identifiers = cloneDefinitions(this.identifiers);
+        clone.secondaryIdentifiers = cloneDefinitions(this.secondaryIdentifiers);
+        clone.associations = cloneAssociations(this.associations);
+        clone.baseContext = this.baseContext;
         clone.description = this.description;
         clone.displayName = this.displayName;
         clone.isDefault = this.isDefault;
-        clone.objectClassDefinition = this.objectClassDefinition;
+        clone.objectClassDefinition = this.objectClassDefinition.clone();
         clone.objectDefinition = this.objectDefinition;
         clone.resourceType = this.resourceType;
+        clone.protectedObjectPatterns = this.protectedObjectPatterns;
+        clone.resourceType = this.resourceType;
+        clone.schemaHandlingObjectTypeDefinitionType = this.schemaHandlingObjectTypeDefinitionType;
     }
 
-    private List<RefinedAttributeDefinition<?>> cloneAttributes() {
+    private Collection<RefinedAssociationDefinition> cloneAssociations(
+			Collection<RefinedAssociationDefinition> origAsoc) {
+    	if (origAsoc == null) {
+    		return null;
+    	}
+    	Collection<RefinedAssociationDefinition> cloned = new ArrayList<>();
+    	for (RefinedAssociationDefinition rAsocDef: origAsoc) {
+    		cloned.add(rAsocDef.clone());
+    	}
+		return cloned;
+	}
+
+	private List<RefinedAttributeDefinition<?>> cloneDefinitions(Collection<? extends RefinedAttributeDefinition<?>> origDefs) {
     	if (this.attributeDefinitions == null) {
     		return null;
     	}
 		List<RefinedAttributeDefinition<?>> clonedAttributes = new ArrayList<>();
-		for (RefinedAttributeDefinition<?> attributeDefinition: this.attributeDefinitions) {
+		for (RefinedAttributeDefinition<?> attributeDefinition: origDefs) {
 			clonedAttributes.add(attributeDefinition.clone());
 		}
 		return clonedAttributes;

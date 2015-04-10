@@ -2155,7 +2155,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		final OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);
 
-LOGGER.info("starting rename");
+		LOGGER.info("starting rename");
 		
 		openDJController.executeRenameChange(LDIF_MODIFY_RENAME_FILENAME);
 		LOGGER.info("rename ended");
