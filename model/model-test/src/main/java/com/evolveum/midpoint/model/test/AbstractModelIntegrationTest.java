@@ -2408,14 +2408,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertEnableTimestampFocus(PrismObject<? extends FocusType> focus, 
 			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
 		XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getEnableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong user enableTimestamp in "+focus, 
+		TestUtil.assertBetween("Wrong user enableTimestamp in "+focus, 
 				startTime, endTime, userDisableTimestamp);
 	}
 
 	protected void assertDisableTimestampFocus(PrismObject<? extends FocusType> focus, 
 			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
 		XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getDisableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong user disableTimestamp in "+focus, 
+		TestUtil.assertBetween("Wrong user disableTimestamp in "+focus, 
 				startTime, endTime, userDisableTimestamp);
 	}
 	
@@ -2424,14 +2424,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ActivationType activationType = shadow.asObjectable().getActivation();
 		assertNotNull("No activation in "+shadow, activationType);
 		XMLGregorianCalendar userDisableTimestamp = activationType.getEnableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong shadow enableTimestamp in "+shadow, 
+		TestUtil.assertBetween("Wrong shadow enableTimestamp in "+shadow, 
 				startTime, endTime, userDisableTimestamp);
 	}
 
 	protected void assertDisableTimestampShadow(PrismObject<? extends ShadowType> shadow, 
 			XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
 		XMLGregorianCalendar userDisableTimestamp = shadow.asObjectable().getActivation().getDisableTimestamp();
-		IntegrationTestTools.assertBetween("Wrong shadow disableTimestamp in "+shadow, 
+		TestUtil.assertBetween("Wrong shadow disableTimestamp in "+shadow, 
 				startTime, endTime, userDisableTimestamp);
 	}
 	
@@ -2819,13 +2819,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ObjectReferenceType creatorRef = metadataType.getCreatorRef();
 			assertNotNull("No creatorRef in password metadata in "+user, creatorRef);
 			assertEquals("Wrong creatorRef OID in password metadata in "+user, actorOid, creatorRef.getOid());
-			IntegrationTestTools.assertBetween("Wrong password create timestamp in password metadata in "+user, start, end, metadataType.getCreateTimestamp());
+			TestUtil.assertBetween("Wrong password create timestamp in password metadata in "+user, start, end, metadataType.getCreateTimestamp());
 			assertEquals("Wrong create channel", channel, metadataType.getCreateChannel());
 		} else {
 			ObjectReferenceType modifierRef = metadataType.getModifierRef();
 			assertNotNull("No modifierRef in password metadata in "+user, modifierRef);
 			assertEquals("Wrong modifierRef OID in password metadata in "+user, actorOid, modifierRef.getOid());
-			IntegrationTestTools.assertBetween("Wrong password modify timestamp in password metadata in "+user, start, end, metadataType.getModifyTimestamp());
+			TestUtil.assertBetween("Wrong password modify timestamp in password metadata in "+user, start, end, metadataType.getModifyTimestamp());
 			assertEquals("Wrong modification channel", channel, metadataType.getModifyChannel());
 		}
 	}

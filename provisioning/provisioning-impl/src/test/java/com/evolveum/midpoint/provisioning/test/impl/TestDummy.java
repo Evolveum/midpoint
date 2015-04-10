@@ -983,7 +983,7 @@ public class TestDummy extends AbstractDummyTest {
 		if (supportsActivation()) {
 			assertNotNull("No activation in "+accountProvisioning+" (provisioning)", activationProvisioning);
 			assertEquals("Wrong activation administrativeStatus in "+accountProvisioning+" (provisioning)", ActivationStatusType.ENABLED, activationProvisioning.getAdministrativeStatus());
-			IntegrationTestTools.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountProvisioning+" (provisioning)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
+			TestUtil.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountProvisioning+" (provisioning)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
 		} else {
 			assertNull("Activation sneaked in (provisioning)", activationProvisioning);
 		}

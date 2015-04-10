@@ -60,12 +60,15 @@ import org.w3c.dom.*;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -101,7 +104,7 @@ public abstract class AbstractWebserviceTest {
     public static final File COMMON_DIR = new File("src/test/resources/common");
     
     public static final String ENDPOINT = "http://localhost:8080/midpoint/ws/model-3";
-    public static final String USER_ADMINISTRATOR_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
+    public static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
     public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
     public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
     
@@ -147,6 +150,7 @@ public abstract class AbstractWebserviceTest {
     public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
     public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
     protected static final QName TYPES_POLYSTRING_ORIG = new QName(NS_TYPES, "orig");
+    protected static final String CHANNEL_WS = "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#webService";
 
     protected static final QName COMMON_PATH = new QName(NS_COMMON, "path");
     protected static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
@@ -155,13 +159,9 @@ public abstract class AbstractWebserviceTest {
     protected static ModelPortType modelPort;
     protected static SystemConfigurationType configurationType;
 
-    public static final String MULTIPLE_THREAD_USER_SEARCH_NAME = "Barbara";
-
 	private static final File SERVER_LOG_FILE = new File("/opt/tomcat/logs/idm.log");
 	private static final String AUDIT_LOGGER_NAME = "com.evolveum.midpoint.audit.log";
 	
-    public static Element MULTIPLE_THREAD_SEARCH_FILTER;
-
     @BeforeClass
     public void beforeTests(){
     	displayTestTitle("beforeTests");
@@ -172,16 +172,6 @@ public abstract class AbstractWebserviceTest {
      * Takes care of system initialization. Need to be done before any tests are to be run.
      * */
     protected void init() {
-        try {
-			MULTIPLE_THREAD_SEARCH_FILTER = parseElement(
-			        "<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
-			                "<path>c:givenName</path>" +
-			                "<value>" + MULTIPLE_THREAD_USER_SEARCH_NAME + "</value>" +
-			                "</equal>"
-			);
-		} catch (SAXException | IOException e) {
-			throw new IllegalStateException("Error creating XML document " + e.getMessage(), e);
-		}
     }
     
     @AfterClass
@@ -235,13 +225,6 @@ public abstract class AbstractWebserviceTest {
         return modelPort;
     }
     
-    private Object unmarshallFromFile(File file, String context) throws JAXBException {
-        JAXBContext jaxbContext = JAXBContext.newInstance(context);
-        javax.xml.bind.Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-        JAXBElement jaxbElement = (JAXBElement)jaxbUnmarshaller.unmarshal(file);
-        return jaxbElement.getValue();
-    }
-
     /**
      * Retrieves and returns actual system configuration
      * */
@@ -593,8 +576,19 @@ public abstract class AbstractWebserviceTest {
         }
 	}
 
+	protected void assertPasswordModifyMetadata(UserType user, String actorOid, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+        MetadataType passwordMetadata = user.getCredentials().getPassword().getMetadata();
+        assertEquals("Wrong password metadata modifierRef", actorOid, passwordMetadata.getModifierRef().getOid());
+        assertEquals("Wrong password metadata modify channel", CHANNEL_WS, passwordMetadata.getModifyChannel());
+        TestUtil.assertBetween("Wrong password modifyTimestamp", startTs, endTs, passwordMetadata.getModifyTimestamp());		
+	}
 
-	
+	protected void assertPasswordCreateMetadata(UserType user, String actorOid, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+        MetadataType passwordMetadata = user.getCredentials().getPassword().getMetadata();
+        assertEquals("Wrong password metadata creatorRef", actorOid, passwordMetadata.getCreatorRef().getOid());
+        assertEquals("Wrong password metadata create channel", CHANNEL_WS, passwordMetadata.getCreateChannel());
+        TestUtil.assertBetween("Wrong password createTimestamp", startTs, endTs, passwordMetadata.getCreateTimestamp());		
+	}
     @Test
     public void test000SanityAndCleanup() throws Exception {
     	final String TEST_NAME = "test000SanityAndCleanup";

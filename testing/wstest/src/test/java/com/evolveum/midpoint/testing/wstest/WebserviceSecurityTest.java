@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.testing.wstest;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
@@ -40,10 +41,12 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.client.ModelClientUtil;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -66,6 +69,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPFault;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
@@ -91,6 +96,9 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
 
 	private static final String USER_DARTHADDER_PASSWORD_NEW1 = "iamyourgreatgranduncle";
 	private static final String USER_DARTHADDER_PASSWORD_NEW2 = "iamyourdog";
+	private XMLGregorianCalendar dartAdderLastPasswordChangeStartTs;
+	private XMLGregorianCalendar dartAdderLastPasswordChangeEndTs;
+	private PasswordType dartAdderLastPassword;
 
     
     /*===============================================================================================================*/
@@ -384,10 +392,14 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
 
         UserType userNobody = ModelClientUtil.unmarshallFile(USER_NOBODY_FILE);
         
+        XMLGregorianCalendar startTs = TestUtil.currentTime();
+        
         // WHEN
         String userNobodyOid = addObject(userNobody);
      
         // THEN
+        XMLGregorianCalendar endTs = TestUtil.currentTime();
+        
         tailer.tail();
         displayAudit(tailer);
         assertAuditLoginLogout(tailer);
@@ -397,7 +409,10 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
         
         // GET user
         UserType userNobodyAfter = getObject(UserType.class, userNobodyOid);
+        display(userNobodyAfter);
         assertUser(userNobodyAfter, userNobodyOid, USER_NOBODY_USERNAME, USER_NOBODY_GIVEN_NAME, USER_NOBODY_FAMILY_NAME);
+        
+        assertPasswordCreateMetadata(userNobodyAfter, USER_ADMINISTRATOR_OID, startTs, endTs);
     }
     
     @Test
@@ -940,11 +955,15 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
         ObjectDeltaListType deltaList = ModelClientUtil.createModificationDeltaList(UserType.class, USER_DARTHADDER_OID,
         		"credentials/password/value", ModificationTypeType.REPLACE, protectedString);
         
+        XMLGregorianCalendar startTs = TestUtil.currentTime();
+        
         // WHEN
         ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
         	        
         // THEN
         assertSuccess(deltaOpList);
+        
+        XMLGregorianCalendar endTs = TestUtil.currentTime();
         
         tailer.tail();
         displayAudit(tailer);
@@ -956,9 +975,10 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
         modelPort = createModelPort(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD_NEW1, WSConstants.PW_DIGEST);
         UserType user = getObject(UserType.class, USER_DARTHADDER_OID);
         display(user);
-        // TODO: check password change timestamp
+        
+        assertPasswordModifyMetadata(user, USER_DARTHADDER_OID, startTs, endTs);
     }
-	
+
 	@Test
 	public void test161ChangeDarthAdderPasswordSatisfiesPolicyStrict() throws Exception {
     	final String TEST_NAME = "test160ChangeDarthAdderPasswordSatisfiesPolicyShortcut";
@@ -971,11 +991,15 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
         ObjectDeltaListType deltaList = ModelClientUtil.createModificationDeltaList(UserType.class, USER_DARTHADDER_OID,
         		"credentials/password/value", ModificationTypeType.REPLACE, protectedString);
         
+        dartAdderLastPasswordChangeStartTs = TestUtil.currentTime();
+        
         // WHEN
         ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
         	        
         // THEN
         assertSuccess(deltaOpList);
+        
+        dartAdderLastPasswordChangeEndTs = TestUtil.currentTime();
         
         tailer.tail();
         displayAudit(tailer);
@@ -987,7 +1011,10 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
         modelPort = createModelPort(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD_NEW2, WSConstants.PW_DIGEST);
         UserType user = getObject(UserType.class, USER_DARTHADDER_OID);
         display(user);
-        // TODO: check password change timestamp
+        
+        dartAdderLastPassword = user.getCredentials().getPassword();
+        assertNotNull("No password for DarthAdder", dartAdderLastPassword);
+        assertPasswordModifyMetadata(user, USER_DARTHADDER_OID, dartAdderLastPasswordChangeStartTs, dartAdderLastPasswordChangeEndTs);
     }
 	
 	@Test
@@ -1022,8 +1049,12 @@ public class WebserviceSecurityTest extends AbstractWebserviceTest {
         
         UserType user = getObject(UserType.class, USER_DARTHADDER_OID);
         display(user);
-        // TODO: check that password is unchanged
-        // TODO: check password change timestamp
+        
+        PasswordType dartAdderPassword = user.getCredentials().getPassword();
+        assertEquals("Password of DarthAdder has changed", 
+        		ModelClientUtil.marshallToSting(new QName("http://whatever/","fake"), dartAdderLastPassword, false), 
+        		ModelClientUtil.marshallToSting(new QName("http://whatever/","fake"), dartAdderPassword, false));
+        assertPasswordModifyMetadata(user, USER_DARTHADDER_OID, dartAdderLastPasswordChangeStartTs, dartAdderLastPasswordChangeEndTs);
     }
 	
 	

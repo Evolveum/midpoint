@@ -57,7 +57,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -165,7 +164,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertEffectiveStatus(userJack, ActivationStatusType.DISABLED);
 		assertDisableTimestampFocus(userJack, start, end);
 		
-		IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
+		TestUtil.assertModifyTimestamp(userJack, start, end);
 	}
 	
 	@Test
@@ -196,7 +195,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertEffectiveStatus(userJack, ActivationStatusType.ENABLED);
 		assertEnableTimestampFocus(userJack, start, end);
 		
-		IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
+		TestUtil.assertModifyTimestamp(userJack, start, end);
 	}
 	
 	@Test
@@ -233,14 +232,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Shadow (repo)", accountShadow);
         assertDummyAccountShadowRepo(accountShadow, accountOid, "jack");
-        IntegrationTestTools.assertCreateTimestamp(accountShadow, start, end);
+        TestUtil.assertCreateTimestamp(accountShadow, start, end);
         assertEnableTimestampShadow(accountShadow, start, end);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Shadow (model)", accountModel);
         assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
-        IntegrationTestTools.assertCreateTimestamp(accountModel, start, end);
+        TestUtil.assertCreateTimestamp(accountModel, start, end);
         assertEnableTimestampShadow(accountModel, start, end);
         
         // Check account in dummy resource
@@ -248,7 +247,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
         assertDummyEnabled("jack");
         
-        IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
+        TestUtil.assertModifyTimestamp(userJack, start, end);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -741,11 +740,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountShadowYellow = getShadowModel(accountYellowOid);
         assertAccountShadowModel(accountShadowYellow, accountYellowOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyYellowType);
         assertAdministrativeStatusEnabled(accountShadowYellow);
-        IntegrationTestTools.assertCreateTimestamp(accountShadowYellow, start, end);
+        TestUtil.assertCreateTimestamp(accountShadowYellow, start, end);
         assertEnableTimestampShadow(accountShadowYellow, start, end);
 
         // Check user
-        IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
+        TestUtil.assertModifyTimestamp(userJack, start, end);
         assertAdministrativeStatusEnabled(userJack);
     }
 
@@ -898,14 +897,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Shadow (repo)", accountShadow);
         assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyKhakiType);
-        IntegrationTestTools.assertCreateTimestamp(accountShadow, start, end);
+        TestUtil.assertCreateTimestamp(accountShadow, start, end);
         assertEnableTimestampShadow(accountShadow, start, end);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Shadow (model)", accountModel);
         assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyKhakiType);
-        IntegrationTestTools.assertCreateTimestamp(accountModel, start, end);
+        TestUtil.assertCreateTimestamp(accountModel, start, end);
         assertEnableTimestampShadow(accountModel, start, end);
         
         // Check account in dummy resource
@@ -913,7 +912,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
         assertDummyEnabled(RESOURCE_DUMMY_KHAKI_NAME, "jack");
         
-        IntegrationTestTools.assertModifyTimestamp(userJack, start, end);
+        TestUtil.assertModifyTimestamp(userJack, start, end);
         
         // Check audit
         display("Audit", dummyAuditService);

@@ -360,6 +360,18 @@ public class ModelClientUtil {
     	marshaller.marshal(element, sw);
     	return sw.toString();
     }
+    
+    public static <T> String marshallToSting(QName elementName, T object, boolean formatted) throws JAXBException {
+    	Marshaller marshaller = jaxbContext.createMarshaller();
+    	marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+    	if (formatted) {
+    		marshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE );
+    	}
+    	java.io.StringWriter sw = new StringWriter();
+    	JAXBElement<T> element = new JAXBElement<T>(elementName, (Class<T>) object.getClass(), object);
+    	marshaller.marshal(element, sw);
+    	return sw.toString();
+    }
 
     public static <O extends ObjectType> String toString(O obj) {
 		if (obj == null) {

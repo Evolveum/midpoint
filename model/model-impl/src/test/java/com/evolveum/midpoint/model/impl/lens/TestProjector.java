@@ -539,7 +539,7 @@ public class TestProjector extends AbstractLensTest {
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 25, 0, 0, 0));
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
         end.add(XmlTypeConverter.createDuration(true, 0, 0, 35, 0, 0, 0));
-        IntegrationTestTools.assertBetween("Wrong trigger timestamp", start, end, triggerType.getTimestamp());
+        TestUtil.assertBetween("Wrong trigger timestamp", start, end, triggerType.getTimestamp());
     }
 	
 	/**
