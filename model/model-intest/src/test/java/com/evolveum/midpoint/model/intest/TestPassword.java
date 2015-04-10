@@ -428,13 +428,6 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 	}
 
-	private void assertEncryptedPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException {
-		UserType userType = user.asObjectable();
-		ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
-		String actualClearPassword = protector.decryptString(protectedActualPassword);
-		assertEquals("Wrong password for "+user, expectedClearPassword, actualClearPassword);
-	}
-
 	private void assertDummyPassword(String userId, String expectedClearPassword) {
 		assertDummyPassword(null, userId, expectedClearPassword);
 	}
@@ -444,25 +437,5 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		assertNotNull("No dummy account "+userId, account);
 		assertEquals("Wrong password in dummy '"+instance+"' account "+userId, expectedClearPassword, account.getPassword());
 	}
-	
-	private void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-		PrismContainer<MetadataType> metadataContainer = user.findContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA));
-		assertNotNull("No password metadata in "+user, metadataContainer);
-		MetadataType metadataType = metadataContainer.getValue().asContainerable();
-		if (create) {
-			ObjectReferenceType creatorRef = metadataType.getCreatorRef();
-			assertNotNull("No creatorRef in password metadata in "+user, creatorRef);
-			assertEquals("Wrong creatorRef OID in password metadata in "+user, USER_ADMINISTRATOR_OID, creatorRef.getOid());
-			IntegrationTestTools.assertBetween("Wrong password create timestamp in password metadata in "+user, start, end, metadataType.getCreateTimestamp());
-			assertEquals("Wrong create channel", SchemaConstants.CHANNEL_GUI_USER_URI, metadataType.getCreateChannel());
-		} else {
-			ObjectReferenceType modifierRef = metadataType.getModifierRef();
-			assertNotNull("No modifierRef in password metadata in "+user, modifierRef);
-			assertEquals("Wrong modifierRef OID in password metadata in "+user, USER_ADMINISTRATOR_OID, modifierRef.getOid());
-			IntegrationTestTools.assertBetween("Wrong password modify timestamp in password metadata in "+user, start, end, metadataType.getModifyTimestamp());
-			assertEquals("Wrong modification channel", SchemaConstants.CHANNEL_GUI_USER_URI, metadataType.getModifyChannel());
-		}
-	}
-
 	
 }

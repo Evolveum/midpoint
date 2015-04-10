@@ -404,9 +404,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	@Override
 	protected Task createTask(String operationName) {
-		Task task = taskManager.createTaskInstance(operationName);
+		Task task = super.createTask(operationName);
 		task.setOwner(userAdministrator);
-		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
 		return task;
 	}
 	
@@ -518,5 +517,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
         XMLGregorianCalendar lastRecomputeTimestamp = lastRecomputeTimestampProp.getRealValue();
         assertNotNull("null lastRecomputeTimestamp", lastRecomputeTimestamp);
         IntegrationTestTools.assertBetween("lastRecomputeTimestamp", startCal, endCal, lastRecomputeTimestamp);
+	}
+    
+    protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+		assertPasswordMetadata(user, create, start, end, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
 	}
 }

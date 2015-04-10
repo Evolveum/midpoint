@@ -2578,10 +2578,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	
 	@Test
     public void test200AddUserBlackbeardWithAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test200AddUserBlackbeardWithAccount");
+		final String TEST_NAME = "test200AddUserBlackbeardWithAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test200AddUserBlackbeardWithAccount");
+        Task task = createTask(TEST_NAME);
         // Use custom channel to trigger a special outbound mapping
         task.setChannel("http://pirates.net/avast");
         OperationResult result = task.getResult();
@@ -2608,6 +2609,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectReferenceType accountRefType = userBlackbeardType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        
+        assertEncryptedPassword(userBlackbeard, "QueenAnne");
+        assertPasswordMetadata(userBlackbeard, true, startTime, endTime, USER_ADMINISTRATOR_OID, "http://pirates.net/avast");
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -2659,10 +2663,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	
 	@Test
     public void test210AddUserMorganWithAssignment() throws Exception {
-        TestUtil.displayTestTile(this, "test210AddUserMorganWithAssignment");
+		final String TEST_NAME = "test210AddUserMorganWithAssignment";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test210AddUserMorganWithAssignment");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
@@ -2687,6 +2692,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        
+        assertEncryptedPassword(userMorgan, "rum");
+        assertPasswordMetadata(userMorgan, true, startTime, endTime);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
