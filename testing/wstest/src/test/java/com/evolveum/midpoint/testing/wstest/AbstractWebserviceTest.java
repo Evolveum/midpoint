@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.testing.wstest;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -320,31 +321,6 @@ public abstract class AbstractWebserviceTest {
     protected static Element parseElement(String stringXml) throws SAXException, IOException {
     	return DOMUtil.getFirstChildElement(DOMUtil.parseDocument(stringXml));
     }
-
-    /**
-     *  Clean the repository after tests. Preserves user administrator
-     * */
-    protected void cleanRepository() throws FaultMessage {
-    	cleanObjects(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value());
-    	cleanObjects(RoleType.class, SystemObjectsType.ROLE_SUPERUSER.value(), SystemObjectsType.ROLE_END_USER.value());
-    }
-    
-    private <O extends ObjectType> void cleanObjects(Class<O> type, String... protectedOids) throws FaultMessage {
-    	Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
-        PagingType paging = new PagingType();
-
-        modelPort.searchObjects(getTypeQName(type), null, null, objectListHolder, resultHolder);
-
-        List<String> protectedOidList = Arrays.asList(protectedOids);
-        ObjectListType objectList = objectListHolder.value;
-        for (ObjectType object: objectList.getObject()) {
-        	if (!protectedOidList.contains(object.getOid())) {
-        		display("Deleting "+type.getSimpleName()+" "+ModelClientUtil.toString(object));
-            	deleteObject(type, object.getOid());
-        	}
-        }
-    }
     
 	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid) throws FaultMessage {
     	ObjectDeltaListType deltaList = new ObjectDeltaListType();
@@ -418,6 +394,7 @@ public abstract class AbstractWebserviceTest {
 	
 	protected <F extends FaultType> void assertFaultMessage(FaultMessage fault, Class<F> expectedFaultInfoClass, String expectedMessage) {
     	FaultType faultInfo = fault.getFaultInfo();
+    	assertNotNull("No fault info in "+fault);
     	if (expectedFaultInfoClass != null && !expectedFaultInfoClass.isAssignableFrom(faultInfo.getClass())) {
     		AssertJUnit.fail("Expected that faultInfo will be of type "+expectedFaultInfoClass+", but it was "+faultInfo.getClass());
     	}
@@ -426,6 +403,7 @@ public abstract class AbstractWebserviceTest {
     		assertTrue("Wrong message in fault info: "+faultInfo.getMessage(), faultInfo.getMessage().contains(expectedMessage));
     	}
     	OperationResultType result = faultInfo.getOperationResult();
+    	assertNotNull("No result in faultInfo in "+fault, result);
     	assertEquals("Expected that resut in FaultInfo will be fatal error, but it was "+result.getStatus(),
     			OperationResultStatusType.FATAL_ERROR, result.getStatus());
 	}
@@ -624,6 +602,33 @@ public abstract class AbstractWebserviceTest {
         TestUtil.assertBetween("Wrong password createTimestamp", startTs, endTs, passwordMetadata.getCreateTimestamp());		
 	}
 	
+	
+    /**
+     *  Clean the repository after tests. Preserves user administrator
+     * */
+    protected void cleanRepository() throws FaultMessage {
+    	cleanObjects(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value());
+    	cleanObjects(RoleType.class, SystemObjectsType.ROLE_SUPERUSER.value(), SystemObjectsType.ROLE_END_USER.value());
+    	cleanObjects(ResourceType.class);
+    }
+    
+    private <O extends ObjectType> void cleanObjects(Class<O> type, String... protectedOids) throws FaultMessage {
+    	Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+        PagingType paging = new PagingType();
+
+        modelPort.searchObjects(getTypeQName(type), null, null, objectListHolder, resultHolder);
+
+        List<String> protectedOidList = Arrays.asList(protectedOids);
+        ObjectListType objectList = objectListHolder.value;
+        for (ObjectType object: objectList.getObject()) {
+        	if (!protectedOidList.contains(object.getOid())) {
+        		display("Deleting "+type.getSimpleName()+" "+ModelClientUtil.toString(object));
+            	deleteObject(type, object.getOid());
+        	}
+        }
+    }
+	
     @Test
     public void test000SanityAndCleanup() throws Exception {
     	final String TEST_NAME = "test000SanityAndCleanup";
@@ -632,7 +637,6 @@ public abstract class AbstractWebserviceTest {
         
         configurationType = getConfiguration();
         checkAuditEnabled(configurationType);
-        
         
         cleanRepository();
     }

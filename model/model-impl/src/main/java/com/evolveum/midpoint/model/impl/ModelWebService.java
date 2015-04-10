@@ -238,7 +238,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			return handleOperationResult(testResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed", ex);
-			throwFault(ex, null);
+			OperationResult faultResult = new OperationResult(TEST_RESOURCE);
+			faultResult.recordFatalError(ex);
+			throwFault(ex, faultResult);
 			// notreached
 			return null;
 		} finally {

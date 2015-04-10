@@ -50,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -62,11 +63,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.PolicyViolationFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -152,14 +156,26 @@ public class TestWSSanity extends AbstractWebserviceTest {
     	
     	LogfileTestTailer tailer = createLogTailer();
     	ResourceType resource = ModelClientUtil.unmarshallFile(RESOURCE_OPENDJ_FILE);
-    	resource.getConnectorRef().setOid(connectorLdapOid);
-        
+                
+        ObjectDeltaListType deltaList = new ObjectDeltaListType();
+    	ObjectDeltaType delta = new ObjectDeltaType();
+    	delta.setObjectType(getTypeQName(ResourceType.class));
+    	delta.setChangeType(ChangeTypeType.ADD);
+    	delta.setObjectToAdd(resource);
+		deltaList.getDelta().add(delta);
+		
+		ModelExecuteOptionsType options = new ModelExecuteOptionsType();
+    	options.setIsImport(Boolean.TRUE);
+		
         XMLGregorianCalendar startTs = TestUtil.currentTime();
-        
-        // WHEN
-        String oid = addObject(resource);
+		
+		// WHEN
+		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, options);
+		
+		// THEN
+		assertSuccess(deltaOpList);
+		String oid = deltaOpList.getDeltaOperation().get(0).getObjectDelta().getOid();
      
-        // THEN
         XMLGregorianCalendar endTs = TestUtil.currentTime();
         
         tailer.tail();
@@ -173,6 +189,8 @@ public class TestWSSanity extends AbstractWebserviceTest {
         
         ResourceType resourceAfter = getObject(ResourceType.class, RESOURCE_OPENDJ_OID);
         display(resourceAfter);
+        
+        assertEquals("Wrong connector OID", connectorLdapOid, resourceAfter.getConnectorRef().getOid());
         
         assertCreateMetadata(resourceAfter, USER_ADMINISTRATOR_OID, startTs, endTs);
     }
@@ -192,7 +210,24 @@ public class TestWSSanity extends AbstractWebserviceTest {
         assertSuccess(testResult);
     }
 	
-	// TODO: test non-existing resource
-
+	@Test
+    public void test032ResourceNonexistingTestConnection() throws Exception {
+    	final String TEST_NAME = "test032ResourceNonexistingTestConnection";
+    	displayTestTitle(TEST_NAME);
+        
+        try {
+	        // WHEN
+	        OperationResultType testResult = modelPort.testResource("56b53914-df90-11e4-8c8c-001e8c717e5b");
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (FaultMessage f) {
+        	assertFaultMessage(f, ObjectNotFoundFaultType.class, "was not found");
+        }	    
+        
+    }
+	
+	// TODO: test unreachable resource
+	
+	
 }
 
