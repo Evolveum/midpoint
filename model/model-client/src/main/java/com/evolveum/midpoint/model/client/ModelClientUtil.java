@@ -38,14 +38,21 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.ws.BindingProvider;
 
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.FilterClauseType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -75,12 +82,15 @@ public class ModelClientUtil {
 	
 	// XML constants
 	public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	public static final QName COMMON_PATH = new QName(NS_COMMON, "path");
+    public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
+    public static final String NS_RI = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+    public static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+	
+    public static final QName COMMON_PATH = new QName(NS_COMMON, "path");
 	public static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
     public static final QName COMMON_GIVEN_NAME = new QName(NS_COMMON, "givenName");
 	public static final QName COMMON_ASSIGNMENT = new QName(NS_COMMON, "assignment");
 	
-	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
 	private static final QName TYPES_POLYSTRING_ORIG = new QName(NS_TYPES, "orig");
     public static final QName TYPES_CLEAR_VALUE = new QName(NS_TYPES, "clearValue");
 
@@ -283,16 +293,19 @@ public class ModelClientUtil {
 		return deltaList;
 	}
     
+    @Deprecated
     public static <O extends ObjectType, T extends ObjectType> ObjectDeltaListType createAssignDeltaList(Class<O> focusType, String focusOid, 
     		Class<T> targetType, String targetOid) {
     	return createAssignmentDeltaList(focusType, focusOid, targetType, targetOid, ModificationTypeType.ADD);
     }
 
+    @Deprecated
     public static <O extends ObjectType, T extends ObjectType> ObjectDeltaListType createUnassignDeltaList(Class<O> focusType, String focusOid, 
     		Class<T> targetType, String targetOid) {
     	return createAssignmentDeltaList(focusType, focusOid, targetType, targetOid, ModificationTypeType.DELETE);
     }
 
+    @Deprecated
     private static <O extends ObjectType, T extends ObjectType> ObjectDeltaListType createAssignmentDeltaList(Class<O> focusType, String focusOid, 
     		Class<T> targetType, String targetOid, ModificationTypeType modificationType) {
     	AssignmentType assignment = new AssignmentType();
@@ -372,6 +385,115 @@ public class ModelClientUtil {
     	marshaller.marshal(element, sw);
     	return sw.toString();
     }
+    
+    public static <O extends ObjectType> ObjectDeltaType createRoleAssignDelta(Class<O> focusType, String focusOid, String... roleOids) {
+    	return createRoleAssignmentDelta(focusType, focusOid, ModificationTypeType.ADD, roleOids);
+    }
+    
+    public static <O extends ObjectType> ObjectDeltaType createRoleUnassignDelta(Class<O> focusType, String focusOid, String... roleOids) {
+    	return createRoleAssignmentDelta(focusType, focusOid, ModificationTypeType.DELETE, roleOids);
+    }
+    
+    public static <O extends ObjectType> ObjectDeltaType createRoleAssignmentDelta(Class<O> focusType, String focusOid, ModificationTypeType modType, String... roleOids) {
+    	ItemDeltaType assignmentDelta = new ItemDeltaType();
+    	assignmentDelta.setModificationType(modType);
+    	assignmentDelta.setPath(ModelClientUtil.createItemPathType("assignment"));
+    	for (String roleOid: roleOids) {
+			assignmentDelta.getValue().add(createRoleAssignment(roleOid));
+		}
+    	ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(focusType));
+        deltaType.setChangeType(ChangeTypeType.MODIFY);
+        deltaType.setOid(focusOid);
+        deltaType.getItemDelta().add(assignmentDelta);
+        return deltaType;
+    }
+    
+    public static AssignmentType createRoleAssignment(String roleOid) {
+		AssignmentType roleAssignment = new AssignmentType();
+		ObjectReferenceType roleRef = new ObjectReferenceType();
+		roleRef.setOid(roleOid);
+		roleRef.setType(ModelClientUtil.getTypeQName(RoleType.class));
+		roleAssignment.setTargetRef(roleRef);
+		return roleAssignment;
+	}
+    
+    public static <O extends ObjectType> ObjectDeltaType createConstructionAssignDelta(Class<O> focusType, String focusOid, String resourceOid) {
+    	return createConstructionAssignmentDelta(focusType, focusOid, ModificationTypeType.ADD, resourceOid, null, null);
+    }
+    
+    public static <O extends ObjectType> ObjectDeltaType createConstructionAssignDelta(Class<O> focusType, String focusOid, String resourceOid, ShadowKindType kind) {
+    	return createConstructionAssignmentDelta(focusType, focusOid, ModificationTypeType.ADD, resourceOid, kind, null);
+    }
+    
+    public static <O extends ObjectType> ObjectDeltaType createConstructionAssignDelta(Class<O> focusType, String focusOid, String resourceOid, ShadowKindType kind, String intent) {
+    	return createConstructionAssignmentDelta(focusType, focusOid, ModificationTypeType.ADD, resourceOid, kind, intent);
+    }
+
+    public static <O extends ObjectType> ObjectDeltaType createConstructionAssignmentDelta(Class<O> focusType, String focusOid, ModificationTypeType modType, String resourceOid, ShadowKindType kind, String intent) {
+    	ItemDeltaType assignmentDelta = new ItemDeltaType();
+    	assignmentDelta.setModificationType(modType);
+    	assignmentDelta.setPath(ModelClientUtil.createItemPathType("assignment"));
+		assignmentDelta.getValue().add(createConstructionAssignment(resourceOid, kind, intent));
+    	ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(focusType));
+        deltaType.setChangeType(ChangeTypeType.MODIFY);
+        deltaType.setOid(focusOid);
+        deltaType.getItemDelta().add(assignmentDelta);
+        return deltaType;
+    }
+    
+    public static AssignmentType createConstructionAssignment(String resourceOid) {
+    	return createConstructionAssignment(resourceOid, null, null);
+    }
+
+    public static AssignmentType createConstructionAssignment(String resourceOid, ShadowKindType kind) {
+    	return createConstructionAssignment(resourceOid, kind, null);
+    }
+    
+    public static AssignmentType createConstructionAssignment(String resourceOid, ShadowKindType kind, String intent) {
+		AssignmentType assignment = new AssignmentType();
+		ConstructionType construction = new ConstructionType();
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resourceOid);
+		construction.setResourceRef(resourceRef);
+		if (kind != null) {
+			construction.setKind(kind);
+		}
+		if (intent != null) {
+			construction.setIntent(intent);
+		}
+		assignment.setConstruction(construction);
+		return assignment;
+	}
+    
+    public static ObjectDeltaListType createDeltaList(ObjectDeltaType... deltas) {
+    	ObjectDeltaListType list = new ObjectDeltaListType();
+    	for (ObjectDeltaType delta: deltas) {
+    		list.getDelta().add(delta);
+    	}
+    	return list;
+    }
+    
+	public static SelectorQualifiedGetOptionsType createRootGetOptions(GetOperationOptionsType opt) {
+		SelectorQualifiedGetOptionsType rootOpts = new SelectorQualifiedGetOptionsType();
+		SelectorQualifiedGetOptionType selOpt = new SelectorQualifiedGetOptionType();
+		selOpt.setOptions(opt);
+		rootOpts.getOption().add(selOpt);
+		return rootOpts;
+	}
+	
+	public static GetOperationOptionsType createRawGetOption() {
+		GetOperationOptionsType opts = new GetOperationOptionsType();
+		opts.setRaw(Boolean.TRUE);
+		return opts;
+	}
+	
+	public static ModelExecuteOptionsType createRawExecuteOption() {
+		ModelExecuteOptionsType opts = new ModelExecuteOptionsType();
+		opts.setRaw(Boolean.TRUE);
+		return opts;
+	}
 
     public static <O extends ObjectType> String toString(O obj) {
 		if (obj == null) {
@@ -414,7 +536,6 @@ public class ModelClientUtil {
 			throw new IllegalStateException("Error creating JAXB context " + e.getMessage());
 		}
 	}
-
 
 	
 }

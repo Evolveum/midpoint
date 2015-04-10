@@ -31,6 +31,7 @@ import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.wss4j.common.ext.WSPasswordCallback;
 import org.apache.wss4j.dom.WSConstants;
 import org.apache.wss4j.dom.handler.WSHandlerConstants;
+import org.opends.server.types.SearchResultEntry;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,11 +39,13 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.model.client.ModelClientUtil;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
@@ -58,6 +61,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -105,6 +110,7 @@ public class TestWSSanity extends AbstractWebserviceTest {
 	
 	protected static OpenDJController openDJController = new OpenDJController();
 	private String connectorLdapOid = null;
+	private String accountJackOid;
 
     @Override
 	protected void startResources() throws Exception {
@@ -228,6 +234,135 @@ public class TestWSSanity extends AbstractWebserviceTest {
 	
 	// TODO: test unreachable resource
 	
+	@Test
+    public void test100AddUserJack() throws Exception {
+    	final String TEST_NAME = "test100AddUserJack";
+    	displayTestTitle(TEST_NAME);
+    	
+    	LogfileTestTailer tailer = createLogTailer();
+
+        UserType userNobody = ModelClientUtil.unmarshallFile(USER_JACK_FILE);
+        
+        XMLGregorianCalendar startTs = TestUtil.currentTime();
+        
+        // WHEN
+        String oid = addObject(userNobody);
+     
+        // THEN
+        XMLGregorianCalendar endTs = TestUtil.currentTime();
+        
+        tailer.tail();
+        displayAudit(tailer);
+        assertAuditLoginLogout(tailer);
+        assertAuditIds(tailer);
+        assertAuditOperation(tailer, "ADD_OBJECT");
+        tailer.assertAudit(4);
+        
+        // GET user
+        UserType userAfter = getObject(UserType.class, USER_JACK_OID);
+        display(userAfter);
+        assertUser(userAfter, oid, USER_JACK_USERNAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
+        
+        assertCreateMetadata(userAfter, USER_ADMINISTRATOR_OID, startTs, endTs);
+        assertPasswordCreateMetadata(userAfter, USER_ADMINISTRATOR_OID, startTs, endTs);
+    }
 	
+	@Test
+    public void test110AssignOpenDJAccountToJack() throws Exception {
+    	final String TEST_NAME = "test110AssignOpenDJAccountToJack";
+    	displayTestTitle(TEST_NAME);
+    	
+    	LogfileTestTailer tailer = createLogTailer();
+
+        XMLGregorianCalendar startTs = TestUtil.currentTime();
+        
+        ObjectDeltaType delta = ModelClientUtil.createConstructionAssignDelta(UserType.class, USER_JACK_OID, RESOURCE_OPENDJ_OID);
+        
+		// WHEN
+        ObjectDeltaOperationListType executedDeltas = modelPort.executeChanges(ModelClientUtil.createDeltaList(delta), null);
+     
+        // THEN
+        XMLGregorianCalendar endTs = TestUtil.currentTime();
+        
+        assertSuccess(executedDeltas);
+        
+        tailer.tail();
+        displayAudit(tailer);
+        assertAuditLoginLogout(tailer);
+        assertAuditIds(tailer);
+        assertAuditOperation(tailer, "MODIFY_OBJECT");
+        tailer.assertAudit(4);
+        
+        // GET user
+        UserType userAfter = getObject(UserType.class, USER_JACK_OID);
+        display(userAfter);
+        assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
+        
+        assertModifyMetadata(userAfter, USER_ADMINISTRATOR_OID, startTs, endTs);
+        
+        accountJackOid = getSingleLinkOid(userAfter);
+        assertNotNull(accountJackOid);
+        
+        SearchResultEntry ldapEntry = openDJController.fetchEntry("uid="+USER_JACK_USERNAME+","+openDJController.getSuffixPeople());
+        display(ldapEntry.toLDIFString());
+        OpenDJController.assertAttribute(ldapEntry, "uid", "jack");
+        OpenDJController.assertAttribute(ldapEntry, "givenName", "Jack");
+        OpenDJController.assertAttribute(ldapEntry, "sn", "Sparrow");
+        OpenDJController.assertAttribute(ldapEntry, "cn", "Jack Sparrow");
+        OpenDJController.assertAttribute(ldapEntry, "displayName", "Jack Sparrow");
+       
+    }
+	
+	@Test
+    public void test111CheckJackAccountShadow() throws Exception {
+    	final String TEST_NAME = "test111CheckJackAccountShadow";
+    	displayTestTitle(TEST_NAME);
+    	
+		Holder<ObjectType> objectHolder = new Holder<>();
+		Holder<OperationResultType> resultHolder = new Holder<>();
+		
+		// WHEN
+        modelPort.getObject(ModelClientUtil.getTypeQName(ShadowType.class), accountJackOid, null, objectHolder, resultHolder);
+     
+        // THEN
+        assertSuccess(resultHolder);
+        ShadowType shadow = (ShadowType) objectHolder.value;
+        
+        display(shadow);
+        
+        assertAttribute(shadow, ATTR_ICF_NAME_NAME, "uid="+USER_JACK_USERNAME+","+openDJController.getSuffixPeople());
+        assertAttribute(shadow, "uid", "jack");
+        assertAttribute(shadow, "givenName", "Jack");
+        assertAttribute(shadow, "sn", "Sparrow");
+        assertAttribute(shadow, "cn", "Jack Sparrow");
+        assertAttribute(shadow, "displayName", "Jack Sparrow");       
+    }
+	
+	@Test
+    public void test112CheckJackAccountShadowRaw() throws Exception {
+    	final String TEST_NAME = "test112CheckJackAccountShadowRaw";
+    	displayTestTitle(TEST_NAME);
+    	
+		Holder<ObjectType> objectHolder = new Holder<>();
+		Holder<OperationResultType> resultHolder = new Holder<>();
+		
+		// WHEN
+        modelPort.getObject(ModelClientUtil.getTypeQName(ShadowType.class), accountJackOid, 
+        		ModelClientUtil.createRootGetOptions(ModelClientUtil.createRawGetOption()), objectHolder, resultHolder);
+     
+        // THEN
+        assertSuccess(resultHolder);
+        ShadowType shadow = (ShadowType) objectHolder.value;
+        
+        display(shadow);
+        
+        assertAttribute(shadow, ATTR_ICF_NAME_NAME, "uid="+USER_JACK_USERNAME+","+openDJController.getSuffixPeople());
+        assertNoAttribute(shadow, "uid");
+        assertNoAttribute(shadow, "givenName");
+        assertNoAttribute(shadow, "sn");
+        assertNoAttribute(shadow, "cn");
+        assertNoAttribute(shadow, "displayName");       
+    }
+
 }
 

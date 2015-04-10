@@ -26,6 +26,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
@@ -109,6 +110,12 @@ public abstract class AbstractWebserviceTest {
     public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
     public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
     
+    public static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
+ 	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+ 	public static final String USER_JACK_USERNAME = "jack";
+ 	public static final String USER_JACK_GIVEN_NAME = "Jack";
+ 	public static final String USER_JACK_FAMILY_NAME = "Sparrow";
+    
     // No authorization
  	public static final File USER_NOBODY_FILE = new File(COMMON_DIR, "user-nobody.xml");
  	public static final String USER_NOBODY_USERNAME = "nobody";
@@ -153,10 +160,14 @@ public abstract class AbstractWebserviceTest {
 	protected static final Pattern PATTERN_AUDIT_TASK_ID = Pattern.compile(".*\\stid=([^,]+),\\s.*");
 	
     
-    public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-    public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
+    public static final String NS_COMMON = ModelClientUtil.NS_COMMON;
+    public static final String NS_TYPES = ModelClientUtil.NS_TYPES;
+    public static final String NS_RI = ModelClientUtil.NS_RI;
+    public static final String NS_ICFS = ModelClientUtil.NS_ICFS;
     protected static final QName TYPES_POLYSTRING_ORIG = new QName(NS_TYPES, "orig");
     protected static final String CHANNEL_WS = "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#webService";
+    
+    public static final QName ATTR_ICF_NAME_NAME = new QName(NS_ICFS, "name");
 
     protected static final QName COMMON_PATH = new QName(NS_COMMON, "path");
     protected static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
@@ -322,14 +333,18 @@ public abstract class AbstractWebserviceTest {
     	return DOMUtil.getFirstChildElement(DOMUtil.parseDocument(stringXml));
     }
     
-	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid) throws FaultMessage {
+    protected <O extends ObjectType> void deleteObject(Class<O> type, String oid) throws FaultMessage {
+    	deleteObject(type, oid, null);
+    }
+    
+	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid, ModelExecuteOptionsType options) throws FaultMessage {
     	ObjectDeltaListType deltaList = new ObjectDeltaListType();
     	ObjectDeltaType delta = new ObjectDeltaType();
     	delta.setObjectType(getTypeQName(type));
     	delta.setChangeType(ChangeTypeType.DELETE);
     	delta.setOid(oid);
 		deltaList.getDelta().add(delta);
-		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
+		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, options);
 		assertSuccess(deltaOpList);
     }
 	
@@ -360,6 +375,13 @@ public abstract class AbstractWebserviceTest {
 		}
 		return objectListHolder.value.getObject().size();
 	}
+	
+	protected <F extends FocusType> String getSingleLinkOid(F focus) {
+		List<ObjectReferenceType> linkRefs = focus.getLinkRef();
+		assertEquals("Unexpected number of links for "+focus, 1, linkRefs.size());
+		return linkRefs.get(0).getOid();
+	}
+    
 
 	
 	protected void assertUser(UserType user, String expOid, String expName) {
@@ -602,29 +624,82 @@ public abstract class AbstractWebserviceTest {
         TestUtil.assertBetween("Wrong password createTimestamp", startTs, endTs, passwordMetadata.getCreateTimestamp());		
 	}
 	
+	protected void assertAttribute(ShadowType shadow, String attrName, String attrVal) {
+		assertAttribute(shadow, new QName(NS_RI, attrName), attrVal);
+	}
+	
+	protected void assertAttribute(ShadowType shadow, QName attrName, String attrVal) {
+		ShadowAttributesType attributes = shadow.getAttributes();
+		for (Object any: attributes.getAny()) {
+			if (any instanceof Element) {
+				Element element = (Element)any;
+				if (DOMUtil.getQName(element).equals(attrName)) {
+					assertEquals("Wrong attribute "+attrName+" in shadow "+ModelClientUtil.toString(shadow), attrVal, element.getTextContent());
+				}
+			} else if (any instanceof JAXBElement<?>) {
+				JAXBElement<?> jaxbElement = (JAXBElement<?>)any;
+				if (jaxbElement.getName().equals(attrName)) {
+					assertEquals("Wrong attribute "+attrName+" in shadow "+ModelClientUtil.toString(shadow), attrVal, jaxbElement.getValue().toString());
+				}
+			} else {
+				AssertJUnit.fail("Unexpected thing "+any+" in shadow attributes");
+			}
+		}
+	}
+	
+	protected void assertNoAttribute(ShadowType shadow, String attrName) {
+		assertNoAttribute(shadow, new QName(NS_RI, attrName));
+	}
+	
+	protected void assertNoAttribute(ShadowType shadow, QName attrName) {
+		ShadowAttributesType attributes = shadow.getAttributes();
+		for (Object any: attributes.getAny()) {
+			if (any instanceof Element) {
+				Element element = (Element)any;
+				if (DOMUtil.getQName(element).equals(attrName)) {
+					AssertJUnit.fail("Unexpected attribute "+attrName+" in shadow "+ModelClientUtil.toString(shadow)+": "+element.getTextContent());
+				}
+			} else if (any instanceof JAXBElement<?>) {
+				JAXBElement<?> jaxbElement = (JAXBElement<?>)any;
+				if (jaxbElement.getName().equals(attrName)) {
+					AssertJUnit.fail("Unexpected attribute "+attrName+" in shadow "+ModelClientUtil.toString(shadow)+": "+jaxbElement.getValue());
+				}
+			} else {
+				AssertJUnit.fail("Unexpected thing "+any+" in shadow attributes");
+			}
+		}
+		
+	}
 	
     /**
      *  Clean the repository after tests. Preserves user administrator
      * */
     protected void cleanRepository() throws FaultMessage {
-    	cleanObjects(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value());
-    	cleanObjects(RoleType.class, SystemObjectsType.ROLE_SUPERUSER.value(), SystemObjectsType.ROLE_END_USER.value());
-    	cleanObjects(ResourceType.class);
+    	cleanObjects(UserType.class, false, SystemObjectsType.USER_ADMINISTRATOR.value());
+    	cleanObjects(RoleType.class, false, SystemObjectsType.ROLE_SUPERUSER.value(), SystemObjectsType.ROLE_END_USER.value());
+    	cleanObjects(ResourceType.class, false);
+    	cleanObjects(ShadowType.class, true);
     }
     
-    private <O extends ObjectType> void cleanObjects(Class<O> type, String... protectedOids) throws FaultMessage {
+    private <O extends ObjectType> void cleanObjects(Class<O> type, boolean raw, String... protectedOids) throws FaultMessage {
     	Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
-        PagingType paging = new PagingType();
 
-        modelPort.searchObjects(getTypeQName(type), null, null, objectListHolder, resultHolder);
+        SelectorQualifiedGetOptionsType rootOpts = null;
+        ModelExecuteOptionsType execOpts = null;
+        if (raw) {
+        	rootOpts = ModelClientUtil.createRootGetOptions(ModelClientUtil.createRawGetOption());
+        	execOpts = ModelClientUtil.createRawExecuteOption();
+        }
+        
+        modelPort.searchObjects(getTypeQName(type), null, rootOpts, objectListHolder, resultHolder);
 
         List<String> protectedOidList = Arrays.asList(protectedOids);
         ObjectListType objectList = objectListHolder.value;
         for (ObjectType object: objectList.getObject()) {
         	if (!protectedOidList.contains(object.getOid())) {
         		display("Deleting "+type.getSimpleName()+" "+ModelClientUtil.toString(object));
-            	deleteObject(type, object.getOid());
+				deleteObject(type, object.getOid(), execOpts);
         	}
         }
     }
