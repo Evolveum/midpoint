@@ -1237,8 +1237,29 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             Collection<? extends ItemDelta> lookupTableModifications = filterLookupTableModifications(type, modifications);
 
+            // JpegPhoto (RUserPhoto) is a special kind of entity. First of all, it is lazily loaded, because photos are really big.
+            // Each RUserPhoto naturally belongs to one RUser, so it would be appropriate to set orphanRemoval=true for user-photo
+            // association. However, this leads to a strange problem when merging in-memory RUser object with the database state:
+            // If in-memory RUser object has no photo associated (because of lazy loading), then the associated RUserPhoto is deleted.
+            //
+            // To prevent this behavior, we've set orphanRemoval to false. Fortunately, the remove operation on RUser
+            // seems to be still cascaded to RUserPhoto. What we have to implement ourselves, however, is removal of RUserPhoto
+            // _without_ removing of RUser. In order to know whether the photo has to be removed, we have to retrieve
+            // its value, apply the delta (e.g. if the delta is a DELETE VALUE X, we have to know whether X matches current
+            // value of the photo), and if the resulting value is empty, we have to manually delete the RUserPhoto instance.
+            //
+            // So the first step is to retrieve the current value of photo - we obviously do this only if the modifications
+            // deal with the jpegPhoto property.
+            Collection<SelectorOptions<GetOperationOptions>> options;
+            boolean containsUserPhotoModification = UserType.class.equals(type) && containsPhotoModification(modifications);
+            if (containsUserPhotoModification) {
+                options = Arrays.asList(SelectorOptions.create(UserType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+            } else {
+                options = null;
+            }
+
             // get object
-            PrismObject<T> prismObject = getObject(session, type, oid, null, true);
+            PrismObject<T> prismObject = getObject(session, type, oid, options, true);
             // apply diff
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.debugDump()});
@@ -1251,6 +1272,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.debugDump());
             }
+
+            // Continuing the photo treatment: should we remove the (now obsolete) user photo?
+            // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
+            boolean shouldPhotoBeRemoved = containsUserPhotoModification && ((UserType) prismObject.asObjectable()).getJpegPhoto() == null;
+
             // merge and update object
             LOGGER.trace("Translating JAXB to data type.");
             RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
@@ -1263,6 +1289,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             if (getClosureManager().isEnabled()) {
                 getClosureManager().updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
+            }
+
+            // JpegPhoto cleanup: As said before, if a user has to have no photo (after modifications are applied),
+            // we have to remove the photo manually.
+            if (shouldPhotoBeRemoved) {
+                Query query = session.createQuery("delete RUserPhoto where ownerOid = :oid");
+                query.setParameter("oid", prismObject.getOid());
+                query.executeUpdate();
+                LOGGER.trace("User photo for {} was deleted", prismObject.getOid());
             }
 
             LOGGER.trace("Before commit...");
@@ -1316,6 +1351,20 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         modifications.removeAll(tableDelta);
 
         return tableDelta;
+    }
+
+    private <T extends ObjectType> boolean containsPhotoModification(Collection<? extends ItemDelta> modifications) {
+        ItemPath photoPath = new ItemPath(UserType.F_JPEG_PHOTO);
+        for (ItemDelta delta : modifications) {
+            ItemPath path = delta.getPath();
+            if (path.isEmpty()) {
+                throw new UnsupportedOperationException("User cannot be modified via empty-path modification");
+            } else if (photoPath.isSubPathOrEquivalent(path)) { // actually, "subpath" variant should not occur
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void cleanupClosureAndSessionAndResult(final OrgClosureManager.Context closureContext, final Session session, final OperationResult result) {
