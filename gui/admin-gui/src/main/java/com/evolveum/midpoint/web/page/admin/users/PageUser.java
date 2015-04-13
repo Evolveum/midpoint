@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -973,7 +974,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         window.setContent(new ResourcesPopup(window.getContentId()) {
 
             @Override
-            public SimpleUserResourceProvider getProvider(){
+            public SimpleUserResourceProvider getProvider() {
                 return provider;
             }
 
@@ -1421,14 +1422,31 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             }
 
             List<String> directAssignmentsOids = new ArrayList<>();
-            for(EvaluatedAssignment<UserType> assignment: evaluatedAssignments){
-                directAssignmentsOids.add(assignment.getTarget().getOid());
+            for (EvaluatedAssignment<UserType> evaluatedAssignment : evaluatedAssignments) {
+                // directly assigned roles & orgs
+                if (evaluatedAssignment.getTarget() != null) {
+                    directAssignmentsOids.add(evaluatedAssignment.getTarget().getOid());
+                }
+                // directly assigned resources
+                AssignmentType at = evaluatedAssignment.getAssignmentType();
+                if (at != null && at.getConstruction() != null && at.getConstruction().getResourceRef() != null) {
+                    directAssignmentsOids.add(at.getConstruction().getResourceRef().getOid());
+                }
 
-                DeltaSetTriple<? extends EvaluatedAbstractRole> rolesTriple = assignment.getRoles();
-                Collection<? extends EvaluatedAbstractRole> evaluatedRoles = rolesTriple.getNonNegativeValues();
+                // all roles and orgs
+                DeltaSetTriple<? extends EvaluatedAbstractRole> evaluatedRolesTriple = evaluatedAssignment.getRoles();
+                Collection<? extends EvaluatedAbstractRole> evaluatedRoles = evaluatedRolesTriple.getNonNegativeValues();
+                for (EvaluatedAbstractRole role: evaluatedRoles) {
+                    if (role.isEvaluateConstructions()) {
+                        addObjectIfNotPresent(assignments, role.getRole().asObjectable());
+                    }
+                }
 
-                for(EvaluatedAbstractRole role: evaluatedRoles){
-                    assignments.add(role.getRole().asObjectable());
+                // all resources [note that currently we do not provide kind/intent information]
+                DeltaSetTriple<EvaluatedConstruction> evaluatedConstructionsTriple = evaluatedAssignment.getEvaluatedConstructions(result);
+                Collection<EvaluatedConstruction> evaluatedConstructions = evaluatedConstructionsTriple.getNonNegativeValues();
+                for (EvaluatedConstruction construction : evaluatedConstructions) {
+                    addObjectIfNotPresent(assignments, construction.getResource().asObjectable());
                 }
             }
 
@@ -1437,10 +1455,20 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             dialog.show(target);
 
         } catch (Exception e) {
-            LOGGER.error("Could not create assignments preview.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not create assignments preview.", e);
             error("Could not create assignments preview. Reason: " + e);
             target.add(getFeedbackPanel());
         }
+    }
+
+    private void addObjectIfNotPresent(List<ObjectType> assignments, ObjectType objectType) {
+        String oid = objectType.getOid();
+        for (ObjectType existing : assignments) {
+            if (oid.equals(existing.getOid())) {
+                return;
+            }
+        }
+        assignments.add(objectType);
     }
 
     private void savePerformed(AjaxRequestTarget target) {

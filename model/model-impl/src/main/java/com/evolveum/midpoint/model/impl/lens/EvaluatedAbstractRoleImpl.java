@@ -27,7 +27,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 public class EvaluatedAbstractRoleImpl implements EvaluatedAbstractRole {
 	
 	PrismObject<? extends AbstractRoleType> role;
-	
+	private boolean evaluateConstructions;
+
 	@Override
 	public PrismObject<? extends AbstractRoleType> getRole() {
 		return role;
@@ -35,6 +36,15 @@ public class EvaluatedAbstractRoleImpl implements EvaluatedAbstractRole {
 
 	public void setRole(PrismObject<? extends AbstractRoleType> role) {
 		this.role = role;
+	}
+
+	@Override
+	public boolean isEvaluateConstructions() {
+		return evaluateConstructions;
+	}
+
+	public void setEvaluateConstructions(boolean evaluateConstructions) {
+		this.evaluateConstructions = evaluateConstructions;
 	}
 
 	@Override

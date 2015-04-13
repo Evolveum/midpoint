@@ -1,11 +1,11 @@
-/**
- * Copyright (c) 2015 Evolveum
+/*
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,16 +17,19 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
- * @author semancik
+ * @author mederly
  *
  */
-public interface EvaluatedAbstractRole extends DebugDumpable {
+public interface EvaluatedConstruction extends DebugDumpable {
 	
-	PrismObject<? extends AbstractRoleType> getRole();
+	PrismObject<? extends ResourceType> getResource();
 
-	// true for roles whose constructions are evaluated - i.e. those that are considered to be applied to the focal object
-	boolean isEvaluateConstructions();
+	ShadowKindType getKind();
+
+	String getIntent();
+
 }
