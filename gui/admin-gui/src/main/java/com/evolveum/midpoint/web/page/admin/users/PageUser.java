@@ -1023,7 +1023,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         });
         add(window);
 
-        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null);
+        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null, null);
         add(assignmentPreviewPopup);
     }
 
@@ -1412,7 +1412,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             ModelContext<UserType> modelContext = getModelInteractionService().previewChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
 
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
-            Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getZeroSet();
+            Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
 
             if(evaluatedAssignments.isEmpty()){
                 info(getString("pageUser.message.noAssignmentsAvailable"));
@@ -1420,16 +1420,20 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                 return;
             }
 
-            EvaluatedAssignment<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
-            DeltaSetTriple<? extends EvaluatedAbstractRole> rolesTriple = evaluatedAssignment.getRoles();
-            Collection<? extends EvaluatedAbstractRole> evaluatedRoles = rolesTriple.getZeroSet();
+            List<String> directAssignmentsOids = new ArrayList<>();
+            for(EvaluatedAssignment<UserType> assignment: evaluatedAssignments){
+                directAssignmentsOids.add(assignment.getTarget().getOid());
 
-            for(EvaluatedAbstractRole role: evaluatedRoles){
-                assignments.add(role.getRole().asObjectable());
+                DeltaSetTriple<? extends EvaluatedAbstractRole> rolesTriple = assignment.getRoles();
+                Collection<? extends EvaluatedAbstractRole> evaluatedRoles = rolesTriple.getNonNegativeValues();
+
+                for(EvaluatedAbstractRole role: evaluatedRoles){
+                    assignments.add(role.getRole().asObjectable());
+                }
             }
 
             AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) get(MODAL_ID_ASSIGNMENTS_PREVIEW);
-            dialog.updateData(target, assignments);
+            dialog.updateData(target, assignments, directAssignmentsOids);
             dialog.show(target);
 
         } catch (Exception e) {
