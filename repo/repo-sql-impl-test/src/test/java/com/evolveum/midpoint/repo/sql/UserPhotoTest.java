@@ -54,6 +54,10 @@ public class UserPhotoTest extends BaseSQLRepoTest {
     private static final File T002_REMOVE_PHOTO = new File(TEST_DIR, "t002-remove-photo.xml");
     private static final File T003_RE_ADD_PHOTO = new File(TEST_DIR, "t003-re-add-photo.xml");
     private static final File T004_CHANGE_PHOTO = new File(TEST_DIR, "t004-change-photo.xml");
+    private static final File T005_ADD_PHOTO_BY_ADD = new File(TEST_DIR, "t005-add-photo-by-add.xml");
+    private static final File T006_ADD_PHOTO_BY_ADD_OTHER = new File(TEST_DIR, "t006-add-photo-by-add-other.xml");
+    private static final File T007_REMOVE_PHOTO_BY_DELETE = new File(TEST_DIR, "t007-remove-photo-by-delete.xml");
+    private static final File T008_REMOVE_OTHER_PHOTO_BY_DELETE = new File(TEST_DIR, "t008-remove-other-photo-by-delete.xml");
 
     private String userOid;
 
@@ -65,8 +69,8 @@ public class UserPhotoTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test010Add() throws Exception {
-        OperationResult result = new OperationResult(UserPhotoTest.class.getName() + ".test010Add");
+    public void test010AddUser() throws Exception {
+        OperationResult result = new OperationResult(UserPhotoTest.class.getName() + ".test010AddUser");
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_FILE);
         userOid = repositoryService.addObject(user, null, result);
@@ -86,8 +90,8 @@ public class UserPhotoTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test030RemovePhoto() throws Exception {
-        OperationResult result = new OperationResult(UserPhotoTest.class.getName() + ".test030RemovePhoto");
+    public void test030RemovePhotoByReplace() throws Exception {
+        OperationResult result = new OperationResult(UserPhotoTest.class.getName() + ".test030RemovePhotoByReplace");
 
         ObjectDelta delta1 = parseDelta(userOid, T001_ADD_EMPLOYEE_TYPE);
         ObjectDelta delta2 = parseDelta(userOid, T002_REMOVE_PHOTO);
@@ -136,6 +140,67 @@ public class UserPhotoTest extends BaseSQLRepoTest {
         assertEquals("Oid was changed", userOid, oid);
 
         checkObject(userOid, user, true, result);       // there should be no photo there
+    }
+
+    @Test
+    public void test100AddPhotoByAdd() throws Exception {
+        OperationResult result = new OperationResult(UserPhotoTest.class.getName() + ".test100AddPhotoByAdd");
+
+        ObjectDelta delta = parseDelta(userOid, T005_ADD_PHOTO_BY_ADD);
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        checkObject(userOid, USER_FILE, result);        // no need to mention delta here, because object now should be equal to USER_FILE
+        checkObjectNoPhoto(userOid, USER_FILE, result);
+    }
+
+    @Test
+    public void test110DuplicatePhotoAddSame() throws Exception {
+        OperationResult result = new OperationResult(UserPhotoTest.class.getName() + ".test110DuplicatePhotoAddSame");
+
+        ObjectDelta delta = parseDelta(userOid, T005_ADD_PHOTO_BY_ADD);     // adding the same value again
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        checkObject(userOid, USER_FILE, result);        // no need to mention delta here, because object now should be equal to USER_FILE
+        checkObjectNoPhoto(userOid, USER_FILE, result);
+    }
+
+    @Test
+    public void test120DuplicatePhotoAddOther() throws Exception {
+        OperationResult result = new OperationResult(UserPhotoTest.class.getName() + ".test120DuplicatePhotoAddOther");
+
+        // because photo is single-value, the ADD operation will simply replace the old value
+        ObjectDelta delta = parseDelta(userOid, T006_ADD_PHOTO_BY_ADD_OTHER);
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        checkObject(userOid, USER_FILE, result, delta);
+    }
+
+    @Test
+    public void test130RemoveNonExistingPhotoByDelete() throws Exception {
+        OperationResult result = new OperationResult(UserPhotoTest.class.getName() + ".test130RemoveNonExistingPhotoByDelete");
+
+        ObjectDelta delta1 = parseDelta(userOid, T006_ADD_PHOTO_BY_ADD_OTHER);
+        ObjectDelta delta2 = parseDelta(userOid, T007_REMOVE_PHOTO_BY_DELETE);
+        repositoryService.modifyObject(UserType.class, userOid, delta2.getModifications(), result);     // should not remove the photo because the value is different
+
+        checkObject(userOid, USER_FILE, result, delta1);
+        checkObject(userOid, USER_FILE, result, delta1, delta2);        // should be equivalent
+    }
+
+    @Test
+    public void test140RemoveExistingPhotoByDelete() throws Exception {
+        OperationResult result = new OperationResult(UserPhotoTest.class.getName() + ".test140RemoveExistingPhotoByDelete");
+
+        ObjectDelta delta1 = parseDelta(userOid, T006_ADD_PHOTO_BY_ADD_OTHER);
+        ObjectDelta delta2 = parseDelta(userOid, T007_REMOVE_PHOTO_BY_DELETE);
+        ObjectDelta delta3 = parseDelta(userOid, T008_REMOVE_OTHER_PHOTO_BY_DELETE);
+        repositoryService.modifyObject(UserType.class, userOid, delta3.getModifications(), result);     // this one should remove the photo
+
+        checkObject(userOid, USER_FILE, result, delta1, delta2, delta3);
+
+        // just to be 100% sure ;)
+        ObjectDelta deltaRemoveByReplace = parseDelta(userOid, T002_REMOVE_PHOTO);  // this deletes photo by setting jpegPhoto:=null
+        checkObject(userOid, USER_FILE, result, deltaRemoveByReplace);
     }
 
     protected ObjectDelta<UserType> parseDelta(String oid, File file) throws SchemaException, IOException {
