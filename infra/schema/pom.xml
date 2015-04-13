@@ -81,6 +81,10 @@
             <groupId>org.apache.cxf.xjc-utils</groupId>
             <artifactId>cxf-xjc-runtime</artifactId>
         </dependency>
+        <dependency>
+			<groupId>net.sf.jasperreports</groupId>
+			<artifactId>jasperreports</artifactId>
+		</dependency>
         <!--<dependency>-->
             <!--<groupId>org.apache.cxf</groupId>-->
             <!--<artifactId>cxf-rt-transports-http-jetty</artifactId>-->
@@ -205,6 +209,76 @@
                                          available only in wsdl codegen plugin. -->
                                     <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper-model-context.wsdl</wsdl>
                                     <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-model-context.xml</catalog>
+                                    <extraargs>
+                                        <extraarg>-impl</extraarg>
+                                        <extraarg>-verbose</extraarg>
+                                        <extraarg>-validate</extraarg>
+                                        <extraarg>-xjc-Xts</extraarg>
+                                        <extraarg>-xjc-XhashCode</extraarg>
+                                        <extraarg>-xjc-Xequals</extraarg>
+                                        <extraarg>
+                                            -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
+                                        </extraarg>
+                                        <extraarg>-xjc-Xmidpoint</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://midpoint.evolveum.com/xml/ns/public/common/common-3</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/2001/04/xmlenc</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/2001/XMLSchema</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/XML/1998/namespace</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/2000/09/xmldsig</extraarg>
+                                    </extraargs>
+                                </wsdlOption>
+                                <wsdlOption>
+                                    <wsdl>src/main/resources/xml/ns/private/report/reportWrapper.wsdl</wsdl>
+                                    <wsdlLocation>classpath:xml/ns/private/report/reportWrapper.wsdl</wsdlLocation>
+                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-report.xml</catalog>
+                                    <extraargs>
+                                        <extraarg>-impl</extraarg>
+                                        <extraarg>-verbose</extraarg>
+                                        <extraarg>-validate</extraarg>
+                                        <extraarg>-xjc-Xts</extraarg>
+                                        <extraarg>-xjc-XhashCode</extraarg>
+                                        <extraarg>-xjc-Xequals</extraarg>
+                                        <extraarg>
+                                            -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
+                                        </extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
+                                        <!-- 										<extraargs>-version</extraargs> -->
+ <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://midpoint.evolveum.com/xml/ns/public/common/common-3</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/2001/04/xmlenc</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/2001/XMLSchema</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/XML/1998/namespace</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/2000/09/xmldsig</extraarg>
+                                        <extraarg>-xjc-Xmidpoint</extraarg>
+                                    </extraargs>
+                                </wsdlOption>
+                                <wsdlOption>
+                                    <!-- Ugly hack. The fake WSDL includes the XSD file we need to compile.
+                                         This is the only way I found to skip generating java classes for included
+                                         schemas (namely, common-3); we need to use -nexclude parameter that is
+                                         available only in wsdl codegen plugin. -->
+                                    <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper-report.wsdl</wsdl>
+                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-report.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>

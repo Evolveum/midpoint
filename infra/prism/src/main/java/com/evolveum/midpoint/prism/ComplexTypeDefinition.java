@@ -217,7 +217,7 @@ public class ComplexTypeDefinition extends Definition {
         return null;
     }
 
-	public <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {
+	public <ID extends ItemDefinition> ID findItemDefinition(ItemPath path, Class<ID> clazz) {
     	while (!path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
     		path = path.rest();
     	}
@@ -227,7 +227,7 @@ public class ComplexTypeDefinition extends Definition {
         QName firstName = ((NameItemPathSegment)path.first()).getName();
         for (ItemDefinition def : getDefinitions()) {
             if (firstName.equals(def.getName())) {
-                return def.findItemDefinition(path.rest(), clazz);
+                return (ID) def.findItemDefinition(path.rest(), clazz);
             }
         }
         return null;

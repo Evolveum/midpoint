@@ -48,6 +48,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -206,7 +207,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
             }
         };
 
-        //status = isEditing() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+        //status = isEditingOrgUnit() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 
         initLayout();
     }
@@ -217,7 +218,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
             @Override
             protected String load() {
-                if (!isEditing()) {
+                if (!isEditingOrgUnit()) {
                     return PageOrgUnit.super.createPageTitleModel().getObject();
                 }
 
@@ -229,7 +230,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
     private ContainerWrapper loadExtensionWrapper(){
         OperationResult result = new OperationResult(OPERATION_LOAD_EXTENSION_WRAPPER);
-        ContainerStatus status = isEditing() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+        ContainerStatus status = isEditingOrgUnit() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         ObjectWrapper wrapper;
         ContainerWrapper extensionWrapper = null;
         PrismObject<OrgType> org = orgModel.getObject();
@@ -376,7 +377,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
                     }
                 }
 
-                if(isEditing()){
+                if(isEditingOrgUnit()){
                     oidList.add(orgModel.getObject().asObjectable().getOid());
                 }
 
@@ -463,7 +464,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
             @Override
             protected void populateItem(ListItem<PropertyWrapper> item) {
-                PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form);
+                PrismPropertyPanel propertyPanel = new PrismPropertyPanel(ID_EXTENSION_PROPERTY, item.getModel(), form, PageOrgUnit.this);
                 propertyPanel.get("labelContainer:label").add(new AttributeAppender("style", "font-weight:bold;"));
                 propertyPanel.get("labelContainer").add(new AttributeModifier("class", ID_LABEL_SIZE + " control-label"));
                 item.add(propertyPanel);
@@ -530,10 +531,10 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
         };
         form.add(back);
 
-        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
+        form.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, false));          // TODO add "show reconcile affected" when implemented for Orgs
     }
 
-    private boolean isEditing() {
+    private boolean isEditingOrgUnit() {
         StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         return oid != null && StringUtils.isNotEmpty(oid.toString());
     }
@@ -580,6 +581,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
                     }
                 }
             }
+
         //We are editing OrgUnit
         }else if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) {
             for (OrgType parent : parentOrgUnitsModel.getObject()) {
@@ -595,7 +597,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
         }
 
         //Delete parentOrgUnits from edited OrgUnit
-        if(isEditing()){
+        if(isEditingOrgUnit()){
             if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){
                 for(ObjectReferenceType parent: parentOrgList){
                     if(!isRefInParentOrgModel(parent)){
@@ -636,7 +638,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
             reviveModels();
             delta = null;
 
-            if (!isEditing()) {
+            if (!isEditingOrgUnit()) {
                 newOrgUnit = buildUnitFromModel(null);
 
                 //handle assignments
@@ -674,7 +676,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
             ObjectDelta extDelta = null;
 
             if(extensionDelta != null){
-                if(isEditing()){
+                if(isEditingOrgUnit()){
                     extDelta = extensionDelta;
                 } else {
                     extDelta = delta.getObjectToAdd().diff(extensionDelta.getObjectToAdd());
@@ -748,7 +750,7 @@ public class PageOrgUnit extends PageAdminUsers implements ProgressReportingAwar
 
         PrismObject<OrgType> org = null;
         try {
-            if (!isEditing()) {
+            if (!isEditingOrgUnit()) {
                 if (unitToEdit == null) {
                     OrgType o = new OrgType();
                     ActivationType defaultActivation = new ActivationType();

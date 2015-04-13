@@ -55,7 +55,6 @@ public class OrgFilter extends ObjectFilter {
         OrgFilter filter = new OrgFilter();
         filter.setRoot(true);
         return filter;
-
     }
 
     public PrismReferenceValue getOrgRef() {
@@ -169,6 +168,4 @@ public class OrgFilter extends ObjectFilter {
         // TODO Auto-generated method stub
         return false;
     }
-
-
 }

@@ -178,7 +178,7 @@ public enum ObjectTypes {
         // END OF UGLY HACK
 
         for (ObjectTypes type : values()) {
-            if (type.getTypeQName().equals(typeQName)) {
+            if (QNameUtil.match(type.getTypeQName(), typeQName)) {
                 return type;
             }
         }

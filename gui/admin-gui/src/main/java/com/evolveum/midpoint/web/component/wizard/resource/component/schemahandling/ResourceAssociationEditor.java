@@ -484,13 +484,13 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
     private void outboundEditPerformed(AjaxRequestTarget target){
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_OUTBOUND);
-        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "outbound"));
+        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "outbound"), false);
         window.show(target);
     }
 
     private void inboundEditPerformed(AjaxRequestTarget target, MappingType mapping){
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_INBOUND);
-        window.updateModel(target, mapping);
+        window.updateModel(target, mapping, true);
         window.show(target);
     }
 }

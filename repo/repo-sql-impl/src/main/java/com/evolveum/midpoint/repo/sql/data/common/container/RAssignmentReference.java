@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCObjectReferenceId;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -38,21 +39,21 @@ import javax.persistence.*;
 @JaxbType(type = ObjectReferenceType.class)
 @Entity
 @IdClass(RCObjectReferenceId.class)
-@Table(name = "m_assignment_reference")
-@org.hibernate.annotations.Table(appliesTo = "m_assignment_reference",
-        indexes = {@Index(name = "iAssignmentReferenceTargetOid", columnNames = "targetOid")})
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = RObjectReference.REFERENCE_TYPE, discriminatorType = DiscriminatorType.INTEGER)
+@Table(name = "m_assignment_reference", indexes = {
+        @javax.persistence.Index(name = "iAssignmentReferenceTargetOid", columnList = "targetOid")
+})
 public class RAssignmentReference implements ObjectReference {
 
     public static final String REFERENCE_TYPE = "reference_type";
 
     public static final String F_OWNER = "owner";
 
+    private RCReferenceOwner referenceType;
+
     //owner
     private RAssignment owner;
     private String ownerOid;
-    private Short ownerId;
+    private Integer ownerId;
     //other primary key fields
     private String targetOid;
     private String relation;
@@ -80,7 +81,7 @@ public class RAssignmentReference implements ObjectReference {
 
     @Id
     @Column(name = "owner_id")
-    public Short getOwnerId() {
+    public Integer getOwnerId() {
         if (ownerId == null && owner != null) {
             ownerId = owner.getId();
         }
@@ -114,6 +115,14 @@ public class RAssignmentReference implements ObjectReference {
         return type;
     }
 
+    @Id
+    @Column(name = REFERENCE_TYPE, nullable = false)
+    public RCReferenceOwner getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(RCReferenceOwner referenceType) { this.referenceType = referenceType; }
+
     public void setOwner(RAssignment owner) {
         this.owner = owner;
     }
@@ -122,7 +131,7 @@ public class RAssignmentReference implements ObjectReference {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerId(Short ownerId) {
+    public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
     }
 

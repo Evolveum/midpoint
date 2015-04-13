@@ -261,6 +261,16 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+  <groupId>org.codehaus.groovy.modules.http-builder</groupId>
+  <artifactId>http-builder</artifactId>
+  <version>0.7</version>
+</dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
             <version>3.2-SNAPSHOT</version>
@@ -334,11 +344,35 @@
             <version>3.2-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
+<!--         <dependency> -->
+<!--             <groupId>com.evolveum.midpoint.model</groupId> -->
+<!--             <artifactId>report-api</artifactId> -->
+<!--             <version>3.2-SNAPSHOT</version> -->
+<!--             <scope>runtime</scope> -->
+<!--         </dependency> -->
 	<dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-impl</artifactId>
             <version>3.2-SNAPSHOT</version>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>report-ds-impl</artifactId>
+            <version>3.2-SNAPSHOT</version>
+			<scope>runtime</scope>
+			 <exclusions>
+            	<exclusion>
+            		<artifactId>jaxb-impl</artifactId>
+            		<groupId>com.sun.xml.bind</groupId>
+            	</exclusion>
+            </exclusions>
+<!-- 			<exclusions> -->
+<!-- 				<exclusion> -->
+<!-- 					<groupId>*</groupId> -->
+<!-- 					<artifactId>*</artifactId> -->
+<!-- 				</exclusion> -->
+<!--     		</exclusions> -->
         </dependency>
 	<dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -527,6 +561,12 @@
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
 		</dependency>
+		<!-- report dependency (needed for microsoft office formats) -->
+            <dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi</artifactId>
+				<version>3.10.1</version>
+			</dependency>
 		<dependency>
 	<groupId>commons-javaflow</groupId>
 	<artifactId>commons-javaflow</artifactId>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -47,14 +49,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author Radovan Semancik
  */
 public class AssociationTargetSearchExpressionEvaluator 
-			extends AbstractSearchExpressionEvaluator<PrismContainerValue<ShadowAssociationType>> {
+			extends AbstractSearchExpressionEvaluator<PrismContainerValue<ShadowAssociationType>,
+			                                          PrismContainerDefinition<ShadowAssociationType>> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AssociationTargetSearchExpressionEvaluator.class);
 	
 	public AssociationTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
-			ItemDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
-			ModelService modelService, PrismContext prismContext) {
-		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext);
+			PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, ObjectResolver objectResolver, 
+			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
+		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
 	}
 	
 	@Override

@@ -81,4 +81,14 @@ public class RefinedAssociationDefinition implements Serializable {
 	public boolean requiresExplicitReferentialIntegrity() {
 		return !BooleanUtils.isFalse(getResourceObjectAssociationType().isExplicitReferentialIntegrity());	// because default is TRUE
 	}
+	
+	public RefinedAssociationDefinition clone() {
+		RefinedAssociationDefinition clone = new RefinedAssociationDefinition(resourceObjectAssociationType);
+		copyValues(clone);
+		return clone;
+	}
+
+	private void copyValues(RefinedAssociationDefinition clone) {
+		clone.associationTarget = this.associationTarget;
+	}
 }

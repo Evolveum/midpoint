@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
@@ -46,9 +47,11 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -399,11 +402,11 @@ public class ResourceTypeUtil {
 		return null;
 	}
 
-	public static PrismContainer<Containerable> getConfigurationContainer(ResourceType resourceType) {
+	public static PrismContainer<ConnectorConfigurationType> getConfigurationContainer(ResourceType resourceType) {
 		return getConfigurationContainer(resourceType.asPrismObject());
 	}
 	
-	public static PrismContainer<Containerable> getConfigurationContainer(PrismObject<ResourceType> resource) {
+	public static PrismContainer<ConnectorConfigurationType> getConfigurationContainer(PrismObject<ResourceType> resource) {
 		return resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 	}
 	

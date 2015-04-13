@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,16 @@ package com.evolveum.midpoint.model.impl.security;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.UserComputer;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -57,6 +58,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -110,10 +114,6 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        if (user == null) {
-            return null;
-        }
-
         return getPrincipal(user);
     }
 
@@ -142,22 +142,16 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     private PrismObject<UserType> findByUsername(String username) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
         ObjectQuery query = ObjectQueryUtil.createNameQuery(usernamePoly, prismContext);
-//        ObjectQuery query = ObjectQuery.createObjectQuery(
-//                EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, usernamePoly));
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
 
         List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, 
                 new OperationResult("Find by username"));
-        if (list == null) {
-            return null;
-        }
-        LOGGER.trace("Users found: {}.", new Object[]{list.size()});
-        if (list.size() == 0 || list.size() > 1) {
+        LOGGER.trace("Users found: {}.", (list != null ? list.size() : 0));
+        if (list == null || list.size() != 1) {
             return null;
         }
         
-        PrismObject<UserType> user = list.get(0);
-        return user;
+        return list.get(0);
     }
         
 	private void addAuthorizations(MidPointPrincipal principal) {
@@ -194,7 +188,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         OperationResult result = task.getResult();
         for(AssignmentType assignmentType: userType.getAssignment()) {
         	try {
-        		ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
         		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
         		assignmentIdi.recompute();
 				EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, false, userType, userType.toString(), task, result);

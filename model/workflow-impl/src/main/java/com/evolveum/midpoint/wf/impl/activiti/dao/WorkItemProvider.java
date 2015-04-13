@@ -56,6 +56,7 @@ import org.activiti.engine.task.IdentityLinkType;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
@@ -93,6 +94,7 @@ public class WorkItemProvider {
     private PrismContext prismContext;
 
     @Autowired
+    @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
     private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";

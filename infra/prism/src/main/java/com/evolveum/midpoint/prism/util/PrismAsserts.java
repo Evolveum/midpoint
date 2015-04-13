@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -165,11 +167,11 @@ public class PrismAsserts {
 	}
 
 	public static void assertNoItem(PrismContainer<?> object, ItemPath itemPath) {
-		Item<?> item = object.findItem(itemPath);
+		Item<?,?> item = object.findItem(itemPath);
 		assert item == null : "Unexpected item "+item+" in "+object;
 	}
 	
-	public static void assertNotEmpty(Item<?> item) {
+	public static void assertNotEmpty(Item<?,?> item) {
 		assert !item.isEmpty() : "Item "+item+" is empty";
 	}
 	
@@ -178,7 +180,7 @@ public class PrismAsserts {
 			@Override
 			public void visit(Visitable visitable) {
 				if (visitable != null && visitable instanceof Item) {
-					assertNotEmpty((Item<?>)visitable);
+					assertNotEmpty((Item<?,?>)visitable);
 				}
 			}
 		};
@@ -290,14 +292,14 @@ public class PrismAsserts {
 	
 	public static void assertParentConsistency(PrismContainerValue<?> pval) {
 		if (pval.getItems() != null) {
-			for (Item<?> item : pval.getItems()) {
+			for (Item<?,?> item : pval.getItems()) {
 				assert item.getParent() == pval : "Wrong parent in " + item;
 				assertParentConsistency(item);
 			}
 		}
 	}
 
-	public static void assertParentConsistency(Item<?> item) {
+	public static void assertParentConsistency(Item<?,?> item) {
 		for (PrismValue pval: item.getValues()) {
 			assert pval.getParent() == item : "Wrong parent of "+pval+" in "+PrettyPrinter.prettyPrint(item.getElementName());
 			if (pval instanceof PrismContainerValue) {
@@ -470,27 +472,27 @@ public class PrismAsserts {
 		assert false : message+": Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in collection "+deltas;
 	}
 		
-	public static <V extends PrismValue> void assertNoReplace(ItemDelta<V> delta) {
+	public static <IV extends PrismValue,ID extends ItemDefinition> void assertNoReplace(ItemDelta<IV,ID> delta) {
 		assertNoReplace(null, delta);
 	}
 	
-	public static <V extends PrismValue> void assertNoReplace(String message, ItemDelta<V> delta) {
+	public static <IV extends PrismValue,ID extends ItemDefinition> void assertNoReplace(String message, ItemDelta<IV,ID> delta) {
 		assertNoSet(message, "replace", delta.getValuesToReplace());
 	}
 	
-	public static <V extends PrismValue> void assertNoAdd(ItemDelta<V> delta) {
+	public static <IV extends PrismValue,ID extends ItemDefinition> void assertNoAdd(ItemDelta<IV,ID> delta) {
 		assertNoAdd(null, delta);
 	}
 
-	public static <V extends PrismValue> void assertNoAdd(String message, ItemDelta<V> delta) {
+	public static <IV extends PrismValue,ID extends ItemDefinition> void assertNoAdd(String message, ItemDelta<IV,ID> delta) {
 		assertNoSet(message, "add", delta.getValuesToAdd());
 	}
 	
-	public static <V extends PrismValue> void assertNoDelete(ItemDelta<V> delta) {
+	public static <IV extends PrismValue,ID extends ItemDefinition> void assertNoDelete(ItemDelta<IV,ID> delta) {
 		assertNoDelete(null, delta);
 	}
 
-	public static <V extends PrismValue> void assertNoDelete(String message, ItemDelta<V> delta) {
+	public static <IV extends PrismValue,ID extends ItemDefinition> void assertNoDelete(String message, ItemDelta<IV,ID> delta) {
 		assertNoSet(message, "delete", delta.getValuesToDelete());
 	}
 
@@ -542,22 +544,22 @@ public class PrismAsserts {
 		}
 	}
 	
-	public static <V extends PrismValue> void assertTripleNoPlus(PrismValueDeltaSetTriple<V> triple) {
+	public static void assertTripleNoPlus(DeltaSetTriple<?> triple) {
 		assert triple != null : "triple is null";
 		assertTripleNoSet("plus set", triple.getPlusSet());
 	}
 
-	public static <V extends PrismValue> void assertTripleNoZero(PrismValueDeltaSetTriple<V> triple) {
+	public static void assertTripleNoZero(DeltaSetTriple<?> triple) {
 		assert triple != null : "triple is null";
 		assertTripleNoSet("zero set", triple.getZeroSet());
 	}
 
-	public static <V extends PrismValue> void assertTripleNoMinus(PrismValueDeltaSetTriple<V> triple) {
+	public static void assertTripleNoMinus(DeltaSetTriple<?> triple) {
 		assert triple != null : "triple is null";
 		assertTripleNoSet("minus set", triple.getMinusSet());
 	}
 	
-	public static <V extends PrismValue> void assertTripleNoSet(String setName, Collection<V> set) {
+	public static void assertTripleNoSet(String setName, Collection<?> set) {
 		assert set == null || set.isEmpty() : "Expected triple "+setName+" to be empty, but it was: "+set;
 	}
 	
@@ -783,6 +785,30 @@ public class PrismAsserts {
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown element type "+element);
+		}
+	}
+	
+	public static void assertOids(Collection<? extends PrismObject<?>> objects, String... expectedOids) {
+		if ((objects == null || objects.isEmpty()) && expectedOids.length == 0) {
+			return;
+		}
+		if (objects == null) {
+			fail("Expected OIDs "+Arrays.toString(expectedOids)+", but got no object");
+		}
+		if (objects.size() != expectedOids.length) {
+			fail("Expected OIDs "+Arrays.toString(expectedOids)+", but got "+objects);
+		}
+		for (String expectedOid: expectedOids) {
+			boolean found = false;
+			for (PrismObject<?> object: objects) {
+				if (expectedOid.equals(object.getOid())) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				fail("Expected OIDs "+Arrays.toString(expectedOids)+", but got "+objects);
+			}
 		}
 	}
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,21 @@
  */
 package com.evolveum.midpoint.prism.schema;
 
+import java.util.Collection;
+
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.sun.xml.xsom.XSAnnotation;
 import com.sun.xml.xsom.XSComplexType;
@@ -44,9 +48,14 @@ public class SchemaDefinitionFactory {
 		return new ComplexTypeDefinition(typeName, prismContext);
 	}
 	
-	public PrismPropertyDefinition createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
+	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		return new PrismPropertyDefinition(elementName, typeName, prismContext);
+		return new PrismPropertyDefinition<T>(elementName, typeName, prismContext);
+	}
+	
+	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
+			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) throws SchemaException {
+		return new PrismPropertyDefinition<T>(elementName, typeName, prismContext, allowedValues, defaultValue);
 	}
 	
 	public PrismReferenceDefinition createReferenceDefinition(QName primaryElementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
@@ -54,9 +63,9 @@ public class SchemaDefinitionFactory {
 		return new PrismReferenceDefinition(primaryElementName, typeName, prismContext);
 	}
 	
-	public PrismContainerDefinition createContainerDefinition(QName elementName, ComplexTypeDefinition complexTypeDefinition,
+	public <C extends Containerable> PrismContainerDefinition<C> createContainerDefinition(QName elementName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		return new PrismContainerDefinition(elementName, complexTypeDefinition, prismContext);
+		return new PrismContainerDefinition<C>(elementName, complexTypeDefinition, prismContext);
 	}
 
 	public <T extends Objectable> PrismObjectDefinition<T> createObjectDefinition(QName elementName,
@@ -69,7 +78,7 @@ public class SchemaDefinitionFactory {
 	 * Create optional extra definition form a top-level complex type definition.
 	 * This is used e.g. to create object class definitions in midPoint
 	 */
-	public PrismContainerDefinition createExtraDefinitionFromComplexType(XSComplexType complexType,
+	public <C extends Containerable> PrismContainerDefinition<C> createExtraDefinitionFromComplexType(XSComplexType complexType,
 			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, 
 			XSAnnotation annotation) throws SchemaException {
 		// Create nothing by default

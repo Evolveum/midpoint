@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyType;
 
 /**
  * @author lazyman
+ * 
+ * DEPRECATED. This does not need to be stored in the database any more.
  */
 @JaxbType(type = ExclusionPolicyType.class)
+@Deprecated
 public enum RExclusionPolicy implements SchemaEnum<ExclusionPolicyType> {
 
     ENFORCE(ExclusionPolicyType.ENFORCE),

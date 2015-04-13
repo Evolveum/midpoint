@@ -18,29 +18,14 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
@@ -67,14 +52,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.SimpleErrorPanel;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -86,10 +64,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignablePopupContent;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.ResourcesPopup;
+import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -97,24 +72,9 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
+import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -170,11 +130,14 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_SAVE = DOT_CLASS + "save";
     private static final String OPERATION_SEARCH_RESOURCE = DOT_CLASS + "searchAccountResource";
+    private static final String OPERATION_RECOMPUTE_ASSIGNMENTS = DOT_CLASS + "recomputeAssignments";
 
     private static final String MODAL_ID_RESOURCE = "resourcePopup";
     private static final String MODAL_ID_ASSIGNABLE = "assignablePopup";
+    private static final String MODAL_ID_ASSIGNABLE_ORG = "assignableOrgPopup";
     private static final String MODAL_ID_CONFIRM_DELETE_ACCOUNT = "confirmDeleteAccountPopup";
     private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
+    private static final String MODAL_ID_ASSIGNMENTS_PREVIEW = "assignmentsPreviewPopup";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
@@ -191,6 +154,8 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private static final String ID_ASSIGNMENT_MENU = "assignmentMenu";
     private static final String ID_ACCOUNT_CHECK_ALL = "accountCheckAll";
     private static final String ID_ASSIGNMENT_CHECK_ALL = "assignmentCheckAll";
+
+    private  static final String ID_BUTTON_RECOMPUTE_ASSIGNMENTS = "recomputeAssignments";
 
     private static final String ID_SUMMARY_PANEL = "summaryPanel";
     private static final String ID_SUMMARY_NAME = "summaryName";
@@ -353,7 +318,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         initSummaryInfo(mainForm);
 
         PrismObjectPanel userForm = new PrismObjectPanel(ID_USER_FORM, userModel, new PackageResourceReference(
-                ImgResources.class, ImgResources.USER_PRISM), mainForm) {
+                ImgResources.class, ImgResources.USER_PRISM), mainForm, this) {
 
             @Override
             protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
@@ -420,10 +385,10 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
             }
         };
 
-        summaryContainer.add(new Label(ID_SUMMARY_NAME, new PrismPropertyModel<UserType>(summaryUser, UserType.F_NAME)));
-        summaryContainer.add(new Label(ID_SUMMARY_FULL_NAME, new PrismPropertyModel<UserType>(summaryUser, UserType.F_FULL_NAME)));
-        summaryContainer.add(new Label(ID_SUMMARY_GIVEN_NAME, new PrismPropertyModel<UserType>(summaryUser, UserType.F_GIVEN_NAME)));
-        summaryContainer.add(new Label(ID_SUMMARY_FAMILY_NAME, new PrismPropertyModel<UserType>(summaryUser, UserType.F_FAMILY_NAME)));
+        summaryContainer.add(new Label(ID_SUMMARY_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_NAME)));
+        summaryContainer.add(new Label(ID_SUMMARY_FULL_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_FULL_NAME)));
+        summaryContainer.add(new Label(ID_SUMMARY_GIVEN_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_GIVEN_NAME)));
+        summaryContainer.add(new Label(ID_SUMMARY_FAMILY_NAME, new PrismPropertyModel<>(summaryUser, UserType.F_FAMILY_NAME)));
 
         Image img = new Image(ID_SUMMARY_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
 
@@ -522,7 +487,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                showAssignablePopup(target, OrgType.class);
+                showAssignableOrgPopup(target);
             }
         });
         items.add(item);
@@ -613,7 +578,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                             ImgResources.HDD_PRISM);
 
                     panel = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
-                            item.getModel(), "object"), packageRef, (Form) PageUser.this.get(ID_MAIN_FORM)) {
+                            item.getModel(), "object"), packageRef, (Form) PageUser.this.get(ID_MAIN_FORM), PageUser.this) {
 
                         @Override
                         protected Component createHeader(String id, IModel<ObjectWrapper> model) {
@@ -951,6 +916,21 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         progressReporter.registerAbortButton(abortButton);
         mainForm.add(abortButton);
 
+        AjaxSubmitButton recomputeAssignments = new AjaxSubmitButton(ID_BUTTON_RECOMPUTE_ASSIGNMENTS,
+                createStringResource("pageUser.button.recompute.assignments")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+                recomputeAssignmentsPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(recomputeAssignments);
+
         AjaxButton back = new AjaxButton("back", createStringResource("pageUser.button.back")) {
 
             @Override
@@ -960,14 +940,23 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         };
         mainForm.add(back);
 
-        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
+        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true, false));
     }
 
     private void showAssignablePopup(AjaxRequestTarget target, Class<? extends ObjectType> type) {
         ModalWindow modal = (ModalWindow) get(MODAL_ID_ASSIGNABLE);
-        AssignablePopupContent content = (AssignablePopupContent) modal.get(modal.getContentId());
+        AssignablePopupContent content =  (AssignableRolePopupContent) modal.get(modal.getContentId());
         content.setType(type);
         showModalWindow(MODAL_ID_ASSIGNABLE, target);
+        target.add(getFeedbackPanel());
+    }
+    
+    private void showAssignableOrgPopup(AjaxRequestTarget target) {
+        ModalWindow modal = (ModalWindow) get(MODAL_ID_ASSIGNABLE_ORG);
+        AssignablePopupContent content =  (AssignableOrgPopupContent) modal.get(modal.getContentId());
+        content.setType(OrgType.class);
+        showModalWindow(MODAL_ID_ASSIGNABLE_ORG, target);
+        target.add(getFeedbackPanel());
     }
 
     private void initResourceModal() {
@@ -999,14 +988,43 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private void initAssignableModal() {
         ModalWindow window = createModalWindow(MODAL_ID_ASSIGNABLE,
                 createStringResource("pageUser.title.selectAssignable"), 1100, 560);
-        window.setContent(new AssignablePopupContent(window.getContentId()) {
+        window.setContent(new AssignableRolePopupContent(window.getContentId()) {
+
+            @Override
+            protected void handlePartialError(OperationResult result) {
+                showResult(result);
+            }
 
             @Override
             protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
-                addSelectedAssignablePerformed(target, selected);
+                addSelectedAssignablePerformed(target, selected, MODAL_ID_ASSIGNABLE);
+            }
+
+            @Override
+            protected PrismObject<UserType> getUserDefinition() {
+                return userModel.getObject().getObject();
             }
         });
         add(window);
+        
+        window = createModalWindow(MODAL_ID_ASSIGNABLE_ORG,
+                createStringResource("pageUser.title.selectAssignable"), 1150, 600);
+        window.setContent(new AssignableOrgPopupContent(window.getContentId()) {
+
+            @Override
+            protected void handlePartialError(OperationResult result) {
+                showResult(result);
+            }
+
+            @Override
+            protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
+                addSelectedAssignablePerformed(target, selected, MODAL_ID_ASSIGNABLE_ORG);
+            }
+        });
+        add(window);
+
+        ModalWindow assignmentPreviewPopup = new AssignmentPreviewDialog(MODAL_ID_ASSIGNMENTS_PREVIEW, null);
+        add(assignmentPreviewPopup);
     }
 
     private boolean isEditingUser() {
@@ -1039,7 +1057,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     }
 
     private List<ObjectDelta<? extends ObjectType>> modifyAccounts(OperationResult result) {
-        List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
         List<UserAccountDto> accounts = accountsModel.getObject();
         OperationResult subResult = null;
@@ -1239,6 +1257,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
         for (AssignmentEditorDto assDto : assignments) {
             PrismContainerValue newValue = assDto.getNewValue();
+
             switch (assDto.getStatus()) {
                 case ADD:
                     newValue.applyDefinition(assignmentDef, false);
@@ -1330,6 +1349,96 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         handleAssignmentDeltas(userDelta, def);
     }
 
+    private void recomputeAssignmentsPerformed(AjaxRequestTarget target){
+        LOGGER.debug("Recompute user assignments");
+        Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
+        OperationResult result = new OperationResult(OPERATION_RECOMPUTE_ASSIGNMENTS);
+        ObjectDelta<UserType> delta;
+        List<ObjectType> assignments = new ArrayList<>();
+
+        try {
+            reviveModels();
+
+            ObjectWrapper userWrapper = userModel.getObject();
+            delta = userWrapper.getObjectDelta();
+            if (userWrapper.getOldDelta() != null) {
+                delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
+            }
+
+            switch (userWrapper.getStatus()) {
+                case ADDING:
+                    PrismObject<UserType> user = delta.getObjectToAdd();
+                    prepareUserForAdd(user);
+                    getPrismContext().adopt(user, UserType.class);
+
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Delta before add user:\n{}", new Object[]{delta.debugDump(3)});
+                    }
+
+                    if (!delta.isEmpty()) {
+                        delta.revive(getPrismContext());
+                    } else {
+                        result.recordSuccess();
+                    }
+
+                    break;
+                case MODIFYING:
+                    prepareUserDeltaForModify(delta);
+
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Delta before modify user:\n{}", new Object[]{delta.debugDump(3)});
+                    }
+
+                    List<ObjectDelta<? extends ObjectType>> accountDeltas = modifyAccounts(result);
+                    Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+
+                    if (!delta.isEmpty()) {
+                        delta.revive(getPrismContext());
+                        deltas.add(delta);
+                    }
+
+                    for (ObjectDelta accDelta : accountDeltas) {
+                        if (!accDelta.isEmpty()) {
+                             accDelta.revive(getPrismContext());
+                            deltas.add(accDelta);
+                        }
+                    }
+
+                    break;
+                default:
+                    error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
+            }
+
+            ModelContext<UserType> modelContext = getModelInteractionService().previewChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+
+            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+            Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getZeroSet();
+
+            if(evaluatedAssignments.isEmpty()){
+                info(getString("pageUser.message.noAssignmentsAvailable"));
+                target.add(getFeedbackPanel());
+                return;
+            }
+
+            EvaluatedAssignment<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+            DeltaSetTriple<? extends EvaluatedAbstractRole> rolesTriple = evaluatedAssignment.getRoles();
+            Collection<? extends EvaluatedAbstractRole> evaluatedRoles = rolesTriple.getZeroSet();
+
+            for(EvaluatedAbstractRole role: evaluatedRoles){
+                assignments.add(role.getRole().asObjectable());
+            }
+
+            AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) get(MODAL_ID_ASSIGNMENTS_PREVIEW);
+            dialog.updateData(target, assignments);
+            dialog.show(target);
+
+        } catch (Exception e) {
+            LOGGER.error("Could not create assignments preview.", e);
+            error("Could not create assignments preview. Reason: " + e);
+            target.add(getFeedbackPanel());
+        }
+    }
+
     private void savePerformed(AjaxRequestTarget target) {
         LOGGER.debug("Save user.");
         OperationResult result = new OperationResult(OPERATION_SAVE);
@@ -1376,6 +1485,18 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
 
                     if (!delta.isEmpty()) {
                         delta.revive(getPrismContext());
+
+                        Collection<SimpleValidationError> validationErrors = performCustomValidation(user, WebMiscUtil.createDeltaCollection(delta));
+                        if(validationErrors != null && !validationErrors.isEmpty()){
+                            for(SimpleValidationError error: validationErrors){
+                                LOGGER.error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+                                error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+                            }
+
+                            target.add(getFeedbackPanel());
+                            return;
+                        }
+
                         progressReporter.executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result, target);
                     } else {
                         result.recordSuccess();
@@ -1396,7 +1517,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                     }
 
                     List<ObjectDelta<? extends ObjectType>> accountDeltas = modifyAccounts(result);
-                    Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+                    Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
                     if (!delta.isEmpty()) {
                         delta.revive(getPrismContext());
@@ -1414,8 +1535,31 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
                         ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class,
                                 userWrapper.getObject().getOid(), getPrismContext());
                         deltas.add(emptyDelta);
+
+                        Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
+                        if(validationErrors != null && !validationErrors.isEmpty()){
+                            for(SimpleValidationError error: validationErrors){
+                                LOGGER.error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+                                error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+                            }
+
+                            target.add(getFeedbackPanel());
+                            return;
+                        }
+
                         progressReporter.executeChanges(deltas, options, task, result, target);
                     } else if (!deltas.isEmpty()) {
+                        Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
+                        if(validationErrors != null && !validationErrors.isEmpty()){
+                            for(SimpleValidationError error: validationErrors){
+                                LOGGER.error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+                                error("Validation error, attribute: '" + error.printAttribute() + "', message: '" + error.getMessage() + "'.");
+                            }
+
+                            target.add(getFeedbackPanel());
+                            return;
+                        }
+
                         progressReporter.executeChanges(deltas, options, task, result, target);
                     } else {
                         result.recordSuccess();
@@ -1440,6 +1584,44 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         if (!result.isInProgress()) {
             finishProcessing(target, result);
         }
+    }
+
+    private Collection<SimpleValidationError> performCustomValidation(PrismObject<UserType> user, Collection<ObjectDelta<? extends ObjectType>> deltas) throws SchemaException {
+        Collection<SimpleValidationError> errors = null;
+
+        if(user == null){
+            if(userModel != null && userModel.getObject() != null && userModel.getObject().getObject() != null){
+                user = userModel.getObject().getObject();
+
+                for (ObjectDelta delta: deltas) {
+                    if (UserType.class.isAssignableFrom(delta.getObjectTypeClass())) {  // because among deltas there can be also ShadowType deltas
+                        delta.applyTo(user);
+                    }
+                }
+            }
+        }
+
+        if(user != null && user.asObjectable() != null){
+            for(AssignmentType assignment: user.asObjectable().getAssignment()){
+                for(MidpointFormValidator validator: getFormValidatorRegistry().getValidators()){
+                    if(errors == null){
+                        errors = validator.validateAssignment(assignment);
+                    } else {
+                        errors.addAll(validator.validateAssignment(assignment));
+                    }
+                }
+            }
+        }
+
+        for(MidpointFormValidator validator: getFormValidatorRegistry().getValidators()){
+            if(errors == null){
+                errors = validator.validateObject(user, deltas);
+            } else {
+                errors.addAll(validator.validateObject(user, deltas));
+            }
+        }
+
+        return errors;
     }
 
     @Override
@@ -1697,8 +1879,8 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         dto.setShowEmpty(true);
     }
 
-    private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignables) {
-        ModalWindow window = (ModalWindow) get(MODAL_ID_ASSIGNABLE);
+    private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignables, String popupId) {
+        ModalWindow window = (ModalWindow) get(popupId);
         window.close(target);
 
         if (newAssignables.isEmpty()) {
@@ -1738,6 +1920,9 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_ASSIGNMENTS)));
     }
 
+ 
+    
+    
     private void updateAccountActivation(AjaxRequestTarget target, List<UserAccountDto> accounts, boolean enabled) {
         if (!isAnyAccountSelected(target)) {
             return;
@@ -1793,6 +1978,7 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
     private void showModalWindow(String id, AjaxRequestTarget target) {
         ModalWindow window = (ModalWindow) get(id);
         window.show(target);
+        target.add(getFeedbackPanel());
     }
 
     private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {

@@ -192,8 +192,8 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		}
 				
 		// Administrator
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
 		login(userAdministrator);
 		
 		// User Templates

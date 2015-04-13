@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
 
@@ -436,6 +437,18 @@
 				</inbound>
 			</attribute>
 			
+			<association>
+				<ref>ri:ldapGroups</ref>
+				<displayName>Group Membership</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<tolerant>true</tolerant>
+				<kind>entitlement</kind>
+				<intent>group</intent>
+				<direction>objectToSubject</direction>
+				<associationAttribute>ri:uniqueMember</associationAttribute>
+				<valueAttribute>icfs:name</valueAttribute>
+				<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+			</association>
 			<protected>
                 <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
             </protected>
@@ -468,6 +481,13 @@
                 </password>
             </credentials>
 		</objectType>
+			<objectType>
+				<kind>entitlement</kind>
+				<intent>group</intent>
+				<displayName>Group</displayName>
+				<default>true</default>
+				<objectClass>ri:GroupObjectClass</objectClass>
+</objectType>
 	</schemaHandling>
 	
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
@@ -504,30 +524,37 @@
 	                <q:equal>
 	                    <q:path>c:name</q:path>
 	                    <expression>
-				<path>
-				declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
-				$account/attributes/ri:uid
-				</path>
+							<path>
+							declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+							$account/attributes/ri:uid
+							</path>
 	                    </expression>
 	                </q:equal>
 	            </correlation>
 		
 	            <reaction>
 	                <situation>linked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+	                <action>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+	                </action>
 	            </reaction>
 	            <reaction>
 	                <situation>deleted</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+	                <action>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+	                </action>
 	            </reaction>
 	
 	            <reaction>
 	                <situation>unlinked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	                <action>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+	                </action>
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
+	                <action>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
 	                </action>
 	            </reaction>
 			</objectSynchronization>

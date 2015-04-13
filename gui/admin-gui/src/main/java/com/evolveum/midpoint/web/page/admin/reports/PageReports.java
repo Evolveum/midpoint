@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
@@ -34,7 +35,12 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
+import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignablePopupContent;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignableRolePopupContent;
 import com.evolveum.midpoint.web.session.ReportsStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -42,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -53,6 +60,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -78,6 +86,8 @@ public class PageReports extends PageAdminReports {
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_SUBREPORTS = "subReportCheckbox";
+    
+    public static final String MODAL_ID_RUN_REPORT = "runReportPopup";
 
     private IModel<ReportSearchDto> searchModel;
 
@@ -125,6 +135,8 @@ public class PageReports extends PageAdminReports {
         table.setShowPaging(false);
         table.setOutputMarkupId(true);
         mainForm.add(table);
+        
+        initRunReportModal();
     }
 
     private void initSearchForm(Form<?> searchForm){
@@ -214,7 +226,7 @@ public class PageReports extends PageAdminReports {
 
             @Override
             public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> model){
-                runReportPerformed(target, model.getObject().getValue());
+                showRunReportPopup(target, model.getObject().getValue());
             }
 
             @Override
@@ -238,13 +250,18 @@ public class PageReports extends PageAdminReports {
         setResponsePage(new PageCreatedReports(params, PageReports.this));
     }
 
-    private void runReportPerformed(AjaxRequestTarget target, ReportType report){
-        LOGGER.debug("Run report performed for {}", new Object[]{report.asPrismObject()});
+//    @Override
+    protected void runReportPerformed(AjaxRequestTarget target, ReportType report, List<ReportParameterType> paramsMap){
+        
+    	ModalWindow window = (ModalWindow) get(MODAL_ID_RUN_REPORT);
+        window.close(target);
+    	LOGGER.debug("Run report performed for {}", new Object[]{report.asPrismObject()});
 
         OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
         try {
+        	
             Task task = createSimpleTask(OPERATION_RUN_REPORT);
-            getReportManager().runReport(report.asPrismObject(), task, result);
+            getReportManager().runReport(report.asPrismObject(), paramsMap, task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {
@@ -252,7 +269,7 @@ public class PageReports extends PageAdminReports {
         }
 
         showResult(result);
-        target.add(getFeedbackPanel());
+        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM)));
     }
 
     private void configurePerformed(AjaxRequestTarget target, ReportType report){
@@ -333,4 +350,32 @@ public class PageReports extends PageAdminReports {
         target.add(get(ID_SEARCH_FORM));
         target.add(panel);
     }
+    
+    private void initRunReportModal() {
+        ModalWindow window = createModalWindow(MODAL_ID_RUN_REPORT,
+                createStringResource("Run report"), 1100, 560);
+        window.setContent(new RunReportPopupPanel(window.getContentId()){
+        	
+        	@Override
+        	protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, List<ReportParameterType> params){
+        		runReportPerformed(target, reportType, params);
+        	}
+        });
+        add(window);
+ }
+    
+    private void showRunReportPopup(AjaxRequestTarget target, ReportType reportType) {
+        ModalWindow modal = (ModalWindow) get(MODAL_ID_RUN_REPORT);
+        RunReportPopupPanel content =  (RunReportPopupPanel) modal.get(modal.getContentId());
+//        ReportDto reportDto = new ReportDto()
+        content.setReportType(reportType);
+//        ModalWindow window = (ModalWindow) get(MODAL_ID_RUN_REPORT);
+        modal.show(target);
+        target.add(getFeedbackPanel());
+//        showModalWindow(MODAL_ID_RUN_REPORT, target);
+//        target.add(getFeedbackPanel());
+    }
+    
+    			
+   
 }

@@ -25,7 +25,7 @@ import java.sql.Timestamp;
 public class RAExtDateId implements Serializable {
 
     private String ownerOid;
-    private Short ownerId;
+    private Integer ownerId;
     private Timestamp value;
     private String name;
 
@@ -37,11 +37,11 @@ public class RAExtDateId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public Short getOwnerId() {
+    public Integer getOwnerId() {
         return ownerId;
     }
 
-    public void setOwnerId(Short ownerId) {
+    public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
     }
 

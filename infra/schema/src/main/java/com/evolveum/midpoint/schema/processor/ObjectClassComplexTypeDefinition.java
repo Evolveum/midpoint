@@ -133,11 +133,11 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public ResourceAttributeDefinition getDescriptionAttribute() {
+	public ResourceAttributeDefinition<?> getDescriptionAttribute() {
 		return descriptionAttribute;
 	}
 
-	public void setDescriptionAttribute(ResourceAttributeDefinition descriptionAttribute) {
+	public void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute) {
 		this.descriptionAttribute = descriptionAttribute;
 	}
 	
@@ -155,11 +155,11 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	 * @return resource attribute definition that should be used as a "technical" name
 	 * 					for the account.
 	 */
-	public ResourceAttributeDefinition getNamingAttribute() {
+	public ResourceAttributeDefinition<?> getNamingAttribute() {
 		return namingAttribute;
 	}
 
-	public void setNamingAttribute(ResourceAttributeDefinition namingAttribute) {
+	public void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute) {
 		this.namingAttribute = namingAttribute;
 	}
 	
@@ -251,11 +251,11 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	 *             if there is more than one display name attribute or the
 	 *             definition of the referenced attribute does not exist.
 	 */
-	public ResourceAttributeDefinition getDisplayNameAttribute() {
+	public ResourceAttributeDefinition<?> getDisplayNameAttribute() {
 		return displayNameAttribute;
 	}
 
-	public void setDisplayNameAttribute(ResourceAttributeDefinition displayName) {
+	public void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName) {
 		this.displayNameAttribute = displayName;
 	}
 	
@@ -278,28 +278,28 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
      * @param name property definition name
      * @return found property definition or null
      */
-    public ResourceAttributeDefinition findAttributeDefinition(QName name) {
+    public <X> ResourceAttributeDefinition<X> findAttributeDefinition(QName name) {
         return findItemDefinition(name, ResourceAttributeDefinition.class);
     }
     
-    public ResourceAttributeDefinition findAttributeDefinition(String name) {
+    public <X> ResourceAttributeDefinition<X> findAttributeDefinition(String name) {
     	QName qname = new QName(getTypeName().getNamespaceURI(), name);
         return findAttributeDefinition(qname);
     }
     
-	public ResourceAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
+	public <X> ResourceAttributeDefinition<X> createAttributeDefinition(QName name, QName typeName) {
 		ResourceAttributeDefinition propDef = new ResourceAttributeDefinition(name, typeName, prismContext);
 		addDefinition(propDef);
 		return propDef;
 	}
 	
-	public ResourceAttributeDefinition createAttributeDefinition(String localName, QName typeName) {
+	public <X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, QName typeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		return createAttributeDefinition(name,typeName);
 	}
 
 	
-	public ResourceAttributeDefinition createAttributeDefinition(String localName, String localTypeName) {
+	public <X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, String localTypeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		QName typeName = new QName(getSchemaNamespace(),localTypeName);
 		return createAttributeDefinition(name,typeName);

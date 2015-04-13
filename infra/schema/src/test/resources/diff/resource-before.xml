@@ -182,9 +182,19 @@
 		</schema>
 		
 	<c:schemaHandling>
-        <!-- No need to schemaHandling in this case. Everything is in schema (annotations) -->
+        <objectType>
+            <objectClass>AccountObjectClass</objectClass>
+            <attribute>
+                <ref>ri:pager</ref>
+                <outbound>
+                    <source>
+                        <path>c:telephoneNumber</path>
+                    </source>
+                </outbound>
+            </attribute>
+        </objectType>
 	</c:schemaHandling>
-	
+
 	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 		<configured>
 			<cap:activation>

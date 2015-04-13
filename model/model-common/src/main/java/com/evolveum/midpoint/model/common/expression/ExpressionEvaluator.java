@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  * 
  */
-public interface ExpressionEvaluator<V extends PrismValue> {
+public interface ExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> {
 
 	PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext parameters) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException;

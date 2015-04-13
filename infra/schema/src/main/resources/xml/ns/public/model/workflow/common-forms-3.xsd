@@ -176,7 +176,7 @@
     </xsd:complexType>
     <xsd:element name="questionFormType" type="tns:QuestionFormType" substitutionGroup="c:object"/>
 
-    <xsd:complexType name="RoleApprovalFormType">
+    <xsd:complexType name="AssignmentCreationApprovalFormType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -185,19 +185,19 @@
         <xsd:complexContent>
             <xsd:extension base="tns:QuestionFormType">
                 <xsd:sequence>
-                    <xsd:element name="user" type="xsd:string">
+                    <xsd:element name="focusName" type="xsd:string">
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:displayName>User name</a:displayName>
+                                <a:displayName>Owner (focus) name</a:displayName>
                                 <a:displayOrder>100</a:displayOrder>
                                 <a:access>read</a:access>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="role" type="xsd:string">
+                    <xsd:element name="assignedObjectName" type="xsd:string">
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:displayName>Role to be approved</a:displayName>
+                                <a:displayName>Assigned object to be approved</a:displayName>
                                 <a:displayOrder>110</a:displayOrder>
                                 <a:access>read</a:access>
                             </xsd:appinfo>
@@ -233,6 +233,108 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="roleApprovalForm" type="tns:RoleApprovalFormType" substitutionGroup="c:object"/>
+    <xsd:element name="assignmentCreationApprovalFormType" type="tns:AssignmentCreationApprovalFormType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="AssignmentModificationApprovalFormType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:QuestionFormType">
+                <xsd:sequence>
+                    <xsd:element name="focusName" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Owner (focus) name</a:displayName>
+                                <a:displayOrder>100</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="assignedObjectName" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Assigned object</a:displayName>
+                                <a:displayOrder>110</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- ItemDeltaType[0..*] would be more appropriate; however, in order to display in more compact format
+                         we prefer to use single-valued object that would contain all the item deltas -->
+                    <xsd:element name="modification" type="t:ObjectDeltaType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Changes to be approved</a:displayName>
+                                <a:displayOrder>120</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requesterComment" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Requester's comment</a:displayName>
+                                <a:displayOrder>130</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="comment" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Your comment</a:displayName>
+                                <a:displayOrder>140</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="assignmentModificationApprovalFormType" type="tns:AssignmentModificationApprovalFormType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="AddObjectApprovalFormType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:QuestionFormType">
+                <xsd:sequence>
+                    <xsd:element name="objectToAdd" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Object to be added</a:displayName>
+                                <a:displayOrder>100</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requesterComment" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Requester's comment</a:displayName>
+                                <a:displayOrder>110</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="comment" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Your comment</a:displayName>
+                                <a:displayOrder>120</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="addObjectApprovalFormType" type="tns:AddObjectApprovalFormType" substitutionGroup="c:object"/>
 
 </xsd:schema>

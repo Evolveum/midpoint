@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,11 +103,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	private boolean fullShadow = false;
 	    
     /**
-     * True if the account is "legal" (assigned to the user). It may be false for accounts that are either
+     * True if the account is assigned to the user by a valid assignment. It may be false for accounts that are either
      * found to be illegal by live sync, were unassigned from user, etc.
      * If set to null the situation is not yet known. Null is a typical value when the context is constructed.
      */
     private boolean isAssigned;
+    private boolean isAssignedOld;
     
     /**
      * True if the account should be part of the synchronization. E.g. outbound expression should be applied to it.
@@ -115,7 +116,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private boolean isActive;
     
     /**
-     * True if there is a valid assignment for this projection and/or the policy allows such project to exist.
+     * True if there is a valid assignment for this projection and/or the policy allows such projection to exist.
      */
     private Boolean isLegal = null;
     private Boolean isLegalOld = null;
@@ -167,8 +168,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     
     private transient Collection<ResourceObjectTypeDependencyType> dependencies = null;
     
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> squeezedAttributes;
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> squeezedAssociations;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations;
     
     // Cached copy, to avoid constructing it over and over again
     private transient PrismObjectDefinition<ShadowType> shadowDefinition = null;
@@ -185,6 +186,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	super(ShadowType.class, lensContext);
         this.resourceShadowDiscriminator = resourceAccountType;
         this.isAssigned = false;
+        this.isAssignedOld = false;
     }
 
 	public ObjectDelta<ShadowType> getSyncDelta() {
@@ -344,6 +346,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.isAssigned = isAssigned;
     }
 
+    public boolean isAssignedOld() {
+        return isAssignedOld;
+    }
+
+    public void setAssignedOld(boolean isAssignedOld) {
+        this.isAssignedOld = isAssignedOld;
+    }
+
     public boolean isActive() {
 		return isActive;
 	}
@@ -454,20 +464,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		this.outboundConstruction = outboundConstruction;
 	}
 
-    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> getSqueezedAttributes() {
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> getSqueezedAttributes() {
 		return squeezedAttributes;
 	}
 
-	public void setSqueezedAttributes(Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> squeezedAttributes) {
+	public void setSqueezedAttributes(Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes) {
 		this.squeezedAttributes = squeezedAttributes;
 	}
 	
-	public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> getSqueezedAssociations() {
+	public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> getSqueezedAssociations() {
 		return squeezedAssociations;
 	}
 
 	public void setSqueezedAssociations(
-			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> squeezedAssociations) {
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations) {
 		this.squeezedAssociations = squeezedAssociations;
 	}
 
@@ -783,6 +793,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 //		isLegal = null;
 //		isLegalOld = null;
 		isAssigned = false;
+        isAssignedOld = false;  // ??? [med]
 		isActive = false;
 	}
 	
@@ -800,6 +811,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		wave = -1;
 		fullShadow = false;
 		isAssigned = false;
+        isAssignedOld = false;
 		isActive = false;
 		synchronizationPolicyDecision = null;
 		constructionDeltaSetTriple = null;
@@ -832,6 +844,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		clone.doReconciliation = this.doReconciliation;
 		clone.fullShadow = this.fullShadow;
 		clone.isAssigned = this.isAssigned;
+        clone.isAssignedOld = this.isAssignedOld;
 		clone.outboundConstruction = this.outboundConstruction;
 		clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
 		clone.resource = this.resource;
@@ -843,19 +856,19 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		clone.wave = this.wave;
 	}
 
-	private Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> cloneSqueezedAttributes() {
+	private Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> cloneSqueezedAttributes() {
 		if (squeezedAttributes == null) {
 			return null;
 		}
-		Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> clonedMap 
-		= new HashMap<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>>();
-		Cloner<ItemValueWithOrigin<PrismPropertyValue<?>>> cloner = new Cloner<ItemValueWithOrigin<PrismPropertyValue<?>>>() {
+		Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> clonedMap 
+		= new HashMap<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>>();
+		Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> cloner = new Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>() {
 			@Override
-			public ItemValueWithOrigin<PrismPropertyValue<?>> clone(ItemValueWithOrigin<PrismPropertyValue<?>> original) {
+			public ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> clone(ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> original) {
 				return original.clone();
 			}
 		};
-		for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> entry: squeezedAttributes.entrySet()) {
+		for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> entry: squeezedAttributes.entrySet()) {
 			clonedMap.put(entry.getKey(), entry.getValue().clone(cloner));
 		}
 		return clonedMap;
@@ -995,7 +1008,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         	sb.append(", shadow");
         }
         sb.append(", exists=").append(isExists);
-        sb.append(", assigned=").append(isAssigned);
+        sb.append(", assigned=").append(isAssignedOld).append("->").append(isAssigned);
         sb.append(", active=").append(isActive);
         sb.append(", legal=").append(isLegalOld).append("->").append(isLegal);
         sb.append(", recon=").append(doReconciliation);
@@ -1116,6 +1129,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
         lensProjectionContextType.setFullShadow(fullShadow);
         lensProjectionContextType.setIsAssigned(isAssigned);
+        lensProjectionContextType.setIsAssignedOld(isAssignedOld);
         lensProjectionContextType.setIsActive(isActive);
         lensProjectionContextType.setIsLegal(isLegal);
         lensProjectionContextType.setIsLegalOld(isLegalOld);
@@ -1147,8 +1161,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         projectionContext.wave = projectionContextType.getWave() != null ? projectionContextType.getWave() : 0;
         projectionContext.fullShadow = projectionContextType.isFullShadow() != null ? projectionContextType.isFullShadow() : false;
         projectionContext.isAssigned = projectionContextType.isIsAssigned() != null ? projectionContextType.isIsAssigned() : false;
+        projectionContext.isAssignedOld = projectionContextType.isIsAssignedOld() != null ? projectionContextType.isIsAssignedOld() : false;
         projectionContext.isActive = projectionContextType.isIsActive() != null ? projectionContextType.isIsActive() : false;
         projectionContext.isLegal = projectionContextType.isIsLegal();
+        projectionContext.isLegalOld = projectionContextType.isIsLegalOld();
         projectionContext.isExists = projectionContextType.isIsExists() != null ? projectionContextType.isIsExists() : false;
         projectionContext.synchronizationPolicyDecision = SynchronizationPolicyDecision.fromSynchronizationPolicyDecisionType(projectionContextType.getSynchronizationPolicyDecision());
         projectionContext.doReconciliation = projectionContextType.isDoReconciliation() != null ? projectionContextType.isDoReconciliation() : false;

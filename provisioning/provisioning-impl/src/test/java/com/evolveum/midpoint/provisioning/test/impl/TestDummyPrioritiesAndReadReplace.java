@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisionin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -50,6 +50,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -157,7 +158,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 		if (supportsActivation()) {
 			assertNotNull("No activation in "+accountProvisioning+" (provisioning)", activationProvisioning);
 			assertEquals("Wrong activation administrativeStatus in "+accountProvisioning+" (provisioning)", ActivationStatusType.ENABLED, activationProvisioning.getAdministrativeStatus());
-			IntegrationTestTools.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountProvisioning+" (provisioning)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
+			TestUtil.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountProvisioning+" (provisioning)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
 		} else {
 			assertNull("Activation sneaked in (provisioning)", activationProvisioning);
 		}

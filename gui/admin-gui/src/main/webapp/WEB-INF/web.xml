@@ -32,8 +32,8 @@
             classpath:ctx-provisioning.xml,
             classpath:ctx-audit.xml,
             classpath:ctx-security.xml,
-            classpath:ctx-report.xml 
             classpath:ctx-model.xml,
+            classpath:ctx-report.xml,
             classpath*:ctx-workflow.xml,
             classpath*:ctx-notifications.xml,
 <!--             classpath:ctx-camel-imports.xml, -->
@@ -43,14 +43,14 @@
         </param-value>
     </context-param>
 
-    <context-param>
+    <!--context-param>
         <param-name>log4jConfigLocation</param-name>
         <param-value>/WEB-INF/log4j.properties</param-value>
-    </context-param>
+    </context-param-->
 
-    <listener>
+    <!--listener>
         <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
-    </listener>
+    </listener-->
 
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>

@@ -24,8 +24,6 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
-import com.evolveum.midpoint.repo.sql.data.common.type.RACreateApproverRef;
-import com.evolveum.midpoint.repo.sql.data.common.type.RAModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
@@ -36,17 +34,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -74,7 +68,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     private RObject owner;
     private String ownerOid;
-    private Short id;
+    private Integer id;
 
     private RAssignmentOwner assignmentOwner;
     //extension
@@ -124,7 +118,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
-    public Short getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -165,7 +159,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return order;
     }
 
-    @Where(clause = RAssignmentReference.REFERENCE_TYPE + "=" + RACreateApproverRef.DISCRIMINATOR)
+    @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 0")
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
     @org.hibernate.annotations.ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -195,7 +189,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return modifierRef;
     }
 
-    @Where(clause = RAssignmentReference.REFERENCE_TYPE + "=" + RAModifyApproverRef.DISCRIMINATOR)
+    @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 1")
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
 //    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -233,7 +227,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         this.ownerOid = ownerOid;
     }
 
-    public void setId(Short id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -338,7 +332,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
 
         repo.setOwnerOid(parent.getOid());
-        repo.setId(RUtil.toShort(jaxb.getId()));
+        repo.setId(RUtil.toInteger(jaxb.getId()));
         repo.setOrder(jaxb.getOrder());
 
         if (jaxb.getExtension() != null) {

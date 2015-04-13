@@ -24,17 +24,17 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public interface Container extends EntityState, Serializable {
+public interface Container<T extends RObject> extends EntityState, Serializable {
 
-    RObject getOwner();
+    T getOwner();
 
     String getOwnerOid();
 
-    Short getId();
+    Integer getId();
 
-    void setOwner(RObject owner);
+    void setOwner(T owner);
 
     void setOwnerOid(String ownerOid);
 
-    void setId(Short id);
+    void setId(Integer id);
 }

@@ -27,7 +27,9 @@
         <div wicket:id="textWrapper">
             <div class="input-group input-group-sm">
                 <span class="input-group-btn">
-                    <button wicket:id="edit" class="btn btn-primary" type="button">Edit</button>
+                    <button wicket:id="edit" class="btn btn-primary" type="button">
+                        <wicket:message key="PageBase.button.edit" />
+                    </button>
                 </span>
                 <input type="text" class="form-control input-sm" wicket:id="text" />
                 <span class="text-danger" wicket:id="feedback" />

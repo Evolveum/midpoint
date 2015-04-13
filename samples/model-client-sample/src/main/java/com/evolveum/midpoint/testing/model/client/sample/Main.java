@@ -295,7 +295,7 @@ public class Main {
 		
 		if (role != null) {
 			// create user with a role assignment
-			AssignmentType roleAssignment = createRoleAssignment(role.getOid());
+			AssignmentType roleAssignment = ModelClientUtil.createRoleAssignment(role.getOid());
 			user.getAssignment().add(roleAssignment);
 		}
 		
@@ -303,60 +303,17 @@ public class Main {
 	}
 
 	private static String createUserFromSystemResource(ModelPortType modelPort, String resourcePath) throws FileNotFoundException, JAXBException, FaultMessage {
-		UserType user = unmarshallResource(resourcePath);
+		UserType user = ModelClientUtil.unmarshallResource(resourcePath);
 		
 		return createUser(modelPort, user);
 	}
 
     private static String createRoleFromSystemResource(ModelPortType modelPort, String resourcePath) throws FileNotFoundException, JAXBException, FaultMessage {
-        RoleType role = unmarshallResource(resourcePath);
+        RoleType role = ModelClientUtil.unmarshallResource(resourcePath);
 
         return createRole(modelPort, role);
     }
 	
-	private static <T> T unmarshallFile(File file) throws JAXBException, FileNotFoundException {
-		JAXBContext jc = ModelClientUtil.instantiateJaxbContext();
-		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
-		 
-		InputStream is = null;
-		JAXBElement<T> element = null;
-		try {
-			is = new FileInputStream(file);
-			element = (JAXBElement<T>) unmarshaller.unmarshal(is);
-		} finally {
-			if (is != null) {
-				IOUtils.closeQuietly(is);
-			}
-		}
-		if (element == null) {
-			return null;
-		}
-		return element.getValue();
-	}
-	
-	private static <T> T unmarshallResource(String path) throws JAXBException, FileNotFoundException {
-		JAXBContext jc = ModelClientUtil.instantiateJaxbContext();
-		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
-		 
-		InputStream is = null;
-		JAXBElement<T> element = null;
-		try {
-			is = Main.class.getClassLoader().getResourceAsStream(path);
-			if (is == null) {
-				throw new FileNotFoundException("System resource "+path+" was not found");
-			}
-			element = (JAXBElement<T>) unmarshaller.unmarshal(is);
-		} finally {
-			if (is != null) {
-				IOUtils.closeQuietly(is);
-			}
-		}
-		if (element == null) {
-			return null;
-		}
-		return element.getValue();
-	}
-
     private static String createUser(ModelPortType modelPort, UserType userType) throws FaultMessage {
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
@@ -449,7 +406,7 @@ public class Main {
 		}
         assignmentDelta.setPath(ModelClientUtil.createItemPathType("assignment"));
 		for (String roleOid: roleOids) {
-			assignmentDelta.getValue().add(createRoleAssignment(roleOid));
+			assignmentDelta.getValue().add(ModelClientUtil.createRoleAssignment(roleOid));
 		}
 
         ObjectDeltaType deltaType = new ObjectDeltaType();
@@ -458,9 +415,7 @@ public class Main {
         deltaType.setOid(userOid);
         deltaType.getItemDelta().add(assignmentDelta);
 
-        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
-        deltaListType.getDelta().add(deltaType);
-        ObjectDeltaOperationListType objectDeltaOperationList = modelPort.executeChanges(deltaListType, null);
+        ObjectDeltaOperationListType objectDeltaOperationList = modelPort.executeChanges(ModelClientUtil.createDeltaList(deltaType), null);
         for (ObjectDeltaOperationType objectDeltaOperation : objectDeltaOperationList.getDeltaOperation()) {
             if (!OperationResultStatusType.SUCCESS.equals(objectDeltaOperation.getExecutionResult().getStatus())) {
                 System.out.println("*** Operation result = " + objectDeltaOperation.getExecutionResult().getStatus() + ": " + objectDeltaOperation.getExecutionResult().getMessage());
@@ -510,7 +465,7 @@ public class Main {
         ItemDeltaType inducementAddDelta = new ItemDeltaType();
         inducementAddDelta.setModificationType(ModificationTypeType.ADD);
         inducementAddDelta.setPath(ModelClientUtil.createItemPathType("inducement"));
-        inducementAddDelta.getValue().add(createRoleAssignment(newInducementOid));
+        inducementAddDelta.getValue().add(ModelClientUtil.createRoleAssignment(newInducementOid));
 
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(RoleType.class));
@@ -528,15 +483,6 @@ public class Main {
             }
         }
     }
-
-	private static AssignmentType createRoleAssignment(String roleOid) {
-		AssignmentType roleAssignment = new AssignmentType();
-		ObjectReferenceType roleRef = new ObjectReferenceType();
-		roleRef.setOid(roleOid);
-		roleRef.setType(ModelClientUtil.getTypeQName(RoleType.class));
-		roleAssignment.setTargetRef(roleRef);
-		return roleAssignment;
-	}
 
 	private static UserType searchUserByName(ModelPortType modelPort, String username) throws SAXException, IOException, FaultMessage, JAXBException {
 		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML

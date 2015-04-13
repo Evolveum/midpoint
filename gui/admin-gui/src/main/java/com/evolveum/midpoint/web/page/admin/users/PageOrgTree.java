@@ -67,13 +67,13 @@ public class PageOrgTree extends PageAdminUsers {
     private static final String DOT_CLASS = PageOrgTree.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
 
-    private static final String ID_TABS = "tabs";
+    private String ID_TABS = "tabs";
 
 
     public PageOrgTree() {
         initLayout();
     }
-
+    
     private void initLayout() {
         final IModel<List<ITab>> tabModel = new LoadableModel<List<ITab>>(false) {
 

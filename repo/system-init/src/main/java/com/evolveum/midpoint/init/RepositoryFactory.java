@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,10 +111,17 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
     public synchronized RepositoryService getRepositoryService() {
         if (repositoryService == null) {
             try {
+            	LOGGER.debug("Creating repository service using factory {}", factory);
                 repositoryService = factory.getRepositoryService();
             } catch (RepositoryServiceFactoryException ex) {
-                LoggingUtils.logException(LOGGER, "Failed to get repository service from factory", ex);
-                throw new SystemException("Failed to get repository service from factory", ex);
+                LoggingUtils.logException(LOGGER, "Failed to get repository service from factory " + factory, ex);
+                throw new SystemException("Failed to get repository service from factory " + factory, ex);
+            } catch (RuntimeException ex) {
+            	LoggingUtils.logException(LOGGER, "Failed to get repository service from factory " + factory, ex);
+                throw new SystemException("Failed to get repository service from factory " + factory, ex);
+            } catch (Error ex) {
+            	LoggingUtils.logException(LOGGER, "Failed to get repository service from factory " + factory, ex);
+                throw ex;
             }
         }
         return repositoryService;

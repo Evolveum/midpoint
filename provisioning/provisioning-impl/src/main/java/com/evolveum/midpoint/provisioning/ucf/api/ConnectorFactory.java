@@ -21,7 +21,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import java.util.Set;
 
@@ -91,4 +90,10 @@ public interface ConnectorFactory {
 	 */
 	public void selfTest(OperationResult parentTestResult);
 
+    /**
+     * Return a version of the framework.
+     * TODO reconsider when there will be more than one framework
+     * @return
+     */
+    String getFrameworkVersion();
 }

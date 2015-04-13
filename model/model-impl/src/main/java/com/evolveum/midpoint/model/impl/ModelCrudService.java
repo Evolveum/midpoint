@@ -495,7 +495,7 @@ public class ModelCrudService {
 	}
 
 	public PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException {
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
 		return modelController.findShadowOwner(accountOid, task, parentResult);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
 import com.evolveum.midpoint.prism.schema.SchemaToDomProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.sun.xml.xsom.XSAnnotation;
@@ -210,7 +212,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 	}
 
 	@Override
-	public PrismContainerDefinition createExtraDefinitionFromComplexType(XSComplexType complexType,
+	public <C extends Containerable> PrismContainerDefinition<C> createExtraDefinitionFromComplexType(XSComplexType complexType,
 			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation) throws SchemaException {		
 //		if (complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
 //			return createResourceAttributeContainerDefinition(complexType, (ObjectClassComplexTypeDefinition)complexTypeDefinition, 
@@ -230,7 +232,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 	}
 
 	@Override
-	public PrismPropertyDefinition createPropertyDefinition(QName elementName, QName typeName,
+	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName,
 			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation,
 			XSParticle elementParticle) throws SchemaException {
 		if (complexTypeDefinition != null && complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
@@ -238,6 +240,17 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		}
 
 		return super.createPropertyDefinition(elementName, typeName, complexTypeDefinition, prismContext, annotation, elementParticle);
+	}
+	
+	@Override
+	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName,
+			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation,
+			XSParticle elementParticle, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) throws SchemaException {
+		if (complexTypeDefinition != null && complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
+			return createResourceAttributeDefinition(elementName, typeName, prismContext, annotation);
+		}
+
+		return super.createPropertyDefinition(elementName, typeName, complexTypeDefinition, prismContext, annotation, elementParticle, allowedValues, defaultValue);
 	}
 				
 	private PrismPropertyDefinition createResourceAttributeDefinition(QName elementName, QName typeName,

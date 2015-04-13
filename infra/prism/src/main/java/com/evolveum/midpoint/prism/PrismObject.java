@@ -49,23 +49,23 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
-public class PrismObject<T extends Objectable> extends PrismContainer<T> {
+public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 
     private static final long serialVersionUID = 7321429132391159949L;
 
     protected String oid;
 	protected String version;
-	private T objectable = null;
+	private O objectable = null;
 
-	public PrismObject(QName name, Class<T> compileTimeClass) {
+	public PrismObject(QName name, Class<O> compileTimeClass) {
 		super(name, compileTimeClass);
 	}
 
-    public PrismObject(QName name, Class<T> compileTimeClass, PrismContext prismContext) {
+    public PrismObject(QName name, Class<O> compileTimeClass, PrismContext prismContext) {
         super(name, compileTimeClass, prismContext);
     }
 
-    public PrismObject(QName name, PrismObjectDefinition<T> definition, PrismContext prismContext) {
+    public PrismObject(QName name, PrismObjectDefinition<O> definition, PrismContext prismContext) {
 		super(name, definition, prismContext);
 	}
 
@@ -93,15 +93,15 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	public PrismObjectDefinition<T> getDefinition() {
-		return (PrismObjectDefinition<T>) super.getDefinition();
+	public PrismObjectDefinition<O> getDefinition() {
+		return (PrismObjectDefinition<O>) super.getDefinition();
 	}
 
-	public T asObjectable() {
+	public O asObjectable() {
 		if (objectable != null) {
 			return objectable;
 		}
-		Class<T> clazz = getCompileTimeClass();
+		Class<O> clazz = getCompileTimeClass();
         if (clazz == null) {
             throw new SystemException("Unknown compile time class of this prism object '" + getElementName() + "'.");
         }
@@ -111,7 +111,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
         try {
             objectable = clazz.newInstance();
             objectable.setupContainer(this);
-            return (T) objectable;
+            return (O) objectable;
         } catch (SystemException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -140,7 +140,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	public PrismContainer<?> createExtension() throws SchemaException {
-		PrismObjectDefinition<T> objeDef = getDefinition();
+		PrismObjectDefinition<O> objeDef = getDefinition();
 		PrismContainerDefinition<Containerable> extensionDef = objeDef.findContainerDefinition(getExtensionContainerElementName());
 		PrismContainer<?> extensionContainer = extensionDef.instantiate();
 		getValue().add(extensionContainer);
@@ -152,7 +152,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+	public void applyDefinition(PrismContainerDefinition<O> definition) throws SchemaException {
     	if (!(definition instanceof PrismObjectDefinition)) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to object");
     	}
@@ -160,7 +160,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	public <I extends Item<?>> I findItem(ItemPath path, Class<I> type) {
+	public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(ItemPath path, Class<I> type) {
 		try {
 			return findCreateItem(path, type, null, false);
 		} catch (SchemaException e) {
@@ -170,7 +170,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	public Item<?> findItem(ItemPath path) {
+	public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(ItemPath path) {
 		try {
 			return findCreateItem(path, Item.class, null, false);
 		} catch (SchemaException e) {
@@ -180,41 +180,45 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	public <I extends Item<?>> void removeItem(ItemPath path, Class<I> itemType) {
+	public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> void removeItem(ItemPath path, Class<I> itemType) {
 		// Objects are only a single-valued containers. The path of the object itself is "empty".
 		// Fix this special behavior here.
 		getValue().removeItem(path, itemType);
 	}
 
-	public void addReplaceExisting(Item<?> item) throws SchemaException {
+	public void addReplaceExisting(Item<?,?> item) throws SchemaException {
 		getValue().addReplaceExisting(item);
 	}
 
 	@Override
-	public PrismObject<T> clone() {
-		PrismObject<T> clone = new PrismObject<T>(getElementName(), getDefinition(), prismContext);
+	public PrismObject<O> clone() {
+		PrismObject<O> clone = new PrismObject<O>(getElementName(), getDefinition(), prismContext);
 		copyValues(clone);
 		return clone;
 	}
 
-	protected void copyValues(PrismObject<T> clone) {
+	protected void copyValues(PrismObject<O> clone) {
 		super.copyValues(clone);
 		clone.oid = this.oid;
 		clone.version = this.version;
 	}
+	
+	public PrismObjectDefinition<O> deepCloneDefinition(boolean ultraDeep) {
+		return (PrismObjectDefinition<O>) super.deepCloneDefinition(ultraDeep);
+	}
 
-	public ObjectDelta<T> diff(PrismObject<T> other) {
+	public ObjectDelta<O> diff(PrismObject<O> other) {
 		return diff(other, true, false);
 	}
 
-	public ObjectDelta<T> diff(PrismObject<T> other, boolean ignoreMetadata, boolean isLiteral) {
+	public ObjectDelta<O> diff(PrismObject<O> other, boolean ignoreMetadata, boolean isLiteral) {
 		if (other == null) {
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(getCompileTimeClass(), ChangeType.DELETE, getPrismContext());
+			ObjectDelta<O> objectDelta = new ObjectDelta<O>(getCompileTimeClass(), ChangeType.DELETE, getPrismContext());
 			objectDelta.setOid(getOid());
 			return objectDelta;
 		}
 		// This must be a modify
-		ObjectDelta<T> objectDelta = new ObjectDelta<T>(getCompileTimeClass(), ChangeType.MODIFY, getPrismContext());
+		ObjectDelta<O> objectDelta = new ObjectDelta<O>(getCompileTimeClass(), ChangeType.MODIFY, getPrismContext());
 		objectDelta.setOid(getOid());
 
 		Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
@@ -224,21 +228,27 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		return objectDelta;
 	}
 
-	public ObjectDelta<T> createDelta(ChangeType changeType) {
-		ObjectDelta<T> delta = new ObjectDelta<T>(getCompileTimeClass(), changeType, getPrismContext());
+	public ObjectDelta<O> createDelta(ChangeType changeType) {
+		ObjectDelta<O> delta = new ObjectDelta<O>(getCompileTimeClass(), changeType, getPrismContext());
 		delta.setOid(getOid());
 		return delta;
 	}
 	
-	public ObjectDelta<T> createAddDelta() {
-		ObjectDelta<T> delta = createDelta(ChangeType.ADD);
+	public ObjectDelta<O> createAddDelta() {
+		ObjectDelta<O> delta = createDelta(ChangeType.ADD);
 		// TODO: clone?
 		delta.setObjectToAdd(this);
 		return delta;
 	}
+	
+	public ObjectDelta<O> createModifyDelta() {
+		ObjectDelta<O> delta = createDelta(ChangeType.MODIFY);
+		delta.setOid(this.getOid());
+		return delta;
+	}
 
-	public ObjectDelta<T> createDeleteDelta() {
-		ObjectDelta<T> delta = createDelta(ChangeType.DELETE);
+	public ObjectDelta<O> createDeleteDelta() {
+		ObjectDelta<O> delta = createDelta(ChangeType.DELETE);
 		delta.setOid(this.getOid());
 		return delta;
 	}
@@ -308,7 +318,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 				return false;
 		} else if (!oid.equals(other.oid))
 			return false;
-		ObjectDelta<T> delta = diff(other, true, false);
+		ObjectDelta<O> delta = diff(other, true, false);
 		return delta.isEmpty();
 	}
 	
@@ -375,7 +385,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		if (getVersion() != null) {
 			sb.append(", v").append(getVersion());
 		}
-		PrismObjectDefinition<T> def = getDefinition();
+		PrismObjectDefinition<O> def = getDefinition();
 		if (def != null) {
 			sb.append(", ").append(DebugUtil.formatElementName(def.getTypeName()));
 		}

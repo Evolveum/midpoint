@@ -99,7 +99,7 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
             notificationManager.processEvent(event);
         } catch (RuntimeException e) {
             result.recordFatalError("An unexpected exception occurred when preparing and sending notifications: " + e.getMessage(), e);
-            LoggingUtils.logException(LOGGER, "An unexpected exception occurred when preparing and sending notifications: " + e.getMessage(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "An unexpected exception occurred when preparing and sending notifications: " + e.getMessage(), e);
         }
 
         // todo work correctly with operationResult (in whole notification module)
@@ -113,7 +113,7 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
         try {
             notificationManager.processEvent(event);
         } catch (RuntimeException e) {
-            LoggingUtils.logException(LOGGER, "An unexpected exception occurred when preparing and sending notifications: " + e.getMessage(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "An unexpected exception occurred when preparing and sending notifications: " + e.getMessage(), e);
         }
     }
 }

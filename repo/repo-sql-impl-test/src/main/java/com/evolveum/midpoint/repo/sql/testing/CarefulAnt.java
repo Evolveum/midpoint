@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  */
 public interface CarefulAnt<O extends ObjectType> {
-	ItemDelta<?> createDelta(int iteration) throws SchemaException;
+	ItemDelta<?,?> createDelta(int iteration) throws SchemaException;
 	void assertModification(PrismObject<O> object, int iteration);
 }

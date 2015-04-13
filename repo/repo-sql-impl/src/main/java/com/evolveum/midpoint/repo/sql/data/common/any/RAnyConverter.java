@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.parser.PrismBeanInspector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -30,14 +30,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -49,15 +46,16 @@ import java.util.*;
 public class RAnyConverter {
 
     private static enum ValueType {
-        LONG, STRING, DATE, POLY_STRING;
+        BOOLEAN, LONG, STRING, DATE, POLY_STRING;
     }
 
     private static final Trace LOGGER = TraceManager.getTrace(RAnyConverter.class);
     private static final Map<QName, ValueType> TYPE_MAP = new HashMap<QName, ValueType>();
     private PrismContext prismContext;
-    private Document document;
 
     static {
+        TYPE_MAP.put(DOMUtil.XSD_BOOLEAN, ValueType.BOOLEAN);
+
         TYPE_MAP.put(DOMUtil.XSD_INT, ValueType.LONG);
         TYPE_MAP.put(DOMUtil.XSD_LONG, ValueType.LONG);
         TYPE_MAP.put(DOMUtil.XSD_SHORT, ValueType.LONG);
@@ -92,51 +90,71 @@ public class RAnyConverter {
                     continue;
                 } else if (value instanceof PrismPropertyValue) {
                     PrismPropertyValue propertyValue = (PrismPropertyValue) value;
-                    switch (getValueType(definition.getTypeName())) {
-                        case LONG:
-                            if (assignment) {
-                                RAExtLong longValue = new RAExtLong();
-                                longValue.setValue(extractValue(propertyValue, Long.class));
-                                rValue = longValue;
-                            } else {
-                                ROExtLong longValue = new ROExtLong();
-                                longValue.setValue(extractValue(propertyValue, Long.class));
-                                rValue = longValue;
-                            }
-                            break;
-                        case DATE:
-                            if (assignment) {
-                                RAExtDate dateValue = new RAExtDate();
-                                dateValue.setValue(extractValue(propertyValue, Timestamp.class));
-                                rValue = dateValue;
-                            } else {
-                                ROExtDate dateValue = new ROExtDate();
-                                dateValue.setValue(extractValue(propertyValue, Timestamp.class));
-                                rValue = dateValue;
-                            }
-                            break;
-                        case POLY_STRING:
-                            if (assignment) {
-                                rValue = new RAExtPolyString(extractValue(propertyValue, PolyString.class));
-                            } else {
-                                rValue = new ROExtPolyString(extractValue(propertyValue, PolyString.class));
-                            }
-                            break;
-                        case STRING:
-                        default:
-                            if (isIndexable(definition)) {
+                    Object realValue = propertyValue.getValue();
+                    if (realValue.getClass().isEnum()) {
+                        PrismBeanInspector inspector = new PrismBeanInspector(prismContext);
+                        String enumToString = inspector.findEnumFieldValueUncached(realValue.getClass(), realValue.toString());
+                        rValue = new ROExtString(enumToString);
+
+                    } else {
+                        //todo  omg, do something with this!!! [lazyman]
+                        switch (getValueType(definition.getTypeName())) {
+                            case BOOLEAN:
                                 if (assignment) {
-                                    RAExtString strValue = new RAExtString();
-                                    strValue.setValue(extractValue(propertyValue, String.class));
-                                    rValue = strValue;
+                                    RAExtBoolean booleanValue = new RAExtBoolean();
+                                    booleanValue.setValue(extractValue(propertyValue, Boolean.class));
+                                    rValue = booleanValue;
                                 } else {
-                                    ROExtString strValue = new ROExtString();
-                                    strValue.setValue(extractValue(propertyValue, String.class));
-                                    rValue = strValue;
+                                    ROExtBoolean booleanValue = new ROExtBoolean();
+                                    booleanValue.setValue(extractValue(propertyValue, Boolean.class));
+                                    rValue = booleanValue;
                                 }
-                            } else {
-                                continue;
-                            }
+                                break;
+                            case LONG:
+                                if (assignment) {
+                                    RAExtLong longValue = new RAExtLong();
+                                    longValue.setValue(extractValue(propertyValue, Long.class));
+                                    rValue = longValue;
+                                } else {
+                                    ROExtLong longValue = new ROExtLong();
+                                    longValue.setValue(extractValue(propertyValue, Long.class));
+                                    rValue = longValue;
+                                }
+                                break;
+                            case DATE:
+                                if (assignment) {
+                                    RAExtDate dateValue = new RAExtDate();
+                                    dateValue.setValue(extractValue(propertyValue, Timestamp.class));
+                                    rValue = dateValue;
+                                } else {
+                                    ROExtDate dateValue = new ROExtDate();
+                                    dateValue.setValue(extractValue(propertyValue, Timestamp.class));
+                                    rValue = dateValue;
+                                }
+                                break;
+                            case POLY_STRING:
+                                if (assignment) {
+                                    rValue = new RAExtPolyString(extractValue(propertyValue, PolyString.class));
+                                } else {
+                                    rValue = new ROExtPolyString(extractValue(propertyValue, PolyString.class));
+                                }
+                                break;
+                            case STRING:
+                            default:
+                                if (isIndexable(definition)) {
+                                    if (assignment) {
+                                        RAExtString strValue = new RAExtString();
+                                        strValue.setValue(extractValue(propertyValue, String.class));
+                                        rValue = strValue;
+                                    } else {
+                                        ROExtString strValue = new ROExtString();
+                                        strValue.setValue(extractValue(propertyValue, String.class));
+                                        rValue = strValue;
+                                    }
+                                } else {
+                                    continue;
+                                }
+                        }
                     }
                 } else if (value instanceof PrismReferenceValue) {
                     if (assignment) {
@@ -189,7 +207,8 @@ public class RAnyConverter {
                 || DOMUtil.XSD_DOUBLE.equals(type)
                 || DOMUtil.XSD_FLOAT.equals(type)
                 || DOMUtil.XSD_STRING.equals(type)
-                || DOMUtil.XSD_DECIMAL.equals(type);
+                || DOMUtil.XSD_DECIMAL.equals(type)
+                || DOMUtil.XSD_BOOLEAN.equals(type);
     }
 
     private RValueType getValueType(Itemable itemable) {
@@ -236,7 +255,7 @@ public class RAnyConverter {
         Validate.notNull(any, "Parent prism container value must not be null.");
 
         try {
-            Item<?> item = any.findOrCreateItem(RUtil.stringToQName(value.getName()), value.getValueType().getItemClass());
+            Item<?,?> item = any.findOrCreateItem(RUtil.stringToQName(value.getName()), value.getValueType().getItemClass());
             if (item == null) {
                 throw new DtoTranslationException("Couldn't create item for value '" + value.getName() + "'.");
             }
@@ -313,9 +332,14 @@ public class RAnyConverter {
             } else if (DOMUtil.XSD_DECIMAL.equals(type)) {
                 return new BigDecimal((String) value);
             }
-        } else if (rValue instanceof ROExtPolyString || rValue instanceof RAExtPolyString) {
+        } else if (rValue instanceof ROExtPolyString) {
             ROExtPolyString poly = (ROExtPolyString) rValue;
             return new PolyString(poly.getValue(), poly.getNorm());
+        } else if (rValue instanceof RAExtPolyString) {
+            RAExtPolyString poly = (RAExtPolyString) rValue;
+            return new PolyString(poly.getValue(), poly.getNorm());
+        } else if (rValue instanceof RAExtBoolean || rValue instanceof ROExtBoolean) {
+            return rValue.getValue();
         }
 
         LOGGER.trace("Couldn't create real value of type '{}' from '{}'",
@@ -327,11 +351,9 @@ public class RAnyConverter {
 
     /**
      * This method provides extension type (in real it's table) string for definition and value
-     * defined as parameters. This string represent field in {@link RAnyContainer} where defined
-     * extension value is or can be saved.
+     * defined as parameters.
      *
      * @param definition
-     *
      * @return One of "strings", "longs", "dates", "clobs"
      * @throws SchemaException
      */
@@ -341,6 +363,8 @@ public class RAnyConverter {
 
         ValueType valueType = getValueType(typeName);
         switch (valueType) {
+            case BOOLEAN:
+                return "booleans";
             case DATE:
                 return "dates";
             case LONG:
@@ -428,6 +452,8 @@ public class RAnyConverter {
         if (object instanceof Date) {
             object = new Timestamp(((Date) object).getTime());
         }
+
+        //if object instance of boolean, nothing to do
 
         return object;
     }

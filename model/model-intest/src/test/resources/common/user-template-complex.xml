@@ -31,6 +31,11 @@
     </item>
     
     <item>
+    	<ref>description</ref>
+    	<displayName>Comment</displayName>
+    </item>
+    
+    <item>
     	<ref>costCenter</ref>
     	<displayOrder>123</displayOrder>
     	<mapping>
@@ -58,6 +63,11 @@
 	    </mapping> 	
     </item>
     
+    <item>
+    	<ref>preferredLanguage</ref>
+    	<displayName>Language</displayName>
+    	<valueEnumerationRef oid="70000000-0000-0000-1111-000000000001"/>
+    </item>
 
     <!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
     <mapping>

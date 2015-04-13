@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
 	    	if (containerValue.isEmpty()){
 	    		return size;
 	    	}
-	    	for (Item<?> item: containerValue.getItems()) {
+	    	for (Item<?,?> item: containerValue.getItems()) {
 	    		size += item.getValues().size();
 	    	}
 	        return size;
@@ -80,7 +80,7 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
     		return containerValue.getRawElements().get(index);
     	} else {
 			if (containerValue != null) {
-				for (Item<?> item : containerValue.getItems()) {
+				for (Item<?,?> item : containerValue.getItems()) {
 					if (index < item.getValues().size()) {
 						return asElement(item.getValue(index));
 					} else {
@@ -133,7 +133,7 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
     	if (isSchemaless()) {
     		return containerValue.getRawElements().remove(index);
     	} else {
-    		for (Item<?> item: containerValue.getItems()) {
+    		for (Item<?,?> item: containerValue.getItems()) {
 	    		if (index < item.getValues().size()) {
 	    			item.remove(index);
 	    		} else {

@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2013-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.prism.json;
 
 import java.io.File;
@@ -150,7 +166,7 @@ public class PrismJasonProcessor {
 //		}
 		generator.writeStartObject();
 		
-		for (Item<?> item : val.getItems()){
+		for (Item<?,?> item : val.getItems()){
 //			generator.writeFieldName(item.getElementName().getLocalPart());
 			
 			if (item.isEmpty()){
@@ -407,7 +423,7 @@ generator.close();
 	  
 	  private <T extends Containerable> void addValuesToContainerValue(PrismContainerValue<T> containerValue,
 				Collection<? extends Item> newContainerItems) throws SchemaException {
-			for (Item<?> newItem : newContainerItems) {
+			for (Item<?,?> newItem : newContainerItems) {
 				if (newItem == null){
 					//System.out.println("new item name null");
 					continue;
@@ -423,14 +439,14 @@ generator.close();
 			}
 		}
 	  
-	  protected <T extends Containerable> Collection<? extends Item<?>> parsePrismContainerItems(JsonNode jsonObject,
+	  protected <T extends Containerable> Collection<? extends Item<?,?>> parsePrismContainerItems(JsonNode jsonObject,
 				PrismContainerDefinition<T> containerDefinition, String defaultNamespace)
 				throws SchemaException, JsonParseException, JsonMappingException, IOException {
 
 			// TODO: more robustness in handling schema violations (min/max
 			// constraints, etc.)
 
-			Collection<Item<?>> props = new HashSet<Item<?>>();
+			Collection<Item<?,?>> props = new HashSet<>();
 
 			// Iterate over all the XML elements there. Each element is
 			// an item value.
@@ -483,7 +499,7 @@ generator.close();
 //				if (item.getValue().isObject()){
 //					parsePrismContainerItems(item.getValue(), containerDefinition, defaultNamespace);
 //				} else{
-					Item<?> parsedItem = parseItem(item.getValue(), itemQName, defaultNamespace, def);
+					Item<?,?> parsedItem = parseItem(item.getValue(), itemQName, defaultNamespace, def);
 					props.add(parsedItem);
 //				}
 			}
@@ -522,19 +538,19 @@ generator.close();
 			return def;
 		}
 	  
-	  public <V extends PrismValue> Item<V> parseItem(JsonNode values, QName itemName, String defaultNamespace, ItemDefinition def)
+	  public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> parseItem(JsonNode values, QName itemName, String defaultNamespace, ItemDefinition def)
 				throws SchemaException, JsonParseException, JsonMappingException, IOException {
 			if (def == null) {
 				// Assume property in a container with runtime definition
-				return (Item<V>) parsePrismPropertyRaw(values, itemName);
+				return (Item<IV,ID>) parsePrismPropertyRaw(values, itemName);
 			}
 			if (def instanceof PrismContainerDefinition) {
-				return (Item<V>) parsePrismContainer(values, itemName, defaultNamespace, (PrismContainerDefinition<?>) def);
+				return (Item<IV,ID>) parsePrismContainer(values, itemName, defaultNamespace, (PrismContainerDefinition<?>) def);
 			} else if (def instanceof PrismPropertyDefinition) {
-				return (Item<V>) parsePrismProperty(values, itemName, (PrismPropertyDefinition) def);
+				return (Item<IV,ID>) parsePrismProperty(values, itemName, (PrismPropertyDefinition) def);
 			}
 			if (def instanceof PrismReferenceDefinition) {
-				return (Item<V>) parsePrismReference(values, itemName, (PrismReferenceDefinition) def);
+				return (Item<IV,ID>) parsePrismReference(values, itemName, (PrismReferenceDefinition) def);
 			} else {
 				throw new IllegalArgumentException("Attempt to parse unknown definition type " + def.getClass().getName());
 			}

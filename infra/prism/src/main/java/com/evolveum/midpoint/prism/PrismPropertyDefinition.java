@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 package com.evolveum.midpoint.prism;
 
-import java.util.Arrays;
+import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DisplayableValue;
 
 /**
  * Property Definition.
@@ -52,15 +53,22 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  *
  * @author Radovan Semancik
  */
-public class PrismPropertyDefinition<T> extends ItemDefinition {
+public class PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty<T>> {
 
     private static final long serialVersionUID = 7259761997904371009L;
     private QName valueType;
-    private T[] allowedValues;
+    private Collection<? extends DisplayableValue<T>> allowedValues;
     private Boolean indexed = null;
+    private T defaultValue;
 
     public PrismPropertyDefinition(QName elementName, QName typeName, PrismContext prismContext) {
         super(elementName, typeName, prismContext);
+    }
+    
+    public PrismPropertyDefinition(QName elementName, QName typeName, PrismContext prismContext, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) {
+        super(elementName, typeName, prismContext);
+        this.allowedValues = allowedValues;
+        this.defaultValue = defaultValue;
     }
 
     /**
@@ -68,10 +76,13 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
      *
      * @return Object array. May be null.
      */
-    public T[] getAllowedValues() {
+    public Collection<? extends DisplayableValue<T>> getAllowedValues() {
         return allowedValues;
     }
 
+    public T defaultValue(){
+    	return defaultValue;
+    }
     /**
      * Returns QName of the property value type.
      * <p/>
@@ -135,6 +146,8 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
 
 	protected void copyDefinitionData(PrismPropertyDefinition<T> clone) {
 		super.copyDefinitionData(clone);
+        clone.indexed = this.indexed;
+        clone.defaultValue = this.defaultValue;
 		clone.allowedValues = this.allowedValues;
 		clone.valueType = this.valueType;
 	}
@@ -146,36 +159,51 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
 			sb.append(",I");
 		}
 	}
+    
+    @Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((allowedValues == null) ? 0 : allowedValues.hashCode());
+		result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
+		result = prime * result + ((indexed == null) ? 0 : indexed.hashCode());
+		result = prime * result + ((valueType == null) ? 0 : valueType.hashCode());
+		return result;
+	}
 
 	@Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + Arrays.hashCode(allowedValues);
-        result = prime * result + ((valueType == null) ? 0 : valueType.hashCode());
-        return result;
-    }
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PrismPropertyDefinition other = (PrismPropertyDefinition) obj;
+		if (allowedValues == null) {
+			if (other.allowedValues != null)
+				return false;
+		} else if (!allowedValues.equals(other.allowedValues))
+			return false;
+		if (defaultValue == null) {
+			if (other.defaultValue != null)
+				return false;
+		} else if (!defaultValue.equals(other.defaultValue))
+			return false;
+		if (indexed == null) {
+			if (other.indexed != null)
+				return false;
+		} else if (!indexed.equals(other.indexed))
+			return false;
+		if (valueType == null) {
+			if (other.valueType != null)
+				return false;
+		} else if (!valueType.equals(other.valueType))
+			return false;
+		return true;
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        PrismPropertyDefinition other = (PrismPropertyDefinition) obj;
-        if (!Arrays.equals(allowedValues, other.allowedValues))
-            return false;
-        if (valueType == null) {
-            if (other.valueType != null)
-                return false;
-        } else if (!valueType.equals(other.valueType))
-            return false;
-        return true;
-    }
-    
-    /**
+	/**
      * Return a human readable name of this class suitable for logs.
      */
     @Override

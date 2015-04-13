@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -342,7 +343,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		if (!allow) {
 			String username = getQuotedUsername(principal);
 			LOGGER.error("User {} not authorized for operation {}", username, operationUrl);
-			SecurityViolationException e = new SecurityViolationException("User "+username+" not authorized for operation "
+			AuthorizationException e = new AuthorizationException("User "+username+" not authorized for operation "
 			+operationUrl);
 //			+":\n"+((MidPointPrincipal)principal).debugDump());
 			result.recordFatalError(e.getMessage(), e);
@@ -499,14 +500,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		for (ItemPathType itemPathType: itemPaths) {
 			ItemPath itemPath = itemPathType.getItemPath();
 			if (object != null) {
-				Item<?> item = object.findItem(itemPath);
+				Item<?,?> item = object.findItem(itemPath);
 				if (item != null && !item.isEmpty()) {
 					LOGGER.trace("  applicable object item "+itemPath);
 					return true;
 				}
 			}
 			if (delta != null) {
-				ItemDelta<PrismValue> itemDelta = delta.findItemDelta(itemPath);
+				ItemDelta<?,?> itemDelta = delta.findItemDelta(itemPath);
 				if (itemDelta != null && !itemDelta.isEmpty()) {
 					LOGGER.trace("  applicable delta item "+itemPath);
 					return true;
@@ -761,8 +762,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	@Override
-	public <O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase, 
-			Class<O> objectType, ObjectFilter origFilter) throws SchemaException {
+	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase, 
+			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		if (principal == null) {
 			throw new IllegalArgumentException("No vaild principal");
@@ -774,11 +775,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		ObjectFilter finalFilter;
 		if (phase != null) {
-			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, true, objectType, origFilter);
+			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, true, objectType, object, origFilter);
 		} else {
-			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, false, objectType, origFilter);
-			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST, false, objectType, origFilter);
-			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION, false, objectType, origFilter);
+			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, false, objectType, object, origFilter);
+			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST, 
+					false, objectType, object, origFilter);
+			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION,
+					false, objectType, object, origFilter);
 			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
 		LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", 
@@ -790,9 +793,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return finalFilter;
 	}
 	
-	private <O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String operationUrl, 
+	private <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String operationUrl, 
 			AuthorizationPhaseType phase, boolean includeNullPhase, 
-			Class<O> objectType, ObjectFilter origFilter) throws SchemaException {
+			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException {
 		Collection<Authorization> authorities = principal.getAuthorities();
 		ObjectFilter securityFilterAllow = null;
 		ObjectFilter securityFilterDeny = null;
@@ -817,9 +820,22 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						continue;
 					}
 	
-					// object
+					// object or target
 					ObjectFilter autzObjSecurityFilter = null;
-					List<OwnedObjectSpecificationType> objectSpecTypes = autz.getObject();
+					List<OwnedObjectSpecificationType> objectSpecTypes;
+					if (object == null) {
+						// object not present. Therefore we are looking for object here
+						objectSpecTypes = autz.getObject();
+					} else {
+						// object present. Therefore we are looking for target
+						objectSpecTypes = autz.getTarget();
+						
+						// .. but we need to decide whether this authorization is applicable to the object
+						if (!isApplicableItem(autz, object, null)) {
+							LOGGER.trace("  Authorization is not applicable for object {}", object);
+						}
+					}
+
 					boolean applicable = true;
 					if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
 						applicable = false;
@@ -829,7 +845,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							SearchFilterType specFilterType = objectSpecType.getFilter();
 							ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
 							QName specTypeQName = objectSpecType.getType();
-							PrismObjectDefinition<O> objectDefinition = null;
+							PrismObjectDefinition<T> objectDefinition = null;
 							
 							// Type
 							if (specTypeQName != null) {
@@ -847,7 +863,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									// We need to use type filter.
 									objSpecTypeFilter = TypeFilter.createType(specTypeQName, null);
 									// and now we have a more specific object definition to use later in filter processing
-									objectDefinition = (PrismObjectDefinition<O>) specObjectDef;
+									objectDefinition = (PrismObjectDefinition<T>) specObjectDef;
 								}
 							}
 							

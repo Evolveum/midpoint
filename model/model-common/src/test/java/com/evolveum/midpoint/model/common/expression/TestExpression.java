@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class TestExpression {
 		prismContext = PrismTestUtil.createInitializedPrismContext();
 		ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
 		AESProtector protector = ExpressionTestUtil.createInitializedProtector(prismContext);
-    	expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext);
+    	expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, null);
 	}
 
     @Test
@@ -91,7 +91,7 @@ public class TestExpression {
 
     	PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, prismContext);
-		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , TEST_NAME, result);
+		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , TEST_NAME, result);
 		
 		ExpressionVariables variables = new ExpressionVariables();
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-jack.xml"));

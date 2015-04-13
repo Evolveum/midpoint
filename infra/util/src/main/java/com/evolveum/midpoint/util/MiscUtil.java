@@ -24,6 +24,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
@@ -82,6 +83,24 @@ public class MiscUtil {
 		return resultSet;
 	}
 	
+	public static <T> boolean listEquals(List<T> a, List<T> b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (a.size() != b.size()) {
+			return false;
+		}
+		for (int i = 0; i < a.size(); i++) {
+			if (!a.get(i).equals(b.get(i))) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	public static boolean unorderedCollectionEquals(Collection a, Collection b) {
 		Comparator<?> comparator = new Comparator<Object>() {
 			@Override
@@ -102,6 +121,9 @@ public class MiscUtil {
 		if (a == null || b == null) {
 			return false;
 		}
+		if (a.size() != b.size()) {
+			return false;
+		}
 		Collection outstanding = new ArrayList(b.size());
 		outstanding.addAll(b);
 		for (Object ao: a) {
@@ -109,6 +131,50 @@ public class MiscUtil {
 			Iterator iterator = outstanding.iterator();
 			while(iterator.hasNext()) {
 				Object oo = iterator.next();
+				if (comparator.compare(ao, oo) == 0) {
+					iterator.remove();
+					found = true;
+				}
+			}
+			if (!found) {
+				return false;
+			}
+		}
+		if (!outstanding.isEmpty()) {
+			return false;
+		}
+		return true;
+	}
+	
+	public static <T> boolean unorderedArrayEquals(T[] a, T[] b) {
+		Comparator<T> comparator = new Comparator<T>() {
+			@Override
+			public int compare(T o1, T o2) {
+				return o1.equals(o2) ? 0 : 1;
+			}
+		};
+		return unorderedArrayEquals(a, b, comparator);
+	}
+	
+	/**
+	 * Only zero vs non-zero value of comparator is important. 
+	 */
+	public static <T> boolean unorderedArrayEquals(T[] a, T[] b, Comparator<T> comparator) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (a.length != b.length) {
+			return false;
+		}
+		List<T> outstanding = Arrays.asList(b);
+		for (T ao: a) {
+			boolean found = false;
+			Iterator<T> iterator = outstanding.iterator();
+			while(iterator.hasNext()) {
+				T oo = iterator.next();
 				if (comparator.compare(ao, oo) == 0) {
 					iterator.remove();
 					found = true;
@@ -391,5 +457,16 @@ public class MiscUtil {
             return null;
         }
         return htmlString.replaceAll("<[^>]*>", "");
+    }
+    
+    public static <T> Collection<T> getValuesFromDisplayableValues(Collection<? extends DisplayableValue<T>> disps) {
+    	if (disps == null) {
+    		return null;
+    	}
+    	List<T> out = new ArrayList<T>(disps.size());
+    	for (DisplayableValue<T> disp: disps) {
+    		out.add(disp.getValue());
+    	}
+    	return out;
     }
 }

@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -126,6 +127,9 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 
         schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/model/model-3.wsdl",
                 Arrays.asList(com.evolveum.midpoint.xml.ns._public.model.model_3.ObjectFactory.class.getPackage()));
+        
+//        schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/report/report-3.wsdl",
+//                Arrays.asList(com.evolveum.midpoint.xml.ns._public.report.report_3.ObjectFactory.class.getPackage()));
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/annotation-3.xsd", "ra");
 		
@@ -139,6 +143,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 				com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3.ObjectFactory.class.getPackage(), true); // declared by default
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/extension-3.xsd", "mext");
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/report/extension-3.xsd", "rext");
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/context/model-context-3.xsd", "mctx",
                 com.evolveum.midpoint.xml.ns._public.model.model_context_3.ObjectFactory.class.getPackage());
@@ -165,6 +170,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.getNamespacePrefixMapper().registerPrefix(MidPointConstants.NS_RI, MidPointConstants.PREFIX_NS_RI, false);
         schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault(MidPointConstants.PREFIX_NS_RI); // declared by default
 
+        schemaRegistry.getNamespacePrefixMapper().registerPrefix(SchemaConstants.NS_ORG, SchemaConstants.PREFIX_NS_ORG, false);
     }
 	
 	private void setupDebug() {

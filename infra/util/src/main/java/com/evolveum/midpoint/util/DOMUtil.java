@@ -166,11 +166,6 @@ public class DOMUtil {
 	
 	private static final DocumentBuilder loader;
 
-    // Whether we want to tolerate undeclared XML prefixes in QNames
-    // This is here only for backward compatibility with versions 3.0-3.1.
-    // Will be set to false starting with 3.2 (MID-2191)
-    private static boolean tolerateUndeclaredPrefixes = false;
-
 	static {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -180,14 +175,6 @@ public class DOMUtil {
 			throw new IllegalStateException("Error creating XML document " + ex.getMessage());
 		}
 	}
-
-    public static boolean isTolerateUndeclaredPrefixes() {
-        return tolerateUndeclaredPrefixes;
-    }
-
-    public static void setTolerateUndeclaredPrefixes(boolean tolerateUndeclaredPrefixes) {
-        DOMUtil.tolerateUndeclaredPrefixes = tolerateUndeclaredPrefixes;
-    }
 
     public static String serializeDOMToString(org.w3c.dom.Node node) {
 		return printDom(node).toString();
@@ -479,22 +466,16 @@ public class DOMUtil {
 			// no prefix => no namespace
 			qname = new QName(null, qnameArray[0]);
 		} else {
-			String namespace = findNamespace(domNode, qnameArray[0]);
+            String namespacePrefix = qnameArray[0];
+			String namespace = findNamespace(domNode, namespacePrefix);
             if (namespace == null) {
-                reportUndeclaredNamespacePrefix(qnameArray[0], qnameStringRepresentation);
+                QNameUtil.reportUndeclaredNamespacePrefix(namespacePrefix, qnameStringRepresentation);
+                namespacePrefix = QNameUtil.markPrefixAsUndeclared(namespacePrefix);
             }
-			qname = new QName(namespace, qnameArray[1], qnameArray[0]);
+			qname = new QName(namespace, qnameArray[1], namespacePrefix);
 		}
 		return qname;
 	}
-
-    public static void reportUndeclaredNamespacePrefix(String prefix, String context) {
-        if (tolerateUndeclaredPrefixes) {
-            LOGGER.error("Undeclared namespace prefix '" + prefix+"' in '"+context+"'.");
-        } else {
-            throw new IllegalArgumentException("Undeclared namespace prefix '"+prefix+"' in '"+context+"'");
-        }
-    }
 
 
     public static String findNamespace(Node domNode, String prefix) {
@@ -596,7 +577,11 @@ public class DOMUtil {
         if (attributeQnameValue == null) {
             attributeStringValue = "";
         } else if (XMLConstants.NULL_NS_URI.equals(attributeQnameValue.getNamespaceURI())) {
-            attributeStringValue = attributeQnameValue.getLocalPart();
+            if (QNameUtil.isPrefixUndeclared(attributeQnameValue.getPrefix())) {
+                attributeStringValue = attributeQnameValue.getPrefix() + ":" + attributeQnameValue.getLocalPart();      // to give user a chance to see and fix this
+            } else {
+                attributeStringValue = attributeQnameValue.getLocalPart();
+            }
         } else {
             String valuePrefix = lookupOrCreateNamespaceDeclaration(element, attributeQnameValue.getNamespaceURI(),
                     attributeQnameValue.getPrefix(), definitionElement, false);
@@ -623,7 +608,11 @@ public class DOMUtil {
         if (elementValue == null) {
             setElementTextContent(element, "");
         } else if (XMLConstants.NULL_NS_URI.equals(elementValue.getNamespaceURI())) {
-            setElementTextContent(element, elementValue.getLocalPart());
+            if (QNameUtil.isPrefixUndeclared(elementValue.getPrefix())) {
+                setElementTextContent(element, elementValue.getPrefix() + ":" + elementValue.getLocalPart());
+            } else {
+                setElementTextContent(element, elementValue.getLocalPart());
+            }
         } else {
             String prefix = lookupOrCreateNamespaceDeclaration(element, elementValue.getNamespaceURI(),
                     elementValue.getPrefix(), element, false);
@@ -1377,4 +1366,5 @@ public class DOMUtil {
 		}
 		return attr;
     }
+
 }

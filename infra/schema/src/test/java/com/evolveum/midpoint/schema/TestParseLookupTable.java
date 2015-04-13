@@ -4,9 +4,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -15,7 +12,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -87,25 +83,22 @@ public class TestParseLookupTable {
         assertPropertyDefinition(table, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
         assertPropertyValue(table, "description", "description of lookup table");
         assertPropertyDefinition(table, "description", DOMUtil.XSD_STRING, 0, 1);
-        PrismContainer<LookupTableTableType> tableContainer = table.findContainer(LookupTableType.F_TABLE);
-        assertEquals("wrong number of tables", 1, tableContainer.size());
-        PrismContainerValue<LookupTableTableType> tableValue = tableContainer.getValue();
-        PrismProperty rowsProperty = tableValue.findProperty(LookupTableTableType.F_ROW);
-        assertEquals("wrong number of rows", 2, rowsProperty.size());
-        assertRow((PrismPropertyValue) rowsProperty.getValue(0),
+        PrismContainer<LookupTableRowType> tableContainer = table.findContainer(LookupTableType.F_ROW);
+        assertEquals("wrong number of rows", 2, tableContainer.size());
+        assertRow(tableContainer.getValue(0),
                 "first key",
                 "first value",
                 PrismTestUtil.createPolyStringType("first label"),
                 XmlTypeConverter.createXMLGregorianCalendar("2013-05-07T10:38:21.350+02:00"));
-        assertRow((PrismPropertyValue) rowsProperty.getValue(1),
+        assertRow(tableContainer.getValue(1),
                 "2 key",
                 "2 value",
                 PrismTestUtil.createPolyStringType("second ľábeľ", "second label"),
                 XmlTypeConverter.createXMLGregorianCalendar("2013-05-07T10:40:21.350+02:00"));
     }
 
-    private void assertRow(PrismPropertyValue<LookupTableRowType> rowValue, String key, String value, PolyStringType label, XMLGregorianCalendar lastChangeTimestamp) {
-        LookupTableRowType row = rowValue.getValue();
+    private void assertRow(PrismContainerValue<LookupTableRowType> tableContainerValue, String key, String value, PolyStringType label, XMLGregorianCalendar lastChangeTimestamp) {
+        LookupTableRowType row = tableContainerValue.asContainerable();
         assertEquals("wrong key", key, row.getKey());
         assertEquals("wrong value", value, row.getValue());
         assertEquals("wrong label", label, row.getLabel());

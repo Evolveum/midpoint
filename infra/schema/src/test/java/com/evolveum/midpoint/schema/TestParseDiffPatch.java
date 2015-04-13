@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -590,6 +591,57 @@ public class TestParseDiffPatch {
         assertFalse("The delta is empty", resourceDelta.isEmpty());
         
 	}
+
+    @Test
+    public void testResourceNsFixUndeclaredPrefixes() throws SchemaException, SAXException, IOException, JAXBException {
+        System.out.println("===[ testResourceNsFixUndeclaredPrefixes ]===");
+
+        boolean orig = QNameUtil.isTolerateUndeclaredPrefixes();
+        try {
+            QNameUtil.setTolerateUndeclaredPrefixes(true);
+            PrismObject<ResourceType> resourceBroken = PrismTestUtil.parseObject(new File(TEST_DIR, "resource2-broken.xml"));
+            PrismObject<ResourceType> resourceFixed = PrismTestUtil.parseObject(new File(TEST_DIR, "resource2-fixed.xml"));
+
+            resourceBroken.checkConsistence();
+            resourceFixed.checkConsistence();
+
+            // WHEN
+            String xmlBroken = PrismTestUtil.getPrismContext().serializeObjectToString(resourceBroken, PrismContext.LANG_XML);
+            ObjectDelta<ResourceType> resourceDelta = resourceBroken.diff(resourceFixed, true, true);
+
+            // THEN
+
+            System.out.println("DELTA:");
+            System.out.println(resourceDelta.debugDump());
+
+            System.out.println("BROKEN RESOURCE:");
+            System.out.println(xmlBroken);
+            assertTrue("no __UNDECLARED__ flag in broken resource", xmlBroken.contains("__UNDECLARED__"));
+
+            resourceDelta.checkConsistence();
+            resourceDelta.assertDefinitions(true);
+            resourceBroken.checkConsistence();
+            resourceFixed.checkConsistence();
+
+            assertFalse("The delta is empty", resourceDelta.isEmpty());
+
+            PrismObject<ResourceType> resourceUpdated = resourceBroken.clone();
+            resourceDelta.applyTo(resourceUpdated);
+
+            String xmlUpdated = PrismTestUtil.getPrismContext().serializeObjectToString(resourceUpdated, PrismContext.LANG_XML);
+            System.out.println("UPDATED RESOURCE:");
+            System.out.println(xmlUpdated);
+            assertFalse("__UNDECLARED__ flag in updated resource", xmlUpdated.contains("__UNDECLARED__"));
+
+            QNameUtil.setTolerateUndeclaredPrefixes(false);
+            PrismTestUtil.getPrismContext().parseObject(xmlUpdated);        //should be without exceptions
+
+        } finally {
+            QNameUtil.setTolerateUndeclaredPrefixes(orig);
+        }
+
+
+    }
 
     /**
      * This test illustrates MID-2174.

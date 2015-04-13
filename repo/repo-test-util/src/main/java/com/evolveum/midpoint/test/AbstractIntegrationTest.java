@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -78,6 +79,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -579,7 +581,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
                                     QName objectClass, MatchingRule<String> nameMatchingRule) {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
-		List<Item<?>> attributes = attributesContainer.getValue().getItems();
+		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
 //		Collection secIdentifiers = ShadowUtil.getSecondaryIdentifiers(accountShadow);
 		if (attributes == null){
 			AssertJUnit.fail("No attributes in repo shadow");
@@ -875,6 +877,28 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		RefinedObjectClassDefinition refinedObjectClassDefinition =
 				refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClassName);
 		return refinedObjectClassDefinition.findAttributeDefinition(attributeLocalName);
+	}
+	
+	protected void assertPassword(ShadowType shadow, String expectedPassword) throws SchemaException, EncryptionException {
+		CredentialsType credentials = shadow.getCredentials();
+		assertNotNull("No credentials in "+shadow, credentials);
+		PasswordType password = credentials.getPassword();
+		assertNotNull("No password in "+shadow, password);
+		ProtectedStringType passwordValue = password.getValue();
+		assertNotNull("No password value in "+shadow, passwordValue);
+		protector.decrypt(passwordValue);
+		assertEquals("Wrong password in "+shadow, expectedPassword, passwordValue.getClearValue());
+	}
+	
+	protected void assertFilter(ObjectFilter filter, Class<? extends ObjectFilter> expectedClass) {
+		if (expectedClass == null) {
+			assertNull("Expected that filter is null, but it was "+filter, filter);
+		} else {
+			assertNotNull("Expected that filter is of class "+expectedClass.getName()+", but it was null", filter);
+			if (!(expectedClass.isAssignableFrom(filter.getClass()))) {
+				AssertJUnit.fail("Expected that filter is of class "+expectedClass.getName()+", but it was "+filter);
+			}
+		}
 	}
 
 }

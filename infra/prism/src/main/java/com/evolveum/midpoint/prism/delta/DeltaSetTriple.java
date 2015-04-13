@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -180,6 +180,18 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
     		addAllToSet(minusSet, items);
     	} else if (destination == PlusMinusZero.ZERO) {
     		addAllToSet(zeroSet, items);
+    	}
+    }
+    
+    public void addToSet(PlusMinusZero destination, T item) {
+    	if (destination == null) {
+    		return;
+    	} else if (destination == PlusMinusZero.PLUS) {
+    		addToSet(plusSet, item);
+    	} else if (destination == PlusMinusZero.MINUS) {
+    		addToSet(minusSet, item);
+    	} else if (destination == PlusMinusZero.ZERO) {
+    		addToSet(zeroSet, item);
     	}
     }
     

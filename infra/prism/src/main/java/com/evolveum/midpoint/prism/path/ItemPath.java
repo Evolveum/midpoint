@@ -59,8 +59,16 @@ public class ItemPath implements Serializable, Cloneable {
 			add(qname);
 		}
 	}
-	
-	public ItemPath(ItemPath parentPath, QName subName) {
+
+    public ItemPath(String... names) {
+        this.segments = new ArrayList<ItemPathSegment>(names.length);
+        for (String name : names) {
+            add(new QName(name));
+        }
+    }
+
+
+    public ItemPath(ItemPath parentPath, QName subName) {
 		this.segments = new ArrayList<ItemPathSegment>(parentPath.segments.size()+1);
 		segments.addAll(parentPath.segments);
 		add(subName);
@@ -305,6 +313,16 @@ public class ItemPath implements Serializable, Cloneable {
         return false;
     }
 
+    public ItemPath namedSegmentsOnly() {
+        ItemPath rv = new ItemPath();
+        for (ItemPathSegment segment : segments) {
+            if (segment instanceof NameItemPathSegment) {
+                rv.add(((NameItemPathSegment) segment).getName());
+            }
+        }
+        return rv;
+    }
+
     public enum CompareResult {
 		EQUIVALENT,
 		SUPERPATH,
@@ -406,6 +424,28 @@ public class ItemPath implements Serializable, Cloneable {
 		return null;
 	}
 	
+	public static NameItemPathSegment getFirstNameSegment(ItemPath itemPath) {
+		if (itemPath == null) {
+			return null;
+		}
+		ItemPathSegment first = itemPath.first();
+		if (first instanceof NameItemPathSegment) {
+			return (NameItemPathSegment)first;
+		}
+		if (first instanceof IdItemPathSegment) {
+			return getFirstNameSegment(itemPath.rest());
+		}
+		return null;
+	}
+	
+	public static QName getFirstName(ItemPath itemPath) {
+		NameItemPathSegment nameSegment = getFirstNameSegment(itemPath);
+		if (nameSegment == null) {
+			return null;
+		}
+		return nameSegment.getName();
+	}
+	
 	public static ItemPath pathRestStartingWithName(ItemPath path) {
     	ItemPathSegment pathSegment = path.first();
     	if (pathSegment instanceof NameItemPathSegment) {
@@ -417,6 +457,15 @@ public class ItemPath implements Serializable, Cloneable {
     	}
     }
 
+	public boolean containsName(QName name) {
+		for (ItemPathSegment segment: segments) {
+			if (segment instanceof NameItemPathSegment && ((NameItemPathSegment)segment).getName().equals(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

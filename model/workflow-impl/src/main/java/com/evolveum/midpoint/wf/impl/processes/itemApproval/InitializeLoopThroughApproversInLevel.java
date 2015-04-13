@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpRepoAccessHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -46,7 +45,6 @@ import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.apache.commons.lang.Validate;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import java.util.*;
@@ -142,8 +140,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName approverOidName = new QName(SchemaConstants.NS_C, "approverOid");
-        PrismPropertyDefinition approverOidDef = new PrismPropertyDefinition(approverOidName, DOMUtil.XSD_STRING, prismContext);
-        Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", result);
+        PrismPropertyDefinition<String> approverOidDef = new PrismPropertyDefinition(approverOidName, DOMUtil.XSD_STRING, prismContext);
+        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, "approverExpression", task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
 
@@ -165,8 +163,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
-        Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", result);
+        PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
+        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, 
         		"automatic approval expression", task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
@@ -201,7 +199,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
     private ExpressionVariables getDefaultVariables(DelegateExecution execution, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        RepositoryService repositoryService = SpringApplicationContextHolder.getRepositoryService();
+        RepositoryService repositoryService = SpringApplicationContextHolder.getCacheRepositoryService();
         MiscDataUtil miscDataUtil = SpringApplicationContextHolder.getMiscDataUtil();
 
         ExpressionVariables variables = new ExpressionVariables();

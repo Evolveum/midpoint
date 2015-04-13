@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2010-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.report.impl;
 
 
@@ -8,6 +24,8 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +47,7 @@ import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.base.JRBasePen;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.design.JRDesignBand;
 import net.sf.jasperreports.engine.design.JRDesignExpression;
 import net.sf.jasperreports.engine.design.JRDesignField;
@@ -60,10 +79,16 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -76,13 +101,21 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -119,6 +152,99 @@ public class ReportUtils {
     private static final Trace LOGGER = TraceManager
 			.getTrace(ReportUtils.class);
 
+    
+    //new
+    
+//    public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
+//    	try	 {
+//    	byte[] reportTemplate = Base64.decodeBase64(template);
+//	 	
+//	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
+//	 	JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+//	 	LOGGER.trace("load jasper design : {}", jasperDesign);
+//	 	return jasperDesign;
+//    	} catch (JRException ex){
+//    		throw new SchemaException(ex.getMessage(), ex.getCause());
+//    	}
+//    }
+//    
+//public static JasperReport loadJasperReport(ReportType reportType) throws SchemaException{
+//		
+//		if (reportType.getTemplate() == null) {
+//			throw new IllegalStateException("Could not create report. No jasper template defined.");
+//		}
+//		try	 {
+////	    	 	byte[] reportTemplate = Base64.decodeBase64(reportType.getTemplate());
+////	    	 	
+////	    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
+//	    	 	JasperDesign jasperDesign = loadJasperDesign(reportType.getTemplate());//JRXmlLoader.load(inputStreamJRXML);
+////	    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
+//			 
+//			 if (reportType.getTemplateStyle() != null){
+//				JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
+//				jasperDesign.addTemplate(templateStyle);
+//				JRDesignParameter parameter = new JRDesignParameter();
+//				parameter.setName(PARAMETER_TEMPLATE_STYLES);
+//				parameter.setValueClass(JRTemplate.class);
+//				parameter.setForPrompting(false);
+//				jasperDesign.addParameter(parameter);
+//			 } 
+//			 JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+//			 return jasperReport;
+//		 } catch (JRException ex){ 
+//			 LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
+//			 throw new SchemaException(ex.getMessage(), ex.getCause());
+//		 }
+//		 
+//		 
+//}
+
+public static List<PrismObject<? extends ObjectType>> getReportData(PrismContext prismContext, Task task, ReportFunctions reportFunctions, String script, ExpressionVariables variables, ObjectResolver objectResolver) throws ExpressionSyntaxException, ExpressionEvaluationException, ObjectNotFoundException{
+	List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
+	FunctionLibrary functionLib = ExpressionUtil.createBasicFunctionLibrary(prismContext, prismContext.getDefaultProtector());
+	FunctionLibrary midPointLib = new FunctionLibrary();
+	midPointLib.setVariableName("report");
+	midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
+//	ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, taskManager, auditService);
+	midPointLib.setGenericFunctions(reportFunctions);
+	
+	Collection<FunctionLibrary> functions = new ArrayList<>();
+	functions.add(functionLib);
+	
+	
+	functions.add(midPointLib);
+	Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext, prismContext.getDefaultProtector());
+	Object o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc", task.getResult());
+	if (o != null){
+
+		if (Collection.class.isAssignableFrom(o.getClass())) {
+			Collection resultSet = (Collection) o;
+			if (resultSet != null && !resultSet.isEmpty()){
+				if (resultSet.iterator().next() instanceof PrismObject){
+					results.addAll((Collection<? extends PrismObject<? extends ObjectType>>) o);
+				} else {
+//					return new JRBeanCollectionDataSource(resultSet);
+				}
+			}
+			
+		} else {
+			results.add((PrismObject) o);
+		}
+	}
+	
+	return results;
+
+}
+
+public static List<PrismObject<? extends ObjectType>> getReportData(ModelService model, Class type, ObjectQuery query, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException{
+	List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
+		
+		GetOperationOptions options = GetOperationOptions.createRaw();
+		options.setResolveNames(true);
+	results = model.searchObjects(type, query, SelectorOptions.createCollection(options), task, parentResult);;
+	return results;
+}
+    //end of new
     
 	public static Class<?> getClassType(QName clazz, String namespace)
     {
@@ -193,10 +319,10 @@ public class ReportUtils {
 		return parametersSchema;
 	}
 	
-    public static PrismContainer<Containerable> getParametersContainer(ReportType reportType, PrismSchema schema)
+    public static PrismContainer<ReportConfigurationType> getParametersContainer(ReportType reportType, PrismSchema schema)
 			throws SchemaException, ObjectNotFoundException {
 		
-		PrismContainer<Containerable> configuration = reportType.asPrismObject().findContainer(ReportType.F_CONFIGURATION);
+		PrismContainer<ReportConfigurationType> configuration = reportType.asPrismObject().findContainer(ReportType.F_CONFIGURATION);
 		if (configuration == null) {
 			return null;
 //			throw new SchemaException("No configuration container in " + reportType);
@@ -245,7 +371,7 @@ public class ReportUtils {
 		return configuration;
 	}
     
- public static JasperReport getJasperReport(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema) throws JRException
+ public static JasperReport getJasperReport(ReportType reportType, PrismContainer<ReportConfigurationType> parameterConfiguration, PrismSchema reportSchema) throws JRException
  {
 	 JasperDesign jasperDesign;
 	 JasperReport jasperReport;
@@ -393,7 +519,7 @@ public class ReportUtils {
 	}
 
 	
-	public static PrismProperty<?> getParameter(String parameterName, PrismContainer<Containerable> parameterConfiguration, String namespace)
+	public static PrismProperty<?> getParameter(String parameterName, PrismContainer<ReportConfigurationType> parameterConfiguration, String namespace)
 	{
 		if (parameterConfiguration == null){
 			return null;
@@ -628,7 +754,7 @@ public class ReportUtils {
 		jasperDesign.addStyle(pageFooterStyle);
 	}
 
-	private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema)
+	private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn, PrismContainer<ReportConfigurationType> parameterConfiguration, PrismSchema reportSchema)
 	{
 		JRDesignBand titleBand = createBand(height);
 		JRDesignFrame frame = createFrame(0, 0, 70, reportColumn, "Title");
@@ -749,7 +875,7 @@ public class ReportUtils {
 		return pageFooterBand;
 	}
 	
-    public static JasperDesign createJasperDesign(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema) throws JRException
+    public static JasperDesign createJasperDesign(ReportType reportType, PrismContainer<ReportConfigurationType> parameterConfiguration, PrismSchema reportSchema) throws JRException
 	{
     	
 		//JasperDesign
@@ -851,6 +977,7 @@ public class ReportUtils {
         }
     	
     	String output = EXPORT_DIR +  reportType.getName().getOrig() + " " + getDateTime();
+    	
     	switch (reportType.getExport())
         {
         	case PDF : output = output + ".pdf";

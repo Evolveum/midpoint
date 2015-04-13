@@ -926,7 +926,7 @@ public class PageTaskEdit extends PageAdminTasks {
 	}
 
     private List<ObjectDelta<? extends ObjectType>> prepareChanges(Task updatedTask) {
-        Collection<ItemDelta<?>> modifications = updatedTask.getPendingModifications();
+        Collection<? extends ItemDelta<?,?>> modifications = updatedTask.getPendingModifications();
         List<ObjectDelta<? extends ObjectType>> retval = new ArrayList<ObjectDelta<? extends ObjectType>>();
         retval.add(ObjectDelta.createModifyDelta(updatedTask.getOid(), modifications, TaskType.class, getPrismContext()));
         return retval;

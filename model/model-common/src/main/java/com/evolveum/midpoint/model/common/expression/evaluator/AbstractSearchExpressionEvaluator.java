@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -79,21 +80,21 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 /**
  * @author Radovan Semancik
  */
-public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue> 
-			extends AbstractValueTransformationExpressionEvaluator<V,SearchObjectExpressionEvaluatorType> {
+public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D extends ItemDefinition> 
+			extends AbstractValueTransformationExpressionEvaluator<V,D,SearchObjectExpressionEvaluatorType> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchExpressionEvaluator.class);
 	
 	private PrismContext prismContext;
-	private ItemDefinition outputDefinition;
+	private D outputDefinition;
 	private Protector protector;
 	private ObjectResolver objectResolver;
 	private ModelService modelService;
 
 	protected AbstractSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
-			ItemDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
-			ModelService modelService, PrismContext prismContext) {
-		super(expressionEvaluatorType);
+			D outputDefinition, Protector protector, ObjectResolver objectResolver, 
+			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
+		super(expressionEvaluatorType, securityEnforcer);
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
 		this.protector = protector;
@@ -264,7 +265,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		} else {			
 			for (PopulateItemType populateItem: populateObject.getPopulateItem()) {
 				
-				ItemDelta<PrismValue> itemDelta = evaluatePopulateExpression(populateItem, variables, params, 
+				ItemDelta<?,?> itemDelta = evaluatePopulateExpression(populateItem, variables, params, 
 						objectDefinition, contextDescription, task, result);
 				if (itemDelta != null) {
 					itemDelta.applyTo(newObject);
@@ -290,7 +291,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		return addDelta.getOid();
 	}
 
-	private <X extends PrismValue, O extends ObjectType> ItemDelta<X> evaluatePopulateExpression(PopulateItemType populateItem,
+	private <IV extends PrismValue, ID extends ItemDefinition, O extends ObjectType> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,
 			ExpressionVariables variables, ExpressionEvaluationContext params, PrismObjectDefinition<O> objectDefinition,
 			String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ExpressionType expressionType = populateItem.getExpression();
@@ -311,7 +312,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 			throw new SchemaException("No path in target definition in "+contextDescription);
 		}
 		ItemPath targetPath = itemPathType.getItemPath();
-		ItemDefinition propOutputDefinition = ExpressionUtil.resolveDefinitionPath(targetPath, variables, 
+		ID propOutputDefinition = ExpressionUtil.resolveDefinitionPath(targetPath, variables, 
 				objectDefinition, "target definition in "+contextDescription);
 		if (propOutputDefinition == null) {
 			throw new SchemaException("No target item that would conform to the path "+targetPath+" in "+contextDescription);
@@ -319,7 +320,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		
 		String expressionDesc = "expression in assignment expression in "+contextDescription;
 		ExpressionFactory expressionFactory = params.getExpressionFactory();
-		Expression<X> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, 
+		Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, 
 				expressionDesc, result);
 		ExpressionEvaluationContext expressionParams = new ExpressionEvaluationContext(null, variables, 
 				expressionDesc, task, result);
@@ -328,9 +329,9 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		expressionParams.setDefaultTargetContext(params.getDefaultTargetContext());
 		expressionParams.setSkipEvaluationMinus(true);
 		expressionParams.setSkipEvaluationPlus(false);
-		PrismValueDeltaSetTriple<X> outputTriple = expression.evaluate(expressionParams);
+		PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(expressionParams);
 		LOGGER.trace("output triple: {}", outputTriple.debugDump());
-		Collection<X> pvalues = outputTriple.getNonNegativeValues();
+		Collection<IV> pvalues = outputTriple.getNonNegativeValues();
 		
 		// Maybe not really clean but it works. TODO: refactor later
 		NameItemPathSegment first = (NameItemPathSegment)targetPath.first();
@@ -338,7 +339,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 			targetPath = targetPath.rest();
 		}
 		
-		ItemDelta<X> itemDelta = propOutputDefinition.createEmptyDelta(targetPath);
+		ItemDelta<IV,ID> itemDelta = propOutputDefinition.createEmptyDelta(targetPath);
 		itemDelta.addValuesToAdd(PrismValue.cloneCollection(pvalues));
 		
 		LOGGER.trace("Item delta:\n{}", itemDelta.debugDump());

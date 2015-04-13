@@ -5,6 +5,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.cxf.common.util.StringUtils;
 
@@ -93,6 +94,10 @@ public class PrismIdentifierGenerator {
         List<PrismContainer> containers = new ArrayList<>();
         if (ObjectType.class.isAssignableFrom(parent.getCompileTimeClass())) {
             containers.add(parent.findContainer(ObjectType.F_TRIGGER));
+        }
+
+        if (LookupTableType.class.isAssignableFrom(parent.getCompileTimeClass())) {
+            containers.add(parent.findContainer(LookupTableType.F_ROW));
         }
 
         if (FocusType.class.isAssignableFrom(parent.getCompileTimeClass())) {

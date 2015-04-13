@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -198,11 +200,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 		this.mappingEvaluationHelper = mappingEvaluationHelper;
 	}
 
-	public EvaluatedAssignment<F> evaluate(ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi, 
+	public EvaluatedAssignmentImpl<F> evaluate(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, 
 			boolean evaluateOld, ObjectType source, String sourceDescription, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignmentIdi);
-		EvaluatedAssignment<F> evalAssignment = new EvaluatedAssignment<>();
+		EvaluatedAssignmentImpl<F> evalAssignment = new EvaluatedAssignmentImpl<>();
 		evalAssignment.setAssignmentIdi(assignmentIdi);
 		AssignmentPath assignmentPath = new AssignmentPath();
 		AssignmentPathSegment assignmentPathSegment = new AssignmentPathSegment(assignmentIdi, null);
@@ -220,7 +222,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return evalAssignment;
 	}
 	
-	private void evaluateAssignment(EvaluatedAssignment<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluateAssignment(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, evalAssignment);
@@ -228,7 +230,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		LOGGER.trace("Evaluate assignment {} (eval constr: {}, mode: {})", new Object[]{
 				assignmentPath, assignmentPathSegment.isEvaluateConstructions(), mode});
 		
-		ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = assignmentPathSegment.getAssignmentIdi();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = assignmentPathSegment.getAssignmentIdi();
 		AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
 		
 		checkSchema(assignmentType, sourceDescription);
@@ -237,7 +239,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (assignmentType.getTarget() != null) {
 			target = assignmentType.getTarget().asPrismObject();
 		} else if (assignmentType.getTargetRef() != null) {
-			target = resolveTarget(assignmentType, source, sourceDescription, task, result);
+            try {
+                target = resolveTarget(assignmentType, source, sourceDescription, task, result);
+            } catch (ObjectNotFoundException ex) {
+                // Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
+                // an exception would prohibit any operations with the users that have the role, including removal of the reference.
+                // The failure is recorded in the result and we will log it. It should be enough.
+                LOGGER.error(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
+                // For OrgType references we trigger the reconciliation (see MID-2242)
+                evalAssignment.setForceRecon(true);
+            }
 		}
 		if (target != null && evalAssignment.getTarget() == null) {
 			evalAssignment.setTarget(target);
@@ -312,7 +323,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		assignmentPath.remove(assignmentPathSegment);
 	}
 
-	private void prepareConstructionEvaluation(EvaluatedAssignment<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private void prepareConstructionEvaluation(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, evaluatedAssignment);
@@ -348,7 +359,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 	
-	private void evaluateFocusMappings(EvaluatedAssignment<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluateFocusMappings(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, evaluatedAssignment);
@@ -389,24 +400,17 @@ public class AssignmentEvaluator<F extends FocusType> {
 			throw new SchemaException("Missing type in target reference in " + assignmentType + " in " + sourceDescription);
 		}
 		PrismObject<? extends ObjectType> target = null;
-		try {
-			target = repository.getObject(clazz, oid, null, result);
-			if (target == null) {
-				throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
-			}
-		} catch (ObjectNotFoundException ex) {
-			// Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
-			// an exception would prohibit any operations with the users that have the role, including removal of the reference.
-			// The failure is recorded in the result and we will log it. It should be enough.
-			LOGGER.error(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
-//			throw new ObjectNotFoundException(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
-		}
-		
+        target = repository.getObject(clazz, oid, null, result);
+        if (target == null) {
+            throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
+        }
+        // Handling ObjectNotFoundException - we just pass it to the caller
+
 		return target;
 	}
 
 
-	private void evaluateTarget(EvaluatedAssignment<F> assignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluateTarget(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, PrismObject<?> target, ObjectType source, QName relation, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
@@ -426,7 +430,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private boolean evaluateAbstractRole(EvaluatedAssignment<F> assignment, AssignmentPathSegment assignmentPathSegment, 
+	private boolean evaluateAbstractRole(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, AbstractRoleType roleType, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
@@ -451,6 +455,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		}
 		
+		EvaluatedAbstractRoleImpl evalRole = new EvaluatedAbstractRoleImpl();
+		evalRole.setRole(roleType.asPrismObject());
+		assignment.addRole(evalRole, mode);
+		
 		int evaluationOrder = assignmentPath.getEvaluationOrder();
 		ObjectType orderOneObject;
 		if (evaluationOrder == 1) {
@@ -467,7 +475,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (!isApplicable(roleInducement.getFocusType(), roleType)){
 				continue;
 			}
-			ItemDeltaItem<PrismContainerValue<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
+			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
 			roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleInducement));
 			roleInducementIdi.recompute();
 			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleInducementIdi, null);
@@ -504,7 +512,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				LOGGER.trace("E{}: follow assignment {} in {}",
 					new Object[]{evaluationOrder, dumpAssignment(roleAssignment), roleType});
 			}
-			ItemDeltaItem<PrismContainerValue<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
+			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
 			roleAssignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleAssignment));
 			roleAssignmentIdi.recompute();
 			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleAssignmentIdi, null);
@@ -574,7 +582,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 	
-	private void assertSource(ObjectType source, ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi) {
+	private void assertSource(ObjectType source, ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
 		if (source == null) {
 			throw new IllegalArgumentException("Source cannot be null (while evaluating assignment "+assignmentIdi.getAnyItem()+")");
 		}
@@ -594,7 +602,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (extensionContainer.getDefinition() == null) {
 				throw new SchemaException("Extension does not have a definition in assignment "+assignmentType+" in "+sourceDescription);
 			}
-			for (Item<?> item: extensionContainer.getValue().getItems()) {
+			for (Item<?,?> item: extensionContainer.getValue().getItems()) {
 				if (item == null) {
 					throw new SchemaException("Null item in extension in assignment "+assignmentType+" in "+sourceDescription);
 				}
@@ -615,7 +623,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		} else {
 			desc = "condition in assignment in " + source;
 		}
-		Mapping<? extends PrismPropertyValue<Boolean>> mapping = mappingFactory.createMapping(conditionType,
+		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = mappingFactory.createMapping(conditionType,
 				desc);
 		
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
@@ -628,12 +636,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 
         LensUtil.addAssignmentPathVariables(mapping, assignmentPathVariables);
 
-		ItemDefinition outputDefinition = new PrismPropertyDefinition<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+        PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
 		mapping.setDefaultTargetDefinition(outputDefinition);
 
 		LensUtil.evaluateMapping(mapping, lensContext, task, result);
 		
-		return (PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>>) mapping.getOutputTriple();
+		return mapping.getOutputTriple();
 	}
 
 

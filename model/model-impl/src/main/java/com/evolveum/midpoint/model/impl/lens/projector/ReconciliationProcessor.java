@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -157,7 +159,7 @@ public class ReconciliationProcessor {
 
             RefinedObjectClassDefinition accountDefinition = accContext.getRefinedAccountDefinition();
 
-			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> squeezedAttributes = accContext
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes = accContext
 					.getSqueezedAttributes();
 			if (squeezedAttributes != null && !squeezedAttributes.isEmpty()) {
                 if (LOGGER.isTraceEnabled()) {
@@ -166,7 +168,7 @@ public class ReconciliationProcessor {
                 reconcileProjectionAttributes(accContext, squeezedAttributes, accountDefinition);
             }
 
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> squeezedAssociations = accContext.getSqueezedAssociations();
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations = accContext.getSqueezedAssociations();
             if (squeezedAssociations != null && !squeezedAssociations.isEmpty()) {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Association reconciliation processing {}", accContext.getHumanReadableName());
@@ -187,7 +189,7 @@ public class ReconciliationProcessor {
 
 	private void reconcileProjectionAttributes(
             LensProjectionContext projCtx,
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> squeezedAttributes,
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes,
             RefinedObjectClassDefinition accountDefinition) throws SchemaException {
 
 		PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
@@ -205,7 +207,7 @@ public class ReconciliationProcessor {
 						+ projCtx.getResourceShadowDiscriminator());
 			}
 
-			DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>> pvwoTriple = squeezedAttributes
+			DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> pvwoTriple = squeezedAttributes
 					.get(attrName);
 
 			if (attributeDefinition.isIgnored(LayerType.MODEL)) {
@@ -230,15 +232,15 @@ public class ReconciliationProcessor {
 				}
 			}
 
-			Collection<ItemValueWithOrigin<PrismPropertyValue<?>>> shouldBePValues = null;
+			Collection<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> shouldBePValues = null;
 			if (pvwoTriple == null) {
-				shouldBePValues = new ArrayList<ItemValueWithOrigin<PrismPropertyValue<?>>>();
+				shouldBePValues = new ArrayList<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>();
 			} else {
 				shouldBePValues = pvwoTriple.getNonNegativeValues();
 			}
 
 			boolean hasStrongShouldBePValue = false;
-			for (ItemValueWithOrigin<? extends PrismPropertyValue<?>> shouldBePValue : shouldBePValues) {
+			for (ItemValueWithOrigin<? extends PrismPropertyValue<?>,PrismPropertyDefinition<?>> shouldBePValue : shouldBePValues) {
 				if (shouldBePValue.getMapping() != null
 						&& shouldBePValue.getMapping().getStrength() == MappingStrengthType.STRONG) {
 					hasStrongShouldBePValue = true;
@@ -283,8 +285,8 @@ public class ReconciliationProcessor {
 					matchingRuleRegistry);
 
 			boolean hasValue = false;
-			for (ItemValueWithOrigin<? extends PrismPropertyValue<?>> shouldBePvwo : shouldBePValues) {
-				Mapping<?> shouldBeMapping = shouldBePvwo.getMapping();
+			for (ItemValueWithOrigin<? extends PrismPropertyValue<?>,PrismPropertyDefinition<?>> shouldBePvwo : shouldBePValues) {
+				Mapping<?,?> shouldBeMapping = shouldBePvwo.getMapping();
 				if (shouldBeMapping == null) {
 					continue;
 				}
@@ -330,7 +332,7 @@ public class ReconciliationProcessor {
 
     private void reconcileProjectionAssociations(
             LensProjectionContext projCtx,
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> squeezedAssociations,
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations,
             RefinedObjectClassDefinition accountDefinition) throws SchemaException {
 
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
@@ -347,7 +349,7 @@ public class ReconciliationProcessor {
                         + projCtx.getResourceShadowDiscriminator());
             }
 
-            DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>> cvwoTriple = squeezedAssociations.get(assocName);
+            DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> cvwoTriple = squeezedAssociations.get(assocName);
 
             // note: actually isIgnored is not implemented yet
             if (associationDefinition.isIgnored()) {
@@ -373,7 +375,7 @@ public class ReconciliationProcessor {
 //                }
 //            }
 
-            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>> shouldBeCValues;
+            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> shouldBeCValues;
             if (cvwoTriple == null) {
                 shouldBeCValues = new ArrayList<>();
             } else {
@@ -385,14 +387,14 @@ public class ReconciliationProcessor {
             // (and we clone them not to mess anything)
 
             PrismContainer<ShadowAssociationType> fakeParent = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(ShadowAssociationType.class).instantiate();
-            for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>> cvwo : shouldBeCValues) {
+            for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> cvwo : shouldBeCValues) {
                 PrismContainerValue<ShadowAssociationType> cvalue = cvwo.getItemValue().clone();
                 cvalue.setParent(fakeParent);
                 cvwo.setItemValue(cvalue);
             }
 
             boolean hasStrongShouldBeCValue = false;
-            for (ItemValueWithOrigin<? extends PrismContainerValue<ShadowAssociationType>> shouldBeCValue : shouldBeCValues) {
+            for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> shouldBeCValue : shouldBeCValues) {
                 if (shouldBeCValue.getMapping() != null
                         && shouldBeCValue.getMapping().getStrength() == MappingStrengthType.STRONG) {
                     hasStrongShouldBeCValue = true;
@@ -417,10 +419,10 @@ public class ReconciliationProcessor {
 				StringBuilder sb = new StringBuilder();
 				sb.append("Reconciliation\nASSOCIATION: ").append(PrettyPrinter.prettyPrint(assocName));
 				sb.append("\n  Should be:");
-				for (ItemValueWithOrigin<? extends PrismContainerValue<ShadowAssociationType>> shouldBeCValue : shouldBeCValues) {
+				for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> shouldBeCValue : shouldBeCValues) {
 					sb.append("\n    ");
 					sb.append(shouldBeCValue.getItemValue());
-					Mapping<?> shouldBeMapping = shouldBeCValue.getMapping();
+					Mapping<?,?> shouldBeMapping = shouldBeCValue.getMapping();
 					if (shouldBeMapping.getStrength() == MappingStrengthType.STRONG) {
 						sb.append(" STRONG");
 					}
@@ -491,8 +493,8 @@ public class ReconciliationProcessor {
                 }
             };
 
-            for (ItemValueWithOrigin<? extends PrismContainerValue<ShadowAssociationType>> shouldBeCvwo : shouldBeCValues) {
-                Mapping<?> shouldBeMapping = shouldBeCvwo.getMapping();
+            for (ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> shouldBeCvwo : shouldBeCValues) {
+                Mapping<?,?> shouldBeMapping = shouldBeCvwo.getMapping();
                 if (shouldBeMapping == null) {
                     continue;
                 }
@@ -518,7 +520,7 @@ public class ReconciliationProcessor {
     private void decideIfTolerate(LensProjectionContext accCtx,
 			RefinedAttributeDefinition attributeDefinition,
 			Collection<PrismPropertyValue<Object>> arePValues,
-			Collection<ItemValueWithOrigin<PrismPropertyValue<?>>> shouldBePValues,
+			Collection<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> shouldBePValues,
 			ValueMatcher valueMatcher) throws SchemaException {
 		
 		for (PrismPropertyValue<Object> isPValue : arePValues){
@@ -548,7 +550,7 @@ public class ReconciliationProcessor {
     private void decideIfTolerateAssociation(LensProjectionContext accCtx,
                                   RefinedAssociationDefinition associationDefinition,
                                   Collection<PrismContainerValue<ShadowAssociationType>> areCValues,
-                                  Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>> shouldBeCValues,
+                                  Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> shouldBeCValues,
                                   ValueMatcher valueMatcher) throws SchemaException {
 
         for (PrismContainerValue<ShadowAssociationType> isCValue : areCValues){
@@ -694,8 +696,8 @@ public class ReconciliationProcessor {
     }
 
     private boolean isInPvwoValues(Object value,
-			Collection<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> shouldBePvwos) {
-		for (ItemValueWithOrigin<? extends PrismPropertyValue<?>> shouldBePvwo : shouldBePvwos) {
+			Collection<ItemValueWithOrigin<? extends PrismPropertyValue<?>,PrismPropertyDefinition<?>>> shouldBePvwos) {
+		for (ItemValueWithOrigin<? extends PrismPropertyValue<?>,PrismPropertyDefinition<?>> shouldBePvwo : shouldBePvwos) {
 			PrismPropertyValue<?> shouldBePPValue = shouldBePvwo.getPropertyValue();
 			Object shouldBeValue = shouldBePPValue.getValue();
 			if (shouldBeValue.equals(value)) {
@@ -706,13 +708,13 @@ public class ReconciliationProcessor {
 	}
 
 	private boolean isInPvwoValues(ValueMatcher valueMatcher, Object value,
-			Collection<ItemValueWithOrigin<PrismPropertyValue<?>>> shouldBePvwos) {
+			Collection<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> shouldBePvwos) {
 
 		if (shouldBePvwos == null || shouldBePvwos.isEmpty()) {
 			return false;
 		}
 
-		for (ItemValueWithOrigin<? extends PrismPropertyValue<?>> shouldBePvwo : shouldBePvwos) {
+		for (ItemValueWithOrigin<? extends PrismPropertyValue<?>,PrismPropertyDefinition<?>> shouldBePvwo : shouldBePvwos) {
 			PrismPropertyValue<?> shouldBePPValue = shouldBePvwo.getPropertyValue();
 			Object shouldBeValue = shouldBePPValue.getValue();
 			if (valueMatcher.match(value, shouldBeValue)) {
@@ -726,13 +728,13 @@ public class ReconciliationProcessor {
 	}
 
     private boolean isInCvwoAssociationValues(ValueMatcher valueMatcher, ShadowAssociationType value,
-                                              Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>> shouldBeCvwos) {
+                                              Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> shouldBeCvwos) {
 
         if (shouldBeCvwos == null || shouldBeCvwos.isEmpty()) {
             return false;
         }
 
-        for (ItemValueWithOrigin<? extends PrismContainerValue<ShadowAssociationType>> shouldBeCvwo : shouldBeCvwos) {
+        for (ItemValueWithOrigin<? extends PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> shouldBeCvwo : shouldBeCvwos) {
             PrismContainerValue<ShadowAssociationType> shouldBePCValue = shouldBeCvwo.getItemValue();
             ShadowAssociationType shouldBeValue = shouldBePCValue.getValue();
             if (valueMatcher.match(value, shouldBeValue)) {

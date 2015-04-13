@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -166,6 +168,8 @@ public class MappingTypeDto implements Serializable {
             MappingTargetDeclarationType mappingTarget = new MappingTargetDeclarationType();
             mappingTarget.setPath(new ItemPathType(target));
             mappingObject.setTarget(mappingTarget);
+        } else {
+            mappingObject.setTarget(null);
         }
 
         mappingObject.getSource().clear();
@@ -187,6 +191,7 @@ public class MappingTypeDto implements Serializable {
                 mappingObject.setExpression(new ExpressionType());
             }
 
+            mappingObject.getExpression().getExpressionEvaluator().clear();
             mappingObject.getExpression().getExpressionEvaluator().add(deserializeExpression(prismContext, expression));
         }
 
@@ -195,6 +200,7 @@ public class MappingTypeDto implements Serializable {
                 mappingObject.setCondition(new ExpressionType());
             }
 
+            mappingObject.getCondition().getExpressionEvaluator().clear();
             mappingObject.getCondition().getExpressionEvaluator().add(deserializeExpression(prismContext, condition));
         }
 
@@ -366,14 +372,38 @@ public class MappingTypeDto implements Serializable {
         StringBuilder sb = new StringBuilder();
         if(mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())){
             sb.append(mapping.getName());
-        } else {
-            sb.append(nameNotSpecified);
+            return sb.toString();
         }
 
+        if(!mapping.getSource().isEmpty()){
+            for(MappingSourceDeclarationType source: mapping.getSource()){
+                if(source.getPath() != null && source.getPath().getItemPath() != null
+                        && source.getPath().getItemPath().getSegments() != null){
+
+                    List<ItemPathSegment> segments = source.getPath().getItemPath().getSegments();
+                    sb.append(segments.get(segments.size() - 1));
+
+                    sb.append(",");
+                }
+            }
+        }
+
+        sb.append("-");
+        sb.append(" (");
         if(mapping.getExpression() != null && mapping.getExpression().getExpressionEvaluator() != null){
-            sb.append(" (");
             sb.append(ExpressionUtil.getExpressionType(ExpressionUtil.loadExpression(mapping, context, LOGGER)));
-            sb.append(")");
+        }
+        sb.append(")");
+        sb.append("->");
+
+        if(mapping.getTarget() != null){
+            MappingTargetDeclarationType target = mapping.getTarget();
+            if(target.getPath() != null && target.getPath().getItemPath() != null
+                    && target.getPath().getItemPath().getSegments() != null){
+
+                List<ItemPathSegment> segments = target.getPath().getItemPath().getSegments();
+                sb.append(segments.get(segments.size() - 1));
+            }
         }
 
         return sb.toString();

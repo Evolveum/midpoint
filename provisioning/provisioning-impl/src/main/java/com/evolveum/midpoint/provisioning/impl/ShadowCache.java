@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -113,6 +114,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
@@ -359,7 +361,7 @@ public abstract class ShadowCache {
 		
 		RefinedObjectClassDefinition objectClassDefinition;
 		try {
-			objectClassDefinition = determineObjectClassDefinition(shadow, resource);
+			objectClassDefinition = RefinedObjectClassDefinition.determineObjectClassDefinition(shadow, resource);
 			applyAttributesDefinition(shadow, resource);
             shadowManager.setKindIfNecessary(shadow.asObjectable(), objectClassDefinition);
 			accessChecker.checkAdd(resource, shadow, objectClassDefinition, parentResult);
@@ -779,7 +781,7 @@ public abstract class ShadowCache {
         ObjectQuery attributeQuery = createAttributeQuery(query);
 
 		final ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
-
+		
 		ResultHandler<ShadowType> resultHandler = new ResultHandler<ShadowType>() {
 
 			@Override
@@ -1385,7 +1387,7 @@ public abstract class ShadowCache {
 	
 	public ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<ShadowType> delta, 
 			PrismObject<ShadowType> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
-		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resource);
+		ObjectClassComplexTypeDefinition objectClassDefinition = RefinedObjectClassDefinition.determineObjectClassDefinition(shadow, resource);
 		return applyAttributesDefinition(delta, objectClassDefinition, resource);
 	}
 
@@ -1394,34 +1396,38 @@ public abstract class ShadowCache {
 		if (delta.isAdd()) {
 			applyAttributesDefinition(delta.getObjectToAdd(), resource);
 		} else if (delta.isModify()) {
-			ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
-			for(ItemDelta<?> itemDelta: delta.getModifications()) {
-				ItemDefinition itemDef = itemDelta.getDefinition();
-				if ((itemDef == null || !(itemDef instanceof ResourceAttributeDefinition)) && attributesPath.equivalent(itemDelta.getParentPath())) {
-					QName attributeName = itemDelta.getElementName();
-					ResourceAttributeDefinition attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
-					if (attributeDefinition == null) {
-						throw new SchemaException("No definition for attribute "+attributeName+" in object delta "+delta);
-					}
-					if (itemDef != null) {
-						// We are going to rewrite the definition anyway. Let's just do some basic checks first
-						if (!QNameUtil.match(itemDef.getTypeName(),attributeDefinition.getTypeName())) {
-							throw new SchemaException("The value of type "+itemDef.getTypeName()+" cannot be applied to attribute "+attributeName+" which is of type "+attributeDefinition.getTypeName());
-						}
-					}
-					itemDelta.applyDefinition(attributeDefinition);
-				}
+			for(ItemDelta<?,?> itemDelta: delta.getModifications()) {
+				applyAttributeDefinition(delta, itemDelta, objectClassDefinition);
 			}
+				
 		}
 
 		return objectClassDefinition;
 	}
+	
+	private <V extends PrismValue, D extends ItemDefinition> void applyAttributeDefinition(ObjectDelta<ShadowType> delta, ItemDelta<V, D> itemDelta, ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+		D itemDef = itemDelta.getDefinition();
+		if ((itemDef == null || !(itemDef instanceof ResourceAttributeDefinition)) && SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
+			QName attributeName = itemDelta.getElementName();
+			ResourceAttributeDefinition attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
+			if (attributeDefinition == null) {
+				throw new SchemaException("No definition for attribute "+attributeName+" in object delta "+delta);
+			}
+			if (itemDef != null) {
+				// We are going to rewrite the definition anyway. Let's just do some basic checks first
+				if (!QNameUtil.match(itemDef.getTypeName(),attributeDefinition.getTypeName())) {
+					throw new SchemaException("The value of type "+itemDef.getTypeName()+" cannot be applied to attribute "+attributeName+" which is of type "+attributeDefinition.getTypeName());
+				}
+			}
+			itemDelta.applyDefinition((D) attributeDefinition);
+		}
+	}
 
 	public RefinedObjectClassDefinition applyAttributesDefinition(
 			PrismObject<ShadowType> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
-		RefinedObjectClassDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resource);
+		RefinedObjectClassDefinition objectClassDefinition = RefinedObjectClassDefinition.determineObjectClassDefinition(shadow, resource);
 
-		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismContainer<ShadowAttributesType> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer != null) {
 			if (attributesContainer instanceof ResourceAttributeContainer) {
 				if (attributesContainer.getDefinition() == null) {
@@ -1446,37 +1452,6 @@ public abstract class ShadowCache {
 					objectClassDefinition.toResourceAttributeContainerDefinition());
 			shadow.setDefinition(clonedDefinition);
 		}
-		
-		return objectClassDefinition;
-	}
-
-	private RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<ShadowType> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
-		ShadowType shadowType = shadow.asObjectable();
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
-		if (refinedSchema == null) {
-			throw new ConfigurationException("No schema defined for "+resource);
-		}
-		
-		
-		RefinedObjectClassDefinition objectClassDefinition = null;
-		ShadowKindType kind = shadowType.getKind();
-		String intent = shadowType.getIntent();
-		QName objectClass = shadow.asObjectable().getObjectClass();
-		if (kind != null) {
-			objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
-		} 
-		if (objectClassDefinition == null) {
-			// Fallback to objectclass only
-			if (objectClass == null) {
-				throw new SchemaException("No kind nor objectclass definied in "+shadow);
-			}
-			objectClassDefinition = refinedSchema.findRefinedDefinitionByObjectClassQName(kind, objectClass);
-		}
-		
-		if (objectClassDefinition == null) {
-			throw new SchemaException("Definition for "+shadow+" not found (objectClass=" + PrettyPrinter.prettyPrint(objectClass) +
-					", kind="+kind+", intent='"+intent+"') in schema of " + resource);
-		}		
 		
 		return objectClassDefinition;
 	}

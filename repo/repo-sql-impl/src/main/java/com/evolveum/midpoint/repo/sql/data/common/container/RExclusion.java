@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.Validate;
@@ -36,11 +36,15 @@ import javax.persistence.*;
 
 /**
  * @author lazyman
+ * 
+ * DEPRECATED. This does not need to be stored in the database any more.
+ * 
  */
-@JaxbType(type = ExclusionType.class)
+@JaxbType(type = ExclusionPolicyConstraintType.class)
 @Entity
 @IdClass(RContainerId.class)
 @ForeignKey(name = "fk_exclusion")
+@Deprecated
 public class RExclusion implements Container {
 
     public static final String F_OWNER = "owner";
@@ -50,7 +54,7 @@ public class RExclusion implements Container {
     //owner
     private RObject owner;
     private String ownerOid;
-    private Short id;
+    private Integer id;
 
     //exclusion
     private REmbeddedReference targetRef;
@@ -84,7 +88,7 @@ public class RExclusion implements Container {
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
-    public Short getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -117,7 +121,7 @@ public class RExclusion implements Container {
         this.ownerOid = ownerOid;
     }
 
-    public void setId(Short id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -150,7 +154,7 @@ public class RExclusion implements Container {
         return result;
     }
 
-    public static void copyToJAXB(RExclusion repo, ExclusionType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RExclusion repo, ExclusionPolicyConstraintType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -165,21 +169,21 @@ public class RExclusion implements Container {
         }
     }
 
-    public static void copyFromJAXB(ExclusionType jaxb, RExclusion repo, ObjectType parent, PrismContext prismContext,
+    public static void copyFromJAXB(ExclusionPolicyConstraintType jaxb, RExclusion repo, ObjectType parent, PrismContext prismContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
         repo.setOwnerOid(parent.getOid());
-        repo.setId(RUtil.toShort(jaxb.getId()));
+        repo.setId(RUtil.toInteger(jaxb.getId()));
 
         repo.setPolicy(RUtil.getRepoEnumValue(jaxb.getPolicy(), RExclusionPolicy.class));
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));
     }
 
-    public ExclusionType toJAXB(PrismContext prismContext) throws DtoTranslationException {
-        ExclusionType object = new ExclusionType();
+    public ExclusionPolicyConstraintType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+        ExclusionPolicyConstraintType object = new ExclusionPolicyConstraintType();
         RExclusion.copyToJAXB(this, object, prismContext);
         return object;
     }

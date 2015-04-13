@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,20 @@
 
 package com.evolveum.midpoint.report.impl;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -39,7 +42,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -53,6 +55,8 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.LessFilter;
@@ -65,9 +69,10 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -80,7 +85,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 
@@ -150,10 +157,24 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
      */
     
     @Override
-    public void runReport(PrismObject<ReportType> object, Task task, OperationResult parentResult) {    	
+    public void runReport(PrismObject<ReportType> object, List<ReportParameterType> params, Task task, OperationResult parentResult) {    	
         task.setHandlerUri(ReportCreateTaskHandler.REPORT_CREATE_TASK_URI);
         task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
-
+        try {
+        	if (params != null && !params.isEmpty()){
+        		PrismPropertyDefinition propertyDef = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+        		PrismProperty<ReportParameterType> paramProperty = propertyDef.instantiate();
+        		for (ReportParameterType reportParam : params){
+        			paramProperty.addRealValue(reportParam);
+        		}
+        		
+        		task.addExtensionProperty(paramProperty);
+        		
+        	}
+		} catch (SchemaException e) {
+			throw new SystemException(e);
+		}
+        
         task.setThreadStopAction(ThreadStopActionType.CLOSE);
     	task.makeSingle();
     	
@@ -223,7 +244,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
              if (reportType.getTemplate() == null)
              {
             	 PrismSchema reportSchema = null;
-            	 PrismContainer<Containerable> parameterConfiguration = null;  
+            	 PrismContainer<ReportConfigurationType> parameterConfiguration = null;  
             	 try
             	 {
             		reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);

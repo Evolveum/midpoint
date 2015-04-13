@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,7 +157,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     	this.secondaryDeltas.set(getProjectionWave(), secondaryDelta);
     }
     
-    public void swallowToProjectionWaveSecondaryDelta(ItemDelta<?> propDelta) throws SchemaException {
+    public void swallowToProjectionWaveSecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
     	
 		ObjectDelta<O> secondaryDelta = getProjectionWaveSecondaryDelta();
 		
@@ -172,7 +172,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         secondaryDelta.swallow(propDelta);
 	}
     
-    public void swallowToSecondaryDelta(ItemDelta<?> propDelta) throws SchemaException {
+    public void swallowToSecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
       	ObjectDelta<O> secondaryDelta = getSecondaryDelta(0);
       	if (secondaryDelta == null) {
             secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());        
@@ -185,7 +185,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         secondaryDelta.swallow(propDelta);
 	}
         
-	public boolean alreadyHasDelta(ItemDelta<?> itemDelta) {
+	public boolean alreadyHasDelta(ItemDelta<?,?> itemDelta) {
 		ObjectDelta<O> primaryDelta = getPrimaryDelta();
 		if (primaryDelta != null && primaryDelta.containsModification(itemDelta)) {
 			return true;
@@ -272,10 +272,10 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		// Nothing to do
 	}
 	
-	public void applyProjectionWaveSecondaryDeltas(Collection<ItemDelta<? extends PrismValue>> itemDeltas) throws SchemaException {
+	public void applyProjectionWaveSecondaryDeltas(Collection<ItemDelta<?,?>> itemDeltas) throws SchemaException {
 		ObjectDelta<O> wavePrimaryDelta = getProjectionWavePrimaryDelta();
 		ObjectDelta<O> waveSecondaryDelta = getProjectionWaveSecondaryDelta();
-		for (ItemDelta<? extends PrismValue> itemDelta: itemDeltas) {
+		for (ItemDelta<?,?> itemDelta: itemDeltas) {
 			if (itemDelta != null && !itemDelta.isEmpty()) {
 				if (wavePrimaryDelta == null || !wavePrimaryDelta.containsModification(itemDelta)) {
 					if (waveSecondaryDelta == null) {

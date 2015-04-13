@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
+
 import java.io.Serializable;
 
 /**
@@ -24,9 +26,10 @@ import java.io.Serializable;
 public class RCObjectReferenceId implements Serializable {
 
     private String ownerOid;
-    private Short ownerId;
+    private Integer ownerId;
     private String targetOid;
     private String relation;
+    private RCReferenceOwner referenceType;
 
     public RCObjectReferenceId() {
     }
@@ -39,11 +42,11 @@ public class RCObjectReferenceId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public Short getOwnerId() {
+    public Integer getOwnerId() {
         return ownerId;
     }
 
-    public void setOwnerId(Short ownerId) {
+    public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
     }
 
@@ -63,6 +66,14 @@ public class RCObjectReferenceId implements Serializable {
         this.relation = relation;
     }
 
+    public RCReferenceOwner getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(RCReferenceOwner referenceType) {
+        this.referenceType = referenceType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -74,6 +85,8 @@ public class RCObjectReferenceId implements Serializable {
         if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
         if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null) return false;
         if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
+        if (referenceType != null ? !referenceType.equals(that.referenceType) : that.referenceType != null)
+            return false;
 
         return true;
     }
@@ -85,12 +98,14 @@ public class RCObjectReferenceId implements Serializable {
         result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (targetOid != null ? targetOid.hashCode() : 0);
         result = 31 * result + (relation != null ? relation.hashCode() : 0);
+        result = 31 * result + (referenceType != null ? referenceType.hashCode() : 0);
 
         return result;
     }
 
     @Override
     public String toString() {
-        return "RObjectReferenceId[" + ownerOid + "," + ownerId + "," + targetOid + "," + relation + ']';
+        return "RObjectReferenceId[" + ownerOid + "," + ownerId + ","
+                + targetOid + "," + relation + "," + referenceType + ']';
     }
 }

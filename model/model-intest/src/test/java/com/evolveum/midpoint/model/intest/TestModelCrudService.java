@@ -123,7 +123,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
@@ -171,7 +171,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         account.setOid(accountOid);
         
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
@@ -245,7 +245,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountOid);
 		modifications.add(accountDelta);
         
@@ -285,7 +285,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         
-        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);

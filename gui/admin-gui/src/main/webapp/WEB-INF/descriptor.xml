@@ -125,6 +125,10 @@
             <name>PageAdmin.menu.top.reports</name>
             <order>70</order>
             <item>
+                <name>PageAdmin.menu.top.reports.new</name>
+                <page>com.evolveum.midpoint.web.page.admin.reports.PageNewReport</page>
+            </item>
+            <item>
                 <name>PageAdmin.menu.top.reports.list</name>
                 <page>com.evolveum.midpoint.web.page.admin.reports.PageReports</page>
             </item>
@@ -184,4 +188,5 @@
     <packagesToScan>com.evolveum.midpoint.web.page.admin.configuration</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.login</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.error</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.forgetpassword</packagesToScan>
 </descriptor>

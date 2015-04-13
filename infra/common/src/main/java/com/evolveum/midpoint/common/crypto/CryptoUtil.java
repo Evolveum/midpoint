@@ -237,7 +237,7 @@ public class CryptoUtil {
 				checkEncrypted(pval);
 			}
 		};
-		for (ItemDelta<?> delta: modifications) {
+		for (ItemDelta<?,?> delta: modifications) {
 			try {
 				delta.accept(visitor);
 			} catch (IllegalStateException e) {

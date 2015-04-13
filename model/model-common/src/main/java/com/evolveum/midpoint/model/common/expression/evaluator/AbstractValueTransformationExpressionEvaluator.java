@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,21 +26,18 @@ import com.evolveum.midpoint.model.common.expression.Source;
 import com.evolveum.midpoint.model.common.expression.SourceTriple;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -48,16 +45,17 @@ import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionRelativityModeType;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import org.w3c.dom.Element;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,20 +64,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * @author Radovan Semancik
  */
-public abstract class AbstractValueTransformationExpressionEvaluator<V extends PrismValue, E extends TransformExpressionEvaluatorType>
-						implements ExpressionEvaluator<V> {
+public abstract class AbstractValueTransformationExpressionEvaluator<V extends PrismValue, D extends ItemDefinition, E extends TransformExpressionEvaluatorType>
+						implements ExpressionEvaluator<V,D> {
+
+    private SecurityEnforcer securityEnforcer;
 
 	private E expressionEvaluatorType;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractValueTransformationExpressionEvaluator.class);
 
-    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType) {
+    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType, SecurityEnforcer securityEnforcer) {
     	this.expressionEvaluatorType = expressionEvaluatorType;
+        this.securityEnforcer = securityEnforcer;
     }
 
     public E getExpressionEvaluatorType() {
@@ -91,10 +91,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	 */
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
-			ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException {
 		
         PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>();
-        	    
+
+        ExpressionUtil.addActorVariable(context.getVariables(), securityEnforcer);
+
         if (expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.ABSOLUTE) {
         	
         	outputTriple = evaluateAbsoluteExpression(context.getSources(), context.getVariables(), context,
@@ -107,7 +109,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         		outputTriple = evaluateAbsoluteExpression(null, context.getVariables(), context, 
         				context.getContextDescription(), context.getTask(), context.getResult());
         	} else {
-        		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(context.getSources(),
+        		List<SourceTriple<?,?>> sourceTriples = processSources(context.getSources(),
         				isIncludeNullInputs(), context);
         		outputTriple = evaluateRelativeExpression(sourceTriples, context.getVariables(), context.isSkipEvaluationMinus(), context.isSkipEvaluationPlus(), 
         				isIncludeNullInputs(), context, context.getContextDescription(), context.getTask(), context.getResult());
@@ -132,16 +134,16 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		return true;
 	}
 	
-	private List<SourceTriple<? extends PrismValue>> processSources(Collection<Source<? extends PrismValue>> sources, Boolean includeNulls,
+	private List<SourceTriple<?,?>> processSources(Collection<Source<?,?>> sources, Boolean includeNulls,
 			ExpressionEvaluationContext params) {
-		List<SourceTriple<? extends PrismValue>> sourceTriples = 
-			new ArrayList<SourceTriple<? extends PrismValue>>(sources == null ? 0 : sources.size());
+		List<SourceTriple<?,?>> sourceTriples = 
+			new ArrayList<SourceTriple<?,?>>(sources == null ? 0 : sources.size());
 		if (sources == null) {
 			return sourceTriples;
 		}
-		for (Source<? extends PrismValue> source: sources) {
-			SourceTriple<? extends PrismValue> sourceTriple = new SourceTriple<PrismValue>((Source<PrismValue>) source);
-			ItemDelta<? extends PrismValue> delta = source.getDelta();
+		for (Source<?,?> source: sources) {
+			SourceTriple<?,?> sourceTriple = new SourceTriple<>(source);
+			ItemDelta<?,?> delta = source.getDelta();
 			if (delta != null) {
 				sourceTriple.merge((DeltaSetTriple) delta.toDeltaSetTriple((Item) source.getItemOld()));
 			} else {
@@ -154,8 +156,8 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				// "empty" value and exit "empty" value for a property
 				// We need this to properly handle "negative" expressions, i.e. expressions that return non-null
 				// value for null input. We need to make sure such expressions receive the null input when needed
-				Item<? extends PrismValue> itemOld = source.getItemOld();
-				Item<? extends PrismValue> itemNew = source.getItemNew();
+				Item<?,?> itemOld = source.getItemOld();
+				Item<?,?> itemNew = source.getItemNew();
 				if (itemOld == null || itemOld.isEmpty()) {
 					if (!(itemNew == null || itemNew.isEmpty())) { 
 						// change empty -> non-empty: we are removing "null" value
@@ -182,13 +184,13 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		return sourceTriples;
 	}
 
-	private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpression(Collection<Source<? extends PrismValue>> sources,
-			ExpressionVariables variables, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpression(Collection<Source<?,?>> sources,
+			ExpressionVariables variables, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		PrismValueDeltaSetTriple<V> outputTriple;
 		
-		if (hasDeltas(sources) || hasDelas(variables)) {
+		if (hasDeltas(sources) || hasDeltas(variables)) {
 		
 			Collection<V> outputSetOld = null;
 			if (!params.isSkipEvaluationMinus()) {
@@ -211,11 +213,11 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		return outputTriple;
 	}
 	
-	private boolean hasDeltas(Collection<Source<? extends PrismValue>> sources) {
+	private boolean hasDeltas(Collection<Source<?,?>> sources) {
 		if (sources == null) {
 			return false;
 		}
-		for (Source<? extends PrismValue> source: sources) {
+		for (Source<?,?> source: sources) {
 			if (source.getDelta() != null && !source.getDelta().isEmpty()) {
 				return true;
 			}
@@ -223,15 +225,15 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		return false;
 	}
 
-	private boolean hasDelas(ExpressionVariables variables) {
+	private boolean hasDeltas(ExpressionVariables variables) {
 		for (Entry<QName,Object> entry: variables.entrySet()) {
 			Object value = entry.getValue();
 			if (value instanceof ObjectDeltaObject<?>) {
 				if (((ObjectDeltaObject<?>)value).getObjectDelta() != null && !((ObjectDeltaObject<?>)value).getObjectDelta().isEmpty()) {
 					return true;
 				}
-			} else if (value instanceof ItemDeltaItem<?>) {
-				if (((ItemDeltaItem<?>)value).getDelta() != null && !((ItemDeltaItem<?>)value).getDelta().isEmpty()) {
+			} else if (value instanceof ItemDeltaItem<?,?>) {
+				if (((ItemDeltaItem<?,?>)value).getDelta() != null && !((ItemDeltaItem<?,?>)value).getDelta().isEmpty()) {
 					return true;
 				}
 			}
@@ -239,7 +241,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		return false;
 	}
 
-	private Collection<V> evaluateScriptExpression(Collection<Source<? extends PrismValue>> sources,
+	private Collection<V> evaluateScriptExpression(Collection<Source<?,?>> sources,
 			ExpressionVariables variables, String contextDescription, boolean useNew, ExpressionEvaluationContext params, 
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
@@ -252,7 +254,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		
 		if (sources != null) {
 			// Add sources to variables
-			for (Source<? extends PrismValue> source: sources) {
+			for (Source<?,?> source: sources) {
 				LOGGER.trace("source: {}", source);
 				QName name = source.getName();
 				if (name == null) {
@@ -272,7 +274,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				scriptVariables.addVariableDefinition(name, value);
 			}
 		}
-		
+
 		List<V> scriptResults = transformSingleValue(scriptVariables, null, useNew, params,
 				(useNew ? "(new) " : "(old) " ) + contextDescription, task, result);
 		
@@ -303,12 +305,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		
 		return outputSet;
 	}
-	
-	protected abstract List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination,
+
+    protected abstract List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination,
 			boolean useNew, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
 
-	private Object getRealContent(Item<? extends PrismValue> item, ItemPath residualPath) {
+	private Object getRealContent(Item<?,?> item, ItemPath residualPath) {
 		if (residualPath == null || residualPath.isEmpty()) {
 			return item;
 		}
@@ -328,14 +330,14 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		return pval.find(residualPath);
 	}
 
-	private PrismValueDeltaSetTriple<V> evaluateRelativeExpression(final List<SourceTriple<? extends PrismValue>> sourceTriples,
+	private PrismValueDeltaSetTriple<V> evaluateRelativeExpression(final List<SourceTriple<?,?>> sourceTriples,
 			final ExpressionVariables variables, final boolean skipEvaluationMinus, final boolean skipEvaluationPlus, 
 			final Boolean includeNulls, final ExpressionEvaluationContext params, final String contextDescription, 
 			final Task task, final OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		List<Collection<? extends PrismValue>> valueCollections = new ArrayList<Collection<? extends PrismValue>>(sourceTriples.size());
-		for (SourceTriple<? extends PrismValue> sourceTriple: sourceTriples) {
+		for (SourceTriple<?,?> sourceTriple: sourceTriples) {
 			Collection<? extends PrismValue> values = sourceTriple.union();
 			if (values.isEmpty()) {
 				// No values for this source. Add null instead. It will make sure that the expression will
@@ -355,12 +357,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 					return;
 				}
 				Map<QName, Object> sourceVariables = new HashMap<QName, Object>();
-				Iterator<SourceTriple<? extends PrismValue>> sourceTriplesIterator = sourceTriples.iterator();
+				Iterator<SourceTriple<PrismValue,?>> sourceTriplesIterator = (Iterator)sourceTriples.iterator();
 				boolean hasMinus = false;
 				boolean hasZero = false;
 				boolean hasPlus = false;
 				for (PrismValue pval: pvalues) {
-					SourceTriple<PrismValue> sourceTriple = (SourceTriple<PrismValue>) sourceTriplesIterator.next();
+					SourceTriple<PrismValue,?> sourceTriple = sourceTriplesIterator.next();
 					QName name = sourceTriple.getName();
 					sourceVariables.put(name, getRealContent(pval, sourceTriple.getResidualPath()));
 					// Note: a value may be both in plus and minus sets, e.g. in case that the value is replaced

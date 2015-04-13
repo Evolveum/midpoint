@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@
         <jaxb.version>2.2.10-b140310.1920</jaxb.version>
         <jaxb-xjc.version>2.2.10-b140310.1920</jaxb-xjc.version>
         <junit.version>4.8.2</junit.version>
-        <opendj.version>2.4.3</opendj.version>
+        <opendj.version>2.6.2</opendj.version>
         <mockito.version>1.10.8</mockito.version>
         <quartz.version>2.1.3</quartz.version>
         <selenium.version>1.0.1</selenium.version>
@@ -67,13 +67,14 @@
         <jdbc.postgres>9.3-1102-jdbc41</jdbc.postgres>
         <jdbc.mysql>5.1.31</jdbc.mysql>
         <wicket.version>6.17.0</wicket.version>
-        <groovy.version>1.8.6</groovy.version>
+        <groovy.version>2.4.0</groovy.version>
         <activiti-engine.version>5.17.0</activiti-engine.version>
         <activiti-spring.version>5.17.0</activiti-spring.version>
         <commons-email.version>1.3</commons-email.version>
         <xmlsec.version>2.0.1</xmlsec.version>
         <connid.version>1.4.0.49</connid.version>
         <jasper.version>6.0.0</jasper.version>
+        <derby.version>10.11.1.1</derby.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -147,8 +148,13 @@
             </dependency>
             <dependency>
 				<groupId>org.codehaus.groovy</groupId>
-				<artifactId>groovy</artifactId>
+				<artifactId>groovy-all</artifactId>
 				<version>${groovy.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.python</groupId>
+				<artifactId>jython</artifactId>
+				<version>2.5.3</version>
 			</dependency>
             <dependency>
                 <groupId>com.h2database</groupId>
@@ -178,7 +184,7 @@
             <dependency>
                 <groupId>com.sleepycat</groupId>
                 <artifactId>je</artifactId>
-                <version>4.1.10</version>
+                <version>5.0.103</version>
             </dependency>
             <dependency>
                     <artifactId>jaxb-api</artifactId>
@@ -349,6 +355,11 @@
 	  			<groupId>org.apache.cxf</groupId>
 				<artifactId>cxf-rt-frontend-jaxrs</artifactId>
 				<version>${cxf.version}</version>
+			</dependency>
+			<dependency>
+			   <groupId>org.apache.cxf</groupId>
+			   <artifactId>cxf-rt-rs-client</artifactId>
+			   <version>${cxf.version}</version>
 			</dependency>
 			<dependency>
 			   <groupId>org.apache.cxf</groupId>
@@ -558,6 +569,21 @@
                 <artifactId>velocity</artifactId>
                 <version>1.7</version>
             </dependency>
+            <dependency>
+				<groupId>org.apache.derby</groupId>
+				<artifactId>derby</artifactId>
+				<version>${derby.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.derby</groupId>
+				<artifactId>derbynet</artifactId>
+				<version>${derby.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.derby</groupId>
+				<artifactId>derbyclient</artifactId>
+				<version>${derby.version}</version>
+			</dependency>
             <!-- Jasper reports -->
             <dependency>
                 <groupId>net.sf.jasperreports</groupId>
@@ -580,8 +606,34 @@
                         <groupId>com.fasterxml.jackson.core</groupId>
                         <artifactId>jackson-annotations</artifactId>
                     </exclusion>
+                    <!-- use in midPoint 3.2
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-analyzers-common</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.lucene</groupId>
+                        <artifactId>lucene-queryparser</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>jfree</groupId>
+                        <artifactId>jfreechart</artifactId>
+                    </exclusion> -->
                 </exclusions>
             </dependency>
+
+ <!-- report dependency (needed for microsoft office formats) -->
+            <dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi</artifactId>
+				<version>3.10.1</version>
+			</dependency>
+			            
+
         </dependencies>
     </dependencyManagement>
 

@@ -86,13 +86,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class OpenDJController extends AbstractResourceController {
 
-	private String DATA_TEMPLATE = "test-data/opendj.template";
+	private String DATA_TEMPLATE_DIR = "test-data";
 	private String SERVER_ROOT = "target/test-data/opendj";
 	private String LDAP_SUFFIX = "dc=example,dc=com";
+	
+	public static final String DEFAULT_TEMPLATE_NAME = "opendj.template";
 
 	protected File serverRoot = new File(SERVER_ROOT);
 	protected File configFile = null;
-	protected File templateRoot = new File(DATA_TEMPLATE);
+	protected File templateRoot;
 
 	private static final Trace LOGGER = TraceManager.getTrace(OpenDJController.class);
 
@@ -105,14 +107,6 @@ public class OpenDJController extends AbstractResourceController {
 	public OpenDJController(String serverRoot) {
 		SERVER_ROOT = serverRoot;
 		this.serverRoot = new File(serverRoot);
-		init();
-	}
-
-	public OpenDJController(String serverRoot, String templateServerRoot) {
-		SERVER_ROOT = serverRoot;
-		DATA_TEMPLATE = templateServerRoot;
-		this.serverRoot = new File(serverRoot);
-		this.templateRoot = new File(templateServerRoot);
 		init();
 	}
 
@@ -225,21 +219,24 @@ public class OpenDJController extends AbstractResourceController {
 	 * @throws IOException
 	 * @throws URISyntaxException 
 	 */
-	public void refreshFromTemplate() throws IOException, URISyntaxException {
+	public void refreshFromTemplate(String templateName) throws IOException, URISyntaxException {
 		deleteDirectory(serverRoot);
-		extractTemplate(serverRoot);
+		extractTemplate(serverRoot, templateName);
 	}
 
 	/**
 	 * Extract template from class
 	 */
-	private void extractTemplate(File dst) throws IOException, URISyntaxException {
+	private void extractTemplate(File dst, String templateName) throws IOException, URISyntaxException {
 
 		LOGGER.info("Extracting OpenDJ template....");
 		if (!dst.exists()) {
 			LOGGER.debug("Creating target dir {}", dst.getPath());
 			dst.mkdirs();
 		}
+		
+		templateRoot = new File(DATA_TEMPLATE_DIR, templateName);
+		String templateRootPath = DATA_TEMPLATE_DIR + "/" + templateName;		// templateRoot.getPath does not work on Windows, as it puts "\" into the path name (leading to problems with getSystemResource)
 
 		// Determing if we need to extract from JAR or directory
 		if (templateRoot.isDirectory()) {
@@ -248,9 +245,10 @@ public class OpenDJController extends AbstractResourceController {
 			return;
 		}
 
-		LOGGER.debug("Try to localize OpenDJ Template in JARs as " + DATA_TEMPLATE);
+		LOGGER.debug("Try to localize OpenDJ Template in JARs as " + templateRootPath);
 
-		URL srcUrl = ClassLoader.getSystemResource(DATA_TEMPLATE);
+		URL srcUrl = ClassLoader.getSystemResource(templateRootPath);
+		LOGGER.debug("srcUrl " + srcUrl);
 		// sample:
 		// file:/C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar!/test-data/opendj.template
 		// output:
@@ -273,12 +271,12 @@ public class OpenDJController extends AbstractResourceController {
 				e = entries.nextElement();
 
 				// skip other files
-				if (!e.getName().contains(DATA_TEMPLATE)) {
+				if (!e.getName().contains(templateRootPath)) {
 					continue;
 				}
 
 				// prepare destination file
-				String filepath = e.getName().substring(DATA_TEMPLATE.length());
+				String filepath = e.getName().substring(templateRootPath.length());
 				File dstFile = new File(dst, filepath);
 
 				// test if directory
@@ -322,15 +320,19 @@ public class OpenDJController extends AbstractResourceController {
 	}
 
 	/**
-	 * Start the embedded OpenDJ directory server using files coppied from the
+	 * Start the embedded OpenDJ directory server using files copied from the default
 	 * template.
-	 * 
-	 * @return
-	 * @throws IOException
-	 * @throws URISyntaxException 
 	 */
 	public InternalClientConnection startCleanServer() throws IOException, URISyntaxException {
-		refreshFromTemplate();
+		return startCleanServer(DEFAULT_TEMPLATE_NAME);
+	}
+
+	/**
+	 * Start the embedded OpenDJ directory server using files copied from the specified
+	 * template.
+	 */
+	public InternalClientConnection startCleanServer(String templateName) throws IOException, URISyntaxException {
+		refreshFromTemplate(templateName);
 		return start();
 	}
 

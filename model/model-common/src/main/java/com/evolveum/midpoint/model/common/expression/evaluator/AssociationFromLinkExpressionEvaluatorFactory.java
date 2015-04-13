@@ -68,8 +68,8 @@ public class AssociationFromLinkExpressionEvaluatorFactory implements Expression
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement)
 	 */
 	@Override
-	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
-			ItemDefinition outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
+	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
+			D outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for associationFromLink expression evaluator");
 		
@@ -91,7 +91,7 @@ public class AssociationFromLinkExpressionEvaluatorFactory implements Expression
         AssociationFromLinkExpressionEvaluator evaluator = new AssociationFromLinkExpressionEvaluator(
         		(ShadowDiscriminatorExpressionEvaluatorType)evaluatorTypeObject, 
         		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, objectResolver, prismContext);
-        return (ExpressionEvaluator<V>) evaluator;
+        return (ExpressionEvaluator<V,D>) evaluator;
 	}
 
 }

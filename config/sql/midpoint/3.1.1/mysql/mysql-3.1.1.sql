@@ -22,7 +22,7 @@ CREATE TABLE m_abstract_role (
   ENGINE = InnoDB;
 
 CREATE TABLE m_assignment (
-  id                      SMALLINT    NOT NULL,
+  id                      INTEGER     NOT NULL,
   owner_oid               VARCHAR(36) NOT NULL,
   administrativeStatus    INTEGER,
   archiveTimestamp        DATETIME(6),
@@ -52,7 +52,7 @@ CREATE TABLE m_assignment (
   tenantRef_relation      VARCHAR(157),
   tenantRef_targetOid     VARCHAR(36),
   tenantRef_type          INTEGER,
-  extId                   SMALLINT,
+  extId                   INTEGER,
   extOid                  VARCHAR(36),
   PRIMARY KEY (id, owner_oid)
 )
@@ -60,9 +60,24 @@ CREATE TABLE m_assignment (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 
+CREATE TABLE m_assignment_ext_boolean (
+  eName                        VARCHAR(157) NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
+  booleanValue                 BIT          NOT NULL,
+  extensionType                INTEGER,
+  dynamicDef                   BIT,
+  eType                        VARCHAR(157),
+  valueType                    INTEGER,
+  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, booleanValue)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
 CREATE TABLE m_assignment_ext_date (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        SMALLINT     NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   dateValue                    DATETIME(6)     NOT NULL,
   extensionType                INTEGER,
@@ -77,7 +92,7 @@ CREATE TABLE m_assignment_ext_date (
 
 CREATE TABLE m_assignment_ext_long (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        SMALLINT     NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   longValue                    BIGINT       NOT NULL,
   extensionType                INTEGER,
@@ -92,7 +107,7 @@ CREATE TABLE m_assignment_ext_long (
 
 CREATE TABLE m_assignment_ext_poly (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        SMALLINT     NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   orig                         VARCHAR(255) NOT NULL,
   extensionType                INTEGER,
@@ -108,7 +123,7 @@ CREATE TABLE m_assignment_ext_poly (
 
 CREATE TABLE m_assignment_ext_reference (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        SMALLINT     NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   targetoid                    VARCHAR(36)  NOT NULL,
   extensionType                INTEGER,
@@ -125,7 +140,7 @@ CREATE TABLE m_assignment_ext_reference (
 
 CREATE TABLE m_assignment_ext_string (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        SMALLINT     NOT NULL,
+  anyContainer_owner_id        INTEGER      NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   stringValue                  VARCHAR(255) NOT NULL,
   extensionType                INTEGER,
@@ -139,8 +154,9 @@ CREATE TABLE m_assignment_ext_string (
   ENGINE = InnoDB;
 
 CREATE TABLE m_assignment_extension (
-  owner_id        SMALLINT    NOT NULL,
+  owner_id        INTEGER     NOT NULL,
   owner_owner_oid VARCHAR(36) NOT NULL,
+  booleansCount   SMALLINT,
   datesCount      SMALLINT,
   longsCount      SMALLINT,
   polysCount      SMALLINT,
@@ -153,13 +169,13 @@ CREATE TABLE m_assignment_extension (
   ENGINE = InnoDB;
 
 CREATE TABLE m_assignment_reference (
-  reference_type  INTEGER      NOT NULL,
-  owner_id        SMALLINT     NOT NULL,
+  owner_id        INTEGER      NOT NULL,
   owner_owner_oid VARCHAR(36)  NOT NULL,
+  reference_type  INTEGER      NOT NULL,
   relation        VARCHAR(157) NOT NULL,
   targetOid       VARCHAR(36)  NOT NULL,
   containerType   INTEGER,
-  PRIMARY KEY (owner_id, owner_owner_oid, relation, targetOid)
+  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -245,7 +261,7 @@ CREATE TABLE m_connector_target_system (
   ENGINE = InnoDB;
 
 CREATE TABLE m_exclusion (
-  id                  SMALLINT    NOT NULL,
+  id                  INTEGER     NOT NULL,
   owner_oid           VARCHAR(36) NOT NULL,
   policy              INTEGER,
   targetRef_relation  VARCHAR(157),
@@ -297,13 +313,14 @@ CREATE TABLE m_lookup_table (
   ENGINE = InnoDB;
 
 CREATE TABLE m_lookup_table_row (
-  row_key             VARCHAR(255) NOT NULL,
-  owner_oid           VARCHAR(36)  NOT NULL,
+  id                  INTEGER     NOT NULL,
+  owner_oid           VARCHAR(36) NOT NULL,
+  row_key             VARCHAR(255),
   label_norm          VARCHAR(255),
   label_orig          VARCHAR(255),
   lastChangeTimestamp DATETIME(6),
   row_value           VARCHAR(255),
-  PRIMARY KEY (row_key, owner_oid)
+  PRIMARY KEY (id, owner_oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -322,6 +339,7 @@ CREATE TABLE m_node (
 
 CREATE TABLE m_object (
   oid                   VARCHAR(36) NOT NULL,
+  booleansCount         SMALLINT,
   createChannel         VARCHAR(255),
   createTimestamp       DATETIME(6),
   creatorRef_relation   VARCHAR(157),
@@ -346,6 +364,20 @@ CREATE TABLE m_object (
   tenantRef_type        INTEGER,
   version               INTEGER     NOT NULL,
   PRIMARY KEY (oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_object_ext_boolean (
+  eName        VARCHAR(157) NOT NULL,
+  owner_oid    VARCHAR(36)  NOT NULL,
+  ownerType    INTEGER      NOT NULL,
+  booleanValue BIT          NOT NULL,
+  dynamicDef   BIT,
+  eType        VARCHAR(157),
+  valueType    INTEGER,
+  PRIMARY KEY (eName, owner_oid, ownerType, booleanValue)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -472,12 +504,12 @@ CREATE TABLE m_org_org_type (
   ENGINE = InnoDB;
 
 CREATE TABLE m_reference (
-  reference_type INTEGER      NOT NULL,
   owner_oid      VARCHAR(36)  NOT NULL,
+  reference_type INTEGER      NOT NULL,
   relation       VARCHAR(157) NOT NULL,
   targetOid      VARCHAR(36)  NOT NULL,
   containerType  INTEGER,
-  PRIMARY KEY (owner_oid, relation, targetOid)
+  PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -620,7 +652,7 @@ CREATE TABLE m_task_dependent (
   ENGINE = InnoDB;
 
 CREATE TABLE m_trigger (
-  id             SMALLINT    NOT NULL,
+  id             INTEGER     NOT NULL,
   owner_oid      VARCHAR(36) NOT NULL,
   handlerUri     VARCHAR(255),
   timestampValue DATETIME(6),
@@ -718,6 +750,8 @@ CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
 CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus);
 
+CREATE INDEX iAExtensionBoolean ON m_assignment_ext_boolean (extensionType, eName, booleanValue);
+
 CREATE INDEX iAExtensionDate ON m_assignment_ext_date (extensionType, eName, dateValue);
 
 CREATE INDEX iAExtensionLong ON m_assignment_ext_long (extensionType, eName, longValue);
@@ -743,6 +777,9 @@ ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
 ALTER TABLE m_lookup_table
 ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm);
 
+ALTER TABLE m_lookup_table_row
+ADD CONSTRAINT uc_row_key UNIQUE (row_key);
+
 ALTER TABLE m_node
 ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
 
@@ -753,6 +790,10 @@ CREATE INDEX iObjectNameNorm ON m_object (name_norm);
 CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass);
 
 CREATE INDEX iObjectCreateTimestamp ON m_object (createTimestamp);
+
+CREATE INDEX iExtensionBoolean ON m_object_ext_boolean (ownerType, eName, booleanValue);
+
+CREATE INDEX iExtensionBooleanDef ON m_object_ext_boolean (owner_oid, ownerType);
 
 CREATE INDEX iExtensionDate ON m_object_ext_date (ownerType, eName, dateValue);
 
@@ -843,6 +884,11 @@ ADD CONSTRAINT fk_assignment_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object (oid);
 
+ALTER TABLE m_assignment_ext_boolean
+ADD CONSTRAINT fk_assignment_ext_boolean
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
+REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+
 ALTER TABLE m_assignment_ext_date
 ADD CONSTRAINT fk_assignment_ext_date
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
@@ -914,13 +960,18 @@ FOREIGN KEY (oid)
 REFERENCES m_object (oid);
 
 ALTER TABLE m_lookup_table_row
-ADD CONSTRAINT fk_lookup_table
+ADD CONSTRAINT fk_lookup_table_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_lookup_table (oid);
 
 ALTER TABLE m_node
 ADD CONSTRAINT fk_node
 FOREIGN KEY (oid)
+REFERENCES m_object (oid);
+
+ALTER TABLE m_object_ext_boolean
+ADD CONSTRAINT fk_object_ext_boolean
+FOREIGN KEY (owner_oid)
 REFERENCES m_object (oid);
 
 ALTER TABLE m_object_ext_date

@@ -1,79 +1,72 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.evolveum.midpoint.report.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.io.Serializable;
+import java.io.Writer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBElement;
 
 import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRExporterParameter;
 import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.export.JExcelApiExporter;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.engine.export.JRRtfExporter;
 import net.sf.jasperreports.engine.export.JRXhtmlExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporter;
-import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
 import net.sf.jasperreports.engine.export.oasis.JROdsExporter;
 import net.sf.jasperreports.engine.export.oasis.JROdtExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRDocxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRPptxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
 import net.sf.jasperreports.engine.xml.JRXmlTemplateLoader;
+import net.sf.jasperreports.export.Exporter;
+import net.sf.jasperreports.export.ExporterInput;
+import net.sf.jasperreports.export.ExporterOutput;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import net.sf.jasperreports.export.SimpleWriterExporterOutput;
+import net.sf.jasperreports.export.WriterExporterOutput;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
-import org.hibernate.SessionFactory;
-import org.springframework.beans.BeansException;
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.param.ParameterSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.report.api.ReportManager;
-import com.evolveum.midpoint.schema.result.OperationConstants;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.parser.XNodeSerializer;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.RawTypeUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -86,37 +79,30 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubreportType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
-
-/**
- * @author lazyman
- */
 @Component
-public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextAware  {
+public class ReportCreateTaskHandler implements TaskHandler{
 
-	public static final String REPORT_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/create/handler-1";
-
-    private static final Trace LOGGER = TraceManager.getTrace(ReportCreateTaskHandler.class);
+	public static final String REPORT_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/create/handler-3";
+	private static final Trace LOGGER = TraceManager.getTrace(ReportCreateTaskHandler.class);
     
-    
-    private static final String CLASS_NAME_WITH_DOT = ReportCreateTaskHandler.class
-			.getName() + ".";
-    
-    private static final String CREATE_REPORT = CLASS_NAME_WITH_DOT + "createReport";
-    
-    private static final String CREATE_REPORT_OUTPUT_TYPE = CLASS_NAME_WITH_DOT + "createReportOutputType";
-    
+    private static String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
     private static String PARAMETER_REPORT_OID = "reportOid";
     private static String PARAMETER_OPERATION_RESULT = "operationResult";
-    private static String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
     
+    private static String MIDPOINT_HOME = System.getProperty("midpoint.home"); 
+    private static String EXPORT_DIR = MIDPOINT_HOME + "export/";
     
-
     @Autowired
     private TaskManager taskManager;
     
@@ -125,453 +111,369 @@ public class ReportCreateTaskHandler implements TaskHandler, ApplicationContextA
     
     @Autowired
 	private PrismContext prismContext;
+//
+//	
+//	
+//	
+//	 @Autowired(required=true)
+//	    private ExpressionFactory expressionFactory;
+//	 
+//	 @Autowired(required=true)
+//	    private AuditService auditService;
+    
+    @Autowired(required = true)
+    private ReportService reportService;
+    
+    @Autowired(required = true)
+	private ObjectResolver objectResolver;
 
-    @Autowired
-    private ReportManager reportManager;
-    
-    @Autowired
-	private SessionFactory sessionFactory;
-    
-    @Autowired(required=true)
-    private ExpressionFactory expressionFactory;
-    
-    @Autowired(required=true)
-    private ObjectResolver objectResolver;
-    
-    @Autowired(required=true)
-    private MidpointFunctions midpointFunctions;
-    
-    @Autowired(required=true)
-    private AuditService auditService;
-    
-    private ApplicationContext context;
+	 
+	 @PostConstruct
+	    private void initialize() {
+	        if (LOGGER.isTraceEnabled()) {
+	            LOGGER.trace("Registering with taskManager as a handler for " + REPORT_CREATE_TASK_URI);
+	        }
+	        taskManager.registerHandler(REPORT_CREATE_TASK_URI, this);
+	    }
 
-    
-    @PostConstruct
-    private void initialize() {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Registering with taskManager as a handler for " + REPORT_CREATE_TASK_URI);
-        }
-        taskManager.registerHandler(REPORT_CREATE_TASK_URI, this);
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext context) throws BeansException {
-        this.context = context;
-    }
-    
-    private Map<String, Object> getSubreportParameters(SubreportType subreportType, OperationResult subResult)
-    {
-    	Map<String, Object> reportParams = new HashMap<String, Object>();
-    	try
-		{
-			ReportType reportType = ReportUtils.getReport(subreportType.getReportRef().getOid(), subResult, modelService);
-			
-			PrismSchema reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);
-    		PrismContainer<Containerable> parameterConfiguration = ReportUtils.getParametersContainer(reportType, reportSchema);    		
-
-    		Map<String, Object> parameters = prepareReportParameters(reportType, subResult);
-    		reportParams.putAll(parameters);
-		   	
-		   	JasperReport jasperReport = ReportUtils.getJasperReport(reportType, parameterConfiguration, reportSchema);
-		   	reportParams.put(subreportType.getName(), jasperReport);
-       	 		
-       		Map<String, Object> subReportParams = processSubreportParameters(reportType, subResult);
-       		reportParams.putAll(subReportParams);
-       		
-       	 		
-		} catch (Exception ex) {
-				LOGGER.error("Error read subreport parameter {} :", ex);
-		}
-		 
-		return reportParams;
-    }
-	
-   
-    
-    public Map<String, Object> getReportParameters(ReportType reportType, PrismContext prismContext, OperationResult parentResult) throws Exception
-    {
-    	Map<String, Object> parameters = new HashMap<String, Object>();
-    	try
-    	{
-    			
-			
-    	} catch (Exception ex) {
-    		throw ex;
-    	}
-    	
-    
-    	return parameters;
-    }
-    @Override
-    public TaskRunResult run(Task task) {
-        //here a jasper magic should be done which creates PDF file (or something else) in midpoint directory
-        //also as a result ReportOutputType should be created and stored to DB.
-    	
-    	LOGGER.trace("ReportCreateTaskHandler.run starting");
-    	
-    	OperationResult opResult = new OperationResult(OperationConstants.CREATE_REPORT_FILE);
-		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
+	 
+	 
+	@Override
+	public TaskRunResult run(Task task) {
+		// TODO Auto-generated method stub
+		OperationResult parentResult = task.getResult();
+		OperationResult result = parentResult.createSubresult(ReportCreateTaskHandler.class.getSimpleName() + ".run");
 		
 		TaskRunResult runResult = new TaskRunResult();
-		runResult.setOperationResult(opResult);
+		runResult.setOperationResult(result);
 		
-    	recordProgress(task, 0, opResult);
+    	recordProgress(task, 0, result);
     	long progress = task.getProgress();
-    	
-		Map<String, Object> params = new HashMap<String, Object>();
-    	JasperReport jasperReport;
-    	try
-    	{  
-    		OperationResult subResult = opResult.createSubresult(CREATE_REPORT);
+		
+		try {
+			ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null, "resolving report", result);
+			Map<String, Object> parameters = completeReport(parentReport, result);
+			
+			PrismProperty<ReportParameterType> reportParams = task.getExtensionProperty(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+			if (reportParams != null){
+			List<PrismPropertyValue<ReportParameterType>> reportParamsValues = reportParams.getValues();
+			
+			for (PrismPropertyValue<ReportParameterType> paramValue : reportParamsValues){
+				ReportParameterType val = paramValue.getValue();
+				Class clazz = Class.forName(val.getType());
+				Object value = null;
+				if (XmlTypeConverter.canConvert(clazz)){
+					value =  XmlTypeConverter.toJavaValue(val.getValue(), clazz);
+				} else {
+					XNode xnode = prismContext.getParserDom().parse(val.getValue());
+					 value = prismContext.getBeanConverter().unmarshall(xnode, clazz);
+					
+				}
+				parameters.put(val.getName(), value);
+			}
+			}
+			
+			
+			JasperReport jasperReport = ReportTypeUtil.loadJasperReport(parentReport);
+			LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
     		
-    		ReportType reportType = ReportUtils.getReport(task.getObjectOid(), subResult, modelService);
     		
-    		PrismSchema reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);
-    		PrismContainer<Containerable> parameterConfiguration = ReportUtils.getParametersContainer(reportType, reportSchema);    		
-
-    		// Compile template
-    		jasperReport = ReportUtils.getJasperReport(reportType, parameterConfiguration, reportSchema);
-    		LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
-    		
-    		
-    		Map<String, Object> parameters = prepareReportParameters(reportType, opResult); 
-//    				ReportUtils.getReportParameters(modelService, taskManager, prismContext, reportType, parameterConfiguration, reportSchema, subResult);
-    		params.putAll(parameters);
-    		LOGGER.trace("create report params : {}", parameters);
-    		
-    		OperationResult subreportResult = opResult.createSubresult("get report subreport");
-    		Map<String, Object> subreportParameters = processSubreportParameters(reportType, subreportResult);
-    		subreportResult.computeStatus();
-    		
-    		//params.put("subreportParameters", subreportParameters);   		
-    		params.putAll(subreportParameters);
-    		ReportFunctions reportFunctions = new ReportFunctions(prismContext, modelService, taskManager, auditService);
-    		params.put(MidPointQueryExecutorFactory.PARAMETER_REPORT_FUNCTIONS, reportFunctions);
-    		
-    		LOGGER.trace("All Report parameters : {}", params);
-    		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
+    		LOGGER.trace("All Report parameters : {}", parameters);
+    		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters);
     		LOGGER.trace("fill report : {}", jasperPrint);
 
-    		String reportFilePath = generateReport(reportType, jasperPrint);
+    		String reportFilePath = generateReport(parentReport, jasperPrint);
     		LOGGER.trace("generate report : {}", reportFilePath);
 
-    		saveReportOutputType(reportFilePath, reportType, task, subResult);
+    		saveReportOutputType(reportFilePath, parentReport, task, result);
     		LOGGER.trace("create report output type : {}", reportFilePath);
     
-    		subResult.computeStatus();
-    			
-    	} catch (Exception ex) {
-    		LOGGER.error("CreateReport: {}", ex.getMessage(), ex);
-    		opResult.recordFatalError(ex.getMessage(), ex);
+    		result.computeStatus();
+    		
+    		
+		} catch (Exception ex) {
+			LOGGER.error("CreateReport: {}", ex.getMessage(), ex);
+			result.recordFatalError(ex.getMessage(), ex);
     		runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
     		runResult.setProgress(progress);
     		return runResult;
-    	}
-    	
-    	opResult.computeStatus();
+		}
+		
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
 		LOGGER.trace("CreateReportTaskHandler.run stopping");
     	return runResult;
-    }
-   
-    private Map<String, Object> prepareReportParameters(ReportType reportType, OperationResult parentResult){
-    	Map<String, Object> params = new HashMap<String, Object>();
-		if (reportType.getTemplateStyle() != null)
-		{	 
-			byte[] reportTemplateStyleBase64 = reportType.getTemplateStyle();
-			byte[] reportTemplateStyle = Base64.decodeBase64(reportTemplateStyleBase64);
-			try{
-				LOGGER.trace("Style template string {}", new String(reportTemplateStyle));
-		    	InputStream inputStreamJRTX = new ByteArrayInputStream(reportTemplateStyle);
-	    		JRTemplate templateStyle = JRXmlTemplateLoader.load(inputStreamJRTX);
-				params.put(PARAMETER_TEMPLATE_STYLES, templateStyle);
-				LOGGER.trace("Style template parameter {}", templateStyle);
-				
-			} catch (Exception ex) {
-				LOGGER.error("Error create style template parameter {}", ex.getMessage());
-				throw new SystemException(ex);
-			}
-			
-		 } 
+	}
+	
+	private Map<String, Object> completeReport(ReportType parentReport, OperationResult result) throws SchemaException, ObjectNotFoundException{
+		return completeReport(parentReport, null, null, result);
+	}
+	
+	private Map<String, Object> completeReport(ReportType parentReport, JasperReport subReport, String subReportName, OperationResult result) throws SchemaException, ObjectNotFoundException{
+		Map<String, Object> params =  new HashMap<String, Object>();
 		
-		// for our special datasource
-		params.put(PARAMETER_REPORT_OID, reportType.getOid());
-		params.put(PARAMETER_OPERATION_RESULT, parentResult);
-		params.put(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION, modelService);
-		params.put(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, prismContext);
-		params.put(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER, taskManager);
-		params.put(MidPointQueryExecutorFactory.PARAMETER_EXPRESSION_FACTORY, expressionFactory);
-		params.put(MidPointQueryExecutorFactory.PARAMETER_AUDIT_SERVICE, auditService);
-		
-		return params;
-    }
-    
-    private Map<String, Object> processSubreportParameters(ReportType reportType, OperationResult subreportResult){
-    	Map<String, Object> subreportParameters = new HashMap<String, Object>();
-    	for(SubreportType subreport : reportType.getSubreport())
-		{
-			Map<String, Object> subreportParam = getSubreportParameters(subreport, subreportResult);
-			LOGGER.trace("create subreport params : {}", subreportParam);
-			subreportParameters.putAll(subreportParam);
-				
+		if (subReport != null && StringUtils.isNotBlank(subReportName)){
+			params.put(subReportName, subReport);
 		}
-    	return subreportParameters;
-    }
-    
-    @Override
-    public Long heartbeat(Task task) {
-        return null;
-    }
+		
+		Map<String, Object> parameters = prepareReportParameters(parentReport, result); 
+		params.putAll(parameters);
+		LOGGER.trace("create report params : {}", parameters);
+		
+		Map<String, Object> subreportParameters = processSubreportParameters(parentReport, result);
+		params.putAll(subreportParameters);
+		return params;
+	}
+	
+	
 
-    @Override
-    public void refreshStatus(Task task) {
-    }
+//	private JasperReport loadJasperReport(ReportType reportType) throws SchemaException{
+//		
+//			if (reportType.getTemplate() == null) {
+//				throw new IllegalStateException("Could not create report. No jasper template defined.");
+//			}
+//			try	 {
+//		    	 	byte[] reportTemplate = Base64.decodeBase64(reportType.getTemplate());
+//		    	 	
+//		    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
+//		    	 	JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+//		    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
+//				 
+//				 if (reportType.getTemplateStyle() != null){
+//					JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
+//					jasperDesign.addTemplate(templateStyle);
+//					JRDesignParameter parameter = new JRDesignParameter();
+//					parameter.setName(PARAMETER_TEMPLATE_STYLES);
+//					parameter.setValueClass(JRTemplate.class);
+//					parameter.setForPrompting(false);
+//					jasperDesign.addParameter(parameter);
+//				 } 
+//				 JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+//				 return jasperReport;
+//			 } catch (JRException ex){ 
+//				 LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
+//				 throw new SchemaException(ex.getMessage(), ex.getCause());
+//			 }
+//			 
+//			 
+//	}
+	
+	
+	  private Map<String, Object> prepareReportParameters(ReportType reportType, OperationResult parentResult){
+	    	Map<String, Object> params = new HashMap<String, Object>();
+			if (reportType.getTemplateStyle() != null)
+			{	 
+				byte[] reportTemplateStyleBase64 = reportType.getTemplateStyle();
+				byte[] reportTemplateStyle = Base64.decodeBase64(reportTemplateStyleBase64);
+				try{
+					LOGGER.trace("Style template string {}", new String(reportTemplateStyle));
+			    	InputStream inputStreamJRTX = new ByteArrayInputStream(reportTemplateStyle);
+		    		JRTemplate templateStyle = JRXmlTemplateLoader.load(inputStreamJRTX);
+					params.put(PARAMETER_TEMPLATE_STYLES, templateStyle);
+					LOGGER.trace("Style template parameter {}", templateStyle);
+					
+				} catch (Exception ex) {
+					LOGGER.error("Error create style template parameter {}", ex.getMessage());
+					throw new SystemException(ex);
+				}
+				
+			 } 
+			
+			// for our special datasource
+			params.put(PARAMETER_REPORT_OID, reportType.getOid());
+			params.put(PARAMETER_OPERATION_RESULT, parentResult);
+			params.put(ReportService.PARAMETER_REPORT_SERVICE, reportService);
+			
+			return params;
+	    }
+	    
+	    private Map<String, Object> processSubreportParameters(ReportType reportType, OperationResult subreportResult) throws SchemaException, ObjectNotFoundException{
+	    	Map<String, Object> subreportParameters = new HashMap<String, Object>();
+	    	for(SubreportType subreport : reportType.getSubreport())
+			{
+				Map<String, Object> subreportParam = getSubreportParameters(subreport, subreportResult);
+				LOGGER.trace("create subreport params : {}", subreportParam);
+				subreportParameters.putAll(subreportParam);
+					
+			}
+	    	return subreportParameters;
+	    }
+	    
+	private Map<String, Object> getSubreportParameters(SubreportType subreportType, OperationResult subResult)
+			throws SchemaException, ObjectNotFoundException {
+		Map<String, Object> reportParams = new HashMap<String, Object>();
+		ReportType reportType = objectResolver.resolve(subreportType.getReportRef(), ReportType.class, null,
+				"resolve subreport", subResult);
 
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
-    
-    @Override
-    public String getCategoryName(Task task) {
-    	return TaskCategory.REPORT;
-    }
-        
-   
+		Map<String, Object> parameters = prepareReportParameters(reportType, subResult);
+		reportParams.putAll(parameters);
 
-    // generate report - export
-    private String generateReport(ReportType reportType, JasperPrint jasperPrint) throws JRException
-    {
-    	String output = ReportUtils.getReportOutputFilePath(reportType);
-    	switch (reportType.getExport())
-        {
-        	case PDF : pdf(jasperPrint, output);
-          		break;
-          	case CSV : {
-          			csv(jasperPrint, output);
-          			//pdf(jasperPrint, output.substring(0, output.lastIndexOf(".")) + ".pdf");
-          	}
-          	
-          		break;
-          	case XML : xml(jasperPrint, output);
-          		break;
-          	case XML_EMBED : xmlEmbed(jasperPrint, output);
-          		break;
-          	case HTML :	html(jasperPrint, output);
-          		break;
-          	case RTF :	rtf(jasperPrint, output);
-          		break;
-          	case XLS :	xls(jasperPrint, output);
-  				break;
-          	case ODT : 	odt(jasperPrint, output);
-  				break;
-          	case ODS : 	ods(jasperPrint, output);
-          		break;
-          	case DOCX : docx(jasperPrint, output);
-          		break;
-          	case XLSX :	xlsx(jasperPrint, output);
-  				break;
-          	case PPTX : pptx(jasperPrint, output);
-  				break;
-          	case XHTML : xhtml(jasperPrint, output);
-  				break;
-          	case JXL : jxl(jasperPrint, output);
-          		break; 	
+		JasperReport jasperReport = ReportTypeUtil.loadJasperReport(reportType);
+		reportParams.put(subreportType.getName(), jasperReport);
+
+		Map<String, Object> subReportParams = processSubreportParameters(reportType, subResult);
+		reportParams.putAll(subReportParams);
+
+		return reportParams;
+	}
+		
+	 private void recordProgress(Task task, long progress, OperationResult opResult) {
+	        try {
+	            task.setProgressImmediate(progress, opResult);
+	        } catch (ObjectNotFoundException e) {             // these exceptions are of so little probability and harmless, so we just log them and do not report higher
+	            LoggingUtils.logException(LOGGER, "Couldn't record progress to task {}, probably because the task does not exist anymore", e, task);
+	        } catch (SchemaException e) {
+	            LoggingUtils.logException(LOGGER, "Couldn't record progress to task {}, due to unexpected schema exception", e, task);
+	        }
+	    }
+	 
+	 private String generateReport(ReportType reportType, JasperPrint jasperPrint) throws JRException
+	    {
+	    	String destinationFileName = getDestinationFileName(reportType);
+	    	switch (reportType.getExport())
+	        {
+	        	case PDF : 
+	        		JasperExportManager.exportReportToPdfFile(jasperPrint, destinationFileName);
+	        		break;
+	        	case XML : 
+	        		JasperExportManager.exportReportToXmlFile(jasperPrint, destinationFileName, true);
+	        		break;
+	        	case XML_EMBED :
+	        		JasperExportManager.exportReportToXmlFile(jasperPrint, destinationFileName, true);
+	        		break;
+	        	case XHTML :
+	        	case HTML :	
+	        		JasperExportManager.exportReportToHtmlFile(jasperPrint, destinationFileName);
+	        		break;
+              	case CSV :  
+              		JRCsvExporter csvExporter = new JRCsvExporter();
+              		csvExporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+              		csvExporter.setExporterOutput(new SimpleWriterExporterOutput(destinationFileName));
+              		csvExporter.exportReport();
+              		break;
+              	case RTF :
+	          	case XLS :
+	          	case ODT :
+	          	case ODS :
+	          	case DOCX :
+	          	case XLSX :
+	          	case PPTX :
+	          	
+	          	case JXL : 		          		
+	          		ExporterInput input = new SimpleExporterInput(jasperPrint);
+	          		ExporterOutput output = new SimpleOutputStreamExporterOutput(destinationFileName);
+	          		
+	          		Exporter exporter = createExporter(reportType.getExport());
+	          		if (exporter == null){
+	          			break;
+	          		}
+	          		exporter.setExporterInput(input);
+	          		exporter.setExporterOutput(output);
+	          		exporter.exportReport();
+	          		break;
+				default:
+					break;
+	        }
+	    	return destinationFileName;
+	    }
+	  
+	private Exporter createExporter(ExportType type) {
+		switch (type) {
+			case CSV:
+				return new JRCsvExporter();
+			case RTF:
+				return new JRRtfExporter();
+			case XLS:
+				return new JRXlsExporter();
+			case ODT:
+				return new JROdtExporter();
+			case ODS:
+				return new JROdsExporter();
+			case DOCX:
+				return new JRDocxExporter();
+			case XLSX:
+				return new JRXlsxExporter();
+			case PPTX:
+				return new JRPptxExporter();
 			default:
-				break;
-        }
-    	return output;
-    }
-  
-    //export report
-    private void pdf(JasperPrint jasperPrint, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(jasperPrint, output);
-    }
-    
-    private static void csv(JasperPrint jasperPrint, String output) throws JRException
-    {
-		File destFile = new File(output);
-		
-		JRCsvExporter exporter = new JRCsvExporter();
-		
-		exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-		exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, destFile.toString());
-		
-		exporter.exportReport();
-    }
-    
-    private void xml(JasperPrint jasperPrint, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToXmlFile(jasperPrint, output, false);
-    }
-    
-    private void xmlEmbed(JasperPrint jasperPrint, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToXmlFile(jasperPrint, output, true);
-    }
-    
-    private void html(JasperPrint jasperPrint, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToHtmlFile(jasperPrint, output);
-    }
-    
-    private void rtf(JasperPrint jasperPrint, String output) throws JRException
-    {
-		File destFile = new File(output);
-		
-		JRRtfExporter exporter = new JRRtfExporter();
-		
-		exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-		exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, destFile.toString());
-		
-		exporter.exportReport();
-    }
-    
-    private void xls(JasperPrint jasperPrint, String output) throws JRException
-    {
-		File destFile = new File(output);
-		
-		JRXlsExporter exporter = new JRXlsExporter();
-		
-		exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-		exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, destFile.toString());
-		exporter.setParameter(JRXlsExporterParameter.IS_ONE_PAGE_PER_SHEET, Boolean.FALSE);
-		
-		exporter.exportReport();
-    }
-    
-    private void odt(JasperPrint jasperPrint, String output) throws JRException
-    {
-		File destFile = new File(output);
-		
-		JROdtExporter exporter = new JROdtExporter();
-		
-		exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-		exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, destFile.toString());
-		
-		exporter.exportReport();
-    }
-    
-    private void ods(JasperPrint jasperPrint, String output) throws JRException
-    {
-		File destFile = new File(output);
-		
-		JROdsExporter exporter = new JROdsExporter();
-		
-		exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-		exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, destFile.toString());
-		exporter.setParameter(JRXlsExporterParameter.IS_ONE_PAGE_PER_SHEET, Boolean.TRUE);
-		
-		exporter.exportReport();
-    }
-    
-    private void docx(JasperPrint jasperPrint, String output) throws JRException
-    {
-		File destFile = new File(output);
-		
-		JRDocxExporter exporter = new JRDocxExporter();
-		
-		exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-		exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, destFile.toString());
-		
-		exporter.exportReport();
-    }
-    
-    private void xlsx(JasperPrint jasperPrint, String output) throws JRException
-    {
-		File destFile = new File(output);
-		
-		JRXlsxExporter exporter = new JRXlsxExporter();
-		
-		exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-		exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, destFile.toString());
-		exporter.setParameter(JRXlsExporterParameter.IS_ONE_PAGE_PER_SHEET, Boolean.FALSE);
-		
-		exporter.exportReport();
-    }
-    
-    private void pptx(JasperPrint jasperPrint, String output) throws JRException
-    {
-		File destFile = new File(output);
-		
-		JRPptxExporter exporter = new JRPptxExporter();
-		
-		exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-		exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, destFile.toString());
+				return null;
+		}
+	}
 
-		exporter.exportReport();
-    }
-    
-    private void xhtml(JasperPrint jasperPrint, String output) throws JRException
-    {
-		File destFile = new File(output);
+	public static String getDateTime() {
+		Date createDate = new Date(System.currentTimeMillis());
+		SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss");
+		return formatDate.format(createDate);
+	}
+	 private static String getDestinationFileName(ReportType reportType){
+	        File exportFolder = new File(EXPORT_DIR);
+	        if (!exportFolder.exists() || !exportFolder.isDirectory()) {
+	            exportFolder.mkdir();
+	        }
+	    	
+	    	String output = EXPORT_DIR +  reportType.getName().getOrig() + " " + getDateTime();
+	    	
+	    	if (reportType.getExport() == ExportType.XML_EMBED){
+	    		return output + "_embed.xml";
+	    	}
+	    	
+	    	return output + "." +reportType.getExport().value();
+	    
+	    }
+	 
+	 private void saveReportOutputType(String filePath, ReportType reportType, Task task, OperationResult parentResult) throws Exception
+	    {
+	    
+	    	String fileName = FilenameUtils.getBaseName(filePath);
+	    	String reportOutputName = fileName + " - " + reportType.getExport().value() ;
+	    	
+	    	ReportOutputType reportOutputType = new ReportOutputType();
+	    	prismContext.adopt(reportOutputType);
+	    	
+	    	reportOutputType.setFilePath(filePath);
+	    	reportOutputType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
+	    	reportOutputType.setName(new PolyStringType(reportOutputName));
+	    	reportOutputType.setDescription(reportType.getDescription() + " - " + reportType.getExport().value());
+	    	reportOutputType.setExportType(reportType.getExport());
+	    	
+	   		ObjectDelta<ReportOutputType> objectDelta = null;
+	   		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+	   		OperationResult subResult = null;
+	   		
+	   		objectDelta = ObjectDelta.createAddDelta((PrismObject<ReportOutputType>) reportOutputType.asPrismObject());
+	   		deltas.add(objectDelta);
+	   		subResult = parentResult.createSubresult(ReportCreateTaskHandler.class.getName()+ "createRepourtOutput");
+				      		
+	    	modelService.executeChanges(deltas, null, task, subResult);
+	    	
+	    	subResult.computeStatus();    	
+	   }
+	 
+	
+	@Override
+	public Long heartbeat(Task task) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void refreshStatus(Task task) {
+		// TODO Auto-generated method stub
 		
-		JRXhtmlExporter exporter = new JRXhtmlExporter();
-		
-		exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-		exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, destFile.toString());
-		
-		exporter.exportReport();
+	}
 
-    }
-    
-    private void jxl(JasperPrint jasperPrint, String output) throws JRException
-    {
-		File destFile = new File(output);
+	@Override
+	public String getCategoryName(Task task) {
+		return TaskCategory.REPORT;
+	}
 
-		JExcelApiExporter exporter = new JExcelApiExporter();
-
-		exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-		exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, destFile.toString());
-		exporter.setParameter(JRXlsExporterParameter.IS_ONE_PAGE_PER_SHEET, Boolean.TRUE);
-
-		exporter.exportReport();
-    }
-
-   
-
-    private void recordProgress(Task task, long progress, OperationResult opResult) {
-        try {
-            task.setProgressImmediate(progress, opResult);
-        } catch (ObjectNotFoundException e) {             // these exceptions are of so little probability and harmless, so we just log them and do not report higher
-            LoggingUtils.logException(LOGGER, "Couldn't record progress to task {}, probably because the task does not exist anymore", e, task);
-        } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't record progress to task {}, due to unexpected schema exception", e, task);
-        }
-    }
-    
-    
-    private void saveReportOutputType(String filePath, ReportType reportType, Task task, OperationResult parentResult) throws Exception
-    {
-    
-    	String fileName = FilenameUtils.getBaseName(filePath);
-    	String reportOutputName = fileName + " - " + reportType.getExport().value() ;
-    	
-    	ReportOutputType reportOutputType = new ReportOutputType();
-    	prismContext.adopt(reportOutputType);
-    	
-    	reportOutputType.setFilePath(filePath);
-    	reportOutputType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
-    	reportOutputType.setName(new PolyStringType(reportOutputName));
-    	reportOutputType.setDescription(reportType.getDescription() + " - " + reportType.getExport().value());
-    	
-   		ObjectDelta<ReportOutputType> objectDelta = null;
-   		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-   		OperationResult subResult = null;
-   		
-   		objectDelta = ObjectDelta.createAddDelta((PrismObject<ReportOutputType>) reportOutputType.asPrismObject());
-   		deltas.add(objectDelta);
-   		subResult = parentResult.createSubresult(CREATE_REPORT_OUTPUT_TYPE);
-			      		
-    	modelService.executeChanges(deltas, null, task, subResult);
-    	
-    	subResult.computeStatus();    	
-   }
-
+	@Override
+	public List<String> getCategoryNames() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
 
 }
-

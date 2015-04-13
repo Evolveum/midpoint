@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,10 +94,10 @@ public class StaticExpressionUtil {
 	}
 	
 
-	public static <V extends PrismValue> Item<V> parseValueElements(Collection<?> valueElements, ItemDefinition outputDefinition, 
+	public static <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> parseValueElements(Collection<?> valueElements, ID outputDefinition, 
 			String contextDescription, PrismContext prismContext) throws SchemaException {
 		
-		Item<V> output = null;
+		Item<IV,ID> output = null;
 		XNodeProcessor xnodeProcessor = prismContext.getXnodeProcessor();
 		
 		for (Object valueElement: valueElements) {
@@ -120,7 +120,7 @@ public class StaticExpressionUtil {
 			RawType rawType = (RawType)jaxbElement.getValue();
 			
 			//Item<V> elementItem = xnodeProcessor.parseItem(rawType.getXnode(), outputDefinition.getName(), outputDefinition);
-            Item<V> elementItem = rawType.getParsedItem(outputDefinition);
+            Item<IV,ID> elementItem = rawType.getParsedItem(outputDefinition);
             if (output == null) {
 				output = elementItem;
 			} else {
@@ -130,7 +130,7 @@ public class StaticExpressionUtil {
 		return output;
 	}
 
-	public static <V extends PrismValue> List<JAXBElement<RawType>> serializeValueElements(Item<V> item, String contextDescription) throws SchemaException {
+	public static <IV extends PrismValue,ID extends ItemDefinition> List<JAXBElement<RawType>> serializeValueElements(Item<IV,ID> item, String contextDescription) throws SchemaException {
 		if (item == null) {
 			return null;
 		}

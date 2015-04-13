@@ -214,7 +214,7 @@ public class JaxbDomHack {
 	/**
 	 * This is used in a form of "fromAny" to parse elements from a JAXB getAny method to prism. 
 	 */
-	public <V extends PrismValue,C extends Containerable> Item<V> parseRawElement(Object element, PrismContainerDefinition<C> definition) throws SchemaException {
+	public <IV extends PrismValue,ID extends ItemDefinition,C extends Containerable> Item<IV,ID> parseRawElement(Object element, PrismContainerDefinition<C> definition) throws SchemaException {
 		Validate.notNull(definition, "Attempt to parse raw element in a container without definition");
 		
 		QName elementName = JAXBUtil.getElementQName(element);
@@ -222,15 +222,18 @@ public class JaxbDomHack {
 		
 		if (itemDefinition == null) {
 			itemDefinition = locateItemDefinition(definition, elementName, element);
+			if (itemDefinition == null) {
+	            throw new SchemaException("No definition for item "+elementName);
+			}
 		}
 		
 		PrismContext prismContext = definition.getPrismContext();
-		Item<V> subItem;
+		Item<IV,ID> subItem;
 		if (element instanceof Element) {
 			// DOM Element
 			DomParser domParser = prismContext.getParserDom();
 			XNode xnode = domParser.parseElementContent((Element)element);
-			subItem = prismContext.getXnodeProcessor().parseItem(xnode, elementName, itemDefinition);
+			subItem = (Item<IV, ID>) prismContext.getXnodeProcessor().parseItem(xnode, elementName, itemDefinition);
 		} else if (element instanceof JAXBElement<?>) {
 			// JAXB Element
 			JAXBElement<?> jaxbElement = (JAXBElement<?>)element;
@@ -242,13 +245,13 @@ public class JaxbDomHack {
 				// property
 				PrismProperty<?> property = ((PrismPropertyDefinition<?>)itemDefinition).instantiate();
 				property.setRealValue(jaxbBean);
-				subItem = (Item<V>) property;
+				subItem = (Item<IV,ID>) property;
 			} else if (itemDefinition instanceof PrismContainerDefinition<?>) {
 				if (jaxbBean instanceof Containerable) {
 					PrismContainer<?> container = ((PrismContainerDefinition<?>)itemDefinition).instantiate();
 					PrismContainerValue subValue = ((Containerable)jaxbBean).asPrismContainerValue();
 					container.add(subValue);
-					subItem = (Item<V>) container;
+					subItem = (Item<IV,ID>) container;
 				} else {
 					throw new IllegalArgumentException("Unsupported JAXB bean "+jaxbBean.getClass());
 				}
@@ -258,7 +261,7 @@ public class JaxbDomHack {
 					PrismReference reference = ((PrismReferenceDefinition)itemDefinition).instantiate();
 					PrismReferenceValue refValue = ((Referencable) jaxbBean).asReferenceValue();
 					reference.merge(refValue);
-					subItem = (Item<V>) reference;
+					subItem = (Item<IV,ID>) reference;
 				} else{
 					throw new IllegalArgumentException("Unsupported JAXB bean" + jaxbBean);
 				}

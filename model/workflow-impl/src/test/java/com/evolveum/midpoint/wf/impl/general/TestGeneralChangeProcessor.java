@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -39,7 +40,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.TestConstants;
+import com.evolveum.midpoint.wf.impl.AbstractWfTest;
 import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
@@ -133,11 +134,22 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
-        importObjectFromFile(TestConstants.USERS_AND_ROLES_FILENAME, initResult);
-
+        importObjectFromFile(AbstractWfTest.USERS_AND_ROLES_FILENAME, initResult);
+        modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                new ItemPath(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
+                        WfConfigurationType.F_PRIMARY_CHANGE_PROCESSOR,
+                        PrimaryChangeProcessorConfigurationType.F_ENABLED),
+                initTask, initResult,
+                false);
+        modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                new ItemPath(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
+                        WfConfigurationType.F_GENERAL_CHANGE_PROCESSOR,
+                        GeneralChangeProcessorConfigurationType.F_ENABLED),
+                initTask, initResult,
+                true);
 	}
 
-	@Test(enabled = true)
+	@Test
     public void test010AddRole1() throws Exception {
         TestUtil.displayTestTile(this, "test010UserModifyAddRole");
         executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
@@ -184,22 +196,19 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
-                assertAssignedRole(USER_JACK_OID, TestConstants.ROLE_R2_OID, task, result);
+                assertAssignedRole(USER_JACK_OID, AbstractWfTest.ROLE_R2_OID, task, result);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED));
-                //checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R1BOSS_OID), result);
+                //checkWorkItemAuditRecords(createResultMap(AbstractWfTest.ROLE_R1_OID, WorkflowResult.APPROVED));
+                //checkUserApprovers(USER_JACK_OID, Arrays.asList(AbstractWfTest.R1BOSS_OID), result);
             }
         });
 	}
 
-    @Test(enabled = true)
+    @Test
     public void test020AddAccountRejected() throws Exception {
         TestUtil.displayTestTile(this, "test020AddAccountRejected");
 
-        primaryChangeProcessor.setEnabled(false);
-        generalChangeProcessor.setEnabled(true);
-        generalChangeProcessor.disableScenario("primaryScenario");
-        generalChangeProcessor.enableScenario("secondaryScenario");
+        enableDisableScenarios(false, true);
 
         executeTest("test020AddAccountRejected", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
@@ -241,15 +250,30 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
-//                assertAssignedRole(USER_JACK_OID, TestConstants.ROLE_R2_OID, task, result);
+//                assertAssignedRole(USER_JACK_OID, AbstractWfTest.ROLE_R2_OID, task, result);
                 assertNoLinkedAccount(jack);
                 //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED));
-                //checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R1BOSS_OID), result);
+                //checkWorkItemAuditRecords(createResultMap(AbstractWfTest.ROLE_R1_OID, WorkflowResult.APPROVED));
+                //checkUserApprovers(USER_JACK_OID, Arrays.asList(AbstractWfTest.R1BOSS_OID), result);
             }
 
 
         });
+    }
+
+    protected void enableDisableScenarios(boolean... values) throws ObjectNotFoundException, SchemaException, com.evolveum.midpoint.util.exception.ExpressionEvaluationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException, com.evolveum.midpoint.model.api.PolicyViolationException, com.evolveum.midpoint.util.exception.SecurityViolationException {
+        OperationResult result = new OperationResult("execution");
+        Task task = taskManager.createTaskInstance("execution");
+        GeneralChangeProcessorConfigurationType gcpConfig = getSystemConfiguration().getWorkflowConfiguration().getGeneralChangeProcessor();
+        for (int i = 0; i < values.length; i++) {
+            gcpConfig.getScenario().get(i).setEnabled(values[i]);
+        }
+        modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                new ItemPath(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
+                        WfConfigurationType.F_GENERAL_CHANGE_PROCESSOR,
+                        GeneralChangeProcessorConfigurationType.F_ENABLED),
+                task, result,
+                gcpConfig);
     }
 
 //    @Test(enabled = false)
@@ -280,14 +304,11 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 //        LOGGER.info("Parsed:\n{}", o.debugDump());
 //    }
 
-    @Test(enabled = true)
+    @Test
     public void test030AddAccountApproved() throws Exception {
         TestUtil.displayTestTile(this, "test030AddAccountApproved");
 
-        primaryChangeProcessor.setEnabled(false);
-        generalChangeProcessor.setEnabled(true);
-        generalChangeProcessor.disableScenario("primaryScenario");
-        generalChangeProcessor.enableScenario("secondaryScenario");
+        enableDisableScenarios(false, true);
 
         executeTest("test030AddAccountApproved", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
@@ -329,11 +350,11 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
-//                assertAssignedRole(USER_JACK_OID, TestConstants.ROLE_R2_OID, task, result);
+//                assertAssignedRole(USER_JACK_OID, AbstractWfTest.ROLE_R2_OID, task, result);
                 assertAccount(jack, RESOURCE_DUMMY_OID);
                 //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED));
-                //checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R1BOSS_OID), result);
+                //checkWorkItemAuditRecords(createResultMap(AbstractWfTest.ROLE_R1_OID, WorkflowResult.APPROVED));
+                //checkUserApprovers(USER_JACK_OID, Arrays.asList(AbstractWfTest.R1BOSS_OID), result);
             }
 
 

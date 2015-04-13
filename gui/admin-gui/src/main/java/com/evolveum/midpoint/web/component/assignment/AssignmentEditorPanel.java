@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -97,6 +99,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_RELATION = "relation";
+    private static final String ID_RELATION_LABEL = "relationLabel";
     private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
     private static final String ID_VALID_FROM = "validFrom";
     private static final String ID_VALID_TO = "validTo";
@@ -110,6 +113,8 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private static final String ID_CONSTRUCTION_CONTAINER = "constructionContainer";
     private static final String ID_CONTAINER_TENANT_REF = "tenantRefContainer";
     private static final String ID_TENANT_CHOOSER = "tenantRefChooser";
+    private static final String ID_CONTAINER_ORG_REF = "orgRefContainer";
+    private static final String ID_ORG_CHOOSER = "orgRefChooser";
     private static final String ID_BUTTON_SHOW_MORE = "errorLink";
     private static final String ID_ERROR_ICON = "errorIcon";
 
@@ -343,49 +348,43 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 "AssignmentEditorPanel.member", "AssignmentEditorPanel.manager", null);
         relation.setOutputMarkupId(true);
         relation.setOutputMarkupPlaceholderTag(true);
-        relationContainer.add(relation);
-
-        WebMarkupContainer tenantRefContainer = new WebMarkupContainer(ID_CONTAINER_TENANT_REF);
-        ChooseTypePanel tenantRef = new ChooseTypePanel(ID_TENANT_CHOOSER,
-                new PropertyModel<ObjectViewDto>(getModel(), AssignmentEditorDto.F_TENANT_REF)){
-
-            @Override
-            protected ObjectQuery getChooseQuery(){
-                ObjectQuery query = new ObjectQuery();
-
-                ObjectFilter filter = EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-                        getPageBase().getPrismContext(), null, true);
-                query.setFilter(filter);
-
-                return query;
-            }
-
-            @Override
-            protected boolean isSearchEnabled() {
-                return true;
-            }
-
-            @Override
-            protected QName getSearchProperty() {
-                return OrgType.F_NAME;
-            }
-        };
-        tenantRefContainer.add(tenantRef);
-        tenantRefContainer.add(new VisibleEnableBehaviour(){
+        relation.add(new VisibleEnableBehaviour(){
 
             @Override
             public boolean isVisible() {
-                AssignmentEditorDto dto = getModel().getObject();
-                if(dto != null){
-                    if(AssignmentEditorDtoType.ROLE.equals(dto.getType())){
-                        return true;
-                    }
-                }
-
-                return false;
+                return isCreatingNewAssignment();
             }
         });
+        relationContainer.add(relation);
+
+        Label relationLabel = new Label(ID_RELATION_LABEL, new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                if(getModel() == null || getModel().getObject() == null){
+                    return getString("AssignmentEditorPanel.relation.notSpecified");
+                }
+
+                AssignmentEditorDto object = getModel().getObject();
+                return object.isOrgUnitManager() ? getString("AssignmentEditorPanel.manager") : getString("AssignmentEditorPanel.member");
+            }
+        });
+        relationLabel.setOutputMarkupId(true);
+        relationLabel.setOutputMarkupPlaceholderTag(true);
+        relationLabel.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return !isCreatingNewAssignment();
+            }
+        });
+        relationContainer.add(relationLabel);
+
+        WebMarkupContainer tenantRefContainer = createTenantContainer();
         body.add(tenantRefContainer);
+        
+        WebMarkupContainer orgRefContainer = createOrgContainer();
+        body.add(orgRefContainer);
 
         WebMarkupContainer activationBlock = new WebMarkupContainer(ID_ACTIVATION_BLOCK);
         activationBlock.add(new VisibleEnableBehaviour() {
@@ -398,7 +397,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         });
         body.add(activationBlock);
 
-        DropDownChoicePanel administrativeStatus = WebMiscUtil.createActivationStatusPanel(ID_ADMINISTRATIVE_STATUS,
+        DropDownChoicePanel administrativeStatus = WebMiscUtil.createEnumPanel(ActivationStatusType.class, ID_ADMINISTRATIVE_STATUS,
                 new PropertyModel<ActivationStatusType>(getModel(), AssignmentEditorDto.F_ACTIVATION + "."
                         + ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart()), this);
         activationBlock.add(administrativeStatus);
@@ -451,6 +450,94 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         initAttributesLayout(constructionContainer);
 
         addAjaxOnUpdateBehavior(body);
+    }
+    
+    private WebMarkupContainer createTenantContainer(){
+    	WebMarkupContainer tenantRefContainer = new WebMarkupContainer(ID_CONTAINER_TENANT_REF);
+        ChooseTypePanel tenantRef = new ChooseTypePanel(ID_TENANT_CHOOSER,
+                new PropertyModel<ObjectViewDto>(getModel(), AssignmentEditorDto.F_TENANT_REF)){
+
+            @Override
+            protected ObjectQuery getChooseQuery(){
+                ObjectQuery query = new ObjectQuery();
+
+                ObjectFilter filter = EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
+                        getPageBase().getPrismContext(), null, true);
+                query.setFilter(filter);
+
+                return query;
+            }
+
+            @Override
+            protected boolean isSearchEnabled() {
+                return true;
+            }
+
+            @Override
+            protected QName getSearchProperty() {
+                return OrgType.F_NAME;
+            }
+        };
+        tenantRefContainer.add(tenantRef);
+        tenantRefContainer.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                AssignmentEditorDto dto = getModel().getObject();
+                if(dto != null){
+                    if(AssignmentEditorDtoType.ROLE.equals(dto.getType())){
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        });
+        return tenantRefContainer;
+    }
+    
+    private WebMarkupContainer createOrgContainer(){
+    	WebMarkupContainer tenantRefContainer = new WebMarkupContainer(ID_CONTAINER_ORG_REF);
+        ChooseTypePanel tenantRef = new ChooseTypePanel(ID_ORG_CHOOSER,
+                new PropertyModel<ObjectViewDto>(getModel(), AssignmentEditorDto.F_ORG_REF)){
+
+            @Override
+            protected ObjectQuery getChooseQuery(){
+                ObjectQuery query = new ObjectQuery();
+
+                ObjectFilter filter = NotFilter.createNot(EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
+                        getPageBase().getPrismContext(), null, true));
+                query.setFilter(filter);
+
+                return query;
+            }
+
+            @Override
+            protected boolean isSearchEnabled() {
+                return true;
+            }
+
+            @Override
+            protected QName getSearchProperty() {
+                return OrgType.F_NAME;
+            }
+        };
+        tenantRefContainer.add(tenantRef);
+        tenantRefContainer.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                AssignmentEditorDto dto = getModel().getObject();
+                if(dto != null){
+                    if(AssignmentEditorDtoType.ROLE.equals(dto.getType())){
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        });
+        return tenantRefContainer;
     }
 
     private void addAjaxOnBlurUpdateBehaviorToComponent(final Component component){
@@ -737,5 +824,17 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private void showErrorPerformed(AjaxRequestTarget target){
         error(getString("AssignmentEditorPanel.targetError"));
         target.add(getPageBase().getFeedbackPanel());
+    }
+
+    /**
+     *  Override to provide the information if object that contains this assignment
+     *  is being edited or created.
+     * */
+    protected boolean isCreatingNewAssignment(){
+        if(getModelObject() == null){
+            return false;
+        }
+
+        return UserDtoStatus.ADD.equals(getModelObject().getStatus());
     }
 }

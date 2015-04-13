@@ -26,6 +26,11 @@
     	<displayName>Can request</displayName>
     </item>
     
+    <item>
+    	<ref>roleType</ref>
+    	<valueEnumerationRef oid="70000000-0000-0000-1111-000000000021"/>
+    </item>
+    
     <mapping>
     	<strength>weak</strength>
     	<source>

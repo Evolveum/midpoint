@@ -56,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
@@ -98,6 +99,7 @@ public class JobController {
     private ActivitiInterface activitiInterface;
 
     @Autowired
+    @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
     @Autowired

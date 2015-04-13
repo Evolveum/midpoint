@@ -229,7 +229,7 @@ public class Projector {
 		        	//SynchronizerUtil.traceContext("values", context, false);
 		        	if (consistencyChecks) context.checkConsistence();
 		        	
-		        	credentialsProcessor.processCredentials(context, projectionContext, task, result);
+		        	credentialsProcessor.processProjectionCredentials(context, projectionContext, now, task, result);
 		        	
 		        	//SynchronizerUtil.traceContext("credentials", context, false);
 		        	if (consistencyChecks) context.checkConsistence();

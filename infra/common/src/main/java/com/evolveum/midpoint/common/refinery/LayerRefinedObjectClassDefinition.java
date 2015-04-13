@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -59,7 +60,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
      * Keeps layer-specific information on resource object attributes.
      * This list is lazily evaluated.
      */
-    private List<LayerRefinedAttributeDefinition> layerRefinedAttributeDefinitions;
+    private List<LayerRefinedAttributeDefinition<?>> layerRefinedAttributeDefinitions;
 	
 	private LayerRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedAccountDefinition, LayerType layer) {
 		super(new QName("fake"), refinedAccountDefinition.getPrismContext());
@@ -107,30 +108,30 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 
     @Override
-    public ResourceAttributeDefinition getDescriptionAttribute() {
+    public ResourceAttributeDefinition<?> getDescriptionAttribute() {
         return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getDescriptionAttribute());
     }
 
     @Override
-    public void setDescriptionAttribute(ResourceAttributeDefinition descriptionAttribute) {
+    public void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute) {
 		refinedObjectClassDefinition.setDescriptionAttribute(descriptionAttribute);
 	}
 
-    private LayerRefinedAttributeDefinition substituteLayerRefinedAttributeDefinition(ResourceAttributeDefinition attributeDef) {
-        LayerRefinedAttributeDefinition rAttrDef = findAttributeDefinition(attributeDef.getName());
+    private LayerRefinedAttributeDefinition<?> substituteLayerRefinedAttributeDefinition(ResourceAttributeDefinition<?> attributeDef) {
+        LayerRefinedAttributeDefinition<?> rAttrDef = findAttributeDefinition(attributeDef.getName());
         return rAttrDef;
     }
 
-    private Collection<LayerRefinedAttributeDefinition> substituteLayerRefinedAttributeDefinitionCollection(Collection<? extends RefinedAttributeDefinition> attributes) {
-        Collection<LayerRefinedAttributeDefinition> retval = new ArrayList<>();
-        for (RefinedAttributeDefinition rad : attributes) {
+    private Collection<LayerRefinedAttributeDefinition<?>> substituteLayerRefinedAttributeDefinitionCollection(Collection<? extends RefinedAttributeDefinition<?>> attributes) {
+        Collection<LayerRefinedAttributeDefinition<?>> retval = new ArrayList<>();
+        for (RefinedAttributeDefinition<?> rad : attributes) {
             retval.add(substituteLayerRefinedAttributeDefinition(rad));
         }
         return retval;
     }
 
     @Override
-    public LayerRefinedAttributeDefinition getNamingAttribute() {
+    public LayerRefinedAttributeDefinition<?> getNamingAttribute() {
         return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getNamingAttribute());
 	}
 
@@ -185,7 +186,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 
     @Override
-	public LayerRefinedAttributeDefinition getDisplayNameAttribute() {
+	public LayerRefinedAttributeDefinition<?> getDisplayNameAttribute() {
         return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getDisplayNameAttribute());
 	}
 
@@ -200,7 +201,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 
     @Override
-	public Collection<? extends LayerRefinedAttributeDefinition> getIdentifiers() {
+	public Collection<? extends LayerRefinedAttributeDefinition<?>> getIdentifiers() {
         return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getIdentifiers());
 	}
 
@@ -216,7 +217,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 
     @Override
-	public Collection<? extends LayerRefinedAttributeDefinition> getSecondaryIdentifiers() {
+	public Collection<? extends LayerRefinedAttributeDefinition<?>> getSecondaryIdentifiers() {
 		return LayerRefinedAttributeDefinition.wrapCollection(refinedObjectClassDefinition.getSecondaryIdentifiers(), layer);
 	}
 
@@ -236,7 +237,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 
     @Override
-	public void setNamingAttribute(ResourceAttributeDefinition namingAttribute) {
+	public void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute) {
 		refinedObjectClassDefinition.setNamingAttribute(namingAttribute);
 	}
 
@@ -262,7 +263,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 
     @Override
-	public LayerRefinedAttributeDefinition findAttributeDefinition(QName elementQName) {
+	public <X> LayerRefinedAttributeDefinition<X> findAttributeDefinition(QName elementQName) {
         for (LayerRefinedAttributeDefinition definition : getAttributeDefinitions()) {
             if (QNameUtil.match(definition.getName(), elementQName)) {
                 return definition;
@@ -277,7 +278,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 
     @Override
-	public LayerRefinedAttributeDefinition findAttributeDefinition(String elementLocalname) {
+	public <X> LayerRefinedAttributeDefinition<X> findAttributeDefinition(String elementLocalname) {
 		return findAttributeDefinition(new QName(getResourceNamespace(), elementLocalname));        // todo or should we use ns-less matching?
 	}
 
@@ -327,7 +328,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 
     @Override
-	public List<? extends LayerRefinedAttributeDefinition> getAttributeDefinitions() {
+	public List<? extends LayerRefinedAttributeDefinition<?>> getAttributeDefinitions() {
         if (layerRefinedAttributeDefinitions == null) {
             layerRefinedAttributeDefinitions = LayerRefinedAttributeDefinition.wrapCollection(refinedObjectClassDefinition.getAttributeDefinitions(), layer);
         }
@@ -345,12 +346,12 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 
     @Override
-	public void setDisplayNameAttribute(ResourceAttributeDefinition displayName) {
+	public void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName) {
 		refinedObjectClassDefinition.setDisplayNameAttribute(displayName);
 	}
 
     @Override
-	public LayerRefinedAttributeDefinition getAttributeDefinition(QName attributeName) {
+	public LayerRefinedAttributeDefinition<?> getAttributeDefinition(QName attributeName) {
         // todo should there be any difference between findAttributeDefinition and getAttributeDefinition? [mederly]
 		return findAttributeDefinition(attributeName);
 	}
@@ -615,8 +616,13 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
     public void parseAssociations(RefinedResourceSchema rSchema) {
         throw new UnsupportedOperationException();
     }
-
+    
     @Override
+    public ResourceObjectReferenceType getBaseContext() {
+		return refinedObjectClassDefinition.getBaseContext();
+	}
+
+	@Override
     protected String debugDump(int indent, LayerType layer) {
         return refinedObjectClassDefinition.debugDump(indent, layer);
     }

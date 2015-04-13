@@ -43,6 +43,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 
+import org.apache.commons.lang.StringUtils;
+import org.jvnet.jaxb2_commons.lang.Equals;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
@@ -211,7 +213,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	}
 
 	@Override
-	public <X extends PrismValue> PartiallyResolvedItem<X> findPartial(ItemPath path) {
+	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		throw new UnsupportedOperationException("Attempt to invoke findPartialItem on a property value");
 	}
 
@@ -429,7 +431,18 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	        if (thisRealValue instanceof byte[] && otherRealValue instanceof byte[]) {
 	            return Arrays.equals((byte[]) thisRealValue, (byte[]) otherRealValue);
 	        }
-	
+
+            if (isLiteral) {
+                if (thisRealValue instanceof QName && otherRealValue instanceof QName) {
+                    // we compare prefixes as well
+                    if (!thisRealValue.equals(otherRealValue)) {
+                        return false;
+                    }
+                    return StringUtils.equals(((QName) thisRealValue).getPrefix(), ((QName) otherRealValue).getPrefix());
+                } else if (thisRealValue instanceof Equals && otherRealValue instanceof Equals) {
+                    return ((Equals) thisRealValue).equals(null, null, otherRealValue, LiteralEqualsStrategy.INSTANCE);
+                }
+            }
 			return thisRealValue.equals(otherRealValue);
         }
 	}

@@ -363,8 +363,10 @@ public class ObjectWrapper implements Serializable, Revivable {
     private List<ContainerWrapper> createResourceContainers(PageBase pageBase) throws SchemaException {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
         PrismObject<ConnectorType> connector = loadConnector();
- 
-        containers.addAll(createResourceContainerWrapper(connector, pageBase));
+
+        if (connector != null) {
+            containers.addAll(createResourceContainerWrapper(connector, pageBase));
+        }
         return containers;
     }
 
@@ -535,6 +537,11 @@ public class ObjectWrapper implements Serializable, Revivable {
                                     // password change will always look like add,
                                     // therefore we push replace
                                     pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+                                } else if (propertyDef.isSingleValue()) {
+                                    // values for single-valued properties should be pushed via replace
+                                    // in order to prevent problems e.g. with summarizing deltas for
+                                    // unreachable resources
+                                    pDelta.setValueToReplace(newValCloned);
                                 } else {
                                     pDelta.addValueToAdd(newValCloned);
                                 }

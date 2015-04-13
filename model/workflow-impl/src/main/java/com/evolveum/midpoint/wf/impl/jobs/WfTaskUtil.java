@@ -64,6 +64,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
@@ -93,6 +94,7 @@ public class WfTaskUtil {
     private WfConfiguration wfConfiguration;
 
     @Autowired
+    @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
     @Autowired
@@ -243,7 +245,7 @@ public class WfTaskUtil {
         task.setExtensionProperty(w);
     }
 
-    public PrimaryChangeAspect getPrimaryChangeAspect(Task task, List<PrimaryChangeAspect> aspects) {
+    public PrimaryChangeAspect getPrimaryChangeAspect(Task task, Collection<PrimaryChangeAspect> aspects) {
         String aspectClassName = getExtensionValue(String.class, task, PcpTaskExtensionItemsNames.WFPRIMARY_CHANGE_ASPECT_NAME);
         if (aspectClassName == null) {
             throw new IllegalStateException("No wf primary change aspect defined in task " + task);

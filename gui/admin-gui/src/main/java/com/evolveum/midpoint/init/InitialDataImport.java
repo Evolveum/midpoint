@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.init;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -199,7 +200,7 @@ public class InitialDataImport {
 
         ObjectDelta delta = ObjectDelta.createAddDelta(object);
         try {
-            model.executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            model.executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createReevaluateSearchFilters(), task, result);
             result.recordSuccess();
             LOGGER.info("Created {} as part of initial import", object);
             return true;

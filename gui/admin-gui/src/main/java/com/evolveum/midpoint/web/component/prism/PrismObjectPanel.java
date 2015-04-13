@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -60,11 +61,13 @@ public class PrismObjectPanel extends Panel {
     private static final String ID_HEADER = "header";
 
     private boolean showHeader = true;
+    private PageBase pageBase;
 
-    public PrismObjectPanel(String id, IModel<ObjectWrapper> model, ResourceReference image, Form form) {
+    public PrismObjectPanel(String id, IModel<ObjectWrapper> model, ResourceReference image, Form form, PageBase pageBase) {
         super(id);
         setOutputMarkupId(true);
 
+        this.pageBase = pageBase;
         initLayout(model, image, form);
     }
 
@@ -306,7 +309,7 @@ public class PrismObjectPanel extends Panel {
     }
 
     protected void createContainerPanel(ListItem<ContainerWrapper> item, Form form){
-        item.add(new PrismContainerPanel("container", item.getModel(), form));
+        item.add(new PrismContainerPanel("container", item.getModel(), true, form, pageBase));
     }
 
     protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {

@@ -16,25 +16,33 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.input.*;
+import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
+import com.evolveum.midpoint.web.component.model.delta.ModificationsPanel;
+import com.evolveum.midpoint.web.component.util.LookupPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.RoleApprovalFormType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssignmentCreationApprovalFormType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -50,13 +58,15 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -68,11 +78,14 @@ public class PrismValuePanel extends Panel {
     private static final String ID_VALUE_CONTAINER = "valueContainer";
 
     private IModel<ValueWrapper> model;
+    private PageBase pageBase;
 
     public PrismValuePanel(String id, IModel<ValueWrapper> model, IModel<String> label, Form form,
-                           String valueCssClass, String inputCssClass){
+                           String valueCssClass, String inputCssClass, PageBase pageBase){
         super(id);
         Validate.notNull(model, "Property value model must not be null.");
+        Validate.notNull(pageBase, "The reference to page base must not be null.");
+        this.pageBase = pageBase;
         this.model = model;
 
         initLayout(label, form, valueCssClass, inputCssClass);
@@ -91,12 +104,13 @@ public class PrismValuePanel extends Panel {
         add(feedback);
 
         //input
-        InputPanel input = createInputComponent("input", label, form);
+        Panel input = createInputComponent("input", label, form);
         input.add(new AttributeModifier("class", inputCssClass));
-        initAccessBehaviour(input);
+        if (input instanceof InputPanel) {
+            initAccessBehaviour((InputPanel) input);
+            feedback.setFilter(new ComponentFeedbackMessageFilter(((InputPanel) input).getBaseFormComponent()));
+        }
         valueContainer.add(input);
-
-        feedback.setFilter(new ComponentFeedbackMessageFilter(input.getBaseFormComponent()));
 
         //buttons
         AjaxLink addButton = new AjaxLink("addButton") {
@@ -197,7 +211,7 @@ public class PrismValuePanel extends Panel {
     }
 
     private List<ValueWrapper> getUsableValues(PropertyWrapper property) {
-        List<ValueWrapper> values = new ArrayList<ValueWrapper>();
+        List<ValueWrapper> values = new ArrayList<>();
         for (ValueWrapper value : property.getValues()) {
             value.normalize();
             if (ValueStatus.DELETED.equals(value.getStatus())) {
@@ -269,7 +283,7 @@ public class PrismValuePanel extends Panel {
         return isAccessible(definition, propertyWrapper.getContainer().getObject().getStatus());
     }
 
-    private InputPanel createInputComponent(String id, IModel<String> label, Form form) {
+    private Panel createInputComponent(String id, IModel<String> label, Form form) {
         ValueWrapper valueWrapper = model.getObject();
         ObjectWrapper objectWrapper = valueWrapper.getProperty().getContainer().getObject();
         PrismProperty property = valueWrapper.getProperty().getItem();
@@ -279,39 +293,42 @@ public class PrismValuePanel extends Panel {
             required = false;
         }
 
-        InputPanel component = createTypedInputComponent(id);
+        Panel component = createTypedInputComponent(id);
 
-        //adding valid from/to date range validator, if necessary
-        ItemPath activation = new ItemPath(UserType.F_ACTIVATION);
-        if (ActivationType.F_VALID_FROM.equals(property.getElementName())) {
-            DateValidator validator = getActivationRangeValidator(form, activation);
-            validator.setDateFrom((DateTimeField) component.getBaseFormComponent());
-        } else if (ActivationType.F_VALID_TO.equals(property.getElementName())) {
-            DateValidator validator = getActivationRangeValidator(form, activation);
-            validator.setDateTo((DateTimeField) component.getBaseFormComponent());
-        }
-
-        final List<FormComponent> formComponents = component.getFormComponents();
-        for (FormComponent formComponent : formComponents) {
-            formComponent.setLabel(label);
-            formComponent.setRequired(required);
-
-            if (formComponent instanceof TextField) {
-                formComponent.add(new AttributeModifier("size", "42"));
+        if (component instanceof InputPanel) {
+            InputPanel inputPanel = (InputPanel) component;
+            //adding valid from/to date range validator, if necessary
+            ItemPath activation = new ItemPath(UserType.F_ACTIVATION);
+            if (ActivationType.F_VALID_FROM.equals(property.getElementName())) {
+                DateValidator validator = getActivationRangeValidator(form, activation);
+                validator.setDateFrom((DateTimeField) inputPanel.getBaseFormComponent());
+            } else if (ActivationType.F_VALID_TO.equals(property.getElementName())) {
+                DateValidator validator = getActivationRangeValidator(form, activation);
+                validator.setDateTo((DateTimeField) inputPanel.getBaseFormComponent());
             }
-            formComponent.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
 
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
+            final List<FormComponent> formComponents = inputPanel.getFormComponents();
+            for (FormComponent formComponent : formComponents) {
+                formComponent.setLabel(label);
+                formComponent.setRequired(required);
+
+                if (formComponent instanceof TextField) {
+                    formComponent.add(new AttributeModifier("size", "42"));
                 }
-            });
+                formComponent.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
 
-            // Validation occurs when submitting the form
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                    }
+                });
+
+                // Validation occurs when submitting the form
 //            if (form != null) {
 //                AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onBlur"); 
 //                 
 //                formComponent.add(validator);
 //            }
+            }
         }
         return component;
     }
@@ -337,7 +354,9 @@ public class PrismValuePanel extends Panel {
         return validator;
     }
 
-    private InputPanel createTypedInputComponent(String id) {
+    // normally this method returns an InputPanel;
+    // however, for some special readonly types (like ObjectDeltaType) it will return a Panel
+    private Panel createTypedInputComponent(String id) {
         final PrismProperty property = model.getObject().getProperty().getItem();
         PrismPropertyDefinition definition = property.getDefinition();
         QName valueType = definition.getTypeName();
@@ -364,17 +383,21 @@ public class PrismValuePanel extends Panel {
         }
 
         // the same for requester and approver comments in workflows [mederly] - this is really ugly, as it is specific to each approval form
-        if (RoleApprovalFormType.F_REQUESTER_COMMENT.equals(definition.getName()) || RoleApprovalFormType.F_COMMENT.equals(definition.getName())) {
+        if (AssignmentCreationApprovalFormType.F_REQUESTER_COMMENT.equals(definition.getName()) ||
+                AssignmentCreationApprovalFormType.F_COMMENT.equals(definition.getName())) {
             return new TextAreaPanel(id, new PropertyModel(model, baseExpression));
         }
 
-        InputPanel panel;
+        Panel panel;
+        
         if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())) {
-            return WebMiscUtil.createActivationStatusPanel(id, new PropertyModel<ActivationStatusType>(model, baseExpression), this);
+            return WebMiscUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(model, baseExpression), this);
         } else if(ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())){
-            return WebMiscUtil.createLockoutStatsPanel(id, new PropertyModel<LockoutStatusType>(model, baseExpression), this);
+            return WebMiscUtil.createEnumPanel(LockoutStatusType.class, id, new PropertyModel<LockoutStatusType>(model, baseExpression), this);
+        } else{
+        	
         }
-
+        
         if (DOMUtil.XSD_DATETIME.equals(valueType)) {
             panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, baseExpression));
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
@@ -382,12 +405,36 @@ public class PrismValuePanel extends Panel {
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
             panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(model, baseExpression));
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
-            panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
-
+            InputPanel inputPanel;
             PrismPropertyDefinition def = property.getDefinition();
-            if (ObjectType.F_NAME.equals(def.getName()) || UserType.F_FULL_NAME.equals(def.getName())) {
-                panel.getBaseFormComponent().setRequired(true);
+
+            if(def.getValueEnumerationRef() != null){
+                PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
+                String lookupTableUid = valueEnumerationRef.getOid();
+                OperationResult result = new OperationResult("loadLookupTable");
+
+                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
+                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                final PrismObject<LookupTableType> lookupTable = WebModelUtils.loadObject(LookupTableType.class,
+                        lookupTableUid, options, result, pageBase);
+
+                inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression + ".orig",
+                        lookupTable.asObjectable()), String.class) {
+
+                    @Override
+                    public Iterator<String> getIterator(String input) {
+                        return prepareAutoCompleteList(input, lookupTable).iterator();
+                    }
+                };
+
+            } else {
+                inputPanel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
             }
+
+            if (ObjectType.F_NAME.equals(def.getName()) || UserType.F_FULL_NAME.equals(def.getName())) {
+                inputPanel.getBaseFormComponent().setRequired(true);
+            }
+            panel = inputPanel;
         } else if(DOMUtil.XSD_BASE64BINARY.equals(valueType)){
             panel = new UploadPanel(id){
 
@@ -416,17 +463,113 @@ public class PrismValuePanel extends Panel {
                 }
             };
 
+        } else if (ObjectDeltaType.COMPLEX_TYPE.equals(valueType)) {
+            panel = new ModificationsPanel(id, new AbstractReadOnlyModel<DeltaDto>() {
+                @Override
+                public DeltaDto getObject() {
+                    if (model.getObject() == null || model.getObject().getValue() == null || model.getObject().getValue().getValue() == null) {
+                        return null;
+                    }
+                    PrismContext prismContext = ((PageBase) getPage()).getPrismContext();
+                    ObjectDeltaType objectDeltaType = (ObjectDeltaType) model.getObject().getValue().getValue();
+                    try {
+                        ObjectDelta delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
+                        return new DeltaDto(delta);
+                    } catch (SchemaException e) {
+                        throw new IllegalStateException("Couldn't convert object delta: " + objectDeltaType);
+                    }
+
+                }
+            });
         } else {
             Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
             if (type != null && type.isPrimitive()) {
                 type = ClassUtils.primitiveToWrapper(type);
+                
+            } 
+            
+            if (isEnum(property)) {
+                return WebMiscUtil.createEnumPanel(definition, id, new PropertyModel<>(model, baseExpression), this);
             }
-            panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression), type);
+//            // default QName validation is a bit weird, so let's treat QNames as strings [TODO finish this - at the parsing side]
+//            if (type == QName.class) {
+//                type = String.class;
+//            }
+
+            PrismPropertyDefinition def = property.getDefinition();
+
+            if(def.getValueEnumerationRef() != null){
+                PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
+                String lookupTableUid = valueEnumerationRef.getOid();
+                OperationResult result = new OperationResult("loadLookupTable");
+
+                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
+                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                final PrismObject<LookupTableType> lookupTable = WebModelUtils.loadObject(LookupTableType.class,
+                        lookupTableUid, options, result, pageBase);
+
+                panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression, lookupTable.asObjectable()), type) {
+
+                    @Override
+                    public Iterator<String> getIterator(String input) {
+                        return prepareAutoCompleteList(input, lookupTable).iterator();
+                    }
+                };
+
+            } else {
+                panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression), type);
+            }
         }
 
         return panel;
     }
 
+    private List<String> prepareAutoCompleteList(String input, PrismObject<LookupTableType> lookupTable){
+        List<String> values = new ArrayList<>();
+
+        if(lookupTable == null){
+            return values;
+        }
+
+        List<LookupTableRowType> rows = lookupTable.asObjectable().getRow();
+
+        if(input == null || input.isEmpty()){
+            for(LookupTableRowType row: rows){
+                values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
+
+                if(values.size() > 10){
+                    return values;
+                }
+            }
+        } else {
+            for(LookupTableRowType row: rows){
+                if(WebMiscUtil.getOrigStringFromPoly(row.getLabel()).startsWith(input)){
+                    values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
+                }
+
+                if(values.size() > 10){
+                    return values;
+                }
+            }
+        }
+
+        return values;
+    }
+
+    private boolean isEnum(PrismProperty property){
+    	PrismPropertyDefinition definition = property.getDefinition();
+////    	Object realValue = property.getAnyRealValue();
+    	if (definition == null){
+    		return property.getValueClass().isEnum();
+    	} 
+//    	
+//    	QName defName = definition.getName();
+//    	Class clazz = definition.getPrismContext().getSchemaRegistry().determineCompileTimeClass(defName);
+//    	
+//    	return ((clazz != null && clazz.isEnum()) || ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName()) 
+//    	 || ActivationType.F_LOCKOUT_STATUS.equals(definition.getName()) || );
+    	return (definition.getAllowedValues() != null && definition.getAllowedValues().size() > 0);
+    }
     //TODO - try to get rid of <br> attributes when creating new lines in association attributes pop-up
     private String createAssociationTooltipText(PrismProperty property){
         StringBuilder sb = new StringBuilder();

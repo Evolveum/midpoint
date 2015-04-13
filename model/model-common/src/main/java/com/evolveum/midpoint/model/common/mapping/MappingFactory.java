@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
@@ -54,6 +55,7 @@ public class MappingFactory {
 	private Protector protector;
 	private PrismContext prismContext;
 	private FilterManager<Filter> filterManager;
+    private SecurityEnforcer securityEnforcer;
 	private boolean profiling = false;
 		
 	public ExpressionFactory getExpressionFactory() {
@@ -96,7 +98,15 @@ public class MappingFactory {
 		this.filterManager = filterManager;
 	}
 
-	public boolean isProfiling() {
+    public SecurityEnforcer getSecurityEnforcer() {
+        return securityEnforcer;
+    }
+
+    public void setSecurityEnforcer(SecurityEnforcer securityEnforcer) {
+        this.securityEnforcer = securityEnforcer;
+    }
+
+    public boolean isProfiling() {
 		return profiling;
 	}
 
@@ -104,8 +114,8 @@ public class MappingFactory {
 		this.profiling = profiling;
 	}
 
-	public <V extends PrismValue> Mapping<V> createMapping(MappingType mappingType, String shortDesc) {
-		Mapping<V> mapping = new Mapping<V>(mappingType, shortDesc, expressionFactory);
+	public <V extends PrismValue, D extends ItemDefinition> Mapping<V,D> createMapping(MappingType mappingType, String shortDesc) {
+		Mapping<V,D> mapping = new Mapping<>(mappingType, shortDesc, expressionFactory, securityEnforcer);
 		mapping.setFilterManager(filterManager);
 		mapping.setProfiling(profiling);
 		return mapping;

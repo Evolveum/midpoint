@@ -28,13 +28,14 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.init.InfraInitialSetup;
 import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.init.ModelInitialSetup;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.model.test.LogfileTestTailer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
 
 /**
@@ -86,7 +87,7 @@ public class TestCleanStartup extends AbstractModelIntegrationTest {
 		TestUtil.displayTestTile("test001Logfiles");
 		
 		// GIVEN - system startup and initialization that has already happened
-		LogfileTestTailer tailer = new LogfileTestTailer(false);
+		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME, false);
 				
 		// THEN
 		display("Tailing ...");

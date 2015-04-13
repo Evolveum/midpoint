@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -33,17 +34,23 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -68,17 +75,23 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	
 	private String accountOid;
 	private String accountRedOid;
+	private XMLGregorianCalendar lastPasswordChangeStart;
+	private XMLGregorianCalendar lastPasswordChangeEnd;
 
-	public TestPassword() throws JAXBException {
-		super();
-	}
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
 		
+		login(USER_ADMINISTRATOR_USERNAME);
+	}
+
 	@Test
     public void test010AddPasswordPolicy() throws Exception {
-        TestUtil.displayTestTile(this, "test010AddPasswordPolicy");
+		final String TEST_NAME = "test010AddPasswordPolicy";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test010AddPasswordPolicy");
+        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
@@ -103,13 +116,14 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test050CheckJackPassword() throws Exception {
-        TestUtil.displayTestTile(this, "test050CheckJackPassword");
+		final String TEST_NAME = "test050CheckJackPassword";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN, WHEN
         // this happens during test initialization when user-jack.xml is added
         
         // THEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test050CheckJackPassword");
+        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -122,17 +136,21 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 
 	@Test
     public void test051ModifyUserJackPassword() throws Exception {
-        TestUtil.displayTestTile(this, "test051ModifyUserJackPassword");
+		final String TEST_NAME = "test051ModifyUserJackPassword";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test051ModifyUserJackPassword");
+        Task task = createTask(TestPassword.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         ProtectedStringType userPasswordPs = new ProtectedStringType();
         userPasswordPs.setClearValue(USER_PASSWORD_1_CLEAR);
-                        
+        
+        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+        
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, 
         		PASSWORD_VALUE_PATH,
         		task, 
@@ -140,16 +158,21 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         		userPasswordPs);
 		
 		// THEN
+        TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
+        
+        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
 		assertEncryptedPassword(userJack, USER_PASSWORD_1_CLEAR);
+		assertPasswordMetadata(userJack, false, startCal, endCal);
 	}
 	
+
 	@Test
     public void test100ModifyUserJackAssignAccount() throws Exception {
         TestUtil.displayTestTile(this, "test100ModifyUserJackAssignAccount");
@@ -203,6 +226,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         
         ProtectedStringType userPasswordPs = new ProtectedStringType();
         userPasswordPs.setClearValue(USER_PASSWORD_2_CLEAR);
+        
+        lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
                         
 		// WHEN
         modifyUserReplace(USER_JACK_OID, 
@@ -215,12 +240,15 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         
+        lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
+        
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
 		assertEncryptedPassword(userJack, USER_PASSWORD_2_CLEAR);
 		assertDummyPassword("jack", USER_PASSWORD_2_CLEAR);
+		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 	}
 	
 	/**
@@ -258,6 +286,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		assertEncryptedPassword(userJack, USER_PASSWORD_2_CLEAR);
 		// Account has new password
 		assertDummyPassword("jack", USER_PASSWORD_3_CLEAR);
+		
+		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 	}
 	
 	/**
@@ -283,6 +313,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         		PASSWORD_VALUE_PATH, userPasswordPs5);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta, userDelta);
+        
+        lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
                         
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -290,6 +322,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
+        
+        lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -299,6 +333,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		assertEncryptedPassword(userJack, USER_PASSWORD_4_CLEAR);
 		// Account has new password
 		assertDummyPassword("jack", USER_PASSWORD_5_CLEAR);
+		
+		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 	}
 		
 	/**
@@ -338,6 +374,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         // User and default dummy account should have unchanged passwords
         assertEncryptedPassword(userJack, USER_PASSWORD_4_CLEAR);
      	assertDummyPassword("jack", USER_PASSWORD_5_CLEAR);
+     	
+     	assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 	}
 	
 	/**
@@ -363,6 +401,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         		PASSWORD_VALUE_PATH, userPasswordPs2);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
+        
+        lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
                         
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -370,6 +410,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
+        
+        lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -382,13 +424,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		// ... and default account has also the same password as user now. There was no other change on default dummy instance 
 		// so even the weak mapping took place.
 		assertDummyPassword("jack", USER_PASSWORD_1_CLEAR);
-	}
-
-	private void assertEncryptedPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException {
-		UserType userType = user.asObjectable();
-		ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
-		String actualClearPassword = protector.decryptString(protectedActualPassword);
-		assertEquals("Wrong password for "+user, expectedClearPassword, actualClearPassword);
+		
+		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 	}
 
 	private void assertDummyPassword(String userId, String expectedClearPassword) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,7 +205,7 @@ public class PasswordPolicyProcessor {
 			PrismReferenceValue orgRefValue = orgDelta.getAnyValue();
 
 			try {
-				PrismObject<OrgType> org = (PrismObject<OrgType>) resolver.resolve(orgRefValue,
+				PrismObject<OrgType> org = resolver.resolve(orgRefValue,
 						"resolving parent org ref", null, null, result);
 				OrgType orgType = org.asObjectable();
 				ObjectReferenceType ref = orgType.getPasswordPolicyRef();
@@ -248,7 +248,7 @@ public class PasswordPolicyProcessor {
 								"Found more than one policy while trying to validate user's password. Please check your configuration");
 					}
 
-					PrismObject<OrgType> org = (PrismObject<OrgType>) resolver.resolve(orgRefValue,
+					PrismObject<OrgType> org = resolver.resolve(orgRefValue,
 							"resolving parent org ref", null, null, result);
 					orgs.add(org);
 					valuePolicy = resolvePolicy(org, result);
@@ -365,13 +365,13 @@ public class PasswordPolicyProcessor {
     // On missing password this returns empty string (""). It is then up to password policy whether it allows empty passwords or not.
 	private String determinePasswordValue(PrismProperty<PasswordType> password) {
 		if (password == null || password.getValue(ProtectedStringType.class) == null) {
-			return "";
+			return null;
 		}
 
 		ProtectedStringType passValue = password.getValue(ProtectedStringType.class).getValue();
 
 		if (passValue == null) {
-			return "";
+			return null;
 		}
 
 		String passwordStr = passValue.getClearValue();
@@ -385,7 +385,7 @@ public class PasswordPolicyProcessor {
 			}
 		}
 
-		return passwordStr != null ? passwordStr : "";
+		return passwordStr;
 	}
 
 

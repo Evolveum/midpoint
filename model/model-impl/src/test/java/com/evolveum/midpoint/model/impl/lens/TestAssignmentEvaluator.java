@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -52,11 +53,12 @@ import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -121,13 +123,13 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
 		userOdo.recompute();
 		
-		ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
 		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
 		assignmentIdi.recompute();
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 		
 		// THEN
@@ -161,13 +163,13 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		userOdo.recompute();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 		
-		ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
 		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
 		assignmentIdi.recompute();
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 		
 		// THEN
@@ -212,14 +214,14 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		userOdo.recompute();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 		
-		ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
 		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
 		assignmentIdi.setSubItemDeltas((Collection)userDelta.getModifications());
 		assignmentIdi.recompute();
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 		
 		// THEN
@@ -235,7 +237,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 		assertEquals(1,construction.getAttributeMappings().size());
-		Mapping<PrismPropertyValue<String>> attributeMapping = (Mapping<PrismPropertyValue<String>>) construction.getAttributeMappings().iterator().next();
+		Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> attributeMapping = (Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = attributeMapping.getOutputTriple();
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, "The best captain the world has ever seen");
@@ -279,14 +281,14 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		userOdo.recompute();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 		
-		ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
 		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
 		assignmentIdi.setSubItemDeltas((Collection)userDelta.getModifications());
 		assignmentIdi.recompute();
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 		
 		// THEN
@@ -302,7 +304,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 		assertEquals(1,construction.getAttributeMappings().size());
-		Mapping<PrismPropertyValue<String>> attributeMapping = (Mapping<PrismPropertyValue<String>>) construction.getAttributeMappings().iterator().next();
+		Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> attributeMapping = (Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = attributeMapping.getOutputTriple();
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, "The best sailor the world has ever seen");
@@ -356,13 +358,13 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
         userOdo.recompute();
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
         assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
         assignmentIdi.recompute();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -403,13 +405,13 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
         userOdo.recompute();
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
         assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
         assignmentIdi.recompute();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testRoleEngineer", task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testRoleEngineer", task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -455,13 +457,13 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
         assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
         assignmentIdi.recompute();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -529,13 +531,13 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
         assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
         assignmentIdi.recompute();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -595,13 +597,13 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
         assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
         assignmentIdi.recompute();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignment<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -629,19 +631,19 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
         assertNoConstruction(evaluatedAssignment, MINUS, "location");
     }
 
-    private void assertNoConstruction(EvaluatedAssignment<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName) {
+    private void assertNoConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName) {
         Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
         for (Construction construction : constructions) {
-            Mapping<? extends PrismPropertyValue<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
+            Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
             assertNull("Unexpected mapping for " + attributeName, mapping);
         }
     }
 
-    private void assertConstruction(EvaluatedAssignment<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName, PlusMinusZero attributeSet, String... expectedValues) {
+    private void assertConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName, PlusMinusZero attributeSet, String... expectedValues) {
         Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
         Set<String> realValues = new HashSet<>();
         for (Construction construction : constructions) {
-            Mapping<? extends PrismPropertyValue<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
+            Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
             if (mapping != null && mapping.getOutputTriple() != null) {
                 Collection<? extends PrismPropertyValue<?>> valsInMapping = mapping.getOutputTriple().getSet(attributeSet);
                 if (valsInMapping != null) {

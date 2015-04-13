@@ -368,6 +368,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="isAssignedOld" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                "Old" version of isAssigned.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="isActive" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -378,14 +385,14 @@
                     <xsd:element name="isLegal" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                True if there is a valid assignment for this projection and/or the policy allows such project to exist.
+                                True if there is a valid assignment for this projection and/or the policy allows such projection to exist.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="isLegalOld" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                True if there is a valid assignment for this projection and/or the policy allows such project to exist.
+                                True if there is a valid assignment for this projection and/or the policy allows such projection to exist.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

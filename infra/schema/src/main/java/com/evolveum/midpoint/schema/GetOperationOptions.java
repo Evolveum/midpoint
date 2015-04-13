@@ -53,12 +53,12 @@ public class GetOperationOptions implements Serializable, Cloneable {
 	 *       but they will be most likely omitted from the result.</li>
 	 *  </ul>
 	 */
-	RetrieveOption retrieve;
+	private RetrieveOption retrieve;
 	
 	/**
 	 * Resolve the object reference. This only makes sense with a (path-based) selector.
 	 */
-	Boolean resolve;
+	private Boolean resolve;
 
     /**
      * Resolve the object reference names. (Currently applicable only as a top-level option.)
@@ -67,27 +67,29 @@ public class GetOperationOptions implements Serializable, Cloneable {
      *
      * EXPERIMENTAL.
      */
-    Boolean resolveNames;
+	private Boolean resolveNames;
 
     /**
 	 * No not fetch any information from external sources, e.g. do not fetch account data from resource,
 	 * do not fetch resource schema, etc.
 	 * Such operation returns only the data stored in midPoint repository.
 	 */
-	Boolean noFetch;
+	private Boolean noFetch;
 	
 	/**
 	 * Avoid any smart processing of the data except for schema application. Do not synchronize the data, do not apply
 	 * any expressions, etc.
 	 */
-	Boolean raw;
+	private Boolean raw;
 	
 	/**
 	 * Force to get object from the resource even if some of the error occurred.
 	 * If the any copy of the shadow is fetched, we can't delete this object
 	 * from the gui, for example
 	 */
-	Boolean doNotDiscovery;
+	private Boolean doNotDiscovery;
+	
+	private RelationalValueSearchQuery relationalValueSearchQuery;
 	
 	/**
 	 * This flag indicated if the "object not found" error is critical for
@@ -118,7 +120,14 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		return options;
 	}
 
-	public Boolean getResolve() {
+    public static GetOperationOptions createRetrieve(RelationalValueSearchQuery query) {
+        GetOperationOptions options = new GetOperationOptions();
+        options.retrieve = RetrieveOption.INCLUDE;
+        options.setRelationalValueSearchQuery(query);
+        return options;
+    }
+
+    public Boolean getResolve() {
 		return resolve;
 	}
 
@@ -256,36 +265,47 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		return allowNotFound;
 	}
 
-		public void setAllowNotFound(Boolean allowNotFound) {
-			this.allowNotFound = allowNotFound;
+	public void setAllowNotFound(Boolean allowNotFound) {
+		this.allowNotFound = allowNotFound;
+	}
+	
+	public static boolean isAllowNotFound(GetOperationOptions options) {
+		if (options == null) {
+			return false;
 		}
-		
-		public static boolean isAllowNotFound(GetOperationOptions options) {
-			if (options == null) {
-				return false;
-			}
-			if (options.allowNotFound == null) {
-				return false;
-			}
-			return options.allowNotFound;
+		if (options.allowNotFound == null) {
+			return false;
 		}
-		
-		public static GetOperationOptions createDoNotDiscovery() {
-			GetOperationOptions opts = new GetOperationOptions();
-			opts.setDoNotDiscovery(true);
-			return opts;
-		}
+		return options.allowNotFound;
+	}
+	
+	public static GetOperationOptions createDoNotDiscovery() {
+		GetOperationOptions opts = new GetOperationOptions();
+		opts.setDoNotDiscovery(true);
+		return opts;
+	}
 
+	public RelationalValueSearchQuery getRelationalValueSearchQuery() {
+		return relationalValueSearchQuery;
+	}
 
-	@Override
+	public void setRelationalValueSearchQuery(RelationalValueSearchQuery relationalValueSearchQuery) {
+		this.relationalValueSearchQuery = relationalValueSearchQuery;
+	}
+
+    @Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((allowNotFound == null) ? 0 : allowNotFound.hashCode());
+		result = prime * result + ((doNotDiscovery == null) ? 0 : doNotDiscovery.hashCode());
 		result = prime * result + ((noFetch == null) ? 0 : noFetch.hashCode());
 		result = prime * result + ((raw == null) ? 0 : raw.hashCode());
+		result = prime * result
+				+ ((relationalValueSearchQuery == null) ? 0 : relationalValueSearchQuery.hashCode());
 		result = prime * result + ((resolve == null) ? 0 : resolve.hashCode());
-		result = prime * result + ((doNotDiscovery == null) ? 0 : doNotDiscovery.hashCode());
-		result = prime * result + ((allowNotFound == null) ? 0 : allowNotFound.hashCode());
+		result = prime * result + ((resolveNames == null) ? 0 : resolveNames.hashCode());
+		result = prime * result + ((retrieve == null) ? 0 : retrieve.hashCode());
 		return result;
 	}
 
@@ -298,6 +318,16 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		if (getClass() != obj.getClass())
 			return false;
 		GetOperationOptions other = (GetOperationOptions) obj;
+		if (allowNotFound == null) {
+			if (other.allowNotFound != null)
+				return false;
+		} else if (!allowNotFound.equals(other.allowNotFound))
+			return false;
+		if (doNotDiscovery == null) {
+			if (other.doNotDiscovery != null)
+				return false;
+		} else if (!doNotDiscovery.equals(other.doNotDiscovery))
+			return false;
 		if (noFetch == null) {
 			if (other.noFetch != null)
 				return false;
@@ -308,30 +338,27 @@ public class GetOperationOptions implements Serializable, Cloneable {
 				return false;
 		} else if (!raw.equals(other.raw))
 			return false;
+		if (relationalValueSearchQuery == null) {
+			if (other.relationalValueSearchQuery != null)
+				return false;
+		} else if (!relationalValueSearchQuery.equals(other.relationalValueSearchQuery))
+			return false;
 		if (resolve == null) {
 			if (other.resolve != null)
 				return false;
 		} else if (!resolve.equals(other.resolve))
 			return false;
-		if (doNotDiscovery == null) {
-			if (other.doNotDiscovery != null)
+		if (resolveNames == null) {
+			if (other.resolveNames != null)
 				return false;
-		} else if (!doNotDiscovery.equals(other.doNotDiscovery))
+		} else if (!resolveNames.equals(other.resolveNames))
 			return false;
-		
-		if (allowNotFound == null) {
-			if (other.allowNotFound != null)
-				return false;
-		} else if (!allowNotFound.equals(other.allowNotFound))
+		if (retrieve != other.retrieve)
 			return false;
-		
-        if (retrieve != null ? !retrieve.equals(other.retrieve) : other.retrieve != null)
-            return false;
-
 		return true;
 	}
 
-    public GetOperationOptions clone() {
+	public GetOperationOptions clone() {
         GetOperationOptions clone = new GetOperationOptions();
         clone.noFetch = this.noFetch;
         clone.doNotDiscovery = this.doNotDiscovery;
@@ -340,13 +367,17 @@ public class GetOperationOptions implements Serializable, Cloneable {
         clone.resolveNames = this.resolveNames;
         clone.retrieve = this.retrieve;
         clone.allowNotFound = this.allowNotFound;
+        if (this.relationalValueSearchQuery != null) {
+        	clone.relationalValueSearchQuery = this.relationalValueSearchQuery.clone();
+        }
         return clone;
     }
 
 	@Override
 	public String toString() {
 		return "GetOperationOptions(resolve=" + resolve + ", resolveNames=" + resolveNames + ",noFetch=" + noFetch
-				+ ", raw=" + raw + ", doNotDiscovery="+doNotDiscovery+", retrieve="+retrieve+", allowNotFound="+ allowNotFound +")";
+				+ ", raw=" + raw + ", doNotDiscovery="+doNotDiscovery+", retrieve="+retrieve+", allowNotFound="+ allowNotFound 
+				+", relationalValueSearchQuery="+relationalValueSearchQuery+")";
 	}
 
 }

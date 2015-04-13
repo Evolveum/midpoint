@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -193,7 +193,7 @@ public final class Utils {
 		if (objectDelta.isAdd()) {
 			objectDelta.getObjectToAdd().accept(visitor);
 		} else if (objectDelta.isModify()) {
-			for (ItemDelta<PrismValue> delta : objectDelta.getModifications()) {
+			for (ItemDelta<?,?> delta : objectDelta.getModifications()) {
 				applyVisitorToValues(delta.getValuesToAdd(), delta, visitor);
 				applyVisitorToValues(delta.getValuesToReplace(), delta, visitor);
 			}
@@ -201,8 +201,8 @@ public final class Utils {
 	}
 
 	// see description in caller
-	private static void applyVisitorToValues(Collection<PrismValue> values, ItemDelta<PrismValue> delta, Visitor visitor) {
-		Collection<PrismValue> valuesToDelete = delta.getValuesToDelete();
+	private static void applyVisitorToValues(Collection<? extends PrismValue> values, ItemDelta<?,?> delta, Visitor visitor) {
+		Collection<? extends PrismValue> valuesToDelete = delta.getValuesToDelete();
 		if (valuesToDelete == null) {
             valuesToDelete = new ArrayList<>(0);		// just to simplify the code below
         }
@@ -212,7 +212,7 @@ public final class Utils {
                 pval.accept(visitor);
                 if (!isToBeDeleted && valuesToDelete.contains(pval)) {
                     // value becomes 'to be deleted' -> we remove it from toBeDeleted list
-                    delta.removeValueToDelete(pval);
+                    ((ItemDelta<PrismValue,?>)delta).removeValueToDelete(pval);
                 }
             }
         }

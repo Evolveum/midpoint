@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.api;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
@@ -273,7 +274,7 @@ public interface ModelService {
 	 *             state
 	 */
 	PrismObject<UserType> findShadowOwner(String shadowOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException;
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException;
 
 	/**
 	 * <p>
@@ -522,7 +523,7 @@ public interface ModelService {
 	 * @param input
 	 * @param task
 	 */
-	void importObjectsFromFile(File input, ImportOptionsType options, Task task, OperationResult parentResult);
+	void importObjectsFromFile(File input, ImportOptionsType options, Task task, OperationResult parentResult) throws FileNotFoundException;
 
 	/**
 	 * Import objects from stream.
@@ -554,8 +555,8 @@ public interface ModelService {
 	 * @return discovered connectors
 	 * @throws CommunicationException error communicating with the connector host
 	 */
-	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) 
-			throws CommunicationException, SecurityViolationException, SchemaException;
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, Task task, OperationResult parentResult) 
+			throws CommunicationException, SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException;
 
 	/**
 	 * Finish initialization of the model and lower system components

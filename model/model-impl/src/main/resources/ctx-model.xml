@@ -99,6 +99,13 @@
           <constructor-arg name="protector" ref="protector"/>
     </bean>
     
+    <bean id="pythonScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator"
+          scope="singleton">
+          <constructor-arg name="engineName" value="python"/>
+          <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg name="protector" ref="protector"/>
+    </bean>
+    
     <bean id="scriptExpressionFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory"
           scope="singleton">
         <constructor-arg ref="modelObjectResolver"/>
@@ -116,6 +123,7 @@
         		<ref bean="xpathScriptEvaluator"/>
         		<ref bean="javascriptScriptEvaluator"/>
         		<ref bean="groovyScriptEvaluator"/>
+        		<ref bean="pythonScriptEvaluator"/>
         	</list>
         </property>
     </bean>
@@ -123,6 +131,7 @@
     <bean id="scriptExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg ref="scriptExpressionFactory"/>
+          <constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
     </bean>
     
     <bean id="generateExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory"
@@ -158,6 +167,7 @@
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg ref="modelController"/>
+          <constructor-arg ref="securityEnforcer"/>
     </bean>
 
 	<bean id="associationTargetSearchExpressionEvaluatorFactory" 
@@ -167,6 +177,7 @@
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg ref="modelController"/>
+          <constructor-arg ref="securityEnforcer"/>
     </bean>
 
 	<bean id="associationFromLinkExpressionEvaluatorFactory" 
@@ -219,6 +230,9 @@
         </property>
         <property name="filterManager">
             <ref bean="filterManager"/>
+        </property>
+        <property name="securityEnforcer">
+            <ref bean="securityEnforcer"/>
         </property>
     </bean>
     
@@ -358,12 +372,12 @@
             -->
         </jaxws:inInterceptors>
         <jaxws:outInterceptors>
-
         </jaxws:outInterceptors>
 
         <!-- this is because of https://jira.evolveum.com/browse/MID-1603 -->
         <jaxws:properties>
             <entry key="javax.xml.stream.XMLOutputFactory" value-ref="modelWsXmlOutputFactory"/>
+            <entry key="org.apache.cxf.logging.FaultListener" value-ref="wsFaultListener"/>
         </jaxws:properties>
 
     </jaxws:endpoint>
@@ -417,8 +431,12 @@
     <bean id="springAuthenticationInjector" class="com.evolveum.midpoint.model.impl.security.SpringAuthenticationInjectorInterceptor">
         <constructor-arg name="userDetailsService" ref="userDetailsService"/>
         <constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
-        <constructor-arg name="auditService" ref="auditService"/>
-        <constructor-arg name="taskManager" ref="taskManager"/>
+        <constructor-arg name="securityHelper" ref="securityHelper"/>
+        <constructor-arg name="activationComputer" ref="activationComputer"/>
+    </bean>
+    
+    <bean id="wsFaultListener" class="com.evolveum.midpoint.model.impl.security.WsFaultListener">
+        <constructor-arg name="securityHelper" ref="securityHelper"/>
     </bean>
 
     <bean id="springAuthenticationJanitor" class="com.evolveum.midpoint.model.impl.security.SpringAuthenticationJanitorInterceptor">
@@ -428,6 +446,7 @@
     <bean id="passwordCallback" class="com.evolveum.midpoint.model.impl.security.PasswordCallback">
         <constructor-arg name="userDetailsService" ref="userDetailsService"/>
         <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="securityHelper" ref="securityHelper"/>
     </bean>
 
     <!--Example of authorization for WS-->

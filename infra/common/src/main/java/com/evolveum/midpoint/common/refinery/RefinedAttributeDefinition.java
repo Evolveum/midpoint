@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +28,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
@@ -40,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDef
 /**
  * @author semancik
  */
-public class RefinedAttributeDefinition extends ResourceAttributeDefinition implements DebugDumpable {
+public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T> implements DebugDumpable {
 
 	private static LayerType DEFAULT_LAYER = LayerType.MODEL;
 	
@@ -51,7 +54,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 	protected boolean secondaryIdentifier = false;
     private List<String> intolerantValuePattern;
     private List<String> tolerantValuePattern;
-    private ResourceAttributeDefinition attributeDefinition;
+    private ResourceAttributeDefinition<T> attributeDefinition;
     private AttributeFetchStrategyType fetchStrategy;
     private MappingType outboundMappingType;
     private List<MappingType> inboundMappingTypes;
@@ -59,8 +62,9 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private QName matchingRuleQName = null;
     private Integer modificationPriority;
     private Boolean readReplaceMode;
+    private PropertyAccessType accessOverride = new PropertyAccessType();
 
-    protected RefinedAttributeDefinition(ResourceAttributeDefinition attrDef, PrismContext prismContext) {
+    protected RefinedAttributeDefinition(ResourceAttributeDefinition<T> attrDef, PrismContext prismContext) {
         super(attrDef.getName(), attrDef.getTypeName(), prismContext);
         this.attributeDefinition = attrDef;
     }
@@ -92,6 +96,9 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     }
 	
 	public boolean canAdd(LayerType layer) {
+		if (accessOverride.isAdd() != null) {
+			return accessOverride.isAdd();
+		}
         return limitationsMap.get(layer).getAccess().isAdd();
     }
 
@@ -101,6 +108,9 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     }
 
     public boolean canRead(LayerType layer) {
+		if (accessOverride.isRead() != null) {
+			return accessOverride.isRead();
+		}
         return limitationsMap.get(layer).getAccess().isRead();
     }
 
@@ -110,12 +120,15 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     }
     
     public boolean canModify(LayerType layer) {
+		if (accessOverride.isModify() != null) {
+			return accessOverride.isModify();
+		}
         return limitationsMap.get(layer).getAccess().isModify();
     }
 
     @Override
     public void setReadOnly() {
-        throw new UnsupportedOperationException("Parts of refined attribute are immutable");
+        setCanRead(false);
     }
 
     @Override
@@ -135,17 +148,17 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 
     @Override
     public void setCanRead(boolean read) {
-        throw new UnsupportedOperationException("Parts of refined attribute are immutable");
+        accessOverride.setRead(read);
     }
 
     @Override
     public void setCanModify(boolean update) {
-        throw new UnsupportedOperationException("Parts of refined attribute are immutable");
+        accessOverride.setModify(update);
     }
 
     @Override
     public void setCanAdd(boolean create) {
-        throw new UnsupportedOperationException("Parts of refined attribute are immutable");
+    	accessOverride.setAdd(create);
     }
 
     @Override
@@ -183,11 +196,11 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         this.description = description;
     }
 
-    public ResourceAttributeDefinition getAttributeDefinition() {
+    public ResourceAttributeDefinition<T> getAttributeDefinition() {
         return attributeDefinition;
     }
 
-    public void setAttributeDefinition(ResourceAttributeDefinition attributeDefinition) {
+    public void setAttributeDefinition(ResourceAttributeDefinition<T> attributeDefinition) {
         this.attributeDefinition = attributeDefinition;
     }
 
@@ -223,7 +236,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         return attributeDefinition.getNativeAttributeName();
     }
 
-    public Object[] getAllowedValues() {
+    public Collection<? extends DisplayableValue<T>> getAllowedValues() {
         return attributeDefinition.getAllowedValues();
     }
     
@@ -313,11 +326,11 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 	}
 
     // schemaHandlingAttrDefType may be null if we are parsing from schema only
-    static RefinedAttributeDefinition parse(ResourceAttributeDefinition schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
+    static <T> RefinedAttributeDefinition<T> parse(ResourceAttributeDefinition<T> schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
                                             ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext,
                                             String contextDescription) throws SchemaException {
 
-        RefinedAttributeDefinition rAttrDef = new RefinedAttributeDefinition(schemaAttrDef, prismContext);
+        RefinedAttributeDefinition<T> rAttrDef = new RefinedAttributeDefinition<T>(schemaAttrDef, prismContext);
 
         if (schemaHandlingAttrDefType != null && schemaHandlingAttrDefType.getDisplayName() != null) {
             rAttrDef.setDisplayName(schemaHandlingAttrDefType.getDisplayName());
@@ -399,12 +412,12 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
             if (schemaHandlingAttrDefType != null) {
                 if (layer != LayerType.SCHEMA) {
                     // SCHEMA is a pseudo-layer. It cannot be overriden ... unless specified explicitly
-                    PropertyLimitationsType genericLimitationsType = getLimitationsType(schemaHandlingAttrDefType.getLimitations(), null);
+                    PropertyLimitationsType genericLimitationsType = MiscSchemaUtil.getLimitationsType(schemaHandlingAttrDefType.getLimitations(), null);
                     if (genericLimitationsType != null) {
                         applyLimitationsType(limitations, genericLimitationsType);
                     }
                 }
-                PropertyLimitationsType layerLimitationsType = getLimitationsType(schemaHandlingAttrDefType.getLimitations(), layer);
+                PropertyLimitationsType layerLimitationsType = MiscSchemaUtil.getLimitationsType(schemaHandlingAttrDefType.getLimitations(), layer);
                 if (layerLimitationsType != null) {
                     applyLimitationsType(limitations, layerLimitationsType);
                 }
@@ -440,31 +453,6 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 		
 	}
 
-	private static PropertyLimitationsType getLimitationsType(List<PropertyLimitationsType> limitationsTypes, LayerType layer) throws SchemaException {
-		PropertyLimitationsType found = null;
-		for (PropertyLimitationsType limitType: limitationsTypes) {
-			if (contains(limitType.getLayer(),layer)) {
-				if (found == null) {
-					found = limitType;
-				} else {
-					throw new SchemaException("Duplicate definition of limitations for layer '"+layer+"'");
-				}
-			}
-		}
-		return found;
-	}
-
-	private static boolean contains(List<LayerType> layers, LayerType layer) {
-		if (layers == null || layers.isEmpty()) {
-			if (layer == null) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-		return layers.contains(layer);
-	}
-
 	private static PropertyLimitations getOrCreateLimitations(Map<LayerType, PropertyLimitations> limitationsMap,
 			LayerType layer) {
 		PropertyLimitations limitations = limitationsMap.get(layer);
@@ -480,7 +468,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 		if (limitations == null) {
 			return false;
 		}
-		PropertyLimitationsType limitationsType = getLimitationsType(limitations, DEFAULT_LAYER);
+		PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, DEFAULT_LAYER);
 		if (limitationsType == null) {
 			return false;
 		}
@@ -491,6 +479,34 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     }
     
     @Override
+	public RefinedAttributeDefinition<T> clone() {
+    	ResourceAttributeDefinition<T> attrDefClone = this.attributeDefinition.clone();
+		RefinedAttributeDefinition<T> clone = new RefinedAttributeDefinition<>(attrDefClone, prismContext);
+		copyDefinitionData(clone);
+		return clone;
+	}
+
+	protected void copyDefinitionData(RefinedAttributeDefinition<T> clone) {
+		clone.accessOverride = this.accessOverride.clone();
+		clone.description = this.description;
+		clone.displayName = this.displayName;
+		clone.fetchStrategy = this.fetchStrategy;
+		clone.inboundMappingTypes = this.inboundMappingTypes;
+		clone.intolerantValuePattern = this.intolerantValuePattern;
+		clone.isExclusiveStrong = this.isExclusiveStrong;
+		clone.limitationsMap = this.limitationsMap;
+		clone.matchingRuleQName = this.matchingRuleQName;
+		clone.modificationPriority = this.modificationPriority;
+		clone.outboundMappingType = this.outboundMappingType;
+		clone.readReplaceMode = this.readReplaceMode;
+		clone.secondaryIdentifier = this.secondaryIdentifier;
+		clone.tolerant = this.tolerant;
+		clone.tolerantValuePattern = this.tolerantValuePattern;
+	}
+	
+	
+
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(super.toString());

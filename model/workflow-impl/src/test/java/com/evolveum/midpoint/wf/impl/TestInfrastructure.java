@@ -39,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -65,13 +66,14 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
     private WfTaskUtil wfTaskUtil;
 
     @Autowired
+    @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
         super.initSystem(initTask, initResult);
-        repoAddObjectsFromFile(TestConstants.USERS_AND_ROLES_FILENAME, RoleType.class, initResult);
+        repoAddObjectsFromFile(AbstractWfTest.USERS_AND_ROLES_FILENAME, RoleType.class, initResult);
     }
 
     @Test(enabled = true)
@@ -85,8 +87,8 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
 
         wfTaskUtil.addApprovedBy(task, SystemObjectsType.USER_ADMINISTRATOR.value());
         wfTaskUtil.addApprovedBy(task, SystemObjectsType.USER_ADMINISTRATOR.value());
-        wfTaskUtil.addApprovedBy(task, TestConstants.R1BOSS_OID);
-        wfTaskUtil.addApprovedBy(task, TestConstants.R2BOSS_OID);
+        wfTaskUtil.addApprovedBy(task, AbstractWfTest.R1BOSS_OID);
+        wfTaskUtil.addApprovedBy(task, AbstractWfTest.R2BOSS_OID);
         task.savePendingModifications(result);
 
         Task task2 = taskManager.getTask(task.getOid(), result);
@@ -94,7 +96,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
 
         assertEquals("Incorrect number of approvers", 3, approvers.getValues().size());
         assertEquals("Incorrect approvers",
-                new HashSet(Arrays.asList(SystemObjectsType.USER_ADMINISTRATOR.value(), TestConstants.R1BOSS_OID, TestConstants.R2BOSS_OID)),
+                new HashSet(Arrays.asList(SystemObjectsType.USER_ADMINISTRATOR.value(), AbstractWfTest.R1BOSS_OID, AbstractWfTest.R2BOSS_OID)),
                 new HashSet(Arrays.asList(approvers.getValue(0).getOid(), approvers.getValue(1).getOid(), approvers.getValue(2).getOid())));
     }
 

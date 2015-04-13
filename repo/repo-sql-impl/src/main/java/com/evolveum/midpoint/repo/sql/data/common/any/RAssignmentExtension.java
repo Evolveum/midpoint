@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,19 +48,21 @@ public class RAssignmentExtension implements Serializable {
 
     private RAssignment owner;
     private String ownerOid;
-    private Short ownerId;
+    private Integer ownerId;
 
     private Short stringsCount;
     private Short longsCount;
     private Short datesCount;
     private Short referencesCount;
     private Short polysCount;
+    private Short booleansCount;
 
     private Set<RAExtString> strings;
     private Set<RAExtLong> longs;
     private Set<RAExtDate> dates;
     private Set<RAExtReference> references;
     private Set<RAExtPolyString> polys;
+    private Set<RAExtBoolean> booleans;
 
     @ForeignKey(name = "none")
     @MapsId("owner")
@@ -80,11 +82,20 @@ public class RAssignmentExtension implements Serializable {
 
     @Id
     @Column(name = "owner_id", length = RUtil.COLUMN_LENGTH_OID)
-    public Short getOwnerId() {
+    public Integer getOwnerId() {
         if (ownerId == null && owner != null) {
             ownerId = owner.getId();
         }
         return ownerId;
+    }
+
+    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RAExtBoolean> getBooleans() {
+        if (booleans == null) {
+            booleans = new HashSet<>();
+        }
+        return booleans;
     }
 
     @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
@@ -130,6 +141,10 @@ public class RAssignmentExtension implements Serializable {
             polys = new HashSet<>();
         }
         return polys;
+    }
+
+    public Short getBooleansCount() {
+        return booleansCount;
     }
 
     public Short getStringsCount() {
@@ -200,8 +215,16 @@ public class RAssignmentExtension implements Serializable {
         this.owner = owner;
     }
 
-    public void setOwnerId(Short ownerId) {
+    public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
+    }
+
+    public void setBooleans(Set<RAExtBoolean> booleans) {
+        this.booleans = booleans;
+    }
+
+    public void setBooleansCount(Short booleansCount) {
+        this.booleansCount = booleansCount;
     }
 
     @Override
@@ -222,6 +245,9 @@ public class RAssignmentExtension implements Serializable {
             return false;
         if (strings != null ? !strings.equals(that.strings) : that.strings != null) return false;
         if (stringsCount != null ? !stringsCount.equals(that.stringsCount) : that.stringsCount != null) return false;
+        if (booleans != null ? !booleans.equals(that.booleans) : that.booleans != null) return false;
+        if (booleansCount != null ? !booleansCount.equals(that.booleansCount) : that.booleansCount != null)
+            return false;
 
         return true;
     }
@@ -233,6 +259,7 @@ public class RAssignmentExtension implements Serializable {
         result = 31 * result + (datesCount != null ? datesCount.hashCode() : 0);
         result = 31 * result + (referencesCount != null ? referencesCount.hashCode() : 0);
         result = 31 * result + (polysCount != null ? polysCount.hashCode() : 0);
+        result = 31 * result + (booleansCount != null ? booleansCount.hashCode() : 0);
         return result;
     }
 
@@ -251,7 +278,7 @@ public class RAssignmentExtension implements Serializable {
 
         Set<RAnyValue> values = new HashSet<RAnyValue>();
         try {
-            List<Item<?>> items = containerValue.getItems();
+            List<Item<?,?>> items = containerValue.getItems();
             for (Item item : items) {
                 values.addAll(converter.convertToRValue(item, true));
             }
@@ -273,6 +300,8 @@ public class RAssignmentExtension implements Serializable {
                 repo.getStrings().add((RAExtString) value);
             } else if (value instanceof RAExtPolyString) {
                 repo.getPolys().add((RAExtPolyString) value);
+            } else if (value instanceof RAExtBoolean) {
+                repo.getBooleans().add((RAExtBoolean) value);
             }
         }
 
@@ -281,5 +310,6 @@ public class RAssignmentExtension implements Serializable {
         repo.setPolysCount((short) repo.getPolys().size());
         repo.setReferencesCount((short) repo.getReferences().size());
         repo.setLongsCount((short) repo.getLongs().size());
+        repo.setBooleansCount((short) repo.getBooleans().size());
     }
 }
