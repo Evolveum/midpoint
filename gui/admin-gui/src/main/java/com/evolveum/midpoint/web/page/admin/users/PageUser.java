@@ -18,30 +18,14 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
@@ -49,7 +33,9 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -66,14 +52,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.SimpleErrorPanel;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -95,26 +74,8 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -139,7 +100,6 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1393,15 +1353,73 @@ public class PageUser extends PageAdminUsers implements ProgressReportingAwarePa
         LOGGER.debug("Recompute user assignments");
         Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
         OperationResult result = new OperationResult(OPERATION_RECOMPUTE_ASSIGNMENTS);
-        PrismObject<UserType> user = userModel.getObject().getObject();
-        ObjectDelta<UserType> delta = user.createModifyDelta();
+        ObjectDelta<UserType> delta;
         List<ObjectType> assignments = new ArrayList<>();
 
         try {
+            reviveModels();
+
+            ObjectWrapper userWrapper = userModel.getObject();
+            delta = userWrapper.getObjectDelta();
+            if (userWrapper.getOldDelta() != null) {
+                delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
+            }
+
+            switch (userWrapper.getStatus()) {
+                case ADDING:
+                    PrismObject<UserType> user = delta.getObjectToAdd();
+                    prepareUserForAdd(user);
+                    getPrismContext().adopt(user, UserType.class);
+
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Delta before add user:\n{}", new Object[]{delta.debugDump(3)});
+                    }
+
+                    if (!delta.isEmpty()) {
+                        delta.revive(getPrismContext());
+                    } else {
+                        result.recordSuccess();
+                    }
+
+                    break;
+                case MODIFYING:
+                    prepareUserDeltaForModify(delta);
+
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Delta before modify user:\n{}", new Object[]{delta.debugDump(3)});
+                    }
+
+                    List<ObjectDelta<? extends ObjectType>> accountDeltas = modifyAccounts(result);
+                    Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+
+                    if (!delta.isEmpty()) {
+                        delta.revive(getPrismContext());
+                        deltas.add(delta);
+                    }
+
+                    for (ObjectDelta accDelta : accountDeltas) {
+                        if (!accDelta.isEmpty()) {
+                             accDelta.revive(getPrismContext());
+                            deltas.add(accDelta);
+                        }
+                    }
+
+                    break;
+                default:
+                    error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
+            }
+
             ModelContext<UserType> modelContext = getModelInteractionService().previewChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
 
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
             Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getZeroSet();
+
+            if(evaluatedAssignments.isEmpty()){
+                info(getString("pageUser.message.noAssignmentsAvailable"));
+                target.add(getFeedbackPanel());
+                return;
+            }
+
             EvaluatedAssignment<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
             DeltaSetTriple<? extends EvaluatedAbstractRole> rolesTriple = evaluatedAssignment.getRoles();
             Collection<? extends EvaluatedAbstractRole> evaluatedRoles = rolesTriple.getZeroSet();
